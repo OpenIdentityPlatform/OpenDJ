@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package netscape.ldap;
 
@@ -47,6 +48,6 @@ import java.net.Socket;
  */
 public interface LDAPSocketFactory
 {
-  public Socket makeSocket(String host, int port);
+  Socket makeSocket(String host, int port);
 }
 

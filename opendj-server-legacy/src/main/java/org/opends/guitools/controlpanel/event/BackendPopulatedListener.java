@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -37,5 +38,5 @@ public interface BackendPopulatedListener
    * Method called when a set of backends are populated.
    * @param ev the event notifying that a set of backends have been populated.
    */
-  public void backendPopulated(BackendPopulatedEvent ev);
+  void backendPopulated(BackendPopulatedEvent ev);
 }

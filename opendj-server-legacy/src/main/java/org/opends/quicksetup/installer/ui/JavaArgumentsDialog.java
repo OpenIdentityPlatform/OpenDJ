@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -745,7 +745,7 @@ public class JavaArgumentsDialog extends JDialog
     }
   }
 
-  private final static String INSTALL_PATH =
+  private static final String INSTALL_PATH =
     Utils.getInstallPathFromClasspath();
 
   private void checkOptions(String options, Collection<LocalizableMessage> errorMsgs,

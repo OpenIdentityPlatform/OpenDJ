@@ -111,7 +111,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @param err stream to write messages; may be null
    * @return int indicating the result of this action
    */
-  abstract protected int processLocal(boolean initializeServer,
+  protected abstract int processLocal(boolean initializeServer,
                                       PrintStream out,
                                       PrintStream err);
 

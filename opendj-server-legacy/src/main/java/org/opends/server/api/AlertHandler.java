@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
 import org.forgerock.i18n.LocalizableMessage;
@@ -68,7 +68,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    *                                   related to the server
    *                                   configuration.
    */
-  public void initializeAlertHandler(T configuration)
+  void initializeAlertHandler(T configuration)
        throws ConfigException, InitializationException;
 
 
@@ -78,7 +78,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    *
    * @return  The current configuration for this alert handler.
    */
-  public AlertHandlerCfg getAlertHandlerConfiguration();
+  AlertHandlerCfg getAlertHandlerConfiguration();
 
 
 
@@ -95,7 +95,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    * @return  {@code true} if the provided configuration is
    *          acceptable, or {@code false} if it is not.
    */
-  public boolean isConfigurationAcceptable(
+  boolean isConfigurationAcceptable(
                       AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons);
 
@@ -105,7 +105,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    * Performs any necessary cleanup that may be necessary when this
    * alert handler is finalized.
    */
-  public void finalizeAlertHandler();
+  void finalizeAlertHandler();
 
 
 
@@ -117,7 +117,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    * @param  alertMessage  A message (possibly {@code null}) that can
    *                       provide more information about this alert.
    */
-  public void sendAlertNotification(AlertGenerator generator,
+  void sendAlertNotification(AlertGenerator generator,
                                     String alertType,
                                     LocalizableMessage alertMessage);
 }

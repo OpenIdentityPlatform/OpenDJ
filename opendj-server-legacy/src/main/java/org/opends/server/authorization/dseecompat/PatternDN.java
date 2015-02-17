@@ -1088,7 +1088,7 @@ public class PatternDN
    *                              valid attribute value pattern from the
    *                              provided DN string.
    */
-  static private int parseValuePattern(String dnString, int pos,
+  private static int parseValuePattern(String dnString, int pos,
                                        ArrayList<ByteString> attributeValues)
           throws DirectoryException
   {

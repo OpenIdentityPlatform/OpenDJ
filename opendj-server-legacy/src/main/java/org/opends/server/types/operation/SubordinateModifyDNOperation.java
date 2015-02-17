@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -54,7 +54,7 @@ public interface SubordinateModifyDNOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -67,7 +67,7 @@ public interface SubordinateModifyDNOperation
    * @return  The DN of the entry to rename, or {@code null} if the
    *          raw entry DN has not yet been processed.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -79,7 +79,7 @@ public interface SubordinateModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request
    *          from the client.
    */
-  public ByteString getRawNewRDN();
+  ByteString getRawNewRDN();
 
 
 
@@ -92,7 +92,7 @@ public interface SubordinateModifyDNOperation
    * @return  The new RDN to use for the entry, or {@code null} if the
    *          raw newRDN has not yet been processed.
    */
-  public RDN getNewRDN();
+  RDN getNewRDN();
 
 
 
@@ -103,7 +103,7 @@ public interface SubordinateModifyDNOperation
    * @return  {@code true} if the current RDN value should be removed
    *          from the entry, or {@code false} if not.
    */
-  public boolean deleteOldRDN();
+  boolean deleteOldRDN();
 
 
 
@@ -115,7 +115,7 @@ public interface SubordinateModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client
    *          request, or {@code null} if there is none.
    */
-  public ByteString getRawNewSuperior();
+  ByteString getRawNewSuperior();
 
 
 
@@ -129,7 +129,7 @@ public interface SubordinateModifyDNOperation
    *          there is no newSuperior DN for this request or if the
    *          raw newSuperior has not yet been processed.
    */
-  public DN getNewSuperior();
+  DN getNewSuperior();
 
 
 
@@ -141,7 +141,7 @@ public interface SubordinateModifyDNOperation
    * @return  The current entry, or {@code null} if it is not yet
    *           available.
    */
-  public Entry getOriginalEntry();
+  Entry getOriginalEntry();
 
 
 
@@ -153,6 +153,6 @@ public interface SubordinateModifyDNOperation
    * @return  The updated entry, or {@code null} if it is not yet
    *           available.
    */
-  public Entry getUpdatedEntry();
+  Entry getUpdatedEntry();
 }
 

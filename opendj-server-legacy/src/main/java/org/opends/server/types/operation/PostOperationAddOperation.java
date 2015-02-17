@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -63,7 +63,7 @@ public interface PostOperationAddOperation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -76,7 +76,7 @@ public interface PostOperationAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<RawAttribute> getRawAttributes();
+  List<RawAttribute> getRawAttributes();
 
 
 
@@ -85,30 +85,27 @@ public interface PostOperationAddOperation
    *
    * @return  The DN of the entry to add.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
   /**
    * Retrieves the set of processed objectclasses for the entry to
-   * add.  The contents of the returned map must not be altered by the
-   * caller.
+   * add.  The contents of the returned map must not be altered by the caller.
    *
    * @return  The set of processed objectclasses for the entry to add.
    */
-  public Map<ObjectClass,String> getObjectClasses();
+  Map<ObjectClass,String> getObjectClasses();
 
 
 
   /**
    * Retrieves the set of processed user attributes for the entry to
-   * add.  The contents of the returned map must not be altered by the
-   * caller.
+   * add.  The contents of the returned map must not be altered by the caller.
    *
-   * @return  The set of processed user attributes for the entry to
-   *          add.
+   * @return  The set of processed user attributes for the entry to add.
    */
-  public Map<AttributeType,List<Attribute>> getUserAttributes();
+  Map<AttributeType,List<Attribute>> getUserAttributes();
 
 
 
@@ -117,10 +114,9 @@ public interface PostOperationAddOperation
    * entry to add.  The contents of the returned map must not be
    * altered by the caller.
    *
-   * @return  The set of processed operational attributes for the
-   *          entry to add.
+   * @return  The set of processed operational attributes for the entry to add.
    */
-  public Map<AttributeType,List<Attribute>>
+  Map<AttributeType,List<Attribute>>
               getOperationalAttributes();
 
 
@@ -131,6 +127,6 @@ public interface PostOperationAddOperation
    *
    * @return  The entry to be added to the server.
    */
-  public Entry getEntryToAdd();
+  Entry getEntryToAdd();
 }
 

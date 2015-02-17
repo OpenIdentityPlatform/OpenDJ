@@ -46,7 +46,7 @@ public class Utilities {
    * @param but JButton for invoking browse action
    * @return the created panel.
    */
-  static public JPanel createBrowseButtonPanel(JLabel lbl,
+  public static JPanel createBrowseButtonPanel(JLabel lbl,
                                          JTextComponent tf,
                                          JButton but)
   {
@@ -83,7 +83,7 @@ public class Utilities {
    *
    * @param frame for which the icon will be set
    */
-  static public void setFrameIcon(JFrame frame)
+  public static void setFrameIcon(JFrame frame)
   {
     UIFactory.IconType ic;
     if (isMacOS()) {

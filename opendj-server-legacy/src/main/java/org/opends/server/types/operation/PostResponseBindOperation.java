@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 import org.forgerock.i18n.LocalizableMessage;
@@ -55,7 +55,7 @@ public interface PostResponseBindOperation
    *
    * @return  The authentication type for this bind operation.
    */
-  public AuthenticationType getAuthenticationType();
+  AuthenticationType getAuthenticationType();
 
 
 
@@ -66,7 +66,7 @@ public interface PostResponseBindOperation
    * @return  A string representation of the protocol version
    *          associated with this bind request.
    */
-  public String getProtocolVersion();
+  String getProtocolVersion();
 
 
 
@@ -78,7 +78,7 @@ public interface PostResponseBindOperation
    * @return  The raw, unprocessed bind DN for this bind operation as
    *          contained in the client request.
    */
-  public ByteString getRawBindDN();
+  ByteString getRawBindDN();
 
 
 
@@ -87,7 +87,7 @@ public interface PostResponseBindOperation
    *
    * @return  The bind DN for this bind operation.
    */
-  public DN getBindDN();
+  DN getBindDN();
 
 
 
@@ -98,7 +98,7 @@ public interface PostResponseBindOperation
    * @return  The simple authentication password for this bind
    *          operation.
    */
-  public ByteString getSimplePassword();
+  ByteString getSimplePassword();
 
 
 
@@ -109,7 +109,7 @@ public interface PostResponseBindOperation
    *          <CODE>null</CODE> if the bind does not use SASL
    *          authentication.
    */
-  public String getSASLMechanism();
+  String getSASLMechanism();
 
 
 
@@ -120,7 +120,7 @@ public interface PostResponseBindOperation
    *          <CODE>null</CODE> if there are none or if the bind does
    *          not use SASL authentication.
    */
-  public ByteString getSASLCredentials();
+  ByteString getSASLCredentials();
 
 
 
@@ -131,7 +131,7 @@ public interface PostResponseBindOperation
    * @return  The set of server SASL credentials to include in the
    *          bind response, or <CODE>null</CODE> if there are none.
    */
-  public ByteString getServerSASLCredentials();
+  ByteString getServerSASLCredentials();
 
 
 
@@ -147,7 +147,7 @@ public interface PostResponseBindOperation
    *          authentication or the SASL processing was not able to
    *          map the request to a user.
    */
-  public Entry getSASLAuthUserEntry();
+  Entry getSASLAuthUserEntry();
 
 
 
@@ -159,7 +159,7 @@ public interface PostResponseBindOperation
    *          authentication failed, or <CODE>null</CODE> if none is
    *          available.
    */
-  public LocalizableMessage getAuthFailureReason();
+  LocalizableMessage getAuthFailureReason();
 
 
 
@@ -173,6 +173,6 @@ public interface PostResponseBindOperation
    *          progressed far enough to identify the user or if the
    *          user DN could not be determined.
    */
-  public DN getUserEntryDN();
+  DN getUserEntryDN();
 }
 

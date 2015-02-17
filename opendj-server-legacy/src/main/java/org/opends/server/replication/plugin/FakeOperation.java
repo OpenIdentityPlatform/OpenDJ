@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -68,5 +68,5 @@ public abstract class FakeOperation
    * @return A ReplicationMsg that can be used to send information
    *         about this operation to remote servers.
    */
-  abstract public ReplicationMsg generateMessage();
+  public abstract ReplicationMsg generateMessage();
 }

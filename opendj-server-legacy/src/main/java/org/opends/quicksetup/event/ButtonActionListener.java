@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.event;
@@ -29,14 +30,13 @@ package org.opends.quicksetup.event;
 /**
  * Interface used for the actions that are done in the wizard buttons (those
  * specified in org.opends.quicksetup.ButtonName).
- *
  */
 public interface ButtonActionListener
 {
   /**
-   * Method called when the user clicks on one of the buttons specifid in
+   * Method called when the user clicks on one of the buttons specified in
    * org.opends.quicksetup.ButtonName.
    * @param event the button event
    */
-  public void buttonActionPerformed(ButtonEvent event);
+  void buttonActionPerformed(ButtonEvent event);
 }

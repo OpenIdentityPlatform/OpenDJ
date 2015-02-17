@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -83,10 +83,9 @@ public final class ManagedObjectDefinitionI18NResource {
 
 
   // Get a resource instance creating it if necessary.
-  private synchronized static ManagedObjectDefinitionI18NResource getInstance(
+  private static synchronized ManagedObjectDefinitionI18NResource getInstance(
       String prefix) {
-    ManagedObjectDefinitionI18NResource instance = INSTANCES
-        .get(prefix);
+    ManagedObjectDefinitionI18NResource instance = INSTANCES.get(prefix);
 
     if (instance == null) {
       instance = new ManagedObjectDefinitionI18NResource(prefix);

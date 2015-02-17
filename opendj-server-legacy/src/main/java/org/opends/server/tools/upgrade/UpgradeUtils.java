@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -824,7 +824,7 @@ final class UpgradeUtils
    *
    * @return A schema which may used in the upgrade context.
    */
-  final static Schema getUpgradeSchema() {
+  static Schema getUpgradeSchema() {
     final SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema())
         .setOption(DEFAULT_MATCHING_RULE_OID, getCaseExactMatchingRule().getOID())
         .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID());

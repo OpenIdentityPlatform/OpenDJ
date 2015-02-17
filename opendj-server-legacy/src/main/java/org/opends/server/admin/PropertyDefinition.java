@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -66,7 +66,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *          The type of property definition constructed by this
    *          builder.
    */
-  protected abstract static class AbstractBuilder
+  protected static abstract class AbstractBuilder
       <T, D extends PropertyDefinition<T>> {
 
     // The administrator action.

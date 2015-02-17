@@ -55,7 +55,7 @@ public interface ServerManagedObjectAddListener<T extends Configuration> {
    * @return Returns <code>true</code> if the proposed addition is
    *         acceptable, or <code>false</code> if it is not.
    */
-  public boolean isConfigurationAddAcceptable(
+  boolean isConfigurationAddAcceptable(
       ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons);
 
 
@@ -68,6 +68,6 @@ public interface ServerManagedObjectAddListener<T extends Configuration> {
    * @return Returns information about the result of adding the server
    *         managed object.
    */
-  public ConfigChangeResult applyConfigurationAdd(
+  ConfigChangeResult applyConfigurationAdd(
       ServerManagedObject<? extends T> mo);
 }

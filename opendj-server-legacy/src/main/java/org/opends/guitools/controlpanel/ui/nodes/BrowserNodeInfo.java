@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -40,7 +41,7 @@ public interface BrowserNodeInfo {
    * URL of the displayed entry.
    * @return the URL of the displayed entry.
    */
-  public LDAPURL getURL();
+  LDAPURL getURL();
 
 
   /**
@@ -49,7 +50,7 @@ public interface BrowserNodeInfo {
    * @return <CODE>true</CODE> if the displayed entry is the top entry of a
    * suffix and <CODE>false</CODE> otherwise.
    */
-  public boolean isSuffix();
+  boolean isSuffix();
 
 
   /**
@@ -58,7 +59,7 @@ public interface BrowserNodeInfo {
    * @return <CODE>true</CODE> if the displayed entry is the root node of the
    * server (the dn="" entry) and <CODE>false</CODE> otherwise.
    */
-  public boolean isRootNode();
+  boolean isRootNode();
 
   /**
    * Returns <CODE>true</CODE> if the displayed entry is not located on the
@@ -71,7 +72,7 @@ public interface BrowserNodeInfo {
    * the browser controller. Returns <CODE>false</CODE> otherwise.
    *
    */
-  public boolean isRemote();
+  boolean isRemote();
 
 
   /**
@@ -79,14 +80,14 @@ public interface BrowserNodeInfo {
    * -1 if the numsubordinates attribute is not defined.
    * @return the value of numsubordinates for the entry.
    */
-  public int getNumSubOrdinates();
+  int getNumSubOrdinates();
 
 
   /**
    * Returns the value of hassubordinates for the entry.
    * @return the value of hassubordinates for the entry.
    */
-  public boolean hasSubOrdinates();
+  boolean hasSubOrdinates();
 
   /**
    * Returns the referrals attached to the displayed entry.
@@ -94,14 +95,14 @@ public interface BrowserNodeInfo {
    * Returns <CODE>null</CODE> if the attribute is not present.
    * @return the referrals attached to the displayed entry.
    */
-  public String[] getReferral();
+  String[] getReferral();
 
 
   /**
    * Returns the error detected while reading this entry.
    * @return the error detected while reading this entry.
    */
-  public int getErrorType();
+  int getErrorType();
 
 
   /**
@@ -109,7 +110,7 @@ public interface BrowserNodeInfo {
    * Returns <CODE>null</CODE> if getErrorType() == ERROR_NONE.
    * @return the exception associated to the error.
    */
-  public Exception getErrorException();
+  Exception getErrorException();
 
 
   /**
@@ -118,36 +119,36 @@ public interface BrowserNodeInfo {
    * errorArg contains the String representing the faulty LDAP URL.
    * @return the argument associated to an error/exception.
    */
-  public Object getErrorArg();
+  Object getErrorArg();
 
   /**
    * Returns the basic node associated with the node info.
    * @return the basic node associated with the node info.
    */
-  public BasicNode getNode();
+  BasicNode getNode();
 
 
   /**
    * Returns the TreePath corresponding to the displayed entry.
    * @return the TreePath corresponding to the displayed entry.
    */
-  public TreePath getTreePath();
+  TreePath getTreePath();
 
 
   /**
-   * Tells wether the node passed as parameter represents the same node as this
+   * Tells whether the node passed as parameter represents the same node as this
    * one.
    * @param node the node.
    * @return <CODE>true</CODE> if the node passed as parameter represents the
    * same node as this one and <CODE>false</CODE> otherwise.
    */
-  public boolean representsSameNode(BrowserNodeInfo node);
+  boolean representsSameNode(BrowserNodeInfo node);
 
   /**
    * Returns the object class value of the entry that the nodes represents.
    * @return the object class value of the entry that the nodes represents.
    */
-  public String[] getObjectClassValues();
+  String[] getObjectClassValues();
 
   /**
    * Error types
@@ -155,20 +156,18 @@ public interface BrowserNodeInfo {
   /**
    * No error happened.
    */
-  public static final int ERROR_NONE          = 0;
+  int ERROR_NONE          = 0;
   /**
    * And error reading the entry occurred.
    */
-  public static final int ERROR_READING_ENTRY     = 1;
+  int ERROR_READING_ENTRY     = 1;
   /**
    * An error following referrals occurred.
    */
-  public static final int ERROR_SOLVING_REFERRAL    = 2;
+  int ERROR_SOLVING_REFERRAL    = 2;
   /**
    * An error occurred searching the children of the entry.
    */
-  public static final int ERROR_SEARCHING_CHILDREN  = 3;
-
-
+  int ERROR_SEARCHING_CHILDREN  = 3;
 
 }

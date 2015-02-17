@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -39,7 +39,7 @@ public interface KeywordBindRule
      * @param evalCtx An evaluation context to use in the evaluation.
      * @return An enumeration evaluation result.
      */
-    public EnumEvalResult evaluate(AciEvalContext evalCtx);
+    EnumEvalResult evaluate(AciEvalContext evalCtx);
 
     /**
      * Appends a string representation of this object to the provided buffer.

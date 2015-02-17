@@ -22,14 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
-
-
 import javax.management.ObjectName;
-
-
 
 /**
  * This interface must be implemented by all Directory Server
@@ -47,6 +44,6 @@ public interface DirectoryServerMBean
    *
    * @return  The JMX object name for this MBean.
    */
-  public ObjectName getObjectName();
+  ObjectName getObjectName();
 }
 

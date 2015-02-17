@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -55,7 +56,7 @@ public interface RestoreTaskListener
    * @param  config   Configuration information about the restore to
    *                  be performed.
    */
-  public void processRestoreBegin(Backend backend,
+  void processRestoreBegin(Backend backend,
                                   RestoreConfig config);
 
 
@@ -72,7 +73,7 @@ public interface RestoreTaskListener
    * @param  successful  Indicates whether the restore operation
    *                     completed successfully.
    */
-  public void processRestoreEnd(Backend backend, RestoreConfig config,
+  void processRestoreEnd(Backend backend, RestoreConfig config,
                                 boolean successful);
 }
 

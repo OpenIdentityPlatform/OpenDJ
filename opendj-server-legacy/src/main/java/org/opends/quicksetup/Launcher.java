@@ -256,7 +256,7 @@ public abstract class Launcher {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract protected LocalizableMessage getFrameTitle();
+  protected abstract LocalizableMessage getFrameTitle();
 
   /**
    * Launches the command line based uninstall.

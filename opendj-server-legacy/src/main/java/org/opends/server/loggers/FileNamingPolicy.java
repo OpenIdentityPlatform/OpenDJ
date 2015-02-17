@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -40,14 +40,14 @@ interface FileNamingPolicy
    *
    * @return the initial file.
    */
-  public File getInitialName();
+  File getInitialName();
 
   /**
    * Gets the next name to use.
    *
    * @return the next file.
    */
-  public File getNextName();
+  File getNextName();
 
   /**
    * Gets the filename filter that can be used to filter files named by this
@@ -55,17 +55,17 @@ interface FileNamingPolicy
    *
    * @return The FilenameFilter that can filter files named by this policy.
    */
-  public FilenameFilter getFilenameFilter();
+  FilenameFilter getFilenameFilter();
 
   /**
-   * Gets all the existing files named by this policy in the parent directoy
+   * Gets all the existing files named by this policy in the parent directory
    * of the initial file. The initial file is excluded from this list if it
    * exists.
    *
    * @return The files named by this policy or <code>null</code> if an
-   *         error occured.
+   *         error occurred.
    */
-  public File[] listFiles();
+  File[] listFiles();
 
 
 }

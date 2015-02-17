@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -39,27 +40,27 @@ public interface TextWriter
    *
    * @param record - the record to write.
    */
-  public void writeRecord(String record);
+  void writeRecord(String record);
 
   /**
    * Flushes any buffered contents of the output stream.
    */
-  public void flush();
+  void flush();
 
   /**
    * Releases any resources held by the writer.
    */
-  public void shutdown();
+  void shutdown();
 
   /**
    * Retrieves the number of bytes written by this writer.
    *
    * @return the number of bytes written by this writer.
    */
-  public long getBytesWritten();
+  long getBytesWritten();
 
   /**
-   * A TextWriter implementationwhich writes to standard out.
+   * A TextWriter implementation which writes to standard out.
    */
   public static class STDOUT implements TextWriter
   {

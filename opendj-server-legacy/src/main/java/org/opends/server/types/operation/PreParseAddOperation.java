@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -56,7 +56,7 @@ public interface PreParseAddOperation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -65,7 +65,7 @@ public interface PreParseAddOperation
    *
    * @param  rawEntryDN  The raw entry DN for the entry to add.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
 
@@ -78,7 +78,7 @@ public interface PreParseAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<RawAttribute> getRawAttributes();
+  List<RawAttribute> getRawAttributes();
 
 
 
@@ -89,7 +89,7 @@ public interface PreParseAddOperation
    * @param  rawAttribute  The attribute to add to the set of raw
    *                       attributes for this add operation.
    */
-  public void addRawAttribute(RawAttribute rawAttribute);
+  void addRawAttribute(RawAttribute rawAttribute);
 
 
 
@@ -99,6 +99,6 @@ public interface PreParseAddOperation
    * @param  rawAttributes  The set of raw attributes for this add
    *                        operation.
    */
-  public void setRawAttributes(List<RawAttribute> rawAttributes);
+  void setRawAttributes(List<RawAttribute> rawAttributes);
 }
 

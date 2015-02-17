@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -46,7 +47,7 @@ public interface ProtocolElement
    * @return  The name of the protocol associated with this protocol
    *          element.
    */
-  public String getProtocolElementName();
+  String getProtocolElementName();
 
 
 
@@ -55,7 +56,7 @@ public interface ProtocolElement
    *
    * @return  A string representation of this protocol element.
    */
-  public String toString();
+  String toString();
 
 
 
@@ -66,7 +67,7 @@ public interface ProtocolElement
    * @param  buffer  The buffer into which the string representation
    *                 should be written.
    */
-  public void toString(StringBuilder buffer);
+  void toString(StringBuilder buffer);
 
 
 
@@ -79,6 +80,6 @@ public interface ProtocolElement
    * @param  indent  The number of spaces that should be used to
    *                 indent the resulting string representation.
    */
-  public void toString(StringBuilder buffer, int indent);
+  void toString(StringBuilder buffer, int indent);
 }
 

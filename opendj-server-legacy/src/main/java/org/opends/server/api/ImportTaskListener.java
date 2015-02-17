@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -55,7 +56,7 @@ public interface ImportTaskListener
    * @param  config   Configuration information about the LDIF import
    *                  to be performed.
    */
-  public void processImportBegin(Backend backend,
+  void processImportBegin(Backend backend,
                                  LDIFImportConfig config);
 
 
@@ -72,7 +73,7 @@ public interface ImportTaskListener
    * @param  successful  Indicates whether the import operation
    *                     completed successfully.
    */
-  public void processImportEnd(Backend backend,
+  void processImportEnd(Backend backend,
                                LDIFImportConfig config,
                                boolean successful);
 }

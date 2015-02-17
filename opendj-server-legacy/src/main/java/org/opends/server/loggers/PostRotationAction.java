@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
-
-
 
 /**
  * This interface describes the action that needs to be taken
@@ -41,7 +39,7 @@ interface PostRotationAction
    * @return  <CODE>true</CODE> if the rotation action was successful, or
    *          <CODE>false</CODE> if it was not.
    */
-  public boolean execute();
+  boolean execute();
 
 }
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -61,7 +62,7 @@ public interface InternalSearchListener
    *                              the search operation will result
    *                              will be set based on this exception.
    */
-  public void handleInternalSearchEntry(
+  void handleInternalSearchEntry(
                    InternalSearchOperation searchOperation,
                    SearchResultEntry searchEntry)
          throws DirectoryException;
@@ -83,7 +84,7 @@ public interface InternalSearchListener
    *                              the search operation will result
    *                              will be set based on this exception.
    */
-  public void handleInternalSearchReference(
+  void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
                    SearchResultReference searchReference)
          throws DirectoryException;

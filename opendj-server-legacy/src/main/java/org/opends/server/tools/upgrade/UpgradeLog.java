@@ -52,9 +52,9 @@ import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
  */
 class UpgradeLog
 {
-  static private File logFile;
-  static private FileHandler fileHandler;
-  final static String UPGRADELOGNAME = "upgrade.log";
+  private static File logFile;
+  private static FileHandler fileHandler;
+  static final String UPGRADELOGNAME = "upgrade.log";
 
   /**
    * Creates a new file handler for writing log messages into

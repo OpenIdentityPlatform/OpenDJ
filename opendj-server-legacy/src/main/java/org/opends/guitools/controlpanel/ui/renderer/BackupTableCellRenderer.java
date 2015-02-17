@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -51,11 +52,11 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
   private static final long serialVersionUID = -4645902129785751854L;
   private DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL);
   private File backupParentPath;
-  private final static Border fullBorder = BorderFactory.createCompoundBorder(
+  private static final Border fullBorder = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(1, 0, 0, 0,
           ColorAndFontConstants.gridColor),
           BorderFactory.createEmptyBorder(4, 4, 4, 4));
-  private final static Border incrementalBorder =
+  private static final Border incrementalBorder =
     BorderFactory.createEmptyBorder(4, 4, 4, 4);
 
   /**

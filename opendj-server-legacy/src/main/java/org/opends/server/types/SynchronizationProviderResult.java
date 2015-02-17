@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -51,7 +51,7 @@ public interface SynchronizationProviderResult
    *          operation should continue, or <CODE>false</CODE> if it
    *          should stop.
    */
-  public boolean continueProcessing();
+  boolean continueProcessing();
 
   /**
    * Retrieves the error message if <code>continueProcessing</code>
@@ -60,7 +60,7 @@ public interface SynchronizationProviderResult
    * @return An error message explaining why processing should
    * stop or <code>null</code> if none is provided.
    */
-  public LocalizableMessage getErrorMessage();
+  LocalizableMessage getErrorMessage();
 
   /**
    * Retrieves the result code for the operation
@@ -69,7 +69,7 @@ public interface SynchronizationProviderResult
    * @return the result code for the operation or <code>null</code>
    * if none is provided.
    */
-  public ResultCode getResultCode();
+  ResultCode getResultCode();
 
   /**
    * Retrieves the matched DN for the operation
@@ -78,16 +78,16 @@ public interface SynchronizationProviderResult
    * @return the matched DN for the operation or <code>null</code>
    * if none is provided.
    */
-  public DN getMatchedDN();
+  DN getMatchedDN();
 
   /**
    * Retrieves the referral URLs for the operation
    * if <code>continueProcessing</code> returned <code>false</code>.
    *
-   * @return the refferal URLs for the operation or
+   * @return the referral URLs for the operation or
    * <code>null</code> if none is provided.
    */
-  public List<String> getReferralURLs();
+  List<String> getReferralURLs();
 
   /**
    * Defines a continue processing synchronization provider result.

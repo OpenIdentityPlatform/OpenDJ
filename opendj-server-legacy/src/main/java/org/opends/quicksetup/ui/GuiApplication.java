@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -80,7 +80,7 @@ public abstract class GuiApplication extends Application {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract public LocalizableMessage getFrameTitle();
+  public abstract LocalizableMessage getFrameTitle();
 
   /**
    * Returns the initial wizard step.
@@ -134,7 +134,7 @@ public abstract class GuiApplication extends Application {
    * @param dlg QuickSetupDialog that will be closing
    * @param evt The event from the Window indicating closing
    */
-  abstract public void windowClosing(QuickSetupDialog dlg, WindowEvent evt);
+  public abstract void windowClosing(QuickSetupDialog dlg, WindowEvent evt);
 
   /**
    * This method is called when we detected that there is something installed
@@ -166,7 +166,7 @@ public abstract class GuiApplication extends Application {
    * Get the name of the button that will receive initial focus.
    * @return ButtonName of the button to receive initial focus
    */
-  abstract public ButtonName getInitialFocusButtonName();
+  public abstract ButtonName getInitialFocusButtonName();
 
   /**
    * Creates the main panel for the wizard dialog.
@@ -183,34 +183,34 @@ public abstract class GuiApplication extends Application {
    * Returns the set of wizard steps used in this application's wizard.
    * @return Set of Step objects representing wizard steps
    */
-  abstract public Set<? extends WizardStep> getWizardSteps();
+  public abstract Set<? extends WizardStep> getWizardSteps();
 
   /**
    * Creates a wizard panel given a specific step.
    * @param step for which a panel representation should be created
    * @return QuickSetupStepPanel for representing the <code>step</code>
    */
-  abstract public QuickSetupStepPanel createWizardStepPanel(WizardStep step);
+  public abstract QuickSetupStepPanel createWizardStepPanel(WizardStep step);
 
   /**
    * Gets the next step in the wizard given a current step.
    * @param step Step the current step
    * @return Step the next step
    */
-  abstract public WizardStep getNextWizardStep(WizardStep step);
+  public abstract WizardStep getNextWizardStep(WizardStep step);
 
   /**
    * Gets the previous step in the wizard given a current step.
    * @param step Step the current step
    * @return Step the previous step
    */
-  abstract public WizardStep getPreviousWizardStep(WizardStep step);
+  public abstract WizardStep getPreviousWizardStep(WizardStep step);
 
   /**
    * Gets the finished step in the wizard.
    * @return Step the finished step
    */
-  abstract public WizardStep getFinishedStep();
+  public abstract WizardStep getFinishedStep();
 
   /**
    * Gets the currently displayed wizard step.

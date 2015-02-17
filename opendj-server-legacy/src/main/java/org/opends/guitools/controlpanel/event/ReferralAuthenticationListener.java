@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -39,5 +40,5 @@ public interface ReferralAuthenticationListener {
    * Notification that some authentication changed.
    *
    */
-  public void notifyAuthDataChanged();
+  void notifyAuthDataChanged();
 }

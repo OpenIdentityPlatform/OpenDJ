@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -56,7 +56,7 @@ public interface PostSynchronizationModifyOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -65,7 +65,7 @@ public interface PostSynchronizationModifyOperation
    *
    * @return  The DN of the entry to modify.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -79,7 +79,7 @@ public interface PostSynchronizationModifyOperation
    * @return  The set of raw, unprocessed modifications as included
    *          in the client request.
    */
-  public List<RawModification> getRawModifications();
+  List<RawModification> getRawModifications();
 
 
 
@@ -89,7 +89,7 @@ public interface PostSynchronizationModifyOperation
    *
    * @return  The set of modifications for this modify operation.
    */
-  public List<Modification> getModifications();
+  List<Modification> getModifications();
 
 
 
@@ -99,7 +99,7 @@ public interface PostSynchronizationModifyOperation
    *
    * @return  The current entry before any modifications are applied.
    */
-  public Entry getCurrentEntry();
+  Entry getCurrentEntry();
 
 
 
@@ -109,7 +109,7 @@ public interface PostSynchronizationModifyOperation
    *
    * @return  The modified entry that is to be written to the backend.
    */
-  public Entry getModifiedEntry();
+  Entry getModifiedEntry();
 
 
 

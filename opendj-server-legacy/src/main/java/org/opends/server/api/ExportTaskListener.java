@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -56,7 +57,7 @@ public interface ExportTaskListener
    * @param  config   Configuration information about the LDIF export
    *                  to be performed.
    */
-  public void processExportBegin(Backend backend,
+  void processExportBegin(Backend backend,
                                  LDIFExportConfig config);
 
 
@@ -73,7 +74,7 @@ public interface ExportTaskListener
    * @param  successful  Indicates whether the export operation
    *                     completed successfully.
    */
-  public void processExportEnd(Backend backend,
+  void processExportEnd(Backend backend,
                                LDIFExportConfig config,
                                boolean successful);
 }

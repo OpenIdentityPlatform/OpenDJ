@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -576,7 +576,7 @@ public class UserData
    * @return the free port of type x389 if it is available and we can use and -1
    * if not.
    */
-  static public int getDefaultPort()
+  public static int getDefaultPort()
   {
     return getDefaultPort(389);
   }
@@ -589,7 +589,7 @@ public class UserData
    * @return the free port of type x444 if it is available and we can use and -1
    * if not.
    */
-  static public int getDefaultAdminConnectorPort()
+  public static int getDefaultAdminConnectorPort()
   {
     return getDefaultPort(4444);
   }
@@ -634,7 +634,7 @@ public class UserData
    * @param forbiddenPorts an array of ports that we cannot use.
    * @return the port X689 if it is available and we can use and -1 if not.
    */
-  static public int getDefaultJMXPort(int[] forbiddenPorts)
+  public static int getDefaultJMXPort(int[] forbiddenPorts)
   {
     int defaultJMXPort = -1;
 

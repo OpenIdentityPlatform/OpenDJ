@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -51,7 +51,7 @@ implements TableCellRenderer
   /**
    * The border of the first column.
    */
-  protected final static Border column0Border =
+  protected static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),
@@ -59,7 +59,7 @@ implements TableCellRenderer
   /**
    * The default border.
    */
-  public final static Border defaultBorder =
+  public static final Border defaultBorder =
     BorderFactory.createEmptyBorder(4, 4, 4, 4);
   private static Border defaultFocusBorder;
 

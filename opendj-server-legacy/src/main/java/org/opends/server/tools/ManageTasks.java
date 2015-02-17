@@ -517,7 +517,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Base for callbacks that implement top level menu items.
    */
-  static abstract private class TopMenuCallback
+  private static abstract class TopMenuCallback
           implements MenuCallback<Void> {
 
     /**
@@ -543,7 +543,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Base for callbacks that manage task entries.
    */
-  static abstract private class TaskOperationCallback
+  private static abstract class TaskOperationCallback
           implements MenuCallback<TaskEntry> {
 
     /** ID of the task to manage. */
@@ -585,7 +585,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Executable for printing a task summary table.
    */
-  static private class PrintSummaryTop extends TopMenuCallback {
+  private static class PrintSummaryTop extends TopMenuCallback {
 
     @Override
     public MenuResult<Void> invoke(ManageTasks app)
@@ -599,9 +599,9 @@ public class ManageTasks extends ConsoleApplication {
   }
 
   /**
-   * Exectutable for printing a particular task's details.
+   * Executable for printing a particular task's details.
    */
-  static private class TaskDrilldownMenu extends TopMenuCallback {
+  private static class TaskDrilldownMenu extends TopMenuCallback {
 
     private String taskId;
 
@@ -668,9 +668,9 @@ public class ManageTasks extends ConsoleApplication {
   }
 
   /**
-   * Exectutable for printing a particular task's details.
+   * Executable for printing a particular task's details.
    */
-  static private class PrintTaskInfo extends TaskOperationCallback {
+  private static class PrintTaskInfo extends TaskOperationCallback {
 
     /**
      * Constructs a parameterized instance.
@@ -862,7 +862,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Executable for printing a particular task's details.
    */
-  static private class ViewTaskLogs extends TaskOperationCallback {
+  private static class ViewTaskLogs extends TaskOperationCallback {
 
     /**
      * Constructs a parameterized instance.
@@ -916,7 +916,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Executable for canceling a particular task.
    */
-  static private class CancelTaskTop extends TopMenuCallback {
+  private static class CancelTaskTop extends TopMenuCallback {
 
     private List<String> taskIds;
     private List<Integer> cancelableIndices;
@@ -996,7 +996,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * Executable for canceling a particular task.
    */
-  static private class CancelTask extends TaskOperationCallback {
+  private static class CancelTask extends TaskOperationCallback {
 
     /**
      * Constructs a parameterized instance.

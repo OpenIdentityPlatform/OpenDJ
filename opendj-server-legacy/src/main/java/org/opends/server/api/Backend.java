@@ -1029,7 +1029,7 @@ public abstract class Backend<C extends Configuration>
    * @return  {@code true} if the backend should handle operations for
    *          the provided entry, or {@code false} if it does not.
    */
-  public static final boolean handlesEntry(DN entryDN, Collection<DN> baseDNs, Collection<DN> excludeDNs)
+  public static boolean handlesEntry(DN entryDN, Collection<DN> baseDNs, Collection<DN> excludeDNs)
   {
     for (DN baseDN : baseDNs)
     {

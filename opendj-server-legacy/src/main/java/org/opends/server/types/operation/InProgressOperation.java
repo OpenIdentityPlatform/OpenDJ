@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 import org.forgerock.i18n.LocalizableMessage;
@@ -59,7 +59,7 @@ public interface InProgressOperation
    * @param  control  The control to add to the set of controls to
    *                  include in the response to the client.
    */
-  public void addResponseControl(Control control);
+  void addResponseControl(Control control);
 
 
 
@@ -70,7 +70,7 @@ public interface InProgressOperation
    * @param  control  The control to remove from the set of controls
    *                  to include in the response to the client.
    */
-  public void removeResponseControl(Control control);
+  void removeResponseControl(Control control);
 
 
 
@@ -81,7 +81,7 @@ public interface InProgressOperation
    *          <CODE>UNDEFINED</CODE> if the operation has not yet
    *          completed.
    */
-  public ResultCode getResultCode();
+  ResultCode getResultCode();
 
 
 
@@ -90,7 +90,7 @@ public interface InProgressOperation
    *
    * @param  resultCode  The result code for this operation.
    */
-  public void setResultCode(ResultCode resultCode);
+  void setResultCode(ResultCode resultCode);
 
 
 
@@ -100,7 +100,7 @@ public interface InProgressOperation
    *
    * @return  The error message for this operation.
    */
-  public LocalizableMessageBuilder getErrorMessage();
+  LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -109,7 +109,7 @@ public interface InProgressOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(LocalizableMessageBuilder errorMessage);
+  void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
 
 
@@ -120,7 +120,7 @@ public interface InProgressOperation
    *
    * @param  message  The message to append to the error message
    */
-  public void appendErrorMessage(LocalizableMessage message);
+  void appendErrorMessage(LocalizableMessage message);
 
 
 
@@ -131,7 +131,7 @@ public interface InProgressOperation
    *          if the operation has not yet completed or does not have
    *          a matched DN.
    */
-  public DN getMatchedDN();
+  DN getMatchedDN();
 
 
 
@@ -140,7 +140,7 @@ public interface InProgressOperation
    *
    * @param  matchedDN  The matched DN for this operation.
    */
-  public void setMatchedDN(DN matchedDN);
+  void setMatchedDN(DN matchedDN);
 
 
 
@@ -152,7 +152,7 @@ public interface InProgressOperation
    *          <CODE>null</CODE> if the operation is not yet complete
    *          or does not have a set of referral URLs.
    */
-  public List<String> getReferralURLs();
+  List<String> getReferralURLs();
 
 
 
@@ -162,7 +162,7 @@ public interface InProgressOperation
    * @param  referralURLs  The set of referral URLs for this
    *                       operation.
    */
-  public void setReferralURLs(List<String> referralURLs);
+  void setReferralURLs(List<String> referralURLs);
 
 
 
@@ -175,7 +175,7 @@ public interface InProgressOperation
    *                             information to use for the response
    *                             elements.
    */
-  public void setResponseData(DirectoryException directoryException);
+  void setResponseData(DirectoryException directoryException);
 
 
 
@@ -190,7 +190,7 @@ public interface InProgressOperation
    *
    * @return  The authorization DN for this operation.
    */
-  public DN getAuthorizationDN();
+  DN getAuthorizationDN();
 
 
 
@@ -202,7 +202,7 @@ public interface InProgressOperation
    * @return An unmodifiable list containing the additional log items for this
    *         operation.
    */
-  public List<AdditionalLogItem> getAdditionalLogItems();
+  List<AdditionalLogItem> getAdditionalLogItems();
 
 
 
@@ -214,6 +214,6 @@ public interface InProgressOperation
    * @param item
    *          The additional log item for this operation.
    */
-  public void addAdditionalLogItem(AdditionalLogItem item);
+  void addAdditionalLogItem(AdditionalLogItem item);
 }
 

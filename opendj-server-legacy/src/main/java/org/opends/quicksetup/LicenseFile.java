@@ -51,17 +51,17 @@ public class LicenseFile
   /**
    * The license file name in Legal directory.
    */
-  private final static String LICENSE_FILE_NAME = "license_to_accept.txt";
+  private static final String LICENSE_FILE_NAME = "license_to_accept.txt";
 
   /**
    * The Legal folder which contains license file.
    */
-  private final static String LEGAL_FOLDER_NAME = "Legal";
+  private static final String LEGAL_FOLDER_NAME = "Legal";
 
   /**
    * The accepted license file name.
    */
-  private final static String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
+  private static final String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
 
   /**
    * Get the directory in which legal files are stored.
@@ -95,17 +95,17 @@ public class LicenseFile
   /**
    * The File object related to the license file.
    */
-  static private File licFile;
+  private static File licFile;
 
   /**
    * The license file approval state.
    */
-  static private boolean approved;
+  private static boolean approved;
 
   /**
    * Returns the license file name.
    */
-  static private String getName()
+  private static String getName()
   {
     return getInstanceLegalDirectory() + File.separatorChar
         + LICENSE_FILE_NAME;
@@ -114,20 +114,19 @@ public class LicenseFile
   /**
    * Returns the license file object.
    */
-  static private File getFile()
+  private static File getFile()
   {
     if (licFile == null)
     {
       licFile = new File(getName());
     }
-
     return licFile;
   }
 
   /**
    * Returns the URL to the license file when using jnlp / java web start.
    */
-  static private URL getWebStartLicenseFile()
+  private static URL getWebStartLicenseFile()
   {
     final String licenseResource =
         LEGAL_FOLDER_NAME + File.separatorChar + LICENSE_FILE_NAME;
@@ -142,11 +141,11 @@ public class LicenseFile
    *         in the top level installation directory <CODE>false</CODE>
    *         otherwise.
    */
-  static public boolean exists()
+  public static boolean exists()
   {
     if (Utils.isWebStart())
     {
-      return (getWebStartLicenseFile() != null);
+      return getWebStartLicenseFile() != null;
     }
     else
     {
@@ -159,7 +158,7 @@ public class LicenseFile
    *
    * @return the textual contents of the license file.
    */
-  static public String getText()
+  public static String getText()
   {
     InputStream input = null;
     // Gets the inputstream of the license
@@ -227,7 +226,7 @@ public class LicenseFile
    * @return <CODE>true</CODE> if the license has been accepted by the user
    *         <CODE>false</CODE> otherwise.
    */
-  static public boolean getApproval()
+  public static boolean getApproval()
   {
     return approved;
   }
@@ -238,7 +237,7 @@ public class LicenseFile
    * @param p_approved
    *          the license approval status
    */
-  static public void setApproval(boolean p_approved)
+  public static void setApproval(boolean p_approved)
   {
     approved = p_approved;
   }
@@ -250,7 +249,7 @@ public class LicenseFile
    * @param installationPath
    *          The server installation's path.
    */
-  static public void createFileLicenseApproved(final String installationPath)
+  public static void createFileLicenseApproved(final String installationPath)
   {
     if (getApproval() && installationPath != null)
     {
@@ -272,7 +271,7 @@ public class LicenseFile
    * @return <CODE>true</CODE> if the license had already been approved by the
    *         user <CODE>false</CODE> otherwise.
    */
-  static public boolean isAlreadyApproved()
+  public static boolean isAlreadyApproved()
   {
     final File f =
         new File(getInstanceLegalDirectory() + File.separatorChar

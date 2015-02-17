@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -114,7 +114,7 @@ public interface ReplicationDomainDB
    *           If a database problem happened
    * @see #getCursorFrom(DN, ServerState, KeyMatchingStrategy, PositionStrategy)
    */
-  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, KeyMatchingStrategy matchingStrategy,
+  MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, KeyMatchingStrategy matchingStrategy,
       PositionStrategy positionStrategy) throws ChangelogException;
 
   /**
@@ -141,7 +141,7 @@ public interface ReplicationDomainDB
    *           If a database problem happened
    * @see #getCursorFrom(DN, ServerState, KeyMatchingStrategy, PositionStrategy)
    */
-  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, KeyMatchingStrategy matchingStrategy,
+  MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, KeyMatchingStrategy matchingStrategy,
       PositionStrategy positionStrategy, Set<DN> excludedDomainDns) throws ChangelogException;
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -45,38 +45,38 @@ public interface AciTargetMatchContext {
      * Set the deny ACI list.
      * @param denyList The deny ACI list.
      */
-    public void setDenyList(List<Aci> denyList);
+    void setDenyList(List<Aci> denyList);
 
     /**
      * Set the allow ACI list.
      * @param allowList The list of allow ACIs.
      */
-    public void setAllowList(List<Aci> allowList);
+    void setAllowList(List<Aci> allowList);
 
     /**
      * Get the entry being evaluated. This is known as the
      * resource entry.
      * @return The entry being evaluated.
      */
-    public Entry getResourceEntry();
+    Entry getResourceEntry();
 
     /**
      * Get the current attribute type being evaluated.
      * @return  The attribute type being evaluated.
      */
-    public AttributeType getCurrentAttributeType();
+    AttributeType getCurrentAttributeType();
 
     /**
      * The current attribute type value being evaluated.
      * @return The current attribute type value being evaluated.
      */
-    public ByteString getCurrentAttributeValue();
+    ByteString getCurrentAttributeValue();
 
     /**
      * True if the first attribute of the resource entry is being evaluated.
      * @return True if this is the first attribute.
      */
-    public boolean isFirstAttribute();
+    boolean isFirstAttribute();
 
     /**
      * Set to true if the first attribute of the resource entry is
@@ -84,45 +84,45 @@ public interface AciTargetMatchContext {
      * @param isFirst  True if this is the first attribute of the
      * resource entry being evaluated.
      */
-    public void setIsFirstAttribute(boolean isFirst);
+    void setIsFirstAttribute(boolean isFirst);
 
     /**
      * Set the attribute type to be evaluated.
      * @param type  The attribute type to set to.
      */
-    public void setCurrentAttributeType(AttributeType type);
+    void setCurrentAttributeType(AttributeType type);
 
     /**
      * Set the attribute value to be evaluated.
      * @param v The current attribute value to set to.
      */
-    public void setCurrentAttributeValue(ByteString v);
+    void setCurrentAttributeValue(ByteString v);
 
     /**
      * True if the target matching code found an entry test rule. An
      * entry test rule is an ACI without a targetattr target rule.
      * @param val True if an entry test rule was found.
      */
-    public void setEntryTestRule(boolean val);
+    void setEntryTestRule(boolean val);
 
     /**
      * True if an entry test rule was found.
      * @return True if an entry test rule was found.
      */
-    public boolean hasEntryTestRule();
+    boolean hasEntryTestRule();
 
     /**
      * Return the rights for this container's LDAP operation.
      * @return  The rights for the container's LDAP operation.
      */
-    public int getRights();
+    int getRights();
 
     /**
      * Return the OID (Object Identifier) string of the control being evaluated.
      *
      * @return The OID string of the control being evaluated.
      */
-      public String getControlOID();
+    String getControlOID();
 
 
    /**
@@ -131,33 +131,33 @@ public interface AciTargetMatchContext {
     *
     * @return The OID string of the extended operation being evaluated.
     */
-    public String getExtOpOID();
+    String getExtOpOID();
 
     /**
      * Checks if the container's rights has the specified rights.
      * @param  rights The rights to check for.
      * @return True if the container's rights has the specified rights.
      */
-    public boolean hasRights(int rights);
+    boolean hasRights(int rights);
 
     /**
      * Set the rights of the container to the specified rights.
      * @param rights The rights to set the container's rights to.
      */
-    public void setRights(int rights);
+    void setRights(int rights);
 
     /**
      * Set to true  if the ACI had a targattrfilter rule that matched.
      * @param v  The value to use.
      */
-    public void setTargAttrFiltersMatch(boolean v);
+    void setTargAttrFiltersMatch(boolean v);
 
     /**
      * Return the value of the targAttrFiltersMatch variable. This is set to
      * true if the ACI had a targattrfilter rule that matched.
      * @return  True if the ACI had a targattrfilter rule that matched.
      */
-    public boolean getTargAttrFiltersMatch();
+    boolean getTargAttrFiltersMatch();
 
     /**
      * Add the specified ACI to a list of ACIs that have a targattrfilters rule
@@ -165,7 +165,7 @@ public interface AciTargetMatchContext {
      * of an attribute that possibly might evaluate to true.
      * @param aci The ACI to save.
      */
-    public void addTargAttrFiltersMatchAci(Aci aci);
+    void addTargAttrFiltersMatchAci(Aci aci);
 
     /**
      * Save the name of the last ACI that matched a targattrfilters rule. This
@@ -214,7 +214,7 @@ public interface AciTargetMatchContext {
   /**
    * Return true if the evaluating ACI either contained an explicitly defined
    * user attribute type in a targeattr target rule or both a targetattr all
-   * user attributes rule matched and a explictly defined targetattr target rule
+   * user attributes rule matched and a explicitly defined targetattr target rule
    * matched.
    *
    * @return  True if the above condition was seen.
@@ -223,8 +223,8 @@ public interface AciTargetMatchContext {
 
   /**
    * Return true if the evaluating ACI either contained an explicitly defined
-   * operational attribute type in a targeattr target rule or both a targetattr
-   * all operational attributes rule matched and a explictly defined targetattr
+   * operational attribute type in a targetattr target rule or both a targetattr
+   * all operational attributes rule matched and a explicitly defined targetattr
    * target rule matched.
    *
    * @return  True if the above condition was seen.
@@ -240,7 +240,7 @@ public interface AciTargetMatchContext {
    *
    * @param v  The flag to clear or 0 to set the mask to 0.
    */
-    public void clearEvalAttributes(int v);
+    void clearEvalAttributes(int v);
 }
 
 

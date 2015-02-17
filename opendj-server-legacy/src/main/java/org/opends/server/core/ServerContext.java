@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -41,21 +41,21 @@ public interface ServerContext
    *
    * @return the instance root directory
    */
-  public String getInstanceRoot();
+  String getInstanceRoot();
 
   /**
    * Returns the root directory of server.
    *
    * @return the server root directory
    */
-  public String getServerRoot();
+  String getServerRoot();
 
   /**
    * Returns the schema of the server.
    *
    * @return the schema
    */
-  public Schema getSchema();
+  Schema getSchema();
 
   /**
    * Returns the schema updater, which provides
@@ -63,14 +63,14 @@ public interface ServerContext
    *
    * @return the schema updater
    */
-  public SchemaUpdater getSchemaUpdater();
+  SchemaUpdater getSchemaUpdater();
 
   /**
    * Returns the environment of the server.
    *
    * @return the environment
    */
-  public DirectoryEnvironmentConfig getEnvironment();
+  DirectoryEnvironmentConfig getEnvironment();
 
   /**
    * Returns the server management context, which gives
@@ -78,6 +78,6 @@ public interface ServerContext
    *
    * @return the server management context
    */
-  public ServerManagementContext getServerManagementContext();
+  ServerManagementContext getServerManagementContext();
 
 }

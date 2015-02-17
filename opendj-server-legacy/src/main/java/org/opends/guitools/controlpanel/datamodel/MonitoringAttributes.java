@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -40,42 +40,42 @@ public interface MonitoringAttributes
    * localized name of the operation associated with the attribute).
    * @return the message associated with the attribute.
    */
-  public LocalizableMessage getMessage();
+  LocalizableMessage getMessage();
 
   /**
    * Returns the name of the attribute.
    * @return the name of the attribute.
    */
-  public String getAttributeName();
+  String getAttributeName();
 
   /**
    * Tells whether this is the number of aborted operations.
    * @return <CODE>true</CODE> if this corresponds to the number of aborted
    * operations and <CODE>false</CODE> otherwise.
    */
-  public boolean isAborted();
+  boolean isAborted();
 
   /**
    * Return whether this attribute contains a numeric value or not.
    * @return <CODE>true</CODE> if the value is numeric and <CODE>false</CODE>
    * otherwise.
    */
-  public boolean isNumeric();
+  boolean isNumeric();
 
   /**
    * Return whether this attribute contains a time value or not.
    * @return <CODE>true</CODE> if the value is a time and <CODE>false</CODE>
    * otherwise.
    */
-  public boolean isTime();
+  boolean isTime();
 
   /**
    * Return whether this attribute contains a numeric date value or not.
-   * The date is a long value in miliseconds.
+   * The date is a long value in milliseconds.
    * @return <CODE>true</CODE> if the value is date and <CODE>false</CODE>
    * otherwise.
    */
-  public boolean isNumericDate();
+  boolean isNumericDate();
 
   /**
    * Return whether this attribute contains a GMT date value or not.  The date
@@ -83,14 +83,14 @@ public interface MonitoringAttributes
    * @return <CODE>true</CODE> if the value is a GMT date and <CODE>false</CODE>
    * otherwise.
    */
-  public boolean isGMTDate();
+  boolean isGMTDate();
 
   /**
    * Return whether this attribute represents a value in bytes or not.
    * @return <CODE>true</CODE> if the value represents a value in bytes and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isValueInBytes();
+  boolean isValueInBytes();
 
   /**
    * Returns <CODE>true</CODE> if the average for this attribute makes sense
@@ -98,5 +98,5 @@ public interface MonitoringAttributes
    * @return <CODE>true</CODE> if the average for this attribute makes sense
    * and <CODE>false</CODE> otherwise.
    */
-  public boolean canHaveAverage();
+  boolean canHaveAverage();
 }

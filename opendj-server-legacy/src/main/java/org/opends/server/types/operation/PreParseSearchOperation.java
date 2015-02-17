@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 
@@ -56,7 +56,7 @@ public interface PreParseSearchOperation
    * @return  The raw, unprocessed base DN as included in the request
    *          from the client.
    */
-  public ByteString getRawBaseDN();
+  ByteString getRawBaseDN();
 
 
 
@@ -66,7 +66,7 @@ public interface PreParseSearchOperation
    * @param  rawBaseDN  The raw, unprocessed base DN for this search
                         operation.
    */
-  public void setRawBaseDN(ByteString rawBaseDN);
+  void setRawBaseDN(ByteString rawBaseDN);
 
 
 
@@ -75,7 +75,7 @@ public interface PreParseSearchOperation
    *
    * @return  The scope for this search operation.
    */
-  public SearchScope getScope();
+  SearchScope getScope();
 
 
 
@@ -84,7 +84,7 @@ public interface PreParseSearchOperation
    *
    * @param  scope  The scope for this search operation.
    */
-  public void setScope(SearchScope scope);
+  void setScope(SearchScope scope);
 
 
 
@@ -95,7 +95,7 @@ public interface PreParseSearchOperation
    * @return  The alias dereferencing policy for this search
    *          operation.
    */
-  public DereferenceAliasesPolicy getDerefPolicy();
+  DereferenceAliasesPolicy getDerefPolicy();
 
 
 
@@ -106,7 +106,7 @@ public interface PreParseSearchOperation
    * @param  derefPolicy  The alias dereferencing policy for this
    *                      search operation.
    */
-  public void setDerefPolicy(DereferenceAliasesPolicy derefPolicy);
+  void setDerefPolicy(DereferenceAliasesPolicy derefPolicy);
 
 
 
@@ -115,7 +115,7 @@ public interface PreParseSearchOperation
    *
    * @return  The size limit for this search operation.
    */
-  public int getSizeLimit();
+  int getSizeLimit();
 
 
 
@@ -124,7 +124,7 @@ public interface PreParseSearchOperation
    *
    * @param  sizeLimit  The size limit for this search operation.
    */
-  public void setSizeLimit(int sizeLimit);
+  void setSizeLimit(int sizeLimit);
 
 
 
@@ -133,7 +133,7 @@ public interface PreParseSearchOperation
    *
    * @return  The time limit for this search operation.
    */
-  public int getTimeLimit();
+  int getTimeLimit();
 
 
 
@@ -142,7 +142,7 @@ public interface PreParseSearchOperation
    *
    * @param  timeLimit  The time limit for this search operation.
    */
-  public void setTimeLimit(int timeLimit);
+  void setTimeLimit(int timeLimit);
 
 
 
@@ -151,7 +151,7 @@ public interface PreParseSearchOperation
    *
    * @return  The typesOnly flag for this search operation.
    */
-  public boolean getTypesOnly();
+  boolean getTypesOnly();
 
 
 
@@ -160,7 +160,7 @@ public interface PreParseSearchOperation
    *
    * @param  typesOnly  The typesOnly flag for this search operation.
    */
-  public void setTypesOnly(boolean typesOnly);
+  void setTypesOnly(boolean typesOnly);
 
 
 
@@ -174,7 +174,7 @@ public interface PreParseSearchOperation
    * @return  The raw, unprocessed search filter as included in the
    *          request from the client.
    */
-  public RawFilter getRawFilter();
+  RawFilter getRawFilter();
 
 
 
@@ -184,7 +184,7 @@ public interface PreParseSearchOperation
    *
    * @param  rawFilter  The raw, unprocessed search filter.
    */
-  public void setRawFilter(RawFilter rawFilter);
+  void setRawFilter(RawFilter rawFilter);
 
 
 
@@ -195,7 +195,7 @@ public interface PreParseSearchOperation
    * @return  The set of requested attributes for this search
    *          operation.
    */
-  public Set<String> getAttributes();
+  Set<String> getAttributes();
 
 
 
@@ -206,7 +206,7 @@ public interface PreParseSearchOperation
    * @param  attributes  The set of requested attributes for this
    *                     search operation.
    */
-  public void setAttributes(Set<String> attributes);
+  void setAttributes(Set<String> attributes);
 
 
 
@@ -224,7 +224,7 @@ public interface PreParseSearchOperation
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean returnEntry(Entry entry, List<Control> controls);
+  boolean returnEntry(Entry entry, List<Control> controls);
 
 
 
@@ -232,16 +232,13 @@ public interface PreParseSearchOperation
    * Returns the provided search result reference to the client.
    *
    * @param  reference  The search reference that should be returned.
-   * @param  dn         A DN related to the specified search
-   *                    reference.
-   *
+   * @param  dn         A DN related to the specified search reference.
    * @return  {@code true} if the caller should continue processing
    *          the search request and sending additional entries and
    *          references, or {@code false} if not for some reason
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean
-  returnReference(DN dn, SearchResultReference reference);
+  boolean returnReference(DN dn, SearchResultReference reference);
 }
 

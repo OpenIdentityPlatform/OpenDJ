@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.messages;
@@ -72,9 +72,9 @@ public enum Severity {
    */
   NOTICE("NOTE");
 
-  static private Set<String> PROPERTY_KEY_FORM_VALUES_SET;
+  private static Set<String> PROPERTY_KEY_FORM_VALUES_SET;
 
-  static private Map<String,Severity> PROPERTY_KEY_FORM_MAP;
+  private static Map<String,Severity> PROPERTY_KEY_FORM_MAP;
 
   static {
     PROPERTY_KEY_FORM_MAP = new HashMap<String,Severity>();
@@ -90,7 +90,7 @@ public enum Severity {
    * abbreviated representations.
    * @return set of messageDescriptorForm strings
    */
-  static public Set<String> getPropertyKeyFormSet() {
+  public static Set<String> getPropertyKeyFormSet() {
     return Collections.unmodifiableSet(PROPERTY_KEY_FORM_VALUES_SET);
   }
 
@@ -99,9 +99,9 @@ public enum Severity {
    * string <code>s</code> which can either be a severity's name
    * or messageDescriptorForm.
    * @param s Severity name or messageDescriptorForm
-   * @return Severity assocated with <code>s</code>
+   * @return Severity associated with <code>s</code>
    */
-  static public Severity parseString(String s) {
+  public static Severity parseString(String s) {
     Severity sev = PROPERTY_KEY_FORM_MAP.get(s);
     if (sev == null) {
       sev = valueOf(s);

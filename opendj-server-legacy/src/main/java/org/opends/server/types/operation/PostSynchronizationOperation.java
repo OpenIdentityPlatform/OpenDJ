@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -58,7 +58,7 @@ public interface PostSynchronizationOperation
    *          <CODE>UNDEFINED</CODE> if the operation has not yet
    *          completed.
    */
-  public ResultCode getResultCode();
+  ResultCode getResultCode();
 
 
 
@@ -68,7 +68,7 @@ public interface PostSynchronizationOperation
    *
    * @return  The error message for this operation.
    */
-  public LocalizableMessageBuilder getErrorMessage();
+  LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -79,7 +79,7 @@ public interface PostSynchronizationOperation
    *          if the operation has not yet completed or does not have
    *          a matched DN.
    */
-  public DN getMatchedDN();
+  DN getMatchedDN();
 
 
 
@@ -91,7 +91,7 @@ public interface PostSynchronizationOperation
    *          <CODE>null</CODE> if the operation is not yet complete
    *          or does not have a set of referral URLs.
    */
-  public List<String> getReferralURLs();
+  List<String> getReferralURLs();
 
 
 
@@ -106,7 +106,7 @@ public interface PostSynchronizationOperation
    *
    * @return  The authorization DN for this operation.
    */
-  public DN getAuthorizationDN();
+  DN getAuthorizationDN();
 
 
 
@@ -117,7 +117,7 @@ public interface PostSynchronizationOperation
    *
    * @return  The time that processing stopped for this operation.
    */
-  public long getProcessingStopTime();
+  long getProcessingStopTime();
 
 
 
@@ -128,7 +128,7 @@ public interface PostSynchronizationOperation
    * @return  The length of time in milliseconds that the server spent
    *          processing this operation.
    */
-  public long getProcessingTime();
+  long getProcessingTime();
 
 
 
@@ -140,6 +140,6 @@ public interface PostSynchronizationOperation
    * @return An unmodifiable list containing the additional log items for this
    *         operation.
    */
-  public List<AdditionalLogItem> getAdditionalLogItems();
+  List<AdditionalLogItem> getAdditionalLogItems();
 }
 

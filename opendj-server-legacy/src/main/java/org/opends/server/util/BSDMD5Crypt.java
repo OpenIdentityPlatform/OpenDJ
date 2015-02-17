@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- * Portions Copyright 2010-2014 ForgeRock AS
+ * Portions Copyright 2010-2015 ForgeRock AS
  *
  * BSD-compatible md5 password crypt
  * Ported to Java from C based on crypt-md5.c by Poul-Henning Kamp,
@@ -50,9 +50,9 @@ import java.util.Arrays;
  */
 public final class BSDMD5Crypt {
 
-  private final static String magic = "$1$";
-  private final static int saltLength = 8;
-  private final static String itoa64 =
+  private static final String magic = "$1$";
+  private static final int saltLength = 8;
+  private static final String itoa64 =
           "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   private static String intTo64(int value, int length)
@@ -79,7 +79,7 @@ public final class BSDMD5Crypt {
    * @throws NoSuchAlgorithmException If the MD5 algorithm is not supported.
    *
    */
-  static public String crypt(ByteSequence password)
+  public static String crypt(ByteSequence password)
           throws NoSuchAlgorithmException
   {
     SecureRandom randomGenerator = new SecureRandom();
@@ -109,7 +109,7 @@ public final class BSDMD5Crypt {
    * @throws NoSuchAlgorithmException If the MD5 algorithm is not supported.
    *
    */
-  static public String crypt(ByteSequence password, String salt)
+  public static String crypt(ByteSequence password, String salt)
           throws NoSuchAlgorithmException
   {
     MessageDigest ctx, ctx1;
@@ -250,7 +250,7 @@ public final class BSDMD5Crypt {
    *
    * @return the magic string for this crypt algorithm
    */
-  static public String getMagicString()
+  public static String getMagicString()
   {
     return magic;
   }
@@ -261,7 +261,7 @@ public final class BSDMD5Crypt {
    * @param argv The array of test arguments
    *
    */
-  static public void main(String argv[])
+  public static void main(String argv[])
   {
     if ((argv.length < 1) || (argv.length > 2))
     {

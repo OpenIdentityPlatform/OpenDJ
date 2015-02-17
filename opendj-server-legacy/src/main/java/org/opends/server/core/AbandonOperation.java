@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -39,7 +40,6 @@ public interface AbandonOperation extends Operation
    *
    * @return  The message ID of the operation that should be abandoned.
    */
-  public int getIDToAbandon();
+  int getIDToAbandon();
 
 }
-

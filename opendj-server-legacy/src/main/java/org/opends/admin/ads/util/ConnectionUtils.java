@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -768,7 +768,7 @@ public class ConnectionUtils
    * LDAP entry.
    * @throws NamingException if there is an error processing the entry.
    */
-  static public String getFirstValue(SearchResult entry, String attrName)
+  public static String getFirstValue(SearchResult entry, String attrName)
   throws NamingException
   {
     String v = null;
@@ -801,7 +801,7 @@ public class ConnectionUtils
    * in a LDAP entry.
    * @throws NamingException if there is an error processing the entry.
    */
-  static public Set<String> getValues(SearchResult entry, String attrName)
+  public static Set<String> getValues(SearchResult entry, String attrName)
   throws NamingException
   {
     Set<String> values = new HashSet<String>();

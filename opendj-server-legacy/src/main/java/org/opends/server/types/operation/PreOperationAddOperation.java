@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -63,7 +63,7 @@ public interface PreOperationAddOperation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -76,7 +76,7 @@ public interface PreOperationAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<RawAttribute> getRawAttributes();
+  List<RawAttribute> getRawAttributes();
 
 
 
@@ -85,7 +85,7 @@ public interface PreOperationAddOperation
    *
    * @return  The DN of the entry to add.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -96,7 +96,7 @@ public interface PreOperationAddOperation
    *
    * @return  The set of processed objectclasses for the entry to add.
    */
-  public Map<ObjectClass,String> getObjectClasses();
+  Map<ObjectClass,String> getObjectClasses();
 
 
 
@@ -110,7 +110,7 @@ public interface PreOperationAddOperation
    * @param  objectClass  The objectclass to add to the entry.
    * @param  name         The name to use for the objectclass.
    */
-  public void addObjectClass(ObjectClass objectClass, String name);
+  void addObjectClass(ObjectClass objectClass, String name);
 
 
 
@@ -123,7 +123,7 @@ public interface PreOperationAddOperation
    *
    * @param  objectClass  The objectclass to remove from the entry.
    */
-  public void removeObjectClass(ObjectClass objectClass);
+  void removeObjectClass(ObjectClass objectClass);
 
 
 
@@ -135,7 +135,7 @@ public interface PreOperationAddOperation
    * @return  The set of processed user attributes for the entry to
    *          add.
    */
-  public Map<AttributeType,List<Attribute>> getUserAttributes();
+  Map<AttributeType,List<Attribute>> getUserAttributes();
 
 
 
@@ -147,8 +147,7 @@ public interface PreOperationAddOperation
    * @return  The set of processed operational attributes for the
    *          entry to add.
    */
-  public Map<AttributeType,List<Attribute>>
-              getOperationalAttributes();
+  Map<AttributeType, List<Attribute>> getOperationalAttributes();
 
 
 
@@ -164,8 +163,7 @@ public interface PreOperationAddOperation
    * @param  attributeList  The attribute list for the provided
    *                        attribute type.
    */
-  public void setAttribute(AttributeType attributeType,
-                           List<Attribute> attributeList);
+  void setAttribute(AttributeType attributeType, List<Attribute> attributeList);
 
 
 
@@ -179,7 +177,7 @@ public interface PreOperationAddOperation
    * @param  attributeType  The attribute tyep for the attribute to
    *                        remove.
    */
-  public void removeAttribute(AttributeType attributeType);
+  void removeAttribute(AttributeType attributeType);
 
 
 
@@ -189,6 +187,6 @@ public interface PreOperationAddOperation
    *
    * @return  The entry to be added to the server.
    */
-  public Entry getEntryToAdd();
+  Entry getEntryToAdd();
 }
 

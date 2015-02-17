@@ -56,10 +56,10 @@ import com.forgerock.opendj.cli.ArgumentParser;
 public class UninstallLauncher extends Launcher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opendj-uninstall-";
+  public static final String LOG_FILE_PREFIX = "opendj-uninstall-";
 
   /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
+  public static final String LOG_FILE_SUFFIX = ".log";
 
   /**
    * The main method which is called by the uninstall command lines.

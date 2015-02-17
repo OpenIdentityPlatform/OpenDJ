@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -56,7 +56,7 @@ public interface PreParseModifyOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -67,7 +67,7 @@ public interface PreParseModifyOperation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in
    *                     the client request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
 
@@ -81,7 +81,7 @@ public interface PreParseModifyOperation
    * @return  The set of raw, unprocessed modifications as included
    *          in the client request.
    */
-  public List<RawModification> getRawModifications();
+  List<RawModification> getRawModifications();
 
 
 
@@ -93,7 +93,7 @@ public interface PreParseModifyOperation
    *                          raw modifications for this modify
    *                          operation.
    */
-  public void addRawModification(RawModification rawModification);
+  void addRawModification(RawModification rawModification);
 
 
 
@@ -103,7 +103,5 @@ public interface PreParseModifyOperation
    * @param  rawModifications  The raw modifications for this modify
    *                           operation.
    */
-  public void setRawModifications(
-                   List<RawModification> rawModifications);
+  void setRawModifications(List<RawModification> rawModifications);
 }
-

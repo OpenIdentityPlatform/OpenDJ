@@ -22,15 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.event;
 
 /**
  * Interface that must be implemented by the objects that want to receive
  * notifications when an index has been selected.  This is used in the dialog
  * 'Manage Index' to notify that a new index is selected on the tree.
- *
  */
 public interface IndexSelectionListener
 {
@@ -38,5 +37,5 @@ public interface IndexSelectionListener
    * Notification that an index has been selected.
    * @param ev the index selection event.
    */
-  public void indexSelected(IndexSelectionEvent ev);
+  void indexSelected(IndexSelectionEvent ev);
 }

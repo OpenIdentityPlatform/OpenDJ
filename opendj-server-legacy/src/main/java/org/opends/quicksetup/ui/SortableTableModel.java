@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -38,29 +39,29 @@ public interface SortableTableModel extends TableModel
    * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
    * otherwise.
    */
-  public boolean isSortAscending();
+  boolean isSortAscending();
 
   /**
    * Sets whether to sort ascending of descending.
    * @param sortAscending whether to sort ascending or descending.
    */
-  public void setSortAscending(boolean sortAscending);
+  void setSortAscending(boolean sortAscending);
 
   /**
    * Returns the column index used to sort.
    * @return the column index used to sort.
    */
-  public int getSortColumn();
+  int getSortColumn();
 
   /**
    * Sets the column index used to sort.
    * @param sortColumn column index used to sort..
    */
-  public void setSortColumn(int sortColumn);
+  void setSortColumn(int sortColumn);
 
   /**
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
-  public void forceResort();
+  void forceResort();
 }

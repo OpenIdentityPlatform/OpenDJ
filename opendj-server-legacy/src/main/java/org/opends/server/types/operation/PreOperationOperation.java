@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 import java.util.List;
@@ -58,7 +58,7 @@ public interface PreOperationOperation
    * @param  control  The control to add to the set of controls to
    *                  include in the response to the client.
    */
-  public void addResponseControl(Control control);
+  void addResponseControl(Control control);
 
 
 
@@ -69,7 +69,7 @@ public interface PreOperationOperation
    * @param  control  The control to remove from the set of controls
    *                  to include in the response to the client.
    */
-  public void removeResponseControl(Control control);
+  void removeResponseControl(Control control);
 
 
 
@@ -79,7 +79,7 @@ public interface PreOperationOperation
    *
    * @return  The error message for this operation.
    */
-  public LocalizableMessageBuilder getErrorMessage();
+  LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -88,7 +88,7 @@ public interface PreOperationOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(LocalizableMessageBuilder errorMessage);
+  void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
 
 
@@ -100,7 +100,7 @@ public interface PreOperationOperation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
-  public void appendErrorMessage(LocalizableMessage message);
+  void appendErrorMessage(LocalizableMessage message);
 
 
 
@@ -115,7 +115,7 @@ public interface PreOperationOperation
    *
    * @return  The authorization DN for this operation.
    */
-  public DN getAuthorizationDN();
+  DN getAuthorizationDN();
 
 
 
@@ -127,7 +127,7 @@ public interface PreOperationOperation
    * @return An unmodifiable list containing the additional log items for this
    *         operation.
    */
-  public List<AdditionalLogItem> getAdditionalLogItems();
+  List<AdditionalLogItem> getAdditionalLogItems();
 
 
 
@@ -139,6 +139,6 @@ public interface PreOperationOperation
    * @param item
    *          The additional log item for this operation.
    */
-  public void addAdditionalLogItem(AdditionalLogItem item);
+  void addAdditionalLogItem(AdditionalLogItem item);
 }
 

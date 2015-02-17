@@ -43,8 +43,8 @@ public class ControlPanelLog
   private static String[] packages = {
     "org.opends"
   };
-  static private File logFile;
-  static private FileHandler fileHandler;
+  private static File logFile;
+  private static FileHandler fileHandler;
 
   /**
    * Creates a new file handler for writing log messages to the file indicated
@@ -52,7 +52,7 @@ public class ControlPanelLog
    * @param file log file to which log messages will be written
    * @throws IOException if something goes wrong
    */
-  static public void initLogFileHandler(File file) throws IOException {
+  public static void initLogFileHandler(File file) throws IOException {
     if (!isInitialized())
     {
       logFile = file;
@@ -82,7 +82,7 @@ public class ControlPanelLog
    * @param packageName the package name.
    * @throws IOException if something goes wrong
    */
-  static public void initPackage(String packageName) throws IOException {
+  public static void initPackage(String packageName) throws IOException {
     Logger logger = Logger.getLogger(packageName);
     if (disableLoggingToConsole())
     {
@@ -96,7 +96,7 @@ public class ControlPanelLog
    * Gets the name of the log file.
    * @return File representing the log file
    */
-  static public File getLogFile() {
+  public static File getLogFile() {
     return logFile;
   }
 
@@ -104,11 +104,11 @@ public class ControlPanelLog
    * Indicates whether or not the log file has been initialized.
    * @return true when the log file has been initialized
    */
-  static public boolean isInitialized() {
+  public static boolean isInitialized() {
     return logFile != null;
   }
 
-  static private String getInitialLogRecord() {
+  private static String getInitialLogRecord() {
     StringBuilder sb = new StringBuilder()
             .append("Application launched " +
                     DateFormat.getDateTimeInstance(DateFormat.LONG,

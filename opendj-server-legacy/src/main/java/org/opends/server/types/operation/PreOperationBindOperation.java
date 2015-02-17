@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 import org.forgerock.i18n.LocalizableMessage;
@@ -54,7 +54,7 @@ public interface PreOperationBindOperation
    *
    * @return  The authentication type for this bind operation.
    */
-  public AuthenticationType getAuthenticationType();
+  AuthenticationType getAuthenticationType();
 
 
 
@@ -65,7 +65,7 @@ public interface PreOperationBindOperation
    * @return  A string representation of the protocol version
    *          associated with this bind request.
    */
-  public String getProtocolVersion();
+  String getProtocolVersion();
 
 
 
@@ -77,7 +77,7 @@ public interface PreOperationBindOperation
    * @return  The raw, unprocessed bind DN for this bind operation as
    *          contained in the client request.
    */
-  public ByteString getRawBindDN();
+  ByteString getRawBindDN();
 
 
 
@@ -86,7 +86,7 @@ public interface PreOperationBindOperation
    *
    * @return  The bind DN for this bind operation.
    */
-  public DN getBindDN();
+  DN getBindDN();
 
 
 
@@ -97,7 +97,7 @@ public interface PreOperationBindOperation
    * @return  The simple authentication password for this bind
    *          operation.
    */
-  public ByteString getSimplePassword();
+  ByteString getSimplePassword();
 
 
 
@@ -108,7 +108,7 @@ public interface PreOperationBindOperation
    *          <CODE>null</CODE> if the bind does not use SASL
    *          authentication.
    */
-  public String getSASLMechanism();
+  String getSASLMechanism();
 
 
 
@@ -119,7 +119,7 @@ public interface PreOperationBindOperation
    *          <CODE>null</CODE> if there are none or if the bind does
    *          not use SASL authentication.
    */
-  public ByteString getSASLCredentials();
+  ByteString getSASLCredentials();
 
 
 
@@ -130,8 +130,7 @@ public interface PreOperationBindOperation
    * @param  serverSASLCredentials  The set of server SASL credentials
    *                                to include in the bind response.
    */
-  public void setServerSASLCredentials(ByteString
-                                            serverSASLCredentials);
+  void setServerSASLCredentials(ByteString serverSASLCredentials);
 
 
 
@@ -141,7 +140,7 @@ public interface PreOperationBindOperation
    * @param  reason  A human-readable message providing the reason
    *                 that the authentication failed.
    */
-  public void setAuthFailureReason(LocalizableMessage reason);
+  void setAuthFailureReason(LocalizableMessage reason);
 
 
 
@@ -155,6 +154,6 @@ public interface PreOperationBindOperation
    *          progressed far enough to identify the user or if the
    *          user DN could not be determined.
    */
-  public DN getUserEntryDN();
+  DN getUserEntryDN();
 }
 

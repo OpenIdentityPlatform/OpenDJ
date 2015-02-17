@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -52,7 +52,7 @@ public interface PreParseCompareOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -62,7 +62,7 @@ public interface PreParseCompareOperation
    *
    * @param  rawEntryDN  The raw entry DN for this compare operation.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
 
@@ -71,7 +71,7 @@ public interface PreParseCompareOperation
    *
    * @return  The raw attribute type for this compare operation.
    */
-  public String getRawAttributeType();
+  String getRawAttributeType();
 
 
 
@@ -81,7 +81,7 @@ public interface PreParseCompareOperation
    * @param  rawAttributeType  The raw attribute type for this compare
    *                           operation.
    */
-  public void setRawAttributeType(String rawAttributeType);
+  void setRawAttributeType(String rawAttributeType);
 
 
 
@@ -90,7 +90,7 @@ public interface PreParseCompareOperation
    *
    * @return  The assertion value for this compare operation.
    */
-  public ByteString getAssertionValue();
+  ByteString getAssertionValue();
 
 
 
@@ -100,6 +100,6 @@ public interface PreParseCompareOperation
    * @param  assertionValue  The assertion value for this compare
    *                         operation.
    */
-  public void setAssertionValue(ByteString assertionValue);
+  void setAssertionValue(ByteString assertionValue);
 }
 

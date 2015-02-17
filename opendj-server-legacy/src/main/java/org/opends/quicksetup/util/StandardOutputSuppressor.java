@@ -37,16 +37,16 @@ import java.io.PrintStream;
  */
 public class StandardOutputSuppressor {
 
-  static private Token token;
+  private static Token token;
 
   /** Object to return to this class for unsuppressing output. */
-  static private class Token {
+  private static class Token {
     PrintStream out;
     PrintStream err;
   }
 
   /** Suppresses output to the standard output streams. */
-  static synchronized public void suppress() {
+  public static synchronized void suppress() {
     if (token == null) {
       token = new Token();
       token.out = System.out;
@@ -65,7 +65,7 @@ public class StandardOutputSuppressor {
    * method System.out and System.err will point to the descriptor prior
    * to calling <code>suppress()</code>.
    */
-  static synchronized public void unsuppress() {
+  public static synchronized void unsuppress() {
     if (token != null) {
       System.setOut(token.out);
       System.setErr(token.err);
@@ -80,23 +80,18 @@ public class StandardOutputSuppressor {
    * Checks whether or not this class has suppressed standard out streams.
    * @return boolean where true indicates output is suppressed
    */
-  static public boolean isSuppressed() {
+  public static boolean isSuppressed() {
     return token != null;
   }
 
   /**
    * PrintWriter for suppressing stream.
    */
-  static private class NullOutputStream extends OutputStream {
+  private static class NullOutputStream extends OutputStream {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void write(int b) throws IOException {
       // do nothing;
     }
-
   }
-
-
 }

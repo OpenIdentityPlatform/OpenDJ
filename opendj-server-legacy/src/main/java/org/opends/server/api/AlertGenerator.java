@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -54,7 +54,7 @@ public interface AlertGenerator
    * @return  The DN of the configuration entry with which this alert
    *          generator is associated.
    */
-  public DN getComponentEntryDN();
+  DN getComponentEntryDN();
 
 
 
@@ -65,7 +65,7 @@ public interface AlertGenerator
    * @return  The fully-qualified name of the Java class for this
    *          alert generator implementation.
    */
-  public String getClassName();
+  String getClassName();
 
 
 
@@ -80,6 +80,6 @@ public interface AlertGenerator
    * @return  Information about the set of alerts that this generator
    *          may produce.
    */
-  public Map<String, String> getAlerts();
+  Map<String, String> getAlerts();
 }
 

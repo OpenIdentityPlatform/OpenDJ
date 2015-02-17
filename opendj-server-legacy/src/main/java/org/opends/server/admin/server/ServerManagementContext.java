@@ -388,7 +388,7 @@ public final class ServerManagementContext {
 
 
   // Singleton instance.
-  private final static ServerManagementContext INSTANCE =
+  private static final ServerManagementContext INSTANCE =
     new ServerManagementContext();
 
   /**

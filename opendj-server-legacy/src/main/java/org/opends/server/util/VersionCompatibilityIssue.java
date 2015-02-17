@@ -477,7 +477,7 @@ public final class VersionCompatibilityIssue {
   /**
    * Container for registered issues.
    */
-  static private final Set<VersionCompatibilityIssue>
+  private static final Set<VersionCompatibilityIssue>
           VERSION_COMPATIBILITY_ISSUES =
           new HashSet<VersionCompatibilityIssue>();
 
@@ -511,7 +511,7 @@ public final class VersionCompatibilityIssue {
     register(Cause.BERKLEY_UPGRADE_1, new BuildVersion(0, 1, 0, 890));
   }
 
-  static private void register(Cause cause,
+  private static void register(Cause cause,
                                BuildVersion version) {
     VERSION_COMPATIBILITY_ISSUES.add(new VersionCompatibilityIssue(cause,
             version));
@@ -523,7 +523,7 @@ public final class VersionCompatibilityIssue {
    * @return list of issues sorted by build version in which
    *         they appear
    */
-  static public List<VersionCompatibilityIssue> getAllEvents() {
+  public static List<VersionCompatibilityIssue> getAllEvents() {
     List<VersionCompatibilityIssue> issueList =
             new ArrayList<VersionCompatibilityIssue>
                     (VERSION_COMPATIBILITY_ISSUES);
@@ -543,7 +543,7 @@ public final class VersionCompatibilityIssue {
    * @return list of issues sorted by build version in which
    *         they appear
    */
-  static public List<VersionCompatibilityIssue> getEvents(
+  public static List<VersionCompatibilityIssue> getEvents(
           Collection<Integer> excludeIds, BuildInformation current,
           BuildInformation neu)
   {
@@ -581,7 +581,7 @@ public final class VersionCompatibilityIssue {
    * @param from build from which events will be returned
    * @return List or IncompatibleVersionEvent objects
    */
-  static public List<VersionCompatibilityIssue> getEvents(BuildVersion from) {
+  public static List<VersionCompatibilityIssue> getEvents(BuildVersion from) {
     List<VersionCompatibilityIssue> issueList =
             new ArrayList<VersionCompatibilityIssue>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
@@ -598,7 +598,7 @@ public final class VersionCompatibilityIssue {
    * Comparator used to sort issues by the build version for
    * which they apply.
    */
-  static private final Comparator<VersionCompatibilityIssue>
+  private static final Comparator<VersionCompatibilityIssue>
           VERSION_COMPARATOR = new Comparator<VersionCompatibilityIssue>()
   {
     @Override

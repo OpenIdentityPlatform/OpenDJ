@@ -257,7 +257,7 @@ public class ADSContext
   /**
    * The list of server properties that are multivalued.
    */
-  private final static Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES =
+  private static final Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES =
     new HashSet<ServerProperty>();
   static
   {
@@ -312,8 +312,7 @@ public class ADSContext
   /**
    * The list of server group properties that are multivalued.
    */
-  private final static
-  Set<ServerGroupProperty> MULTIVALUED_SERVER_GROUP_PROPERTIES =
+  private static final Set<ServerGroupProperty> MULTIVALUED_SERVER_GROUP_PROPERTIES =
     new HashSet<ServerGroupProperty>();
   static
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 
@@ -61,7 +61,7 @@ public interface PreOperationSearchOperation
    * @return  The raw, unprocessed base DN as included in the request
    *          from the client.
    */
-  public ByteString getRawBaseDN();
+  ByteString getRawBaseDN();
 
 
 
@@ -70,7 +70,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The base DN for this search operation.
    */
-  public DN getBaseDN();
+  DN getBaseDN();
 
 
 
@@ -79,7 +79,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The scope for this search operation.
    */
-  public SearchScope getScope();
+  SearchScope getScope();
 
 
 
@@ -90,7 +90,7 @@ public interface PreOperationSearchOperation
    * @return  The alias dereferencing policy for this search
    *          operation.
    */
-  public DereferenceAliasesPolicy getDerefPolicy();
+  DereferenceAliasesPolicy getDerefPolicy();
 
 
 
@@ -99,7 +99,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The size limit for this search operation.
    */
-  public int getSizeLimit();
+  int getSizeLimit();
 
 
 
@@ -108,7 +108,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The time limit for this search operation.
    */
-  public int getTimeLimit();
+  int getTimeLimit();
 
 
 
@@ -117,7 +117,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The typesOnly flag for this search operation.
    */
-  public boolean getTypesOnly();
+  boolean getTypesOnly();
 
 
 
@@ -131,7 +131,7 @@ public interface PreOperationSearchOperation
    * @return  The raw, unprocessed search filter as included in the
    *          request from the client.
    */
-  public RawFilter getRawFilter();
+  RawFilter getRawFilter();
 
 
 
@@ -140,7 +140,7 @@ public interface PreOperationSearchOperation
    *
    * @return  The filter for this search operation.
    */
-  public SearchFilter getFilter();
+  SearchFilter getFilter();
 
 
 
@@ -151,7 +151,7 @@ public interface PreOperationSearchOperation
    * @return  The set of requested attributes for this search
    *          operation.
    */
-  public Set<String> getAttributes();
+  Set<String> getAttributes();
 
 
 
@@ -169,7 +169,7 @@ public interface PreOperationSearchOperation
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean returnEntry(Entry entry, List<Control> controls);
+  boolean returnEntry(Entry entry, List<Control> controls);
 
 
 
@@ -186,7 +186,6 @@ public interface PreOperationSearchOperation
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean
-  returnReference(DN dn ,SearchResultReference reference);
+  boolean returnReference(DN dn ,SearchResultReference reference);
 }
 

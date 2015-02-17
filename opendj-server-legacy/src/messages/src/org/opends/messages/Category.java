@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.opends.messages;
@@ -174,7 +174,7 @@ public enum Category {
    */
   USER_DEFINED(0x7FF00000);
 
-  static private Map<Integer,Category> MASK_VALUE_MAP;
+  private static Map<Integer,Category> MASK_VALUE_MAP;
 
   static {
     MASK_VALUE_MAP = new HashMap<Integer,Category>();
@@ -187,9 +187,9 @@ public enum Category {
    * Obtains the <code>Severity</code> associated with the the input
    * message ID <code>msgId</code>.
    * @param msgId int message ID
-   * @return Severity assocated with the ID
+   * @return Severity associated with the ID
    */
-  static public Category parseMessageId(int msgId) {
+  public static Category parseMessageId(int msgId) {
     return Category.parseMask(msgId & 0xFFF00000);
   }
 
@@ -199,7 +199,7 @@ public enum Category {
    * @param mask for which a <code>Severity</code> is obtained.
    * @return Severity associated with <code>mask</code>
    */
-  static public Category parseMask(int mask) {
+  public static Category parseMask(int mask) {
     return MASK_VALUE_MAP.get(mask);
   }
 

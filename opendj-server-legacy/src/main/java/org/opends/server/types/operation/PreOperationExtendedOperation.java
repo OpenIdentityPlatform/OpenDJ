@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -52,7 +52,7 @@ public interface PreOperationExtendedOperation
    * @return  The OID for the request associated with this extended
    *          operation.
    */
-  public String getRequestOID();
+  String getRequestOID();
 
 
 
@@ -63,7 +63,7 @@ public interface PreOperationExtendedOperation
    * @return  The value for the request associated with this extended
    *          operation.
    */
-  public ByteString getRequestValue();
+  ByteString getRequestValue();
 
 
 
@@ -73,7 +73,7 @@ public interface PreOperationExtendedOperation
    * @param  responseOID  The OID to include in the response to the
    *                      client.
    */
-  public void setResponseOID(String responseOID);
+  void setResponseOID(String responseOID);
 
 
 
@@ -83,6 +83,6 @@ public interface PreOperationExtendedOperation
    * @param  responseValue  The value to include in the response to
    *                        the client.
    */
-  public void setResponseValue(ByteString responseValue);
+  void setResponseValue(ByteString responseValue);
 }
 

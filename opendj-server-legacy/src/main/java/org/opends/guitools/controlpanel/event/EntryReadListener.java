@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -38,10 +39,10 @@ public interface EntryReadListener
    * Notifies that an entry was successfully read.
    * @param ev the event containing the search result.
    */
-  public void entryRead(EntryReadEvent ev);
+  void entryRead(EntryReadEvent ev);
   /**
    * Notifies that an error reading an entry.
    * @param ev the event describing the error.
    */
-  public void entryReadError(EntryReadErrorEvent ev);
+  void entryReadError(EntryReadErrorEvent ev);
 }

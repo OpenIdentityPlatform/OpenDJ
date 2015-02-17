@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -80,8 +80,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
 
   private boolean valueChanged;
 
-  private final static int MAX_IMAGE_HEIGHT = 300;
-  private final static int MAX_BASE64_TO_DISPLAY = 3 * 1024;
+  private static final int MAX_IMAGE_HEIGHT = 300;
+  private static final int MAX_BASE64_TO_DISPLAY = 3 * 1024;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

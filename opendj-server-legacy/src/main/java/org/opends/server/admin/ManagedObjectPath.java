@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -306,7 +306,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       extends Element<C, S> {
 
     // Factory method.
-    private static final <C extends ConfigurationClient,
+    private static <C extends ConfigurationClient,
         S extends Configuration>
         InstantiableElement<C, S> create(
         InstantiableRelationDefinition<? super C, ? super S> r,
@@ -374,7 +374,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       extends Element<C, S> {
 
     // Factory method.
-    private static final <C extends ConfigurationClient,
+    private static <C extends ConfigurationClient,
         S extends Configuration> OptionalElement<C, S> create(
         OptionalRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
@@ -426,7 +426,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       extends Element<C, S> {
 
     // Factory method.
-    private static final <C extends ConfigurationClient,
+    private static <C extends ConfigurationClient,
         S extends Configuration>
         SetElement<C, S> create(
         SetRelationDefinition<? super C, ? super S> r,
@@ -480,7 +480,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       extends Element<C, S> {
 
     // Factory method.
-    private static final <C extends ConfigurationClient,
+    private static <C extends ConfigurationClient,
         S extends Configuration> SingletonElement<C, S> create(
         SingletonRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {

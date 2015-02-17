@@ -74,7 +74,7 @@ public class RestoreTask extends Task
   /**
    * Stores mapping between configuration attribute name and its label.
    */
-  static private Map<String,LocalizableMessage> argDisplayMap =
+  private static Map<String,LocalizableMessage> argDisplayMap =
           new HashMap<String,LocalizableMessage>();
   static {
     argDisplayMap.put(

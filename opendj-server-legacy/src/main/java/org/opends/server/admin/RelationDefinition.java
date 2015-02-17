@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -101,7 +101,7 @@ public abstract class RelationDefinition
    *          The type of relation definition constructed by this
    *          builder.
    */
-  protected abstract static class AbstractBuilder
+  protected static abstract class AbstractBuilder
       <C extends ConfigurationClient, S extends Configuration,
        D extends RelationDefinition<C, S>> {
 
