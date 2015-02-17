@@ -171,7 +171,7 @@ public class DSMLServlet extends HttpServlet {
     try {
       hostName = config.getServletContext().getInitParameter(HOST);
 
-      port = new Integer(config.getServletContext().getInitParameter(PORT));
+      port = Integer.valueOf(config.getServletContext().getInitParameter(PORT));
 
       userDN = config.getServletContext().getInitParameter(USERDN);
 

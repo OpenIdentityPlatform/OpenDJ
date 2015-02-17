@@ -25,27 +25,23 @@
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.api;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.monitors.EntryCacheMonitorProvider;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.monitors.EntryCacheMonitorProvider;
-import org.opends.server.types.Attribute;
-
-
 
 /**
  * This class defines the set of methods that must be implemented by a
@@ -415,9 +411,9 @@ public abstract class EntryCache
    *
    * @return  The current number of cache hits for this cache.
    */
-  public Long getCacheHits()
+  public long getCacheHits()
   {
-    return new Long(cacheHits.longValue());
+    return cacheHits.longValue();
   }
 
 
@@ -427,9 +423,9 @@ public abstract class EntryCache
    *
    * @return  The current number of cache misses for this cache.
    */
-  public Long getCacheMisses()
+  public long getCacheMisses()
   {
-    return new Long(cacheMisses.longValue());
+    return cacheMisses.longValue();
   }
 
 

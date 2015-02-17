@@ -1126,12 +1126,12 @@ public class ConfigGuideGeneration {
           durationStr += "Maximum unit is \"" +
             prop.getMaximumUnit().getLongName() + "\". ";
         }
-        long lowerLimitStr = new Double(prop.getBaseUnit().
+        long lowerLimitStr = Double.valueOf(prop.getBaseUnit().
           fromMilliSeconds(prop.getLowerLimit())).longValue();
         durationStr += "Lower limit is " + lowerLimitStr +
           " " + prop.getBaseUnit().getLongName() + ". ";
         if (prop.getUpperLimit() != null) {
-          long upperLimitStr = new Double(prop.getBaseUnit().
+          long upperLimitStr = Double.valueOf(prop.getBaseUnit().
             fromMilliSeconds(prop.getUpperLimit())).longValue();
           durationStr += "Upper limit is " + upperLimitStr +
             " " + prop.getBaseUnit().getLongName() + ". ";
@@ -1333,7 +1333,7 @@ public class ConfigGuideGeneration {
   }
 
   private String getHeading(String str, int level) {
-    String strLevel = (new Integer(level)).toString();
+    String strLevel = Integer.valueOf(level).toString();
     return "<h" + strLevel + ">" +
       "<a name=\"" + str + "\"></a>" +
       str +

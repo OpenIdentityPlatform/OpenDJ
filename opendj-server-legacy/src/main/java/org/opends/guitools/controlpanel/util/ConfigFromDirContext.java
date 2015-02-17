@@ -633,7 +633,7 @@ public class ConfigFromDirContext extends ConfigReader
               try
               {
                 baseDN.setAgeOfOldestMissingChange(
-                    new Long(ConnectionUtils.getFirstValue(sr,
+                    Long.valueOf(ConnectionUtils.getFirstValue(sr,
                     "approx-older-change-not-synchronized-millis")));
               }
               catch (Throwable t)
@@ -641,7 +641,7 @@ public class ConfigFromDirContext extends ConfigReader
               }
               try
               {
-                baseDN.setMissingChanges(new Integer(missingChanges));
+                baseDN.setMissingChanges(Integer.valueOf(missingChanges));
               }
               catch (Throwable t)
               {

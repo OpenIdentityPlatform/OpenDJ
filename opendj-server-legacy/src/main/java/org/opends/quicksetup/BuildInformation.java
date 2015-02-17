@@ -288,7 +288,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the major version
    */
   public Integer getMajorVersion() {
-    return new Integer(values.get(MAJOR_VERSION));
+    return Integer.valueOf(values.get(MAJOR_VERSION));
   }
 
   /**
@@ -297,7 +297,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the minor version
    */
   public Integer getMinorVersion() {
-    return new Integer(values.get(MINOR_VERSION));
+    return Integer.valueOf(values.get(MINOR_VERSION));
   }
 
   /**
@@ -306,7 +306,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the point version
    */
   public Integer getPointVersion() {
-    return new Integer(values.get(POINT_VERSION));
+    return Integer.valueOf(values.get(POINT_VERSION));
   }
 
   /**
@@ -315,7 +315,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return Integer representing the SVN revision number
    */
   public Integer getRevisionNumber() {
-    return new Integer(values.get(REVISION_NUMBER));
+    return Integer.valueOf(values.get(REVISION_NUMBER));
   }
 
   /**
