@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -39,5 +40,5 @@ public interface SchemaElementSelectionListener
    * Notification that a schema element has been selected.
    * @param ev the schema element selection event.
    */
-  public void schemaElementSelected(SchemaElementSelectionEvent ev);
+  void schemaElementSelected(SchemaElementSelectionEvent ev);
 }

@@ -109,7 +109,7 @@ public abstract class ReplicationDomain
    * Contains all the attributes included for the ECL (External Changelog).
    */
   // @Immutable
-  private final static class ECLIncludes
+  private static final class ECLIncludes
   {
 
     final Map<Integer, Set<String>> includedAttrsByServer;

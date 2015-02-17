@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -53,7 +53,7 @@ public interface PreParseModifyDNOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -64,7 +64,7 @@ public interface PreParseModifyDNOperation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in
    *                     the client request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
 
@@ -76,7 +76,7 @@ public interface PreParseModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request
    *          from the client.
    */
-  public ByteString getRawNewRDN();
+  ByteString getRawNewRDN();
 
 
 
@@ -88,7 +88,7 @@ public interface PreParseModifyDNOperation
    * @param  rawNewRDN  The raw, unprocessed newRDN as included in the
    *                    request from the client.
    */
-  public void setRawNewRDN(ByteString rawNewRDN);
+  void setRawNewRDN(ByteString rawNewRDN);
 
 
 
@@ -99,7 +99,7 @@ public interface PreParseModifyDNOperation
    * @return  <CODE>true</CODE> if the current RDN value should be
    *          removed from the entry, or <CODE>false</CODE> if not.
    */
-  public boolean deleteOldRDN();
+  boolean deleteOldRDN();
 
 
 
@@ -110,7 +110,7 @@ public interface PreParseModifyDNOperation
    * @param  deleteOldRDN  Specifies whether the current RDN value
    *                       should be removed from the entry.
    */
-  public void setDeleteOldRDN(boolean deleteOldRDN);
+  void setDeleteOldRDN(boolean deleteOldRDN);
 
 
 
@@ -122,7 +122,7 @@ public interface PreParseModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client
    *          request, or <CODE>null</CODE> if there is none.
    */
-  public ByteString getRawNewSuperior();
+  ByteString getRawNewSuperior();
 
 
 
@@ -134,6 +134,6 @@ public interface PreParseModifyDNOperation
    * @param  rawNewSuperior  The raw, unprocessed newSuperior as
    *                         provided in the request from the client.
    */
-  public void setRawNewSuperior(ByteString rawNewSuperior);
+  void setRawNewSuperior(ByteString rawNewSuperior);
 }
 

@@ -115,11 +115,11 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
   }
 
-  final private static String DEFAULT_JAVA_HOME_PROP_NAME = "default.java-home";
-  final private static String DEFAULT_JAVA_ARGS_PROP_NAME = "default.java-args";
-  final private static String OVERWRITE_ENV_JAVA_HOME_PROP_NAME =
+  private static final String DEFAULT_JAVA_HOME_PROP_NAME = "default.java-home";
+  private static final String DEFAULT_JAVA_ARGS_PROP_NAME = "default.java-args";
+  private static final String OVERWRITE_ENV_JAVA_HOME_PROP_NAME =
     "overwrite-env-java-home";
-  final private static String OVERWRITE_ENV_JAVA_ARGS_PROP_NAME =
+  private static final String OVERWRITE_ENV_JAVA_ARGS_PROP_NAME =
     "overwrite-env-java-args";
 
   /**

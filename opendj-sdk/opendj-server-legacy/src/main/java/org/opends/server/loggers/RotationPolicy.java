@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -56,7 +56,7 @@ public interface RotationPolicy<T extends LogRotationPolicyCfg>
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  public abstract void initializeLogRotationPolicy(T config)
+  void initializeLogRotationPolicy(T config)
       throws ConfigException, InitializationException;
 
 
@@ -67,7 +67,7 @@ public interface RotationPolicy<T extends LogRotationPolicyCfg>
    *          the file writer to be checked.
    * @return true if the log file should be rotated, false otherwise.
    */
-  public boolean rotateFile(RotatableLogFile writer);
+  boolean rotateFile(RotatableLogFile writer);
 
 
 }

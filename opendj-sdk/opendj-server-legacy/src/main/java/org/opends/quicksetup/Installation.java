@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.quicksetup;
 
@@ -316,7 +316,7 @@ public final class Installation
    *           indicating the reason why <code>rootDirectory</code> is not a
    *           valid OpenDJ install root.
    */
-  static public void validateRootDirectory(File rootDirectory)
+  public static void validateRootDirectory(File rootDirectory)
       throws IllegalArgumentException
   {
     LocalizableMessage failureReason = null;
@@ -363,7 +363,7 @@ public final class Installation
 
 
 
-  static private Installation local;
+  private static Installation local;
 
 
 
@@ -373,7 +373,7 @@ public final class Installation
    *
    * @return Installation obtained by reading the classpath
    */
-  static public Installation getLocal()
+  public static Installation getLocal()
   {
     if (local == null)
     {

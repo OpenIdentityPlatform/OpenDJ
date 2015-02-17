@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.event;
@@ -39,6 +40,6 @@ public interface ProgressUpdateListener {
    * @param ev the ProgressUpdateEvent describing the update that
    * occurred in the installation progress.
    */
-  public void progressUpdate(ProgressUpdateEvent ev);
+  void progressUpdate(ProgressUpdateEvent ev);
 
 }

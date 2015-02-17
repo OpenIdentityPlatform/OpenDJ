@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -38,5 +39,5 @@ public interface ConfigurationElementCreatedListener
    * Method that is called when a new configuration element was created.
    * @param ev the configuration change event.
    */
-  public void elementCreated(ConfigurationElementCreatedEvent ev);
+  void elementCreated(ConfigurationElementCreatedEvent ev);
 }

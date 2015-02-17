@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -41,6 +41,6 @@ public interface QueueingStrategy {
    * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs in the Directory Server.
    */
-  public void enqueueRequest(Operation operation) throws DirectoryException;
+  void enqueueRequest(Operation operation) throws DirectoryException;
 
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 import org.forgerock.i18n.LocalizableMessage;
@@ -49,7 +49,7 @@ public interface BindOperation extends Operation
    *
    * @return  The authentication type for this bind operation.
    */
-  public abstract AuthenticationType getAuthenticationType();
+  AuthenticationType getAuthenticationType();
 
   /**
    * Retrieves the raw, unprocessed bind DN for this bind operation as contained
@@ -59,7 +59,7 @@ public interface BindOperation extends Operation
    * @return  The raw, unprocessed bind DN for this bind operation as contained
    *          in the client request.
    */
-  public abstract ByteString getRawBindDN();
+  ByteString getRawBindDN();
 
   /**
    * Specifies the raw, unprocessed bind DN for this bind operation.  This
@@ -67,7 +67,7 @@ public interface BindOperation extends Operation
    *
    * @param  rawBindDN  The raw, unprocessed bind DN for this bind operation.
    */
-  public abstract void setRawBindDN(ByteString rawBindDN);
+  void setRawBindDN(ByteString rawBindDN);
 
   /**
    * Retrieves a string representation of the protocol version associated with
@@ -76,7 +76,7 @@ public interface BindOperation extends Operation
    * @return  A string representation of the protocol version associated with
    *          this bind request.
    */
-  public String getProtocolVersion();
+  String getProtocolVersion();
 
   /**
    * Specifies the string representation of the protocol version associated with
@@ -85,7 +85,7 @@ public interface BindOperation extends Operation
    * @param  protocolVersion  The string representation of the protocol version
    *                          associated with this bind request.
    */
-  public void setProtocolVersion(String protocolVersion);
+  void setProtocolVersion(String protocolVersion);
 
   /**
    * Retrieves the bind DN for this bind operation.  This method should not be
@@ -96,14 +96,14 @@ public interface BindOperation extends Operation
    * @return  The bind DN for this bind operation, or <CODE>null</CODE> if the
    *          raw DN has not yet been processed.
    */
-  public abstract DN getBindDN();
+  DN getBindDN();
 
   /**
    * Retrieves the simple authentication password for this bind operation.
    *
    * @return  The simple authentication password for this bind operation.
    */
-  public abstract ByteString getSimplePassword();
+  ByteString getSimplePassword();
 
   /**
    * Specifies the simple authentication password for this bind operation.
@@ -111,7 +111,7 @@ public interface BindOperation extends Operation
    * @param  simplePassword  The simple authentication password for this bind
    *                         operation.
    */
-  public abstract void setSimplePassword(ByteString simplePassword);
+  void setSimplePassword(ByteString simplePassword);
 
   /**
    * Retrieves the SASL mechanism for this bind operation.
@@ -119,7 +119,7 @@ public interface BindOperation extends Operation
    * @return  The SASL mechanism for this bind operation, or <CODE>null</CODE>
    *          if the bind does not use SASL authentication.
    */
-  public abstract String getSASLMechanism();
+  String getSASLMechanism();
 
   /**
    * Retrieves the SASL credentials for this bind operation.
@@ -127,7 +127,7 @@ public interface BindOperation extends Operation
    * @return  The SASL credentials for this bind operation, or <CODE>null</CODE>
    *          if there are none or if the bind does not use SASL authentication.
    */
-  public abstract ByteString getSASLCredentials();
+  ByteString getSASLCredentials();
 
   /**
    * Specifies the SASL credentials for this bind operation.
@@ -136,8 +136,7 @@ public interface BindOperation extends Operation
    * @param  saslCredentials  The SASL credentials for this bind operation, or
    *                          <CODE>null</CODE> if there are none.
    */
-  public abstract void setSASLCredentials(String saslMechanism,
-      ByteString saslCredentials);
+  void setSASLCredentials(String saslMechanism, ByteString saslCredentials);
 
   /**
    * Retrieves the set of server SASL credentials to include in the bind
@@ -146,7 +145,7 @@ public interface BindOperation extends Operation
    * @return  The set of server SASL credentials to include in the bind
    *          response, or <CODE>null</CODE> if there are none.
    */
-  public abstract ByteString getServerSASLCredentials();
+  ByteString getServerSASLCredentials();
 
   /**
    * Specifies the set of server SASL credentials to include in the bind
@@ -155,8 +154,7 @@ public interface BindOperation extends Operation
    * @param  serverSASLCredentials  The set of server SASL credentials to
    *                                include in the bind response.
    */
-  public abstract void setServerSASLCredentials(
-      ByteString serverSASLCredentials);
+  void setServerSASLCredentials(ByteString serverSASLCredentials);
 
   /**
    * Retrieves the user entry associated with the SASL authentication attempt.
@@ -168,7 +166,7 @@ public interface BindOperation extends Operation
    *          <CODE>null</CODE> if it was not a SASL authentication or the SASL
    *          processing was not able to map the request to a user.
    */
-  public abstract Entry getSASLAuthUserEntry();
+  Entry getSASLAuthUserEntry();
 
   /**
    * Specifies the user entry associated with the SASL authentication attempt.
@@ -179,7 +177,7 @@ public interface BindOperation extends Operation
    * @param  saslAuthUserEntry  The user entry associated with the SASL
    *                            authentication attempt.
    */
-  public abstract void setSASLAuthUserEntry(Entry saslAuthUserEntry);
+  void setSASLAuthUserEntry(Entry saslAuthUserEntry);
 
   /**
    * Retrieves a human-readable message providing the reason that the
@@ -188,7 +186,7 @@ public interface BindOperation extends Operation
    * @return  A human-readable message providing the reason that the
    *          authentication failed, or <CODE>null</CODE> if none is available.
    */
-  public abstract LocalizableMessage getAuthFailureReason();
+  LocalizableMessage getAuthFailureReason();
 
   /**
    * Specifies the reason that the authentication failed.
@@ -196,7 +194,7 @@ public interface BindOperation extends Operation
    * @param  message providing the reason that the
    *                 authentication failed.
    */
-  public abstract void setAuthFailureReason(LocalizableMessage message);
+  void setAuthFailureReason(LocalizableMessage message);
 
   /**
    * Retrieves the user entry DN for this bind operation.  It will only be
@@ -207,7 +205,7 @@ public interface BindOperation extends Operation
    *          the bind processing has not progressed far enough to identify the
    *          user or if the user DN could not be determined.
    */
-  public abstract DN getUserEntryDN();
+  DN getUserEntryDN();
 
   /**
    * Retrieves the authentication info that resulted from processing this bind
@@ -216,7 +214,7 @@ public interface BindOperation extends Operation
    * @return  The authentication info that resulted from processing this bind
    *          operation.
    */
-  public abstract AuthenticationInfo getAuthenticationInfo();
+  AuthenticationInfo getAuthenticationInfo();
 
   /**
    * Specifies the authentication info that resulted from processing this bind
@@ -226,7 +224,7 @@ public interface BindOperation extends Operation
    * @param  authInfo  The authentication info that resulted from processing
    *                   this bind operation.
    */
-  public abstract void setAuthenticationInfo(AuthenticationInfo authInfo);
+  void setAuthenticationInfo(AuthenticationInfo authInfo);
 
   /**
    * Set the user entry DN for this bind operation.
@@ -236,7 +234,7 @@ public interface BindOperation extends Operation
    *                      progressed far enough to identify the user or if
    *                      the user DN could not be determined.
    */
-  public abstract void setUserEntryDN(DN userEntryDN);
+  void setUserEntryDN(DN userEntryDN);
 
 
 }

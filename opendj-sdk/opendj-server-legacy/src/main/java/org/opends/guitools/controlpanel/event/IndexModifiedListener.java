@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.event;
 
 /**
  * Interface that must be implemented by the objects that want to receive
  * notifications when an index has been modified.
- *
  */
 public interface IndexModifiedListener
 {
@@ -37,11 +36,11 @@ public interface IndexModifiedListener
    * Notification that an index has been modified.
    * @param ev the index event.
    */
-  public void indexModified(IndexModifiedEvent ev);
+  void indexModified(IndexModifiedEvent ev);
 
   /**
    * Notification that the indexes in a backend have been modified.
    * @param ev the index event.
    */
-  public void backendIndexesModified(IndexModifiedEvent ev);
+  void backendIndexesModified(IndexModifiedEvent ev);
 }

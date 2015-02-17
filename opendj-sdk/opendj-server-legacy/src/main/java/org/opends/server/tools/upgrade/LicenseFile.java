@@ -95,17 +95,17 @@ class LicenseFile
   /**
    * The File object related to the license file.
    */
-  static private File licFile;
+  private static File licFile;
 
   /**
    * The license file approval state.
    */
-  static private boolean approved;
+  private static boolean approved;
 
   /**
    * Returns the license file name.
    */
-  static private String getName()
+  private static String getName()
   {
     return getLegalDirectory() + File.separatorChar + "license_to_accept.txt";
   }
@@ -113,7 +113,7 @@ class LicenseFile
   /**
    * Returns the license file object.
    */
-  static private File getFile()
+  private static File getFile()
   {
     if (licFile == null)
     {

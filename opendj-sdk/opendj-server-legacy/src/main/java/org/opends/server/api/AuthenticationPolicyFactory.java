@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.opends.server.api;
@@ -91,6 +91,6 @@ public interface AuthenticationPolicyFactory<T extends AuthenticationPolicyCfg>
    * @param serverContext
    *            The server context.
    */
-  void setServerContext(final ServerContext serverContext);
+  void setServerContext(ServerContext serverContext);
 
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -38,15 +38,13 @@ interface LoggerAlarmHandler
   /**
    * Flush the underlying stream.
    */
-
-  public void flush();
+  void flush();
 
   /**
    * Action to take when the logger thread generates an alarm based
    * on the rotation policy condition being met.
-   *
    */
-  public void rollover();
+  void rollover();
 
 
   /**
@@ -54,7 +52,6 @@ interface LoggerAlarmHandler
    *
    * @param actions An array of actions that need to be executed on rotation.
    */
-  public void setPostRotationActions(ArrayList<ActionType> actions);
-
+  void setPostRotationActions(ArrayList<ActionType> actions);
 
 }

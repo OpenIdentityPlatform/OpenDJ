@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -41,14 +42,14 @@ public interface DiskSpaceMonitorHandler {
    *
    * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskLowThresholdReached(DiskSpaceMonitor monitor);
+  void diskLowThresholdReached(DiskSpaceMonitor monitor);
 
   /**
    * Notifies that the registered "full" threshold have been reached.
    *
    * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskFullThresholdReached(DiskSpaceMonitor monitor);
+  void diskFullThresholdReached(DiskSpaceMonitor monitor);
 
   /**
    * Notifies that the free disk space is now above both "low" and
@@ -56,5 +57,5 @@ public interface DiskSpaceMonitorHandler {
    *
    * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskSpaceRestored(DiskSpaceMonitor monitor);
+  void diskSpaceRestored(DiskSpaceMonitor monitor);
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -54,7 +55,7 @@ public interface InvokableComponent
    * @return  The DN of the configuration entry with which this
    *          component is associated.
    */
-  public DN getInvokableComponentEntryDN();
+  DN getInvokableComponentEntryDN();
 
 
 
@@ -65,7 +66,7 @@ public interface InvokableComponent
    * @return  A list of the methods that may be invoked for this
    *          component.
    */
-  public InvokableMethod[] getOperationSignatures();
+  InvokableMethod[] getOperationSignatures();
 
 
 
@@ -83,8 +84,7 @@ public interface InvokableComponent
    *                              an error occurred while attempting
    *                              to invoke it.
    */
-  public Object invokeMethod(String methodName,
-                             ConfigAttribute[] arguments)
+  Object invokeMethod(String methodName, ConfigAttribute[] arguments)
          throws DirectoryException;
 }
 

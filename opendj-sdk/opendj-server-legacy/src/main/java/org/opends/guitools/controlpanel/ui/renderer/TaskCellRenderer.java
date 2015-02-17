@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -45,7 +46,7 @@ public class TaskCellRenderer extends DefaultTableCellRenderer
    * The border of the first column.
    * TODO: modify CustomCellRenderer to make this public.
    */
-  protected final static Border column0Border =
+  protected static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),
@@ -53,7 +54,7 @@ public class TaskCellRenderer extends DefaultTableCellRenderer
   /**
    * The default border.
    */
-  public final static Border defaultBorder = CustomCellRenderer.defaultBorder;
+  public static final Border defaultBorder = CustomCellRenderer.defaultBorder;
 
   /**
    * Default constructor.

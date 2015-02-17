@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -46,7 +46,7 @@ public interface CompareOperation extends Operation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
   /**
@@ -56,7 +56,7 @@ public interface CompareOperation extends Operation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
   /**
@@ -67,7 +67,7 @@ public interface CompareOperation extends Operation
    * @return  The DN of the entry to compare, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
   /**
@@ -75,7 +75,7 @@ public interface CompareOperation extends Operation
    *
    * @return  The raw attribute type for this compare operation.
    */
-  public String getRawAttributeType();
+  String getRawAttributeType();
 
 
   /**
@@ -85,7 +85,7 @@ public interface CompareOperation extends Operation
    * @param  rawAttributeType  The raw attribute type for this compare
    *                           operation.
    */
-  public void setRawAttributeType(String rawAttributeType);
+  void setRawAttributeType(String rawAttributeType);
 
 
   /**
@@ -95,7 +95,7 @@ public interface CompareOperation extends Operation
    *
    * @return  The attribute type for this compare operation.
    */
-  public AttributeType getAttributeType();
+  AttributeType getAttributeType();
 
 
   /**
@@ -103,7 +103,7 @@ public interface CompareOperation extends Operation
    *
    * @param attributeType  The attribute type for this compare operation.
    */
-  public void setAttributeType(AttributeType attributeType);
+  void setAttributeType(AttributeType attributeType);
 
 
   /**
@@ -113,21 +113,21 @@ public interface CompareOperation extends Operation
    *
    * @return  The attribute options for this compare operation.
    */
-  public Set<String> getAttributeOptions();
+  Set<String> getAttributeOptions();
 
   /**
    * Specifies the attribute options for this compare operation.
    *
    * @param attributeOptions The attribute options for this compare operation.
    */
-  public void setAttributeOptions(Set<String> attributeOptions);
+  void setAttributeOptions(Set<String> attributeOptions);
 
   /**
    * Retrieves the assertion value for this compare operation.
    *
    * @return  The assertion value for this compare operation.
    */
-  public ByteString getAssertionValue();
+  ByteString getAssertionValue();
 
 
   /**
@@ -136,7 +136,7 @@ public interface CompareOperation extends Operation
    *
    * @param  assertionValue  The assertion value for this compare operation.
    */
-  public void setAssertionValue(ByteString assertionValue);
+  void setAssertionValue(ByteString assertionValue);
 
 
   /**
@@ -144,7 +144,7 @@ public interface CompareOperation extends Operation
    *
    * @return  The proxied authorization target DN for this compare operation
    */
-  public DN getProxiedAuthorizationDN();
+  DN getProxiedAuthorizationDN();
 
 
   /**
@@ -153,6 +153,6 @@ public interface CompareOperation extends Operation
    * @param proxiedAuthorizationDN  The proxied authorization target DN for
    *                                this compare operation
    */
-  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
+  void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

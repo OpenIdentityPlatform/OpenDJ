@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -40,5 +41,5 @@ public interface MoveListener
    * Notification that the entry is being moved.
    * @param ev the event.
    */
-  public void processMoveEvent(MoveEvent ev);
+  void processMoveEvent(MoveEvent ev);
 }

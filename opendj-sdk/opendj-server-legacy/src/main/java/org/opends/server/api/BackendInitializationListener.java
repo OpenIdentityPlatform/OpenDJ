@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -48,7 +49,7 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been initialized and is
    *                  about to be put into service.
    */
-  public void performBackendInitializationProcessing(Backend backend);
+  void performBackendInitializationProcessing(Backend backend);
 
 
 
@@ -60,6 +61,6 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been taken out of service
    *                  and is about to be finalized.
    */
-  public void performBackendFinalizationProcessing(Backend backend);
+  void performBackendFinalizationProcessing(Backend backend);
 }
 

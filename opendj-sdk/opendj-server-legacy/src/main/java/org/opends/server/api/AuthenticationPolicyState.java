@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
@@ -78,7 +78,7 @@ public abstract class AuthenticationPolicyState
    *           policy for the user.
    * @see AuthenticationPolicy#forUser(Entry, boolean)
    */
-  public final static AuthenticationPolicyState forUser(final Entry userEntry,
+  public static AuthenticationPolicyState forUser(final Entry userEntry,
       final boolean useDefaultOnError) throws DirectoryException
   {
     final AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
@@ -102,7 +102,7 @@ public abstract class AuthenticationPolicyState
    * @throws DirectoryException
    *           If the value cannot be decoded as a boolean.
    */
-  protected static final ConditionResult getBoolean(final Entry entry,
+  protected static ConditionResult getBoolean(final Entry entry,
       final AttributeType attributeType) throws DirectoryException
   {
     final List<Attribute> attrList = entry.getAttribute(attributeType);
@@ -182,7 +182,7 @@ public abstract class AuthenticationPolicyState
    *           If a problem occurs while attempting to decode the value as a
    *           generalized time.
    */
-  protected static final long getGeneralizedTime(final Entry entry,
+  protected static long getGeneralizedTime(final Entry entry,
       final AttributeType attributeType) throws DirectoryException
   {
     long timeValue = -1;

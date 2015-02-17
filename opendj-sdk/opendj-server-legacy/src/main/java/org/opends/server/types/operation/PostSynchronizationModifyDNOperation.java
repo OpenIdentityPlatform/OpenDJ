@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -60,7 +60,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -73,7 +73,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The DN of the entry to rename, or <CODE>null</CODE> if
    *          the raw entry DN has not yet been processed.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -85,7 +85,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request
    *          from the client.
    */
-  public ByteString getRawNewRDN();
+  ByteString getRawNewRDN();
 
 
 
@@ -98,7 +98,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The new RDN to use for the entry, or <CODE>null</CODE>
    *          if the raw newRDN has not yet been processed.
    */
-  public RDN getNewRDN();
+  RDN getNewRDN();
 
 
 
@@ -109,7 +109,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  <CODE>true</CODE> if the current RDN value should be
    *          removed from the entry, or <CODE>false</CODE> if not.
    */
-  public boolean deleteOldRDN();
+  boolean deleteOldRDN();
 
 
 
@@ -121,7 +121,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client
    *          request, or <CODE>null</CODE> if there is none.
    */
-  public ByteString getRawNewSuperior();
+  ByteString getRawNewSuperior();
 
 
 
@@ -135,7 +135,7 @@ public interface PostSynchronizationModifyDNOperation
    *          if there is no newSuperior DN for this request or if the
    *          raw newSuperior has not yet been processed.
    */
-  public DN getNewSuperior();
+  DN getNewSuperior();
 
 
 
@@ -160,7 +160,7 @@ public interface PostSynchronizationModifyDNOperation
    *          <CODE>null</CODE> if that information is not yet
    *          available (e.g., during pre-parse plugins).
    */
-  public List<Modification> getModifications();
+  List<Modification> getModifications();
 
 
 
@@ -172,7 +172,7 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getOriginalEntry();
+  Entry getOriginalEntry();
 
 
 
@@ -184,6 +184,6 @@ public interface PostSynchronizationModifyDNOperation
    * @return  The updated entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getUpdatedEntry();
+  Entry getUpdatedEntry();
 }
 

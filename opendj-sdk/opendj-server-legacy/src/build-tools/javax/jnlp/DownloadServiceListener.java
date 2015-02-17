@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package javax.jnlp;
@@ -41,16 +42,12 @@ package javax.jnlp;
  * javaws.jar will be provided by the Java Web Start Runtime environment.  So
  * we are not providing the javaws-stub.jar during runtime: it is used only
  * for compilation.
- *
  */
 import java.net.URL;
 
 public interface DownloadServiceListener {
-	public void downloadFailed(URL url, String version);
-	public void progress(URL url, String version, long readSoFar, long total,
-		      int overallPercent);
-	public void upgradingArchive(URL url, String version, int patchPercent,
-		      int overallPercent);
-	public void validating(URL url, String version, long entry, long total,
-		      int overallPercent);
+  void downloadFailed(URL url, String version);
+  void progress(URL url, String version, long readSoFar, long total, int overallPercent);
+  void upgradingArchive(URL url, String version, int patchPercent, int overallPercent);
+  void validating(URL url, String version, long entry, long total, int overallPercent);
 }

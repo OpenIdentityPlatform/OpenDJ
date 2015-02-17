@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -35,7 +35,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 /**
    * This class is used to read an input stream and process ouput.
  */
-abstract public class OutputReader {
+public abstract class OutputReader {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

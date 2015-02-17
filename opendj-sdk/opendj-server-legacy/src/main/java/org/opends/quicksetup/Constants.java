@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.quicksetup;
 
@@ -34,7 +34,7 @@ import org.opends.admin.ads.ADSContext;
 public class Constants {
 
   /** Platform appropriate line separator. */
-  static public final String LINE_SEPARATOR =
+  public static final String LINE_SEPARATOR =
           System.getProperty("line.separator");
 
   /** HTML line break tag. */

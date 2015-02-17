@@ -275,7 +275,7 @@ class FileManager
      *          to act as the new file object
      * @return FileOperation as the same type as this class
      */
-    abstract public FileOperation copyForChild(File child);
+    public abstract FileOperation copyForChild(File child);
 
 
 
@@ -285,7 +285,7 @@ class FileManager
      * @throws IOException
      *           if there is a problem.
      */
-    abstract public void apply() throws IOException;
+    public abstract void apply() throws IOException;
 
   }
 

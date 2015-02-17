@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -38,5 +39,5 @@ public interface BrowserEventListener extends java.util.EventListener {
    * generated.
    * @param e the browser event.
    */
-  public void processBrowserEvent(BrowserEvent e);
+  void processBrowserEvent(BrowserEvent e);
 }

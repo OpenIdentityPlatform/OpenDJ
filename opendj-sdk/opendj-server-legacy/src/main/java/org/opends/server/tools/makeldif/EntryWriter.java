@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -51,7 +52,7 @@ public interface EntryWriter
    *
    * @throws  MakeLDIFException  If some other problem occurs.
    */
-  public boolean writeEntry(TemplateEntry entry)
+  boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException;
 
 
@@ -60,6 +61,6 @@ public interface EntryWriter
    * Notifies the entry writer that no more entries will be provided and that
    * any associated cleanup may be performed.
    */
-  public void closeEntryWriter();
+  void closeEntryWriter();
 }
 

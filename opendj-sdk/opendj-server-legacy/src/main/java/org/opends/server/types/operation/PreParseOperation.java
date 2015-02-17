@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 
@@ -54,7 +54,7 @@ public interface PreParseOperation
    * @param  control  The control to add to the set of request
    *                  controls for this operation.
    */
-  public void addRequestControl(Control control);
+  void addRequestControl(Control control);
 
 
 
@@ -65,7 +65,7 @@ public interface PreParseOperation
    * @param  control  The control to add to the set of controls to
    *                  include in the response to the client.
    */
-  public void addResponseControl(Control control);
+  void addResponseControl(Control control);
 
 
 
@@ -76,7 +76,7 @@ public interface PreParseOperation
    * @param  control  The control to remove from the set of controls
    *                  to include in the response to the client.
    */
-  public void removeResponseControl(Control control);
+  void removeResponseControl(Control control);
 
 
 
@@ -86,7 +86,7 @@ public interface PreParseOperation
    *
    * @return  The error message for this operation.
    */
-  public LocalizableMessageBuilder getErrorMessage();
+  LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -95,7 +95,7 @@ public interface PreParseOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(LocalizableMessageBuilder errorMessage);
+  void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
 
 
@@ -107,7 +107,7 @@ public interface PreParseOperation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
-  public void appendErrorMessage(LocalizableMessage message);
+  void appendErrorMessage(LocalizableMessage message);
 
 
 
@@ -119,7 +119,7 @@ public interface PreParseOperation
    * @return An unmodifiable list containing the additional log items for this
    *         operation.
    */
-  public List<AdditionalLogItem> getAdditionalLogItems();
+  List<AdditionalLogItem> getAdditionalLogItems();
 
 
 
@@ -131,6 +131,6 @@ public interface PreParseOperation
    * @param item
    *          The additional log item for this operation.
    */
-  public void addAdditionalLogItem(AdditionalLogItem item);
+  void addAdditionalLogItem(AdditionalLogItem item);
 }
 

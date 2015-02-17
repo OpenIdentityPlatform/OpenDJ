@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -56,7 +57,7 @@ public interface BackupTaskListener
    * @param  config   Configuration information about the backup to be
    *                  performed.
    */
-  public void processBackupBegin(Backend backend,
+  void processBackupBegin(Backend backend,
                                  BackupConfig config);
 
 
@@ -73,7 +74,7 @@ public interface BackupTaskListener
    * @param  successful  Indicates whether the backup operation
    *                     completed successfully.
    */
-  public void processBackupEnd(Backend backend, BackupConfig config,
+  void processBackupEnd(Backend backend, BackupConfig config,
                                boolean successful);
 }
 

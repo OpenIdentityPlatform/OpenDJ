@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -52,7 +52,7 @@ public interface PreParseDeleteOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -63,6 +63,6 @@ public interface PreParseDeleteOperation
    * @param  rawEntryDN  The raw, unprocessed entry DN for this delete
    *                     operation.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 }
 

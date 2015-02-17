@@ -3474,7 +3474,7 @@ public final class StaticUtils
    *                     indicates that the file is in use by this or another
    *                     application.
    */
-  static public void renameFile(File fileToRename, File target)
+  public static void renameFile(File fileToRename, File target)
           throws IOException {
     if (fileToRename != null && target != null)
     {
@@ -3792,7 +3792,7 @@ public final class StaticUtils
    * @throws ParseException if there was a problem converting the string to
    *         a <code>Date</code>.
    */
-  static public Date parseDateTimeString(String timeStr) throws ParseException
+  public static Date parseDateTimeString(String timeStr) throws ParseException
   {
     Date dateTime = null;
     if (timeStr != null)
@@ -3834,7 +3834,7 @@ public final class StaticUtils
    * @param date to format; null if <code>date</code> is null
    * @return string representation of the date
    */
-  static public String formatDateTimeString(Date date)
+  public static String formatDateTimeString(Date date)
   {
     String timeStr = null;
     if (date != null)

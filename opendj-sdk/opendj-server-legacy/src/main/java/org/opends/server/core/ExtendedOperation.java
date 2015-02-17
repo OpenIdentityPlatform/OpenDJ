@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -44,7 +44,7 @@ public interface ExtendedOperation
    * @return  The OID for the request associated with this extended
    *          operation.
    */
-  public String getRequestOID();
+  String getRequestOID();
 
 
 
@@ -55,7 +55,7 @@ public interface ExtendedOperation
    * @return  The value for the request associated with this extended
    *          operation.
    */
-  public ByteString getRequestValue();
+  ByteString getRequestValue();
 
 
 
@@ -64,7 +64,7 @@ public interface ExtendedOperation
    *
    * @return  The OID to include in the response to the client.
    */
-  public String getResponseOID();
+  String getResponseOID();
 
 
 
@@ -74,7 +74,7 @@ public interface ExtendedOperation
    * @param  responseOID  The OID to include in the response to the
    *                      client.
    */
-  public void setResponseOID(String responseOID);
+  void setResponseOID(String responseOID);
 
 
 
@@ -83,7 +83,7 @@ public interface ExtendedOperation
    *
    * @return  The value to include in the response to the client.
    */
-  public ByteString getResponseValue();
+  ByteString getResponseValue();
 
 
 
@@ -93,6 +93,6 @@ public interface ExtendedOperation
    * @param  responseValue  The value to include in the response to
    *                        the client.
    */
-  public void setResponseValue(ByteString responseValue);
+  void setResponseValue(ByteString responseValue);
 }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -56,7 +56,7 @@ public interface PostOperationCompareOperation
    * @return  The raw, unprocessed entry DN as included in the client
    *          request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -65,7 +65,7 @@ public interface PostOperationCompareOperation
    *
    * @return  The DN of the entry to compare.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -74,7 +74,7 @@ public interface PostOperationCompareOperation
    *
    * @return  The raw attribute type for this compare operation.
    */
-  public String getRawAttributeType();
+  String getRawAttributeType();
 
 
 
@@ -83,7 +83,7 @@ public interface PostOperationCompareOperation
    *
    * @return  The attribute type for this compare operation.
    */
-  public AttributeType getAttributeType();
+  AttributeType getAttributeType();
 
 
 
@@ -92,7 +92,7 @@ public interface PostOperationCompareOperation
    *
    * @return  The assertion value for this compare operation.
    */
-  public ByteString getAssertionValue();
+  ByteString getAssertionValue();
 
 
 
@@ -101,6 +101,6 @@ public interface PostOperationCompareOperation
    *
    * @return  The entry to target with the compare operation.
    */
-  public Entry getEntryToCompare();
+  Entry getEntryToCompare();
 }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -58,7 +58,7 @@ public interface RetentionPolicy<T extends LogRetentionPolicyCfg>
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  public abstract void initializeLogRetentionPolicy(T config)
+  void initializeLogRetentionPolicy(T config)
       throws ConfigException, InitializationException;
 
   /**
@@ -68,12 +68,12 @@ public interface RetentionPolicy<T extends LogRetentionPolicyCfg>
    *                         names.
    *
    * @return An array of files that should be deleted according to the
-   *         policy or <code>null</code> if an error occured while
+   *         policy or <code>null</code> if an error occurred while
    *         obtaining the file list.
    * @throws DirectoryException If an error occurs while obtaining a list
    *                            of files to delete.
    */
-  public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
+  File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException;
 }
 

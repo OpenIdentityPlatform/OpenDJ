@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -44,64 +44,64 @@ public interface AciEvalContext
      * Get client DN. The client DN is the authorization DN.
      * @return   The client DN.
      */
-    public DN getClientDN();
+    DN getClientDN();
 
     /**
      * Get the client entry. The client entry is the entry that corresponds
      * to the client DN.
      * @return The client entry corresponding to the client DN.
      */
-    public Entry getClientEntry();
+    Entry getClientEntry();
 
     /**
      * Get the resource DN. The resource DN is the DN of the entry being
      * evaluated.
      * @return   The resource DN.
      */
-    public DN getResourceDN();
+    DN getResourceDN();
 
     /**
      * Get the list of deny ACIs.
      * @return The deny ACI list.
      */
-    public List<Aci> getDenyList();
+    List<Aci> getDenyList();
 
     /**
      * Get the list allow ACIs.
      * @return The allow ACI list.
      */
-    public List<Aci> getAllowList();
+    List<Aci> getAllowList();
 
     /**
      * Returns true if the deny list is being evaluated.
      * @return True if the deny list is being evaluated.
      */
-    public boolean isDenyEval();
+    boolean isDenyEval();
 
     /**
      * Check if the remote client is bound anonymously.
      * @return {@code true} if client is bound anonymously.
      */
-    public boolean isAnonymousUser();
+    boolean isAnonymousUser();
 
     /**
      * Return the rights set for this container's LDAP operation.
      * @return  The rights set for the container's LDAP operation.
      */
-    public int getRights();
+    int getRights();
 
     /**
      * Return the entry being evaluated
      * .
      * @return The evaluation entry.
      */
-    public Entry getResourceEntry();
+    Entry getResourceEntry();
 
     /**
      * Get the hostname of the bound connection.
      * @return The hostname of the connection.
      */
-    public String getHostName();
+    String getHostName();
 
     /**
      * Determine whether the client connection has been authenticated using
@@ -115,14 +115,14 @@ public interface AciEvalContext
      * @return An evaluation result indicating whether the client connection
      * has been authenticated using the required authentication method.
      */
-    public EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
+    EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
                                                   String saslMech);
 
     /**
      * Get the  address of the bound connection.
      * @return The address of the bound connection.
      */
-    public InetAddress getRemoteAddress();
+    InetAddress getRemoteAddress();
 
     /**
      * Return true if this is an add operation needed by the userattr
@@ -130,7 +130,7 @@ public interface AciEvalContext
      *
      * @return {@code true} if this is an add operation.
      */
-    public boolean isAddOperation();
+    boolean isAddOperation();
 
     /**
      * Return true if the operation associated with this evaluation
@@ -141,7 +141,7 @@ public interface AciEvalContext
      * @return {@code true} if the authorization DN of the operation is a
      * member of the specified group.
      */
-    public boolean isMemberOf(Group<?> group);
+    boolean isMemberOf(Group<?> group);
 
   /**
    * Returns true if the hashtable of ACIs that matched the targattrfilters
@@ -152,7 +152,7 @@ public interface AciEvalContext
    * @return {@code true} if there were not any ACIs that matched
    *         targattrfilters keyword evaluation.
    */
-    public boolean isTargAttrFilterMatchAciEmpty();
+    boolean isTargAttrFilterMatchAciEmpty();
 
   /**
    * The context maintains a hashtable of ACIs that matched the targattrfilters
@@ -166,7 +166,7 @@ public interface AciEvalContext
    *
    * @return {@code true} if a specified ACI matched targattrfilters evaluation.
    */
-    public boolean hasTargAttrFiltersMatchAci(Aci aci);
+    boolean hasTargAttrFiltersMatchAci(Aci aci);
 
   /**
    * Return true if an ACI that evaluated to deny or allow has an
@@ -179,7 +179,7 @@ public interface AciEvalContext
    *
    * @return  {@code true} if the ACI has an targattrfilters keyword.
    */
-    public boolean hasTargAttrFiltersMatchOp(int flag);
+    boolean hasTargAttrFiltersMatchOp(int flag);
 
   /**
    * Returns {@code true} if the evaluation context is being used in a
@@ -188,7 +188,7 @@ public interface AciEvalContext
    * @return  {@code true} if the evaluation context is being used in a
    * geteffectiverights control evaluation.
    */
-    public boolean isGetEffectiveRightsEval();
+    boolean isGetEffectiveRightsEval();
 
   /**
    * Set the name of the ACI that last matched a targattrfilters rule. Used
@@ -196,7 +196,7 @@ public interface AciEvalContext
    *
    * @param name The ACI name string matching the targattrfilters rule.
    */
-    public void setTargAttrFiltersAciName(String name);
+    void setTargAttrFiltersAciName(String name);
 
   /**
    * Set a flag that specifies that a ACI that evaluated to either deny or
@@ -207,7 +207,7 @@ public interface AciEvalContext
    * @param flag Either the integer value representing an allow or a deny,
    *             but not both.
    */
-    public void setTargAttrFiltersMatchOp(int flag);
+    void setTargAttrFiltersMatchOp(int flag);
 
   /**
    * Set the reason and the ACI that decided why the last access evaluation was
@@ -230,7 +230,7 @@ public interface AciEvalContext
    * @return The enumeration representing the reason of the last access
    * evaluation.
    */
-    public EnumEvalReason getEvalReason();
+    EnumEvalReason getEvalReason();
 
   /**
    * Check if an evaluation context contains a set of access rights.
@@ -239,7 +239,7 @@ public interface AciEvalContext
    *
    * @return {@code true} if the evaluation context contains a access right set.
    */
-    public boolean hasRights(int rights);
+    boolean hasRights(int rights);
 
   /**
    * Return the name of the ACI that decided the last access evaluation. Used
@@ -247,7 +247,7 @@ public interface AciEvalContext
    *
    * @return The name of the ACI that decided the last access evaluation.
    */
-    public String getDecidingAciName();
+    String getDecidingAciName();
 
   /**
    * Return true if a evaluation context is being used in proxied authorization
@@ -256,14 +256,14 @@ public interface AciEvalContext
    * @return  {@code true} if evaluation context is being used in proxied
    *          authorization control evaluation.
    */
-    public boolean isProxiedAuthorization();
+    boolean isProxiedAuthorization();
 
     /**
      * Get the current attribute type being evaluated.
      *
      * @return  The attribute type currently being evaluated.
      */
-    public AttributeType getCurrentAttributeType();
+    AttributeType getCurrentAttributeType();
 
   /**
    * Set the value of the summary string to the specified string.
@@ -271,7 +271,7 @@ public interface AciEvalContext
    *
    * @param summary The string to set the summary string to
    */
-    public void setEvalSummary(String summary);
+    void setEvalSummary(String summary);
 
   /**
    * Return the access evaluation summary string. Used in a geteffectiverights
@@ -280,7 +280,7 @@ public interface AciEvalContext
    *
    * @return   The string describing the access evaluation.
    */
-    public String getEvalSummary();
+    String getEvalSummary();
 
   /**
    * Return a string representation of the current right being evaluated.
@@ -288,7 +288,7 @@ public interface AciEvalContext
    *
    * @return  String representation of the current right being evaluated.
    */
-    public String rightToString();
+    String rightToString();
 
     /**
      * Return the name of the ACI that last matched a targattrfilters rule. Used
@@ -296,7 +296,7 @@ public interface AciEvalContext
      *
      * @return The name of the ACI that last matched a targattrfilters rule.
      */
-    public String getTargAttrFiltersAciName();
+    String getTargAttrFiltersAciName();
 
 
     /**
@@ -305,5 +305,5 @@ public interface AciEvalContext
      *
      * @return The current SSF of the connection.
      */
-    public int getCurrentSSF();
+    int getCurrentSSF();
 }

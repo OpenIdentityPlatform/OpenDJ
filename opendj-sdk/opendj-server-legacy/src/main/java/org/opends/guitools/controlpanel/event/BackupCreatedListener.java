@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -36,5 +37,5 @@ public interface BackupCreatedListener
    * Method called when a backup is created.
    * @param ev the event notifying that the backup was created.
    */
-  public void backupCreated(BackupCreatedEvent ev);
+  void backupCreated(BackupCreatedEvent ev);
 }

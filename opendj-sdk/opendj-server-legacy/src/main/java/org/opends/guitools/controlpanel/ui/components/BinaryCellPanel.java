@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -72,7 +72,7 @@ public class BinaryCellPanel extends JPanel
 
   private Object value;
 
-  private final static int THUMBNAIL_HEIGHT = 50;
+  private static final int THUMBNAIL_HEIGHT = 50;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

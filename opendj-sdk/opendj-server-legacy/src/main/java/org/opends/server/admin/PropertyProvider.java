@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -43,7 +44,7 @@ public interface PropertyProvider {
    * A property provider which always returns empty property values, indicating
    * default behavior.
    */
-  public static final PropertyProvider DEFAULT_PROVIDER =
+  PropertyProvider DEFAULT_PROVIDER =
     new PropertyProvider() {
 
     /**

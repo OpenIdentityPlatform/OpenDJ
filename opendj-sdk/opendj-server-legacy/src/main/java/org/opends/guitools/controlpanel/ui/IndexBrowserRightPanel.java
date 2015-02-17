@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -56,8 +56,8 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
   private BackendVLVIndexesPanel backendVLVIndexesPanel =
     new BackendVLVIndexesPanel();
 
-  private final static String NOTHING_SELECTED = "Nothing Selected";
-  private final static String MULTIPLE_SELECTED = "Multiple Selected";
+  private static final String NOTHING_SELECTED = "Nothing Selected";
+  private static final String MULTIPLE_SELECTED = "Multiple Selected";
 
   /**
    * Default constructor.

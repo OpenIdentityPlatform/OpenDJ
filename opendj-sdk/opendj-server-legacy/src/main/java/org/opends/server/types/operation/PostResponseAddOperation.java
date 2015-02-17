@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
@@ -57,7 +57,7 @@ public interface PostResponseAddOperation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
 
 
@@ -70,7 +70,7 @@ public interface PostResponseAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<RawAttribute> getRawAttributes();
+  List<RawAttribute> getRawAttributes();
 
 
 
@@ -79,7 +79,7 @@ public interface PostResponseAddOperation
    *
    * @return  The DN of the entry to add.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
 
 
@@ -90,7 +90,7 @@ public interface PostResponseAddOperation
    *
    * @return  The set of processed objectclasses for the entry to add.
    */
-  public Map<ObjectClass,String> getObjectClasses();
+  Map<ObjectClass,String> getObjectClasses();
 
 
 
@@ -102,7 +102,7 @@ public interface PostResponseAddOperation
    * @return  The set of processed user attributes for the entry to
    *          add.
    */
-  public Map<AttributeType,List<Attribute>> getUserAttributes();
+  Map<AttributeType,List<Attribute>> getUserAttributes();
 
 
 
@@ -114,10 +114,7 @@ public interface PostResponseAddOperation
    * @return  The set of processed operational attributes for the
    *          entry to add.
    */
-  public Map<AttributeType,List<Attribute>>
-              getOperationalAttributes();
-
-
+  Map<AttributeType, List<Attribute>> getOperationalAttributes();
 
   /**
    * Retrieves the entry to be added to the server.  The contents of
@@ -125,6 +122,6 @@ public interface PostResponseAddOperation
    *
    * @return  The entry to be added to the server.
    */
-  public Entry getEntryToAdd();
+  Entry getEntryToAdd();
 }
 

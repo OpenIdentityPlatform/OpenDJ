@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -493,7 +493,7 @@ public class OperationWrapper<W extends Operation> implements Operation
 
   /** {@inheritDoc} */
   @Override
-  public synchronized final void checkIfCanceled(boolean signalTooLate)
+  final synchronized public void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException {
     operation.checkIfCanceled(signalTooLate);
   }

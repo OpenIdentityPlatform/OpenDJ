@@ -453,7 +453,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *                {@code null}, then any existing definition will be
    *                removed.
    */
-  public static final void setExtraProperty(SchemaFileElement elem,
+  public static void setExtraProperty(SchemaFileElement elem,
       String name, String value)
   {
     ifNull(name);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -73,7 +74,7 @@ public interface SubentryChangeListener
    * @throws DirectoryException if operation is not
    *         acceptable for this subentry.
    */
-  public void checkSubentryAddAcceptable(Entry entry)
+  void checkSubentryAddAcceptable(Entry entry)
           throws DirectoryException;
 
   /**
@@ -83,7 +84,7 @@ public interface SubentryChangeListener
    * @throws DirectoryException if operation is not
    *         acceptable for this subentry.
    */
-  public void checkSubentryDeleteAcceptable(Entry entry)
+  void checkSubentryDeleteAcceptable(Entry entry)
           throws DirectoryException;
 
   /**
@@ -94,7 +95,7 @@ public interface SubentryChangeListener
    * @throws DirectoryException if operation is not
    *         acceptable for this subentry.
    */
-  public void checkSubentryModifyAcceptable(Entry oldEntry,
+  void checkSubentryModifyAcceptable(Entry oldEntry,
           Entry newEntry) throws DirectoryException;
 
   /**
@@ -105,7 +106,7 @@ public interface SubentryChangeListener
    * @throws DirectoryException if operation is not
    *         acceptable for this subentry.
    */
-  public void checkSubentryModifyDNAcceptable(Entry oldEntry,
+  void checkSubentryModifyDNAcceptable(Entry oldEntry,
           Entry newEntry) throws DirectoryException;
 
   /**
@@ -115,7 +116,7 @@ public interface SubentryChangeListener
    * @param entry The subentry that was added to the
    *              server.
    */
-  public void handleSubentryAdd(Entry entry);
+  void handleSubentryAdd(Entry entry);
 
   /**
    * Performs any processing that may be required after a
@@ -124,7 +125,7 @@ public interface SubentryChangeListener
    * @param entry The subentry that was removed from the
    *              server.
    */
-  public void handleSubentryDelete(Entry entry);
+  void handleSubentryDelete(Entry entry);
 
   /**
    * Performs any processing that may be required after a
@@ -133,7 +134,7 @@ public interface SubentryChangeListener
    * @param oldEntry The subentry before it was updated.
    * @param newEntry The subentry after it was updated.
    */
-  public void handleSubentryModify(Entry oldEntry, Entry newEntry);
+  void handleSubentryModify(Entry oldEntry, Entry newEntry);
 
   /**
    * Performs any processing that may be required after a
@@ -142,5 +143,5 @@ public interface SubentryChangeListener
    * @param oldEntry The subentry before it was updated.
    * @param newEntry The subentry after it was updated.
    */
-  public void handleSubentryModifyDN(Entry oldEntry, Entry newEntry);
+  void handleSubentryModifyDN(Entry oldEntry, Entry newEntry);
 }

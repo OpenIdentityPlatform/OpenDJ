@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
@@ -69,7 +69,7 @@ public abstract class AuthenticationPolicy
    *           If a problem occurs while attempting to determine the password
    *           policy for the user.
    */
-  public final static AuthenticationPolicy forUser(Entry userEntry,
+  public static AuthenticationPolicy forUser(Entry userEntry,
       boolean useDefaultOnError) throws DirectoryException
   {
     // First check to see if the ds-pwp-password-policy-dn is present.

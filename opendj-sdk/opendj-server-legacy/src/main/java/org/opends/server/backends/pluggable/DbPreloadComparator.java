@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -42,7 +42,7 @@ public class DbPreloadComparator
    * @param database A handle to the database.
    * @return 1 for id2entry database, 2 for dn2id database, 3 for all others.
    */
-  static private int priority(DatabaseContainer database)
+  private static int priority(DatabaseContainer database)
   {
     String indexName = database.getName().getIndexId();
     if (indexName.endsWith(SuffixContainer.ID2ENTRY_INDEX_NAME))

@@ -61,7 +61,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @throws ApplicationException if all or some important information could
    * not be determined
    */
-  static public BuildInformation create(Installation installation)
+  public static BuildInformation create(Installation installation)
           throws ApplicationException {
     BuildInformation bi = new BuildInformation();
     List<String> args = new ArrayList<String>();
@@ -193,7 +193,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @throws IllegalArgumentException if <code>bn</code> is not a build
    * number
    */
-  static public BuildInformation fromBuildString(String bn) throws
+  public static BuildInformation fromBuildString(String bn) throws
     IllegalArgumentException
   {
     // -------------------------------------------------------
@@ -387,7 +387,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return hc;
   }
 
-  static private void checkNotNull(Map<?, ?> values, String... props)
+  private static void checkNotNull(Map<?, ?> values, String... props)
           throws ApplicationException {
     for (String prop : props) {
       if (null == values.get(prop)) {

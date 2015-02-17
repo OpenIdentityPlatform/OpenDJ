@@ -807,7 +807,7 @@ public class UIFactory
    * @param desc the LabelFieldDescriptor describing the JLabel.
    * @return a JLabel based on a LabelFieldDescriptor.
    */
-  static public JLabel makeJLabel(LabelFieldDescriptor desc)
+  public static JLabel makeJLabel(LabelFieldDescriptor desc)
   {
     UIFactory.TextStyle style;
     if (desc.getLabelType() == LabelFieldDescriptor.LabelType.PRIMARY)
@@ -859,7 +859,7 @@ public class UIFactory
    * @return a JTextComponent based on a
    * LabelFieldDescriptor.
    */
-  static public JTextComponent makeJTextComponent(LabelFieldDescriptor desc,
+  public static JTextComponent makeJTextComponent(LabelFieldDescriptor desc,
       String defaultValue)
   {
     if (defaultValue == null)

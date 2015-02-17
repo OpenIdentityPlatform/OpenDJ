@@ -417,13 +417,13 @@ public class FileManager {
      * @param child to act as the new file object
      * @return FileOperation as the same type as this class
      */
-    abstract public FileOperation copyForChild(File child);
+    public abstract FileOperation copyForChild(File child);
 
     /**
      * Execute this operation.
      * @throws ApplicationException if there is a problem.
      */
-    abstract public void apply() throws ApplicationException;
+    public abstract void apply() throws ApplicationException;
 
   }
 

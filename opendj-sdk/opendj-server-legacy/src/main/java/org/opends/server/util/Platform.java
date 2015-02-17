@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.server.util;
@@ -85,7 +85,7 @@ public final class Platform
   /**
    * Platform base class. Performs all of the certificate management functions.
    */
-  private abstract static class PlatformIMPL
+  private static abstract class PlatformIMPL
   {
 
     // Key size, key algorithm and signature algorithms used.

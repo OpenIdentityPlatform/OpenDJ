@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -57,7 +57,7 @@ public class ZipExtractor {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Path separator for zip file entry names on Windows and *nix. */
-  static private final char ZIP_ENTRY_NAME_SEP = '/';
+  private static final char ZIP_ENTRY_NAME_SEP = '/';
 
   private InputStream is;
   private int minRatio;

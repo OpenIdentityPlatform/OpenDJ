@@ -598,7 +598,7 @@ public class ServerDescriptor
    * @return <CODE>true</CODE> if the two schema attributes are equal and
    * <CODE>false</CODE> otherwise.
    */
-  private static final boolean areAttributesEqual(AttributeType attr1, AttributeType attr2)
+  private static boolean areAttributesEqual(AttributeType attr1, AttributeType attr2)
   {
     return attr1.getOID().equals(attr2.getOID())
         && attr1.isCollective() == attr2.isCollective()
@@ -630,7 +630,7 @@ public class ServerDescriptor
    * @return <CODE>true</CODE> if the two schema objectclasses are equal and
    * <CODE>false</CODE> otherwise.
    */
-  private static final boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
+  private static boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
   {
     return oc1.getOID().equals(oc2.getOID())
         && oc1.isExtensibleObject() == oc2.isExtensibleObject()

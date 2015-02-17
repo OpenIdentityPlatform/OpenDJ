@@ -111,7 +111,7 @@ public final class LockManager
    * case that the Directory Server is in the process of an in-core
    * restart because it will destroy the existing lock table.
    */
-  public synchronized static void reinitializeLockTable()
+  public static synchronized void reinitializeLockTable()
   {
     ConcurrentHashMap<DN,ReentrantReadWriteLock> oldTable = lockTable;
 

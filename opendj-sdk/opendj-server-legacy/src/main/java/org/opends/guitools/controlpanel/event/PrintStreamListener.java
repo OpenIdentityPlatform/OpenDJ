@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -40,5 +41,5 @@ public interface PrintStreamListener
    * Notification that a new line has been written in a PrintStream.
    * @param line the new line.
    */
-  public void newLine(String line);
+  void newLine(String line);
 }

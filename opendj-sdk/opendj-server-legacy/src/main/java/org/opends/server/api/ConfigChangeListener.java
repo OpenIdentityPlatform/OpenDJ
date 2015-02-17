@@ -57,7 +57,7 @@ public interface ConfigChangeListener
    *          acceptable configuration, or {@code false} if it does
    *          not.
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
+  boolean configChangeIsAcceptable(ConfigEntry configEntry,
                       LocalizableMessageBuilder unacceptableReason);
 
 
@@ -72,7 +72,7 @@ public interface ConfigChangeListener
    * @return  Information about the result of processing the
    *          configuration change.
    */
-  public ConfigChangeResult applyConfigurationChange(
+  ConfigChangeResult applyConfigurationChange(
                                  ConfigEntry configEntry);
 }
 

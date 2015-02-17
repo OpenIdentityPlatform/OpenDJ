@@ -76,7 +76,7 @@ public class ServerSideSortRequestControl
   /**
    * ControlDecoder implementation to decode this control from a ByteString.
    */
-  private final static class Decoder
+  private static final class Decoder
       implements ControlDecoder<ServerSideSortRequestControl>
   {
     /**

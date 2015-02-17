@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -72,7 +72,7 @@ import org.opends.server.util.DynamicConstants;
 public class GenericFrame extends JFrame
 {
   private static final long serialVersionUID = -2643144936460484112L;
-  private final static Color buttonPanelBackground =
+  private static final Color buttonPanelBackground =
     ColorAndFontConstants.greyBackground;
   private JButton okButton;
 

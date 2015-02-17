@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -52,7 +52,7 @@ public class LDAPPreReadResponseControl
   /**
    * ControlDecoder implementation to decode this control from a ByteString.
    */
-  private final static class Decoder
+  private static final class Decoder
       implements ControlDecoder<LDAPPreReadResponseControl>
   {
     /**

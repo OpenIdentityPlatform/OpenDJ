@@ -26,15 +26,16 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
@@ -43,12 +44,13 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
-import org.opends.guitools.controlpanel.event.
- ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.PrintStreamListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -56,20 +58,18 @@ import org.opends.guitools.controlpanel.util.ApplicationPrintStream;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The class used to define a number of common methods and mechanisms for the
  * tasks that are run in the Control Panel.
- *
  */
 public abstract class Task
 {
@@ -77,7 +77,6 @@ public abstract class Task
   private String binDir;
   /**
    * The different task types.
-   *
    */
   public enum Type
   {
@@ -290,6 +289,7 @@ public abstract class Task
        * Add a new line to the logs.
        * @param msg the new line.
        */
+      @Override
       public void newLine(String msg)
       {
         outputLogs.append(msg).append("\n");
@@ -302,6 +302,7 @@ public abstract class Task
        * Add a new line to the error logs.
        * @param msg the new line.
        */
+      @Override
       public void newLine(String msg)
       {
         errorLogs.append(msg).append("\n");
@@ -1007,8 +1008,7 @@ public abstract class Task
   /**
    * The separator used to link the lines of the resulting command-lines.
    */
-  private final static String LINE_SEPARATOR =
-    CommandBuilder.HTML_LINE_SEPARATOR;
+  private static final String LINE_SEPARATOR = CommandBuilder.HTML_LINE_SEPARATOR;
 
   /**
    * Returns the equivalent command line in HTML without font properties.
@@ -1020,9 +1020,8 @@ public abstract class Task
       List<String> args)
   {
     StringBuilder sb = new StringBuilder(cmdName);
-    for (int i=0; i<args.size(); i++)
+    for (String arg : args)
     {
-      String arg = args.get(i);
       if (arg.charAt(0) == '-')
       {
         sb.append(LINE_SEPARATOR);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -209,7 +209,7 @@ public class ColorAndFontConstants
   /**
    * The font of the table header.
    */
-  public final static Font headerFont =
+  public static final Font headerFont =
   UIManager.getFont("TableHeader.font").deriveFont(Font.BOLD);
   /**
    * The font to be used in the title of the error panes.
@@ -237,11 +237,11 @@ public class ColorAndFontConstants
   /**
    * The font to be used in the table.
    */
-  public final static Font tableFont = UIManager.getFont("Table.font");
+  public static final Font tableFont = UIManager.getFont("Table.font");
   /**
    * The font to be used in the title of the TitlePanel component.
    */
-  public final static Font titleFont =
+  public static final Font titleFont =
   defaultFont.deriveFont(Font.BOLD).deriveFont(14f);
   /**
    * Text color indicating that a field is not valid.

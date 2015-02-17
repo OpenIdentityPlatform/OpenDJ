@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -44,7 +45,7 @@ public class DndBrowserNodes implements Transferable {
   /**
    * The data flavor managed by this transferable.
    */
-  final public static DataFlavor INFO_FLAVOR =
+  public static final DataFlavor INFO_FLAVOR =
     new DataFlavor(BrowserNodeInfo.class, "Browse Node Information");
 
   static DataFlavor[] FLAVORS = {INFO_FLAVOR };

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -92,7 +92,7 @@ public class Utils
 
 
   /** The service name required by the JNLP downloader. */
-  public final static String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
+  public static final String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
 
   /**
    * Returns <CODE>true</CODE> if the provided port is free and we can use it,

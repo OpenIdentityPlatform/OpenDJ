@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
-
 package javax.jnlp;
+
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * This is just an empty implementation of DownloadService.  It does define
@@ -43,12 +46,9 @@ package javax.jnlp;
  * javaws.jar will be provided by the Java Web Start Runtime environment.  So
  * we are not providing the javaws-stub.jar during runtime: it is used only
  * for compilation.
- *
  */
 public interface DownloadService {
-	public boolean isResourceCached(java.net.URL url, String version);
-	public void removeResource(java.net.URL url, String version)
-	 throws java.io.IOException;
-	public void loadResource(java.net.URL ref, String version,
-			DownloadServiceListener listener) throws java.io.IOException;
+  boolean isResourceCached(URL url, String version);
+  void removeResource(URL url, String version) throws IOException;
+  void loadResource(URL ref, String version, DownloadServiceListener listener) throws IOException;
 }
