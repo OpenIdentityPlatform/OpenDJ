@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -32,27 +32,25 @@ package com.forgerock.opendj.cli;
 public interface SubCommandUsageHandler {
 
     /**
-     * Appends properties information for the sub-command.
+     * Returns properties information for the sub-command.
      *
-     * @param builder
-     *          the string builder where to append
      * @param subCommand
      *          the sub command for which to print usage information
+     * @return  The properties information for the sub-command.
      */
-    void appendProperties(StringBuilder builder, SubCommand subCommand);
+    String getProperties(SubCommand subCommand);
 
     /**
-     * Appends additional information for the provided sub-command argument.
+     * Returns additional information for the provided sub-command argument.
      *
-     * @param builder
-     *          the string builder where to append
      * @param subCommand
      *          the sub command for which to print usage information
      * @param arg
      *          the argument for which to append additional information
      * @param nameOption
      *          the string representing the name option
+     * @return  The additional information for the sub-command argument.
      */
-    void appendArgumentAdditionalInfo(StringBuilder builder, SubCommand subCommand, Argument arg, String nameOption);
+    String getArgumentAdditionalInfo(SubCommand subCommand, Argument arg, String nameOption);
 
 }
