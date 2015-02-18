@@ -40,32 +40,19 @@ import org.opends.server.types.AttributeType;
  * A class representing an ACI's targetattr keyword.
  */
 public class TargetAttr {
-    /*
-     * Enumeration representing the targetattr operator.
-     */
+    /** Enumeration representing the targetattr operator. */
     private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
 
-    /*
-     * Flags that is set if all user attributes pattern seen "*".
-     */
+    /** Flags that is set if all user attributes pattern seen "*". */
     private boolean allUserAttributes;
-
-    /*
-     * Flags that is set if all operational attributes pattern seen "+".
-     */
+    /** Flags that is set if all operational attributes pattern seen "+". */
     private boolean allOpAttributes;
-
-    /*
-     * HashSet of the attribute types parsed by the constructor.
-     */
+    /** Set of the attribute types parsed by the constructor. */
     private HashSet<AttributeType> attributes = new HashSet<AttributeType>();
-
-    /**
-     * HashSet of the operational attribute types parsed by the constructor.
-     */
+    /** Set of the operational attribute types parsed by the constructor. */
     private HashSet<AttributeType> opAttributes = new HashSet<AttributeType>();
 
-    /*
+    /**
      * Regular expression that matches one or more ATTR_NAME's separated by
      * the "||" token.
      */
@@ -170,7 +157,6 @@ public class TargetAttr {
         return allUserAttributes;
     }
 
-
     /**
      * This flag is set if the parsing code saw:
      * targetattr="+" or targetattr != "+".
@@ -189,12 +175,12 @@ public class TargetAttr {
         return attributes;
     }
 
-  /**
-   * Return array holding  operational attribute types to be evaluated
-   * in the expression.
-   * @return  Array holding attribute types.
-   */
-  public HashSet<AttributeType> getOpAttributes() {
+    /**
+     * Return array holding  operational attribute types to be evaluated
+     * in the expression.
+     * @return  Array holding attribute types.
+     */
+    public HashSet<AttributeType> getOpAttributes() {
         return opAttributes;
     }
 
@@ -231,16 +217,12 @@ public class TargetAttr {
      * TargetAttr's operator value applied to the test result.
      */
 
-    public static boolean isApplicable(AttributeType a,
-                                       TargetAttr targetAttr) {
-        boolean ret;
+    public static boolean isApplicable(AttributeType a, TargetAttr targetAttr) {
         if(targetAttr.isAllUserAttributes() && targetAttr.isAllOpAttributes()) {
-            ret =
-              !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
-        } else
-            ret=evalAttrType(a, targetAttr);
-
-        return ret;
+            return !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
+        } else {
+            return evalAttrType(a, targetAttr);
+        }
     }
 
     /**
@@ -269,10 +251,11 @@ public class TargetAttr {
     private static boolean evalAttrType(AttributeType attrType, boolean allAttrs,
             HashSet<AttributeType> attrs, EnumTargetOperator op) {
         boolean ret = allAttrs || attrs.contains(attrType);
-        if (op.equals(EnumTargetOperator.NOT_EQUALITY))
+        if ((allAttrs || !attrs.isEmpty())
+            && op.equals(EnumTargetOperator.NOT_EQUALITY))
         {
           return !ret;
         }
         return ret;
     }
-  }
+}
