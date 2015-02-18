@@ -3163,33 +3163,20 @@ public class EntryContainer
   /**
    * Clear the contents for a database from disk.
    *
+   * @param txn The database transaction
    * @param database The database to clear.
    * @throws StorageRuntimeException if a JE database error occurs.
    */
-  public void clearDatabase(final DatabaseContainer database) throws StorageRuntimeException
+  public void clearDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
   {
     database.close();
     try
     {
-      storage.write(new WriteOperation()
-      {
-        @Override
-        public void run(WriteableStorage txn) throws Exception
-        {
-          try
-          {
-            txn.deleteTree(database.getName());
-          }
-          finally
-          {
-            database.open(txn);
-          }
-        }
-      });
+      txn.deleteTree(database.getName());
     }
-    catch (Exception e)
+    finally
     {
-      throw new StorageRuntimeException(e);
+      database.open(txn);
     }
     if(logger.isTraceEnabled())
     {
