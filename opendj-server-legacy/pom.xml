@@ -1013,6 +1013,21 @@
               <goal>run</goal>
             </goals>
           </execution>
+          
+          <execution>
+            <!-- Copy config.ldif in build dir (needed if snmp config merge is needed) -->
+            <id>copy-config-ldif</id>
+            <phase>generate-resources</phase>
+            <configuration>
+              <target>
+                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          
           <!-- Generate final zip and attach artefact -->
           <execution>
             <id>attach-artifact</id>
@@ -1325,8 +1340,9 @@
       </activation>
 
       <properties>
-        <snmp.gen.dir>${basedir}/src/snmp/generated</snmp.gen.dir>
-        <snmp.mib.dir>${basedir}/src/snmp/resource/mib</snmp.mib.dir>
+        <snmp.dir>${basedir}/src/snmp</snmp.dir>
+        <snmp.gen.dir>${snmp.dir}/generated</snmp.gen.dir>
+        <snmp.mib.dir>${snmp.dir}/resource/mib</snmp.mib.dir>
       </properties>
 
       <dependencies>
@@ -1394,8 +1410,24 @@
                   <goal>run</goal>
                 </goals>
               </execution>
+              <execution>
+                <!-- Append snmp config to the config.ldif -->
+                <id>generate-config-ldif</id>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <target>
+                    <concat destfile="${project.build.directory}/template/config/config.ldif" append="true">
+                      <filelist dir="${snmp.dir}/resource/config" files="config.snmp.ldif"/>
+                    </concat>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
             </executions>
           </plugin>
+          
           <!-- MIB generation -->
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -1462,6 +1494,7 @@
               </execution>
             </executions>
           </plugin>
+          
           <!-- Package the final zip -->
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
@@ -1489,6 +1522,7 @@
               </execution>
             </executions>
           </plugin>
+
         </plugins>
       </build>
     </profile>
