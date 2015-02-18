@@ -344,6 +344,38 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-guitools-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/org/opends/guitools</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/java/org/opends/guitools</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-quicksetup-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/org/opends/quicksetup</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/java/org/opends/quicksetup</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       
