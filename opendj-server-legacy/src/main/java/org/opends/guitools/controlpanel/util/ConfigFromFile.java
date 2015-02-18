@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -373,12 +373,9 @@ public class ConfigFromFile extends ConfigReader
       ex.add(new OfflineUpdateException(ERR_READING_CONFIG_LDAP.get(t.getMessage()), t));
     }
 
-    if (ex.size() > 0)
+    if (ex.size() > 0 && environmentSettingException != null)
     {
-      if (environmentSettingException != null)
-      {
-        ex.add(0, environmentSettingException);
-      }
+      ex.add(0, environmentSettingException);
     }
 
     for (OpenDsException oe : ex)

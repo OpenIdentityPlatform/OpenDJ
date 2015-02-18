@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.event;
@@ -161,19 +162,16 @@ public class BrowseActionListener implements ActionListener
 
     /* If we can get the current field parent directory set to it */
     String path = field.getText();
-    if (path != null)
+    if (path != null && path.trim().length() > 0)
     {
-      if (path.trim().length() > 0)
+      File f = new File(path);
+      while ((f != null) && !f.isDirectory())
       {
-        File f = new File(path);
-        while ((f != null) && !f.isDirectory())
-        {
-          f = f.getParentFile();
-        }
-        if (f != null)
-        {
-          fc.setCurrentDirectory(f);
-        }
+        f = f.getParentFile();
+      }
+      if (f != null)
+      {
+        fc.setCurrentDirectory(f);
       }
     }
 

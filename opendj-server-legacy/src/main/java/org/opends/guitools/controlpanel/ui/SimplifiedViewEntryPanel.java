@@ -485,12 +485,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           if (values.size() == 1)
           {
             Object v = values.get(0);
-            if (v instanceof String)
+            if (v instanceof String
+                && ((String) v).indexOf("\n") != -1)
             {
-              if (((String)v).indexOf("\n") != -1)
-              {
-                gbc.anchor = GridBagConstraints.NORTHWEST;
-              }
+              gbc.anchor = GridBagConstraints.NORTHWEST;
             }
           }
         }
@@ -1249,13 +1247,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           String oc = (String)o;
           ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-          if (objectClass != null)
+          if (objectClass != null && objectClass.isRequired(attr))
           {
-            if (objectClass.isRequired(attr))
-            {
-              isRequired = true;
-              break;
-            }
+            isRequired = true;
+            break;
           }
         }
       }

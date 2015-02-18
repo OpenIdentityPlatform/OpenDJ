@@ -148,14 +148,12 @@ public class AttributeValuePasswordValidator
 
     // Check to see if we should verify the whole password or the substrings.
     int minSubstringLength = password.length();
-    if (config.isCheckSubstrings())
+    if (config.isCheckSubstrings()
+        // We apply the minimal substring length only if the provided value
+        // is smaller then the actual password length
+        && config.getMinSubstringLength() < password.length())
     {
-      // We apply the minimal substring length only if the provided value
-      // is smaller then the actual password length
-      if (config.getMinSubstringLength() < password.length())
-      {
-        minSubstringLength = config.getMinSubstringLength();
-      }
+      minSubstringLength = config.getMinSubstringLength();
     }
 
     // If we should check a specific set of attributes, then do that now.

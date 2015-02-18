@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.authorization.dseecompat;
@@ -751,31 +751,29 @@ public final class AciHandler extends
       // type are being replaced or deleted. If only a subset is being
       // deleted than this access check is skipped.
       ModificationType modType = m.getModificationType();
-      if ((modType == ModificationType.DELETE && modAttr.isEmpty())
-          || modType == ModificationType.REPLACE
-          || modType == ModificationType.INCREMENT)
+      if (((modType == ModificationType.DELETE && modAttr.isEmpty())
+              || modType == ModificationType.REPLACE
+              || modType == ModificationType.INCREMENT)
+          /*
+           * Check if we have rights to delete all values of an attribute
+           * type in the resource entry.
+           */
+          && resourceEntry.hasAttribute(modAttrType))
       {
-        /*
-         * Check if we have rights to delete all values of an attribute
-         * type in the resource entry.
-         */
-        if (resourceEntry.hasAttribute(modAttrType))
+        container.setCurrentAttributeType(modAttrType);
+        List<Attribute> attrList =
+            resourceEntry.getAttribute(modAttrType, modAttr.getOptions());
+        if (attrList != null)
         {
-          container.setCurrentAttributeType(modAttrType);
-          List<Attribute> attrList =
-              resourceEntry.getAttribute(modAttrType, modAttr.getOptions());
-          if (attrList != null)
+          for (Attribute a : attrList)
           {
-            for (Attribute a : attrList)
+            for (ByteString v : a)
             {
-              for (ByteString v : a)
+              container.setCurrentAttributeValue(v);
+              container.setRights(ACI_WRITE_DELETE);
+              if (!skipAccessCheck && !accessAllowed(container))
               {
-                container.setCurrentAttributeValue(v);
-                container.setRights(ACI_WRITE_DELETE);
-                if (!skipAccessCheck && !accessAllowed(container))
-                {
-                  return false;
-                }
+                return false;
               }
             }
           }

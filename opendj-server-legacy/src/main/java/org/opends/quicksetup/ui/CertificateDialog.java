@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -122,13 +122,11 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     getContentPane().add(createPanel());
     setModal(true);
     pack();
-    if (parent != null)
+    if (parent != null
+        && getPreferredSize().width > parent.getWidth())
     {
-      if (getPreferredSize().width > parent.getWidth())
-      {
-        setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 600),
-            getPreferredSize().height));
-      }
+      setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 600),
+          getPreferredSize().height));
     }
     pack();
     int minWidth = (int) getPreferredSize().getWidth();

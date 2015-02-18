@@ -381,12 +381,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
   private void createRootDirIfNotExists() throws ChangelogException
   {
-    if (!logPath.exists())
+    if (!logPath.exists() && !logPath.mkdirs())
     {
-      if (!logPath.mkdirs())
-      {
-        throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_CREATE_LOG_DIRECTORY.get(logPath.getPath()));
-      }
+      throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_CREATE_LOG_DIRECTORY.get(logPath.getPath()));
     }
   }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -105,13 +105,10 @@ class GZIPAction implements PostRotationAction
       fis.close();
       inputStreamOpen = false;
 
-      if(deleteOriginal)
+      if(deleteOriginal && !originalFile.delete())
       {
-        if(!originalFile.delete())
-        {
-          System.err.println("Cannot delete original file:" + originalFile);
-          return false;
-        }
+        System.err.println("Cannot delete original file:" + originalFile);
+        return false;
       }
 
       return true;

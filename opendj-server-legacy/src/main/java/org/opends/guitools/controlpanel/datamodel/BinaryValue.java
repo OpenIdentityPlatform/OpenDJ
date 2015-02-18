@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -126,12 +127,9 @@ public class BinaryValue
    */
   public String getBase64()
   {
-    if (base64 == null)
+    if (base64 == null && bytes != null)
     {
-      if (bytes != null)
-      {
-        base64 = Base64.encode(bytes);
-      }
+      base64 = Base64.encode(bytes);
     }
     return base64;
   }
@@ -144,12 +142,9 @@ public class BinaryValue
    */
   public byte[] getBytes() throws ParseException
   {
-    if (bytes == null)
+    if (bytes == null && base64 != null)
     {
-      if (base64 != null)
-      {
-        bytes = Base64.decode(base64);
-      }
+      bytes = Base64.decode(base64);
     }
     return bytes;
   }

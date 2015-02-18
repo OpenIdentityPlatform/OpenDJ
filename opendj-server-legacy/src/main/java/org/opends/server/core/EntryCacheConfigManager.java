@@ -186,13 +186,13 @@ public class EntryCacheConfigManager
       configuration.addChangeListener(this);
 
       // Check if there is another entry cache installed at the same level.
-      if (!cacheOrderMap.isEmpty()) {
-        if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
-          // Log error and skip this cache.
-          logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE,
-              configuration.dn(), configuration.getCacheLevel());
-          continue;
-        }
+      if (!cacheOrderMap.isEmpty()
+          && cacheOrderMap.containsKey(configuration.getCacheLevel()))
+      {
+        // Log error and skip this cache.
+        logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE,
+            configuration.dn(), configuration.getCacheLevel());
+        continue;
       }
 
       // Initialize the entry cache.
@@ -374,13 +374,12 @@ public class EntryCacheConfigManager
   {
     // returned status -- all is fine by default
     // Check if there is another entry cache installed at the same level.
-    if (!cacheOrderMap.isEmpty()) {
-      if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
-        unacceptableReasons.add(
-          ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            configuration.dn(), configuration.getCacheLevel()));
-        return false;
-      }
+    if (!cacheOrderMap.isEmpty()
+        && cacheOrderMap.containsKey(configuration.getCacheLevel()))
+    {
+      unacceptableReasons.add(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+          configuration.dn(), configuration.getCacheLevel()));
+      return false;
     }
 
     if (configuration.isEnabled())

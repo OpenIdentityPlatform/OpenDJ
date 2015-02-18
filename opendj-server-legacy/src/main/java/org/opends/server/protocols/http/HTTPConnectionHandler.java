@@ -543,22 +543,18 @@ public class HTTPConnectionHandler extends
       }
     }
 
-    if (config.isEnabled())
+    if (config.isEnabled() && config.isUseSSL())
     {
-      // Check that the SSL configuration is valid.
-      if (config.isUseSSL())
+      try
       {
-        try
-        {
-          createSSLEngineConfigurator(config);
-        }
-        catch (DirectoryException e)
-        {
-          logger.traceException(e);
+        createSSLEngineConfigurator(config);
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
 
-          unacceptableReasons.add(e.getMessageObject());
-          return false;
-        }
+        unacceptableReasons.add(e.getMessageObject());
+        return false;
       }
     }
 

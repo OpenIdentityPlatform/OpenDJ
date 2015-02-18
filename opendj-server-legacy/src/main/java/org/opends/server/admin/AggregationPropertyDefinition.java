@@ -604,13 +604,10 @@ public final class AggregationPropertyDefinition
         }
 
         // Make sure the reference managed object is enabled.
-        if (needsEnabling) {
-          if (!targetIsEnabledCondition.evaluate(context, ref)) {
-            LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_DISABLED.get(ufn, name,
-                getName());
-            unacceptableReasons.add(msg);
-            isAcceptable = false;
-          }
+        if (needsEnabling
+            && !targetIsEnabledCondition.evaluate(context, ref)) {
+          unacceptableReasons.add(ERR_CLIENT_REFINT_TARGET_DISABLED.get(ufn, name, getName()));
+          isAcceptable = false;
         }
       }
       return isAcceptable;

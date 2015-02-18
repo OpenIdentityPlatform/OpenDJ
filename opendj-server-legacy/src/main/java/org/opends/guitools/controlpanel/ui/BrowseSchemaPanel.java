@@ -983,14 +983,12 @@ public class BrowseSchemaPanel extends StatusGenericPanel
                   lastCreatedElement = null;
                 }
               }
-              else if ((node instanceof CustomAttributeTreeNode) &&
-                  (lastCreatedElement instanceof AttributeType))
+              else if (node instanceof CustomAttributeTreeNode
+                  && lastCreatedElement instanceof AttributeType
+                  && name.equals(lastCreatedElement.getNameOrOID()))
               {
-                if (name.equals(lastCreatedElement.getNameOrOID()))
-                {
-                  newSelectionPath = new TreePath(node.getPath());
-                  lastCreatedElement = null;
-                }
+                newSelectionPath = new TreePath(node.getPath());
+                lastCreatedElement = null;
               }
             }
             else if (name.equals(lastSelectedNode.getUserObject()))
@@ -1011,13 +1009,10 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     DefaultMutableTreeNode[] ocAndAttrs = {objectClasses, attributes};
     for (DefaultMutableTreeNode node : ocAndAttrs)
     {
-      if (node.getParent() != null)
+      if (node.getParent() != null && node.getChildCount() == 0)
       {
-        if (node.getChildCount() == 0)
-        {
-          model.removeNodeFromParent(node);
-          model.nodeStructureChanged(node);
-        }
+        model.removeNodeFromParent(node);
+        model.nodeStructureChanged(node);
       }
     }
 

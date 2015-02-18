@@ -344,12 +344,10 @@ abstract class AbstractTextAccessLogPublisher
     private boolean filterRequest(final Operation operation)
     {
       // Check target DN.
-      if (targetDNNotEqualTo.length > 0 || targetDNEqualTo.length > 0)
+      if ((targetDNNotEqualTo.length > 0 || targetDNEqualTo.length > 0)
+          && !filterRequestTargetDN(operation))
       {
-        if (!filterRequestTargetDN(operation))
-        {
-          return false;
-        }
+        return false;
       }
 
       // TODO: check required controls.
@@ -485,21 +483,15 @@ abstract class AbstractTextAccessLogPublisher
       final long etime = operation.getProcessingTime();
 
       final Integer etimeGT = cfg.getResponseEtimeGreaterThan();
-      if (etimeGT != null)
+      if (etimeGT != null && etime <= ((long) etimeGT))
       {
-        if (etime <= ((long) etimeGT))
-        {
-          return false;
-        }
+        return false;
       }
 
       final Integer etimeLT = cfg.getResponseEtimeLessThan();
-      if (etimeLT != null)
+      if (etimeLT != null && etime >= ((long) etimeLT))
       {
-        if (etime >= ((long) etimeLT))
-        {
-          return false;
-        }
+        return false;
       }
 
       // Check search response fields.
@@ -538,21 +530,15 @@ abstract class AbstractTextAccessLogPublisher
         final int nentries = searchOperation.getEntriesSent();
 
         final Integer nentriesGT = cfg.getSearchResponseNentriesGreaterThan();
-        if (nentriesGT != null)
+        if (nentriesGT != null && nentries <= nentriesGT)
         {
-          if (nentries <= nentriesGT)
-          {
-            return false;
-          }
+          return false;
         }
 
         final Integer nentriesLT = cfg.getSearchResponseNentriesLessThan();
-        if (nentriesLT != null)
+        if (nentriesLT != null && nentries >= nentriesLT)
         {
-          if (nentries >= nentriesLT)
-          {
-            return false;
-          }
+          return false;
         }
       }
 
@@ -564,21 +550,17 @@ abstract class AbstractTextAccessLogPublisher
     private boolean filterUser(final ClientConnection connection)
     {
       // Check user DN.
-      if (userDNNotEqualTo.length > 0 || userDNEqualTo.length > 0)
+      if ((userDNNotEqualTo.length > 0 || userDNEqualTo.length > 0)
+          && !filterUserBindDN(connection))
       {
-        if (!filterUserBindDN(connection))
-        {
-          return false;
-        }
+        return false;
       }
 
       // Check group membership.
-      if (userIsNotMemberOf.length > 0 || userIsMemberOf.length > 0)
+      if ((userIsNotMemberOf.length > 0 || userIsMemberOf.length > 0)
+          && !filterUserIsMemberOf(connection))
       {
-        if (!filterUserIsMemberOf(connection))
-        {
-          return false;
-        }
+        return false;
       }
 
       return true;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 
@@ -440,11 +440,10 @@ public class PatternIP {
         if(wildCardBitSet.cardinality() == IN4ADDRSZ)
             return true;
         for(int i=0;i <rulePrefixBytes.length; i++) {
-            if(!wildCardBitSet.get(i)) {
-                if((ruleAddrBytes[i] & rulePrefixBytes[i]) !=
-                        (addrBytes[i] & rulePrefixBytes[i]))
-                    return false;
-            }
+            if (!wildCardBitSet.get(i)
+                && (ruleAddrBytes[i] & rulePrefixBytes[i]) !=
+                    (addrBytes[i] & rulePrefixBytes[i]))
+              return false;
         }
         return true;
     }

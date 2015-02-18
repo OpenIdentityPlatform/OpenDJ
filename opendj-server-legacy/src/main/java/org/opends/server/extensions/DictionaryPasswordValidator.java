@@ -132,14 +132,12 @@ public class DictionaryPasswordValidator
     // the password which is the default behaviour ('check-substrings: false')
     int minSubstringLength = password.length();
 
-    if (config.isCheckSubstrings())
+    if (config.isCheckSubstrings()
+        // We apply the minimal substring length only if the provided value
+        // is smaller then the actual password length
+        && config.getMinSubstringLength() < password.length())
     {
-      // We apply the minimal substring length only if the provided value
-      // is smaller then the actual password length
-      if (config.getMinSubstringLength() < password.length())
-      {
-        minSubstringLength = config.getMinSubstringLength();
-      }
+      minSubstringLength = config.getMinSubstringLength();
     }
 
     // Verify if the dictionary contains the word(s) in the password
@@ -152,15 +150,12 @@ public class DictionaryPasswordValidator
 
     // If the reverse password checking is enabled, then verify if the
     // reverse value of the password is in the dictionary.
-    if (config.isTestReversedPassword())
+    if (config.isTestReversedPassword()
+        && isDictionaryBased(
+            new StringBuilder(password).reverse().toString(), minSubstringLength))
     {
-      if (isDictionaryBased(
-        new StringBuilder(password).reverse().toString(), minSubstringLength))
-      {
-        invalidReason.append(
-          ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
-        return false;
-      }
+      invalidReason.append(ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
+      return false;
     }
 
 

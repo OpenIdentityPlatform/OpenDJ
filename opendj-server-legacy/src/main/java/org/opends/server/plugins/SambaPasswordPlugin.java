@@ -692,17 +692,16 @@ public final class SambaPasswordPlugin extends
      */
     final DN authDN = extendedOperation.getAuthorizationDN();
     final DN sambaAdminDN = config.getSambaAdministratorDN();
-    if (sambaAdminDN != null && !sambaAdminDN.isRootDN())
+    if (sambaAdminDN != null
+        && !sambaAdminDN.isRootDN()
+        && authDN.equals(sambaAdminDN))
     {
-      if (authDN.equals(sambaAdminDN))
+      if (logger.isTraceEnabled())
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("This operation will be skipped because"
-              + " it was performed by Samba admin user: " + sambaAdminDN);
-        }
-        return PluginResult.PostOperation.continueOperationProcessing();
+        logger.trace("This operation will be skipped because"
+            + " it was performed by Samba admin user: " + sambaAdminDN);
       }
+      return PluginResult.PostOperation.continueOperationProcessing();
     }
 
     // Get the name of the entry and clear passwords from the operation
@@ -839,17 +838,16 @@ public final class SambaPasswordPlugin extends
      */
     final DN authDN = modifyOperation.getAuthorizationDN();
     final DN sambaAdminDN = config.getSambaAdministratorDN();
-    if (sambaAdminDN != null && !sambaAdminDN.isRootDN())
+    if (sambaAdminDN != null
+        && !sambaAdminDN.isRootDN()
+        && authDN.equals(sambaAdminDN))
     {
-      if (authDN.equals(sambaAdminDN))
+      if (logger.isTraceEnabled())
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("This operation will be skipped because"
-              + " it was performed by Samba admin user: " + sambaAdminDN);
-        }
-        return PluginResult.PreOperation.continueOperationProcessing();
+        logger.trace("This operation will be skipped because"
+            + " it was performed by Samba admin user: " + sambaAdminDN);
       }
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     /*

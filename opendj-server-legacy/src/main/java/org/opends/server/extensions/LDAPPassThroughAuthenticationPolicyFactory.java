@@ -2480,12 +2480,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // Ensure that the search bind password is defined somewhere.
     if (cfg.getMappingPolicy() == MappingPolicy.MAPPED_SEARCH
         && cfg.getMappedSearchBindDN() != null
-        && !cfg.getMappedSearchBindDN().isRootDN())
+        && !cfg.getMappedSearchBindDN().isRootDN()
+        && getMappedSearchBindPassword(cfg, unacceptableReasons) == null)
     {
-      if (getMappedSearchBindPassword(cfg, unacceptableReasons) == null)
-      {
-        configurationIsAcceptable = false;
-      }
+      configurationIsAcceptable = false;
     }
 
     return configurationIsAcceptable;

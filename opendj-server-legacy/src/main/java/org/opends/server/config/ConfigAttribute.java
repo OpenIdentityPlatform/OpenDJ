@@ -550,13 +550,13 @@ public abstract class ConfigAttribute
 
     // Make sure that the value limit will not be exceeded for a single-valued
     // attribute.
-    if (! isMultiValued)
+    if (!isMultiValued)
     {
-      if ((numValues > 1) || (hasPendingValues && (pendingValues.size() > 0)) ||
-          ((! hasPendingValues) && (activeValues.size() > 0)))
+      if (numValues > 1
+          || (hasPendingValues && pendingValues.size() > 0)
+          || (!hasPendingValues && activeValues.size() > 0))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED.get(name);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED.get(name));
       }
     }
 

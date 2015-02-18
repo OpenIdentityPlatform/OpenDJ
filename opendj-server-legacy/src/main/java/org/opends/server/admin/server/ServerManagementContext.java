@@ -874,18 +874,17 @@ public final class ServerManagementContext {
       pvalues.add(value);
     }
 
-    if (pvalues.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
-      // The values maybe empty because of a previous exception.
-      if (exception == null) {
-        exception = PropertyException.propertyIsMandatoryException(pd);
-      }
+    if (pvalues.isEmpty()
+        && pd.hasOption(PropertyOption.MANDATORY)
+        // The values maybe empty because of a previous exception.
+        && exception == null) {
+      exception = PropertyException.propertyIsMandatoryException(pd);
     }
 
     if (exception != null) {
       throw exception;
-    } else {
-      return pvalues;
     }
+    return pvalues;
   }
 
 

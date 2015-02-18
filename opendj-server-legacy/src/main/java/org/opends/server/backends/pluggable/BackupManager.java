@@ -205,13 +205,10 @@ public class BackupManager
 
     if (incremental)
     {
-      if (incrBaseID == null)
+      if (incrBaseID == null && backupDir.getLatestBackup() != null)
       {
         // The default is to use the latest backup as base.
-        if (backupDir.getLatestBackup() != null)
-        {
-          incrBaseID = backupDir.getLatestBackup().getBackupID();
-        }
+        incrBaseID = backupDir.getLatestBackup().getBackupID();
       }
 
       if (incrBaseID == null)
@@ -897,12 +894,9 @@ public class BackupManager
       // See if we need to restore the file.
       File file = new File(restoreDir, name);
       OutputStream outputStream = null;
-      if (includeFiles == null || includeFiles.contains(zipEntry.getName()))
+      if ((includeFiles == null || includeFiles.contains(zipEntry.getName())) && !verifyOnly)
       {
-        if (!verifyOnly)
-        {
-          outputStream = new FileOutputStream(file);
-        }
+        outputStream = new FileOutputStream(file);
       }
 
       if (outputStream != null || mac != null || digest != null)
@@ -963,14 +957,11 @@ public class BackupManager
     zipStream.close();
 
     // Check the hash.
-    if (digest != null)
+    if (digest != null && !Arrays.equals(digest.digest(), hash))
     {
-      if (!Arrays.equals(digest.digest(), hash))
-      {
-        LocalizableMessage message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
+      LocalizableMessage message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message);
     }
 
     if (mac != null)

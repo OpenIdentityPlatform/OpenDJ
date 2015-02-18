@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -612,14 +612,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         errors.add(ERR_CTRL_PANEL_REJECTS_FILE_REQUIRED.get());
         setPrimaryInvalid(lRejectsFile);
       }
-      else if (writeSkips.isSelected())
+      else if (writeSkips.isSelected()
+          && new File(rejectPath).equals(new File(skipsFile.getText())))
       {
-        if (new File(rejectPath).equals(new File(skipsFile.getText())))
-        {
-          errors.add(ERR_CTRL_PANEL_REJECTS_AND_SKIPS_MUST_BE_DIFFERENT.get());
-          setPrimaryInvalid(lRejectsFile);
-          setPrimaryInvalid(lSkipsFile);
-        }
+        errors.add(ERR_CTRL_PANEL_REJECTS_AND_SKIPS_MUST_BE_DIFFERENT.get());
+        setPrimaryInvalid(lRejectsFile);
+        setPrimaryInvalid(lSkipsFile);
       }
     }
 

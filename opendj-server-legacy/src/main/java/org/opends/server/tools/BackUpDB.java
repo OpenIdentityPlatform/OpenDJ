@@ -376,18 +376,15 @@ public class BackUpDB extends TaskTool
 
     // If the incremental base ID was specified, then make sure it is an
     // incremental backup.
-    if (incrementalBaseID.isPresent())
+    if (incrementalBaseID.isPresent() && ! incremental.isPresent())
     {
-      if (! incremental.isPresent())
-      {
-        LocalizableMessage message =
-                ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
-                        incrementalBaseID.getLongIdentifier(),
-                        incremental.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
-      }
+      LocalizableMessage message =
+              ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
+                      incrementalBaseID.getLongIdentifier(),
+                      incremental.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
+      return 1;
     }
 
     // Encryption or signing requires the ADS backend be available for

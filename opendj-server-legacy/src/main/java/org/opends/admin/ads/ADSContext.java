@@ -567,16 +567,13 @@ public class ADSContext
       {
         Set<?> memberList =
           (Set<?>)serverGroup.get(ServerGroupProperty.MEMBERS);
-        if (memberList != null)
+        if (memberList != null && memberList.remove(member))
         {
-          if (memberList.remove(member))
-          {
-            HashMap<ServerGroupProperty, Object> serverGroupProperties =
-              new HashMap<ServerGroupProperty, Object>();
-            serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-            String groupName = (String)serverGroup.get(ServerGroupProperty.UID);
-            updateServerGroup(groupName, serverGroupProperties);
-          }
+          HashMap<ServerGroupProperty, Object> serverGroupProperties =
+            new HashMap<ServerGroupProperty, Object>();
+          serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+          String groupName = (String)serverGroup.get(ServerGroupProperty.UID);
+          updateServerGroup(groupName, serverGroupProperties);
         }
       }
 
@@ -2119,16 +2116,12 @@ public class ADSContext
    * @param serverProperties the server properties.
    * @return the server ID for the given properties or null.
    */
-  private static String getServerID(
-      Map<ServerProperty, Object> serverProperties)
+  private static String getServerID(Map<ServerProperty, Object> serverProperties)
   {
     String result = (String) serverProperties.get(ServerProperty.ID);
-    if (result != null)
+    if (result != null && result.length() == 0)
     {
-      if (result.length() == 0)
-      {
-        result = null;
-      }
+      result = null;
     }
     return result;
   }

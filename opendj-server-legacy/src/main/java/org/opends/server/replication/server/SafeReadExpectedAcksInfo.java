@@ -223,13 +223,10 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
       for (int serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);
-        if (!ackReceived)
+        if (!ackReceived && !failedServers.contains(serverId))
         {
-          if (!failedServers.contains(serverId))
-          {
-            failedServers.add(serverId);
-            serversInTimeout.add(serverId);
-          }
+          failedServers.add(serverId);
+          serversInTimeout.add(serverId);
         }
       }
     }

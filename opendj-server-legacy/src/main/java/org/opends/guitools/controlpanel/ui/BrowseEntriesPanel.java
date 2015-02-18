@@ -495,26 +495,23 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
    */
   private boolean hasUserPassword(String[] ocs)
   {
-    boolean hasUserPassword = false;
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    if ((ocs != null) && (schema != null))
+    if (ocs != null && schema != null)
     {
       AttributeType attr = schema.getAttributeType(
           ServerConstants.ATTR_USER_PASSWORD);
       for (String oc : ocs)
       {
         ObjectClass objectClass = schema.getObjectClass(oc);
-        if ((objectClass != null) && (attr != null))
+        if (objectClass != null
+            && attr != null
+            && objectClass.isRequiredOrOptional(attr))
         {
-          if (objectClass.isRequiredOrOptional(attr))
-          {
-            hasUserPassword = true;
-            break;
-          }
+          return true;
         }
       }
     }
-    return hasUserPassword;
+    return false;
   }
 
   /**

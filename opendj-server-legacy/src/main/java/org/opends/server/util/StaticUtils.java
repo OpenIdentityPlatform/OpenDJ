@@ -3480,14 +3480,11 @@ public final class StaticUtils
     {
       synchronized(target)
       {
-        if (target.exists())
+        if (target.exists() && !target.delete())
         {
-          if (!target.delete())
-          {
-            LocalizableMessage message =
-                ERR_RENAMEFILE_CANNOT_DELETE_TARGET.get(target.getPath());
-            throw new IOException(message.toString());
-          }
+          LocalizableMessage message =
+              ERR_RENAMEFILE_CANNOT_DELETE_TARGET.get(target.getPath());
+          throw new IOException(message.toString());
         }
       }
       if (!fileToRename.renameTo(target))

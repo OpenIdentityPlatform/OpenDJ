@@ -512,14 +512,13 @@ public class JavaArgumentsDialog extends JDialog
           errorMsgs.add(ERR_MAX_MEMORY_VALUE.get());
           setValidLater(lMaxMemory, false);
         }
-        if (maxMemory != -1 && initialMemory != -1)
+        if (maxMemory != -1
+            && initialMemory != -1
+            && initialMemory > maxMemory)
         {
-          if (initialMemory > maxMemory)
-          {
-            errorMsgs.add(ERR_MAX_MEMORY_BIGGER_THAN_INITIAL_MEMORY.get());
-            setValidLater(lMaxMemory, false);
-            setValidLater(lInitialMemory, false);
-          }
+          errorMsgs.add(ERR_MAX_MEMORY_BIGGER_THAN_INITIAL_MEMORY.get());
+          setValidLater(lMaxMemory, false);
+          setValidLater(lInitialMemory, false);
         }
         if (errorMsgs.isEmpty())
         {

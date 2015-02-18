@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -488,14 +488,12 @@ public class LocalBackendCompareOperation
         }
 
         // NYI -- Add support for additional controls.
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (backend == null || !backend.supportsControl(oid)))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw new DirectoryException(
-                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
-          }
+          throw new DirectoryException(
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
         }
       }
     }

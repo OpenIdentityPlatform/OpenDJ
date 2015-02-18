@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -341,18 +341,16 @@ public class WindowsServicePanel extends StatusGenericPanel
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
-      boolean canLaunch = true;
-      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
+      Type type = taskToBeLaunched.getType();
+      if (state == State.RUNNING
+          && runningOnSameServer(taskToBeLaunched)
+          && (type == Type.ENABLE_WINDOWS_SERVICE
+              || type == Type.DISABLE_WINDOWS_SERVICE))
       {
-        if ((taskToBeLaunched.getType() == Type.ENABLE_WINDOWS_SERVICE) ||
-            (taskToBeLaunched.getType() == Type.DISABLE_WINDOWS_SERVICE))
-        {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
-          canLaunch = false;
-        }
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
+        return false;
       }
-      return canLaunch;
+      return true;
     }
 
     /**

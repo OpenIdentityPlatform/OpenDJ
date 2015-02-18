@@ -1055,13 +1055,11 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
 
     setPrimaryValid(lUsage);
-    if (nonModifiable.isSelected())
+    if (nonModifiable.isSelected()
+        && AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
     {
-      if (AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
-      {
-        errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
-        setPrimaryInvalid(lUsage);
-      }
+      errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
+      setPrimaryInvalid(lUsage);
     }
 
     if (errors.isEmpty())

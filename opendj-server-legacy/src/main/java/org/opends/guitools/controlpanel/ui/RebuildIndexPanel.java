@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -241,13 +241,10 @@ implements IndexModifiedListener
     boolean allDisabled = false;
     for (BackendDescriptor backend : desc.getBackends())
     {
-      if (displayBackend(backend))
+      if (displayBackend(backend) && backend.isEnabled())
       {
-        if (backend.isEnabled())
-        {
-          allDisabled = false;
-          break;
-        }
+        allDisabled = false;
+        break;
       }
     }
     if (!allDisabled)

@@ -444,14 +444,10 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     // If this is going to be the default password policy then check the type is
     // correct.
-    if (policyConfiguration.dn().equals(
-        DirectoryServer.getDefaultPasswordPolicyDN()))
+    if (policyConfiguration.dn().equals(DirectoryServer.getDefaultPasswordPolicyDN())
+        && !(policyConfiguration instanceof PasswordPolicyCfg))
     {
-      if (!(policyConfiguration instanceof PasswordPolicyCfg))
-      {
-        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn());
-        throw new ConfigException(msg);
-      }
+      throw new ConfigException(ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn()));
     }
 
     String className = policyConfiguration.getJavaClass();
@@ -504,15 +500,11 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     // If this is going to be the default password policy then check the type is
     // correct.
-    if (policyConfiguration.dn().equals(
-        DirectoryServer.getDefaultPasswordPolicyDN()))
+    if (policyConfiguration.dn().equals(DirectoryServer.getDefaultPasswordPolicyDN())
+        && !(policyConfiguration instanceof PasswordPolicyCfg))
     {
-      if (!(policyConfiguration instanceof PasswordPolicyCfg))
-      {
-        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn());
-        unacceptableReasons.add(msg);
-        return false;
-      }
+      unacceptableReasons.add(ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn()));
+      return false;
     }
 
     String className = policyConfiguration.getJavaClass();

@@ -107,16 +107,14 @@ public class HeartbeatThread extends DirectoryThread
               "was sent at %d", now, session.getLastPublishTime());
         }
 
-        if (now > session.getLastPublishTime() + heartbeatInterval)
+        if (now > session.getLastPublishTime() + heartbeatInterval
+            && !heartbeatsDisabled)
         {
-          if (!heartbeatsDisabled)
+          if (logger.isTraceEnabled())
           {
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("Heartbeat sent at %d", now);
-            }
-            session.publish(heartbeatMessage);
+            logger.trace("Heartbeat sent at %d", now);
           }
+          session.publish(heartbeatMessage);
         }
 
         long sleepTime = session.getLastPublishTime() + heartbeatInterval - now;

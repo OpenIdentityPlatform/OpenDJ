@@ -127,32 +127,32 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    */
   public boolean equals(Object o)
   {
-    boolean equals = o == this;
-    if (!equals)
+    if (o == this)
     {
-      equals = o instanceof VLVIndexDescriptor;
-      if (equals)
-      {
-        VLVIndexDescriptor index = (VLVIndexDescriptor)o;
-        equals = index.getName().equalsIgnoreCase(getName()) &&
-          index.getBaseDN().equals(getBaseDN()) &&
-          index.getFilter().equals(getFilter()) &&
-          index.getScope() == getScope() &&
-          index.getSortOrder().equals(getSortOrder());
-        if (equals)
-        {
-          if ((getBackend() != null) && (index.getBackend() != null))
-          {
-            // Only compare the backend IDs.  In this context is better to
-            // do this since the backend object contains some state (like
-            // number entries) that can change.
-            equals = getBackend().getBackendID().equals(
-                index.getBackend().getBackendID());
-          }
-        }
-      }
+      return true;
     }
-    return equals;
+    if (!(o instanceof VLVIndexDescriptor))
+    {
+      return false;
+    }
+
+    VLVIndexDescriptor index = (VLVIndexDescriptor)o;
+    return index.getName().equalsIgnoreCase(getName())
+        && index.getBaseDN().equals(getBaseDN())
+        && index.getFilter().equals(getFilter())
+        && index.getScope() == getScope()
+        && index.getSortOrder().equals(getSortOrder())
+        && backendIdEqual(index);
+  }
+
+  private boolean backendIdEqual(VLVIndexDescriptor index)
+  {
+    return getBackend() != null
+        && index.getBackend() != null
+        // Only compare the backend IDs.  In this context is better to
+        // do this since the backend object contains some state (like
+        // number entries) that can change.
+        && getBackend().getBackendID().equals(index.getBackend().getBackendID());
   }
 
   /**

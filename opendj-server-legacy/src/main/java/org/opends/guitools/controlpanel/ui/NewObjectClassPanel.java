@@ -211,13 +211,10 @@ public class NewObjectClassPanel extends StatusGenericPanel
       {
         setEnabledOK(!error[0]);
         errorPane.setVisible(error[0]);
-        if (schema != null)
+        if (schema != null && schemaChanged)
         {
-          if (schemaChanged)
-          {
-            superiors.setSchema(schema);
-            updateAttributes();
-          }
+          superiors.setSchema(schema);
+          updateAttributes();
         }
         if (repack[0])
         {

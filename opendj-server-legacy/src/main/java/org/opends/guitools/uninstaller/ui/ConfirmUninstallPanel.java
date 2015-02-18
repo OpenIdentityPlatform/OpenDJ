@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -90,24 +90,20 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     {
     case EXTERNAL_DB_DIRECTORIES:
       Set<String> s1 = new HashSet<String>();
-      if (outsideDbs.size() > 0)
+      if (outsideDbs.size() > 0
+          && getCheckBox(FieldName.EXTERNAL_DB_DIRECTORIES).isSelected())
       {
-        if (getCheckBox(FieldName.EXTERNAL_DB_DIRECTORIES).isSelected())
-        {
-          s1.addAll(outsideDbs);
-        }
+        s1.addAll(outsideDbs);
       }
       value = s1;
       break;
 
     case EXTERNAL_LOG_FILES:
       Set<String> s2 = new HashSet<String>();
-      if (outsideLogs.size() > 0)
+      if (outsideLogs.size() > 0
+          && getCheckBox(FieldName.EXTERNAL_LOG_FILES).isSelected())
       {
-        if (getCheckBox(FieldName.EXTERNAL_LOG_FILES).isSelected())
-        {
-          s2.addAll(outsideLogs);
-        }
+        s2.addAll(outsideLogs);
       }
       value = s2;
       break;

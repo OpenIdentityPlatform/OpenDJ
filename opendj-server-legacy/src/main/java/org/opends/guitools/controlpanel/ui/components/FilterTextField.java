@@ -179,12 +179,9 @@ public class FilterTextField extends JTextField
    */
   public void setBorder(Border border)
   {
-    if (constructorBorderSet)
+    if (constructorBorderSet && border != null)
     {
-      if (border != null)
-      {
-        border = BorderFactory.createCompoundBorder(border, new IconBorder());
-      }
+      border = BorderFactory.createCompoundBorder(border, new IconBorder());
     }
     super.setBorder(border);
   }

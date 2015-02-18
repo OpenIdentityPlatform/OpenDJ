@@ -332,11 +332,11 @@ public final class PropertySet {
       throw PropertyException.propertyIsSingleValuedException(d);
     }
 
-    if (values.isEmpty() && d.hasOption(PropertyOption.MANDATORY)) {
-      // But only if there are no default values.
-      if (property.getDefaultValues().isEmpty()) {
-        throw PropertyException.propertyIsMandatoryException(d);
-      }
+    if (values.isEmpty()
+        && d.hasOption(PropertyOption.MANDATORY)
+        // But only if there are no default values.
+        && property.getDefaultValues().isEmpty()) {
+      throw PropertyException.propertyIsMandatoryException(d);
     }
 
     // Validate each value.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -147,26 +147,22 @@ public class AddToGroupTask extends Task
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
-    boolean canLaunch = true;
-    if (!isServerRunning())
+    if (!isServerRunning()
+        && state == State.RUNNING
+        && runningOnSameServer(taskToBeLaunched))
     {
-      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
+      // All the operations are incompatible if they apply to this
+      // backend for safety.  This is a short operation so the limitation
+      // has not a lot of impact.
+      Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+      backends.retainAll(getBackends());
+      if (backends.size() > 0)
       {
-        // All the operations are incompatible if they apply to this
-        // backend for safety.  This is a short operation so the limitation
-        // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
-        backends.retainAll(getBackends());
-        if (backends.size() > 0)
-        {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
-          canLaunch = false;
-        }
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
+        return false;
       }
     }
-    return canLaunch;
+    return true;
   }
 
   /**

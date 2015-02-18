@@ -648,18 +648,17 @@ public class ConfigGuideGeneration {
         heading3("Relations To this Component");
     }
 
-    if (!mo.getReverseRelationDefinitions().isEmpty()) {
-      if (!isReverseCompRelsEmpty) {
-        paragraph(
-          "The following components have a direct COMPOSITION relation TO " +
-          mo.getUserFriendlyPluralName() + " :");
-        for ( RelationDefinition rel : reverseCompRels) {
-          beginList();
-          AbstractManagedObjectDefinition childRel = rel.getParentDefinition();
-          link(childRel.getUserFriendlyName().toString(), childRel.getName() +
-            ".html");
-          endList();
-        }
+    if (!mo.getReverseRelationDefinitions().isEmpty()
+        && !isReverseCompRelsEmpty)
+    {
+      paragraph(
+        "The following components have a direct COMPOSITION relation TO " +
+        mo.getUserFriendlyPluralName() + " :");
+      for ( RelationDefinition rel : reverseCompRels) {
+        beginList();
+        AbstractManagedObjectDefinition childRel = rel.getParentDefinition();
+        link(childRel.getUserFriendlyName().toString(), childRel.getName() + ".html");
+        endList();
       }
     }
     if (!isReverseAggregPropsEmpty) {

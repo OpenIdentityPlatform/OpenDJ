@@ -564,15 +564,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
                 break;
               }
             }
-            else if (theDN.isAncestorOf(baseDN.getDn()))
+            else if (theDN.isAncestorOf(baseDN.getDn())
+                && backendName.equalsIgnoreCase(backend.getBackendID()))
             {
-              if (backendName.equalsIgnoreCase(backend.getBackendID()))
-              {
-                errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()));
-                setPrimaryInvalid(lDirectoryBaseDN);
-                baseDNAlreadyDefined = true;
-                break;
-              }
+              errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()));
+              setPrimaryInvalid(lDirectoryBaseDN);
+              baseDNAlreadyDefined = true;
+              break;
             }
           }
           if (baseDNAlreadyDefined)
