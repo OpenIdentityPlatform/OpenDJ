@@ -28,6 +28,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.DocGenerationHelper.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -1102,7 +1103,17 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
     }
 
-    /** Generate reference documentation for dsconfig subcommands. */
+    /**
+     * Appends a list generated DocBook XML RefSect2 elements to the StringBuilder, one per subcommand.
+     *
+     * <br>
+     *
+     * Note: The result is not a complete XML document.
+     * Instead you must wrap the resulting list of RefSect2 elements in a RefSect1.
+     *
+     * @param builder   Append the list of RefSect2 elements to this.
+     * @param values    The SubCommands containing the reference information.
+     */
     private void generateReferenceDoc(final StringBuilder builder, Collection<SubCommand> values) {
         for (SubCommand s : values) {
             toRefSect2(s, builder);
@@ -1110,58 +1121,12 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Generate reference documentation for dsconfig subcommands in DocBook 5 XML format. As the number of categories is
-     * large, the subcommand entries are sorted here by name for inclusion in a &lt;refsect1&gt; covering all dsconfig
-     * Subcommands as part of the &lt;refentry&gt; for dsconfig (in man-dsconfig.xml).
-     * <p>
-     * Although it would be possible to categorize subcommands in the same way as they are categorized in dsconfig
-     * interactive mode, this generator does not use the categories.
-     * <p>
-     * It would also be possible to generate the sort of information provided by the configuration reference, such that
-     * this reference would not stop at simply listing an option like --set {PROP:VAL}, but instead would also provide
-     * the list of PROPs and their possible VALs. A future improvement could no doubt merge the configuration reference
-     * with this content, though perhaps the problem calls for hypertext rather than the linear structure of a
-     * &lt;refentry&gt;.
-     * <p>
-     * Each individual subcommand results in a &lt;refsect2&gt; element similar to the following.
-     *
-     * <pre>
-     *     &lt;refsect2 xml:id=&quot;dsconfig-create-local-db-index&quot;&gt;
-     *      &lt;title&gt;dsconfig create-local-db-index&lt;/title&gt;
-     *      &lt;para&gt;Creates Local DB Indexes&lt;/para&gt;
-     *      &lt;variablelist&gt;
-     *       &lt;varlistentry&gt;
-     *        &lt;term&gt;&lt;option&gt;--backend-name {name}
-     *         &lt;/option&gt;&lt;/term&gt;
-     *        &lt;listitem&gt;
-     *         &lt;para&gt;The name of the Local DB Backend&lt;/para&gt;
-     *        &lt;/listitem&gt;
-     *       &lt;/varlistentry&gt;
-     *       &lt;varlistentry&gt;
-     *        &lt;term&gt;&lt;option&gt;--index-name {OID}&lt;/option&gt;&lt;/term&gt;
-     *        &lt;listitem&gt;
-     *         &lt;para&gt;The name of the new Local DB Index which will also be used
-     *         as the value of the &quot;attribute&quot; property: Specifies the name
-     *         of the attribute for which the index is to be maintained.&lt;/para&gt;
-     *        &lt;/listitem&gt;
-     *       &lt;/varlistentry&gt;
-     *       &lt;varlistentry&gt;
-     *        &lt;term&gt;&lt;option&gt;--set {PROP:VALUE}&lt;/option&gt;&lt;/term&gt;
-     *        &lt;listitem&gt;
-     *         &lt;para&gt;Assigns a value to a property where PROP is the name of the
-     *         property and VALUE is the single value to be assigned. Specify the same
-     *         property multiple times in order to assign more than one value to
-     *         it&lt;/para&gt;
-     *        &lt;/listitem&gt;
-     *       &lt;/varlistentry&gt;
-     *      &lt;/variablelist&gt;
-     *      &lt;/refsect2&gt;
-     * </pre>
+     * Appends a generated DocBook XML RefSect2 element for a single subcommand to the StringBuilder.
      *
      * @param sc
      *            The SubCommand containing reference information.
      * @param sb
-     *            The string builder where to output the Refsect2 representation of the subcommand
+     *            Append the RefSect2 element to this.
      */
     private void toRefSect2(SubCommand sc, StringBuilder sb) {
         final String scriptName = getScriptName();
@@ -1170,90 +1135,50 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        final String idRef = scriptName + "-" + sc.getName();
-        final String nameRef = scriptName + " " + sc.getName();
-        sb.append("<refsect2 xml:id=\"").append(idRef).append("\">").append(EOL);
-        sb.append(" <title>").append(nameRef).append("</title>").append(EOL);
-        sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
+        // Model for a FreeMarker template.
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id", scriptName + "-" + sc.getName());
+        final String name = scriptName + " " + sc.getName();
+        map.put("name", name);
+        map.put("description", sc.getDescription());
+        map.put("optsTitle", REF_TITLE_OPTIONS.get());
+        map.put("optsIntro", REF_INTRO_OPTIONS.get(name));
 
         // If there is a supplement to the description for this subcommand,
-        // then it is formatted for use in generated reference documentation.
-        // In other words, it is already DocBook XML, so append it as is.
-        final LocalizableMessage scDocDescriptionSupplement = sc.getDocDescriptionSupplement();
-        if (!LocalizableMessage.EMPTY.equals(scDocDescriptionSupplement)) {
-            sb.append(scDocDescriptionSupplement.toString()).append(EOL);
-        }
-
+        // then it is already DocBook XML, so use it as is.
+        map.put("info", sc.getDocDescriptionSupplement());
         if (!sc.getArguments().isEmpty()) {
-            sb.append(" <refsect3 xml:id=\"").append(idRef).append("-options\">").append(EOL);
-            sb.append("   <title>Options</title>").append(EOL);
-            sb.append("   <variablelist>").append(EOL);
-            sb.append("     <para>").append(EOL);
-            sb.append("       The <command>").append(nameRef)
-              .append("</command> command supports the following options.").append(EOL);
-            sb.append("     </para>").append(EOL);
+            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
             String nameOption = null;
             for (Argument a : sc.getArguments()) {
-                sb.append("     <varlistentry>").append(EOL);
-                sb.append("       <term>");
-                final String option = getOption(a);
-                sb.append(option);
-                sb.append("</term>").append(EOL);
-                sb.append("       <listitem>").append(EOL);
-                sb.append("         <para>").append(a.getDescription()).append("</para>").append(EOL);
-                final String longID = a.getLongIdentifier();
-                if (!"set".equals(longID)
-                        && !"reset".equals(longID)
-                        && !"add".equals(longID)
-                        && !"remove".equals(longID)) {
-                    nameOption = option;
-                }
+                Map<String, Object> option = new HashMap<String, Object>();
+                String optionSynopsis = getOptionSynopsis(a);
+                option.put("synopsis", optionSynopsis);
+                option.put("description", a.getDescription());
+                Map<String, Object> info = new HashMap<String, Object>();
                 if (subCommandUsageHandler != null) {
-                    subCommandUsageHandler.appendArgumentAdditionalInfo(sb, sc, a, nameOption);
-                } else {
-                    final String defaultValue = a.getDefaultValue();
-                    if (defaultValue != null && !defaultValue.isEmpty()) {
-                        sb.append("         <para>Default: ").append(defaultValue).append("</para>").append(EOL);
+                    if (!doesHandleProperties(a)) {
+                        nameOption = "<option>" + optionSynopsis + "</option>";
                     }
+
+                    // Let this build its own arbitrarily formatted additional info.
+                    info.put("usage", subCommandUsageHandler.getArgumentAdditionalInfo(sc, a, nameOption));
+                } else {
+                    info.put("default", REF_DEFAULT.get(a.getDefaultValue()));
 
                     // If there is a supplement to the description for this argument,
-                    // then for now it is already formatted in DocBook XML.
-                    final LocalizableMessage aDocDescriptionSupplement = a.getDocDescriptionSupplement();
-                    if (!LocalizableMessage.EMPTY.equals(aDocDescriptionSupplement)) {
-                        sb.append(aDocDescriptionSupplement.toString()).append(EOL);
-                    }
+                    // then it is already DocBook XML, so use it as is.
+                    info.put("doc", a.getDocDescriptionSupplement());
                 }
-                sb.append("       </listitem>").append(EOL);
-                sb.append("     </varlistentry>").append(EOL);
+                option.put("info", info);
+                options.add(option);
             }
-            sb.append("   </variablelist>").append(EOL);
-            sb.append(" </refsect3>").append(EOL);
+            map.put("options", options);
         }
+
         if (subCommandUsageHandler != null) {
-            subCommandUsageHandler.appendProperties(sb, sc);
+            map.put("properties", subCommandUsageHandler.getProperties(sc));
         }
-
-        sb.append("</refsect2>").append(EOL);
-    }
-
-    private String getOption(Argument a) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("<option>");
-        final Character shortID = a.getShortIdentifier();
-        if (shortID != null) {
-            sb.append("-").append(shortID.charValue());
-        }
-        final String longID = a.getLongIdentifier();
-        if (shortID != null && longID != null) {
-            sb.append(" | ");
-        }
-        if (longID != null) {
-            sb.append("--").append(longID);
-        }
-        if (a.needsValue()) {
-            sb.append(" ").append(a.getValuePlaceholder());
-        }
-        sb.append("</option>");
-        return sb.toString();
+        applyTemplate(sb, "refSect2.ftl", map);
     }
 }

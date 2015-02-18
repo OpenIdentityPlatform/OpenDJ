@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.DocGenerationHelper.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -54,6 +55,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -127,93 +129,61 @@ import com.forgerock.opendj.cli.VersionHandler;
  */
 public final class DSConfig extends ConsoleApplication {
 
-    private static final String ALLOW_UNLIMITED = "A value of \"-1\" or \"unlimited\" for no limit.";
-    private static final String ACI_SYNTAX_REL_URL =
-        "<link" + EOL
-            + " xlink:show=\"new\"" + EOL
-            + " xlink:href=\"admin-guide#about-acis\"" + EOL
-            + " xlink:role=\"http://docbook.org/xlink/role/olink\">" + EOL
-            + "<citetitle>About Access Control Instructions</citetitle></link>" + EOL;
-    private static final String DURATION_SYNTAX_REL_URL =
-        "  <itemizedlist>" + EOL
-            + "    <para>Some property values take a time duration. Durations are expressed" + EOL
-            + "    as numbers followed by units. For example <literal>1 s</literal> means" + EOL
-            + "    one second, and <literal>2 w</literal> means two weeks. Some durations" + EOL
-            + "    have minimum granularity or maximum units, so you cannot necessary specify" + EOL
-            + "    every duration in milliseconds or weeks for example. Some durations allow" + EOL
-            + "    you to use a special value to mean unlimited. Units are specified as" + EOL
-            + "    follows.</para>" + EOL
-            + "    <listitem><para><literal>ms</literal>: milliseconds</para></listitem>" + EOL
-            + "    <listitem><para><literal>s</literal>: seconds</para></listitem>" + EOL
-            + "    <listitem><para><literal>m</literal>: minutes</para></listitem>" + EOL
-            + "    <listitem><para><literal>h</literal>: hours</para></listitem>" + EOL
-            + "    <listitem><para><literal>d</literal>: days</para></listitem>" + EOL
-            + "    <listitem><para><literal>w</literal>: weeks</para></listitem>" + EOL
-            + "  </itemizedlist>" + EOL;
-
-    // FIXME: I18n support. Today all the strings are hardcoded in this file
+    /**
+     * This class provides additional information about subcommands for generated reference documentation.
+     */
     private final class DSConfigSubCommandUsageHandler implements SubCommandUsageHandler {
+
+        /** Marker to open a DocBook XML paragraph. */
+        private String op = "<para>";
+
+        /** Marker to close a DocBook XML paragraph. */
+        private String cp = "</para>";
 
         /** {@inheritDoc} */
         @Override
-        public void appendArgumentAdditionalInfo(StringBuilder sb, SubCommand sc, Argument a, String nameOption) {
+        public String getArgumentAdditionalInfo(SubCommand sc, Argument a, String nameOption) {
+            StringBuilder sb = new StringBuilder();
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
             if (defn == null) {
-                return;
+                return "";
             }
-            final String longID = a.getLongIdentifier();
-            if ("set".equals(longID)
-                    || "reset".equals(longID)
-                    || "add".equals(longID)
-                    || "remove".equals(longID)) {
-                sb.append("         <para>").append(EOL);
+            if (doesHandleProperties(a)) {
                 final LocalizableMessage name = defn.getUserFriendlyName();
-                sb.append("           ").append(name).append(" properties depend on the ").append(name)
-                  .append(" type, which depends on the ").append(nameOption).append(" option.").append(EOL);
-                sb.append("         </para>").append(EOL);
+                sb.append(op).append(REF_DSCFG_ARG_ADDITIONAL_INFO.get(name, name, nameOption)).append(cp).append(EOL);
             } else {
                 listSubtypes(sb, a, defn);
             }
-            return;
+            return sb.toString();
         }
 
         private void listSubtypes(StringBuilder sb, Argument a, AbstractManagedObjectDefinition<?, ?> defn) {
             final LocalizableMessage placeholder = a.getValuePlaceholder();
-            sb.append("         <variablelist>").append(EOL);
-            sb.append("           <para>").append(EOL);
-            final LocalizableMessage name = defn.getUserFriendlyName();
-            sb.append("             ").append(name).append(" properties depend on the ").append(name)
-                .append(" type, which depends on the ").append(placeholder).append(" you provide.").append(EOL);
-            sb.append("           </para>").append(EOL);
-            sb.append("           <para>").append(EOL);
-            sb.append("             By default, OpenDJ directory server supports the following ")
-                .append(name).append(" types:").append(EOL);
-            sb.append("           </para>").append(EOL);
 
+            Map<String, Object> map = new HashMap<String, Object>();
+
+            final LocalizableMessage name = defn.getUserFriendlyName();
+            map.put("dependencies", REF_DSCFG_SUBTYPE_DEPENDENCIES.get(name, name, placeholder));
+            map.put("typesIntro", REF_DSCFG_SUBTYPE_TYPES_INTRO.get(name));
+
+            List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
-                sb.append("           <varlistentry>").append(EOL);
-                sb.append("             <term>").append(childDefn.getName()).append("</term>").append(EOL);
-                sb.append("             <listitem>").append(EOL);
-                sb.append("               <para>").append(EOL);
-                sb.append("                 Default ").append(placeholder).append(": ")
-                    .append(childDefn.getUserFriendlyName()).append(EOL);
-                sb.append("               </para>").append(EOL);
-                sb.append("               <para>").append(EOL);
-                final boolean isEnabled = propertyExists(childDefn, "enabled");
-                sb.append("                 Enabled by default: ").append(isEnabled).append(EOL);
-                sb.append("               </para>").append(EOL);
-                sb.append("               <para>").append(EOL);
-                sb.append("                 See <xref linkend=\"")
-                    .append(getScriptName()).append("-")
-                    .append(a.getLongIdentifier()).append("-")
-                    .append(defn.getName()).append("-prop-").append(childDefn.getName())
-                    .append("\" /> for the properties of this ").append(defn.getUserFriendlyName())
-                    .append(" type.").append(EOL);
-                sb.append("               </para>").append(EOL);
-                sb.append("             </listitem>").append(EOL);
-                sb.append("           </varlistentry>").append(EOL);
+
+                Map<String, Object> child = new HashMap<String, Object>();
+
+                child.put("name", childDefn.getName());
+                child.put("default", REF_DSCFG_CHILD_DEFAULT.get(placeholder, childDefn.getUserFriendlyName()));
+                child.put("enabled", REF_DSCFG_CHILD_ENABLED_BY_DEFAULT.get(propertyExists(childDefn, "enabled")));
+
+                final String link = getLink(getScriptName() + "-" + a.getLongIdentifier()
+                        + "-" + defn.getName() + "-prop-" + childDefn.getName());
+                child.put("link", REF_DSCFG_CHILD_LINK.get(link, defn.getUserFriendlyName()));
+
+                children.add(child);
             }
-            sb.append("         </variablelist>").append(EOL);
+            map.put("children", children);
+
+            applyTemplate(sb, "dscfgListSubtypes.ftl", map);
         }
 
         private boolean propertyExists(AbstractManagedObjectDefinition<?, ?> defn, String name) {
@@ -226,27 +196,26 @@ public final class DSConfig extends ConsoleApplication {
 
         /** {@inheritDoc} */
         @Override
-        public void appendProperties(StringBuilder sb, SubCommand sc) {
+        public String getProperties(SubCommand sc) {
+            StringBuilder sb = new StringBuilder();
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
             if (defn == null) {
-                return;
+                return "";
             }
 
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
                 final List<PropertyDefinition<?>> props =
                     new ArrayList<PropertyDefinition<?>>(childDefn.getAllPropertyDefinitions());
                 Collections.sort(props);
-
+                Map<String, Object> map = new HashMap<String, Object>();
                 final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + childDefn.getName();
-                sb.append(" <refsect3 xml:id=\"").append(propPrefix).append("\">").append(EOL);
-                sb.append("   <title>").append(childDefn.getUserFriendlyName()).append("</title>").append(EOL);
-                sb.append("   <para>").append(EOL);
-                sb.append("     ").append(defn.getUserFriendlyPluralName()).append(" of type ")
-                  .append(childDefn.getName()).append(" have the following properties:").append(EOL);
-                sb.append("   </para>").append(EOL);
-                toVariableList(props, defn, propPrefix, sb);
-                sb.append(" </refsect3>").append(EOL);
+                map.put("id", propPrefix);
+                map.put("title", childDefn.getUserFriendlyName());
+                map.put("intro", REF_DSCFG_PROPS_INTRO.get(defn.getUserFriendlyPluralName(), childDefn.getName()));
+                map.put("list", toVariableList(props, defn, propPrefix));
+                applyTemplate(sb, "dscfgAppendProps.ftl", map);
             }
+            return sb.toString();
         }
 
         private AbstractManagedObjectDefinition<?, ?> getManagedObjectDefinition(SubCommand sc) {
@@ -298,57 +267,57 @@ public final class DSConfig extends ConsoleApplication {
             return null;
         }
 
-        private void toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn,
-                String propPrefix, StringBuilder b) {
-            final String indent = "            ";
-            b.append("    <variablelist>").append(EOL);
+        private String toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn,
+                String propPrefix) {
+            StringBuilder b = new StringBuilder();
+            Map<String, Object> map = new HashMap<String, Object>();
+
+            List<Map<String, Object>> properties = new LinkedList<Map<String, Object>>();
             for (PropertyDefinition<?> prop : props) {
-                b.append("      <varlistentry xml:id=\"")
-                    .append(propPrefix).append("-").append(prop.getName()).append("\">").append(EOL);
-                b.append("        <term>").append(prop.getName()).append("</term>").append(EOL);
-                b.append("        <listitem>").append(EOL);
-                b.append("          <variablelist>").append(EOL);
-                appendVarlistentry(b, "Description", getDescriptionString(prop), indent);
-                appendDefaultBehavior(b, indent, prop);
-                appendAllowedValues(b, prop, indent);
-                appendVarlistentry(b, "Multi-valued", getYN(prop, MULTI_VALUED), indent);
-                appendVarlistentry(b, "Required", getYN(prop, MANDATORY), indent);
-                appendVarlistentry(b, "Admin Action Required", getAdminActionRequired(prop, defn), indent);
-                appendVarlistentry(b, "Advanced Property", getYNAdvanced(prop, ADVANCED), indent);
-                appendVarlistentry(b, "Read-only", getYN(prop, READ_ONLY), indent);
-                b.append("          </variablelist>").append(EOL);
-                b.append("        </listitem>").append(EOL);
-                b.append("      </varlistentry>").append(EOL);
+                Map<String, Object> property = new HashMap<String, Object>();
+                property.put("id", propPrefix + "-" + prop.getName());
+                property.put("term", prop.getName());
+                property.put("descTitle", REF_TITLE_DESCRIPTION.get());
+                property.put("description", getDescriptionString(prop));
+
+                final StringBuilder sb = new StringBuilder();
+                appendDefaultBehavior(sb, prop);
+                appendAllowedValues(sb, prop);
+                appendVarListEntry(sb, REF_DSCFG_PROPS_LABEL_MULTI_VALUED.get().toString(), getYN(prop, MULTI_VALUED));
+                appendVarListEntry(sb, REF_DSCFG_PROPS_LABEL_REQUIRED.get().toString(), getYN(prop, MANDATORY));
+                appendVarListEntry(sb, REF_DSCFG_PROPS_LABEL_ADMIN_ACTION_REQUIRED.get().toString(),
+                        getAdminActionRequired(prop, defn));
+                appendVarListEntry(sb, REF_DSCFG_PROPS_LABEL_ADVANCED_PROPERTY.get().toString(),
+                        getYNAdvanced(prop, ADVANCED));
+                appendVarListEntry(sb, REF_DSCFG_PROPS_LABEL_READ_ONLY.get().toString(), getYN(prop, READ_ONLY));
+                property.put("list", sb.toString());
+
+                properties.add(property);
             }
-            b.append("    </variablelist>").append(EOL);
+            map.put("properties", properties);
+
+            applyTemplate(b, "dscfgVariableList.ftl", map);
+            return b.toString();
         }
 
-        private StringBuilder appendVarlistentry(StringBuilder b, String term, Object para, String indent) {
-            b.append(indent).append("<varlistentry>").append(EOL);
-            b.append(indent).append("  <term>").append(term).append("</term>").append(EOL);
-            b.append(indent).append("  <listitem>").append(EOL);
-            b.append(indent).append("    <para>").append(para).append("</para>").append(EOL);
-            b.append(indent).append("  </listitem>").append(EOL);
-            b.append(indent).append("</varlistentry>").append(EOL);
+        private StringBuilder appendVarListEntry(StringBuilder b, String term, Object definition) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("term", term);
+            map.put("definition", definition);
+            applyTemplate(b, "dscfgVarListEntry.ftl", map);
             return b;
         }
 
-        private void appendDefaultBehavior(StringBuilder b, final String indent, PropertyDefinition<?> prop) {
-            b.append(indent).append("<varlistentry>").append(EOL);
-            b.append(indent).append("  <term>").append("Default Value").append("</term>").append(EOL);
-            b.append(indent).append("  <listitem>").append(EOL);
-            appendDefaultBehaviorString(b, indent + "    ", prop);
-            b.append(indent).append("  </listitem>").append(EOL);
-            b.append(indent).append("</varlistentry>").append(EOL);
+        private void appendDefaultBehavior(StringBuilder b, PropertyDefinition<?> prop) {
+            StringBuilder sb = new StringBuilder();
+            appendDefaultBehaviorString(sb, prop);
+            appendVarListEntry(b, REF_DSCFG_PROPS_LABEL_DEFAULT_VALUE.get().toString(), sb.toString());
         }
 
-        private void appendAllowedValues(StringBuilder b, PropertyDefinition<?> prop, String indent) {
-            b.append(indent).append("<varlistentry>").append(EOL);
-            b.append(indent).append("  <term>").append("Allowed Values").append("</term>").append(EOL);
-            b.append(indent).append("  <listitem>").append(EOL);
-            appendSyntax(b, prop, indent + "    ");
-            b.append(indent).append("  </listitem>").append(EOL);
-            b.append(indent).append("</varlistentry>").append(EOL);
+        private void appendAllowedValues(StringBuilder b, PropertyDefinition<?> prop) {
+            StringBuilder sb = new StringBuilder();
+            appendSyntax(sb, prop);
+            appendVarListEntry(b, REF_DSCFG_PROPS_LABEL_ALLOWED_VALUES.get().toString(), sb.toString());
         }
 
         private Object getDescriptionString(PropertyDefinition<?> prop) {
@@ -363,152 +332,146 @@ public final class DSConfig extends ConsoleApplication {
                 final Type actionType = adminAction.getType();
                 final StringBuilder action = new StringBuilder();
                 if (actionType == Type.COMPONENT_RESTART) {
-                    action.append("The ").append(defn.getUserFriendlyName())
-                             .append(" must be disabled and re-enabled for changes to this setting to take effect");
+                    action.append(op)
+                            .append(REF_DSCFG_ADMIN_ACTION_COMPONENT_RESTART.get(defn.getUserFriendlyName()))
+                            .append(cp);
                 } else if (actionType == Type.SERVER_RESTART) {
-                    action.append("Restart the server");
+                    action.append(op).append(REF_DSCFG_ADMIN_ACTION_SERVER_RESTART.get()).append(cp);
                 } else if (actionType == Type.NONE) {
-                    action.append("None");
+                    action.append(op).append(REF_DSCFG_ADMIN_ACTION_NONE.get()).append(cp);
                 }
                 if (synopsis != null) {
-                    if (action.length() > 0) {
-                        action.append(". ");
-                    }
-                    action.append(synopsis);
+                    action.append(op).append(synopsis).append(cp);
                 }
                 return action.toString();
             }
-            return "None";
+            return op + REF_DSCFG_ADMIN_ACTION_NONE.get() + cp;
         }
 
         private String getYN(PropertyDefinition<?> prop, PropertyOption option) {
-            return prop.hasOption(option) ? "Yes" : "No";
+            LocalizableMessage msg = prop.hasOption(option) ? REF_DSCFG_PROP_YES.get() : REF_DSCFG_PROP_NO.get();
+            return op + msg + cp;
         }
 
         private String getYNAdvanced(PropertyDefinition<?> prop, PropertyOption option) {
-            return prop.hasOption(option) ? "Yes (Use --advanced in interactive mode.)" : "No";
+            LocalizableMessage msg = prop.hasOption(option)
+                    ? REF_DSCFG_PROP_YES_ADVANCED.get() : REF_DSCFG_PROP_NO.get();
+            return op + msg + cp;
         }
 
-        private void appendDefaultBehaviorString(StringBuilder b, String indent, PropertyDefinition<?> prop) {
-            b.append(indent);
+        private void appendDefaultBehaviorString(StringBuilder b, PropertyDefinition<?> prop) {
             final DefaultBehaviorProvider<?> defaultBehavior = prop.getDefaultBehaviorProvider();
             if (defaultBehavior instanceof UndefinedDefaultBehaviorProvider) {
-                b.append("<para>None</para>").append(EOL);
-                return;
+                b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR_NONE.get()).append(cp).append(EOL);
             } else if (defaultBehavior instanceof DefinedDefaultBehaviorProvider) {
                 DefinedDefaultBehaviorProvider<?> behavior = (DefinedDefaultBehaviorProvider<?>) defaultBehavior;
                 final Collection<String> defaultValues = behavior.getDefaultValues();
                 if (defaultValues.size() == 0) {
-                    b.append("<para>None</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR_NONE.get()).append(cp).append(EOL);
                 } else if (defaultValues.size() == 1) {
-                    b.append("<para>").append(defaultValues.iterator().next()).append("</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR.get(defaultValues.iterator().next()))
+                            .append(cp).append(EOL);
                 } else {
                     final Iterator<String> it = defaultValues.iterator();
-                    b.append("<para>").append(it.next()).append("</para>");
+                    b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR.get(it.next())).append(cp);
                     for (; it.hasNext();) {
-                        final String str = it.next();
-                        b.append(EOL).append(indent).append("<para>").append(str).append("</para>");
+                        b.append(EOL).append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR.get(it.next())).append(cp);
                     }
                     b.append(EOL);
                 }
-                return;
             } else if (defaultBehavior instanceof AliasDefaultBehaviorProvider) {
                 AliasDefaultBehaviorProvider<?> behavior = (AliasDefaultBehaviorProvider<?>) defaultBehavior;
-                b.append("<para>").append(behavior.getSynopsis()).append("</para>").append(EOL);
-                return;
+                b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR.get(behavior.getSynopsis())).append(cp).append(EOL);
             } else if (defaultBehavior instanceof RelativeInheritedDefaultBehaviorProvider) {
                 final RelativeInheritedDefaultBehaviorProvider<?> behavior =
                         (RelativeInheritedDefaultBehaviorProvider<?>) defaultBehavior;
-                appendDefaultBehaviorString(b, indent,
+                appendDefaultBehaviorString(b,
                         behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
-                return;
             } else if (defaultBehavior instanceof AbsoluteInheritedDefaultBehaviorProvider) {
                 final AbsoluteInheritedDefaultBehaviorProvider<?> behavior =
                         (AbsoluteInheritedDefaultBehaviorProvider<?>) defaultBehavior;
-                appendDefaultBehaviorString(b, indent,
+                appendDefaultBehaviorString(b,
                         behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
-                return;
             }
         }
 
-        private void appendSyntax(final StringBuilder b, PropertyDefinition<?> prop, final String indent) {
+        private void appendSyntax(final StringBuilder b, PropertyDefinition<?> prop) {
             // Create a visitor for performing syntax specific processing.
             PropertyDefinitionVisitor<String, Void> visitor = new PropertyDefinitionVisitor<String, Void>() {
 
                 @Override
                 public String visitACI(ACIPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>").append(ACI_SYNTAX_REL_URL).append("</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_ACI_SYNTAX_REL_URL.get()).append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
+                    b.append(op);
                     final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
-                    final String linkStr = getLink(rel.getName() + ".html");
-                    b.append("The DN of any ").append(linkStr).append(". ");
+                    final String linkStr = getLink(rel.getName());
+                    b.append(REF_DSCFG_AGGREGATION.get(linkStr)).append(". ");
                     final LocalizableMessage synopsis = prop.getSourceConstraintSynopsis();
                     if (synopsis != null) {
                         b.append(synopsis);
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitAttributeType(AttributeTypePropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("The name of an attribute type defined in the server schema.");
-                    b.append("</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_ANY_ATTRIBUTE.get()).append(".").append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitBoolean(BooleanPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>true</para>").append(EOL);
-                    b.append(indent).append("<para>false</para>").append(EOL);
+                    b.append(op).append("true").append(cp).append(EOL);
+                    b.append(op).append("false").append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitClass(ClassPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("A java class that implements or extends the class(es) :")
-                        .append(Utils.joinAsString(EOL, prop.getInstanceOfInterface()));
-                    b.append("</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_JAVA_PLUGIN.get()).append(" ")
+                            .append(Utils.joinAsString(EOL, prop.getInstanceOfInterface())).append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitDN(DNPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("A valid DN.");
+                    b.append(op).append(REF_DSCFG_VALID_DN.get());
                     final DN baseDN = prop.getBaseDN();
                     if (baseDN != null) {
-                        b.append(" ").append(baseDN);
+                        b.append(": ").append(baseDN);
+                    } else {
+                        b.append(".");
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitDuration(DurationPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append(DURATION_SYNTAX_REL_URL).append(". ");
+                    b.append(REF_DSCFG_DURATION_SYNTAX_REL_URL.get()).append(EOL);
+                    b.append(op);
                     if (prop.isAllowUnlimited()) {
-                        b.append(ALLOW_UNLIMITED).append(" ");
+                        b.append(REF_DSCFG_ALLOW_UNLIMITED.get()).append(" ");
                     }
                     if (prop.getMaximumUnit() != null) {
-                        b.append("Maximum unit is \"").append(prop.getMaximumUnit().getLongName()).append("\". ");
+                        final String maxUnitName = prop.getMaximumUnit().getLongName();
+                        b.append(REF_DSCFG_DURATION_MAX_UNIT.get(maxUnitName)).append(".");
                     }
                     final DurationUnit baseUnit = prop.getBaseUnit();
-                    b.append("Lower limit is ").append(valueOf(baseUnit, prop.getLowerLimit()))
-                     .append(" ").append(baseUnit.getLongName()).append(". ");
+                    final long lowerLimit = valueOf(baseUnit, prop.getLowerLimit());
+                    final String unitName = baseUnit.getLongName();
+                    b.append(REF_DSCFG_DURATION_LOWER_LIMIT.get(lowerLimit, unitName)).append(".");
                     if (prop.getUpperLimit() != null) {
-                        b.append("Upper limit is ").append(valueOf(baseUnit, prop.getUpperLimit()))
-                         .append(" ").append(baseUnit.getLongName()).append(". ");
+                        final long upperLimit = valueOf(baseUnit, prop.getUpperLimit());
+                        b.append(REF_DSCFG_DURATION_UPPER_LIMIT.get(upperLimit, unitName)).append(".");
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
@@ -518,79 +481,77 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitEnum(EnumPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>").append(EOL);
-                    b.append(indent).append("  <variablelist>").append(EOL);
+                    b.append("<variablelist>").append(EOL);
                     final Class<?> en = prop.getEnumClass();
                     final Object[] constants = en.getEnumConstants();
                     for (Object enumConstant : constants) {
                         final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
-                        appendVarlistentry(b, enumConstant.toString(), valueSynopsis, indent + "    ");
+                        appendVarListEntry(b, enumConstant.toString(), valueSynopsis);
                     }
-                    b.append(indent).append("  </variablelist>").append(EOL);
-                    b.append(indent).append("</para>").append(EOL);
+                    b.append("</variablelist>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitInteger(IntegerPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("An integer value. Lower value is ").append(prop.getLowerLimit()).append(".");
+                    b.append(op).append(REF_DSCFG_INT.get()).append(". ")
+                            .append(REF_DSCFG_INT_LOWER_LIMIT.get(prop.getLowerLimit())).append(".");
                     if (prop.getUpperLimit() != null) {
-                        b.append(" Upper value is ").append(prop.getUpperLimit()).append(".");
+                        b.append(" ").append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
                     }
                     if (prop.isAllowUnlimited()) {
-                        b.append(" ").append(ALLOW_UNLIMITED);
+                        b.append(" ").append(REF_DSCFG_ALLOW_UNLIMITED.get());
                     }
                     if (prop.getUnitSynopsis() != null) {
-                        b.append(" Unit is ").append(prop.getUnitSynopsis()).append(".");
+                        b.append(" ").append(REF_DSCFG_INT_UNIT.get(prop.getUnitSynopsis())).append(".");
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitIPAddress(IPAddressPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>An IP address</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_IP_ADDRESS.get()).append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitIPAddressMask(IPAddressMaskPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>An IP address mask</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_IP_ADDRESS_MASK.get()).append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitSize(SizePropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
+                    b.append(op);
                     if (prop.getLowerLimit() != 0) {
-                        b.append(" Lower value is ").append(prop.getLowerLimit()).append(".");
+                        b.append(REF_DSCFG_INT_LOWER_LIMIT.get(prop.getLowerLimit())).append(".");
                     }
                     if (prop.getUpperLimit() != null) {
-                        b.append(" Upper value is ").append(prop.getUpperLimit()).append(" .");
+                        b.append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
                     }
                     if (prop.isAllowUnlimited()) {
-                        b.append(" ").append(ALLOW_UNLIMITED);
+                        b.append(REF_DSCFG_ALLOW_UNLIMITED.get());
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitString(StringPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
+                    b.append(op);
                     if (prop.getPatternSynopsis() != null) {
                         b.append(prop.getPatternSynopsis());
                     } else {
-                        b.append("A String");
+                        b.append(REF_DSCFG_STRING.get());
                     }
-                    b.append("</para>").append(EOL);
+                    b.append(cp).append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitUnknown(PropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>Unknown</para>").append(EOL);
+                    b.append(op).append(REF_DSCFG_UNKNOWN.get()).append(cp).append(EOL);
                     return null;
                 }
             };
@@ -600,7 +561,7 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         private String getLink(String target) {
-            return " <xref linkend=" + target + " />";
+            return " <xref linkend=\"" + target + "\" />";
         }
     }
 

@@ -28,18 +28,23 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.DocGenerationHelper.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -658,74 +663,63 @@ public class ArgumentParser {
         final StringBuilder buffer = new StringBuilder();
         usageOrVersionDisplayed = true;
         if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
-            toRefSect2(buffer);
+            toRefEntry(buffer);
         } else {
             getUsage(buffer);
         }
         return buffer.toString();
     }
 
-    private void toRefSect2(StringBuilder sb) {
+    /**
+     * Appends a generated DocBook XML RefEntry (man page) to the StringBuilder.
+     *
+     * @param sb    Append the RefEntry element to this.
+     */
+    private void toRefEntry(StringBuilder sb) {
         final String scriptName = getScriptName();
         if (scriptName == null) {
             throw new RuntimeException("The script name should have been set via the environment property '"
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        sb.append("<refsect2 xml:id=\"").append(scriptName).append("\">").append(EOL);
-        sb.append(" <title>").append(scriptName).append("</title>").append(EOL);
-        sb.append(" <para>").append(getToolDescription()).append("</para>").append(EOL);
+        // Model for a FreeMarker template.
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("locale", Locale.getDefault().getLanguage());
+        map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
+        map.put("name", scriptName);
+        map.put("descTitle", REF_TITLE_DESCRIPTION.get());
+        map.put("optsTitle", REF_TITLE_OPTIONS.get());
+        map.put("optsIntro", REF_INTRO_OPTIONS.get(scriptName));
+        String args = null;
+        if (allowsTrailingArguments) {
+            if (trailingArgsDisplayName != null) {
+                args = trailingArgsDisplayName;
+            } else {
+                args = INFO_ARGPARSER_USAGE_TRAILINGARGS.get().toString();
+            }
+        }
+        map.put("args", args);
+        map.put("description", getToolDescription());
 
         // If there is a supplement to the description for this utility,
-        // then it is formatted for use in generated reference documentation.
-        // In other words, it is already DocBook XML, so append it as is.
-        final LocalizableMessage toolDocDescriptionSupplement = getDocToolDescriptionSupplement();
-        if (!LocalizableMessage.EMPTY.equals(toolDocDescriptionSupplement)) {
-            sb.append(toolDocDescriptionSupplement.toString()).append(EOL);
-        }
-
+        // then it is already DocBook XML, so use it as is.
+        map.put("info", getDocToolDescriptionSupplement());
         if (!argumentList.isEmpty()) {
-            sb.append(" <variablelist>").append(EOL);
+            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
             for (Argument a : argumentList) {
-                sb.append("  <varlistentry>").append(EOL);
-                sb.append("    <term><option>");
-                final Character shortID = a.getShortIdentifier();
-                if (shortID != null) {
-                    sb.append("-").append(shortID.charValue());
-                }
-                final String longID = a.getLongIdentifier();
-                if (shortID != null && longID != null) {
-                    sb.append(" | ");
-                }
-                if (longID != null) {
-                    sb.append("--").append(longID);
-                }
-                if (a.needsValue()) {
-                    sb.append(" ").append(a.getValuePlaceholder());
-                }
-                sb.append("</option></term>").append(EOL);
-                sb.append("    <listitem>").append(EOL);
-                sb.append("      <para>").append(a.getDescription()).append("</para>").append(EOL);
-
-                final String defaultValue = a.getDefaultValue();
-                if (defaultValue != null && !defaultValue.isEmpty()) {
-                    sb.append("      <para>Default: ").append(defaultValue).append("</para>").append(EOL);
-                }
+                Map<String, Object> option = new HashMap<String, Object>();
+                option.put("synopsis", getOptionSynopsis(a));
+                option.put("description", a.getDescription());
+                option.put("default", REF_DEFAULT.get(a.getDefaultValue()));
 
                 // If there is a supplement to the description for this argument,
-                // then for now it is already formatted in DocBook XML.
-                final LocalizableMessage aDocDescriptionSupplement = a.getDocDescriptionSupplement();
-                if (!LocalizableMessage.EMPTY.equals(aDocDescriptionSupplement)) {
-                    sb.append(aDocDescriptionSupplement.toString()).append(EOL);
-                }
-
-                sb.append("    </listitem>").append(EOL);
-                sb.append("  </varlistentry>").append(EOL);
+                // then it is already DocBook XML, so use it as is.
+                option.put("info", a.getDocDescriptionSupplement());
+                options.add(option);
             }
-            sb.append(" </variablelist>").append(EOL);
+            map.put("options", options);
         }
-
-        sb.append("</refsect2>").append(EOL);
+        applyTemplate(sb, "refEntry.ftl", map);
     }
 
     /**
