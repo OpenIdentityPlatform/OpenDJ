@@ -247,6 +247,29 @@
 
     <plugins>
 
+	<plugin>
+		<!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
+		<groupId>org.codehaus.mojo</groupId>
+		<artifactId>properties-maven-plugin</artifactId>
+		<version>1.0-alpha-2</version>
+		<configuration>
+			<properties>
+				<property>
+					<name>javax.xml.accessExternalSchema</name>
+					<value>all</value>
+				</property>
+			</properties>
+		</configuration>
+		<executions>
+			<execution>
+				<id>set-additional-system-properties</id>
+				<goals>
+					<goal>set-system-properties</goal>
+				</goals>
+			</execution>
+		</executions>
+	</plugin>
+
       <!-- Clean classes generated outside the build directory -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
