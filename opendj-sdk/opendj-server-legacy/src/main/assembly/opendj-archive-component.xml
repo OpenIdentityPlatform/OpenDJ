@@ -195,9 +195,9 @@
     <fileSet>
       <directory>${basedir}/resource/config</directory>
       <outputDirectory>template/config</outputDirectory>
-      <includes>
-        <include>*.*</include>
-      </includes>
+      <excludes>
+        <exclude>config.ldif</exclude>
+      </excludes>
     </fileSet>
 
     <!-- Adds MakeLDIF configuration template resources -->
@@ -282,6 +282,13 @@
     </fileSet>
   </fileSets>
   <files>
+  
+    <!-- Adds Generated config.ldif file -->
+    <file>
+      <source>${project.build.directory}/template/config/config.ldif</source>
+      <outputDirectory>template/config</outputDirectory>
+    </file>
+    
     <!-- Adds logo png to root directory -->
     <file>
       <source>${basedir}/resource/images/opendj_logo.png</source>
