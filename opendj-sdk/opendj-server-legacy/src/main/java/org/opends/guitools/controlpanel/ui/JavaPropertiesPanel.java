@@ -1117,23 +1117,22 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     @Override
     public boolean equals(Object o)
     {
-      boolean equals = o == this;
-      if (!equals)
+      if (o == this)
       {
-        if (o instanceof JavaArgumentsDescriptor)
-        {
-          equals =
-            commandName.equals(((JavaArgumentsDescriptor)o).getCommandName()) &&
-          javaArguments.equals(((JavaArgumentsDescriptor)o).getJavaArguments());
-        }
+        return true;
       }
-      return equals;
+      if (!(o instanceof JavaArgumentsDescriptor))
+      {
+        return false;
+      }
+      JavaArgumentsDescriptor desc = (JavaArgumentsDescriptor)o;
+      return commandName.equals(desc.getCommandName())
+          && javaArguments.equals(desc.getJavaArguments());
     }
   }
 
   /**
    * The table model used to display the java arguments.
-   *
    */
   protected class JavaArgumentsTableModel extends SortableTableModel
   implements Comparator<JavaArgumentsDescriptor>
@@ -1435,26 +1434,24 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
-      boolean canLaunch = true;
-      if (!isServerRunning())
+      if (!isServerRunning()
+          && state == State.RUNNING
+          && runningOnSameServer(taskToBeLaunched))
       {
-        if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
+        // All the operations are incompatible if they apply to this
+        // backend for safety.  This is a short operation so the limitation
+        // has not a lot of impact.
+        Set<String> backends =
+          new TreeSet<String>(taskToBeLaunched.getBackends());
+        backends.retainAll(getBackends());
+        if (backends.size() > 0)
         {
-          // All the operations are incompatible if they apply to this
-          // backend for safety.  This is a short operation so the limitation
-          // has not a lot of impact.
-          Set<String> backends =
-            new TreeSet<String>(taskToBeLaunched.getBackends());
-          backends.retainAll(getBackends());
-          if (backends.size() > 0)
-          {
-            incompatibilityReasons.add(getIncompatibilityMessage(this,
-                taskToBeLaunched));
-            canLaunch = false;
-          }
+          incompatibilityReasons.add(getIncompatibilityMessage(this,
+              taskToBeLaunched));
+          return false;
         }
       }
-      return canLaunch;
+      return true;
     }
 
     /**

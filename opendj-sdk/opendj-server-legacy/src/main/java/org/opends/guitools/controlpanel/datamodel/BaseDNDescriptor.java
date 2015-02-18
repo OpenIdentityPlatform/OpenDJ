@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -106,33 +106,30 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   @Override
   public boolean equals(Object v)
   {
-    boolean equals = false;
-    if (this != v)
+    if (this == v)
     {
-      if (v instanceof BaseDNDescriptor)
-      {
-        BaseDNDescriptor desc = (BaseDNDescriptor)v;
-        equals = (getType() == desc.getType()) &&
-        getDn().equals(desc.getDn()) &&
-        (getAgeOfOldestMissingChange() == desc.getAgeOfOldestMissingChange()) &&
-        (getMissingChanges() == desc.getMissingChanges()) &&
-        (getEntries() == desc.getEntries());
-        if (equals)
-        {
-          if ((getBackend() != null) && (desc.getBackend() != null))
-          {
-            // Only compare the backend IDs.  In this context is enough
-            equals = getBackend().getBackendID().equals(
-                desc.getBackend().getBackendID());
-          }
-        }
-      }
+      return true;
     }
-    else
+    if (!(v instanceof BaseDNDescriptor))
     {
-      equals = true;
+      return false;
     }
-    return equals;
+
+    BaseDNDescriptor desc = (BaseDNDescriptor)v;
+    return getType() == desc.getType()
+        && getDn().equals(desc.getDn())
+        && getAgeOfOldestMissingChange() == desc.getAgeOfOldestMissingChange()
+        && getMissingChanges() == desc.getMissingChanges()
+        && getEntries() == desc.getEntries()
+        && backendIdEqual(desc);
+  }
+
+  private boolean backendIdEqual(BaseDNDescriptor desc)
+  {
+    // Only compare the backend IDs.  In this context is enough
+    return getBackend() != null
+        && desc.getBackend() != null
+        && getBackend().getBackendID().equals(desc.getBackend().getBackendID());
   }
 
   /**
@@ -154,14 +151,11 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     {
       returnValue = getType().compareTo(desc.getType());
     }
-    if (returnValue == 0)
+    if (returnValue == 0 && getBackend() != null && desc.getBackend() != null)
     {
-      if ((getBackend() != null) && (desc.getBackend() != null))
-      {
-        // Only compare the backend IDs. In this context is enough
-        returnValue = getBackend().getBackendID().compareTo(
-            desc.getBackend().getBackendID());
-      }
+      // Only compare the backend IDs. In this context is enough
+      returnValue = getBackend().getBackendID().compareTo(
+          desc.getBackend().getBackendID());
     }
     if (returnValue == 0)
     {

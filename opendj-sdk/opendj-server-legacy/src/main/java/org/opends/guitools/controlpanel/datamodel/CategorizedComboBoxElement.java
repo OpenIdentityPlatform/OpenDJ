@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -88,17 +89,13 @@ public class CategorizedComboBoxElement
    */
   public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (o != null)
+    if (o instanceof CategorizedComboBoxElement)
     {
-      if (o instanceof CategorizedComboBoxElement)
-      {
-        CategorizedComboBoxElement desc = (CategorizedComboBoxElement)o;
-        equals = (desc.getType() == getType()) &&
-        (getValue().equals(desc.getValue()));
-      }
+      CategorizedComboBoxElement desc = (CategorizedComboBoxElement)o;
+      return desc.getType() == getType()
+          && getValue().equals(desc.getValue());
     }
-    return equals;
+    return false;
   }
 
   /**

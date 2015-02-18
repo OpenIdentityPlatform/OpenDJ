@@ -452,18 +452,15 @@ public abstract class GuiApplication extends Application {
             "The host is null for the UserDataCertificateException"));
       }
     }
-    if (acceptPermanently)
+    if (acceptPermanently && chain != null)
     {
-      if (chain != null)
+      try
       {
-        try
-        {
-          UIKeyStore.acceptCertificate(chain);
-        }
-        catch (Throwable t)
-        {
-          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
-        }
+        UIKeyStore.acceptCertificate(chain);
+      }
+      catch (Throwable t)
+      {
+        logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
       }
     }
   }

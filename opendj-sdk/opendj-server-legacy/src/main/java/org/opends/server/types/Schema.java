@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -430,15 +430,12 @@ public final class Schema
                                          AttributeType superiorType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
-    if (subTypes != null)
+    if (subTypes != null && subTypes.remove(attributeType))
     {
-      if (subTypes.remove(attributeType))
+      AttributeType higherSuperior = superiorType.getSuperiorType();
+      if (higherSuperior != null)
       {
-        AttributeType higherSuperior = superiorType.getSuperiorType();
-        if (higherSuperior != null)
-        {
-          deregisterSubordinateType(attributeType, higherSuperior);
-        }
+        deregisterSubordinateType(attributeType, higherSuperior);
       }
     }
   }
@@ -856,18 +853,11 @@ public final class Schema
      */
     synchronized (ldapSyntaxDescriptions)
     {
-      String oid = toLowerCase(
-                syntax.getLdapSyntaxDescriptionSyntax().getOID());
-      if (! overwriteExisting)
+      String oid = toLowerCase(syntax.getLdapSyntaxDescriptionSyntax().getOID());
+      if (! overwriteExisting && ldapSyntaxDescriptions.containsKey(oid))
       {
-        if (ldapSyntaxDescriptions.containsKey(oid))
-        {
-           LocalizableMessage message =
-            ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.
-              get(oid);
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
+         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.get(oid));
       }
 
       ldapSyntaxDescriptions.put(oid, syntax);
@@ -875,8 +865,7 @@ public final class Schema
       //Register the attribute syntax with the schema. It will ensure
       // syntax is available along with the other virtual values for
       // ldapsyntaxes.
-      registerSyntax(syntax.getLdapSyntaxDescriptionSyntax(),
-              overwriteExisting);
+      registerSyntax(syntax.getLdapSyntaxDescriptionSyntax(), overwriteExisting);
     }
   }
 
@@ -1131,20 +1120,16 @@ public final class Schema
     {
       MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
 
-      if (! overwriteExisting)
+      if (!overwriteExisting && matchingRuleUses.containsKey(matchingRule))
       {
-        if (matchingRuleUses.containsKey(matchingRule))
-        {
-          MatchingRuleUse conflictingUse =
-                               matchingRuleUses.get(matchingRule);
+        MatchingRuleUse conflictingUse = matchingRuleUses.get(matchingRule);
 
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
-              get(matchingRuleUse.getNameOrOID(),
-                  matchingRule.getNameOrOID(),
-                  conflictingUse.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
+        LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
+            get(matchingRuleUse.getNameOrOID(),
+                matchingRule.getNameOrOID(),
+                conflictingUse.getNameOrOID());
+        throw new DirectoryException(
+                       ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
       matchingRuleUses.put(matchingRule, matchingRuleUse);
@@ -1246,20 +1231,17 @@ public final class Schema
     {
       ObjectClass objectClass = ditContentRule.getStructuralClass();
 
-      if (! overwriteExisting)
+      if (! overwriteExisting && ditContentRules.containsKey(objectClass))
       {
-        if (ditContentRules.containsKey(objectClass))
-        {
-          DITContentRule conflictingRule =
-                              ditContentRules.get(objectClass);
+        DITContentRule conflictingRule =
+                            ditContentRules.get(objectClass);
 
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
-              get(ditContentRule.getNameOrOID(),
-                  objectClass.getNameOrOID(),
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
+        LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
+            get(ditContentRule.getNameOrOID(),
+                objectClass.getNameOrOID(),
+                conflictingRule.getNameOrOID());
+        throw new DirectoryException(
+                       ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
       ditContentRules.put(objectClass, ditContentRule);

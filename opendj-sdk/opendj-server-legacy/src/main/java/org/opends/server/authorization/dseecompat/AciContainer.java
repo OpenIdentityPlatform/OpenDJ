@@ -814,15 +814,13 @@ implements AciTargetMatchContext, AciEvalContext {
              * - TLS is the security provider, and
              * - The client provided a certificate.
              */
-            if (authInfo.hasAuthenticationType(AuthenticationType.SASL) &&
-                 authInfo.hasSASLMechanism(saslMech)) {
-
-                if(clientConnection instanceof LDAPClientConnection) {
-                    LDAPClientConnection lc =
-                                       (LDAPClientConnection) clientConnection;
-                    Certificate[] certChain = lc.getClientCertificateChain();
-                    if(certChain.length != 0)
-                        matched = EnumEvalResult.TRUE;
+            if (authInfo.hasAuthenticationType(AuthenticationType.SASL)
+                && authInfo.hasSASLMechanism(saslMech)
+                && clientConnection instanceof LDAPClientConnection) {
+                LDAPClientConnection lc = (LDAPClientConnection) clientConnection;
+                Certificate[] certChain = lc.getClientCertificateChain();
+                if (certChain.length != 0) {
+                  matched = EnumEvalResult.TRUE;
                 }
             }
           } else {

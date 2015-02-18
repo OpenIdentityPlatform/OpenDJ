@@ -191,12 +191,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
               remove1Clicked();
             }
           }
-          else if (e.getSource() == selectedList2)
+          else if (e.getSource() == selectedList2
+              && selectedList2.getSelectedValue() != null)
           {
-            if (selectedList2.getSelectedValue() != null)
-            {
-              remove2Clicked();
-            }
+            remove2Clicked();
           }
         }
       }

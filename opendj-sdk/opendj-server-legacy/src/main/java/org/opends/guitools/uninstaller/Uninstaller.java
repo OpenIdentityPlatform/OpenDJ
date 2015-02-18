@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.uninstaller;
 
@@ -389,13 +389,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         @Override
         public void run()
         {
-          if (startProgressDlg != null)
+          if (startProgressDlg != null && newLogDetail != null)
           {
-            if (newLogDetail != null)
-            {
-              startProgressDetails.append(newLogDetail);
-              startProgressDlg.setDetails(startProgressDetails.toMessage());
-            }
+            startProgressDetails.append(newLogDetail);
+            startProgressDlg.setDetails(startProgressDetails.toMessage());
           }
         }
       });

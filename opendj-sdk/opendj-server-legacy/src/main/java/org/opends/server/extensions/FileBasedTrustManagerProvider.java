@@ -380,28 +380,20 @@ public class FileBasedTrustManagerProvider
     // If there is a PIN property, then make sure the corresponding
     // property is set.
     String pinProp = configuration.getTrustStorePinProperty();
-    if (pinProp != null)
+    if (pinProp != null && System.getProperty(pinProp) == null)
     {
-      if (System.getProperty(pinProp) == null)
-      {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
+      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
+      configAcceptable = false;
     }
 
 
     // If there is a PIN environment variable, then make sure the corresponding
     // environment variable is set.
     String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
-    if (pinEnVar != null)
+    if (pinEnVar != null && System.getenv(pinEnVar) == null)
     {
-      if (System.getenv(pinEnVar) == null)
-      {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
+      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
+      configAcceptable = false;
     }
 
 

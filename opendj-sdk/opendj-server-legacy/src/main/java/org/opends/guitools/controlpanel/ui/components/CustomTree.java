@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -181,12 +181,12 @@ public class CustomTree extends JTree
           notifyNewEvent(macEvent, NewEventType.MOUSE_PRESSED);
         }
 
-        if (ev.isPopupTrigger() && (popupMenu != null)) {
-          if ((getPathForLocation(ev.getPoint().x, ev.getPoint().y) != null) ||
-              (newEvent != null))
-          {
-            popupMenu.show(ev.getComponent(), ev.getX(), ev.getY());
-          }
+        if (ev.isPopupTrigger()
+            && popupMenu != null
+            && (getPathForLocation(ev.getPoint().x, ev.getPoint().y) != null
+                || newEvent != null))
+        {
+          popupMenu.show(ev.getComponent(), ev.getX(), ev.getY());
         }
         if (newEvent != null)
         {
@@ -204,13 +204,13 @@ public class CustomTree extends JTree
           return;
         }
         MouseEvent newEvent = getTranslatedEvent(ev);
-        if (ev.isPopupTrigger() && (popupMenu != null) &&
-            !popupMenu.isVisible()) {
-          if ((getPathForLocation(ev.getPoint().x, ev.getPoint().y) != null) ||
-              (newEvent != null))
-          {
-            popupMenu.show(ev.getComponent(), ev.getX(), ev.getY());
-          }
+        if (ev.isPopupTrigger()
+            && popupMenu != null
+            && !popupMenu.isVisible()
+            && (getPathForLocation(ev.getPoint().x, ev.getPoint().y) != null
+                || newEvent != null))
+        {
+          popupMenu.show(ev.getComponent(), ev.getX(), ev.getY());
         }
 
         if (newEvent != null)

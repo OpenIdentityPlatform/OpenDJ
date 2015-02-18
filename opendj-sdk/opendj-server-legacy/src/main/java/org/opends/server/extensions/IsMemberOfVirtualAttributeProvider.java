@@ -310,18 +310,14 @@ public class IsMemberOfVirtualAttributeProvider
       try
       {
         Entry e = memberList.nextMemberEntry();
-        if (e.matchesBaseAndScope(baseDN, scope) &&
-            filter.matchesEntry(e))
+        if (e.matchesBaseAndScope(baseDN, scope)
+            && filter.matchesEntry(e)
+            // The set of returned DNs is only used for detecting set membership
+            // so it's ok to use the irreversible representation of the DN
+            && (returnedDNs == null || returnedDNs.add(e.getName().toIrreversibleNormalizedByteString()))
+            && !searchOperation.returnEntry(e, null))
         {
-          // The set of returned DNs is only used for detecting set membership
-          // so it's ok to use the irreversible representation of the DN
-          if (returnedDNs == null || returnedDNs.add(e.getName().toIrreversibleNormalizedByteString()))
-          {
-            if (!searchOperation.returnEntry(e, null))
-            {
-              return false;
-            }
-          }
+          return false;
         }
       }
       catch (Exception e)

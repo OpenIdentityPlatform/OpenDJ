@@ -1216,22 +1216,16 @@ public class InstallerHelper {
    */
   public String getImportProgressMessage(String msg)
   {
-    String parsedMsg = null;
-    if (msg != null)
+    if (msg != null
+        && (msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())
+            || msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
     {
-      if ((msg.contains("msgID=" + JebMessages
-              .NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())) ||
-          (msg.contains("msgID=" + JebMessages
-              .NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
+      int index = msg.indexOf("msg=");
+      if (index != -1)
       {
-        int index = msg.indexOf("msg=");
-        if (index != -1)
-        {
-          parsedMsg = msg.substring(index + 4);
-        }
+        return msg.substring(index + 4);
       }
     }
-    return parsedMsg;
+    return null;
   }
 }
-

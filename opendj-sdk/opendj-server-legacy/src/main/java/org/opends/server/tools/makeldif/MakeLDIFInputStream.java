@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -148,13 +149,11 @@ public class MakeLDIFInputStream
       throw ioException;
     }
 
-    if ((entryBytes == null) || (! entryBytes.hasRemaining()))
+    if ((entryBytes == null || !entryBytes.hasRemaining())
+        && !getNextEntry())
     {
-      if (! getNextEntry())
-      {
-        closed = true;
-        return -1;
-      }
+      closed = true;
+      return -1;
     }
 
     return (0xFF & entryBytes.get());
@@ -189,13 +188,11 @@ public class MakeLDIFInputStream
       throw ioException;
     }
 
-    if ((entryBytes == null) || (! entryBytes.hasRemaining()))
+    if ((entryBytes == null || !entryBytes.hasRemaining())
+        && !getNextEntry())
     {
-      if (! getNextEntry())
-      {
-        closed = true;
-        return -1;
-      }
+      closed = true;
+      return -1;
     }
 
     int bytesRead = Math.min(len, entryBytes.remaining());

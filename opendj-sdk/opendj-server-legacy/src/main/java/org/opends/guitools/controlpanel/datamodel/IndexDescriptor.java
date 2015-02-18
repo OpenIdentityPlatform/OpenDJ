@@ -130,30 +130,27 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    */
   public boolean equals(Object o)
   {
-    boolean equals = o == this;
-    if (!equals)
+    if (o == this)
     {
-      equals = o instanceof IndexDescriptor;
-      if (equals)
-      {
-        IndexDescriptor index = (IndexDescriptor)o;
-        equals = index.getName().equalsIgnoreCase(getName()) &&
-          index.isDatabaseIndex() == isDatabaseIndex() &&
-          index.getTypes().equals(getTypes()) &&
-          index.getEntryLimit() == getEntryLimit();
-
-        if (equals)
-        {
-          if ((getBackend() != null) && (index.getBackend() != null))
-          {
-            // Only compare the backend IDs.  In this context is enough
-            equals = getBackend().getBackendID().equals(
-                index.getBackend().getBackendID());
-          }
-        }
-      }
+      return true;
     }
-    return equals;
+    if (!(o instanceof IndexDescriptor))
+    {
+      return false;
+    }
+    IndexDescriptor index = (IndexDescriptor)o;
+    return index.getName().equalsIgnoreCase(getName())
+        && index.isDatabaseIndex() == isDatabaseIndex()
+        && index.getTypes().equals(getTypes())
+        && index.getEntryLimit() == getEntryLimit()
+        && backendIdEqual(index);
+  }
+
+  private boolean backendIdEqual(IndexDescriptor index)
+  {
+    return getBackend() != null
+        && index.getBackend() != null
+        && getBackend().getBackendID().equals(index.getBackend().getBackendID());
   }
 
   /**

@@ -301,10 +301,8 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     ifNull(value);
 
     // Make sure that we correctly encode negative values as "unlimited".
-    if (allowUnlimited) {
-      if (value < 0) {
-        return UNLIMITED;
-      }
+    if (allowUnlimited && value < 0) {
+      return UNLIMITED;
     }
 
     // Encode the size value using the best-fit unit.
@@ -322,15 +320,12 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    * {@inheritDoc}
    */
   @Override
-  public Long decodeValue(String value)
-      throws PropertyException {
+  public Long decodeValue(String value) throws PropertyException {
     ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
-    if (allowUnlimited) {
-      if (value.trim().equalsIgnoreCase(UNLIMITED)) {
-        return -1L;
-      }
+    if (allowUnlimited && value.trim().equalsIgnoreCase(UNLIMITED)) {
+      return -1L;
     }
 
     // Decode the value.

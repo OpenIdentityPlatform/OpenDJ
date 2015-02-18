@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -131,14 +131,12 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     {
       Attribute attr = mod.getAttribute();
       AttributeType type = attr.getAttributeType();
-      if (type != null )
+      if (type != null
+          && AttributeUsage.DSA_OPERATION.equals(type.getUsage()) )
       {
-        if (AttributeUsage.DSA_OPERATION.equals(type.getUsage()))
-        {
-          // Attributes with a dsaOperation usage should not be synchronized.
-          // skip them.
-          continue;
-        }
+        // Attributes with a dsaOperation usage should not be synchronized.
+        // skip them.
+        continue;
       }
 
       if (!EntryHistorical.isHistoricalAttribute(attr))

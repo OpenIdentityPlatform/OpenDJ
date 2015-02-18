@@ -263,12 +263,11 @@ public class Index extends DatabaseContainer
           logIndexCorruptError(txn, key);
         }
 
-        if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
+        if ((rebuildRunning || trusted)
+            && isNotNullOrEmpty(addedIDs)
+            && !insert(txn, key, addedIDs.toByteString()))
         {
-          if(!insert(txn, key, addedIDs.toByteString()))
-          {
-            updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
-          }
+          updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
         }
       }
     }

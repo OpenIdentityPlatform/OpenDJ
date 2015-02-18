@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -622,14 +622,12 @@ public class NewGroupPanel extends AbstractNewEntryPanel
             staticMembers.setText(sb.toString());
             staticMembers.setCaretPosition(sb.length());
           }
-          else if (comp == referenceGroup)
+          else if (comp == referenceGroup
+              && nodes.getNodes().length > 0)
           {
-            if (nodes.getNodes().length > 0)
-            {
-              String dn = nodes.getNodes()[0].getNode().getDN();
-              referenceGroup.setText(dn);
-              referenceGroup.setCaretPosition(dn.length());
-            }
+            String dn = nodes.getNodes()[0].getNode().getDN();
+            referenceGroup.setText(dn);
+            referenceGroup.setCaretPosition(dn.length());
           }
           e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
           e.getDropTargetContext().dropComplete(true);

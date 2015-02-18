@@ -305,14 +305,11 @@ public class BackupTask extends Task
 
     // If the incremental base ID was specified, then make sure it is an
     // incremental backup.
-    if (incrementalBase != null)
+    if (incrementalBase != null && ! incremental)
     {
-      if (! incremental)
-      {
-        logger.error(ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL, ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
-                ATTR_TASK_BACKUP_INCREMENTAL);
-        return false;
-      }
+      logger.error(ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL, ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
+              ATTR_TASK_BACKUP_INCREMENTAL);
+      return false;
     }
 
 

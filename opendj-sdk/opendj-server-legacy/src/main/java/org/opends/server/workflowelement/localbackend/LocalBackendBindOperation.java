@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -706,16 +706,13 @@ public class LocalBackendBindOperation
     if (DirectoryServer.lockdownMode())
     {
       ResultCode resultCode = getResultCode();
-      if (resultCode != ResultCode.SASL_BIND_IN_PROGRESS)
+      if (resultCode != ResultCode.SASL_BIND_IN_PROGRESS
+          && (resultCode != ResultCode.SUCCESS
+              || saslAuthUserEntry == null
+              || !ClientConnection.hasPrivilege(saslAuthUserEntry, Privilege.BYPASS_LOCKDOWN)))
       {
-        if ((resultCode != ResultCode.SUCCESS) ||
-            (saslAuthUserEntry == null) ||
-            (! ClientConnection.hasPrivilege(saslAuthUserEntry,
-                Privilege.BYPASS_LOCKDOWN)))
-        {
-          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                       ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
-        }
+        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                                     ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
       }
     }
 
@@ -796,14 +793,11 @@ public class LocalBackendBindOperation
         PasswordPolicyState pwPolicyState =
           (PasswordPolicyState) authPolicyState;
 
-        if (saslHandler.isPasswordBased(saslMechanism))
+        if (saslHandler.isPasswordBased(saslMechanism)
+            && pwPolicyState.getAuthenticationPolicy().getLockoutFailureCount() > 0)
         {
-          if (pwPolicyState.getAuthenticationPolicy()
-              .getLockoutFailureCount() > 0)
-          {
-            generateAccountStatusNotificationForLockedBindAccount(
-                saslAuthUserEntry, pwPolicyState);
-          }
+          generateAccountStatusNotificationForLockedBindAccount(
+              saslAuthUserEntry, pwPolicyState);
         }
       }
     }

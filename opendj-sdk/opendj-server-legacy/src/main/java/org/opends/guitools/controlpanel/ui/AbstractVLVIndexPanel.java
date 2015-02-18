@@ -666,13 +666,10 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           if (index != null)
           {
             IndexType type = indexTypes[i];
-            if (type != null)
+            if (type != null && !index.getTypes().contains(type))
             {
-              if (!index.getTypes().contains(type))
-              {
-                msgs.add(INFO_CTRL_PANEL_MUST_UPDATE_INDEX_DEFINITION_TYPE.get(
-                    filter.getAttributeType(), indexTypeNames[i]));
-              }
+              msgs.add(INFO_CTRL_PANEL_MUST_UPDATE_INDEX_DEFINITION_TYPE.get(
+                  filter.getAttributeType(), indexTypeNames[i]));
             }
           }
           else
@@ -1214,15 +1211,13 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
               model.getElementAt(j);
               if (o.getType() == CategorizedComboBoxElement.Type.REGULAR)
               {
-                if (dealingWithCustom == isCustom)
+                if (dealingWithCustom == isCustom
+                    && attrName.compareTo(o.getValue().toString()) < 0)
                 {
-                  if (attrName.compareTo(o.getValue().toString()) < 0)
-                  {
-                    model.insertElementAt(new CategorizedComboBoxElement(
-                        attrName,
-                        CategorizedComboBoxElement.Type.REGULAR), j);
-                    break;
-                  }
+                  model.insertElementAt(new CategorizedComboBoxElement(
+                      attrName,
+                      CategorizedComboBoxElement.Type.REGULAR), j);
+                  break;
                 }
               }
               else if (!o.getValue().equals(CUSTOM_ATTRIBUTES))

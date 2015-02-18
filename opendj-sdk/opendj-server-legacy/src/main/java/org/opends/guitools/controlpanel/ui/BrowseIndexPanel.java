@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -683,14 +683,12 @@ implements IndexModifiedListener
                   lastCreatedIndex = null;
                 }
               }
-              else if ((node instanceof VLVIndexTreeNode) &&
-                  (lastCreatedIndex instanceof VLVIndexDescriptor))
+              else if (node instanceof VLVIndexTreeNode
+                  && lastCreatedIndex instanceof VLVIndexDescriptor
+                  && node.getName().equals(lastCreatedIndex.getName()))
               {
-                if (node.getName().equals(lastCreatedIndex.getName()))
-                {
-                  newSelectionPath = new TreePath(node.getPath());
-                  lastCreatedIndex = null;
-                }
+                newSelectionPath = new TreePath(node.getPath());
+                lastCreatedIndex = null;
               }
             }
             else if (node.getName().equals(lastSelectedNode.getUserObject()))
@@ -709,12 +707,9 @@ implements IndexModifiedListener
       i++;
     }
 
-    if (newSelectionPath == null)
+    if (newSelectionPath == null && firstTreeRepopulate)
     {
-      if (firstTreeRepopulate)
-      {
-        newSelectionPath = new TreePath(standardIndexes.getPath());
-      }
+      newSelectionPath = new TreePath(standardIndexes.getPath());
     }
     if (newSelectionPath != null)
     {
@@ -939,8 +934,7 @@ implements IndexModifiedListener
           launchOperation(newTask,
               INFO_CTRL_PANEL_DELETING_INDEXES_SUMMARY.get(),
               INFO_CTRL_PANEL_DELETING_INDEXES_COMPLETE.get(),
-              INFO_CTRL_PANEL_DELETING_INDEXES_SUCCESSFUL.get(nameLabel,
-                  backendName),
+              INFO_CTRL_PANEL_DELETING_INDEXES_SUCCESSFUL.get(nameLabel, backendName),
               ERR_CTRL_PANEL_DELETING_INDEXES_ERROR_SUMMARY.get(),
               ERR_CTRL_PANEL_DELETING_INDEXES_ERROR_DETAILS.get(nameLabel),
               null,
@@ -1004,12 +998,10 @@ implements IndexModifiedListener
     private ImageIcon getIcon(Object value)
     {
       ImageIcon icon = null;
-      if (value instanceof IndexTreeNode)
+      if (value instanceof IndexTreeNode
+          && ((IndexTreeNode)value).getIndex().isDatabaseIndex())
       {
-        if (((IndexTreeNode)value).getIndex().isDatabaseIndex())
-        {
-          icon = readOnlyIndexIcon;
-        }
+        icon = readOnlyIndexIcon;
       }
       if (icon == null)
       {

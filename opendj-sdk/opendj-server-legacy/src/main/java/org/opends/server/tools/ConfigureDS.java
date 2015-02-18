@@ -732,16 +732,12 @@ public class ConfigureDS
       }
 
       // Check that the keystore path values are valid.
-      if (keyManagerPath.isPresent())
+      if (keyManagerPath.isPresent() && !keyManagerProviderDN.isPresent())
       {
-        if (!keyManagerProviderDN.isPresent())
-        {
-          LocalizableMessage message = ERR_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED.get(
-                  keyManagerProviderDN.getLongIdentifier(),
-              keyManagerPath.getLongIdentifier());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
-        }
+        LocalizableMessage message = ERR_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED.get(
+            keyManagerProviderDN.getLongIdentifier(), keyManagerPath.getLongIdentifier());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
       }
 
       // If one or more base DNs were specified, then update the config

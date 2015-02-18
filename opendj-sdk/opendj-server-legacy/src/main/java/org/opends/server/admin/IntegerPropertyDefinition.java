@@ -301,10 +301,8 @@ public final class IntegerPropertyDefinition extends
     ifNull(value);
 
     // Make sure that we correctly encode negative values as "unlimited".
-    if (allowUnlimited) {
-      if (value < 0) {
-        return UNLIMITED;
-      }
+    if (allowUnlimited && value < 0) {
+      return UNLIMITED;
     }
 
     return value.toString();
@@ -314,14 +312,11 @@ public final class IntegerPropertyDefinition extends
    * {@inheritDoc}
    */
   @Override
-  public Integer decodeValue(String value)
-      throws PropertyException {
+  public Integer decodeValue(String value) throws PropertyException {
     ifNull(value);
 
-    if (allowUnlimited) {
-      if (value.trim().equalsIgnoreCase(UNLIMITED)) {
-        return -1;
-      }
+    if (allowUnlimited && value.trim().equalsIgnoreCase(UNLIMITED)) {
+      return -1;
     }
 
     Integer i;

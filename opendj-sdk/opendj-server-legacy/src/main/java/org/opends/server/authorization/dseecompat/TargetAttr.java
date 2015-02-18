@@ -26,12 +26,13 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
 import java.util.HashSet;
 import java.util.regex.Pattern;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 
@@ -85,34 +86,24 @@ public class TargetAttr {
     throws AciException {
         this.operator = operator;
         if (attrString != null) {
-            if (Pattern.matches(ALL_USER_ATTRS_WILD_CARD, attrString) )
+            if (Pattern.matches(ALL_USER_ATTRS_WILD_CARD, attrString)) {
                 allUserAttributes = true ;
-            else  if (Pattern.matches(ALL_OP_ATTRS_WILD_CARD, attrString) )
+            } else if (Pattern.matches(ALL_OP_ATTRS_WILD_CARD, attrString)) {
                 allOpAttributes = true ;
-            else {
-                if (Pattern.matches(ZERO_OR_MORE_WHITESPACE, attrString)){
-                    allUserAttributes = false;
-                    allOpAttributes=false;
-                } else {
-                    if (Pattern.matches(attrListRegex, attrString)) {
-                        // Remove the spaces in the attr string and
-                        // split the list.
-                        Pattern separatorPattern =
-                            Pattern.compile(LOGICAL_OR);
-                        attrString=
-                         attrString.replaceAll(ZERO_OR_MORE_WHITESPACE, "");
-                        String[] attributeArray=
-                             separatorPattern.split(attrString);
-                        //Add each element of array to appropriate HashSet
-                        //after conversion to AttributeType.
-                        arrayToAttributeTypes(attributeArray, attrString);
-                    } else {
-                      LocalizableMessage message =
-                          WARN_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION.
-                            get(attrString);
-                      throw new AciException(message);
-                    }
-                }
+            } else if (Pattern.matches(ZERO_OR_MORE_WHITESPACE, attrString)) {
+                allUserAttributes = false;
+                allOpAttributes = false;
+            } else if (Pattern.matches(attrListRegex, attrString)) {
+                // Remove the spaces in the attr string and
+                // split the list.
+                Pattern separatorPattern = Pattern.compile(LOGICAL_OR);
+                attrString = attrString.replaceAll(ZERO_OR_MORE_WHITESPACE, "");
+                String[] attributeArray = separatorPattern.split(attrString);
+                // Add each element of array to appropriate HashSet
+                // after conversion to AttributeType.
+                arrayToAttributeTypes(attributeArray, attrString);
+            } else {
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION.get(attrString));
             }
         }
     }
@@ -131,8 +122,8 @@ public class TargetAttr {
      */
     private void arrayToAttributeTypes(String[] attributeArray, String attrStr)
             throws AciException {
-        for (int i=0, n=attributeArray.length; i < n; i++) {
-            String attribute=attributeArray[i].toLowerCase();
+        for (String attr : attributeArray) {
+            String attribute = attr.toLowerCase();
             if(attribute.equals("*")) {
                 if(!allUserAttributes)
                     allUserAttributes=true;
@@ -266,30 +257,22 @@ public class TargetAttr {
      * @param targetAttr The targetAttr to apply to the attribute type.
      * @return True if the attribute type is applicable to the targetAttr.
      */
-      private static
-      boolean evalAttrType(AttributeType a, TargetAttr targetAttr) {
-        boolean ret=false;
+    private static boolean evalAttrType(AttributeType a, TargetAttr targetAttr) {
+        final EnumTargetOperator op = targetAttr.getOperator();
         if(a.isOperational()) {
-          if(targetAttr.isAllOpAttributes() ||
-                  targetAttr.opAttributes.contains(a))
-            ret=true;
-          if(targetAttr.isAllOpAttributes() ||
-             !targetAttr.opAttributes.isEmpty()) {
-            if(targetAttr.getOperator().
-                    equals(EnumTargetOperator.NOT_EQUALITY))
-              ret=!ret;
-          }
+            return evalAttrType(a, targetAttr.isAllOpAttributes(), targetAttr.opAttributes, op);
         } else {
-          if(targetAttr.isAllUserAttributes() ||
-                  targetAttr.attributes.contains(a))
-            ret=true;
-          if(targetAttr.isAllUserAttributes() ||
-                  !targetAttr.attributes.isEmpty()) {
-            if(targetAttr.getOperator().
-                    equals(EnumTargetOperator.NOT_EQUALITY))
-              ret=!ret;
-          }
+            return evalAttrType(a, targetAttr.isAllUserAttributes(), targetAttr.attributes, op);
         }
-      return ret;
       }
+
+    private static boolean evalAttrType(AttributeType attrType, boolean allAttrs,
+            HashSet<AttributeType> attrs, EnumTargetOperator op) {
+        boolean ret = allAttrs || attrs.contains(attrType);
+        if (op.equals(EnumTargetOperator.NOT_EQUALITY))
+        {
+          return !ret;
+        }
+        return ret;
+    }
   }

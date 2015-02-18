@@ -216,15 +216,11 @@ public abstract class AuthenticationPolicyState
       }
     }
 
-    if (timeValue == -1)
-    {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Returning -1 because attribute %s does not "
-            + "exist in user entry %s", attributeType.getNameOrOID(), entry.getName());
-      }
+    if (timeValue == -1 && logger.isTraceEnabled())
+     {
+      logger.trace("Returning -1 because attribute %s does not "
+          + "exist in user entry %s", attributeType.getNameOrOID(), entry.getName());
     }
-    // FIXME: else to be consistent...
 
     return timeValue;
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -100,20 +100,17 @@ public class ADSContextHelper
       if (backend != null)
       {
         SortedSet<DN> suffixes = backend.getBaseDN();
-        if (suffixes != null)
+        if (suffixes != null
+            && suffixes.remove(DN.valueOf(ADSContext.getAdministrationSuffixDN())))
         {
-          if (suffixes.remove(
-              DN.valueOf(ADSContext.getAdministrationSuffixDN())))
+          if (suffixes.size() > 0)
           {
-            if (suffixes.size() > 0)
-            {
-              backend.setBaseDN(suffixes);
-              backend.commit();
-            }
-            else
-            {
-              root.removeBackend(backendName);
-            }
+            backend.setBaseDN(suffixes);
+            backend.commit();
+          }
+          else
+          {
+            root.removeBackend(backendName);
           }
         }
       }

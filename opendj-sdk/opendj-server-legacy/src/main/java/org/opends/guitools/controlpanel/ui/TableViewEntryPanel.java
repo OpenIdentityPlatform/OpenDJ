@@ -800,18 +800,16 @@ public class TableViewEntryPanel extends ViewEntryPanel
       List<Object> values = new ArrayList<Object>();
       for (AttributeValuePair valuePair : dataArray)
       {
-        if (valuePair.attrName.equalsIgnoreCase(attrName))
+        if (valuePair.attrName.equalsIgnoreCase(attrName)
+            && hasValue(valuePair))
         {
-          if (hasValue(valuePair))
+          if (valuePair.value instanceof Collection<?>)
           {
-            if (valuePair.value instanceof Collection<?>)
-            {
-              values.addAll((Collection<?>) valuePair.value);
-            }
-            else
-            {
-              values.add(valuePair.value);
-            }
+            values.addAll((Collection<?>) valuePair.value);
+          }
+          else
+          {
+            values.add(valuePair.value);
           }
         }
       }

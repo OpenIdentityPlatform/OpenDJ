@@ -155,13 +155,9 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         throws IllegalArgumentException {
       ifNull(unit);
 
-      // Make sure that the base unit is not bigger than the maximum
-      // unit.
-      if (maximumUnit != null) {
-        if (unit.getDuration() > maximumUnit.getDuration()) {
-          throw new IllegalArgumentException(
-              "Base unit greater than maximum unit");
-        }
+      // Make sure that the base unit is not bigger than the maximum unit.
+      if (maximumUnit != null && unit.getDuration() > maximumUnit.getDuration()) {
+        throw new IllegalArgumentException("Base unit greater than maximum unit");
       }
 
       this.baseUnit = unit;
@@ -201,18 +197,13 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      *          The maximum unit, or <code>null</code> if there
      *          should not be a maximum unit.
      * @throws IllegalArgumentException
-     *           If the provided maximum unit is smaller than the base
-     *           unit.
+     *           If the provided maximum unit is smaller than the base unit.
      */
     public final void setMaximumUnit(DurationUnit unit)
         throws IllegalArgumentException {
-      if (unit != null) {
-        // Make sure that the maximum unit is not smaller than the
-        // base unit.
-        if (unit.getDuration() < baseUnit.getDuration()) {
-          throw new IllegalArgumentException(
-              "Maximum unit smaller than base unit");
-        }
+      // Make sure that the maximum unit is not smaller than the base unit.
+      if (unit != null && unit.getDuration() < baseUnit.getDuration()) {
+        throw new IllegalArgumentException("Maximum unit smaller than base unit");
       }
 
       this.maximumUnit = unit;
@@ -485,12 +476,9 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
   public String encodeValue(Long value) throws PropertyException {
     ifNull(value);
 
-    // Make sure that we correctly encode negative values as
-    // "unlimited".
-    if (allowUnlimited) {
-      if (value < 0) {
-        return UNLIMITED;
-      }
+    // Make sure that we correctly encode negative values as "unlimited".
+    if (allowUnlimited && value < 0) {
+      return UNLIMITED;
     }
 
     // Encode the size value using the base unit.
@@ -508,10 +496,8 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
     ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
-    if (allowUnlimited) {
-      if (value.trim().equalsIgnoreCase(UNLIMITED)) {
-        return -1L;
-      }
+    if (allowUnlimited && value.trim().equalsIgnoreCase(UNLIMITED)) {
+      return -1L;
     }
 
     // Parse the string representation.

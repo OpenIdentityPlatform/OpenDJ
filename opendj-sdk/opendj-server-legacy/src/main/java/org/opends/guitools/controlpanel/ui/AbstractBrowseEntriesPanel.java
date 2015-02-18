@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -353,13 +353,11 @@ implements BackendPopulatedListener
             for (int i=0; i<baseDNs.getModel().getSize(); i++)
             {
               Object item = baseDNs.getModel().getElementAt(i);
-              if (item instanceof CategorizedComboBoxElement)
+              if (item instanceof CategorizedComboBoxElement
+                  && !isCategory(item))
               {
-                if (!isCategory(item))
-                {
-                  lastSelectedBaseDN = item;
-                  break;
-                }
+                lastSelectedBaseDN = item;
+                break;
               }
             }
             if (lastSelectedBaseDN != null)
@@ -1473,13 +1471,11 @@ implements BackendPopulatedListener
                 {
                   try
                   {
-                    if (displayAll || isBaseDN)
+                    if ((displayAll || isBaseDN)
+                        && !controller.hasSuffix(dn))
                     {
-                      if (!controller.hasSuffix(dn))
-                      {
-                        controller.addSuffix(dn, null);
-                        added = true;
-                      }
+                      controller.addSuffix(dn, null);
+                      added = true;
                     }
                   }
                   catch (IllegalArgumentException iae)

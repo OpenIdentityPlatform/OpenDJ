@@ -325,11 +325,9 @@ public class ZipExtractor {
     {
       throw new IOException("Could not create parent path: " + destination);
     }
-    if (application != null) {
-      if (application.isVerbose())
-      {
-        application.notifyListenersDone(ratioWhenCompleted);
-      }
+    if (application != null && application.isVerbose())
+    {
+      application.notifyListenersDone(ratioWhenCompleted);
     }
   }
 

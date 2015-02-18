@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -145,24 +145,20 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.isEmpty())
+      if (errors.isEmpty() && checkIndexRequired())
       {
-        // Check filters
-        if (checkIndexRequired())
-        {
-          String indexName = name.getText().trim();
-          launchOperation(newTask,
-              INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUMMARY.get(indexName),
-              INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_SUMMARY.get(),
-              INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_DETAILS.get(
-                  indexName),
-              ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_SUMMARY.get(),
-              ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_DETAILS.get(),
-              null,
-              dlg);
-          dlg.setVisible(true);
-          Utilities.getParentDialog(this).setVisible(false);
-        }
+        String indexName = name.getText().trim();
+        launchOperation(newTask,
+            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUMMARY.get(indexName),
+            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_SUMMARY.get(),
+            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_DETAILS.get(
+                indexName),
+            ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_SUMMARY.get(),
+            ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_DETAILS.get(),
+            null,
+            dlg);
+        dlg.setVisible(true);
+        Utilities.getParentDialog(this).setVisible(false);
       }
     }
 

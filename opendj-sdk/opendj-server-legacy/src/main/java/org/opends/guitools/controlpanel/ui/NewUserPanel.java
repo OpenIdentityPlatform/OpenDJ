@@ -190,17 +190,14 @@ public class NewUserPanel extends AbstractNewEntryPanel
           break;
         }
       }
-      if (!isRequired)
+      if (!isRequired && attr.equalsIgnoreCase(NAMING_ATTRIBUTES[i]))
       {
-        if (attr.equalsIgnoreCase(NAMING_ATTRIBUTES[i]))
+        String value = NAMING_ATTRIBUTE_TEXTFIELDS[i].getText().trim();
+        if (value.length() == 0)
         {
-          String value = NAMING_ATTRIBUTE_TEXTFIELDS[i].getText().trim();
-          if (value.length() == 0)
-          {
-            errors.add(ERR_CTRL_PANEL_USER_NAMING_ATTRIBUTE_REQUIRED.get(attr));
-          }
-          break;
+          errors.add(ERR_CTRL_PANEL_USER_NAMING_ATTRIBUTE_REQUIRED.get(attr));
         }
+        break;
       }
     }
 

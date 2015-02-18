@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -893,20 +893,14 @@ public class MatchedValuesFilter
    */
   public AttributeType getAttributeType()
   {
-    if (attributeType == null)
+    if (attributeType == null && rawAttributeType != null)
     {
-      if (rawAttributeType != null)
+      attributeType = DirectoryServer.getAttributeType(toLowerCase(rawAttributeType));
+      if (attributeType == null)
       {
-        attributeType =
-             DirectoryServer.getAttributeType(toLowerCase(rawAttributeType));
-        if (attributeType == null)
-        {
-          attributeType =
-               DirectoryServer.getDefaultAttributeType(rawAttributeType);
-        }
+        attributeType = DirectoryServer.getDefaultAttributeType(rawAttributeType);
       }
     }
-
     return attributeType;
   }
 
@@ -1015,15 +1009,10 @@ public class MatchedValuesFilter
    */
   public MatchingRule getMatchingRule()
   {
-    if (matchingRule == null)
+    if (matchingRule == null && matchingRuleID != null)
     {
-      if (matchingRuleID != null)
-      {
-        matchingRule =
-             DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
-      }
+      matchingRule = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
     }
-
     return matchingRule;
   }
 

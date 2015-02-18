@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.types;
@@ -3259,20 +3259,17 @@ public final class SearchFilter
     {
       MatchingRuleUse mru =
            DirectoryServer.getMatchingRuleUse(matchingRule);
-      if (mru != null)
+      if (mru != null && !mru.appliesToAttribute(attributeType))
       {
-        if (! mru.appliesToAttribute(attributeType))
+        if (logger.isTraceEnabled())
         {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace(
-                "Attribute type %s is not allowed for use with " +
-                "matching rule %s because of matching rule use " +
-                "definition %s", attributeType.getNameOrOID(),
-                matchingRule.getNameOrOID(), mru.getNameOrOID());
-          }
-          return ConditionResult.UNDEFINED;
+          logger.trace(
+              "Attribute type %s is not allowed for use with " +
+              "matching rule %s because of matching rule use " +
+              "definition %s", attributeType.getNameOrOID(),
+              matchingRule.getNameOrOID(), mru.getNameOrOID());
         }
+        return ConditionResult.UNDEFINED;
       }
     }
 

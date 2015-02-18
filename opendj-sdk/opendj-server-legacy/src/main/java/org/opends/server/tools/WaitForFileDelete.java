@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -293,25 +293,22 @@ public class WaitForFileDelete extends ConsoleApplication
     // and append data to it.
     RandomAccessFile outputFile = null;
     long outputFileOffset = 0L;
-    if (logFile != null)
+    if (logFile != null && outputFilePath.isPresent())
     {
-      if (outputFilePath.isPresent())
+      try
       {
-        try
+        File f = new File(outputFilePath.getValue());
+        if (f.exists())
         {
-          File f = new File(outputFilePath.getValue());
-          if (f.exists())
-          {
-            outputFile = new RandomAccessFile(f, "rw");
-            outputFileOffset = outputFile.length();
-            outputFile.seek(outputFileOffset);
-          }
+          outputFile = new RandomAccessFile(f, "rw");
+          outputFileOffset = outputFile.length();
+          outputFile.seek(outputFileOffset);
         }
-        catch (Exception e)
-        {
-          println(WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(outputFilePath.getValue(), e));
-          outputFile = null;
-        }
+      }
+      catch (Exception e)
+      {
+        println(WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(outputFilePath.getValue(), e));
+        outputFile = null;
       }
     }
     // Figure out when to stop waiting.

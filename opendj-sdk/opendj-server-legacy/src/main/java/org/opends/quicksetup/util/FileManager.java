@@ -130,12 +130,11 @@ public class FileManager {
           throws ApplicationException {
     if (fileToRename != null && target != null) {
       synchronized (target) {
-        if (target.exists()) {
-          if (!target.delete()) {
-            throw new ApplicationException(
-                    ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-                    INFO_ERROR_DELETING_FILE.get(Utils.getPath(target)), null);
-          }
+        if (target.exists() && !target.delete())
+        {
+          throw new ApplicationException(
+                  ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                  INFO_ERROR_DELETING_FILE.get(Utils.getPath(target)), null);
         }
       }
       if (!fileToRename.renameTo(target)) {
@@ -503,16 +502,11 @@ public class FileManager {
               while ((i = fis.read(buf)) != -1) {
                 fos.write(buf, 0, i);
               }
-              if (destination.exists()) {
+              if (destination.exists() && isUnix()) {
                 // TODO:  set the file's permissions.  This is made easier in
                 // Java 1.6 but until then use the TestUtilities methods
-                if (isUnix()) {
-                  String permissions =
-                          Utils.getFileSystemPermissions(objectFile);
-                  Utils.setPermissionsUnix(
-                          Utils.getPath(destination),
-                          permissions);
-                }
+                String permissions = Utils.getFileSystemPermissions(objectFile);
+                Utils.setPermissionsUnix(Utils.getPath(destination), permissions);
               }
 
               if ((application != null) && application.isVerbose()) {

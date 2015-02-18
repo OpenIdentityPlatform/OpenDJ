@@ -180,12 +180,10 @@ public class Template
 
     for (TemplateLine l : templateLines)
     {
-      if (rdnAttrs.remove(l.getAttributeType()))
+      if (rdnAttrs.remove(l.getAttributeType())
+          && rdnAttrs.isEmpty())
       {
-        if (rdnAttrs.isEmpty())
-        {
-          break;
-        }
+        break;
       }
     }
 

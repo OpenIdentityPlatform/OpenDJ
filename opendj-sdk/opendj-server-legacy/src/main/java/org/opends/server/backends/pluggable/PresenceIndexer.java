@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -73,12 +73,9 @@ public class PresenceIndexer extends Indexer
   public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
   {
     List<Attribute> attrList = entry.getAttribute(attributeType);
-    if (attrList != null)
+    if (attrList != null && !attrList.isEmpty())
     {
-      if (!attrList.isEmpty())
-      {
-        keys.add(presenceKey);
-      }
+      keys.add(presenceKey);
     }
   }
 

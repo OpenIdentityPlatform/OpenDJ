@@ -320,12 +320,10 @@ public final class LDAPConnectionHandler extends
     // * num request handler
 
     // Clear the stat tracker if LDAPv2 is being enabled.
-    if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2())
+    if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2()
+        && config.isAllowLDAPV2())
     {
-      if (config.isAllowLDAPV2())
-      {
-        statTracker.clearStatistics();
-      }
+      statTracker.clearStatistics();
     }
 
     // Apply the changes.
@@ -808,23 +806,20 @@ public final class LDAPConnectionHandler extends
       }
     }
 
-    if (config.isEnabled())
+    if (config.isEnabled()
+        // Check that the SSL configuration is valid.
+        && (config.isUseSSL() || config.isAllowStartTLS()))
     {
-      // Check that the SSL configuration is valid.
-      if (config.isUseSSL() || config.isAllowStartTLS())
+      try
       {
-        try
-        {
-          SSLContext sslContext = createSSLContext(config);
-          createSSLEngine(config, sslContext);
-        }
-        catch (DirectoryException e)
-        {
-          logger.traceException(e);
+        createSSLEngine(config, createSSLContext(config));
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
 
-          unacceptableReasons.add(e.getMessageObject());
-          return false;
-        }
+        unacceptableReasons.add(e.getMessageObject());
+        return false;
       }
     }
 

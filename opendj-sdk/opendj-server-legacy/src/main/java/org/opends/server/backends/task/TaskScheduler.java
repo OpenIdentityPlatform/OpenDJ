@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -1675,12 +1675,9 @@ public class TaskScheduler
         try
         {
           Entry e = t.getTaskEntry().duplicate(true);
-          if (filter.matchesEntry(e))
+          if (filter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
           {
-            if (! searchOperation.returnEntry(e, null))
-            {
-              return false;
-            }
+            return false;
           }
         }
         finally
@@ -1826,12 +1823,9 @@ public class TaskScheduler
         try
         {
           Entry e = rt.getRecurringTaskEntry().duplicate(true);
-          if (filter.matchesEntry(e))
+          if (filter.matchesEntry(e) && ! searchOperation.returnEntry(e, null))
           {
-            if (! searchOperation.returnEntry(e, null))
-            {
-              return false;
-            }
+            return false;
           }
         }
         finally

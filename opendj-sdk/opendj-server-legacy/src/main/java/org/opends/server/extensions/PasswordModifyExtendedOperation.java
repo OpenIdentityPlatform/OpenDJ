@@ -1268,13 +1268,11 @@ public class PasswordModifyExtendedOperation
 
 
     // If all of the changes were acceptable, then apply them.
-    if (ccr.getResultCode() == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS
+        && ! identityMapperDN.equals(mapperDN))
     {
-      if (! identityMapperDN.equals(mapperDN))
-      {
-        identityMapper   = mapper;
-        identityMapperDN = mapperDN;
-      }
+      identityMapper   = mapper;
+      identityMapperDN = mapperDN;
     }
 
 

@@ -693,12 +693,11 @@ final class HTTPClientConnection extends ClientConnection implements
       operationsPerformed.incrementAndGet();
 
       final Operation operation = previousValue.operation;
-      if (operation.getOperationType() == OperationType.ABANDON)
+      if (operation.getOperationType() == OperationType.ABANDON
+          && keepStats
+          && operation.getResultCode() == ResultCode.CANCELLED)
       {
-        if (keepStats && operation.getResultCode() == ResultCode.CANCELLED)
-        {
-          statTracker.updateAbandonedOperation();
-        }
+        statTracker.updateAbandonedOperation();
       }
     }
     return previousValue != null;

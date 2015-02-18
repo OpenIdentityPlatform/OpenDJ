@@ -388,35 +388,34 @@ public class DSMLServlet extends HttpServlet {
         } else {
           throw new ServletException("Content-Type does not match SOAP 1.1 or SOAP 1.2");
         }
-      } else if (headerName.equalsIgnoreCase("authorization")) {
-        if (headerVal.startsWith("Basic ")) {
-          authenticationInHeader = true;
-          String authorization = headerVal.substring(6).trim();
-          try {
-            String unencoded = new String(Base64.decode(authorization));
-            int colon = unencoded.indexOf(':');
-            if (colon > 0) {
-              if (useHTTPAuthzID)
-              {
-                connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
-                connOptions.addSASLProperty(
-                    "authid=u:" + unencoded.substring(0, colon).trim());
-                authenticationIsID = true;
-              }
-              else
-              {
-                bindDN = unencoded.substring(0, colon).trim();
-              }
-              bindPassword = unencoded.substring(colon + 1);
+      } else if (headerName.equalsIgnoreCase("authorization") && headerVal.startsWith("Basic "))
+      {
+        authenticationInHeader = true;
+        String authorization = headerVal.substring(6).trim();
+        try {
+          String unencoded = new String(Base64.decode(authorization));
+          int colon = unencoded.indexOf(':');
+          if (colon > 0) {
+            if (useHTTPAuthzID)
+            {
+              connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
+              connOptions.addSASLProperty(
+                  "authid=u:" + unencoded.substring(0, colon).trim());
+              authenticationIsID = true;
             }
-          } catch (ParseException ex) {
-            // user/DN:password parsing error
-            batchResponses.add(
-              createErrorResponse(
-                    new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    LocalizableMessage.raw(ex.getMessage()))));
-            break;
+            else
+            {
+              bindDN = unencoded.substring(0, colon).trim();
+            }
+            bindPassword = unencoded.substring(colon + 1);
           }
+        } catch (ParseException ex) {
+          // user/DN:password parsing error
+          batchResponses.add(
+            createErrorResponse(
+                  new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+                  LocalizableMessage.raw(ex.getMessage()))));
+          break;
         }
       }
       StringTokenizer tk = new StringTokenizer(headerVal, ",");
@@ -560,10 +559,9 @@ public class DSMLServlet extends HttpServlet {
                 if ( code != LDAPResultCode.SUCCESS
                   && code != LDAPResultCode.REFERRAL
                   && code != LDAPResultCode.COMPARE_TRUE
-                  && code != LDAPResultCode.COMPARE_FALSE ) {
-                  if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
-                    break;
-                  }
+                  && code != LDAPResultCode.COMPARE_FALSE && ON_ERROR_EXIT.equals(batchRequest.getOnError()) )
+                {
+                  break;
                 }
               }
             }

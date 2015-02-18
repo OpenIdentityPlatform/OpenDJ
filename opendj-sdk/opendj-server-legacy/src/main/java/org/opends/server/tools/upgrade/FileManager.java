@@ -213,13 +213,10 @@ class FileManager
     {
       synchronized (target)
       {
-        if (target.exists())
+        if (target.exists() && !target.delete())
         {
-          if (!target.delete())
-          {
-            throw new IOException(INFO_ERROR_DELETING_FILE.get(
-                UpgradeUtils.getPath(target)).toString());
-          }
+          throw new IOException(INFO_ERROR_DELETING_FILE.get(
+              UpgradeUtils.getPath(target)).toString());
         }
       }
       if (!fileToRename.renameTo(target))
@@ -384,16 +381,12 @@ class FileManager
               {
                 fos.write(buf, 0, i);
               }
-              if (destination.exists())
+              if (destination.exists() && isUnix())
               {
                 // TODO: set the file's permissions. This is made easier in
                 // Java 1.6 but until then use the TestUtilities methods
-                if (isUnix())
-                {
-                  final FilePermission permissions =
-                      getFileSystemPermissions(objectFile);
-                  FilePermission.setPermissions(destination, permissions);
-                }
+                final FilePermission permissions = getFileSystemPermissions(objectFile);
+                FilePermission.setPermissions(destination, permissions);
               }
             }
             catch (IOException e)
