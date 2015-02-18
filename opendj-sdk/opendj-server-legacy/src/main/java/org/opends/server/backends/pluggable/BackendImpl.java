@@ -35,6 +35,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -46,11 +47,13 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -733,6 +736,64 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void rebuildBackend(RebuildConfig rebuildConfig)
+      throws InitializationException, ConfigException, DirectoryException
+  {
+    // If the backend already has the root container open, we must use the same
+    // underlying root container
+    boolean openRootContainer = mustOpenRootContainer();
+
+    /*
+     * If the rootContainer is open, the backend is initialized by something else.
+     * We can't do any rebuild of system indexes while others are using this backend.
+     */
+    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
+    if (!openRootContainer && rebuildConfig.includesSystemIndex())
+    {
+      throw new DirectoryException(errorRC, ERR_JEB_REBUILD_BACKEND_ONLINE.get());
+    }
+
+    try
+    {
+      if (openRootContainer)
+      {
+        rootContainer = initializeRootContainer();
+      }
+      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg); // FIXME JNR remove cast
+      importer.rebuildIndexes(rootContainer);
+    }
+    catch (ExecutionException execEx)
+    {
+      logger.traceException(execEx);
+      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
+    }
+    catch (InterruptedException intEx)
+    {
+      logger.traceException(intEx);
+      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
+    }
+    catch (ConfigException ce)
+    {
+      logger.traceException(ce);
+      throw new DirectoryException(errorRC, ce.getMessageObject());
+    }
+    catch (StorageRuntimeException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
+    }
+    catch (InitializationException e)
+    {
+      logger.traceException(e);
+      throw new InitializationException(e.getMessageObject());
+    }
+    finally
+    {
+      closeTemporaryRootContainer(openRootContainer);
+    }
+  }
 
   /** {@inheritDoc} */
   @Override
