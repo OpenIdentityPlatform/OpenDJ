@@ -407,7 +407,7 @@ public class TargetAttrTestCase extends AciTestCase {
 
   @Test(dataProvider = "targetAttrData")
   public void testTargetAttrStrings(String eqOperator, String targetAttrString,
-    String attribute, Boolean expectedResult) throws Exception
+    String attribute, boolean expectedResult) throws Exception
   {
     EnumTargetOperator op = EnumTargetOperator.createOperator(eqOperator);
     TargetAttr targetAttr = TargetAttr.decode(op, targetAttrString);
@@ -415,7 +415,7 @@ public class TargetAttrTestCase extends AciTestCase {
     if (attrType == null) {
       attrType = DirectoryServer.getDefaultAttributeType(attribute);
     }
-    Boolean res = TargetAttr.isApplicable(attrType, targetAttr);
+    boolean res = TargetAttr.isApplicable(attrType, targetAttr);
     Assert.assertEquals(res, expectedResult);
   }
 }
