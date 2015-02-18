@@ -22,12 +22,15 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+
+import static org.forgerock.opendj.ldap.schema.ObjectIdentifierEqualityMatchingRuleImpl.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Assertion;
@@ -36,9 +39,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
-
-import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 /**
  * This class implements the objectIdentifierFirstComponentMatch matching rule
@@ -51,23 +51,16 @@ import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
-            throws DecodeException {
-        final String definition = assertionValue.toString();
-        final SubstringReader reader = new SubstringReader(definition);
-        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        final String normalized = ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, oid);
-        return DefaultAssertion.equality(ByteString.valueOf(normalized));
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
+        return DefaultAssertion.equality(normalizeAttributeValuePrivate(schema, assertionValue));
     }
 
     @Override
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
 
-        // We'll do this a character at a time. First, skip over any leading
-        // whitespace.
+        // We'll do this a character at a time. First, skip over any leading whitespace.
         reader.skipWhitespaces();
 
         if (reader.remaining() <= 0) {
@@ -88,8 +81,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
-        final String normalized = ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema,
-            readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS)));
-        return ByteString.valueOf(normalized);
+        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
+        return ByteString.valueOf(resolveNames(schema, oid));
     }
 }

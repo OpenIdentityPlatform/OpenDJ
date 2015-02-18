@@ -22,20 +22,19 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import org.forgerock.opendj.ldap.Assertion;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-
-import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 /**
  * This class defines the objectIdentifierMatch matching rule defined in X.520
@@ -80,21 +79,15 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
-            throws DecodeException {
-        final String definition = assertionValue.toString();
-        final SubstringReader reader = new SubstringReader(definition);
-        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        final String normalized = resolveNames(schema, oid);
-        return DefaultAssertion.equality(ByteString.valueOf(normalized));
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
+        return normalizeAttributeValuePrivate(schema, value);
     }
 
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
+    static ByteString normalizeAttributeValuePrivate(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
         final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        final String normalized = resolveNames(schema, oid);
-        return ByteString.valueOf(normalized);
+        return ByteString.valueOf(resolveNames(schema, oid));
     }
 }
