@@ -247,28 +247,28 @@
 
     <plugins>
 
-	<plugin>
-		<!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
-		<groupId>org.codehaus.mojo</groupId>
-		<artifactId>properties-maven-plugin</artifactId>
-		<version>1.0-alpha-2</version>
-		<configuration>
-			<properties>
-				<property>
-					<name>javax.xml.accessExternalSchema</name>
-					<value>all</value>
-				</property>
-			</properties>
-		</configuration>
-		<executions>
-			<execution>
-				<id>set-additional-system-properties</id>
-				<goals>
-					<goal>set-system-properties</goal>
-				</goals>
-			</execution>
-		</executions>
-	</plugin>
+      <plugin>
+        <!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
+        <configuration>
+          <properties>
+            <property>
+              <name>javax.xml.accessExternalSchema</name>
+              <value>all</value>
+            </property>
+          </properties>
+        </configuration>
+        <executions>
+          <execution>
+            <id>set-additional-system-properties</id>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <!-- Clean classes generated outside the build directory -->
       <plugin>
@@ -1184,22 +1184,22 @@
           <!-- Check svn:eol-style property on modified files -->
           <!-- TODO: Remove once Git migration over -->
           <plugin>
-	        <groupId>org.forgerock.opendj</groupId>
-	        <artifactId>opendj-svn-property-check-maven-plugin</artifactId>
-	        <version>1.0.0-SNAPSHOT</version>
-	        <executions>
-	            <execution>
-	                <id>check-eol-property</id>
-	                <goals>
-	                    <goal>check-svn-property</goal>
-	                </goals>
-	                <configuration>
-	                    <svnPropertyName>svn:eol-style</svnPropertyName>
-	                    <svnPropertyExpectedValue>native</svnPropertyExpectedValue>
-	                </configuration>
-	            </execution>
-	        </executions>
-	      </plugin>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-svn-property-check-maven-plugin</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <executions>
+              <execution>
+                <id>check-eol-property</id>
+                <goals>
+                  <goal>check-svn-property</goal>
+                </goals>
+                <configuration>
+                  <svnPropertyName>svn:eol-style</svnPropertyName>
+                  <svnPropertyExpectedValue>native</svnPropertyExpectedValue>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
 
           <!-- Enforce Checkstyle -->
           <plugin>
