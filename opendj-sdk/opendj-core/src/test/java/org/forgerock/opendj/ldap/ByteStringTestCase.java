@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -320,15 +320,15 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testToHexPlusAsciiString() throws Exception {
-        final String EOL = System.getProperty("line.separator");
+        final String eol = System.getProperty("line.separator");
         ByteString byteString = new ByteStringBuilder().append("cn=testvalue,org=example").toByteString();
         assertThat(byteString.toHexPlusAsciiString(10)).isEqualTo(
-            "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + EOL +
-            "          3D 65 78 61 6D 70 6C 65                            =example " + EOL);
+              "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + eol
+            + "          3D 65 78 61 6D 70 6C 65                            =example " + eol);
 
         assertThat(byteString.toHexPlusAsciiString(0)).isEqualTo(
-            "63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + EOL +
-            "3D 65 78 61 6D 70 6C 65                            =example " + EOL);
+              "63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + eol
+            + "3D 65 78 61 6D 70 6C 65                            =example " + eol);
     }
 
     @Test
