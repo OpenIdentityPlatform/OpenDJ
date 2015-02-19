@@ -191,12 +191,10 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
                 if (!CHECKED_EXTENSIONS.contains(extension.toLowerCase())) {
                     continue;
                 }
-            } else {
-                // We'll still want to check it if it's in a resource/bin directory.
-                if (fileNameEquals("bin", changedFile.getParentFile())
-                        && fileNameEquals("resource", changedFile.getParentFile().getParentFile())) {
-                    continue;
-                }
+            } else if (fileNameEquals("bin", changedFile.getParentFile())
+                    && fileNameEquals("resource", changedFile.getParentFile().getParentFile())) {
+                // ignore resource/bin directory.
+                continue;
             }
 
             if (!checkCopyrightForFile(changedFile)) {
@@ -218,28 +216,22 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(changedFile));
-            String line = reader.readLine();
-
-            while (line != null) {
+            String line;
+            while ((line = reader.readLine()) != null) {
                 String lowerLine = line.toLowerCase().trim();
-                if (isCommentLine(lowerLine)) {
-                    int copyrightPos = lowerLine.indexOf("copyright");
-                    if (copyrightPos > 0) {
-                        if (line.contains(currentYear.toString()) && line.contains(copyrightOwnerToken)) {
-                            reader.close();
-                            return true;
-                        }
-                    }
+                if (isCommentLine(lowerLine)
+                        && lowerLine.contains("copyright")
+                        && line.contains(currentYear.toString())
+                        && line.contains(copyrightOwnerToken)) {
+                    reader.close();
+                    return true;
                 }
-                line = reader.readLine();
             }
 
             return false;
         } catch (IOException ioe) {
-            StringBuilder errorMsg = new StringBuilder().append(" Could not read file ")
-                    .append(changedFile.getPath())
-                    .append(" to check copyright date. No further copyright date checking will be performed.");
-            throw new MojoExecutionException(errorMsg.toString());
+            throw new MojoExecutionException("Could not read file " + changedFile.getPath()
+                    + " to check copyright date. No further copyright date checking will be performed.");
         } finally {
             closeSilently(reader);
         }

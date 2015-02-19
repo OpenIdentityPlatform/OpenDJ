@@ -173,27 +173,25 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
                 previousLine = bufferedLines.get(indexAdd);
             }
             indexAdd++;
-            StringBuffer newCopyrightLine = new StringBuffer(getNewCommentedLine());
-            newCopyrightLine.append(indent())
-                            .append(portionsCopyrightNeeded ? portionsCopyrightStartToken : copyrightStartToken)
-                            .append(" ").append(currentYear).append(" ").append(copyrightEndToken);
             if (!portionsCopyrightNeeded) {
                 for (int i = 0; i < nbLinesToSkip; i++) {
                     bufferedLines.add(indexAdd++, getNewCommentedLine());
                 }
             }
-            bufferedLines.add(indexAdd, newCopyrightLine.toString());
+            final String newCopyrightLine = getNewCommentedLine()
+                    + indent() + (portionsCopyrightNeeded ? portionsCopyrightStartToken : copyrightStartToken)
+                    + " " + currentYear + " " + copyrightEndToken;
+            bufferedLines.add(indexAdd, newCopyrightLine);
             copyrightUpdated = true;
         }
 
         private void updateExistingCopyrightLine() throws Exception {
-            if (portionsCopyrightNeeded && copyrightSectionPresent) {
-                // Check if the line is a new copyright line
-                if (curLine.contains(copyrightStartToken) && !curLine.contains(portionsCopyrightStartToken)) {
-                    getLog().warn("File " + filePath + " contains old copyright line and coyright line. "
-                            + "The copyright line will be replaced by a portion copyright line.");
-                    curLine.replace(copyrightStartToken, portionsCopyrightStartToken);
-                }
+            if (portionsCopyrightNeeded && copyrightSectionPresent
+                    // Is it a new copyright line?
+                    && curLine.contains(copyrightStartToken) && !curLine.contains(portionsCopyrightStartToken)) {
+                getLog().warn("File " + filePath + " contains old copyright line and coyright line. "
+                        + "The copyright line will be replaced by a portions copyright line.");
+                curLine.replace(copyrightStartToken, portionsCopyrightStartToken);
             }
             readYearSection();
             final String newCopyrightLine;
@@ -360,6 +358,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
      * @throws MojoExecutionException
      *             if any
      */
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         checkCopyrights();
         for (String filePath : getIncorrectCopyrightFilePaths()) {
@@ -380,7 +379,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
     }
 
     private String intervalToString(Integer startYear, Integer endYear) {
-        return startYear.toString() + "-" + endYear;
+        return startYear + "-" + endYear;
     }
 
     private String indent() {

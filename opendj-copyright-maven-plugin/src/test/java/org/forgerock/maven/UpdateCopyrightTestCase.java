@@ -48,7 +48,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
     private static final String[] TEST_FOLDERS = new String[] {"openam-copyrights",
         "opendj-copyrights", "openidm-copyrights"};
 
-    /** Customs tags in tests files */
+    /** Customs tags in tests files. */
     private static final String MUST_BE_REMOVE_TAG = "MUST BE REMOVED:";
     private static final String EXPECTED_OUTPUT_TAG = "EXPECTED OUTPUT:";
     private static final String YEAR_TAG = "YEAR";
