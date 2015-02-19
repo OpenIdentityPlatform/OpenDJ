@@ -53,7 +53,7 @@
       <directory>${jars.dir}/</directory>
       <outputDirectory>WEB-INF/lib</outputDirectory>
       <includes>
-        <include>${shortProductName}_*.jar</include>
+        <include>${shortProductName}*.jar</include>
       </includes>
     </fileSet>
 
@@ -68,12 +68,6 @@
     </fileSet>
   </fileSets>
 	<files>
-    <!-- Main jar (OpenDJ) -->
-    <file>
-      <source>${jars.dir}/${shortProductName}.jar</source>
-      <outputDirectory>lib</outputDirectory>
-    </file>
-
     <!-- DSMLv2.xsd -->
     <file>
       <source>${basedir}/resource/dsml/schema/DSMLv2.xsd</source>
