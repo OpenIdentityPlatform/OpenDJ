@@ -195,6 +195,9 @@
     <fileSet>
       <directory>${basedir}/resource/config</directory>
       <outputDirectory>template/config</outputDirectory>
+      <includes>
+        <include>*.*</include>  
+      </includes>
       <excludes>
         <exclude>config.ldif</exclude>
       </excludes>
