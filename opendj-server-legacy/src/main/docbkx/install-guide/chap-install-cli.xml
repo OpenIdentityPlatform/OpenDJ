@@ -723,6 +723,18 @@ unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip &amp;&
 ./setup --cli --propertiesFilePath /net/install/dj/1/setup.props \
   --acceptLicense --no-prompt</computeroutput>
    </screen>
+
+   <para>
+    The properties file contains only installation options,
+    and does not allow you to further configure OpenDJ directory server.
+    If you also want your script to configure OpenDJ directory server,
+    follow a successful run of the <command>setup</command> command
+    with <command>dsconfig</command> commands to configure the server.
+    To run a series of configuration commands as a batch
+    using the <command>dsconfig</command> command,
+    use the <option>--batchFilePath <replaceable>file</replaceable></option> option,
+    where <replaceable>file</replaceable> contains the configuration commands.
+   </para>
   </step>
 
   <step>
