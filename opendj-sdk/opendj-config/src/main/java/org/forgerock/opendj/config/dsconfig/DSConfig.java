@@ -819,9 +819,7 @@ public final class DSConfig extends ConsoleApplication {
     /** The argument which should be used to read dsconfig commands from a file. */
     private StringArgument batchFileArgument;
 
-    /**
-     * The argument which should be used to request non interactive behavior.
-     */
+    /** The argument which should be used to request non interactive behavior. */
     private BooleanArgument noPromptArgument;
 
     /**
@@ -1148,33 +1146,27 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     private void checkForConflictingArguments() throws ArgumentException {
-        if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-            throw conflictingArgs(quietArgument, verboseArgument);
-        }
+        throwIfConflictingArgsSet(quietArgument, verboseArgument);
 
-        if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
-            final LocalizableMessage message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-                    batchFileArgument.getLongIdentifier(), noPromptArgument.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
+        throwIfSetAndInteractiveMode(batchFileArgument);
+        throwIfSetAndInteractiveMode(quietArgument);
 
-        if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
-            final LocalizableMessage message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-                    quietArgument.getLongIdentifier(), noPromptArgument.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
+        throwIfConflictingArgsSet(scriptFriendlyArgument, verboseArgument);
+        throwIfConflictingArgsSet(noPropertiesFileArgument, propertiesFileArgument);
+    }
 
-        if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
-            throw conflictingArgs(scriptFriendlyArgument, verboseArgument);
-        }
-
-        if (noPropertiesFileArgument.isPresent() && propertiesFileArgument.isPresent()) {
-            throw conflictingArgs(noPropertiesFileArgument, propertiesFileArgument);
+    private void throwIfSetAndInteractiveMode(Argument arg1) throws ArgumentException {
+        if (arg1.isPresent() && !noPromptArgument.isPresent()) {
+            throw new ArgumentException(ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
+                    arg1.getLongIdentifier(), noPromptArgument.getLongIdentifier()));
         }
     }
 
-    private ArgumentException conflictingArgs(Argument arg1, Argument arg2) {
-        return new ArgumentException(ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
+    private void throwIfConflictingArgsSet(Argument arg1, Argument arg2) throws ArgumentException {
+        if (arg1.isPresent() && arg2.isPresent()) {
+            throw new ArgumentException(ERR_TOOL_CONFLICTING_ARGS.get(
+                    arg1.getLongIdentifier(), arg2.getLongIdentifier()));
+        }
     }
 
     /** Run the top-level interactive console. */
@@ -1198,16 +1190,12 @@ public final class DSConfig extends ConsoleApplication {
 
         final Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers
             = new HashMap<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>>();
-
         final Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers
             = new HashMap<RelationDefinition<?, ?>, DeleteSubCommandHandler>();
-
         final Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers
             = new HashMap<RelationDefinition<?, ?>, ListSubCommandHandler>();
-
         final Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers
             = new HashMap<RelationDefinition<?, ?>, GetPropSubCommandHandler>();
-
         final Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers
             = new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
 
@@ -1432,30 +1420,16 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     private void handleBatchFile(String[] args) {
-
         BufferedReader bReader = null;
         try {
-            // Build a list of initial arguments,
-            // removing the batch file option + its value
-            final List<String> initialArgs = new ArrayList<String>();
-            Collections.addAll(initialArgs, args);
-            int batchFileArgIndex = -1;
-            for (final String elem : initialArgs) {
-                if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH) || elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
-                    batchFileArgIndex = initialArgs.indexOf(elem);
-                    break;
-                }
-            }
-            if (batchFileArgIndex != -1) {
-                // Remove both the batch file arg and its value
-                initialArgs.remove(batchFileArgIndex);
-                initialArgs.remove(batchFileArgIndex);
-            }
             final String batchFilePath = batchFileArgument.getValue().trim();
             bReader = new BufferedReader(new FileReader(batchFilePath));
-            String line;
-            String command = "";
+
+            List<String> initialArgs = removeBatchArgs(args);
+
             // Split the CLI string into arguments array
+            String command = "";
+            String line;
             while ((line = bReader.readLine()) != null) {
                 if ("".equals(line) || line.startsWith("#")) {
                     // Empty line or comment
@@ -1472,38 +1446,63 @@ public final class DSConfig extends ConsoleApplication {
                 command = command.trim();
                 // string between quotes support
                 command = replaceSpacesInQuotes(command);
-                String displayCommand = new String(command);
-
                 // "\ " support
                 command = command.replace("\\ ", "##");
-                displayCommand = displayCommand.replace("\\ ", " ");
 
-                String[] fileArguments = command.split("\\s+");
-                // reset command
-                command = "";
-                for (int ii = 0; ii < fileArguments.length; ii++) {
-                    fileArguments[ii] = fileArguments[ii].replace("##", " ");
-                }
 
+                String displayCommand = command.replace("\\ ", " ");
                 errPrintln(LocalizableMessage.raw(displayCommand));
 
                 // Append initial arguments to the file line
-                final List<String> allArguments = new ArrayList<String>();
-                Collections.addAll(allArguments, fileArguments);
-                allArguments.addAll(initialArgs);
-                final String[] allArgsArray = allArguments.toArray(new String[] {});
-
+                final String[] allArgsArray = buildCommandArgs(initialArgs, command);
                 int exitCode = main(allArgsArray, getOutputStream(), getErrorStream());
                 if (exitCode != ReturnCode.SUCCESS.get()) {
                     System.exit(filterExitCode(exitCode));
                 }
                 errPrintln();
+                // reset command
+                command = "";
             }
         } catch (IOException ex) {
             errPrintln(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
         } finally {
             closeSilently(bReader);
         }
+    }
+
+    private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) {
+        final String[] commandArgs = toCommandArgs(batchCommand);
+        final int length = commandArgs.length + initialArgs.size();
+        final List<String> allArguments = new ArrayList<String>(length);
+        Collections.addAll(allArguments, commandArgs);
+        allArguments.addAll(initialArgs);
+        return allArguments.toArray(new String[length]);
+    }
+
+    private String[] toCommandArgs(String command) {
+        String[] fileArguments = command.split("\\s+");
+        for (int ii = 0; ii < fileArguments.length; ii++) {
+            fileArguments[ii] = fileArguments[ii].replace("##", " ");
+        }
+        return fileArguments;
+    }
+
+    private List<String> removeBatchArgs(String[] args) {
+        // Build a list of initial arguments,
+        // removing the batch file option + its value
+        final List<String> initialArgs = new ArrayList<String>();
+        Collections.addAll(initialArgs, args);
+        for (Iterator<String> it = initialArgs.iterator(); it.hasNext();) {
+            final String elem = it.next();
+            if (elem.startsWith("-" + batchFileArgument.getShortIdentifier())
+                    || elem.contains(batchFileArgument.getLongIdentifier())) {
+                // Remove both the batch file arg and its value
+                it.remove();
+                it.remove();
+                break;
+            }
+        }
+        return initialArgs;
     }
 
     /** Replace spaces in quotes by "\ ". */
