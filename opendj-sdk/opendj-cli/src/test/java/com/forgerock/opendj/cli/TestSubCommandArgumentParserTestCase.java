@@ -154,11 +154,12 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
     @DataProvider
     public Object[][] indentAndWrapProvider() throws Exception {
+        final String EOL = System.getProperty("line.separator");
         return new Object[][] {
-            { "test1",                  5, " ", " test1\n" },
-            { "test1 test2",            5, " ", " test1\n test2\n" },
-            { "test1 test2test3",       5, " ", " test1\n test2test3\n" },
-            { "test1 test2test3 test4", 5, " ", " test1\n test2test3\n test4\n" },
+            { "test1",                  5, " ", " test1" + EOL },
+            { "test1 test2",            5, " ", " test1" + EOL + " test2" + EOL },
+            { "test1 test2test3",       5, " ", " test1" + EOL + " test2test3" + EOL },
+            { "test1 test2test3 test4", 5, " ", " test1" + EOL + " test2test3" + EOL +" test4" + EOL },
         };
     }
 

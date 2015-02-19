@@ -320,14 +320,15 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testToHexPlusAsciiString() throws Exception {
+        final String EOL = System.getProperty("line.separator");
         ByteString byteString = new ByteStringBuilder().append("cn=testvalue,org=example").toByteString();
         assertThat(byteString.toHexPlusAsciiString(10)).isEqualTo(
-            "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org\n"
-            + "          3D 65 78 61 6D 70 6C 65                            =example \n");
+            "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + EOL +
+            "          3D 65 78 61 6D 70 6C 65                            =example " + EOL);
 
         assertThat(byteString.toHexPlusAsciiString(0)).isEqualTo(
-            "63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org\n"
-            + "3D 65 78 61 6D 70 6C 65                            =example \n");
+            "63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + EOL +
+            "3D 65 78 61 6D 70 6C 65                            =example " + EOL);
     }
 
     @Test
