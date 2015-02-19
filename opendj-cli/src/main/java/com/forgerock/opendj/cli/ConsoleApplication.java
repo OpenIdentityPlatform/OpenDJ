@@ -22,17 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  *      Portions copyright 2011 Nemanja Lukić
  */
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
-import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.util.StaticUtils.EOL;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.Console;
@@ -54,44 +51,26 @@ public abstract class ConsoleApplication {
     private static final int PROGRESS_LINE = 70;
 
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
     private final InputStream in = System.in;
-
     private final PrintStream out;
-
     private final PrintStream err;
-
     private final Console console = System.console();
 
     private boolean isProgressSuite;
 
-    /**
-     * Defines the different line styles for output.
-     */
+    /** Defines the different line styles for output. */
     public enum Style {
-        /**
-         * Defines a title.
-         */
+        /** Defines a title. */
         TITLE,
-        /**
-         * Defines a subtitle.
-         */
+        /** Defines a subtitle. */
         SUBTITLE,
-        /**
-         * Defines a notice.
-         */
+        /** Defines a notice. */
         NOTICE,
-        /**
-         * Defines a normal line.
-         */
+        /** Defines a normal line. */
         NORMAL,
-        /**
-         * Defines an error.
-         */
+        /** Defines an error. */
         ERROR,
-        /**
-         * Defines a warning.
-         */
+        /** Defines a warning. */
         WARNING
     }
 
@@ -355,7 +334,7 @@ public abstract class ConsoleApplication {
                 bar.append(EOL);
                 isProgressSuite = false;
             }
-            out.print(bar.toString());
+            out.print(bar);
         }
     }
 
@@ -485,7 +464,7 @@ public abstract class ConsoleApplication {
         }
         while (true) {
             if (defaultValue != null) {
-                prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
+                prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
             }
             final String response = readLineOfInput(prompt);
 
@@ -494,14 +473,12 @@ public abstract class ConsoleApplication {
             }
 
             if ("".equals(response)) {
-                if (defaultValue == null) {
-                    print(INFO_ERROR_EMPTY_RESPONSE.get());
-                } else {
+                if (defaultValue != null) {
                     return defaultValue;
                 }
-            } else {
-                return response;
+                println(INFO_ERROR_EMPTY_RESPONSE.get());
             }
+            return response;
         }
     }
 
@@ -718,16 +695,11 @@ public abstract class ConsoleApplication {
      */
     protected final boolean askConfirmation(LocalizableMessage prompt, boolean defaultValue, LocalizedLogger logger)
             throws ClientException {
-        boolean v = defaultValue;
-
-        boolean done = false;
         int nTries = 0;
-
-        while (!done && nTries < CONFIRMATION_MAX_TRIES) {
+        while (nTries < CONFIRMATION_MAX_TRIES) {
             nTries++;
             try {
-                v = confirmAction(prompt, defaultValue);
-                done = true;
+                return confirmAction(prompt, defaultValue);
             } catch (ClientException ce) {
                 if (ce.getMessageObject().toString().contains(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(nTries))) {
                     throw ce;
@@ -738,12 +710,8 @@ public abstract class ConsoleApplication {
             }
         }
 
-        if (!done) {
-            // This means we reached the maximum number of tries
-            throw new ClientException(ReturnCode.ERROR_USER_DATA,
-                    ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
-        }
-        return v;
+        throw new ClientException(ReturnCode.ERROR_USER_DATA,
+            ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
     }
 
     /**
@@ -806,16 +774,16 @@ public abstract class ConsoleApplication {
      * @return the port value provided by the user.
      */
     protected int askPort(LocalizableMessage prompt, int defaultValue, LocalizedLogger logger) {
-        int port = -1;
-        while (port == -1) {
+        while (true) {
             try {
-                port = readPort(prompt, defaultValue);
+                int port = readPort(prompt, defaultValue);
+                if (port != -1) {
+                    return port;
+                }
             } catch (ClientException ce) {
-                port = -1;
                 logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
             }
         }
-        return port;
     }
 
     /**
