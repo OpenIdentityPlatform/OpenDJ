@@ -197,6 +197,122 @@ public class ImportLDIF extends TaskTool {
     // parser.
     try
     {
+      createArguments(argParser);
+    }
+    catch (ArgumentException ae)
+    {
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Init the default values so that they can appear also on the usage.
+    try
+    {
+      argParser.getArguments().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
+
+    // Parse the command-line arguments provided to this program.
+    try
+    {
+      argParser.parseArguments(args);
+      validateTaskArgs();
+    }
+    catch (ArgumentException ae)
+    {
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
+      return 1;
+    }
+    catch (ClientException ce)
+    {
+      // No need to display the usage since the problem comes with a provided
+      // value.
+      err.println(wrapText(ce.getMessageObject(), MAX_LINE_WIDTH));
+      return 1;
+    }
+
+
+    if (argParser.usageOrVersionDisplayed())
+    {
+      return 0;
+    }
+
+
+    // Make sure that either the "ldifFile" argument or the "templateFile"
+    // argument was provided, but not both.
+    if (ldifFiles.isPresent())
+    {
+      if (templateFile.isPresent())
+      {
+        LocalizableMessage message = ERR_LDIFIMPORT_CONFLICTING_OPTIONS.get(
+                ldifFiles.getLongIdentifier(),
+                templateFile.getLongIdentifier());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else if (! templateFile.isPresent())
+    {
+      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
+              ldifFiles.getLongIdentifier(),
+              templateFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Make sure that either the "includeBranchStrings" argument or the
+    // "backendID" argument was provided.
+    if(!includeBranchStrings.isPresent() && !backendID.isPresent())
+    {
+      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
+              includeBranchStrings.getLongIdentifier(),
+              backendID.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Count rejects option requires the ability to return result codes
+    // which are potentially greater than 1. This is not supported by
+    // the task framework.
+    if (countRejects.isPresent()
+        && argParser.connectionArgumentsPresent())
+    {
+      LocalizableMessage message =
+          ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE
+              .get(countRejects.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Don't write non-error messages to console if quite
+    if (quietMode.isPresent()) {
+      out = new PrintStream(NullOutputStream.instance());
+    }
+
+    // Checks the version - if upgrade required, the tool is unusable
+    try
+    {
+      BuildVersion.checkVersionMismatch();
+    }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    return process(argParser, initializeServer, out, err);
+  }
+
+  private void createArguments(LDAPConnectionArgumentParser argParser) throws ArgumentException
+  {
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
@@ -394,119 +510,6 @@ public class ImportLDIF extends TaskTool {
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
-    }
-    catch (ArgumentException ae)
-    {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    // Init the default values so that they can appear also on the usage.
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
-
-    // Parse the command-line arguments provided to this program.
-    try
-    {
-      argParser.parseArguments(args);
-      validateTaskArgs();
-    }
-    catch (ArgumentException ae)
-    {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println(argParser.getUsage());
-      return 1;
-    }
-    catch (ClientException ce)
-    {
-      // No need to display the usage since the problem comes with a provided
-      // value.
-      err.println(wrapText(ce.getMessageObject(), MAX_LINE_WIDTH));
-      return 1;
-    }
-
-
-    // If we should just display usage or version information,
-    // then print it and exit.
-    if (argParser.usageOrVersionDisplayed())
-    {
-      return 0;
-    }
-
-
-    // Make sure that either the "ldifFile" argument or the "templateFile"
-    // argument was provided, but not both.
-    if (ldifFiles.isPresent())
-    {
-      if (templateFile.isPresent())
-      {
-        LocalizableMessage message = ERR_LDIFIMPORT_CONFLICTING_OPTIONS.get(
-                ldifFiles.getLongIdentifier(),
-                templateFile.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else if (! templateFile.isPresent())
-    {
-      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
-              ldifFiles.getLongIdentifier(),
-              templateFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    // Make sure that either the "includeBranchStrings" argument or the
-    // "backendID" argument was provided.
-    if(!includeBranchStrings.isPresent() && !backendID.isPresent())
-    {
-      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
-              includeBranchStrings.getLongIdentifier(),
-              backendID.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    // Count rejects option requires the ability to return result codes
-    // which are potentially greater than 1. This is not supported by
-    // the task framework.
-    if (countRejects.isPresent()
-        && argParser.connectionArgumentsPresent())
-    {
-      LocalizableMessage message =
-          ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE
-              .get(countRejects.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    // Don't write non-error messages to console if quite
-    if (quietMode.isPresent()) {
-      out = new PrintStream(NullOutputStream.instance());
-    }
-
-    // Checks the version - if upgrade required, the tool is unusable
-    try
-    {
-      BuildVersion.checkVersionMismatch();
-    }
-    catch (InitializationException e)
-    {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    return process(argParser, initializeServer, out, err);
   }
 
   /** {@inheritDoc} */
