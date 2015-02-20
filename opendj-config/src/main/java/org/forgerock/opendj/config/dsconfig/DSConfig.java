@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -65,6 +64,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.opendj.config.ACIPropertyDefinition;
 import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
@@ -594,15 +594,14 @@ public final class DSConfig extends ConsoleApplication {
                 final MenuResult<Integer> result = handler.run(app, factory);
                 if (result.isQuit()) {
                     return result;
-                } else {
-                    if (result.isSuccess() && isInteractive() && handler.isCommandBuilderUseful()) {
-                        printCommandBuilder(getCommandBuilder(handler));
-                    }
-                    // Success or cancel.
-                    app.println();
-                    app.pressReturnToContinue();
-                    return MenuResult.again();
                 }
+                if (result.isSuccess() && isInteractive() && handler.isCommandBuilderUseful()) {
+                    printCommandBuilder(getCommandBuilder(handler));
+                }
+                // Success or cancel.
+                app.println();
+                app.pressReturnToContinue();
+                return MenuResult.again();
             } catch (ArgumentException e) {
                 app.errPrintln(e.getMessageObject());
                 return MenuResult.success(1);
@@ -655,13 +654,10 @@ public final class DSConfig extends ConsoleApplication {
 
             if (lh != null) {
                 final SubCommandHandlerMenuCallback callback = new SubCommandHandlerMenuCallback(lh);
-                if (userFriendlyPluralName != null) {
-                    builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL.get(userFriendlyPluralName),
-                            callback);
-                } else {
-                    builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR.get(userFriendlyName),
-                            callback);
-                }
+                final Arg1<Object> msg = userFriendlyPluralName != null
+                    ? INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL
+                    : INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR;
+                builder.addNumberedOption(msg.get(userFriendlyPluralName), callback);
             }
 
             if (ch != null) {
@@ -671,13 +667,10 @@ public final class DSConfig extends ConsoleApplication {
 
             if (sh != null) {
                 final SubCommandHandlerMenuCallback callback = new SubCommandHandlerMenuCallback(sh);
-                if (userFriendlyPluralName != null) {
-                    builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL.get(userFriendlyName),
-                            callback);
-                } else {
-                    builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR.get(userFriendlyName),
-                            callback);
-                }
+                final Arg1<Object> msg = userFriendlyPluralName != null
+                    ? INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
+                    : INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR;
+                builder.addNumberedOption(msg.get(userFriendlyName), callback);
             }
 
             if (dh != null) {
@@ -778,7 +771,7 @@ public final class DSConfig extends ConsoleApplication {
      * @return Zero to indicate that the program completed successfully, or non-zero to indicate that an error occurred.
      */
     public static int main(String[] args, OutputStream outStream, OutputStream errStream) {
-        final DSConfig app = new DSConfig(System.in, outStream, errStream);
+        final DSConfig app = new DSConfig(outStream, errStream);
         app.sessionStartTime = System.currentTimeMillis();
 
         if (!ConfigurationFramework.getInstance().isInitialized()) {
@@ -858,14 +851,12 @@ public final class DSConfig extends ConsoleApplication {
     /**
      * Creates a new DSConfig application instance.
      *
-     * @param in
-     *            The application input stream.
      * @param out
      *            The application output stream.
      * @param err
      *            The application error stream.
      */
-    private DSConfig(InputStream in, OutputStream out, OutputStream err) {
+    private DSConfig(OutputStream out, OutputStream err) {
         super(new PrintStream(out), new PrintStream(err));
 
         this.parser = new SubCommandArgumentParser(getClass().getName(), INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
@@ -944,7 +935,7 @@ public final class DSConfig extends ConsoleApplication {
      * @throws ArgumentException
      *             If a global argument could not be registered.
      */
-    private void initializeGlobalArguments(String[] args) throws ArgumentException {
+    private void initializeGlobalArguments() throws ArgumentException {
         if (!globalArgumentsInitialized) {
 
             verboseArgument = CommonArguments.getVerbose();
@@ -1070,7 +1061,7 @@ public final class DSConfig extends ConsoleApplication {
 
         // Register global arguments and sub-commands.
         try {
-            initializeGlobalArguments(args);
+            initializeGlobalArguments();
             initializeSubCommands();
         } catch (ArgumentException e) {
             errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage()));
@@ -1148,17 +1139,17 @@ public final class DSConfig extends ConsoleApplication {
     private void checkForConflictingArguments() throws ArgumentException {
         throwIfConflictingArgsSet(quietArgument, verboseArgument);
 
-        throwIfSetAndInteractiveMode(batchFileArgument);
-        throwIfSetAndInteractiveMode(quietArgument);
+        throwIfSetInInteractiveMode(batchFileArgument);
+        throwIfSetInInteractiveMode(quietArgument);
 
         throwIfConflictingArgsSet(scriptFriendlyArgument, verboseArgument);
         throwIfConflictingArgsSet(noPropertiesFileArgument, propertiesFileArgument);
     }
 
-    private void throwIfSetAndInteractiveMode(Argument arg1) throws ArgumentException {
-        if (arg1.isPresent() && !noPromptArgument.isPresent()) {
+    private void throwIfSetInInteractiveMode(Argument arg) throws ArgumentException {
+        if (arg.isPresent() && !noPromptArgument.isPresent()) {
             throw new ArgumentException(ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-                    arg1.getLongIdentifier(), noPromptArgument.getLongIdentifier()));
+                    arg.getLongIdentifier(), noPromptArgument.getLongIdentifier()));
         }
     }
 
@@ -1507,7 +1498,7 @@ public final class DSConfig extends ConsoleApplication {
 
     /** Replace spaces in quotes by "\ ". */
     private String replaceSpacesInQuotes(final String line) {
-        String newLine = "";
+        StringBuilder newLine = new StringBuilder();
         boolean inQuotes = false;
         for (int ii = 0; ii < line.length(); ii++) {
             char ch = line.charAt(ii);
@@ -1516,11 +1507,11 @@ public final class DSConfig extends ConsoleApplication {
                 continue;
             }
             if (inQuotes && ch == ' ') {
-                newLine += "\\ ";
+                newLine.append("\\ ");
             } else {
-                newLine += ch;
+                newLine.append(ch);
             }
         }
-        return newLine;
+        return newLine.toString();
     }
 }
