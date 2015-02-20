@@ -1489,6 +1489,7 @@ public final class DSConfig extends ConsoleApplication {
                     || elem.contains(batchFileArgument.getLongIdentifier())) {
                 // Remove both the batch file arg and its value
                 it.remove();
+                it.next();
                 it.remove();
                 break;
             }
