@@ -746,53 +746,112 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   @Override
   public boolean isConfigurationChangeAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    boolean acceptable = true;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    File parentDirectory = getFileForPath(cfg.getDBDirectory());
+    File newBackendDirectory = new File(parentDirectory, cfg.getBackendId());
 
-    File parentDirectory = getFileForPath(config.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, config.getBackendId());
-
-    //Make sure the directory either already exists or is able to create.
-    if (!backendDirectory.exists())
+    checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, true);
+    checkDBDirPermissions(cfg, ccr);
+    if (!ccr.getMessages().isEmpty())
     {
-      if(!backendDirectory.mkdirs())
+      unacceptableReasons.addAll(ccr.getMessages());
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks a directory exists or can actually be created.
+   *
+   * @param backendDir the directory to check for
+   * @param ccr the list of reasons to return upstream or null if called from setupStorage()
+   * @param cleanup true if the directory should be deleted after creation
+   */
+  private void checkDBDirExistsOrCanCreate(File backendDir, ConfigChangeResult ccr, boolean cleanup)
+  {
+    if (!backendDir.exists())
+    {
+      if(!backendDir.mkdirs())
       {
-        unacceptableReasons.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-        acceptable = false;
+        addErrorMessage(ccr, ERR_JEB_CREATE_FAIL.get(backendDir.getPath()));
       }
-      else
+      if (cleanup)
       {
-        backendDirectory.delete();
+        backendDir.delete();
       }
     }
-    else if (!backendDirectory.isDirectory())
+    else if (!backendDir.isDirectory())
     {
-      unacceptableReasons.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-      acceptable = false;
+      addErrorMessage(ccr, ERR_JEB_DIRECTORY_INVALID.get(backendDir.getPath()));
     }
+  }
 
+  /**
+   * Returns false if directory permissions in the configuration are invalid. Otherwise returns the
+   * same value as it was passed in.
+   *
+   * @param cfg a (possibly new) backend configuration
+   * @param ccr the current list of change results
+   * @return true if permissions are valid
+   * @throws forwards a file exception
+   */
+  private void checkDBDirPermissions(PersistitBackendCfg cfg, ConfigChangeResult ccr)
+  {
     try
     {
-      FilePermission newBackendPermission =
-          FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
-
-      //Make sure the mode will allow the server itself access to the database
-      if(!newBackendPermission.isOwnerWritable() ||
-          !newBackendPermission.isOwnerReadable() ||
-          !newBackendPermission.isOwnerExecutable())
+      FilePermission backendPermission = decodeDBDirPermissions(cfg);
+      // Make sure the mode will allow the server itself access to the database
+      if(!backendPermission.isOwnerWritable() ||
+          !backendPermission.isOwnerReadable() ||
+          !backendPermission.isOwnerExecutable())
       {
-        LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
-            cfg.getDBDirectoryPermissions());
-        unacceptableReasons.add(message);
-        acceptable = false;
+        addErrorMessage(ccr, ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
       }
     }
-    catch(Exception e)
+    catch(ConfigException ce)
     {
-      unacceptableReasons.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn()));
-      acceptable = false;
+      addErrorMessage(ccr, ce.getMessageObject());
     }
+  }
 
-    return acceptable;
+  /**
+   * Sets files permissions on the backend directory
+   *
+   * @param backendDir the directory to setup
+   * @param curCfg a backend configuration
+   */
+  private void setDBDirPermissions(PersistitBackendCfg curCfg, File backendDir) throws ConfigException
+  {
+    FilePermission backendPermission = decodeDBDirPermissions(curCfg);
+
+    // Get the backend database backendDirectory permissions and apply
+    if(FilePermission.canSetPermissions())
+    {
+      try
+      {
+        if(!FilePermission.setPermissions(backendDir, backendPermission))
+        {
+          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
+        }
+      }
+      catch(Exception e)
+      {
+        // Log an warning that the permissions were not set.
+        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDir, e);
+      }
+    }
+  }
+
+  private FilePermission decodeDBDirPermissions(PersistitBackendCfg curCfg) throws ConfigException
+  {
+    try
+    {
+      return FilePermission.decodeUNIXMode(curCfg.getDBDirectoryPermissions());
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(curCfg.dn()));
+    }
   }
 
   /** {@inheritDoc} */
@@ -803,148 +862,65 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
 
     try
     {
-      // Create the directory if it doesn't exist.
-      if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
-      {
-        File parentDirectory = getFileForPath(cfg.getDBDirectory());
-        File backendDirectory =
-          new File(parentDirectory, cfg.getBackendId());
+      File parentDirectory = getFileForPath(cfg.getDBDirectory());
+      File newBackendDirectory = new File(parentDirectory, cfg.getBackendId());
 
-        if (!backendDirectory.exists())
+      // Create the directory if it doesn't exist.
+      if(!cfg.getDBDirectory().equals(config.getDBDirectory()))
+      {
+        checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, false);
+        if (!ccr.getMessages().isEmpty())
         {
-          if (!backendDirectory.mkdirs())
-          {
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-            return ccr;
-          }
-        }
-        //Make sure the directory is valid.
-        else if (!backendDirectory.isDirectory())
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
           return ccr;
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(this.config.getDBDirectory(),
+        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(),
             cfg.getDBDirectory()));
       }
 
       if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
-          || !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+          || !cfg.getDBDirectory().equals(config.getDBDirectory()))
       {
-        FilePermission backendPermission;
-        try
+        checkDBDirPermissions(cfg, ccr);
+        if (!ccr.getMessages().isEmpty())
         {
-          backendPermission =
-              FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
-        }
-        catch(Exception e)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
           return ccr;
         }
 
-        // Make sure the mode will allow the server itself access to the database
-        if(!backendPermission.isOwnerWritable() ||
-            !backendPermission.isOwnerReadable() ||
-            !backendPermission.isOwnerExecutable())
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
-          return ccr;
-        }
-
-        // Get the backend database backendDirectory permissions and apply
-        if(FilePermission.canSetPermissions())
-        {
-          File parentDirectory = getFileForPath(config.getDBDirectory());
-          File backendDirectory = new File(parentDirectory, config.getBackendId());
-          try
-          {
-            if (!FilePermission.setPermissions(backendDirectory, backendPermission))
-            {
-              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-            }
-          }
-          catch(Exception e)
-          {
-            // Log an warning that the permissions were not set.
-            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-          }
-        }
+        setDBDirPermissions(cfg, newBackendDirectory);
       }
 
-      this.config = cfg;
+      config = cfg;
     }
     catch (Exception e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      addErrorMessage(ccr, LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     return ccr;
   }
 
-  /** {@inheritDoc} */
-  private void setupStorageFiles() throws Exception
+  private void addErrorMessage(final ConfigChangeResult ccr, LocalizableMessage message)
   {
-    // Create the directory if it doesn't exist.
-    if (!backendDirectory.exists())
-    {
-      if(!backendDirectory.mkdirs())
-      {
-        LocalizableMessage message =
-          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
-        throw new ConfigException(message);
-      }
-    }
-    //Make sure the directory is valid.
-    else if (!backendDirectory.isDirectory())
-    {
-      throw new ConfigException(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-    }
+    ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+    ccr.addMessage(message);
+  }
 
-    FilePermission backendPermission;
-    try
-    {
-      backendPermission =
-          FilePermission.decodeUNIXMode(config.getDBDirectoryPermissions());
-    }
-    catch(Exception e)
-    {
-      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
-    }
+  private void setupStorageFiles() throws ConfigException
+  {
+    ConfigChangeResult ccr = new ConfigChangeResult();
 
-    //Make sure the mode will allow the server itself access to
-    //the database
-    if(!backendPermission.isOwnerWritable() ||
-        !backendPermission.isOwnerReadable() ||
-        !backendPermission.isOwnerExecutable())
+    checkDBDirExistsOrCanCreate(backendDirectory, ccr, false);
+    if (!ccr.getMessages().isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
-          config.getDBDirectoryPermissions());
-      throw new ConfigException(message);
+      throw new ConfigException(ccr.getMessages().get(0));
     }
-
-    // Get the backend database backendDirectory permissions and apply
-    if(FilePermission.canSetPermissions())
+    checkDBDirPermissions(config, ccr);
+    if (!ccr.getMessages().isEmpty())
     {
-      try
-      {
-        if(!FilePermission.setPermissions(backendDirectory, backendPermission))
-        {
-          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-        }
-      }
-      catch(Exception e)
-      {
-        // Log an warning that the permissions were not set.
-        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-      }
+      throw new ConfigException(ccr.getMessages().get(0));
     }
+    setDBDirPermissions(config, backendDirectory);
   }
 
   /** {@inheritDoc} */
