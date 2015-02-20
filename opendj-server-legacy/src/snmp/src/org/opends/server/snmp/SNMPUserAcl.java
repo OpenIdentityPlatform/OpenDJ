@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -33,45 +33,29 @@ import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 
 /**
  * The SNMP User ACL.
- *
  */
 public class SNMPUserAcl implements UserAcl {
 
-    /**
-     * If * then all the users are allowed to access in read.
-     */
+    /** If '*' then all the users are allowed to access in read. */
     private static final String ALL_USERS_ALLOWED = "*";
-    /**
-     * Default User for cloning mechanism.
-     */
+    /** Default User for cloning mechanism. */
     private static final String DEFAULT_USER = "defaultUser";
-    /**
-     * Admin User for cloning mechanism.
-     */
+    /** Admin User for cloning mechanism. */
     private static final String ADMIN_USER = "snmpAdmin";
-    /**
-     * Current Security Configuration for the SNMP Connection Handler.
-     */
+    /** Current Security Configuration for the SNMP Connection Handler. */
     private SNMPConnectionHandlerCfg currentConfig;
-    /**
-     * Configured hosts list.
-     */
+    /** Configured hosts list. */
     private SortedSet usersList;
-    /**
-     * Configured traps destinations.
-     */
+    /** Configured traps destinations. */
     private SortedSet trapDestinations;
-    /**
-     * Configured context name.
-     */
+    /** Configured context name. */
     private String contextName;
-    /**
-     * Configured Security level.
-     */
+    /** Configured Security level. */
     private int securityLevel;
 
     /**
-     * {@inheritDoc}
+     * Builds an instance of this class.
+     *
      * @param configuration of the SNMP Connection Handler
      */
     public SNMPUserAcl(SNMPConnectionHandlerCfg configuration) {
@@ -90,34 +74,21 @@ public class SNMPUserAcl implements UserAcl {
                 level.toString());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getName() {
         // ACL Name
         return "OpenDS";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean checkReadPermission(String user) {
-
         // Test if clone user
-        if (user.equals(DEFAULT_USER)) {
+        if (user.equals(DEFAULT_USER) || user.equals(ADMIN_USER)) {
             return false;
         }
 
-        // Test if clone user
-        if (user.equals(ADMIN_USER)) {
-            return false;
-        }
-
-        if ((this.usersList.contains(ALL_USERS_ALLOWED)) ||
-                (this.usersList.contains(user))) {
-            return true;
-        }
-        return false;
+        return this.usersList.contains(ALL_USERS_ALLOWED)
+                || this.usersList.contains(user);
     }
 
     /**
@@ -128,20 +99,17 @@ public class SNMPUserAcl implements UserAcl {
      */
     public boolean checkReadPermission(String user, String contextName,
             int securityLevel) {
-
         // Special check for the defaultUser
-        if ((user.equals(ADMIN_USER)) && (contextName.equals("null"))
-                && ((checkSecurityLevel(securityLevel)))) {
+        if (user.equals(ADMIN_USER)
+                && contextName.equals("null")
+                && checkSecurityLevel(securityLevel)) {
             return true;
         }
 
         // Else
-        if ((checkReadPermission(user)) &&
-                ((checkContextName(contextName))) &&
-                (checkSecurityLevel(securityLevel))) {
-            return true;
-        }
-        return false;
+        return checkReadPermission(user)
+                && checkContextName(contextName)
+                && checkSecurityLevel(securityLevel);
     }
 
     /**
@@ -158,23 +126,15 @@ public class SNMPUserAcl implements UserAcl {
      * @return true if the user has the write permission, false otherwise.
      */
     public boolean checkWritePermission(String user) {
-        if (user.equals(ADMIN_USER)) {
-            return true;
-        }
-        return false;
+        return user.equals(ADMIN_USER);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean checkWritePermission(String user, String contextName,
             int securityLevel) {
-        if ((checkWritePermission(user)) &&
-                (contextName.equals("null")) &&
-                (checkSecurityLevel(securityLevel))) {
-            return true;
-        }
-        return false;
+        return checkWritePermission(user)
+                && contextName.equals("null")
+                && checkSecurityLevel(securityLevel);
     }
 
     /**
@@ -183,10 +143,6 @@ public class SNMPUserAcl implements UserAcl {
      * @return true if the securityLevel is appropriated, else return false
      */
     private boolean checkSecurityLevel(int securityLevel) {
-
-        if (securityLevel >= this.securityLevel) {
-            return true;
-        }
-        return false;
+        return securityLevel >= this.securityLevel;
     }
 }
