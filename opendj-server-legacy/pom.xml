@@ -1233,7 +1233,7 @@
               <execution>
                 <id>check-src-and-tests-alternative</id>
                 <configuration>
-                  <excludes>org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**,javax/jnlp/**,netscape/ldap/**</excludes>
+                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**,javax/jnlp/**,netscape/ldap/**</excludes>
                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
                   <headerLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opendj.sourceheader</headerLocation>
                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>
@@ -1384,8 +1384,7 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/snmp/src</source>
-                    <source>src/snmp/generated</source>
+                    <source>src/snmp</source>
                   </sources>
                 </configuration>
               </execution>
