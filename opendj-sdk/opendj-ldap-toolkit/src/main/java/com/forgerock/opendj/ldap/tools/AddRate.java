@@ -416,6 +416,7 @@ public class AddRate extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_ADDRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
             new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
+        argParser.setShortToolDescription(REF_SHORT_DESC_ADDRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
         final ConnectionFactoryProvider connectionFactoryProvider;

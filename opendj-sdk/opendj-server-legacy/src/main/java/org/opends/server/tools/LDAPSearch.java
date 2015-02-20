@@ -688,6 +688,7 @@ public class LDAPSearch
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try

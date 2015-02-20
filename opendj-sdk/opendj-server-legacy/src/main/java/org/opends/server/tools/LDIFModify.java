@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -437,6 +437,7 @@ public class LDIFModify
     LocalizableMessage toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDIFMODIFY.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try

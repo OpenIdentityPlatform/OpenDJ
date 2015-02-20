@@ -169,6 +169,7 @@ public class LDIFDiff
     LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDIFDIFF.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {

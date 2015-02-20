@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -211,6 +211,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME,
             INITIALIZE_REPLICATION_SUBCMD_NAME),
             false);
+    setShortToolDescription(REF_SHORT_DESC_DSREPLICATION.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 

@@ -70,6 +70,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     super(mainClassName,
         INFO_JAVAPROPERTIES_TOOL_DESCRIPTION.get(getDefaultPropertiesValue()),
         false);
+    setShortToolDescription(REF_SHORT_DESC_DSJAVAPROPERTIES.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 

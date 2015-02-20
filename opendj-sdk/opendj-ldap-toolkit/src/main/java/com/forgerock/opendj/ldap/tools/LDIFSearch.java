@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2014 ForgeRock AS
+ *      Copyright 2012-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -92,6 +92,7 @@ public final class LDIFSearch extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(LDIFSearch.class.getName(), toolDescription, false, true, 1, 0,
                         "source [filter] [attributes ...]");
+        argParser.setShortToolDescription(REF_SHORT_DESC_LDIFSEARCH.get());
 
         final BooleanArgument showUsage;
         final StringArgument outputFilename;

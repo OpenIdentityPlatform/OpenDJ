@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -238,6 +238,7 @@ public final class LDAPSearch extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPSearch.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter] [attributes ...]");
+        argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
 

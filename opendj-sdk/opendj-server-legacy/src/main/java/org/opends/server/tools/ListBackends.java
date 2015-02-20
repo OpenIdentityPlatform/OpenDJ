@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -139,6 +139,7 @@ public class ListBackends
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.ListBackends",
                             toolDescription, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_LIST_BACKENDS.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the

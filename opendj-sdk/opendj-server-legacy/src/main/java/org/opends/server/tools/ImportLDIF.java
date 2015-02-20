@@ -192,6 +192,7 @@ public class ImportLDIF extends TaskTool {
     LDAPConnectionArgumentParser argParser =
             createArgParser("org.opends.server.tools.ImportLDIF",
                             INFO_LDIFIMPORT_TOOL_DESCRIPTION.get());
+    argParser.setShortToolDescription(REF_SHORT_DESC_IMPORT_LDIF.get());
 
     // Initialize all the command-line argument types and register them with the
     // parser.

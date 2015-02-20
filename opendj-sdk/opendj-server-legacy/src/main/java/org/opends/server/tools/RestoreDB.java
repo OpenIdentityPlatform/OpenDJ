@@ -160,6 +160,8 @@ public class RestoreDB extends TaskTool {
     // parser.
     try
     {
+      argParser.setShortToolDescription(REF_SHORT_DESC_RESTORE.get());
+
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,

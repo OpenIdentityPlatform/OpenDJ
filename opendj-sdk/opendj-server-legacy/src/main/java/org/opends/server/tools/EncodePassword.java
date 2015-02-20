@@ -156,6 +156,7 @@ public class EncodePassword
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.EncodePassword",
                             toolDescription, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_ENCODE_PASSWORD.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the

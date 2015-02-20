@@ -391,6 +391,7 @@ public final class AuthRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(AuthRate.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter format string] [attributes ...]");
+        argParser.setShortToolDescription(REF_SHORT_DESC_AUTHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;

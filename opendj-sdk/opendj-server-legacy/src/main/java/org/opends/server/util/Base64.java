@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -466,6 +466,7 @@ public final class Base64
     SubCommandArgumentParser argParser =
          new SubCommandArgumentParser(Base64.class.getName(), description,
                                       false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_BASE64.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument showUsage        = null;

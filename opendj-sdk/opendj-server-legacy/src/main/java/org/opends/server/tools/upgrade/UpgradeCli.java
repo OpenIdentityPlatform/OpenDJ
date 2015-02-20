@@ -102,6 +102,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         new SubCommandArgumentParser(getClass().getName(),
             INFO_UPGRADE_DESCRIPTION_CLI.get(), false);
     this.parser.setVersionHandler(new DirectoryServerVersionHandler());
+    this.parser.setShortToolDescription(REF_SHORT_DESC_UPGRADE.get());
     this.parser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_UPGRADE_CLI.get());
   }
 

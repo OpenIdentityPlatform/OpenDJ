@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.guitools.uninstaller;
 
@@ -86,6 +86,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       LocalizableMessage toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
+    setShortToolDescription(REF_SHORT_DESC_UNINISTALL.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 

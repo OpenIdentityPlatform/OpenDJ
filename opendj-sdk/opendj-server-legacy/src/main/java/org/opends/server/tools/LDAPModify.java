@@ -609,6 +609,7 @@ public class LDAPModify
     LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {

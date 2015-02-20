@@ -167,6 +167,7 @@ public final class ModRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(ModRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[(attribute:value format string) ...]");
+        argParser.setShortToolDescription(REF_SHORT_DESC_MODRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;

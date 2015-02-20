@@ -114,6 +114,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   public InstallDSArgumentParser(String mainClassName)
   {
     super(mainClassName, INFO_INSTALLDS_TOOL_DESCRIPTION.get(), false);
+    setShortToolDescription(REF_SHORT_DESC_SETUP.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 

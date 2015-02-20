@@ -324,6 +324,7 @@ public class LDAPDelete
     LocalizableMessage toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 1, "\"DN\"");
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDAPDELETE.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {

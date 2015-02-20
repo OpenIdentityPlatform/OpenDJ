@@ -613,6 +613,32 @@ public class ArgumentParser {
     }
 
     /**
+     * A short description for this tool, suitable in a man page summary line.
+     */
+    private LocalizableMessage shortToolDescription;
+
+    /**
+     * Gets a short description for this tool, suitable in a man page summary line.
+     *
+     * @return  A short description for this tool,
+     *          suitable in a man page summary line,
+     *          or LocalizableMessage.EMPTY if there is no short description.
+     */
+    LocalizableMessage getShortToolDescription() {
+        return shortToolDescription != null ? shortToolDescription : LocalizableMessage.EMPTY;
+    }
+
+    /**
+     * Sets a short description for this tool, suitable in a man page summary line.
+     *
+     * @param   shortDescription    The short description for this tool,
+     *                              suitable in a man page summary line.
+     */
+    public void setShortToolDescription(final LocalizableMessage shortDescription) {
+        this.shortToolDescription = shortDescription;
+    }
+
+    /**
      * A supplement to the description for this tool
      * intended for use in generated reference documentation.
      */
@@ -687,6 +713,7 @@ public class ArgumentParser {
         map.put("locale", Locale.getDefault().getLanguage());
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("name", scriptName);
+        map.put("shortDesc", getShortToolDescription());
         map.put("descTitle", REF_TITLE_DESCRIPTION.get());
         map.put("optsTitle", REF_TITLE_OPTIONS.get());
         map.put("optsIntro", REF_INTRO_OPTIONS.get(scriptName));

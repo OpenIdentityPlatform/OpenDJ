@@ -212,6 +212,7 @@ public final class SearchRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(SearchRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[filter format string] [attributes ...]");
+        argParser.setShortToolDescription(REF_SHORT_DESC_SEARCHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
