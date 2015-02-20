@@ -164,7 +164,7 @@
    <term><filename>db</filename></term>
    <listitem>
     <para>
-     Backend database files for backends that hold user data
+     Backend database files for persistent, indexed backends that hold user data
     </para>
    </listitem>
   </varlistentry>

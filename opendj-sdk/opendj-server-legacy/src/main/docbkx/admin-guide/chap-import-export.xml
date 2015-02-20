@@ -24,11 +24,12 @@
   !    
 -->
 <chapter xml:id='chap-import-export'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Importing &amp; Exporting LDIF Data</title>
  <indexterm><primary>Provisioning</primary></indexterm>
  <indexterm><primary>Importing data</primary></indexterm>
@@ -163,7 +164,7 @@ LDIF processing complete.  10003 entries written</computeroutput>
    
    <step performance="optional">
     <para>If you do not want to use the default <literal>userRoot</literal>
-    backend, create a new JE backend for your data.</para>
+    backend, create a new backend for your data.</para>
     <para>See <xref linkend="create-database-backend" /> for details.</para>
    </step>
    <step>
@@ -383,6 +384,14 @@ description: This is the description for Aaccf Amar.
     xlink:href="reference#dsconfig-create-backend"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig create-backend</command></link> command.
+   OpenDJ directory server supports a variety of backend types,
+   including in-memory backends, backends that store data in LDIF files,
+   and backends that store data in key-value databases
+   with indexes to improve performance with large data sets.
+   When you create a backend, choose the type of backend that fits your purpose.
+  </para>
+
+  <para>
    The following example creates a local backend named <literal>testData</literal>.
   </para>
 
@@ -452,6 +461,56 @@ The Local DB Backend was created successfully</computeroutput>
   <para>Alternatively, you can create a new backend in OpenDJ Control Panel
   (Directory Data > New Base DN > Backend > New Backend:
   <replaceable>backend-name</replaceable>).</para>
+
+  <para>
+   The following example creates a <literal>persistit</literal> backend,
+   which relies on a Persistit database for data storage and indexing.
+  </para>
+
+  <screen>
+$ <userinput>dsconfig \
+ create-backend \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type persistit \
+ --backend-name myData \
+ --set base-dn:dc=example,dc=net \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
+
+  <para>
+   After creating the backend, you can view the settings
+   as in the following example.
+  </para>
+
+  <screen>
+$ <userinput>dsconfig \
+ get-backend-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>Property          : Value(s)
+------------------:--------------------
+backend-id        : myData
+base-dn           : "dc=example,dc=net"
+compact-encoding  : true
+db-cache-percent  : 50
+db-cache-size     : 0 b
+db-directory      : db
+enabled           : true
+index-entry-limit : 4000
+writability-mode  : enabled</computeroutput>
+  </screen>
+
+  <xinclude:include href="../shared/informalexample-default-indexes.xml" />
  </section>
 
  <section xml:id="set-database-backend-disk-thresholds">

@@ -42,6 +42,34 @@
 
     <listitem>
      <para>
+      OpenDJ directory server now provides alternative backend types
+      for backends that use embedded databases for storage
+      (<link
+        xlink:show="new"
+        xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1602"
+      >OPENDJ-1602</link>).
+     </para>
+
+     <para>
+      Alternative backend types continue to provide
+      the same high-performance full LDAPv3 compliance
+      and the same ease of use as previous choices.
+     </para>
+
+     <para>
+      If you do choose to make the change to a new backend type,
+      note that you must import the data again into the new backend.
+      This is necessary because
+      you are effectively changing underlying storage implementations.
+      You can make the move for example by exporting LDIF from the old backend
+      and then importing the LDIF into the new backend,
+      or simply through OpenDJ replication
+      by initializing a server using the new backend from an existing replica.
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
       OpenDJ directory server now requires a privilege,
       <literal>changelog-read</literal> to read and search entries
       under <literal>cn=changelog</literal>

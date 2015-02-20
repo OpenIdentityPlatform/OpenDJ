@@ -24,11 +24,12 @@
   !    
 -->
 <chapter xml:id='chap-indexing'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Indexing Attribute Values</title>
  <indexterm>
   <primary>Indexes</primary>
@@ -392,6 +393,8 @@ $ <userinput>dsconfig \
     xlink:href="reference#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig</command></link> command.
+   The subcommands to use depend on the backend type,
+   as shown in the examples that follow.
    The configuration changes then take effect
    after you rebuild the index according to the new configuration, using the
    <link
@@ -420,8 +423,11 @@ $ <userinput>dsconfig \
    <example xml:id="create-index-example">
     <title>Create a New Index</title>
     
-    <para>The following example creates a new substring index for
-    <literal>description</literal>.</para>
+    <para>
+     The following example creates a new substring index
+     for the <literal>description</literal> attribute
+     in a backend of type <literal>local-db</literal>.
+    </para>
     
     <screen>
 $ <userinput>dsconfig \
@@ -436,6 +442,27 @@ $ <userinput>dsconfig \
  --trustAll \
  --no-prompt</userinput>
     </screen>
+
+    <para>
+     The following example creates a new equality index
+     for the <literal>cn</literal> (common name) attribute
+     in a backend of type <literal>persistit</literal>
+     named <literal>myData</literal>.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ create-backend-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --index-name cn \
+ --set index-type:equality \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </example>
    
    <example xml:id="approx-index-example">
@@ -444,9 +471,12 @@ $ <userinput>dsconfig \
      <primary>Indexes</primary>
      <secondary>Approximate</secondary>
     </indexterm>
-    
-    <para>The following example configures an approximate index for
-    <literal>cn</literal> (common name).</para>
+
+    <para>
+     The following example configures an approximate index for
+     the <literal>cn</literal> (common name) attribute
+     in a backend of type <literal>local-db</literal>.
+    </para>
     
     <screen>
 $ <userinput>dsconfig \
@@ -456,6 +486,27 @@ $ <userinput>dsconfig \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --backend-name userRoot \
+ --index-name cn \
+ --set index-type:approximate \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
+
+    <para>
+     The following example configures an approximate index for
+     the <literal>cn</literal> (common name) attribute
+     in a backend of type <literal>persistit</literal>
+     named <literal>myData</literal>.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-backend-index-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
  --index-name cn \
  --set index-type:approximate \
  --trustAll \
@@ -474,9 +525,12 @@ $ <userinput>dsconfig \
     extensible matching rule indexes. Use the <command>dsconfig</command>
     command instead.</para>
 
-    <para>The following example configures an extensible matching rule
-    index for "later than" and "earlier than" generalized time matching on
-    a <literal>lastLoginTime</literal> attribute.</para>
+    <para>
+     The following example configures an extensible matching rule index
+     for "later than" and "earlier than" generalized time matching
+     on a <literal>lastLoginTime</literal> attribute
+     in a backend of type <literal>local-db</literal>.
+    </para>
 
     <screen>
 $ <userinput>dsconfig \
@@ -486,6 +540,30 @@ $ <userinput>dsconfig \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --backend-name userRoot \
+ --set index-type:extensible \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.5 \
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.6 \
+ --index-name lastLoginTime \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
+
+    <para>
+     The following example configures an extensible matching rule index
+     for "later than" and "earlier than" generalized time matching
+     on a <literal>lastLoginTime</literal> attribute
+     in a backend of type <literal>persistit</literal>
+     named <literal>myData</literal>.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ create-backend-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
  --set index-type:extensible \
  --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.5 \
  --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.6 \
@@ -523,8 +601,12 @@ $ <userinput>dsconfig \
    Panel prompts you to make the additional changes necessary to complete the
    VLV index configuration, and then to build the index.</para>
    
-   <para>You can also create the equivalent index configuration using the
-   <command>dsconfig</command> command.</para>
+   <para>
+    You can also create the equivalent index configuration
+    by using the <command>dsconfig</command> command.
+    The following example shows how to create the VLV index
+    for a backend of type <literal>local-db</literal>.
+   </para>
    
    <screen>
 $ <userinput>dsconfig \
@@ -551,6 +633,29 @@ $ <userinput>dsconfig \
     changing index properties such as the index entry limit, or verifying
     indexes.</para>
    </note>
+
+   <para>
+    The following example shows how to create the VLV index
+    for a backend of type <literal>persistit</literal>
+    named <literal>myData</literal> serving <literal>dc=example,dc=net</literal>.
+   </para>
+
+   <screen>
+$ <userinput>dsconfig \
+ create-backend-vlv-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDn "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name myData \
+ --index-name people-by-last-name \
+ --set base-dn:ou=People,dc=example,dc=net \
+ --set filter:"(|(givenName=*)(sn=*))" \
+ --set scope:single-level \
+ --set sort-order:"+sn +givenName" \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </section>
 
   <section xml:id="rebuild-index">
@@ -582,8 +687,9 @@ $ <userinput>rebuild-index \
  --bindPassword password \
  --baseDN dc=example,dc=com \
  --index cn \
- --start 0</userinput>
-<computeroutput>Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</computeroutput>
+ --start 0 \
+ --trustAll</userinput>
+<computeroutput>Rebuild Index task 20150219181540575 scheduled to start Feb 19, 2015 6:15:40</computeroutput>
     </screen>
    </example>
 
@@ -797,6 +903,14 @@ Undefined keys: [1] [2]</computeroutput>
      thoroughly before you roll out an index entry limit change in
      production.</para>
     </important>
+
+    <para>
+     The following example uses
+     the <command>dsconfig set-local-db-index-prop</command> command,
+     and works with a backend of type <literal>local-db</literal>.
+     For other indexed backend types, use
+     the <command>dsconfig set-backend-index-prop</command> command.
+    </para>
 
     <screen>
 $ <userinput>dsconfig \
@@ -1049,11 +1163,6 @@ $ <userinput>verify-index \
    </tgroup>
   </table>
 
-  <para>When you create a JE backend using the <command>dsconfig</command>
-  command, OpenDJ creates the <literal>aci</literal> presence,
-  <literal>ds-sync-conflict</literal> equality,
-  <literal>ds-sync-hist</literal> ordering,
-  <literal>entryUUID</literal> equality, and
-  <literal>objectClass</literal> equality indexes automatically.</para>
+  <xinclude:include href="../shared/informalexample-default-indexes.xml" />
  </section>
 </chapter>
