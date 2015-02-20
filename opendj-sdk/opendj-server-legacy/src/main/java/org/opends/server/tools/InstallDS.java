@@ -964,12 +964,12 @@ public class InstallDS extends ConsoleApplication
             ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
       }
       char[] pwd1 = null;
-      // Prompt for password and confirm.
 
+      // Prompt for password and confirm.
       while (pwd1 == null)
       {
         pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
-        if (pwd1 == null || "".equals(pwd1))
+        if (pwd1 == null || pwd1.length == 0)
         {
           pwd1 = null;
           println();
@@ -977,9 +977,8 @@ public class InstallDS extends ConsoleApplication
           println();
         }
       }
-      char[] pwd2 =
-        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
 
+      char[] pwd2 = readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
       if (Arrays.equals(pwd1, pwd2))
       {
         pwd = String.valueOf(pwd1);
