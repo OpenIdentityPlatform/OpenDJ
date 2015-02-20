@@ -860,6 +860,7 @@ public final class DSConfig extends ConsoleApplication {
         super(new PrintStream(out), new PrintStream(err));
 
         this.parser = new SubCommandArgumentParser(getClass().getName(), INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
+        this.parser.setShortToolDescription(REF_SHORT_DESC_DSCONFIG.get());
         this.parser.setVersionHandler(new VersionHandler() {
             @Override
             public void printVersion() {

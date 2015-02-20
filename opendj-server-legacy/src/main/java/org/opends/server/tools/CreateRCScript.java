@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2015 ForgeRock AS
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -119,6 +119,7 @@ public class CreateRCScript
     LocalizableMessage description = INFO_CREATERC_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_CREATE_RC_SCRIPT.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument showUsage;

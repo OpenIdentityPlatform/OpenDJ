@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools.status;
 
@@ -70,6 +70,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   {
     super(mainClassName, INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
     setVersionHandler(new DirectoryServerVersionHandler());
+    setShortToolDescription(REF_SHORT_DESC_STATUS.get());
   }
 
   /**

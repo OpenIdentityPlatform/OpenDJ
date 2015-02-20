@@ -7797,6 +7797,7 @@ public final class DirectoryServer
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             theToolDescription, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_START_DS.get());
 
     // Initialize all the command-line argument types and register them with the
     // parser.

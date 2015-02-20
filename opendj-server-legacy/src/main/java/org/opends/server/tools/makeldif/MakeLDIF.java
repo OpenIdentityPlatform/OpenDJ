@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -134,6 +134,7 @@ public class MakeLDIF
     LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
     ArgumentParser  argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                    false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_MAKELDIF.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument showUsage;

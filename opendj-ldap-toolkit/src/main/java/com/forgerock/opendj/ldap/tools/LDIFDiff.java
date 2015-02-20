@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2012-2013 ForgeRock AS
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -83,6 +83,7 @@ public final class LDIFDiff extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(LDIFDiff.class.getName(), toolDescription, false, true, 2, 2,
                         "source target");
+        argParser.setShortToolDescription(REF_SHORT_DESC_LDIFDIFF.get());
 
         final BooleanArgument showUsage;
         final StringArgument outputFilename;

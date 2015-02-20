@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -268,6 +268,8 @@ public class RebuildIndex extends TaskTool
   private void initializeArguments(final boolean isMultipleBackends)
       throws ArgumentException
   {
+    argParser.setShortToolDescription(REF_SHORT_DESC_REBUILD_INDEX.get());
+
     configClass =
         new StringArgument("configclass", 'C', "configClass", true, false,
             true, INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class

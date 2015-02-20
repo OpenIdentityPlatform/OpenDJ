@@ -176,6 +176,7 @@ public class DBTest
 
     LocalizableMessage toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
     this.parser = new SubCommandArgumentParser(getClass().getName(), toolDescription, false);
+    this.parser.setShortToolDescription(REF_SHORT_DESC_DBTEST.get());
     this.parser.setVersionHandler(new DirectoryServerVersionHandler());
   }
 

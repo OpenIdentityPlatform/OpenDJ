@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -202,6 +202,7 @@ public class ConfigureWindowsService
         INFO_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME,
         toolDescription, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_WINDOWS_SERVICE.get());
     BooleanArgument enableService = null;
     BooleanArgument disableService = null;
     BooleanArgument serviceState = null;

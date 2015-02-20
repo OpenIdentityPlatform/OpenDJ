@@ -121,6 +121,7 @@ public class VerifyIndex
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.VerifyIndex",
                             toolDescription, false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_VERIFY_INDEX.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the

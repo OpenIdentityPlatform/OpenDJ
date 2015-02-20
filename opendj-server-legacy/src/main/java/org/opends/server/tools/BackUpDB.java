@@ -167,6 +167,7 @@ public class BackUpDB extends TaskTool
     LDAPConnectionArgumentParser argParser =
             createArgParser("org.opends.server.tools.BackUpDB",
                             INFO_BACKUPDB_TOOL_DESCRIPTION.get());
+    argParser.setShortToolDescription(REF_SHORT_DESC_BACKUP.get());
 
 
     // Initialize all the command-line argument types and register them with the

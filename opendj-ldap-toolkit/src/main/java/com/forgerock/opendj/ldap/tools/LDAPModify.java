@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -250,6 +250,7 @@ public final class LDAPModify extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
+        argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
 

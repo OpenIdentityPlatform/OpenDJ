@@ -72,7 +72,7 @@
 
  <refnamediv>
   <refname>${name}</refname>
-  <refpurpose>TODO short description</refpurpose>
+  <refpurpose>${shortDesc}</refpurpose>
  </refnamediv>
 
  <refsynopsisdiv>

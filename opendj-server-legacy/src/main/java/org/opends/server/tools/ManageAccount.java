@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -827,6 +827,7 @@ public class ManageAccount
     argParser = new SubCommandArgumentParser(
             CLASS_NAME, INFO_PWPSTATE_TOOL_DESCRIPTION.get(),
             false);
+    argParser.setShortToolDescription(REF_SHORT_DESC_MANAGE_ACCOUNT.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument   showUsage;

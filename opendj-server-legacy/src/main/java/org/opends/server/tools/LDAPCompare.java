@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -402,6 +402,7 @@ public class LDAPCompare
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                         false, true, 1, 0,
                                         " \'attribute:value\' \"DN\" ...");
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDAPCOMPARE.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try

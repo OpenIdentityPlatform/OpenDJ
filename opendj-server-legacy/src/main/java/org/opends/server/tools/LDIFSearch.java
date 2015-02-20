@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -143,6 +143,7 @@ public class LDIFSearch
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
+    argParser.setShortToolDescription(REF_SHORT_DESC_LDIFSEARCH.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel;
 
@@ -80,6 +80,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
       LocalizableMessage msg)
   {
     super(mainClassName, msg, false);
+    setShortToolDescription(REF_SHORT_DESC_CONTROL_PANEL.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 

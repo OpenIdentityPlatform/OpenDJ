@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -215,6 +215,7 @@ public class ManageTasks extends ConsoleApplication {
             "org.opends.server.tools.TaskInfo",
             INFO_TASKINFO_TOOL_DESCRIPTION.get(),
             false, null, alwaysSSL);
+    argParser.setShortToolDescription(REF_SHORT_DESC_MANAGE_TASKS.get());
 
     // Initialize all the command-line argument types and register them with the
     // parser.
