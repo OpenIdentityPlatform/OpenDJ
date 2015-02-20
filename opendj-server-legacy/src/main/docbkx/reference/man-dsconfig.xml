@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,17 +19,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <refentry xml:id='dsconfig-1'
- xmlns='http://docbook.org/ns/docbook'
- version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
- <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
+          xmlns='http://docbook.org/ns/docbook'
+          version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2015</year><holder>ForgeRock AS.</holder></copyright></info>
  <refmeta>
   <refentrytitle>dsconfig</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -5529,26 +5528,28 @@ $ <userinput>dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w
 
 What do you want to configure?
 
-    1)   Access Control Handler               21)  Log Publisher
-    2)   Access Log Filtering Criteria        22)  Log Retention Policy
-    3)   Account Status Notification Handler  23)  Log Rotation Policy
-    4)   Administration Connector             24)  Matching Rule
-    5)   Alert Handler                        25)  Monitor Provider
-    6)   Attribute Syntax                     26)  Password Generator
-    7)   Backend                              27)  Password Policy
-    8)   Certificate Mapper                   28)  Password Storage Scheme
-    9)   Connection Handler                   29)  Password Validator
-    10)  Crypto Manager                       30)  Plugin
-    11)  Debug Target                         31)  Plugin Root
-    12)  Entry Cache                          32)  Replication Domain
-    13)  Extended Operation Handler           33)  Replication Server
-    14)  External Changelog Domain            34)  Root DN
-    15)  Global Configuration                 35)  Root DSE Backend
-    16)  Group Implementation                 36)  SASL Mechanism Handler
-    17)  Identity Mapper                      37)  Synchronization Provider
-    18)  Key Manager Provider                 38)  Trust Manager Provider
-    19)  Local DB Index                       39)  Virtual Attribute
-    20)  Local DB VLV Index                   40)  Work Queue
+    1)   Access Control Handler               23)  Log Publisher
+    2)   Access Log Filtering Criteria        24)  Log Retention Policy
+    3)   Account Status Notification Handler  25)  Log Rotation Policy
+    4)   Administration Connector             26)  Matching Rule
+    5)   Alert Handler                        27)  Monitor Provider
+    6)   Attribute Syntax                     28)  Password Generator
+    7)   Backend                              29)  Password Policy
+    8)   Backend Index                        30)  Password Storage Scheme
+    9)   Backend VLV Index                    31)  Password Validator
+    10)  Certificate Mapper                   32)  Plugin
+    11)  Connection Handler                   33)  Plugin Root
+    12)  Crypto Manager                       34)  Replication Domain
+    13)  Debug Target                         35)  Replication Server
+    14)  Entry Cache                          36)  Root DN
+    15)  Extended Operation Handler           37)  Root DSE Backend
+    16)  External Changelog Domain            38)  SASL Mechanism Handler
+    17)  Global Configuration                 39)  Schema Provider
+    18)  Group Implementation                 40)  Synchronization Provider
+    19)  Identity Mapper                      41)  Trust Manager Provider
+    20)  Key Manager Provider                 42)  Virtual Attribute
+    21)  Local DB Index                       43)  Work Queue
+    22)  Local DB VLV Index
 
     q)   quit
 

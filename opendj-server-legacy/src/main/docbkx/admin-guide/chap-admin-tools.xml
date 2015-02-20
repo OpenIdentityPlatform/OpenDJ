@@ -269,7 +269,7 @@
     <term><link xlink:href="reference#dbtest-1"
     xlink:role="http://docbook.org/xlink/role/olink">dbtest</link></term>
     <listitem>
-     <para>Debug JE databases.</para>
+     <para>Debug databases for <literal>local-db</literal> backends.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -287,7 +287,7 @@
      <para>You can prepare <command>dsconfig</command> batch scripts by running
      the tool with the <option>--commandFilePath</option> option in interactive
      mode, then reading from the batch file with the
-     <option>--batchFile</option> option in script mode. Batch files can be
+     <option>--batchFilePath</option> option in script mode. Batch files can be
      useful when you have many <command>dsconfig</command> commands to run
      and want to avoid starting the JVM and setting up a new connection for
      each command.</para>
@@ -444,7 +444,7 @@
     <term><link xlink:href="reference#rebuild-index-1"
     xlink:role="http://docbook.org/xlink/role/olink">rebuild-index</link></term>
     <listitem>
-     <para>Rebuild an index stored in a JE backend.</para>
+     <para>Rebuild an index stored in an indexed backend.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -479,7 +479,7 @@
     <term><link xlink:href="reference#verify-index-1"
     xlink:role="http://docbook.org/xlink/role/olink">verify-index</link></term>
     <listitem>
-     <para>Verify that an index stored in a JE backend is not corrupt.</para>
+     <para>Verify that an index stored in an indexed backend is not corrupt.</para>
     </listitem>
    </varlistentry>
    <varlistentry>

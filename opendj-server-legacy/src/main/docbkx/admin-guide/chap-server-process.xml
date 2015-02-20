@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-server-process'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Server Processes</title>
  <para>Using the OpenDJ Control Panel, you can start and stop local servers.
  You can also start and stop OpenDJ using command-line tools, and use the
@@ -295,9 +295,8 @@ C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput
   <para>What can take some time during server startup is preloading database
   content into memory when the server starts. Objects cached in memory do not
   survive a crash. By default, OpenDJ does not cache objects in memory before
-  starting to accept client requests. You can however set a
-  <link xlink:href="${configRefBase}local-db-backend.html#preload-time-limit"
-  ><literal>preload-time-limit</literal></link> for the database cache of your
+  starting to accept client requests. You can however set the
+  <literal>preload-time-limit</literal> property for the database cache of your
   backend if you do want to load objects into the database cache before
   OpenDJ begins accepting client connections.</para>
  </section>

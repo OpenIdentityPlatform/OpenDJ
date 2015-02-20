@@ -24,11 +24,11 @@
   !    
 -->
 <refentry xml:id='dbtest-1'
- xmlns='http://docbook.org/ns/docbook'
- version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+          xmlns='http://docbook.org/ns/docbook'
+          version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <info><copyright><year>2011-2015</year><holder>ForgeRock AS.</holder></copyright></info>
  <refmeta>
   <refentrytitle>dbtest</refentrytitle><manvolnum>1</manvolnum>
@@ -37,7 +37,7 @@
  </refmeta>
  <refnamediv>
   <refname>dbtest</refname>
-  <refpurpose>gather OpenDJ JE database debugging information</refpurpose>
+  <refpurpose>gather <literal>local-db</literal> backend database debug info</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
@@ -46,7 +46,7 @@
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>This utility can be used to debug the JE database.</para>
+  <para>This utility can be used to debug a <literal>local-db</literal> backend database.</para>
  </refsect1>
  <refsect1>
   <title>Subcommands</title>
@@ -125,7 +125,7 @@
         <term>JE Database Name</term>
         <listitem>
          <para>
-          Name of the Berkeley Java Edition database,
+          Name of the <literal>local-db</literal> database,
           which reflects how OpenDJ directory server
           organizes the data in the database.
          </para>
@@ -207,7 +207,7 @@
      <varlistentry>
      <term><command>dbtest list-root-containers</command></term>
      <listitem>
-      <para>List the root containers used by all JE backends</para>
+      <para>List the root containers used by all <literal>local-db</literal> backends</para>
      </listitem>
     </varlistentry>
    </variablelist>

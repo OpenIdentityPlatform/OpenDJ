@@ -879,6 +879,7 @@ $ <userinput>dsconfig \
     </listitem>
    </varlistentry>
    <varlistentry>
+    <!-- The typo is in the code. See ServerConstants.java. -->
     <term><literal>org.opends.server.authentiation.dseecompat.ACIParseFailed</literal></term>
     <listitem>
      <para>The dseecompat access control subsystem failed to correctly parse
@@ -888,8 +889,11 @@ $ <userinput>dsconfig \
    <varlistentry>
     <term><literal>org.opends.server.BackendRunRecovery</literal></term>
     <listitem>
-     <para>The JE backend has thrown a <literal>RunRecoveryException</literal>.
-     The directory server needs to be restarted.</para>
+     <para>
+      The <literal>local-db</literal> backend has thrown
+      a <literal>RunRecoveryException</literal>.
+      The directory server needs to be restarted.
+     </para>
     </listitem>
    </varlistentry>
    <varlistentry>

@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-backup-restore'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Backing Up &amp; Restoring Data</title>
 
  <para>OpenDJ lets you backup and restore your data either in compressed,
@@ -131,8 +131,7 @@ $ <userinput>stop-ds</userinput>
 $ backup --backendID userRoot -d /path/to/opendj/bak
 [13/Jun/2011:14:33:48 +0200] category=TOOLS severity=NOTICE msgID=10944792
  msg=Starting backup for backend userRoot
-[13/Jun/2011:14:33:48 +0200] category=JEB severity=NOTICE msgID=8847446
- msg=Archived: 00000000.jdb
+...
 [13/Jun/2011:14:33:48 +0200] category=TOOLS severity=NOTICE msgID=10944795
  msg=The backup process completed successfully</computeroutput>
 $ <userinput>start-ds</userinput>
@@ -278,8 +277,7 @@ Has Unsigned Hash:  false
 Has Signed Hash:    false
 Dependent Upon:     none</computeroutput>
 $ <userinput>restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032</userinput>
-<computeroutput>[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
- msg=Restored: 00000000.jdb (size 341835)</computeroutput>
+<computeroutput>[13/Jun/2011:15:47:41 +0200] ... msg=Restored: 00000000.jdb (size 341835)</computeroutput>
 $ <userinput>start-ds</userinput>
 <computeroutput>... The Directory Server has started successfully</computeroutput>
       </screen>
@@ -359,8 +357,7 @@ Has Unsigned Hash:  false
 Has Signed Hash:    false
 Dependent Upon:     none</computeroutput>
 $ <userinput>restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032</userinput>
-<computeroutput>[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
- msg=Restored: 00000000.jdb (size 341835)</computeroutput>
+<computeroutput>[13/Jun/2011:15:47:41 +0200] ... msg=Restored: 00000000.jdb (size 341835)</computeroutput>
 $ <userinput>start-ds</userinput>
 <computeroutput>... The Directory Server has started successfully</computeroutput>
     </screen>
