@@ -22,8 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.quicksetup;
+
 
 /**
  * Class used to describe the Security Options specified by the user.
@@ -82,8 +84,9 @@ public class SecurityOptions
   /**
    * Creates a new instance of a SecurityOptions representing for no certificate
    * (no SSL or Start TLS).
+   *
    * @return a new instance of a SecurityOptions representing for no certificate
-   * (no SSL or Start TLS).
+   *         (no SSL or Start TLS).
    */
   public static SecurityOptions createNoCertificateOptions()
   {
@@ -97,130 +100,174 @@ public class SecurityOptions
   /**
    * Creates a new instance of a SecurityOptions using a self-signed
    * certificate.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
+   *
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
    * @return a new instance of a SecurityOptions using a self-signed
-   * certificate.
+   *         certificate.
    */
   public static SecurityOptions createSelfSignedCertificateOptions(
-      boolean enableSSL, boolean enableStartTLS, int sslPort)
+          boolean enableSSL, boolean enableStartTLS, int sslPort)
   {
-
-    return createSelfSignedCertificateOptions(enableSSL, enableStartTLS,
-        sslPort, SELF_SIGNED_CERT_ALIAS);
+    return createSelfSignedCertificateOptions(enableSSL, enableStartTLS, sslPort, SELF_SIGNED_CERT_ALIAS);
   }
 
   /**
    * Creates a new instance of a SecurityOptions using a self-signed
    * certificate.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the key store to be used.
+   *
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
+   * @param aliasToUse
+   *          the alias of the certificate in the key store to be used.
    * @return a new instance of a SecurityOptions using a self-signed
-   * certificate.
+   *         certificate.
    */
-  public static SecurityOptions createSelfSignedCertificateOptions(
-      boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+  public static SecurityOptions createSelfSignedCertificateOptions(boolean enableSSL, boolean enableStartTLS,
+      int sslPort, String aliasToUse)
   {
-    SecurityOptions ops = new SecurityOptions();
-    ops.setCertificateType(CertificateType.SELF_SIGNED_CERTIFICATE);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        aliasToUse);
-    return ops;
+      return createOptionsForCertificatType(
+              CertificateType.SELF_SIGNED_CERTIFICATE, null, null, enableSSL, enableStartTLS, sslPort, aliasToUse);
   }
 
   /**
    * Creates a new instance of a SecurityOptions using a Java Key Store.
-   * @param keystorePath the path of the key store.
-   * @param keystorePwd the password of the key store.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the key store to be used.
+   *
+   * @param keystorePath
+   *          the path of the key store.
+   * @param keystorePwd
+   *          the password of the key store.
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
+   * @param aliasToUse
+   *          the alias of the certificate in the key store to be used.
    * @return a new instance of a SecurityOptions using a Java Key Store.
    */
-  public static SecurityOptions createJKSCertificateOptions(String keystorePath,
-      String keystorePwd, boolean enableSSL, boolean enableStartTLS,
-      int sslPort, String aliasToUse)
+  public static SecurityOptions createJKSCertificateOptions(String keystorePath, String keystorePwd, boolean enableSSL,
+      boolean enableStartTLS, int sslPort, String aliasToUse)
   {
-    SecurityOptions ops = new SecurityOptions();
-    ops.setCertificateType(CertificateType.JKS);
-    ops.setKeyStorePath(keystorePath);
-    ops.setKeyStorePassword(keystorePwd);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        aliasToUse);
-    return ops;
+    return createOptionsForCertificatType(
+            CertificateType.JKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
   }
 
   /**
    * Creates a new instance of a SecurityOptions using a JCE Key Store.
-   * @param keystorePath the path of the key store.
-   * @param keystorePwd the password of the key store.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the keystore to be used.
+   *
+   * @param keystorePath
+   *          the path of the key store.
+   * @param keystorePwd
+   *          the password of the key store.
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
+   * @param aliasToUse
+   *          the alias of the certificate in the keystore to be used.
    * @return a new instance of a SecurityOptions using a JCE Key Store.
    */
-  public static SecurityOptions createJCEKSCertificateOptions(
-      String keystorePath,
-      String keystorePwd, boolean enableSSL, boolean enableStartTLS,
-      int sslPort, String aliasToUse)
+  public static SecurityOptions createJCEKSCertificateOptions(String keystorePath, String keystorePwd,
+      boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
   {
-    SecurityOptions ops = new SecurityOptions();
-    ops.setCertificateType(CertificateType.JCEKS);
-    ops.setKeyStorePath(keystorePath);
-    ops.setKeyStorePassword(keystorePwd);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        aliasToUse);
-    return ops;
+    return createOptionsForCertificatType(
+            CertificateType.JCEKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
   }
 
 
   /**
    * Creates a new instance of a SecurityOptions using a PKCS#11 Key Store.
-   * @param keystorePwd the password of the key store.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the keystore to be used.
+   *
+   * @param keystorePwd
+   *          the password of the key store.
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
+   * @param aliasToUse
+   *          the alias of the certificate in the keystore to be used.
    * @return a new instance of a SecurityOptions using a PKCS#11 Key Store.
    */
-  public static SecurityOptions createPKCS11CertificateOptions(
-      String keystorePwd, boolean enableSSL, boolean enableStartTLS,
-      int sslPort, String aliasToUse)
+  public static SecurityOptions createPKCS11CertificateOptions(String keystorePwd, boolean enableSSL,
+      boolean enableStartTLS, int sslPort, String aliasToUse)
   {
-    SecurityOptions ops = new SecurityOptions();
-    ops.setCertificateType(CertificateType.PKCS11);
-    ops.setKeyStorePassword(keystorePwd);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        aliasToUse);
-    return ops;
+    return createOptionsForCertificatType(
+            CertificateType.PKCS11, null, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
   }
 
   /**
    * Creates a new instance of a SecurityOptions using a PKCS#12 Key Store.
-   * @param keystorePath the path of the key store.
-   * @param keystorePwd the password of the key store.
-   * @param enableSSL whether SSL is enabled or not.
-   * @param enableStartTLS whether Start TLS is enabled or not.
-   * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the keystore to be used.
+   *
+   * @param keystorePath
+   *          the path of the key store.
+   * @param keystorePwd
+   *          the password of the key store.
+   * @param enableSSL
+   *          whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          whether Start TLS is enabled or not.
+   * @param sslPort
+   *          the value of the LDAPS port.
+   * @param aliasToUse
+   *          the alias of the certificate in the keystore to be used.
    * @return a new instance of a SecurityOptions using a PKCS#12 Key Store.
    */
-  public static SecurityOptions createPKCS12CertificateOptions(
-      String keystorePath, String keystorePwd, boolean enableSSL,
-      boolean enableStartTLS, int sslPort, String aliasToUse)
+  public static SecurityOptions createPKCS12CertificateOptions( String keystorePath, String keystorePwd,
+          boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
   {
-    SecurityOptions ops = new SecurityOptions();
-    ops.setCertificateType(CertificateType.PKCS12);
-    ops.setKeyStorePath(keystorePath);
-    ops.setKeyStorePassword(keystorePwd);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        aliasToUse);
-    return ops;
+    return createOptionsForCertificatType(
+            CertificateType.PKCS12, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
+  }
+
+  /**
+   * Creates a new instance of a SecurityOptions using the provided type Key
+   * Store.
+   *
+   * @param certType
+   *          The Key Store type.
+   * @param keystorePath
+   *          The path of the key store (may be @null).
+   * @param keystorePwd
+   *          The password of the key store.
+   * @param enableSSL
+   *          Whether SSL is enabled or not.
+   * @param enableStartTLS
+   *          Whether Start TLS is enabled or not.
+   * @param sslPort
+   *          The value of the LDAPS port.
+   * @param aliasToUse
+   *          The alias of the certificate in the keystore to be used.
+   * @return a new instance of a SecurityOptions.
+   */
+  public static SecurityOptions createOptionsForCertificatType(CertificateType certType, String keystorePath,
+      String keystorePwd, boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+  {
+      SecurityOptions ops = new SecurityOptions();
+      if (keystorePath != null)
+      {
+        ops.setKeyStorePath(keystorePath);
+      }
+      if (keystorePwd != null)
+      {
+        ops.setKeyStorePassword(keystorePwd);
+      }
+      ops.setCertificateType(certType);
+      updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort, aliasToUse);
+      return ops;
   }
 
   /**
@@ -372,4 +419,5 @@ public class SecurityOptions
   {
     this.aliasToUse = aliasToUse;
   }
+
 }
