@@ -730,6 +730,11 @@ public class InstallDS extends ConsoleApplication
     }
     checkBaseDN(dmDN, errorMessages);
     uData.setDirectoryManagerDn(argParser.directoryManagerDNArg.getValue());
+
+    // Check the validity of the directory manager password
+    if (argParser.getDirectoryManagerPassword().isEmpty()) {
+      errorMessages.add(INFO_EMPTY_PWD.get());
+    }
     uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
   }
 
