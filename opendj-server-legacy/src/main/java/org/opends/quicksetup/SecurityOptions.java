@@ -256,6 +256,11 @@ public class SecurityOptions
   public static SecurityOptions createOptionsForCertificatType(CertificateType certType, String keystorePath,
       String keystorePwd, boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
   {
+      if (certType == CertificateType.NO_CERTIFICATE)
+      {
+        return createNoCertificateOptions();
+      }
+
       SecurityOptions ops = new SecurityOptions();
       if (keystorePath != null)
       {
