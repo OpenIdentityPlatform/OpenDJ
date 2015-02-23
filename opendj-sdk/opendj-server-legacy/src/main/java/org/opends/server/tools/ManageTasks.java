@@ -28,10 +28,9 @@ package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
-
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.InitializationException;
@@ -68,6 +67,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.opends.messages.ToolMessages.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
@@ -209,6 +209,8 @@ public class ManageTasks extends ConsoleApplication {
     {
       DirectoryServer.bootstrapClient();
     }
+    JDKLogging.disableLogging();
+
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
