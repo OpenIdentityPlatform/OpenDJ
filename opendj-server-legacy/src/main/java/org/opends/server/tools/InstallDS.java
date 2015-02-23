@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2011 profiq s.r.o.
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -31,9 +31,12 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 import static com.forgerock.opendj.cli.Utils.canWrite;
+
 import static org.forgerock.util.Utils.joinAsString;
+
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.BufferedReader;
@@ -102,8 +105,9 @@ import com.forgerock.opendj.cli.MenuResult;
  */
 public class InstallDS extends ConsoleApplication
 {
-  private final PlainTextProgressMessageFormatter formatter =
-    new PlainTextProgressMessageFormatter();
+
+  private final PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
+
   /** Prefix for log files. */
   public static final String TMP_FILE_PREFIX = "opendj-setup-";
 
@@ -114,52 +118,39 @@ public class InstallDS extends ConsoleApplication
    * The enumeration containing the different return codes that the command-line
    * can have.
    */
-  enum ErrorReturnCode
+  private enum InstallReturnCode
   {
-    /**
-     * Successful setup.
-     */
     SUCCESSFUL(0),
-    /**
-     * We did no have an error but the setup was not executed (displayed
-     * version or usage).
-     */
+
+    /** We did no have an error but the setup was not executed (displayed version or usage). */
     SUCCESSFUL_NOP(0),
-    /**
-     * Unexpected error (potential bug).
-     */
+
+    /** Unexpected error (potential bug). */
     ERROR_UNEXPECTED(1),
-    /**
-     * Cannot parse arguments or data provided by user is not valid.
-     */
+
+    /** Cannot parse arguments or data provided by user is not valid. */
     ERROR_USER_DATA(2),
-    /**
-     * Error server already installed.
-     */
+
+    /** Error server already installed. */
     ERROR_SERVER_ALREADY_INSTALLED(3),
-    /**
-     * Error initializing server.
-     */
+
+    /** Error initializing server. */
     ERROR_INITIALIZING_SERVER(4),
-    /**
-     * The user failed providing password (for the keystore for instance).
-     */
+
+    /** The user failed providing password (for the keystore for instance). */
     ERROR_PASSWORD_LIMIT(5),
-    /**
-     * The user cancelled the setup.
-     */
+
+    /** The user cancelled the setup. */
     ERROR_USER_CANCELLED(6),
-    /**
-     * The user doesn't accept the license.
-     */
+
+    /** The user doesn't accept the license. */
     ERROR_LICENSE_NOT_ACCEPTED(7),
-    /**
-     * Incompatible java version.
-     */
+
+    /** Incompatible java version. */
     JAVA_VERSION_INCOMPATIBLE(8);
 
     private int returnCode;
-    private ErrorReturnCode(int returnCode)
+    private InstallReturnCode(int returnCode)
     {
       this.returnCode = returnCode;
     }
@@ -176,20 +167,16 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Enumeration describing the different answer that the user can provide
-   * when we ask to finalize the setup.  Note that the code associated
-   * correspond to the order in the confirmation menu that is displayed at the
-   * end of the setup in interactive mode.
+   * Enumeration describing the different answer that the user can provide when
+   * we ask to finalize the setup. Note that the code associated correspond to
+   * the order in the confirmation menu that is displayed at the end of the
+   * setup in interactive mode.
    */
   private enum ConfirmCode
   {
-    /** Continue with the install. */
     CONTINUE(1),
-    /** Provide information again. */
     PROVIDE_INFORMATION_AGAIN(2),
-    /** Display equivalent command-line. */
     PRINT_EQUIVALENT_COMMAND_LINE(3),
-    /** Cancel the install. */
     CANCEL(3);
 
     private int returnCode;
@@ -240,9 +227,12 @@ public class InstallDS extends ConsoleApplication
   /**
    * Constructor for the InstallDS object.
    *
-   * @param out the print stream to use for standard output.
-   * @param err the print stream to use for standard error.
-   * @param in the input stream to use for standard input.
+   * @param out
+   *          the print stream to use for standard output.
+   * @param err
+   *          the print stream to use for standard error.
+   * @param in
+   *          the input stream to use for standard input.
    */
   public InstallDS(PrintStream out, PrintStream err, InputStream in)
   {
@@ -252,21 +242,22 @@ public class InstallDS extends ConsoleApplication
   /**
    * The main method for the InstallDS CLI tool.
    *
-   * @param args the command-line arguments provided to this program.
+   * @param args
+   *          the command-line arguments provided to this program.
    */
   public static void main(String[] args)
   {
-    int retCode = mainCLI(args, System.out, System.err, System.in);
+    final int retCode = mainCLI(args, System.out, System.err, System.in);
 
     System.exit(retCode);
   }
 
   /**
-   * Parses the provided command-line arguments and uses that information to
-   * run the setup tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the setup tool.
    *
-   * @param args the command-line arguments provided to this program.
-   *
+   * @param args
+   *          the command-line arguments provided to this program.
    * @return The error code.
    */
   public static int mainCLI(String[] args)
@@ -275,48 +266,49 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Parses the provided command-line arguments and uses that information to
-   * run the setup tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the setup tool.
    *
-   * @param  args              The command-line arguments provided to this
-   *                           program.
-   * @param  outStream         The output stream to use for standard output, or
-   *                           <CODE>null</CODE> if standard output is not
-   *                           needed.
-   * @param  errStream         The output stream to use for standard error, or
-   *                           <CODE>null</CODE> if standard error is not
-   *                           needed.
-   * @param  inStream          The input stream to use for standard input.
+   * @param args
+   *          The command-line arguments provided to this program.
+   * @param outStream
+   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          if standard output is not needed.
+   * @param errStream
+   *          The output stream to use for standard error, or <CODE>null</CODE>
+   *          if standard error is not needed.
+   * @param inStream
+   *          The input stream to use for standard input.
    * @return The error code.
    */
-  public static int mainCLI(String[] args,
-      OutputStream outStream, OutputStream errStream, InputStream inStream)
+  public static int mainCLI(String[] args, OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
-    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
-    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     try {
       QuickSetupLog.initLogFileHandler(
               QuickSetupLog.isInitialized() ? null :
                 File.createTempFile(TMP_FILE_PREFIX, LOG_FILE_SUFFIX));
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
 
-    InstallDS install = new InstallDS(out, err, inStream);
+    final InstallDS install = new InstallDS(out, err, inStream);
 
     return install.execute(args);
   }
 
   /**
-   * Parses the provided command-line arguments and uses that information to
-   * run the setup CLI.
+   * Parses the provided command-line arguments and uses that information to run
+   * the setup CLI.
    *
-   * @param args the command-line arguments provided to this program.
+   * @param args
+   *          the command-line arguments provided to this program.
    * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG).
    */
   public int execute(String[] args)
@@ -326,12 +318,10 @@ public class InstallDS extends ConsoleApplication
     {
       argParser.initializeArguments();
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message =
-        ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      println(message);
-      return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
+      println(ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      return InstallReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
     // Validate user provided data
@@ -339,215 +329,59 @@ public class InstallDS extends ConsoleApplication
     {
       argParser.parseArguments(args);
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      println(message);
+      println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       println();
       println(LocalizableMessage.raw(argParser.getUsage()));
 
-      return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
+      return InstallReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    // Delete the log file that does not contain any information.  The test only
-    // mode is called several times by the setup script and if we do not remove
-    // it we have a lot of empty log files.
-    if (argParser.testOnlyArg.isPresent())
+    if (argParser.testOnlyArg.isPresent() && !testJVM())
     {
-      try
-      {
-        QuickSetupLog.getLogFile().deleteOnExit();
-      }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "+
-            "the set-java-home file in test only mode: "+t, t));
-      }
-      // Test that we are running a compatible java 1.6 version.
-      try
-      {
-        Utils.checkJavaVersion();
-      }
-      catch (IncompatibleVersionException ive)
-      {
-        println(ive.getMessageObject());
-        return ErrorReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
-      }
+        return InstallReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
     }
 
-    // If either the showUsage or testOnly or version arguments were provided,
-    // then we're done.
     if (argParser.usageOrVersionDisplayed() ||
         argParser.testOnlyArg.isPresent())
     {
-      return ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
+      return InstallReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
 
     try
     {
       checkInstallStatus();
     }
-    catch (InitializationException ie)
+    catch (final InitializationException ie)
     {
       println(ie.getMessageObject());
-      return ErrorReturnCode.ERROR_SERVER_ALREADY_INSTALLED.getReturnCode();
+      return InstallReturnCode.ERROR_SERVER_ALREADY_INSTALLED.getReturnCode();
     }
 
-    // Check license
-    if (LicenseFile.exists())
+    if (!checkLicense())
     {
-      PrintStream printStreamOut = getOutputStream();
-      String licenseString = LicenseFile.getText();
-      printStreamOut.println(licenseString);
-      // If the user asks for acceptLicense, license is displayed
-      // and automatically accepted.
-      if (! argParser.acceptLicense.isPresent())
-      {
-        String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
-        String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
-        String yesShort = INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString();
-        String noShort = INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString();
-        println(QuickSetupMessages.
-            INFO_LICENSE_DETAILS_CLI_LABEL.get());
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(getInputStream()));
-
-        // No-prompt arg automatically rejects the license.
-        if (!argParser.noPromptArg.isPresent())
-        {
-          while (true)
-          {
-            print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes, no, no));
-            try
-            {
-              String response = in.readLine();
-              if (response == null
-                  || response.equalsIgnoreCase(no)
-                  || response.equalsIgnoreCase(noShort)
-                  || response.length() == 0)
-              {
-                return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
-              }
-              else if (response.equalsIgnoreCase(yes)
-                  || response.equalsIgnoreCase(yesShort))
-              {
-                LicenseFile.setApproval(true);
-                break;
-              }
-              else
-              {
-                println(
-                    QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
-                    .get());
-              }
-            }
-            catch (IOException e)
-            {
-              println(
-                  QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE
-                  .get());
-            }
-          }
-        }
-        else
-        {
-          return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
-        }
-      }
-      else
-      {
-        print(INFO_LICENSE_ACCEPT.get());
-        print(INFO_PROMPT_YES_COMPLETE_ANSWER.get());
-        LicenseFile.setApproval(true);
-      }
+      return InstallReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
     }
 
-    boolean userApproved = false;
-
-    UserData uData = new UserData();
-    while (!userApproved)
+    final UserData uData = new UserData();
+    InstallReturnCode fillUserDataRC;
+    try
     {
-      try
+      fillUserDataRC = fillUserData(uData, args);
+      if (fillUserDataRC != InstallReturnCode.SUCCESSFUL)
       {
-        if (isInteractive())
-        {
-          promptIfRequired(uData);
-        }
-        else
-        {
-          initializeUserDataWithParser(uData);
-        }
-      }
-      catch (ClientException ce)
-      {
-        println(ce.getMessageObject());
-        if (isPasswordTriesError(ce.getMessageObject()))
-        {
-          return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
-        }
-        else
-        {
-          return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
-        }
-      }
-      catch (UserDataException ude)
-      {
-        println(ude.getMessageObject());
-        if (isPasswordTriesError(ude.getMessageObject()))
-        {
-          return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
-        }
-        else
-        {
-          return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
-        }
-      }
-      boolean promptAgain = true;
-      if (!isInteractive())
-      {
-        userApproved = true;
-      }
-      else
-      {
-        printSummary(uData);
-      }
-      while (isInteractive() && promptAgain)
-      {
-        promptAgain = false;
-        ConfirmCode confirm = askForConfirmation();
-        switch (confirm)
-        {
-        case CONTINUE:
-          userApproved = true;
-          break;
-        case CANCEL:
-          logger.debug(LocalizableMessage.raw("User cancelled setup."));
-          return ErrorReturnCode.ERROR_USER_CANCELLED.getReturnCode();
-        case PRINT_EQUIVALENT_COMMAND_LINE:
-          printEquivalentCommandLine(uData);
-          promptAgain = true;
-          break;
-        default:
-          // Reset the arguments
-          try
-          {
-            resetArguments(uData);
-            argParser.parseArguments(args);
-          }
-          catch (Throwable t)
-          {
-            logger.warn(LocalizableMessage.raw("Error resetting arg parser: "+t, t));
-          }
-          userApproved = false;
-        }
-      }
-      if (!isInteractive())
-      {
-        userApproved = true;
+        return fillUserDataRC.getReturnCode();
       }
     }
+    catch (final UserDataException e)
+    {
+      return printAndReturnErrorCode(e.getMessageObject()).getReturnCode();
+    }
+
+
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
-    OfflineInstaller installer = new OfflineInstaller();
+    final OfflineInstaller installer = new OfflineInstaller();
     installer.setUserData(uData);
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(
@@ -563,48 +397,216 @@ public class InstallDS extends ConsoleApplication
     println();
 
     installer.run();
+    printStatusCommand();
 
-    ApplicationException ue = installer.getRunError();
+    final ApplicationException ue = installer.getRunError();
+    if (ue != null)
+    {
+      return ue.getType().getReturnCode();
+    }
 
+    return InstallReturnCode.SUCCESSFUL.getReturnCode();
+  }
+
+  private InstallReturnCode fillUserData(UserData uData, String[] args) throws UserDataException
+  {
+    if (!isInteractive())
+    {
+      initializeUserDataWithParser(uData);
+      return InstallReturnCode.SUCCESSFUL;
+    }
+
+    boolean userApproved = false;
+    while (!userApproved)
+    {
+      try
+      {
+        promptIfRequired(uData);
+      }
+      catch (final ClientException ce)
+      {
+        return printAndReturnErrorCode(ce.getMessageObject());
+      }
+
+      boolean promptAgain = true;
+      printSummary(uData);
+      while (isInteractive() && promptAgain)
+      {
+        promptAgain = false;
+        final ConfirmCode confirm = askForConfirmation();
+        switch (confirm)
+        {
+        case CONTINUE:
+          userApproved = true;
+          break;
+
+        case CANCEL:
+          logger.debug(LocalizableMessage.raw("User cancelled setup."));
+          return InstallReturnCode.ERROR_USER_CANCELLED;
+
+        case PRINT_EQUIVALENT_COMMAND_LINE:
+          printEquivalentCommandLine(uData);
+          promptAgain = true;
+          break;
+
+        case PROVIDE_INFORMATION_AGAIN:
+          // Reset the arguments
+          try
+          {
+            resetArguments(uData);
+            argParser.parseArguments(args);
+          }
+          catch (final Throwable t)
+          {
+            logger.warn(LocalizableMessage.raw("Error resetting arg parser: "+t, t));
+          }
+          userApproved = false;
+        }
+      }
+    }
+
+    return InstallReturnCode.SUCCESSFUL;
+  }
+
+  private boolean testJVM()
+  {
+    // Delete the log file that does not contain any information.  The test only
+    // mode is called several times by the setup script and if we do not remove
+    // it we have a lot of empty log files.
+    try
+    {
+      QuickSetupLog.getLogFile().deleteOnExit();
+    }
+    catch (final Throwable t)
+    {
+      logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "
+          + "the set-java-home file in test only mode: " + t, t));
+    }
+    // Test that we are running a compatible java 1.6 version.
+    try
+    {
+      Utils.checkJavaVersion();
+    }
+    catch (final IncompatibleVersionException ive)
+    {
+      println(ive.getMessageObject());
+      return false;
+    }
+
+    return true;
+  }
+
+  private boolean checkLicense()
+  {
+    if (!LicenseFile.exists()) {
+      return true;
+    }
+
+    final PrintStream printStreamOut = getOutputStream();
+    final String licenseString = LicenseFile.getText();
+    printStreamOut.println(licenseString);
+    // If the user asks for acceptLicense, license is displayed
+    // and automatically accepted.
+    if (!argParser.acceptLicense.isPresent())
+    {
+      final String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
+      final String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
+      final String yesShort = INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString();
+      final String noShort = INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString();
+      println(QuickSetupMessages.INFO_LICENSE_DETAILS_CLI_LABEL.get());
+
+      final BufferedReader in = new BufferedReader(new InputStreamReader(getInputStream()));
+
+      // No-prompt arg automatically rejects the license.
+      if (!argParser.noPromptArg.isPresent())
+      {
+        while (true)
+        {
+          print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes, no, no));
+          try
+          {
+            final String response = in.readLine();
+            if (response == null
+                || response.equalsIgnoreCase(no)
+                || response.equalsIgnoreCase(noShort)
+                || response.length() == 0)
+            {
+              return false;
+            }
+            else if (response.equalsIgnoreCase(yes)
+                  || response.equalsIgnoreCase(yesShort))
+            {
+              LicenseFile.setApproval(true);
+              break;
+            }
+            println(QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+          }
+          catch (final IOException e)
+          {
+            println(QuickSetupMessages.INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+          }
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else
+    {
+      print(INFO_LICENSE_ACCEPT.get());
+      print(INFO_PROMPT_YES_COMPLETE_ANSWER.get());
+      LicenseFile.setApproval(true);
+    }
+
+    return true;
+  }
+
+  private void printStatusCommand()
+  {
     String cmd;
     // Use this instead a call to Installation to avoid to launch a new JVM
     // just to retrieve a path.
-    String root = Utils.getInstallPathFromClasspath();
+    final String root = Utils.getInstallPathFromClasspath();
     if (isWindows())
     {
-      String binDir = Utils.getPath(root,
+      final String binDir = Utils.getPath(root,
           Installation.WINDOWS_BINARIES_PATH_RELATIVE);
       cmd = Utils.getPath(binDir, Installation.WINDOWS_STATUSCLI_FILE_NAME);
     }
     else
     {
-      String binDir = Utils.getPath(root,
+      final String binDir = Utils.getPath(root,
           Installation.UNIX_BINARIES_PATH_RELATIVE);
       cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
     }
     println();
     println(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
     println();
+  }
 
-    if (ue != null)
+
+  private InstallReturnCode printAndReturnErrorCode(LocalizableMessage message)
+  {
+    println(message);
+    if (StaticUtils.hasDescriptor(message, ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES))
     {
-      return ue.getType().getReturnCode();
+      return InstallReturnCode.ERROR_PASSWORD_LIMIT;
     }
-    else
-    {
-      return ErrorReturnCode.SUCCESSFUL.getReturnCode();
-    }
+
+    return InstallReturnCode.ERROR_USER_DATA;
   }
 
   /**
    * Checks if the server is installed or not.
-   * @throws InitializationException if the server is already installed and
-   * configured or if the user did not accept to overwrite the existing
-   * databases.
+   *
+   * @throws InitializationException
+   *           if the server is already installed and configured or if the user
+   *           did not accept to overwrite the existing databases.
    */
   private void checkInstallStatus() throws InitializationException
   {
-    CurrentInstallStatus installStatus = new CurrentInstallStatus();
+    final CurrentInstallStatus installStatus = new CurrentInstallStatus();
     if (installStatus.canOverwriteCurrentInstall())
     {
       if (isInteractive())
@@ -617,7 +619,7 @@ public class InstallDS extends ConsoleApplication
             throw new InitializationException(LocalizableMessage.EMPTY, null);
           }
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.error(LocalizableMessage.raw("Unexpected error: "+ce, ce));
           throw new InitializationException(LocalizableMessage.EMPTY, null);
@@ -630,8 +632,7 @@ public class InstallDS extends ConsoleApplication
     }
     else if (installStatus.isInstalled())
     {
-      throw new InitializationException(installStatus.getInstallationMsg(),
-          null);
+      throw new InitializationException(installStatus.getInstallationMsg(), null);
     }
   }
 
@@ -676,64 +677,82 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * This method updates the contents of a UserData object with what the user
-   * specified in the command-line.  It assumes that it is being called in no
+   * specified in the command-line. It assumes that it is being called in no
    * prompt mode.
-   * @param uData the UserData object.
-   * @throws UserDataException if something went wrong checking the data.
+   *
+   * @param uData
+   *          the UserData object.
+   * @throws UserDataException
+   *           if something went wrong checking the data.
    */
-  private void initializeUserDataWithParser(UserData uData)
-  throws UserDataException
+  private void initializeUserDataWithParser(UserData uData) throws UserDataException
   {
-    List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
-    //  Check the validity of the directory manager DNs
-    String dmDN = argParser.directoryManagerDNArg.getValue();
 
-    try
-    {
-      new LdapName(dmDN);
-      if (dmDN.trim().length() == 0)
-      {
-        errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
-      }
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-        ERR_INSTALLDS_CANNOT_PARSE_DN.get(dmDN, e.getMessage());
-      errorMessages.add(message);
-    }
-    uData.setDirectoryManagerDn(dmDN);
-    uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
+    final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+    final List<String> baseDNs = checkBaseDNs(errorMessages);
+    setDirectoryManagerData(uData, errorMessages);
+    setPorts(uData, errorMessages);
+    setImportData(baseDNs, uData, errorMessages);
+    setSecurityData(uData, errorMessages);
 
-    // Check the validity of the base DNs
-    List<String> baseDNs = argParser.baseDNArg.getValues();
+    if (!errorMessages.isEmpty())
+    {
+      throw new UserDataException(null,
+          Utils.getMessageFromCollection(errorMessages, formatter.getLineBreak().toString()));
+    }
+  }
+
+  private List<String> checkBaseDNs(List<LocalizableMessage> errorMessages)
+  {
+    final List<String> baseDNs = argParser.baseDNArg.getValues();
     if (baseDNs.isEmpty() && argParser.baseDNArg.getDefaultValue() != null)
     {
       baseDNs.add(argParser.baseDNArg.getDefaultValue());
     }
-    for (String baseDN : baseDNs)
+
+    for (final String baseDN : baseDNs)
     {
-      try
-      {
-        new LdapName(baseDN);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-          ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN, e.getMessage());
-        errorMessages.add(message);
-      }
+      checkBaseDN(baseDN, errorMessages);
     }
 
+    return baseDNs;
+  }
+
+  private void setDirectoryManagerData(UserData uData, List<LocalizableMessage> errorMessages)
+  {
+    final String dmDN = argParser.directoryManagerDNArg.getValue();
+    if (dmDN.trim().length() == 0)
+    {
+      errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
+    }
+    checkBaseDN(dmDN, errorMessages);
+    uData.setDirectoryManagerDn(argParser.directoryManagerDNArg.getValue());
+    uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
+  }
+
+  private void checkBaseDN(String baseDN, List<LocalizableMessage> errorMessages)
+  {
     try
     {
-      int ldapPort = argParser.ldapPortArg.getIntValue();
+      new LdapName(baseDN);
+    }
+    catch (final Exception e)
+    {
+      errorMessages.add(ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN, e.getMessage()));
+    }
+  }
+
+  private void setPorts(UserData uData, List<LocalizableMessage> errorMessages)
+  {
+    try
+    {
+      final int ldapPort = argParser.ldapPortArg.getIntValue();
       uData.setServerPort(ldapPort);
 
-      int adminConnectorPort = argParser.adminConnectorPortArg.getIntValue();
+      final int adminConnectorPort = argParser.adminConnectorPortArg.getIntValue();
       uData.setAdminConnectorPort(adminConnectorPort);
 
       if (!argParser.skipPortCheckArg.isPresent())
@@ -743,7 +762,7 @@ public class InstallDS extends ConsoleApplication
       }
       if (argParser.jmxPortArg.isPresent())
       {
-        int jmxPort = argParser.jmxPortArg.getIntValue();
+        final int jmxPort = argParser.jmxPortArg.getIntValue();
         uData.setServerJMXPort(jmxPort);
         if (!argParser.skipPortCheckArg.isPresent())
         {
@@ -751,41 +770,44 @@ public class InstallDS extends ConsoleApplication
         }
       }
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
       errorMessages.add(ae.getMessageObject());
     }
+  }
 
-
-
+  private void setImportData(List<String> baseDNs, UserData uData, List<LocalizableMessage> errorMessages)
+  {
     NewSuffixOptions dataOptions;
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      List<String> nonExistingFiles = new LinkedList<String>();
-      for (String file : argParser.importLDIFArg.getValues())
+      final List<String> nonExistingFiles = new LinkedList<String>();
+      for (final String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
         {
           nonExistingFiles.add(file);
         }
       }
+
       if (nonExistingFiles.size() > 0)
       {
         errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
-      String rejectedFile = argParser.rejectedImportFileArg.getValue();
+
+      final String rejectedFile = argParser.rejectedImportFileArg.getValue();
       if (rejectedFile != null && !canWrite(rejectedFile))
       {
         errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
       }
-      String skippedFile = argParser.skippedImportFileArg.getValue();
+
+      final String skippedFile = argParser.skippedImportFileArg.getValue();
       if (skippedFile != null && !canWrite(skippedFile))
       {
         errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
       }
-      dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
-          argParser.importLDIFArg.getValues(),
+      dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs, argParser.importLDIFArg.getValues(),
           rejectedFile, skippedFile);
     }
     else if (argParser.addBaseEntryArg.isPresent())
@@ -802,98 +824,83 @@ public class InstallDS extends ConsoleApplication
       dataOptions = NewSuffixOptions.createEmpty(baseDNs);
     }
     uData.setNewSuffixOptions(dataOptions);
+  }
 
-    // Check that the security data provided is valid.
-    String certNickname = argParser.certNicknameArg.getValue();
-    String pwd = argParser.getKeyStorePassword();
-    boolean enableSSL = argParser.ldapsPortArg.isPresent();
-    boolean enableStartTLS = argParser.enableStartTLSArg.isPresent();
-    int ldapsPort = -1;
+  private void setSecurityData(UserData uData, List<LocalizableMessage> errorMessages)
+  {
+    final boolean enableSSL = argParser.ldapsPortArg.isPresent();
+    int sslPort = -1;
 
     try
     {
-      ldapsPort = enableSSL ? argParser.ldapsPortArg.getIntValue() : -1;
+      sslPort = enableSSL ? argParser.ldapsPortArg.getIntValue() : -1;
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
       errorMessages.add(ae.getMessageObject());
     }
+
     if (enableSSL && !argParser.skipPortCheckArg.isPresent())
     {
-      checkCanUsePort(ldapsPort, errorMessages);
+      checkCanUsePort(sslPort, errorMessages);
     }
-    SecurityOptions securityOptions;
-    LinkedList<String> keystoreAliases = new LinkedList<String>();
+
+    checkCertificate(sslPort, enableSSL, uData, errorMessages);
+    uData.setEnableWindowsService(argParser.enableWindowsServiceArg.isPresent());
+    uData.setStartServer(!argParser.doNotStartArg.isPresent());
+  }
+
+  private void checkCertificate(int sslPort, boolean enableSSL, UserData uData, List<LocalizableMessage> errorMessages)
+  {
+    final LinkedList<String> keystoreAliases = new LinkedList<String>();
     uData.setHostName(argParser.hostNameArg.getValue());
+
+    final boolean enableStartTLS = argParser.enableStartTLSArg.isPresent();
+    final String pwd = argParser.getKeyStorePassword();
+    SecurityOptions.CertificateType certType = null;
+    String pathToCertificat = null;
     if (argParser.generateSelfSignedCertificateArg.isPresent())
     {
-      securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
-          enableSSL, enableStartTLS, ldapsPort);
+      certType = SecurityOptions.CertificateType.SELF_SIGNED_CERTIFICATE;
     }
     else if (argParser.useJavaKeyStoreArg.isPresent())
     {
-      String path = argParser.useJavaKeyStoreArg.getValue();
-      checkCertificateInKeystore(SecurityOptions.CertificateType.JKS, path, pwd,
-          certNickname, errorMessages, keystoreAliases);
-      if (certNickname == null && !keystoreAliases.isEmpty())
-      {
-        certNickname = keystoreAliases.getFirst();
-      }
-      securityOptions = SecurityOptions.createJKSCertificateOptions(
-          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+      certType = SecurityOptions.CertificateType.JKS;
+      pathToCertificat = argParser.useJavaKeyStoreArg.getValue();
     }
     else if (argParser.useJCEKSArg.isPresent())
     {
-      String path = argParser.useJCEKSArg.getValue();
-      checkCertificateInKeystore(SecurityOptions.CertificateType.JCEKS, path,
-          pwd, certNickname, errorMessages, keystoreAliases);
-      if (certNickname == null && !keystoreAliases.isEmpty())
-      {
-        certNickname = keystoreAliases.getFirst();
-      }
-      securityOptions = SecurityOptions.createJCEKSCertificateOptions(
-          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
-    }
-    else if (argParser.usePkcs12Arg.isPresent())
-    {
-      String path = argParser.usePkcs12Arg.getValue();
-      checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS12, path,
-          pwd, certNickname, errorMessages, keystoreAliases);
-      if (certNickname == null && !keystoreAliases.isEmpty())
-      {
-        certNickname = keystoreAliases.getFirst();
-      }
-      securityOptions = SecurityOptions.createPKCS12CertificateOptions(
-          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+      certType = SecurityOptions.CertificateType.JCEKS;
+      pathToCertificat = argParser.useJCEKSArg.getValue();
     }
     else if (argParser.usePkcs11Arg.isPresent())
     {
-      checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS11, null,
-          pwd, certNickname, errorMessages, keystoreAliases);
+      certType = SecurityOptions.CertificateType.PKCS11;
+      pathToCertificat = argParser.usePkcs11Arg.getValue();
+    }
+    else if (argParser.usePkcs12Arg.isPresent())
+    {
+      certType = SecurityOptions.CertificateType.PKCS12;
+      pathToCertificat = argParser.usePkcs12Arg.getValue();
+    }
+    else
+    {
+      certType = SecurityOptions.CertificateType.NO_CERTIFICATE;
+    }
+
+    String certNickname = argParser.certNicknameArg.getValue();
+    if (pathToCertificat != null)
+    {
+      checkCertificateInKeystore(certType, pathToCertificat, pwd, certNickname, errorMessages, keystoreAliases);
       if (certNickname == null && !keystoreAliases.isEmpty())
       {
         certNickname = keystoreAliases.getFirst();
       }
-      securityOptions = SecurityOptions.createPKCS11CertificateOptions(
-          pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
     }
-    else
-    {
-      securityOptions = SecurityOptions.createNoCertificateOptions();
-    }
+
+    final SecurityOptions securityOptions = SecurityOptions.createOptionsForCertificatType(
+        certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNickname);
     uData.setSecurityOptions(securityOptions);
-
-    uData.setEnableWindowsService(
-        argParser.enableWindowsServiceArg.isPresent());
-    uData.setStartServer(!argParser.doNotStartArg.isPresent());
-
-
-    if (errorMessages.size() > 0)
-    {
-      throw new UserDataException(null,
-          Utils.getMessageFromCollection(errorMessages,
-              formatter.getLineBreak().toString()));
-    }
   }
 
   private void checkCanUsePort(int port, List<LocalizableMessage> errorMessages)
@@ -918,10 +925,14 @@ public class InstallDS extends ConsoleApplication
    * specified in the command-line. If the user did not provide explicitly some
    * data or if the provided data is not valid, it prompts the user to provide
    * it.
-   * @param uData the UserData object to be updated.
-   * @throws UserDataException if the user did not manage to provide the
-   * keystore password after a certain number of tries.
-   * @throws ClientException if something went wrong when reading inputs.
+   *
+   * @param uData
+   *          the UserData object to be updated.
+   * @throws UserDataException
+   *           if the user did not manage to provide the keystore password after
+   *           a certain number of tries.
+   * @throws ClientException
+   *           if something went wrong when reading inputs.
    */
   private void promptIfRequired(UserData uData) throws UserDataException, ClientException
   {
@@ -939,17 +950,21 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the Directory Manager parameters.
-   * If the user did not provide explicitly some data or if the provided data is
-   * not valid, it prompts the user to provide it.
-   * @param uData the UserData object to be updated.
-   * @throws UserDataException if something went wrong checking the data.
-   * @throws ClientException if something went wrong checking passwords.
+   * specified in the command-line for the Directory Manager parameters. If the
+   * user did not provide explicitly some data or if the provided data is not
+   * valid, it prompts the user to provide it.
+   *
+   * @param uData
+   *          the UserData object to be updated.
+   * @throws UserDataException
+   *           if something went wrong checking the data.
+   * @throws ClientException
+   *           if something went wrong checking passwords.
    */
   private void promptIfRequiredForDirectoryManager(UserData uData)
-  throws UserDataException, ClientException
+      throws UserDataException, ClientException
   {
-    LinkedList<String> dns = promptIfRequiredForDNs(
+    final LinkedList<String> dns = promptIfRequiredForDNs(
         argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(),
         true);
     uData.setDirectoryManagerDn(dns.getFirst());
@@ -960,8 +975,7 @@ public class InstallDS extends ConsoleApplication
     {
       if (nTries >= CONFIRMATION_MAX_TRIES)
       {
-        throw new UserDataException(null,
-            ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+        throw new UserDataException(null, ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
       }
       char[] pwd1 = null;
 
@@ -978,7 +992,7 @@ public class InstallDS extends ConsoleApplication
         }
       }
 
-      char[] pwd2 = readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
+      final char[] pwd2 = readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
       if (Arrays.equals(pwd1, pwd2))
       {
         pwd = String.valueOf(pwd1);
@@ -1008,7 +1022,7 @@ public class InstallDS extends ConsoleApplication
   private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
       LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
   {
-    LinkedList<String> dns = new LinkedList<String>();
+    final LinkedList<String> dns = new LinkedList<String>();
 
     boolean usedProvided = false;
     boolean firstPrompt = true;
@@ -1029,12 +1043,12 @@ public class InstallDS extends ConsoleApplication
         }
         try
         {
-          String dn = readInput(promptMsg, arg.getDefaultValue());
+          final String dn = readInput(promptMsg, arg.getDefaultValue());
           firstPrompt = false;
           dns.add(dn);
           prompted = true;
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1044,8 +1058,8 @@ public class InstallDS extends ConsoleApplication
         dns.addAll(arg.getValues());
         usedProvided = true;
       }
-      List<String> toRemove = new LinkedList<String>();
-      for (String dn : dns)
+      final List<String> toRemove = new LinkedList<String>();
+      for (final String dn : dns)
       {
         try
         {
@@ -1056,10 +1070,10 @@ public class InstallDS extends ConsoleApplication
             println(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
           }
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
           toRemove.add(dn);
-          LocalizableMessage message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
+          final LocalizableMessage message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
             ERR_INSTALLDS_CANNOT_PARSE_DN.get(dn, e.getMessage());
           println(message);
         }
@@ -1087,15 +1101,15 @@ public class InstallDS extends ConsoleApplication
   {
     uData.setHostName(promptForHostNameIfRequired());
 
-    List<Integer> usedPorts = new LinkedList<Integer>();
+    final List<Integer> usedPorts = new LinkedList<Integer>();
     //  Determine the LDAP port number.
-    int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
+    final int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
         INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
     uData.setServerPort(ldapPort);
     usedPorts.add(ldapPort);
 
     //  Determine the Admin Connector port number.
-    int adminConnectorPort =
+    final int adminConnectorPort =
       promptIfRequiredForPortData(argParser.adminConnectorPortArg,
         INFO_INSTALLDS_PROMPT_ADMINCONNECTORPORT.get(), usedPorts, true);
     uData.setAdminConnectorPort(adminConnectorPort);
@@ -1103,7 +1117,7 @@ public class InstallDS extends ConsoleApplication
 
     if (argParser.jmxPortArg.isPresent())
     {
-      int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg,
+      final int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg,
           INFO_INSTALLDS_PROMPT_JMXPORT.get(), usedPorts, true);
       uData.setServerJMXPort(jmxPort);
     }
@@ -1155,7 +1169,7 @@ public class InstallDS extends ConsoleApplication
             {
               portNumber = readPort(promptMsg, defaultValue);
             }
-            catch (ClientException ce)
+            catch (final ClientException ce)
             {
               portNumber = -1;
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1173,7 +1187,7 @@ public class InstallDS extends ConsoleApplication
         if (!argParser.skipPortCheckArg.isPresent()
             && !SetupUtils.canUseAsPort(portNumber))
         {
-          LocalizableMessage message = getCannotBindErrorMessage(portNumber);
+          final LocalizableMessage message = getCannotBindErrorMessage(portNumber);
           if (prompted || includeLineBreak)
           {
             println();
@@ -1192,7 +1206,7 @@ public class InstallDS extends ConsoleApplication
           portNumber = -1;
         }
       }
-      catch (ArgumentException ae)
+      catch (final ArgumentException ae)
       {
         println(ae.getMessageObject());
       }
@@ -1222,7 +1236,7 @@ public class InstallDS extends ConsoleApplication
         prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(),
             true);
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         prompt = true;
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1231,13 +1245,13 @@ public class InstallDS extends ConsoleApplication
     NewSuffixOptions dataOptions;
     if (!prompt)
     {
-      List<String> baseDNs = new LinkedList<String>();
+      final List<String> baseDNs = new LinkedList<String>();
       dataOptions = NewSuffixOptions.createEmpty(baseDNs);
     }
     else
     {
       // Check the validity of the base DNs
-      List<String> baseDNs = promptIfRequiredForDNs(
+      final List<String> baseDNs = promptIfRequiredForDNs(
           argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
       dataOptions = promptIfRequiredForDataOptions(baseDNs);
     }
@@ -1250,9 +1264,9 @@ public class InstallDS extends ConsoleApplication
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      List<String> nonExistingFiles = new LinkedList<String>();
-      List<String> importLDIFFiles = new LinkedList<String>();
-      for (String file : argParser.importLDIFArg.getValues())
+      final List<String> nonExistingFiles = new LinkedList<String>();
+      final List<String> importLDIFFiles = new LinkedList<String>();
+      for (final String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
         {
@@ -1273,7 +1287,7 @@ public class InstallDS extends ConsoleApplication
         println();
         try
         {
-          String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
+          final String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
               lastResetImportFile);
           if (!Utils.fileExists(path))
           {
@@ -1285,7 +1299,7 @@ public class InstallDS extends ConsoleApplication
             importLDIFFiles.add(path);
           }
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1304,7 +1318,7 @@ public class InstallDS extends ConsoleApplication
               readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(),
                   lastResetRejectedFile);
           }
-          catch (ClientException ce)
+          catch (final ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1324,7 +1338,7 @@ public class InstallDS extends ConsoleApplication
               readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(),
                   lastResetSkippedFile);
           }
-          catch (ClientException ce)
+          catch (final ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1345,11 +1359,11 @@ public class InstallDS extends ConsoleApplication
       {
         numUsers = argParser.sampleDataArg.getIntValue();
       }
-      catch (ArgumentException ae)
+      catch (final ArgumentException ae)
       {
         println();
         println(ae.getMessageObject());
-        LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
+        final LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
       }
       dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
@@ -1362,16 +1376,16 @@ public class InstallDS extends ConsoleApplication
       final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
       final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
 
-      int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
+      final int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
           POPULATE_TYPE_IMPORT_FROM_LDIF, POPULATE_TYPE_GENERATE_SAMPLE_DATA};
-      LocalizableMessage[] msgs = new LocalizableMessage[] {
+      final LocalizableMessage[] msgs = new LocalizableMessage[] {
           INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
           INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get()
       };
 
-      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get());
 
       for (int i=0; i<indexes.length; i++)
@@ -1411,11 +1425,11 @@ public class InstallDS extends ConsoleApplication
         }
       }
 
-      Menu<Integer> menu = builder.toMenu();
+      final Menu<Integer> menu = builder.toMenu();
       int populateType;
       try
       {
-        MenuResult<Integer> m = menu.run();
+        final MenuResult<Integer> m = menu.run();
         if (m.isSuccess())
         {
           populateType = m.getValue();
@@ -1426,7 +1440,7 @@ public class InstallDS extends ConsoleApplication
           throw new RuntimeException();
         }
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         populateType = POPULATE_TYPE_BASE_ONLY;
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1434,14 +1448,14 @@ public class InstallDS extends ConsoleApplication
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
       {
-        List<String> importLDIFFiles = new LinkedList<String>();
+        final List<String> importLDIFFiles = new LinkedList<String>();
         while (importLDIFFiles.isEmpty())
         {
           LocalizableMessage message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
           println();
           try
           {
-            String path = readInput(message, null);
+            final String path = readInput(message, null);
             if (Utils.fileExists(path))
             {
               importLDIFFiles.add(path);
@@ -1453,7 +1467,7 @@ public class InstallDS extends ConsoleApplication
               println(message);
             }
           }
-          catch (ClientException ce)
+          catch (final ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1472,7 +1486,7 @@ public class InstallDS extends ConsoleApplication
               rejectedFile =
                 readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
             }
-            catch (ClientException ce)
+            catch (final ClientException ce)
             {
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
@@ -1491,7 +1505,7 @@ public class InstallDS extends ConsoleApplication
               skippedFile =
                 readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
             }
-            catch (ClientException ce)
+            catch (final ClientException ce)
             {
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
@@ -1502,7 +1516,7 @@ public class InstallDS extends ConsoleApplication
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
-        LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
+        final LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         int defaultValue;
         if (lastResetNumEntries != null)
         {
@@ -1512,7 +1526,7 @@ public class InstallDS extends ConsoleApplication
         {
           defaultValue = 2000;
         }
-        int numUsers = promptForInteger(message, defaultValue, 0,
+        final int numUsers = promptForInteger(message, defaultValue, 0,
             Integer.MAX_VALUE);
 
         dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
@@ -1556,7 +1570,7 @@ public class InstallDS extends ConsoleApplication
     boolean enableStartTLS = false;
     int ldapsPort = -1;
 
-    List<Integer> usedPorts = new LinkedList<Integer>();
+    final List<Integer> usedPorts = new LinkedList<Integer>();
     usedPorts.add(uData.getServerPort());
     if (uData.getServerJMXPort() != -1)
     {
@@ -1569,7 +1583,7 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
-        boolean defaultValue = lastResetEnableSSL != null ? lastResetEnableSSL :
+        final boolean defaultValue = lastResetEnableSSL != null ? lastResetEnableSSL :
           false;
         enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(),
             defaultValue);
@@ -1579,7 +1593,7 @@ public class InstallDS extends ConsoleApplication
               INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
         }
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
@@ -1597,12 +1611,12 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
-        boolean defaultValue = lastResetEnableStartTLS != null ?
+        final boolean defaultValue = lastResetEnableStartTLS != null ?
             lastResetEnableStartTLS : false;
         enableStartTLS = confirmAction(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
             defaultValue);
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
@@ -1655,8 +1669,8 @@ public class InstallDS extends ConsoleApplication
       final int JCEKS = 3;
       final int PKCS12 = 4;
       final int PKCS11 = 5;
-      int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
-      LocalizableMessage[] msgs = {
+      final int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
+      final LocalizableMessage[] msgs = {
           INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
           INFO_INSTALLDS_CERT_OPTION_JKS.get(),
           INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
@@ -1665,7 +1679,7 @@ public class InstallDS extends ConsoleApplication
       };
 
 
-      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
 
       for (int i=0; i<indexes.length; i++)
@@ -1704,11 +1718,11 @@ public class InstallDS extends ConsoleApplication
         }
       }
 
-      Menu<Integer> menu = builder.toMenu();
+      final Menu<Integer> menu = builder.toMenu();
       int certType;
       try
       {
-        MenuResult<Integer> m = menu.run();
+        final MenuResult<Integer> m = menu.run();
         if (m.isSuccess())
         {
           certType = m.getValue();
@@ -1719,7 +1733,7 @@ public class InstallDS extends ConsoleApplication
           throw new RuntimeException();
         }
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         certType = SELF_SIGNED;
@@ -1784,14 +1798,14 @@ public class InstallDS extends ConsoleApplication
       else
       {
         println();
-        LocalizableMessage message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
+        final LocalizableMessage message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
         try
         {
-          boolean defaultValue = (lastResetEnableWindowsService == null) ?
+          final boolean defaultValue = (lastResetEnableWindowsService == null) ?
               false : lastResetEnableWindowsService;
           enableService = confirmAction(message, defaultValue);
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1813,14 +1827,14 @@ public class InstallDS extends ConsoleApplication
     if (!argParser.doNotStartArg.isPresent())
     {
       println();
-      LocalizableMessage message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
+      final LocalizableMessage message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
       try
       {
-        boolean defaultValue = (lastResetStartServer == null) ?
+        final boolean defaultValue = (lastResetStartServer == null) ?
             true : lastResetStartServer;
         startServer = confirmAction(message, defaultValue);
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         startServer = true;
@@ -1852,7 +1866,7 @@ public class InstallDS extends ConsoleApplication
     boolean errorWithPath = false;
     if (type != SecurityOptions.CertificateType.PKCS11)
     {
-      File f = new File(path);
+      final File f = new File(path);
       if (!f.exists())
       {
         errorMessages.add(INFO_KEYSTORE_PATH_DOES_NOT_EXIST.get());
@@ -1902,7 +1916,7 @@ public class InstallDS extends ConsoleApplication
           default:
             throw new IllegalArgumentException("Invalid type: "+type);
         }
-        String[] aliases = certManager.getCertificateAliases();
+        final String[] aliases = certManager.getCertificateAliases();
         if (aliases == null || aliases.length == 0)
         {
           // Could not retrieve any certificate
@@ -1927,7 +1941,7 @@ public class InstallDS extends ConsoleApplication
         else if (certManager.hasRealAliases())
         {
           Collections.addAll(nicknameList, aliases);
-          String aliasString = joinAsString(", ", nicknameList);
+          final String aliasString = joinAsString(", ", nicknameList);
           if (certNickname != null)
           {
             // Check if the certificate alias is in the list.
@@ -1949,7 +1963,7 @@ public class InstallDS extends ConsoleApplication
           }
         }
       }
-      catch (KeyStoreException ke)
+      catch (final KeyStoreException ke)
       {
         // issue OPENDJ-18, related to JDK bug
         if (StaticUtils.stackTraceContainsCause(ke, ArithmeticException.class))
@@ -2049,8 +2063,8 @@ public class InstallDS extends ConsoleApplication
       throw new IllegalStateException(
           "Called promptIfRequiredCertificate with invalid type: "+type);
     }
-    List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
-    LinkedList<String> keystoreAliases = new LinkedList<String>();
+    final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+    final LinkedList<String> keystoreAliases = new LinkedList<String>();
     boolean firstTry = true;
     int nPasswordPrompts = 0;
 
@@ -2072,7 +2086,7 @@ public class InstallDS extends ConsoleApplication
         {
           path = readInput(pathPrompt, defaultPathValue);
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           path = "";
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2164,7 +2178,7 @@ public class InstallDS extends ConsoleApplication
       Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (LocalizableMessage msg : msgs)
+    for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
           StaticUtils.hasDescriptor(msg, INFO_KEYSTORE_PATH_NOT_A_FILE) ||
@@ -2195,7 +2209,7 @@ public class InstallDS extends ConsoleApplication
       Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (LocalizableMessage msg : msgs)
+    for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
           StaticUtils.hasDescriptor(msg, INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
@@ -2226,7 +2240,7 @@ public class InstallDS extends ConsoleApplication
       Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (LocalizableMessage msg : msgs)
+    for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND) ||
           StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME))
@@ -2236,18 +2250,6 @@ public class InstallDS extends ConsoleApplication
       }
     }
     return found;
-  }
-
-  /**
-   * Tells if the error messages provided corresponds to a problem with the
-   * password tries.
-   * @param msg the message to analyze.
-   * @return <CODE>true</CODE> if the error message provided corresponds to a
-   * problem with the password tries and <CODE>false</CODE> otherwise.
-   */
-  private boolean isPasswordTriesError(LocalizableMessage msg)
-  {
-    return StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES);
   }
 
   /**
@@ -2279,7 +2281,7 @@ public class InstallDS extends ConsoleApplication
       {
         s = readInput(prompt, String.valueOf(defaultValue));
       }
-      catch (ClientException ce)
+      catch (final ClientException ce)
       {
         s = "";
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2300,7 +2302,7 @@ public class InstallDS extends ConsoleApplication
       {
         try
         {
-          int intValue = Integer.parseInt(s);
+          final int intValue = Integer.parseInt(s);
           if (lowerBound != null && intValue < lowerBound)
           {
             println(ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound));
@@ -2316,7 +2318,7 @@ public class InstallDS extends ConsoleApplication
             returnValue = intValue;
           }
         }
-        catch (NumberFormatException nfe)
+        catch (final NumberFormatException nfe)
         {
           println(ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get());
           println();
@@ -2337,7 +2339,7 @@ public class InstallDS extends ConsoleApplication
     String nickname = null;
     while (nickname == null)
     {
-      for (String n : nicknames)
+      for (final String n : nicknames)
       {
         try
         {
@@ -2347,7 +2349,7 @@ public class InstallDS extends ConsoleApplication
             break;
           }
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -2365,7 +2367,7 @@ public class InstallDS extends ConsoleApplication
     println();
     println();
     println(INFO_INSTALLDS_SUMMARY.get());
-    LocalizableMessage[] labels =
+    final LocalizableMessage[] labels =
     {
         INFO_SERVER_PORT_LABEL.get(),
         INFO_ADMIN_CONNECTOR_PORT_LABEL.get(),
@@ -2375,9 +2377,9 @@ public class InstallDS extends ConsoleApplication
         INFO_DIRECTORY_DATA_LABEL.get()
     };
 
-    int jmxPort = uData.getServerJMXPort();
+    final int jmxPort = uData.getServerJMXPort();
 
-    LocalizableMessage[] values =
+    final LocalizableMessage[] values =
     {
         LocalizableMessage.raw(String.valueOf(uData.getServerPort())),
         LocalizableMessage.raw(String.valueOf(uData.getAdminConnectorPort())),
@@ -2388,7 +2390,7 @@ public class InstallDS extends ConsoleApplication
         LocalizableMessage.raw(Utils.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
-    for (LocalizableMessage l : labels)
+    for (final LocalizableMessage l : labels)
     {
       maxWidth = Math.max(maxWidth, l.length());
     }
@@ -2398,10 +2400,10 @@ public class InstallDS extends ConsoleApplication
       StringBuilder sb = new StringBuilder();
       if (values[i] != null)
       {
-        LocalizableMessage l = labels[i];
+        final LocalizableMessage l = labels[i];
         sb.append(l).append(" ");
 
-        String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
+        final String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
         for (int j=0; j<lines.length; j++)
         {
           if (j != 0)
@@ -2454,7 +2456,7 @@ public class InstallDS extends ConsoleApplication
 
     println(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get());
     println();
-    ArrayList<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
+    final ArrayList<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
     println(LocalizableMessage.raw(
         Utils.getFormattedEquivalentCommandLine(cmd, formatter)));
   }
@@ -2473,18 +2475,18 @@ public class InstallDS extends ConsoleApplication
     println();
     println();
 
-    LocalizableMessage[] msgs = new LocalizableMessage[] {
+    final LocalizableMessage[] msgs = new LocalizableMessage[] {
         INFO_INSTALLDS_CONFIRM_INSTALL.get(),
         INFO_INSTALLDS_PROVIDE_DATA_AGAIN.get(),
         INFO_INSTALLDS_PRINT_EQUIVALENT_COMMAND_LINE.get(),
         INFO_INSTALLDS_CANCEL.get()
       };
 
-    MenuBuilder<ConfirmCode> builder = new MenuBuilder<ConfirmCode>(this);
+    final MenuBuilder<ConfirmCode> builder = new MenuBuilder<ConfirmCode>(this);
     builder.setPrompt(INFO_INSTALLDS_CONFIRM_INSTALL_PROMPT.get());
 
     int i=0;
-    for (ConfirmCode code : ConfirmCode.values())
+    for (final ConfirmCode code : ConfirmCode.values())
     {
       builder.addNumberedOption(msgs[i], MenuResult.success(code));
       i++;
@@ -2494,11 +2496,11 @@ public class InstallDS extends ConsoleApplication
             String.valueOf(ConfirmCode.CONTINUE.getReturnCode())),
             MenuResult.success(ConfirmCode.CONTINUE));
 
-    Menu<ConfirmCode> menu = builder.toMenu();
+    final Menu<ConfirmCode> menu = builder.toMenu();
 
     try
     {
-      MenuResult<ConfirmCode> m = menu.run();
+      final MenuResult<ConfirmCode> m = menu.run();
       if (m.isSuccess())
       {
         returnValue = m.getValue();
@@ -2509,7 +2511,7 @@ public class InstallDS extends ConsoleApplication
         throw new RuntimeException();
       }
     }
-    catch (ClientException ce)
+    catch (final ClientException ce)
     {
       returnValue = ConfirmCode.CANCEL;
       logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2529,17 +2531,17 @@ public class InstallDS extends ConsoleApplication
           String.valueOf(uData.getServerPort()));
       argParser.adminConnectorPortArg.setDefaultValue(
           String.valueOf(uData.getAdminConnectorPort()));
-      int jmxPort = uData.getServerJMXPort();
+      final int jmxPort = uData.getServerJMXPort();
       if (jmxPort != -1)
       {
         argParser.jmxPortArg.setDefaultValue(String.valueOf(jmxPort));
       }
-      LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
+      final LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
       if (!baseDNs.isEmpty())
       {
         argParser.baseDNArg.setDefaultValue(baseDNs.getFirst());
       }
-      NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();
+      final NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();
       lastResetPopulateOption = suffixOptions.getType();
       if (lastResetPopulateOption ==
         NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
@@ -2553,7 +2555,7 @@ public class InstallDS extends ConsoleApplication
         lastResetRejectedFile = suffixOptions.getRejectedFile();
         lastResetSkippedFile = suffixOptions.getSkippedFile();
       }
-      SecurityOptions sec = uData.getSecurityOptions();
+      final SecurityOptions sec = uData.getSecurityOptions();
       if (sec.getEnableSSL())
       {
         argParser.ldapsPortArg.setDefaultValue(
@@ -2576,7 +2578,7 @@ public class InstallDS extends ConsoleApplication
       lastResetEnableWindowsService = uData.getEnableWindowsService();
       lastResetStartServer = uData.getStartServer();
     }
-    catch (Throwable t)
+    catch (final Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error resetting arguments: "+t, t));
     }
@@ -2599,7 +2601,7 @@ public class InstallDS extends ConsoleApplication
           hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(),
               argParser.hostNameArg.getDefaultValue());
         }
-        catch (ClientException ce)
+        catch (final ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
