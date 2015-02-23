@@ -42,6 +42,7 @@ import java.util.Random;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
@@ -129,6 +130,8 @@ public class MakeLDIF
   {
     out = NullOutputStream.wrapOrNullStream(outStream);
     err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
+
 
 //  Create and initialize the argument parser for this program.
     LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
