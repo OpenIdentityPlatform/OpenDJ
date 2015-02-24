@@ -368,9 +368,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @param baseDN
    *          The base DN of the entry container to open.
-   * @param name
-   *          The name of the entry container or <CODE>NULL</CODE> to open the
-   *          default entry container for the given base DN.
    * @param txn
    *          The database transaction
    * @return The opened entry container.
@@ -379,21 +376,10 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @throws ConfigException
    *           If an configuration error occurs while opening the entry container.
    */
-  EntryContainer openEntryContainer(DN baseDN, String name, WriteableStorage txn)
+  EntryContainer openEntryContainer(DN baseDN, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
-    String databasePrefix;
-    if (name == null || "".equals(name))
-    {
-      databasePrefix = baseDN.toIrreversibleReadableString();
-    }
-    else
-    {
-      databasePrefix = name;
-    }
-
-    EntryContainer ec =
-        new EntryContainer(baseDN, storage.toSafeSuffixName(databasePrefix), backend, config, storage, this);
+    EntryContainer ec = new EntryContainer(baseDN, backend, config, storage, this);
     ec.open(txn);
     return ec;
   }
@@ -443,7 +429,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     EntryID highestID = null;
     for (DN baseDN : baseDNs)
     {
-      EntryContainer ec = openEntryContainer(baseDN, null, txn);
+      EntryContainer ec = openEntryContainer(baseDN, txn);
       EntryID id = ec.getHighestEntryID(txn);
       registerEntryContainer(baseDN, ec);
       if (highestID == null || id.compareTo(highestID) > 0)

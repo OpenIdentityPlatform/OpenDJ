@@ -120,7 +120,7 @@ public class VLVIndex extends DatabaseContainer
    * @param config           The VLV index config object to use for this VLV
    *                         index.
    * @param state            The state database to persist vlvIndex state info.
-   * @param env              The JE Storage
+   * @param storage          The storage currently in use
    * @param entryContainer   The database entryContainer holding this vlvIndex. the sort order
    * @param txn              The transaction to use when creating this object
    * @throws StorageRuntimeException
@@ -128,10 +128,10 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  VLVIndex(BackendVLVIndexCfg config, State state, Storage env, EntryContainer entryContainer, WriteableStorage txn)
+  VLVIndex(BackendVLVIndexCfg config, State state, Storage storage, EntryContainer entryContainer, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
-    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), env, entryContainer);
+    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), storage, entryContainer);
 
     this.config = config;
     this.baseDN = config.getBaseDN();

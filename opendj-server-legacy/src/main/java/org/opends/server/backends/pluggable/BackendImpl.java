@@ -926,7 +926,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
         try
         {
           // The base DN was added.
-          EntryContainer ec = rootContainer.openEntryContainer(baseDN, null, txn);
+          EntryContainer ec = rootContainer.openEntryContainer(baseDN, txn);
           rootContainer.registerEntryContainer(baseDN, ec);
           DirectoryServer.registerBaseDN(baseDN, this, false);
         }

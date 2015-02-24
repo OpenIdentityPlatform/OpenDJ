@@ -431,8 +431,6 @@ public class EntryContainer
    *
    * @param baseDN  The baseDN this entry container will be responsible for
    *                storing on disk.
-   * @param databasePrefix The prefix to use in the database names used by
-   *                       this entry container.
    * @param backend A reference to the JE backend that is creating this entry
    *                container. It is needed by the Directory Server entry cache
    *                methods.
@@ -441,16 +439,15 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
-      PluggableBackendCfg config, Storage env, RootContainer rootContainer)
-          throws ConfigException
+  EntryContainer(DN baseDN, Backend<?> backend, PluggableBackendCfg config, Storage env, RootContainer rootContainer)
+      throws ConfigException
   {
     this.backend = backend;
     this.baseDN = baseDN;
     this.config = config;
     this.storage = env;
     this.rootContainer = rootContainer;
-    this.databasePrefix = databasePrefix;
+    this.databasePrefix = baseDN.toIrreversibleReadableString();
 
     config.addPluggableChangeListener(this);
 
