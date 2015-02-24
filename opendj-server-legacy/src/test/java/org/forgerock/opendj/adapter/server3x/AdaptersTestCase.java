@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.ADNotificationRequestControl;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.MatchedValuesRequestControl;
 import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
@@ -68,8 +69,8 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
-import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -77,7 +78,6 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.adapter.server3x.EmbeddedServerTestCaseUtils.*;
 
 /**
  * This class defines a set of tests for the Adapters.class.
@@ -94,9 +94,12 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @DataProvider
     public Object[][] anonymousConnectionFactories() {
         return new Object[][] {
-            { new LDAPConnectionFactory("localhost",
-                    Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))) },
+            { new LDAPConnectionFactory("localhost", getServerLdapPort()) },
             { Adapters.newAnonymousConnectionFactory() } };
+    }
+
+    private Integer getServerLdapPort() {
+        return TestCaseUtils.getServerLdapPort();
     }
 
     /**
@@ -108,28 +111,27 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public Object[][] rootConnectionFactories() {
         return new Object[][] {
             { Connections.newAuthenticatedConnectionFactory(
-                   new LDAPConnectionFactory("localhost",
-                           Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))),
+                   new LDAPConnectionFactory("localhost", getServerLdapPort()),
                    Requests.newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
             { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
     }
 
     /**
-     * Launched before the tests, this function starts the embedded server and
-     * adding data.
+     * Launched before the tests, this function starts the server and
+     * adds data.
      *
      * @throws Exception
      *             If the server could not be initialized.
      */
     @BeforeClass
-    public void startEmbeddedServer() throws Exception {
-        EmbeddedServerTestCaseUtils.startServer();
+    public void startServer() throws Exception {
+        TestCaseUtils.startServer();
 
         // Creates a root connection to add data
         final Connection connection = Adapters.newRootConnection();
         // @formatter:off
         connection.add(
-                "dn: uid=user.0, dc=example,dc=org",
+                "dn: uid=user.0, o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "objectClass: inetOrgPerson",
@@ -143,7 +145,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "postalCode: 50369");
 
         connection.add(
-                "dn: uid=user.1, dc=example,dc=org",
+                "dn: uid=user.1, o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "objectClass: inetOrgPerson",
@@ -156,7 +158,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "postalCode: 93694");
 
         connection.add(
-                "dn: uid=user.2, dc=example,dc=org",
+                "dn: uid=user.2, o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "objectClass: inetOrgPerson",
@@ -170,7 +172,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "postalCode: 10857");
 
         connection.add(
-                "dn: uid=user.3, dc=example,dc=org",
+                "dn: uid=user.3, o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "objectClass: inetOrgPerson",
@@ -183,7 +185,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "postalCode: 66239");
 
         connection.add(
-                "dn: uid=user.4, dc=example,dc=org",
+                "dn: uid=user.4, o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "objectClass: inetOrgPerson",
@@ -200,11 +202,16 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     }
 
     /**
-     * Stops the server at the end of the test class.
+     * Clean up data at the end of tests.
      */
     @AfterClass
-    public void shutDownEmbeddedServerServer() {
-        EmbeddedServerTestCaseUtils.shutDownServer();
+    public void shutDownEmbeddedServerServer() throws Exception {
+        // Delete all added entries but user.3 which is already removed in one test
+        for (int i = 0; i < 5; i++) {
+            if (i!=3) {
+                TestCaseUtils.deleteEntry(org.opends.server.types.DN.valueOf("uid=user." + i + ", o=test"));
+            }
+        }
     }
 
     /**
@@ -216,7 +223,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
         final LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
-                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
+                        getServerLdapPort());
         Connection connection = null;
         try {
             connection = factory.getConnection();
@@ -241,7 +248,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
         LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
-                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
+                        getServerLdapPort());
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
@@ -316,9 +323,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testAdapterConnectionSimpleBindAsAUser() throws Exception {
         // user
         final Connection connection =
-                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,dc=example,dc=org"));
+                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,o=test"));
         final BindResult result =
-                connection.bind("uid=user.0,dc=example,dc=org", "password".toCharArray());
+                connection.bind("uid=user.0,o=test", "password".toCharArray());
         assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
         connection.close();
     }
@@ -332,10 +339,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testAdapterConnectionSimpleBindAsAUserWrongPassword() throws Exception {
         // user
         final Connection connection =
-                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,dc=example,dc=org"));
+                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,o=test"));
         try {
             // Invalid credentials
-            connection.bind("uid=user.0,dc=example,dc=org", "pass".toCharArray());
+            connection.bind("uid=user.0,o=test", "pass".toCharArray());
         } finally {
             connection.close();
         }
@@ -365,7 +372,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final Connection connection = Adapters.newRootConnection();
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
-                "dn: sn=carter,dc=example,dc=org",
+                "dn: sn=carter,o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "cn: scarter");
@@ -378,8 +385,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // We find the added entry :
         final SearchResultEntry srEntry =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "sn=carter,dc=example,dc=org", SearchScope.BASE_OBJECT, "(cn=scarter)"));
-        assertThat(srEntry.getName().toString()).isEqualTo("sn=carter,dc=example,dc=org");
+                        "sn=carter,o=test", SearchScope.BASE_OBJECT, "(cn=scarter)"));
+        assertThat(srEntry.getName().toString()).isEqualTo("sn=carter,o=test");
 
         connection.close();
     }
@@ -396,7 +403,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
 
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
-                "dn: sn=bjensen,dc=example,dc=org",
+                "dn: sn=bjensen,o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "cn: bjensen");
@@ -424,7 +431,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final Connection connection = Adapters.newRootConnection();
 
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(sn=user.1)");
 
         // Performs the search :
@@ -435,7 +442,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         assertThat(srEntry).isNotNull();
 
         Entry expectedEntry =
-                new LinkedHashMapEntry("dn: uid=user.1,dc=example,dc=org", "objectClass: top",
+                new LinkedHashMapEntry("dn: uid=user.1,o=test", "objectClass: top",
                         "objectClass: person", "objectClass: inetOrgPerson",
                         "objectClass: organizationalPerson", "sn:user.1", "uid:user.1",
                         "cn: Aaren Atp", "description: This is the description for Aaren Atp.",
@@ -446,7 +453,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // No differences expected.
         assertThat(Entries.diffEntries(original, expectedEntry).getModifications()).isEmpty();
 
-        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,dc=example,dc=org");
+        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,o=test");
         assertThat(srEntry.getAttributeCount()).isEqualTo(7);
         assertThat(srEntry.getAttribute("description").firstValueAsString()).isEqualTo(
                 "This is the description for Aaren Atp.");
@@ -470,7 +477,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws Exception {
 
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(uid=unknown)").addControl(
                         MatchedValuesRequestControl.newControl(true, "(uid=user.1)"));
 
@@ -496,7 +503,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
 
         final Connection connection = factory.getConnection();
         try {
-            connection.searchSingleEntry(Requests.newSearchRequest("dc=example,dc=org",
+            connection.searchSingleEntry(Requests.newSearchRequest("o=test",
                     SearchScope.WHOLE_SUBTREE, "(uid=unknown)"));
         } finally {
             connection.close();
@@ -517,7 +524,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final Connection connection = factory.getConnection();
         try {
             final SearchRequest request =
-                    Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
+                    Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                             "cn=*", "cn", "subtreeSpecification")
                     // sub-entries included, normal entries excluded.
                             .addControl(SubentriesRequestControl.newControl(true, true));
@@ -544,7 +551,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final Connection connection = factory.getConnection();
 
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE, "cn=*",
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "cn=*",
                         "cn", "subtreeSpecification")
                 // sub-entries excluded, normal entries included.
                         .addControl(SubentriesRequestControl.newControl(true, false));
@@ -589,7 +596,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterDeleteRequestNoOpControl(final ConnectionFactory factory) throws LdapException {
         final DeleteRequest deleteRequest =
-                Requests.newDeleteRequest("uid=user.1, dc=example,dc=org")
+                Requests.newDeleteRequest("uid=user.1, o=test")
                 // The no-op control is specified with his OID.
                         .addControl(GenericControl.newControl("1.3.6.1.4.1.4203.1.10.2"));
 
@@ -599,9 +606,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Verifies that the delete has no impact in this case (due to no_operation control)
         final SearchResultEntry srEntry =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.1, dc=example,dc=org", SearchScope.BASE_OBJECT, "(uid=user.1)"));
+                        "uid=user.1, o=test", SearchScope.BASE_OBJECT, "(uid=user.1)"));
         assertThat(srEntry).isNotNull();
-        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,dc=example,dc=org");
+        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,o=test");
 
         connection.close();
     }
@@ -617,17 +624,17 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Checks if the entry exists.
         SearchResultEntry sre =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.3, dc=example,dc=org", SearchScope.BASE_OBJECT, "(uid=user.3)"));
+                        "uid=user.3, o=test", SearchScope.BASE_OBJECT, "(uid=user.3)"));
         assertThat(sre).isNotNull();
 
         final DeleteRequest deleteRequest =
-                Requests.newDeleteRequest("uid=user.3, dc=example,dc=org");
+                Requests.newDeleteRequest("uid=user.3, o=test");
 
         connection.delete(deleteRequest);
 
         // Verifies if the entry was correctly deleted.
         try {
-            connection.searchSingleEntry(Requests.newSearchRequest("uid=user.3, dc=example,dc=org",
+            connection.searchSingleEntry(Requests.newSearchRequest("uid=user.3, o=test",
                     SearchScope.BASE_OBJECT, "(uid=user.3)"));
             fail();
         } catch (EntryNotFoundException ex) {
@@ -646,7 +653,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test
     public void testAdapterModifyRequest() throws LdapException, DecodeException {
         final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addControl(
+                Requests.newModifyRequest("uid=user.2, o=test").addControl(
                         PreReadRequestControl.newControl(true, "mail")).addModification(
                         ModificationType.ADD, "mail", "modified@example.com");
 
@@ -668,7 +675,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         //Verifies that entry has been correctly modified.
         final SearchResultEntry srEntry =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.2, dc=example,dc=org", SearchScope.BASE_OBJECT, "(uid=user.2)"));
+                        "uid=user.2, o=test", SearchScope.BASE_OBJECT, "(uid=user.2)"));
         assertThat(srEntry.getAttribute("mail").firstValueAsString()).isEqualTo(
                 "modified@example.com");
 
@@ -684,7 +691,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testAdapterUsePermissiveModifyRequest(final ConnectionFactory factory) throws LdapException {
 
         final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addControl(
+                Requests.newModifyRequest("uid=user.2, o=test").addControl(
                         PermissiveModifyRequestControl.newControl(true)).addModification(
                         ModificationType.ADD, "uid", "user.2");
 
@@ -694,7 +701,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Verifies that entry has been correctly modified.
         final SearchResultEntry srEntry =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.2, dc=example,dc=org", SearchScope.BASE_OBJECT, "(uid=user.2)"));
+                        "uid=user.2, o=test", SearchScope.BASE_OBJECT, "(uid=user.2)"));
         assertThat(srEntry.getAttribute("uid").firstValueAsString()).isEqualTo("user.2");
     }
 
@@ -707,7 +714,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = ConstraintViolationException.class)
     public void testAdapterModifyRequestFails(final ConnectionFactory factory) throws LdapException {
         final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addModification(
+                Requests.newModifyRequest("uid=user.2, o=test").addModification(
                         ModificationType.ADD, "uid", "user.2");
         final Connection connection = factory.getConnection();
         connection.modify(changeRequest);
@@ -725,12 +732,12 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Verifies that entry has been correctly modified.
         final SearchResultEntry srEntryExists =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.4, dc=example,dc=org", SearchScope.BASE_OBJECT, "(uid=user.4)"));
+                        "uid=user.4, o=test", SearchScope.BASE_OBJECT, "(uid=user.4)"));
         assertThat(srEntryExists).isNotNull();
 
         // Modifying the DN.
         ModifyDNRequest changeRequest =
-                Requests.newModifyDNRequest("uid=user.4,dc=example,dc=org", "uid=user.test")
+                Requests.newModifyDNRequest("uid=user.4,o=test", "uid=user.test")
                         .setDeleteOldRDN(true);
 
         connection.modifyDN(changeRequest);
@@ -738,13 +745,13 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Checks previous mod.
         final SearchResultEntry srEntry =
                 connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.test, dc=example,dc=org", SearchScope.BASE_OBJECT,
+                        "uid=user.test, o=test", SearchScope.BASE_OBJECT,
                         "(uid=user.test)"));
         assertThat(srEntry).isNotNull();
 
         // Modify again the DN as previously.
         changeRequest =
-                Requests.newModifyDNRequest("uid=user.test,dc=example,dc=org", "uid=user.4")
+                Requests.newModifyDNRequest("uid=user.test,o=test", "uid=user.4")
                         .setDeleteOldRDN(true);
         connection.modifyDN(changeRequest);
 
@@ -758,7 +765,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterCompareRequestTrue(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "user.0");
+                Requests.newCompareRequest("uid=user.0,o=test", "uid", "user.0");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -776,7 +783,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterCompareRequestFalse(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "scarter");
+                Requests.newCompareRequest("uid=user.0,o=test", "uid", "scarter");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -815,7 +822,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws LdapException {
 
         final DeleteRequest deleteRequest =
-                Requests.newDeleteRequest("uid=user.2,dc=example,dc=org");
+                Requests.newDeleteRequest("uid=user.2,o=test");
 
         final Connection connection = factory.getConnection();
         try {
@@ -838,7 +845,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
 
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
-                "dn: sn=scarter,dc=example,dc=org",
+                "dn: sn=scarter,o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "cn: scarter");
@@ -866,7 +873,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final Connection connection = factory.getConnection();
 
         final ModifyDNRequest changeRequest =
-                Requests.newModifyDNRequest("uid=user.2,dc=example,dc=org", "uid=user.test")
+                Requests.newModifyDNRequest("uid=user.2,o=test", "uid=user.test")
                         .setDeleteOldRDN(true);
 
         try {
@@ -888,7 +895,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws LdapException {
 
         final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2,dc=example,dc=org").addControl(
+                Requests.newModifyRequest("uid=user.2,o=test").addControl(
                         PreReadRequestControl.newControl(true, "mail")).addModification(
                         ModificationType.REPLACE, "mail", "modified@example.com");
 
@@ -910,7 +917,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws LdapException {
 
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "user.0");
+                Requests.newCompareRequest("uid=user.0,o=test", "uid", "user.0");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -932,7 +939,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws Exception {
 
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(uid=user.1)");
 
         final Connection connection = factory.getConnection();
@@ -941,7 +948,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         assertThat(reader.isEntry()).isTrue();
         final SearchResultEntry entry = reader.readEntry();
         assertThat(entry).isNotNull();
-        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,dc=example,dc=org");
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,o=test");
         assertThat(reader.hasNext()).isFalse();
     }
 
@@ -960,9 +967,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             final ConnectionFactory factory) throws Exception {
         final Connection connection = factory.getConnection();
         final SearchRequest request =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
-                        "(uid=user.1)").addControl(
-                        MatchedValuesRequestControl.newControl(true, "(uid=user.1)"));
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
+                        "(uid=user.1)").addControl(ADNotificationRequestControl.newControl(true));
 
         final ConnectionEntryReader reader = connection.search(request);
         reader.readEntry();
@@ -980,23 +986,22 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testLDAPConnectionAndAdapterComparison() throws LdapException, SearchResultReferenceIOException {
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
-                "dn: sn=babs,dc=example,dc=org",
+                "dn: sn=babs,o=test",
                 "objectClass: top",
                 "objectClass: person",
                 "cn: bjensen");
         // @formatter:on
 
         final SearchRequest searchRequest =
-                Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
+                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(uid=user.*)").addControl(
                         MatchedValuesRequestControl.newControl(true, "(uid=user.1)"));
 
-        final DeleteRequest deleteRequest = Requests.newDeleteRequest("sn=babs,dc=example,dc=org");
+        final DeleteRequest deleteRequest = Requests.newDeleteRequest("sn=babs,o=test");
 
         // LDAP Connection
         final LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost",
-                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
+                new LDAPConnectionFactory("localhost", getServerLdapPort());
         Connection connection = null;
         connection = factory.getConnection();
         connection.bind("cn=Directory Manager", "password".toCharArray());

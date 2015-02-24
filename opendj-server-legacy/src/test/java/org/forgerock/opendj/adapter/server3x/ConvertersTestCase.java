@@ -57,7 +57,6 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
@@ -67,6 +66,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -75,7 +75,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -102,16 +101,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
      */
     @BeforeGroups(groups = "needRunningServer")
     public void startServer() throws Exception {
-        EmbeddedServerTestCaseUtils.startServer();
-    }
-
-    /**
-     * Stops the server at the end of the test class.
-     */
-    @AfterGroups(groups = "needRunningServer")
-    public void shutDownServer() {
-        // Stops the server.
-        EmbeddedServerTestCaseUtils.shutDownServer();
+        TestCaseUtils.startServer();
     }
 
     /**
