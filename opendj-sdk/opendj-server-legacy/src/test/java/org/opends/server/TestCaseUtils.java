@@ -274,7 +274,7 @@ public final class TestCaseUtils {
       // Get the build root and use it to create a test package directory.
       String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
       String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
+              buildRoot + File.separator + "target");
       File   buildDir = new File(buildDirStr);
       File   unitRoot  = new File(buildDir, "unit-tests");
       File   testInstallRoot;
@@ -1144,7 +1144,7 @@ public final class TestCaseUtils {
   public static File getUnitTestRootPath()
   {
     final String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    final String path = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "build");
+    final String path = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
     return new File(path, "unit-tests");
   }
 

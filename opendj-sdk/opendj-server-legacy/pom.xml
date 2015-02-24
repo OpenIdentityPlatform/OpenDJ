@@ -191,9 +191,6 @@
   </dependencies>
 
   <build>
-
-    <directory>build</directory>
-
     <resources>
       <!-- Main resources -->
       <resource>
@@ -663,7 +660,6 @@
             <configuration>
               <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>build-tools</finalName>
-              <!-- TODO: Adds the resource/Messages.java.stub to build/build-tools/classes/org/opends/build/tools/resource -->
               <includes>
                 <include>**/messages/Severity.class</include>
                 <include>**/messages/Category.class</include>
