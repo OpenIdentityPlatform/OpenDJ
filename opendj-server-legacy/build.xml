@@ -42,7 +42,7 @@
 
   <!-- General server-wide properties                                 -->
   <property name="src.dir"          location="src/server"              />
-  <property name="build.dir"        location="build"                   />
+  <property name="build.dir"        location="target"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="build.lib.dir"    location="${build.dir}/lib"        />
   <property name="lib.dir"          location="lib"                     />
