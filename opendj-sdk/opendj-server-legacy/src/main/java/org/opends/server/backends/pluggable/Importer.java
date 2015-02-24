@@ -786,12 +786,25 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           // Create a temp entry container
           sourceEntryContainer = entryContainer;
-          final String name = baseDN.toIrreversibleReadableString() + "_importTmp";
-          entryContainer = rootContainer.openEntryContainer(baseDN, name, txn);
+          entryContainer = createEntryContainer(txn, baseDN);
         }
       }
     }
     return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
+  }
+
+  private EntryContainer createEntryContainer(WriteableStorage txn, DN baseDN) throws ConfigException
+  {
+    DN tempDN;
+    try
+    {
+      tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+    }
+    catch (DirectoryException e)
+    {
+      throw new ConfigException(e.getMessageObject());
+    }
+    return rootContainer.openEntryContainer(tempDN, txn);
   }
 
   private void clearSuffix(EntryContainer entryContainer)

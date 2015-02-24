@@ -231,7 +231,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       try
       {
-        final Tree tree = volume.getTree(treeName.toString(), true);
+        final Tree tree = volume.getTree(mangleTreeName(treeName), true);
         trees.put(treeName, tree);
       }
       catch (final PersistitException e)
@@ -401,8 +401,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
-    public void renameTree(final TreeName oldTreeName,
-        final TreeName newTreeName)
+    public void renameTree(final TreeName oldTreeName, final TreeName newTreeName)
     {
       throw new UnsupportedOperationException();
     }
@@ -472,6 +471,12 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         db.releaseExchange(ex);
       }
       exchanges.clear();
+    }
+
+    private Exchange getNewExchange(final TreeName treeName, final boolean create)
+        throws PersistitException
+    {
+      return db.getExchange(volume, mangleTreeName(treeName), create);
     }
   }
 
@@ -640,10 +645,21 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     return new ImporterImpl();
   }
 
-  /** {@inheritDoc} */
-  public String toSafeSuffixName(final String suffix)
+  private String mangleTreeName(final TreeName treeName)
   {
-    return suffix.replaceAll("[,=]", "_");
+    StringBuilder mangled = new StringBuilder();
+    String name = treeName.toString();
+
+    for (int idx = 0; idx < name.length(); idx++)
+    {
+      char ch = name.charAt(idx);
+      if (ch == '=' || ch == ',')
+      {
+        ch = '_';
+      }
+      mangled.append(ch);
+    }
+    return mangled.toString();
   }
 
   /** {@inheritDoc} */
@@ -720,12 +736,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   {
     value.clear().putByteArray(bytes.toByteArray());
     return value;
-  }
-
-  private Exchange getNewExchange(final TreeName treeName, final boolean create)
-      throws PersistitException
-  {
-    return db.getExchange(volume, treeName.toString(), create);
   }
 
   private ByteString keyToBytes(final Key key)
