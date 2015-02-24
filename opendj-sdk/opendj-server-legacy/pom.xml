@@ -1278,7 +1278,6 @@
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
-                    <exclude>org/forgerock/opendj/adapter/**</exclude>
                   </excludes>
                   <includes>
                     <include>**/Test*.java</include>
