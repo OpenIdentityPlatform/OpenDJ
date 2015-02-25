@@ -37,6 +37,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
+import org.opends.server.types.DN;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -154,7 +155,7 @@ class ReplicationDomainMonitor
       {
         try
         {
-          String baseDN = domain.getBaseDN().toString();
+          DN baseDN = domain.getBaseDN();
 
           // Prevent out of band monitor responses from updating our pending
           // table until we are ready.

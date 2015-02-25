@@ -57,13 +57,6 @@ import org.opends.server.core.DirectoryServer;
      mayInvoke=true)
 public final class DN implements Comparable<DN>, Serializable
 {
-/*
- * NOTE:  Any changes to the set of non-static public methods defined
- *        in this class or the arguments that they contain must also
- *        be made in the org.opends.server.interop.LazyDN package to
- *        ensure continued interoperability with third-party
- *        applications that rely on that functionality.
- */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -89,8 +82,6 @@ public final class DN implements Comparable<DN>, Serializable
    */
   private static final long serialVersionUID = 1184263456768819888L;
 
-
-
   /** The number of RDN components that comprise this DN. */
   private final int numComponents;
 
@@ -103,10 +94,11 @@ public final class DN implements Comparable<DN>, Serializable
   /** The string representation of this DN. */
   private String dnString;
 
-  /** The irreversible normalized byte string representation of this DN. */
+  /**
+   * The normalized byte string representation of this DN, which is not
+   * a valid DN and is not reversible to a valid DN.
+   */
   private ByteString normalizedDN;
-
-
 
   /**
    * Creates a new DN with no RDN components (i.e., a null DN or root
@@ -116,8 +108,6 @@ public final class DN implements Comparable<DN>, Serializable
   {
     this(new RDN[0]);
   }
-
-
 
   /**
    * Creates a new DN with the provided set of RDNs, arranged with the
@@ -2595,50 +2585,24 @@ public final class DN implements Comparable<DN>, Serializable
     {
       return true;
     }
+
     if (o instanceof DN)
     {
-      DN other = (DN) o;
-      if (numComponents == other.numComponents)
-      {
-        if (numComponents == 0)
-        {
-          return true;
-        }
-        for (int i = 0; i < numComponents; i++)
-        {
-          if (!rdnComponents[i].equals(other.rdnComponents[i]))
-          {
-            return false;
-          }
-        }
-        return true;
-      }
-     }
-     return false;
+      DN otherDN = (DN) o;
+      return toNormalizedByteString().equals(otherDN.toNormalizedByteString());
+    }
+    return false;
   }
 
   /**
-   * Retrieves the hash code for this DN.  The hash code will be the
-   * sum of the hash codes for all the RDN components.
+   * Returns the hash code for this DN.
    *
    * @return  The hash code for this DN.
    */
   @Override
   public int hashCode()
   {
-      if (numComponents == 0) {
-          return 0;
-      }
-      int length = numComponents - 1;
-      int hash = 31 * rdnComponents[length].hashCode();
-      if (numComponents > 1)
-      {
-          for (int i = 0; i < length; i++)
-          {
-            hash += rdnComponents[i].hashCode();
-          }
-      }
-      return hash;
+     return toNormalizedByteString().hashCode();
   }
 
   /**
@@ -2687,16 +2651,16 @@ public final class DN implements Comparable<DN>, Serializable
     buffer.append(this);
   }
 
-
-
   /**
-   * Retrieves a normalized representation of the DN with the provided
-   * components.
+   * Retrieves a normalized string representation of this DN.
+   * <p>
    *
-   * @return  The normalized string representation of the provided RDN
-   *          components.
+   * This representation is safe to use in an URL or in a file name.
+   * However, it is not a valid DN and can't be reverted to a valid DN.
+   *
+   * @return  The normalized string representation of this DN.
    */
-  public String toIrreversibleReadableString()
+  public String toNormalizedUrlSafeString()
   {
     if (rdnComponents.length == 0)
     {
@@ -2704,30 +2668,29 @@ public final class DN implements Comparable<DN>, Serializable
     }
 
     StringBuilder buffer = new StringBuilder();
-    rdnComponents[0].toNormalizedReadableString(buffer);
+    buffer.append(rdnComponents[0].toNormalizedUrlSafeString());
 
     for (int i=1; i < rdnComponents.length; i++)
     {
       buffer.append(',');
-      rdnComponents[i].toNormalizedReadableString(buffer);
+      buffer.append(rdnComponents[i].toNormalizedUrlSafeString());
     }
 
     return buffer.toString();
   }
 
   /**
-   * Returns the irreversible normalized byte string representation of a DN,
-   * suitable for equality and comparisons, and providing a natural hierarchical
-   * ordering, but not usable as a valid DN nor reversible to a valid DN.
+   * Retrieves a normalized byte string representation of this DN.
    * <p>
-   * This representation should be used only when a byte string representation
-   * is needed and when no reversibility to a valid DN is needed. Always consider
-   * using a {@code CompactDn} as an alternative.
+   * This representation is suitable for equality and comparisons, and for providing a
+   * natural hierarchical ordering.
+   * However, it is not a valid DN and can't be reverted to a valid DN.
    *
-   * @return The normalized byte string representation of the provided DN, not
-   *         usable as a valid DN
+   * You should consider using a {@code CompactDn} as an alternative.
+   *
+   * @return  The normalized string representation of this DN.
    */
-  public ByteString toIrreversibleNormalizedByteString()
+  public ByteString toNormalizedByteString()
   {
     if (normalizedDN == null)
     {
@@ -2751,9 +2714,8 @@ public final class DN implements Comparable<DN>, Serializable
   }
 
   /**
-   * Compares this DN with the provided DN based on a natural order. This order
-   * will be first hierarchical (ancestors will come before descendants) and
-   * then alphabetical by attribute name(s) and value(s).
+   * Compares this DN with the provided DN based on a natural order, as defined by
+   * the toNormalizedByteString() method.
    *
    * @param other
    *          The DN against which to compare this DN.
@@ -2764,47 +2726,7 @@ public final class DN implements Comparable<DN>, Serializable
   @Override
   public int compareTo(DN other)
   {
-    if (isRootDN())
-    {
-      /** root DN always come first. */
-      return other.isRootDN() ? 0 : -1;
-    }
-
-    if (other.isRootDN())
-    {
-      // this comes after other.
-      return 1;
-    }
-
-    int size1 = numComponents - 1;
-    int size2 = other.numComponents - 1;
-    while (size1 >= 0 && size2 >= 0)
-    {
-      RDN rdn1 = getRDN(size1);
-      RDN rdn2 = other.getRDN(size2);
-      size1--;
-      size2--;
-      int result = rdn1.compareTo(rdn2);
-      if (result > 0)
-      {
-        return 1;
-      }
-      else if (result < 0)
-      {
-        return -1;
-      }
-    }
-
-    // Check remaining sizes
-    if (size1 > size2)
-    {
-      return 1;
-    }
-    else if (size1 < size2)
-    {
-      return -1;
-    }
-    return 0;
+    return toNormalizedByteString().compareTo(other.toNormalizedByteString());
   }
 }
 

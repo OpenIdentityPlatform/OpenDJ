@@ -51,8 +51,8 @@ public class TestDN extends TypesTestCase {
    *
    * @return The array of test DN strings.
    */
-  @DataProvider(name = "testDNs")
-  public Object[][] createData() {
+  @DataProvider
+  public Object[][] testDNs() {
     return new Object[][] {
          // raw dn, irreversible normalized string representation, toString representation
         { "", "", "" },
@@ -136,8 +136,8 @@ public class TestDN extends TypesTestCase {
    *
    * @return The array of illegal test DN strings.
    */
-  @DataProvider(name = "illegalDNs")
-  public Object[][] createIllegalData() {
+  @DataProvider
+  public Object[][] illegalDNs() {
     return new Object[][] { { "manager" }, { "manager " }, { "=Jim" },
         { " =Jim" }, { "= Jim" }, { " = Jim" }, { "cn+Jim" }, { "cn + Jim" },
         { "cn=Jim+" }, { "cn=Jim+manager" }, { "cn=Jim+manager " },
@@ -304,8 +304,7 @@ public class TestDN extends TypesTestCase {
   public void testValueOf(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.valueOf(rawDN);
     StringBuilder normalizedDnString = new StringBuilder(normDN);
-    //Platform.normalize(normalizedDnString);
-    assertEquals(dn.toIrreversibleReadableString(), normalizedDnString.toString());
+    assertEquals(dn.toNormalizedUrlSafeString(), normalizedDnString.toString());
   }
 
 
@@ -327,9 +326,8 @@ public class TestDN extends TypesTestCase {
   public void testDecodeByteString(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.decode(ByteString.valueOf(rawDN));
     StringBuilder normalizedDNString = new StringBuilder(normDN);
-    //Platform.normalize(normalizedDNString);
 
-    assertEquals(dn.toIrreversibleReadableString(), normalizedDNString.toString());
+    assertEquals(dn.toNormalizedUrlSafeString(), normalizedDNString.toString());
   }
 
 
@@ -364,10 +362,10 @@ public class TestDN extends TypesTestCase {
   public void testToNormalizedString() throws Exception {
     DN dn = DN.valueOf("dc=example,dc=com");
 
-    assertEquals(dn.toIrreversibleNormalizedByteString(),
+    assertEquals(dn.toNormalizedByteString(),
         new ByteStringBuilder().append("dc=com").append(DN.NORMALIZED_RDN_SEPARATOR).append("dc=example")
         .toByteString());
-    assertEquals(dn.toIrreversibleReadableString(), "dc=example,dc=com");
+    assertEquals(dn.toNormalizedUrlSafeString(), "dc=example,dc=com");
   }
 
 
@@ -612,8 +610,8 @@ public class TestDN extends TypesTestCase {
 
     assertEquals(p.size(), 3);
 
-    assertEquals(p.compareTo(c), -1);
-    assertEquals(c.compareTo(p), 1);
+    assertTrue(p.compareTo(c) < 0);
+    assertTrue(c.compareTo(p) > 0);
 
     assertTrue(p.isAncestorOf(c));
     assertFalse(c.isAncestorOf(p));
@@ -624,7 +622,7 @@ public class TestDN extends TypesTestCase {
     assertEquals(p, e);
     assertEquals(p.hashCode(), e.hashCode());
 
-    assertEquals(p.toIrreversibleReadableString(), e.toIrreversibleReadableString());
+    assertEquals(p.toNormalizedUrlSafeString(), e.toNormalizedUrlSafeString());
     assertEquals(p.toString(), e.toString());
 
     assertEquals(p.rdn(), RDN.decode("dc=bar"));
@@ -826,8 +824,8 @@ public class TestDN extends TypesTestCase {
 
     assertEquals(c.size(), 4);
 
-    assertEquals(c.compareTo(p), 1);
-    assertEquals(p.compareTo(c), -1);
+    assertTrue(c.compareTo(p) > 0);
+    assertTrue(p.compareTo(c) < 0);
 
     assertTrue(p.isAncestorOf(c));
     assertFalse(c.isAncestorOf(p));
@@ -838,7 +836,7 @@ public class TestDN extends TypesTestCase {
     assertEquals(c, e);
     assertEquals(c.hashCode(), e.hashCode());
 
-    assertEquals(c.toIrreversibleReadableString(), e.toIrreversibleReadableString());
+    assertEquals(c.toNormalizedUrlSafeString(), e.toNormalizedUrlSafeString());
     assertEquals(c.toString(), e.toString());
 
     assertEquals(c.rdn(), RDN.decode("dc=foo"));

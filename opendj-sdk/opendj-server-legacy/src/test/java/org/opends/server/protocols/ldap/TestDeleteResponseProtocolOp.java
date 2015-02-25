@@ -342,6 +342,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
         + "errorMessage=" + resultMsg + ", matchedDN=" + dn
         + ", " + "referralURLs={");
     join(key, referralURLs);
+    key.append("})");
     assertEquals(buffer.toString(), key.toString());
   }
 

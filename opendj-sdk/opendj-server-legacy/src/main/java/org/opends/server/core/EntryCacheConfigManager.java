@@ -77,8 +77,8 @@ public class EntryCacheConfigManager
   private SortedMap<Integer, EntryCache> cacheOrderMap =
       new TreeMap<Integer, EntryCache>();
 
-  /** The entry cache name to level map. The key is a byte string representation of the name (DN). */
-  private Map<ByteString,Integer> cacheNameToLevelMap = new HashMap<ByteString, Integer>();
+  /** The entry cache to level map. */
+  private Map<DN,Integer> cacheNameToLevelMap = new HashMap<DN, Integer>();
 
   // Global entry cache monitor provider name.
   private static final String
@@ -257,7 +257,7 @@ public class EntryCacheConfigManager
 
     if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty())
     {
-      final ByteString normDN = configuration.dn().toIrreversibleNormalizedByteString();
+      final ByteString normDN = configuration.dn().toNormalizedByteString();
       if (cacheNameToLevelMap.containsKey(normDN)) {
         int currentCacheLevel = cacheNameToLevelMap.get(normDN);
 
@@ -289,10 +289,10 @@ public class EntryCacheConfigManager
     // If we this entry cache is already installed and active it
     // should be present in the cache maps, if so use it.
     if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty()) {
-      final ByteString normDN = configuration.dn().toIrreversibleNormalizedByteString();
-      if (cacheNameToLevelMap.containsKey(normDN))
+      final DN dn = configuration.dn();
+      if (cacheNameToLevelMap.containsKey(dn))
       {
-        int currentCacheLevel = cacheNameToLevelMap.get(normDN);
+        int currentCacheLevel = cacheNameToLevelMap.get(dn);
         entryCache = cacheOrderMap.get(currentCacheLevel);
 
         // Check if the existing cache just shifted its level.
@@ -300,7 +300,7 @@ public class EntryCacheConfigManager
           // Update the maps then.
           cacheOrderMap.remove(currentCacheLevel);
           cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
-          cacheNameToLevelMap.put(normDN, configuration.getCacheLevel());
+          cacheNameToLevelMap.put(dn, configuration.getCacheLevel());
         }
       }
     }
@@ -481,7 +481,7 @@ public class EntryCacheConfigManager
       }
       entryCache.finalizeEntryCache();
       cacheOrderMap.remove(configuration.getCacheLevel());
-      cacheNameToLevelMap.remove(configuration.dn().toIrreversibleNormalizedByteString());
+      cacheNameToLevelMap.remove(configuration.dn().toNormalizedByteString());
 
       // Push any changes made to the cache order map.
       setCacheOrder(cacheOrderMap);
@@ -527,8 +527,7 @@ public class EntryCacheConfigManager
 
     // Add this entry cache to the current cache config maps.
     cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
-    cacheNameToLevelMap.put(configuration.dn().toIrreversibleNormalizedByteString(),
-      configuration.getCacheLevel());
+    cacheNameToLevelMap.put(configuration.dn(), configuration.getCacheLevel());
 
     // Push any changes made to the cache order map.
     setCacheOrder(cacheOrderMap);

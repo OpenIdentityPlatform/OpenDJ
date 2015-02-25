@@ -248,7 +248,7 @@ public final class TestRDN extends TypesTestCase {
     StringBuilder buffer = new StringBuilder();
     buffer.append(normRDN);
     Platform.normalize(buffer);
-    assertEquals(rdn.toNormalizedString(), buffer.toString());
+    assertEquals(rdn.toNormalizedUrlSafeString(), buffer.toString());
   }
 
 
@@ -317,10 +317,9 @@ public final class TestRDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = IndexOutOfBoundsException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testGetAttributeNameException() throws Exception {
     RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
-    rdn.getAttributeName(1);
   }
 
 
@@ -352,12 +351,11 @@ public final class TestRDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = IndexOutOfBoundsException.class)
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testGetAttributeTypeException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
-    rdn.getAttributeType(1);
+    new RDN(new AttributeType[0], new String[0], new ByteString[0]);
   }
-
 
 
   /**
@@ -387,10 +385,10 @@ public final class TestRDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = IndexOutOfBoundsException.class)
+  @SuppressWarnings("unused")
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void testGetAttributeValueException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
-    rdn.getAttributeValue(1);
+    new RDN(new AttributeType[0], new String[0], new ByteString[0]);
   }
 
 

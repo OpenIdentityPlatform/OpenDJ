@@ -633,7 +633,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     else
     {
       this.baseDN = baseDN;
-      setDomain(!"cn=changelog".equals(baseDN.toIrreversibleReadableString())
+      setDomain(!"cn=changelog".equals(baseDN.toNormalizedUrlSafeString())
           && isDataServer);
     }
   }

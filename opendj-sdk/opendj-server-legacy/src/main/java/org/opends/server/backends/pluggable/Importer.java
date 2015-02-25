@@ -1013,7 +1013,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
         final EntryContainer replacement = suffix.getEntryContainer();
         replacement.lock();
-        replacement.setDatabasePrefix(baseDN.toIrreversibleReadableString());
+        replacement.setDatabasePrefix(baseDN.toNormalizedUrlSafeString());
         replacement.unlock();
         rootContainer.registerEntryContainer(baseDN, replacement);
       }
@@ -4092,7 +4092,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       // Use a compact representation for key
       // and a reversible representation for value
-      final ByteString key = hashCode(dn.toIrreversibleNormalizedByteString());
+      final ByteString key = hashCode(dn.toNormalizedByteString());
       final ByteStringBuilder dnValue = new ByteStringBuilder().append(dn.toString());
 
       return insert(key, dnValue);
@@ -4191,7 +4191,7 @@ final class Importer implements DiskSpaceMonitorHandler
     @Override
     public boolean contains(DN dn)
     {
-      final ByteString key = hashCode(dn.toIrreversibleNormalizedByteString());
+      final ByteString key = hashCode(dn.toNormalizedByteString());
       final ByteString existingDns = txn.read(dnCache, key);
       if (existingDns != null)
       {

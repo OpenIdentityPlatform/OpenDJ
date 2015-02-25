@@ -242,7 +242,6 @@ public class TestImportJob extends JebTestCase
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebimporttest");
     homeDirName = tempDir.getAbsolutePath();
-    System.out.println(homeDirName);
 
     EnvManager.createHomeDir(homeDirName);
 
@@ -289,8 +288,8 @@ public class TestImportJob extends JebTestCase
   public void cleanUp() throws Exception
   {
     TestCaseUtils.disableBackend(backendID);
+    TestCaseUtils.deleteDirectory(tempDir);
   }
-
 
 
   @Test(enabled = true)

@@ -794,7 +794,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           // Create a temp entry container
           sourceEntryContainer = entryContainer;
-          entryContainer = rootContainer.openEntryContainer(baseDN, baseDN.toIrreversibleReadableString()
+          entryContainer = rootContainer.openEntryContainer(baseDN, baseDN.toNormalizedUrlSafeString()
               + "_importTmp");
         }
       }
@@ -1039,7 +1039,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
         final EntryContainer replacement = suffix.getEntryContainer();
         replacement.lock();
-        replacement.setDatabasePrefix(baseDN.toIrreversibleReadableString());
+        replacement.setDatabasePrefix(baseDN.toNormalizedUrlSafeString());
         replacement.unlock();
         rootContainer.registerEntryContainer(baseDN, replacement);
       }
@@ -4271,7 +4271,7 @@ final class Importer implements DiskSpaceMonitorHandler
         throws JebException
     {
       // Use a compact representation for key
-      byte[] dnBytesForKey = dn.toIrreversibleNormalizedByteString().toByteArray();
+      byte[] dnBytesForKey = dn.toNormalizedByteString().toByteArray();
       key.setData(hashCode(dnBytesForKey));
 
       // Use a reversible representation for value
@@ -4363,7 +4363,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       Cursor cursor = null;
       DatabaseEntry key = new DatabaseEntry();
-      byte[] dnBytesForKey = dn.toIrreversibleNormalizedByteString().toByteArray();
+      byte[] dnBytesForKey = dn.toNormalizedByteString().toByteArray();
       key.setData(hashCode(dnBytesForKey));
       try
       {

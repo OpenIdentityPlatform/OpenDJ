@@ -357,7 +357,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
    */
   @Test
   public void testEntryToAndFromDatabase() throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -428,7 +428,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
    */
   @Test
   public void testEntryToAndFromDatabaseV1() throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -477,7 +477,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV2(EntryEncodeConfig config)
          throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -508,7 +508,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV3(EntryEncodeConfig config)
          throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -539,19 +539,18 @@ public class TestJebFormat extends DirectoryServerTestCase {
       { "dc=example", 0 },
       { "dc=example,dc=com", 7 },
       { "dc=example,dc=com\\,org", 11 },
-
     };
   }
 
   @Test(dataProvider="findDnKeyParentData")
   public void testFindDnKeyParent(String dn, int expectedLength) throws Exception
   {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
     ByteString dnKey = JebFormat.dnToDNKey(DN.valueOf(dn), 0);
     assertThat(JebFormat.findDNKeyParent(dnKey)).isEqualTo(expectedLength);
   }
 
-  private void ensureTheServerIsUpAndRunning() throws Exception
+  private void ensureServerIsUpAndRunning() throws Exception
   {
     TestCaseUtils.startServer();
   }

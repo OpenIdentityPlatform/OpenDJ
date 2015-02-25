@@ -314,7 +314,7 @@ public class IsMemberOfVirtualAttributeProvider
             && filter.matchesEntry(e)
             // The set of returned DNs is only used for detecting set membership
             // so it's ok to use the irreversible representation of the DN
-            && (returnedDNs == null || returnedDNs.add(e.getName().toIrreversibleNormalizedByteString()))
+            && (returnedDNs == null || returnedDNs.add(e.getName().toNormalizedByteString()))
             && !searchOperation.returnEntry(e, null))
         {
           return false;
