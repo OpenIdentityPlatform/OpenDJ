@@ -286,7 +286,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         byte[] bytes = new byte[input.available()];
         input.read(bytes);
         String fileStr = new String(bytes);
-        if (fileStr.indexOf(stateStr) != -1)
+        if (fileStr.contains(stateStr))
         {
           break;
         }
