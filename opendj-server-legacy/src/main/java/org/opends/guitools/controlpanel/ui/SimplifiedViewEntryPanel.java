@@ -486,7 +486,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           {
             Object v = values.get(0);
             if (v instanceof String
-                && ((String) v).indexOf("\n") != -1)
+                && ((String) v).contains("\n"))
             {
               gbc.anchor = GridBagConstraints.NORTHWEST;
             }

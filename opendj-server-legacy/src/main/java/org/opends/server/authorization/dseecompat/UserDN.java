@@ -147,7 +147,7 @@ public class UserDN implements KeywordBindRule {
         EnumUserDNType type;
         String str=bldr.toString();
 
-        if(str.indexOf("?") != -1) {
+        if (str.contains("?")) {
             type = EnumUserDNType.URL;
         } else  if(str.equalsIgnoreCase("ldap:///self")) {
             type = EnumUserDNType.SELF;
@@ -161,7 +161,7 @@ public class UserDN implements KeywordBindRule {
         } else if(str.equalsIgnoreCase("ldap:///all")) {
             type = EnumUserDNType.ALL;
             bldr.replace(0, bldr.length(), urlStr);
-        } else if(str.indexOf("*") != -1) {
+        } else if (str.contains("*")) {
             type = EnumUserDNType.DNPATTERN;
         } else {
             type = EnumUserDNType.DN;

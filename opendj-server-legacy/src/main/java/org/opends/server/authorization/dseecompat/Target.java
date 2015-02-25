@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -86,7 +86,7 @@ public class Target
               throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target));
           }
           LDAPURL targetURL =  LDAPURL.decode(target, false);
-          if(targetURL.getRawBaseDN().indexOf("*") != -1) {
+          if (targetURL.getRawBaseDN().contains("*")) {
               this.isPattern=true;
               patternDN = PatternDN.decodeSuffix(targetURL.getRawBaseDN());
           } else {

@@ -2056,7 +2056,7 @@ public class Utilities
     final String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
-      return contains(standardSchemaFileNames, fileName) || fileName.toLowerCase().indexOf("-rfc") != -1;
+      return contains(standardSchemaFileNames, fileName) || fileName.toLowerCase().contains("-rfc");
     }
     else if (fileElement instanceof CommonSchemaElements)
     {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -382,7 +382,7 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     this == MAX_MEMORY ||
     this == USED_MEMORY;
 
-    isTime = attributeName.indexOf("time") != -1;
+    isTime = attributeName.contains("time");
 
     isNumeric =
     !isGMTDate() &&
