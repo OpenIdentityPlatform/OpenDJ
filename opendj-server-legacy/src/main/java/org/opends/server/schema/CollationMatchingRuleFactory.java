@@ -272,9 +272,7 @@ public final class CollationMatchingRuleFactory extends
       if (nOID == null || languageTag == null)
       {
         configAcceptable = false;
-        LocalizableMessage msg =
-            WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT
-                .get(collation);
+        LocalizableMessage msg = WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT.get(collation);
         unacceptableReasons.add(msg);
         continue;
       }
@@ -282,10 +280,8 @@ public final class CollationMatchingRuleFactory extends
       Locale locale = getLocale(languageTag);
       if (locale == null)
       {
-        LocalizableMessage msg =
-            WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
-                collation, configuration.dn().toString(),
-                languageTag);
+        LocalizableMessage msg = WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
+                collation, configuration.dn(), languageTag);
         unacceptableReasons.add(msg);
         configAcceptable = false;
         continue;

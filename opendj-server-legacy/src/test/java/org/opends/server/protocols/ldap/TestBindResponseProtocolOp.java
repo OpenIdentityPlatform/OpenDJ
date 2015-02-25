@@ -118,8 +118,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
       assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().toIrreversibleNormalizedByteString()
-          .equals(responseDn.toIrreversibleNormalizedByteString()));
+      assertTrue(bindResponse.getMatchedDN().equals(responseDn));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());
@@ -166,8 +165,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
       assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().toIrreversibleNormalizedByteString().equals(
-          responseDn.toIrreversibleNormalizedByteString()));
+      assertTrue(bindResponse.getMatchedDN().equals(responseDn));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());

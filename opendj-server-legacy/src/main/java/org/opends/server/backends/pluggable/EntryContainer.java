@@ -447,7 +447,7 @@ public class EntryContainer
     this.config = config;
     this.storage = env;
     this.rootContainer = rootContainer;
-    this.databasePrefix = baseDN.toIrreversibleReadableString();
+    this.databasePrefix = baseDN.toNormalizedUrlSafeString();
 
     config.addPluggableChangeListener(this);
 
@@ -1739,7 +1739,7 @@ public class EntryContainer
                   if (!pluginResult.continueProcessing())
                   {
                     LocalizableMessage message =
-                        ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(subordinateEntry.getName().toString());
+                        ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(subordinateEntry.getName());
                     throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
                   }
                 }

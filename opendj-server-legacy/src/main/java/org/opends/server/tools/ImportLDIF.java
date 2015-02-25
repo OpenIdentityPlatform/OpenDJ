@@ -1041,7 +1041,7 @@ public class ImportLDIF extends TaskTool {
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backendID.getValue());
+          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch, backendID.getValue());
           return 1;
         }
       }

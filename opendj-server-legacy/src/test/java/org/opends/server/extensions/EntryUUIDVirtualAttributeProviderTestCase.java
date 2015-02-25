@@ -116,7 +116,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
+    String uuidString = UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
 
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
@@ -293,7 +293,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testSearchEntryUUIDAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
+    String uuidString = UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
 
     final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryUUID=" + uuidString + ")")
         .addAttribute("entryuuid");

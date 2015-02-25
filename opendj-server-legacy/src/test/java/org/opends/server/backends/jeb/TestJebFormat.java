@@ -431,7 +431,7 @@ public class TestJebFormat extends JebTestCase {
    */
   @Test
   public void testEntryToAndFromDatabase() throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -502,7 +502,7 @@ public class TestJebFormat extends JebTestCase {
    */
   @Test
   public void testEntryToAndFromDatabaseV1() throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -551,7 +551,7 @@ public class TestJebFormat extends JebTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV2(EntryEncodeConfig config)
          throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -582,7 +582,7 @@ public class TestJebFormat extends JebTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV3(EntryEncodeConfig config)
          throws Exception {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -613,19 +613,18 @@ public class TestJebFormat extends JebTestCase {
       { "dc=example", 0 },
       { "dc=example,dc=com", 7 },
       { "dc=example,dc=com\\,org", 11 },
-
     };
   }
 
   @Test(dataProvider="findDnKeyParentData")
   public void testFindDnKeyParent(String dn, int expectedLength) throws Exception
   {
-    ensureTheServerIsUpAndRunning();
+    ensureServerIsUpAndRunning();
     byte[] dnKey = dnToDNKey(DN.valueOf(dn), 0);
     assertThat(findDNKeyParent(dnKey)).isEqualTo(expectedLength);
   }
 
-  private void ensureTheServerIsUpAndRunning() throws Exception
+  private void ensureServerIsUpAndRunning() throws Exception
   {
     TestCaseUtils.startServer();
   }

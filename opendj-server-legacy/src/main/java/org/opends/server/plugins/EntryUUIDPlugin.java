@@ -170,7 +170,7 @@ public final class EntryUUIDPlugin
     // Construct a new UUID.  In order to make sure that UUIDs are consistent
     // when the same LDIF is generated on multiple servers, we'll base the UUID
     // on the byte representation of the normalized DN.
-    byte[] dnBytes = entry.getName().toIrreversibleNormalizedByteString().toByteArray();
+    byte[] dnBytes = entry.getName().toNormalizedByteString().toByteArray();
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
     Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());

@@ -89,6 +89,7 @@ public class ConnectionHandlerMonitor
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = connectionHandler.getConnectionHandlerName();
@@ -119,6 +120,7 @@ public class ConnectionHandlerMonitor
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getMonitorInstanceName()
   {
     return monitorName;
@@ -133,6 +135,7 @@ public class ConnectionHandlerMonitor
    * @return  The objectclass that should be included in the monitor entry
    *          created from this monitor provider.
    */
+  @Override
   public ObjectClass getMonitorObjectClass()
   {
     return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLER, true);
@@ -143,12 +146,13 @@ public class ConnectionHandlerMonitor
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<Attribute> getMonitorData()
   {
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
     // Configuration DN
-    attrs.add(Attributes.create(configDnType, String.valueOf(connectionHandler.getComponentEntryDN().toString())));
+    attrs.add(Attributes.create(configDnType, connectionHandler.getComponentEntryDN().toString()));
 
     int numConnections = 0;
     LinkedList<ClientConnection> conns = new LinkedList<ClientConnection>(

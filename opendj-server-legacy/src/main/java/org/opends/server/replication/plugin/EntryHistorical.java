@@ -928,7 +928,7 @@ public class EntryHistorical
           entryDN);
     }
 
-    return UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
+    return UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
   }
 }
 

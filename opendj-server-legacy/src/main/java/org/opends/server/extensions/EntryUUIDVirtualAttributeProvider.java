@@ -85,7 +85,7 @@ public class EntryUUIDVirtualAttributeProvider
 
   private String getUUIDString(Entry entry)
   {
-    ByteString normDN = entry.getName().toIrreversibleNormalizedByteString();
+    ByteString normDN = entry.getName().toNormalizedByteString();
     return UUID.nameUUIDFromBytes(normDN.toByteArray()).toString();
   }
 

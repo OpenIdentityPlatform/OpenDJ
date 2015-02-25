@@ -362,14 +362,14 @@ public class ImportTask extends Task
           {
             // The include branches span across multiple backends.
             LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-                includeBranch.toString(), backend.getBackendID());
+                includeBranch, backend.getBackendID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else
         {
           // The include branch is not associated with any backend.
-          LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(includeBranch.toString());
+          LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(includeBranch);
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
@@ -387,7 +387,7 @@ public class ImportTask extends Task
       if (!Backend.handlesEntry(includeBranch, defaultIncludeBranches, excludeBranches))
       {
         LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-            includeBranch.toString(), backend.getBackendID());
+            includeBranch, backend.getBackendID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -551,7 +551,7 @@ public class ImportTask extends Task
           else if(backend != locatedBackend)
           {
             // The include branches span across multiple backends.
-            logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backend.getBackendID());
+            logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch, backend.getBackendID());
             return TaskState.STOPPED_BY_ERROR;
           }
         }
@@ -613,12 +613,12 @@ public class ImportTask extends Task
     else
     {
       // Make sure the selected backend will handle all the include branches
-      for(DN includeBranch : includeBranches)
+      for (DN includeBranch : includeBranches)
       {
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backend.getBackendID());
+          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch, backend.getBackendID());
           return TaskState.STOPPED_BY_ERROR;
         }
       }

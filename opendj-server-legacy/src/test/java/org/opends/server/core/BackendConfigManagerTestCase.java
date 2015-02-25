@@ -587,7 +587,7 @@ public class BackendConfigManagerTestCase
         buffer.append("___");
       }
 
-      String ndn = dn.toIrreversibleReadableString();
+      String ndn = dn.toNormalizedUrlSafeString();
       for (int i=0; i < ndn.length(); i++)
       {
         char c = ndn.charAt(i);

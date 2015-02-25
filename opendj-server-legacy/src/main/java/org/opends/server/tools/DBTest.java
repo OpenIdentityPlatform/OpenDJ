@@ -657,7 +657,7 @@ public class DBTest
       for(EntryContainer ec : rc.getEntryContainers())
       {
         builder.startRow();
-        builder.appendCell(ec.getBaseDN().toString());
+        builder.appendCell(ec.getBaseDN());
         builder.appendCell(ec.getDatabasePrefix());
         builder.appendCell(ec.getEntryCount());
         count++;
@@ -754,7 +754,7 @@ public class DBTest
         if(ec == null)
         {
           printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-              base.toString(), backend.getBackendID()));
+              base, backend.getBackendID()));
           return 1;
         }
 
@@ -925,8 +925,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-            base.toString(), backend.getBackendID()));
+        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 
@@ -1112,8 +1111,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-            base.toString(), backend.getBackendID()));
+        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 
@@ -1134,8 +1132,7 @@ public class DBTest
       if(databaseContainer == null)
       {
         printMessage(ERR_DBTEST_NO_DATABASE_CONTAINERS_FOR_NAME.get(
-            databaseName.getValue(), base.toString(),
-            backend.getBackendID()));
+            databaseName.getValue(), base, backend.getBackendID()));
         return 1;
       }
 
@@ -1257,7 +1254,7 @@ public class DBTest
               {
                 try
                 {
-                  formatedKey = ByteString.valueOf(key.getData()).toHexString() + ec.getBaseDN();
+                  formatedKey = new String(key.getData()) + ec.getBaseDN();
                   keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
                 }
                 catch(Exception e)
@@ -1493,7 +1490,7 @@ public class DBTest
         || databaseContainer instanceof DN2URI)
     {
       // Encode the value as a DN
-      return DN.valueOf(value).toIrreversibleNormalizedByteString().toByteArray();
+      return DN.valueOf(value).toNormalizedByteString().toByteArray();
     }
     else if(databaseContainer instanceof ID2Entry)
     {

@@ -233,7 +233,7 @@ public class RootContainer
     String databasePrefix;
     if(name == null || name.equals(""))
     {
-      databasePrefix = baseDN.toIrreversibleReadableString();
+      databasePrefix = baseDN.toNormalizedUrlSafeString();
     }
     else
     {

@@ -479,7 +479,7 @@ public class ReplicationDbEnv
    */
   static Entry<String, String> toReplicaEntry(DN baseDN, int serverId)
   {
-    final String key = serverId + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
+    final String key = serverId + FIELD_SEPARATOR + baseDN.toNormalizedUrlSafeString();
     final String value = serverId + FIELD_SEPARATOR + baseDN;
     return new SimpleImmutableEntry<String, String>(key, value);
   }
@@ -496,7 +496,7 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toGenIdEntry(DN baseDN, long generationId)
   {
-    final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
+    final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toNormalizedUrlSafeString();
     final String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId
         + FIELD_SEPARATOR + baseDN;
     return new SimpleImmutableEntry<byte[], byte[]>(toBytes(key), toBytes(data));
@@ -544,7 +544,7 @@ public class ReplicationDbEnv
    */
   private static byte[] toReplicaOfflineKey(DN baseDN, int serverId)
   {
-    return toBytes(OFFLINE_TAG + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString());
+    return toBytes(OFFLINE_TAG + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN.toNormalizedUrlSafeString());
   }
 
   /** Returns an entry with the provided key and a null value. */
