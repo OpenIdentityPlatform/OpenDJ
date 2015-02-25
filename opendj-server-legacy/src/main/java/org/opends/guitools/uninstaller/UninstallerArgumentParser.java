@@ -86,7 +86,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       LocalizableMessage toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
-    setShortToolDescription(REF_SHORT_DESC_UNINISTALL.get());
+    setShortToolDescription(REF_SHORT_DESC_UNINSTALL.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 
