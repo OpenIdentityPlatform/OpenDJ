@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -65,7 +65,7 @@ public class ExternalChangelogControlTest extends ControlsTestCase
   public void checkECLRequestControlTest(boolean critical, String value)
       throws Exception
   {
-    // Test contructor
+    // Test constructor
     MultiDomainServerState mdss = new MultiDomainServerState(value);
     ExternalChangelogRequestControl eclrc
       = new ExternalChangelogRequestControl(critical, mdss);
@@ -80,12 +80,11 @@ public class ExternalChangelogControlTest extends ControlsTestCase
     bsb.clear();
     eclrc.write(writer);
     LDAPControl control = LDAPReader.readControl(ASN1.getReader(bsb));
-    eclrc =
-      ExternalChangelogRequestControl.DECODER.decode(control.isCritical(), control.getValue());
+    eclrc = ExternalChangelogRequestControl.DECODER.decode(control.isCritical(), control.getValue());
     assertNotNull(eclrc);
     assertEquals(critical, eclrc.isCritical());
     assertEquals(OID_ECL_COOKIE_EXCHANGE_CONTROL, eclrc.getOID());
     assertTrue(eclrc.getCookie().equalsTo(mdss),
-       "Expect:"+value+", Got:"+eclrc.getCookie().toString());
+        "Expect:" + value + ", Got:" + eclrc.getCookie());
   }
 }

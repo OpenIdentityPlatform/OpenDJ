@@ -665,7 +665,7 @@ public class ShortCircuitPlugin
 
     // Check for registered short circuits.
     Integer resultCode = shortCircuits.get(
-         operation.getOperationType().toString() + "/" + section.toLowerCase());
+         operation.getOperationType() + "/" + section.toLowerCase());
     if (resultCode != null)
     {
       return resultCode;
@@ -724,11 +724,9 @@ public class ShortCircuitPlugin
    * @param section The plugin point the short circuit applies to.
    * @param resultCode The result code to be returned for the short circuit.
    */
-  public static void registerShortCircuit(OperationType operation,
-                                          String section, int resultCode)
+  public static void registerShortCircuit(OperationType operation, String section, int resultCode)
   {
-    shortCircuits.put(operation.toString() + "/" + section.toLowerCase(),
-                      resultCode);
+    shortCircuits.put(operation + "/" + section.toLowerCase(), resultCode);
   }
 
   /**
@@ -736,10 +734,8 @@ public class ShortCircuitPlugin
    * @param operation The type of operation the short circuit applies to.
    * @param section The plugin point the short circuit applies to.
    */
-  public static void deregisterShortCircuit(OperationType operation,
-                                            String section)
+  public static void deregisterShortCircuit(OperationType operation, String section)
   {
-    shortCircuits.remove(operation.toString() + "/" + section.toLowerCase());
+    shortCircuits.remove(operation + "/" + section.toLowerCase());
   }
 }
-

@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
@@ -41,6 +40,7 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.ldap.TestAddResponseProtocolOp.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -337,19 +337,10 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
                                                   referralURLs);
     compareResponse.toString(buffer);
 
-    key.append("CompareResponse(resultCode="+resultCode+", " +
-        "errorMessage="+resultMsg+", matchedDN="+dn.toString()+", " +
-        "referralURLs={");
-
-    Iterator<String> iterator = referralURLs.iterator();
-      key.append(iterator.next());
-
-    while (iterator.hasNext())
-    {
-      key.append(", ");
-      key.append(iterator.next());
-    }
-
+    key.append("CompareResponse(resultCode=" + resultCode + ", "
+        + "errorMessage=" + resultMsg + ", matchedDN=" + dn
+        + ", " + "referralURLs={");
+    join(key, referralURLs);
     key.append("})");
 
     assertEquals(buffer.toString(), key.toString());

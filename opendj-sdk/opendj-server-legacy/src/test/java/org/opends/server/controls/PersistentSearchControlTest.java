@@ -26,6 +26,12 @@
  */
 package org.opends.server.controls;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.controls.PersistentSearchChangeType.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -36,6 +42,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -49,12 +56,6 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.controls.PersistentSearchChangeType.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class PersistentSearchControlTest extends ControlsTestCase
@@ -151,7 +152,6 @@ public class PersistentSearchControlTest extends ControlsTestCase
   {
     Set<Integer> keys = exceptedValues.keySet() ;
 
-    Set<PersistentSearchChangeType> returnTypes;
     Set<PersistentSearchChangeType> expectedTypes =
       new HashSet<PersistentSearchChangeType>(4);
 
@@ -165,7 +165,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
           expectedTypes.add(PersistentSearchChangeType.valueOf(key));
         }
       }
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
       assertEquals(expectedTypes.size(), returnTypes.size());
       for (PersistentSearchChangeType type: expectedTypes)
       {
@@ -209,10 +209,9 @@ public class PersistentSearchControlTest extends ControlsTestCase
   public void checkTypesToIntTest(Map<Integer, String> exceptedValues)
       throws Exception
   {
-    Set<PersistentSearchChangeType> returnTypes;
     for (int i = 1; i <= 15; i++)
     {
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
       int ret = PersistentSearchChangeType.changeTypesToInt(returnTypes);
       assertEquals(ret, i);
     }
@@ -222,24 +221,11 @@ public class PersistentSearchControlTest extends ControlsTestCase
   public void checkChangeTypesToStringTest(Map<Integer, String> exceptedValues)
       throws Exception
   {
-    Set<PersistentSearchChangeType> returnTypes;
     for (int i = 1; i <= 15; i++)
     {
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
       String ret = PersistentSearchChangeType.changeTypesToString(returnTypes);
-      String exceptedRet = null ;
-      for (PersistentSearchChangeType type : returnTypes)
-      {
-        if (exceptedRet == null)
-        {
-          exceptedRet = type.toString();
-        }
-        else
-        {
-          exceptedRet = exceptedRet + "|" + type.toString();
-        }
-      }
-      assertEquals(ret, exceptedRet);
+      assertEquals(ret, Utils.joinAsString("|", returnTypes));
     }
   }
 
@@ -266,14 +252,11 @@ public class PersistentSearchControlTest extends ControlsTestCase
   {
     // Test constructor
     // CheclPersistentSearchControlTest(Set<PersistentSearchChangeType>
-    // changeTypes,
-    // boolean changesOnly, boolean returnECs
-    Set<PersistentSearchChangeType> returnTypes;
+    // changeTypes, boolean changesOnly, boolean returnECs
     for (int i = 1; i <= 15; i++)
     {
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
-      PersistentSearchControl psc = new PersistentSearchControl(returnTypes,
-          changesOnly, returnECs);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
+      PersistentSearchControl psc = new PersistentSearchControl(returnTypes, changesOnly, returnECs);
       assertNotNull(psc);
       assertEquals(changesOnly, psc.getChangesOnly());
       assertEquals(returnECs, psc.getReturnECs());
@@ -287,7 +270,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     //    boolean changesOnly, boolean returnECs
     for (int i = 1; i <= 15; i++)
     {
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
       PersistentSearchControl psc = new PersistentSearchControl(
           isCritical, returnTypes, changesOnly, returnECs);
       assertNotNull(psc);
@@ -305,7 +288,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     for (int i = 1; i <= 15; i++)
     {
       bsb.clear();
-      returnTypes = PersistentSearchChangeType.intToTypes(i);
+      Set<PersistentSearchChangeType> returnTypes = PersistentSearchChangeType.intToTypes(i);
       PersistentSearchControl psc = new PersistentSearchControl(
           isCritical, returnTypes, changesOnly, returnECs);
       psc.write(writer);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -1196,7 +1196,7 @@ public class UpdateOperationTest extends ReplicationTestCase
        */
       Entry resultEntry = getEntry(personWithUUIDEntry.getName(), 10000, true);
       assertNotNull(resultEntry,
-      "The send ADD replication message was not applied for "+personWithUUIDEntry.getName().toString());
+      "The send ADD replication message was not applied for "+personWithUUIDEntry.getName());
 
       /*
        * Test the reception of Modify Msg

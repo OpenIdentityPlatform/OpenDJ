@@ -242,7 +242,7 @@ public class TestImportJob extends JebTestCase
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebimporttest");
     homeDirName = tempDir.getAbsolutePath();
-    System.out.println(homeDirName.toString());
+    System.out.println(homeDirName);
 
     EnvManager.createHomeDir(homeDirName);
 

@@ -117,7 +117,7 @@ public class DisconnectClientTaskTestCase
     DN taskDN = DN.valueOf("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(
-      "dn: " + taskDN.toString(),
+      "dn: " + taskDN,
       "objectClass: top",
       "objectClass: ds-task",
       "objectClass: ds-task-disconnect",
@@ -192,7 +192,7 @@ public class DisconnectClientTaskTestCase
     DN taskDN = DN.valueOf("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(
-      "dn: " + taskDN.toString(),
+      "dn: " + taskDN,
       "objectClass: top",
       "objectClass: ds-task",
       "objectClass: ds-task-disconnect",

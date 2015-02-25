@@ -553,12 +553,12 @@ public class BackendConfigManagerTestCase
     lines.add("objectClass: ds-cfg-memory-backend");
     lines.add("ds-cfg-backend-id: " + backendID);
     lines.add("ds-cfg-java-class: org.opends.server.backends.MemoryBackend");
-    lines.add("ds-cfg-enabled: " + String.valueOf(enabled));
+    lines.add("ds-cfg-enabled: " + enabled);
     lines.add("ds-cfg-writability-mode: enabled");
 
     for (DN dn : baseDNs)
     {
-      lines.add("ds-cfg-base-dn: " + dn.toString());
+      lines.add("ds-cfg-base-dn: " + dn);
     }
 
     String[] lineArray = new String[lines.size()];

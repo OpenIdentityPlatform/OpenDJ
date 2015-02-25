@@ -650,8 +650,8 @@ public class PluginConfigManagerTestCase
     }
 
     assertTrue(match,
-               EOL + "Expected order:  " + expectedOrder.toString() + EOL +
-               "Actual order:    " + actualOrder.toString());
+               EOL + "Expected order:  " + expectedOrder + EOL +
+               "Actual order:    " + actualOrder);
   }
 }
 

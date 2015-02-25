@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -529,10 +529,7 @@ public final class TestLDIFWriter extends UtilTestCase {
       actualLine = reader.readLine();
     }
 
-    if (failed) {
-      Assert.fail("expected:\n" + expected.toString() + "\nbut was:\n"
-          + actual.toString());
-    }
+    Assert.assertFalse(failed, "expected:\n" + expected + "\nbut was:\n" + actual);
   }
 
   /**
