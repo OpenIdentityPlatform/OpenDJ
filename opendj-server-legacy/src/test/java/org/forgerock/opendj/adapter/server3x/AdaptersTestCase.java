@@ -25,6 +25,9 @@
  */
 package org.forgerock.opendj.adapter.server3x;
 
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+
 import java.security.GeneralSecurityException;
 import java.util.NoSuchElementException;
 
@@ -76,15 +79,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
-
 /**
  * This class defines a set of tests for the Adapters.class.
  */
 @SuppressWarnings("javadoc")
 @Test(sequential=true)
 public class AdaptersTestCase extends DirectoryServerTestCase {
+
+    private static final String USER_0_DN_STRING = "uid=user.0,o=test";
 
     /**
      * Provides an anonymous connection factories.
@@ -208,7 +210,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void shutDownEmbeddedServerServer() throws Exception {
         // Delete all added entries but user.3 which is already removed in one test
         for (int i = 0; i < 5; i++) {
-            if (i!=3) {
+            if (i != 3) {
                 TestCaseUtils.deleteEntry(org.opends.server.types.DN.valueOf("uid=user." + i + ", o=test"));
             }
         }
@@ -221,9 +223,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
-        final LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost",
-                        getServerLdapPort());
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
         Connection connection = null;
         try {
             connection = factory.getConnection();
@@ -246,9 +246,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
-        LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost",
-                        getServerLdapPort());
+        LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
@@ -260,7 +258,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 connection.close();
             }
         }
-
     }
 
     /**
@@ -321,11 +318,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterConnectionSimpleBindAsAUser() throws Exception {
-        // user
-        final Connection connection =
-                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,o=test"));
-        final BindResult result =
-                connection.bind("uid=user.0,o=test", "password".toCharArray());
+        final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING));
+        final BindResult result = connection.bind(USER_0_DN_STRING, "password".toCharArray());
         assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
         connection.close();
     }
@@ -337,12 +331,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test(expectedExceptions = AuthenticationException.class)
     public void testAdapterConnectionSimpleBindAsAUserWrongPassword() throws Exception {
-        // user
-        final Connection connection =
-                Adapters.newConnectionForUser(DN.valueOf("uid=user.0,o=test"));
+        final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING));
         try {
             // Invalid credentials
-            connection.bind("uid=user.0,o=test", "pass".toCharArray());
+            connection.bind(USER_0_DN_STRING, "pass".toCharArray());
         } finally {
             connection.close();
         }
@@ -765,7 +757,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterCompareRequestTrue(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,o=test", "uid", "user.0");
+                Requests.newCompareRequest(USER_0_DN_STRING, "uid", "user.0");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -783,7 +775,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterCompareRequestFalse(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,o=test", "uid", "scarter");
+                Requests.newCompareRequest(USER_0_DN_STRING, "uid", "scarter");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -917,7 +909,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             throws LdapException {
 
         final CompareRequest compareRequest =
-                Requests.newCompareRequest("uid=user.0,o=test", "uid", "user.0");
+                Requests.newCompareRequest(USER_0_DN_STRING, "uid", "user.0");
 
         final Connection connection = factory.getConnection();
         final CompareResult result = connection.compare(compareRequest);
@@ -1036,11 +1028,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         assertThat(deleteResult.getReferralURIs()).isEqualTo(sdkDeleteResult.getReferralURIs());
 
         // ConnectionEntryReader
-        SearchResultEntry entry = null;
-        SearchResultEntry sdkEntry = null;
         while (reader.hasNext()) {
-            entry = reader.readEntry();
-            sdkEntry = sdkReader.readEntry();
+            SearchResultEntry entry = reader.readEntry();
+            SearchResultEntry sdkEntry = sdkReader.readEntry();
             assertThat(entry.getName().toString()).isEqualTo(sdkEntry.getName().toString());
             assertThat(entry.getAttributeCount()).isEqualTo(sdkEntry.getAttributeCount());
             assertThat(entry.getAllAttributes().iterator().next().getAttributeDescription())
