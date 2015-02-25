@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -72,7 +72,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     return params;
   }
 
-  // Exceptions to config objects having a differnt objectclass
+  // Exceptions to config objects having a different objectclass
   private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS =
           Arrays.asList(
                   "org.opends.server.admin.std.meta.RootCfgDefn",
@@ -106,10 +106,8 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
       validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
     }
 
-    if (errors.length() > 0) {
-      Assert.fail("The configuration definition for " + objectDef.getName() + " has the following problems: " + EOL +
-                  errors.toString());
-    }
+    Assert.assertEquals(errors.length(), 0,
+        "The configuration definition for " + objectDef.getName() + " has the following problems: " + EOL + errors);
   }
 
   // Exceptions to properties ending in -class being exactly 'java-class'.

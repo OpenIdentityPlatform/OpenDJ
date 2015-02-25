@@ -517,14 +517,8 @@ public class PasswordControlTest
 
         // check to String
         String toString =
-          "PasswordPolicyResponseControl(" +
-          warningType.toString() +
-          "=" +
-          warningValue +
-          ", " +
-          errorType.toString() +
-          ")" ;
-        assertEquals(toString, pprc.toString()) ;
+            "PasswordPolicyResponseControl(" + warningType + "=" + warningValue + ", " + errorType + ")" ;
+        assertEquals(pprc.toString(), toString);
 
 
         // check null value for the control

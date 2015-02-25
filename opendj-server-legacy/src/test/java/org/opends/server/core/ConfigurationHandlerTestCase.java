@@ -353,7 +353,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
-        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA.toString(),
+        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA,
             "objectclass: ds-cfg-schema-provider",
             "ds-cfg-enabled: false"));
 
@@ -373,7 +373,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
-        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA.toString(),
+        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA,
             "objectclass: ds-cfg-schema-provider",
             "ds-cfg-enabled: false"));
   }
@@ -395,7 +395,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
-        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA.toString(),
+        new LinkedHashMapEntry("dn: " + DN_CORE_SCHEMA,
             "objectclass: ds-cfg-schema-provider",
             "ds-cfg-enabled: false"));
   }

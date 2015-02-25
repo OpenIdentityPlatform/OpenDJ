@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -89,8 +89,8 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
 
      return new Object[] {
          AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5 + "$"
-                 + authPWComponents[1].toString()
-                 + "$"+ authPWComponents[2].toString(),
+                 + authPWComponents[1]
+                 + "$"+ authPWComponents[2],
          password, true};
   }
 

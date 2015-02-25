@@ -63,13 +63,11 @@ public class EntrySchemaCheckingTestCase
 
       DirectoryServer.setSingleStructuralObjectClassPolicy(WARN);
       assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
-                 "Entry validation failed with WARN policy:  " +
-                 invalidReason.toString());
+                 "Entry validation failed with WARN policy:  " + invalidReason);
 
       DirectoryServer.setSingleStructuralObjectClassPolicy(ACCEPT);
       assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
-                 "Entry validation failed with ACCEPT policy:  " +
-                 invalidReason.toString());
+                 "Entry validation failed with ACCEPT policy:  " + invalidReason);
     }
     finally
     {

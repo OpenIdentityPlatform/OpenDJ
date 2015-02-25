@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -138,12 +138,11 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
     DeleteRequestProtocolOp deleteEncoded;
-    DeleteRequestProtocolOp deleteDecoded;
 
     deleteEncoded = new DeleteRequestProtocolOp(null);
     deleteEncoded.write(writer);
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
-    deleteDecoded = (DeleteRequestProtocolOp)LDAPReader.readProtocolOp(reader);
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -166,12 +165,7 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   public void TestToStringSingleLine() throws Exception
   {
     DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(dn);
-    StringBuilder buffer = new StringBuilder();
-
-    String expectedStr = "DeleteRequest(dn=" + dn.toString() + ")";
-    deleteRequest.toString(buffer);
-
-    assertEquals(buffer.toString(), expectedStr);
+    assertEquals(deleteRequest.toString(), "DeleteRequest(dn=" + dn + ")");
   }
 
   /**
@@ -183,14 +177,11 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   public void TestToStringMultiLine() throws Exception
   {
     DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(dn);
+
     StringBuilder buffer = new StringBuilder();
-
-    String expectedStr = "   Delete Request" +
-        EOL + "     Entry DN:  " +
-        dn.toString() +
-        EOL;
     deleteRequest.toString(buffer, 3);
-
-    assertEquals(buffer.toString(), expectedStr);
+    assertEquals(buffer.toString(),
+        "   Delete Request" + EOL
+        + "     Entry DN:  " + dn + EOL);
   }
 }

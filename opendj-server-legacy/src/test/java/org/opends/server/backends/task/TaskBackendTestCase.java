@@ -488,8 +488,7 @@ public class TaskBackendTestCase
     String taskDN =
         "ds-recurring-task-id=" + taskID
             + ",cn=Recurring Tasks,cn=tasks";
-    String taskSchedule = "00 * * " +
-      Integer.toString(scheduledMonth) + " *";
+    String taskSchedule = "00 * * " + scheduledMonth + " *";
 
     TaskBackend taskBackend =
       (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));

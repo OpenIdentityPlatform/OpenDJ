@@ -1064,7 +1064,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @Test
   public void entryMsgTest() throws Exception
   {
-    String taskInitFromS2 = new String(
+    String taskInitFromS2 =
         "dn: ds-task-id=" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks\n" +
         "objectclass: top\n" +
@@ -1072,7 +1072,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         "objectclass: ds-task-initialize\n" +
         "ds-task-class-name: org.opends.server.replication.api.InitializeTask\n" +
         "ds-task-initialize-domain-dn: " + TEST_ROOT_DN_STRING  + "\n" +
-        "ds-task-initialize-source: 1\n");
+        "ds-task-initialize-source: 1\n";
     int sender = 1;
     int target = 45678;
     byte[] entry = taskInitFromS2.getBytes();

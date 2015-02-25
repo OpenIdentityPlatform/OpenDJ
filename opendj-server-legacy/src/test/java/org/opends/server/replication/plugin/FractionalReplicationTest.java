@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -791,7 +791,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     assertNotNull(attrValue);
     assertFalse(attrValues.hasNext());
     assertEquals(attrValue.toString(), attributeValue, "Was expecting attribute " +
-      attributeName + "=" + attributeValue + " but got value: " + attrValue.toString());
+      attributeName + "=" + attributeValue + " but got value: " + attrValue);
 
   }
 
