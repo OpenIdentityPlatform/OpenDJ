@@ -1123,10 +1123,8 @@ public class AttributeIndex
     return false;
   }
 
-  /**
-   * This class extends the IndexConfig for JE Backend.
-   */
-  private class JEIndexConfig implements IndexingOptions
+  /** This class extends the IndexConfig for JE Backend. */
+  private final class JEIndexConfig implements IndexingOptions
   {
     /** The length of the substring index. */
     private int substringLength;

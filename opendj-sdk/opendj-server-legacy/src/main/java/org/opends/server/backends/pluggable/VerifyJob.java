@@ -1569,10 +1569,8 @@ public class VerifyJob
     return dn.getParentDNInSuffix();
   }
 
-  /**
-   * This class reports progress of the verify job at fixed intervals.
-   */
-  private class ProgressTask extends TimerTask
+  /** This class reports progress of the verify job at fixed intervals. */
+  private final class ProgressTask extends TimerTask
   {
     /** The total number of records to process. */
     private long totalCount;

@@ -2394,16 +2394,13 @@ public class EntryContainer
     }
   }
 
-  /**
-   * Represents an renamed entry that was deleted from JE but yet to be added
-   * back.
-   */
-  private static class MovedEntry
+  /** Represents an renamed entry that was deleted from JE but yet to be added back. */
+  private static final class MovedEntry
   {
-    EntryID entryID;
-    Entry entry;
-    MovedEntry next;
-    boolean renumbered;
+    private EntryID entryID;
+    private Entry entry;
+    private MovedEntry next;
+    private boolean renumbered;
 
     private MovedEntry(EntryID entryID, Entry entry, boolean renumbered)
     {
