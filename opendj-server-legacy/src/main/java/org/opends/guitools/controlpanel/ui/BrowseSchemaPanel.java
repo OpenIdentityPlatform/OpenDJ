@@ -196,36 +196,28 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -270,9 +262,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     add(newObjectClass, gbc);
     newObjectClass.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newObjectClassClicked();
@@ -288,9 +279,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     add(newAttribute, gbc);
     newAttribute.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newAttributeClicked();
@@ -324,13 +314,12 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     filter = new FilterTextField();
     filter.addKeyListener(new KeyAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void keyReleased(KeyEvent e)
       {
-        if ((e.getKeyCode() == KeyEvent.VK_ENTER) && applyButton.isEnabled())
+        if (e.getKeyCode() == KeyEvent.VK_ENTER
+            && applyButton.isEnabled())
         {
           filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
           repopulateTree(treePane.getTree(), false);
@@ -339,9 +328,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     });
     filter.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
@@ -361,9 +349,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     add(applyButton, gbc);
     applyButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
@@ -415,9 +402,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     buttonsPanel.add(closeButton, gbc);
     closeButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         closeClicked();
@@ -430,27 +416,21 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     return buttonsPanel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_SCHEMA_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return filter;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void closeClicked()
   {
@@ -458,18 +438,14 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     super.closeClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -505,9 +481,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     entryPane.addSchemaElementSelectionListener(
         new SchemaElementSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void schemaElementSelected(SchemaElementSelectionEvent ev)
       {
         Object element = ev.getSchemaElement();
@@ -520,6 +495,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     entryPane.addConfigurationElementCreatedListener(
         new ConfigurationElementCreatedListener()
         {
+          @Override
           public void elementCreated(ConfigurationElementCreatedEvent ev)
           {
             configurationElementCreated(ev);
@@ -528,9 +504,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -573,8 +548,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
               {
                 nonDeletableElementsSelected = true;
               }
-              else if ((node instanceof CustomObjectClassTreeNode) ||
-                  (node instanceof CustomAttributeTreeNode))
+              else if (node instanceof CustomObjectClassTreeNode
+                  || node instanceof CustomAttributeTreeNode)
               {
                 deletableElementsSelected = true;
               }
@@ -621,9 +596,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     return pane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -632,9 +605,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     entryPane.setInfo(info);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -658,6 +630,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       lastSchema = schema;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           repopulateTree(treePane.getTree(), forceScroll);
@@ -922,8 +895,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       else
       {
         expand = false;
-        if ((parent == standardObjectClasses) || (parent == customObjectClasses)
-            || (parent == configurationObjectClasses))
+        if (parent == standardObjectClasses
+            || parent == customObjectClasses
+            || parent == configurationObjectClasses)
         {
           if (objectClasses.getIndex(parent) == -1)
           {
@@ -937,8 +911,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
           }
           positionUnderObjectClass ++;
         }
-        else if ((parent == standardAttributes) || (parent == customAttributes)
-            || (parent == configurationAttributes))
+        else if (parent == standardAttributes
+            || parent == customAttributes
+            || parent == configurationAttributes)
         {
           if (attributes.getIndex(parent) == -1)
           {
@@ -969,13 +944,13 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         {
           DefaultMutableTreeNode node = nodes.get(i).get(name);
           parent.add(node);
-          if ((newSelectionPath == null) &&
-              ((lastSelectedNode != null) || (lastCreatedElement != null)))
+          if (newSelectionPath == null
+              && (lastSelectedNode != null || lastCreatedElement != null))
           {
             if (lastCreatedElement != null)
             {
-              if ((node instanceof CustomObjectClassTreeNode) &&
-                  (lastCreatedElement instanceof ObjectClass))
+              if (node instanceof CustomObjectClassTreeNode
+                  && lastCreatedElement instanceof ObjectClass)
               {
                 if (name.equals(lastCreatedElement.getNameOrOID()))
                 {
@@ -1047,7 +1022,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     {
       lNumberOfElements.setVisible(false);
     }
-    if ((newSelectionPath == null) && (f.length() > 0))
+    if (newSelectionPath == null && f.length() > 0)
     {
       for (i=0; i<tree.getRowCount(); i++)
       {
@@ -1064,6 +1039,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         if (forceScroll)
@@ -1087,7 +1063,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     ViewPositions pos = Utilities.getViewPositions(entryPane);
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     TreePath path = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       path = paths[0];
     }
@@ -1180,10 +1156,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     Utilities.updateViewPositions(pos);
   }
 
-  /**
-   * Adds a popup menu.
-   *
-   */
+  /** Adds a popup menu. */
   private void addPopupMenu()
   {
     popup = new JPopupMenu();
@@ -1191,9 +1164,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_NEW_OBJECTCLASS_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newObjectClassClicked();
@@ -1204,9 +1176,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_NEW_ATTRIBUTE_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newAttributeClicked();
@@ -1218,9 +1189,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_DELETE_SCHEMA_ELEMENT_MENU.get());
     deleteMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteClicked();
@@ -1320,58 +1290,30 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Checks whether a given attribute type must be added or not.  Method used to
-   * do the filtering based on the name.
-   * @param attr the attribute type.
-   * @param attrName the name provided by the user.
-   * @return <CODE>true</CODE> if the attribute must be added and
-   * <CODE>false</CODE> otherwise.
-   */
   private boolean mustAddAttributeName(AttributeType attr, String attrName)
   {
-    ArrayList<String> values = new ArrayList<String>();
-    String oid = attr.getOID();
-    values.add(oid);
-
-    String name = attr.getPrimaryName();
-    if (name != null)
-    {
-      values.add(name);
-    }
-    Iterable<String> names = attr.getNormalizedNames();
-    for (String v : names)
-    {
-      values.add(v);
-    }
-    return  matchFilter(values, attrName, false);
+    return mustAdd(attrName, attr.getOID(), attr.getPrimaryName(), attr.getNormalizedNames());
   }
 
-  /**
-   * Checks whether a given object class must be added or not.  Method used to
-   * do the filtering based on the name.
-   * @param oc the object class.
-   * @param ocName the name provided by the user.
-   * @return <CODE>true</CODE> if the object class must be added and
-   * <CODE>false</CODE> otherwise.
-   */
   private boolean mustAddObjectClassName(ObjectClass oc, String ocName)
   {
-    ArrayList<String> values = new ArrayList<String>();
-    String oid = oc.getOID();
-    values.add(oid);
+    return mustAdd(ocName, oc.getOID(), oc.getPrimaryName(), oc.getNormalizedNames());
+  }
 
-    String name = oc.getPrimaryName();
-    if (name != null)
+  private boolean mustAdd(String name, String oid, String primaryName, Iterable<String> names)
+  {
+    ArrayList<String> values = new ArrayList<String>();
+    values.add(oid);
+    if (primaryName != null)
     {
-      values.add(name);
+      values.add(primaryName);
     }
-    Iterable<String> names = oc.getNormalizedNames();
     for (String v : names)
     {
       values.add(v);
     }
-    return  matchFilter(values, ocName, false);
+
+    return matchFilter(values, name, false);
   }
 
   /**
@@ -1395,13 +1337,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       else if (TYPE.equals(filterType))
       {
-        String[] elements = f.split("[ ,]");
-        String text =
-          StandardAttributePanel.getTypeValue(attr).toString().toLowerCase();
-        for (int i=0; i<elements.length && mustAdd; i++)
-        {
-          mustAdd = text.indexOf(elements[i].toLowerCase()) != -1;
-        }
+        mustAdd = mustAddType(f, StandardAttributePanel.getTypeValue(attr));
       }
       else
       {
@@ -1409,6 +1345,25 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
     return mustAdd;
+  }
+
+  private boolean mustAddType(String filter, LocalizableMessage typeValue)
+  {
+    String[] elements = filter.split("[ ,]");
+    String text = typeValue.toString().toLowerCase();
+    return mustAdd(elements, text);
+  }
+
+  private boolean mustAdd(String[] elements, String text)
+  {
+    for (String elem : elements)
+    {
+      if (!text.contains(elem.toLowerCase()))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -1431,58 +1386,16 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       else if (TYPE.equals(filterType))
       {
-        String[] elements = f.split("[ ,]");
-        String text =
-          StandardObjectClassPanel.getTypeValue(oc).toString().toLowerCase();
-        for (int i=0; i<elements.length && mustAdd; i++)
-        {
-          mustAdd = text.indexOf(elements[i].toLowerCase()) != -1;
-        }
+        mustAdd = mustAddType(f, StandardObjectClassPanel.getTypeValue(oc));
       }
       else if (REQUIRED_ATTRIBUTES.equals(filterType) ||
           OPTIONAL_ATTRIBUTES.equals(filterType))
       {
-        String[] attrValues = f.split(" ");
-        Set<AttributeType> definedAttrs;
-        if (REQUIRED_ATTRIBUTES.equals(filterType))
-        {
-          definedAttrs = oc.getRequiredAttributeChain();
-        }
-        else
-        {
-          definedAttrs = oc.getOptionalAttributeChain();
-        }
-        for (String attrName : attrValues)
-        {
-          mustAdd = false;
-          for (AttributeType attr : definedAttrs)
-          {
-            mustAdd = mustAddAttributeName(attr, attrName);
-            if (mustAdd)
-            {
-              break;
-            }
-          }
-          if (!mustAdd)
-          {
-            break;
-          }
-        }
+        mustAdd = mustAddAttributeName(oc, f, filterType);
       }
       else if (CHILD_CLASS.equals(filterType))
       {
-        mustAdd = false;
-        for (ObjectClass o : lastSchema.getObjectClasses().values())
-        {
-          if (isDescendant(oc, o))
-          {
-            mustAdd = mustAddObjectClassName(o, f);
-            if (mustAdd)
-            {
-              break;
-            }
-          }
-        }
+        mustAdd = mustAddAnyObjectClassName(oc, f);
       }
       else if (PARENT_CLASS.equals(filterType))
       {
@@ -1496,20 +1409,66 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     return mustAdd;
   }
 
-  private boolean mustAddParentObjectClassName(ObjectClass oc, String f)
+  private boolean mustAddAnyObjectClassName(ObjectClass oc, String f)
   {
-    boolean mustAdd = false;
-    Set<ObjectClass> parents = oc.getSuperiorClasses();
-    for (ObjectClass parent : parents)
+    for (ObjectClass o : lastSchema.getObjectClasses().values())
     {
-      if (mustAddObjectClassName(parent, f) ||
-          mustAddParentObjectClassName(parent, f))
+      if (isDescendant(oc, o) && mustAddObjectClassName(o, f))
       {
-        mustAdd = true;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean mustAddAttributeName(ObjectClass oc, String f, Object filterType)
+  {
+    Set<AttributeType> definedAttrs;
+    if (REQUIRED_ATTRIBUTES.equals(filterType))
+    {
+      definedAttrs = oc.getRequiredAttributeChain();
+    }
+    else
+    {
+      definedAttrs = oc.getOptionalAttributeChain();
+    }
+    return mustAddAttributeName(f, definedAttrs);
+  }
+
+  private boolean mustAddAttributeName(String f, Set<AttributeType> definedAttrs)
+  {
+    boolean mustAdd = true;
+    String[] attrValues = f.split(" ");
+    for (String attrName : attrValues)
+    {
+      mustAdd = false;
+      for (AttributeType attr : definedAttrs)
+      {
+        mustAdd = mustAddAttributeName(attr, attrName);
+        if (mustAdd)
+        {
+          break;
+        }
+      }
+      if (!mustAdd)
+      {
         break;
       }
     }
     return mustAdd;
+  }
+
+  private boolean mustAddParentObjectClassName(ObjectClass oc, String f)
+  {
+    for (ObjectClass parent : oc.getSuperiorClasses())
+    {
+      if (mustAddObjectClassName(parent, f) ||
+          mustAddParentObjectClassName(parent, f))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1548,39 +1507,23 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    */
   private boolean mustAdd(MatchingRule matchingRule)
   {
-    boolean mustAdd = true;
     String f = filter.getText().trim();
     if (f.length () > 0)
     {
       if (NAME.equals(filterAttribute.getSelectedItem()))
       {
-        ArrayList<String> values = new ArrayList<String>();
-        String oid = matchingRule.getOID();
-        values.add(oid);
-
-        String name = matchingRule.getNameOrOID();
-        if (name != null)
-        {
-          values.add(name);
-        }
-        mustAdd = matchFilter(values, f, false);
+        return mustAdd(f, matchingRule.getOID(), matchingRule.getNameOrOID());
       }
       else if (TYPE.equals(filterAttribute.getSelectedItem()))
       {
-        String[] elements = f.split("[ ,]");
-        String text =
-          MatchingRulePanel.getTypeValue(matchingRule).toString().toLowerCase();
-        for (int i=0; i<elements.length && mustAdd; i++)
-        {
-          mustAdd = text.indexOf(elements[i].toLowerCase()) != -1;
-        }
+        return mustAddType(f, MatchingRulePanel.getTypeValue(matchingRule));
       }
       else
       {
-        mustAdd = false;
+        return false;
       }
     }
-    return mustAdd;
+    return true;
   }
 
   /**
@@ -1591,51 +1534,47 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    */
   private boolean mustAdd(AttributeSyntax<?> syntax)
   {
-    boolean mustAdd = true;
     String f = filter.getText().trim();
     if (f.length () > 0)
     {
       if (NAME.equals(filterAttribute.getSelectedItem()))
       {
-        ArrayList<String> values = new ArrayList<String>();
-        String oid = syntax.getOID();
-        values.add(oid);
-
-        String name = syntax.getName();
-        if (name != null)
-        {
-          values.add(name);
-        }
-        mustAdd = matchFilter(values, f, false);
+        return mustAdd(f, syntax.getOID(), syntax.getName());
       }
       else
       {
-        mustAdd = false;
+        return false;
       }
     }
-    return mustAdd;
+    return true;
+  }
+
+  private boolean mustAdd(String f, String oid, String name)
+  {
+    ArrayList<String> values = new ArrayList<String>(2);
+    values.add(oid);
+    if (name != null)
+    {
+      values.add(name);
+    }
+
+    return matchFilter(values, f, false);
   }
 
   private boolean matchFilter(Collection<String> values, String filter,
       boolean exact)
   {
-    boolean matchFilter = false;
     for (String value : values)
     {
-      if (exact)
-      {
-        matchFilter = value.equalsIgnoreCase(filter);
-      }
-      else
-      {
-        matchFilter = value.toLowerCase().indexOf(filter.toLowerCase()) != -1;
-      }
+      boolean matchFilter = exact
+          ? value.equalsIgnoreCase(filter)
+          : value.toLowerCase().contains(filter.toLowerCase());
       if (matchFilter)
       {
         break;
       }
     }
-    return matchFilter;
+    return false;
   }
 
   private DefaultMutableTreeNode getRoot(JTree tree)
@@ -1656,6 +1595,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       panel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
+            @Override
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
               configurationElementCreated(ev);
@@ -1678,6 +1618,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       panel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
+            @Override
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
               configurationElementCreated(ev);
@@ -1736,9 +1677,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   {
     private static final long serialVersionUID = -3390568254259441766L;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
@@ -1800,7 +1739,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       for (int i=0; i<lOrderedAttributes.size(); i++)
       {
         AttributeType parent = lOrderedAttributes.get(i).getSuperiorType();
-        while ((parent != null) && (index == -1))
+        while (parent != null && index == -1)
         {
           if (parent.equals(attr))
           {
