@@ -26,22 +26,17 @@
  */
 package org.opends.server.protocols.jmx;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import java.io.IOException;
-
 import java.io.Serializable;
 import java.net.Socket;
 import java.rmi.server.RMIClientSocketFactory;
-
 import java.util.Map;
 
-// JSSE
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * A <code>DirectoryRMIClientSocketFactory</code> instance is used by the
@@ -55,8 +50,6 @@ public class DirectoryRMIClientSocketFactory implements
     RMIClientSocketFactory, Serializable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   /**
    * The serial version identifier required to satisfy the compiler because
@@ -195,7 +188,7 @@ public class DirectoryRMIClientSocketFactory implements
   {
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
     String realhost = getRealServerHostname(host);
-    return (SSLSocket) sslSocketFactory.createSocket(realhost, port);
+    return sslSocketFactory.createSocket(realhost, port);
   }
 
   /**
