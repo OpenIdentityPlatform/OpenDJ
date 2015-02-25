@@ -639,7 +639,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     catch (IOException ioe)
     {
       logger.traceException(ioe);
-      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()));
+      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (StorageRuntimeException de)
     {
@@ -648,7 +648,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     }
     catch (ConfigException ce)
     {
-      throw new DirectoryException(errorRC, ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject(), ce);
     }
     catch (IdentifiedException e)
     {
@@ -657,7 +657,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
         throw (DirectoryException) e;
       }
       logger.traceException(e);
-      throw new DirectoryException(errorRC, e.getMessageObject());
+      throw new DirectoryException(errorRC, e.getMessageObject(), e);
     }
     finally
     {

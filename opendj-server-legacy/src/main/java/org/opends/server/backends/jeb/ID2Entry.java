@@ -90,7 +90,7 @@ public class ID2Entry extends DatabaseContainer
    * A cached set of ByteStringBuilder buffers and ASN1Writer used to encode
    * entries.
    */
-  private static class EntryCodec
+  private static final class EntryCodec
   {
     private static final int BUFFER_INIT_SIZE = 512;
 

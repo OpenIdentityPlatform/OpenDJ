@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
@@ -656,7 +657,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     catch (IOException ioe)
     {
       logger.traceException(ioe);
-      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()));
+      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (DatabaseException de)
     {
@@ -665,7 +666,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
     catch (ConfigException ce)
     {
-      throw new DirectoryException(errorRC, ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject(), ce);
     }
     catch (IdentifiedException e)
     {
@@ -674,7 +675,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         throw (DirectoryException) e;
       }
       logger.traceException(e);
-      throw new DirectoryException(errorRC, e.getMessageObject());
+      throw new DirectoryException(errorRC, e.getMessageObject(), e);
     }
     finally
     {
