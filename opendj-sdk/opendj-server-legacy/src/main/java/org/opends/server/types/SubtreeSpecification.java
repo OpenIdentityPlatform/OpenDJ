@@ -335,17 +335,8 @@ public final class SubtreeSpecification
     @Override
     public boolean matches(final Entry entry)
     {
-      final ObjectClass oc = DirectoryServer
-          .getObjectClass(normalizedObjectClass);
-
-      if (oc == null)
-      {
-        return false;
-      }
-      else
-      {
-        return entry.hasObjectClass(oc);
-      }
+      final ObjectClass oc = DirectoryServer.getObjectClass(normalizedObjectClass);
+      return oc != null && entry.hasObjectClass(oc);
     }
 
 
@@ -1597,22 +1588,8 @@ public final class SubtreeSpecification
    */
   public boolean isWithinScope(final Entry entry)
   {
-
-    if (isDNWithinScope(entry.getName()))
-    {
-      if (refinements != null)
-      {
-        return refinements.matches(entry);
-      }
-      else
-      {
-        return true;
-      }
-    }
-    else
-    {
-      return false;
-    }
+    return isDNWithinScope(entry.getName())
+        && (refinements == null || refinements.matches(entry));
   }
 
 

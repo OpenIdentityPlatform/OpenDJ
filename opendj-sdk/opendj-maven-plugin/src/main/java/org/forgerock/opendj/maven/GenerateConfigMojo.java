@@ -397,12 +397,9 @@ public final class GenerateConfigMojo extends AbstractMojo {
     }
 
     private boolean isXMLPackageDirectoryValid() {
-        if (isExtension) {
-            return new File(getXMLPackageDirectory()).isDirectory();
-        } else {
-            // Not an extension, so always valid.
-            return true;
-        }
+        // Not an extension, so always valid.
+        return !isExtension
+            || new File(getXMLPackageDirectory()).isDirectory();
     }
 
     private Templates loadStylesheet(final String stylesheet)

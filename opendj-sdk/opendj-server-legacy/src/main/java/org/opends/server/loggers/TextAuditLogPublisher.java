@@ -546,13 +546,7 @@ public final class TextAuditLogPublisher extends
   // Determines whether the provided operation should be logged.
   private boolean isLoggable(Operation operation)
   {
-    if (operation.getResultCode() != SUCCESS)
-    {
-      return false;
-    }
-    else
-    {
-      return isResponseLoggable(operation);
-    }
+    return operation.getResultCode() == SUCCESS
+        && isResponseLoggable(operation);
   }
 }

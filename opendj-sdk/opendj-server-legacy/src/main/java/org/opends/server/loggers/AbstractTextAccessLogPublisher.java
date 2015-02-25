@@ -343,16 +343,9 @@ abstract class AbstractTextAccessLogPublisher
 
     private boolean filterRequest(final Operation operation)
     {
-      // Check target DN.
-      if ((targetDNNotEqualTo.length > 0 || targetDNEqualTo.length > 0)
-          && !filterRequestTargetDN(operation))
-      {
-        return false;
-      }
-
+      return (targetDNNotEqualTo.length == 0 && targetDNEqualTo.length == 0)
+          || filterRequestTargetDN(operation);
       // TODO: check required controls.
-
-      return true;
     }
 
 
@@ -557,13 +550,8 @@ abstract class AbstractTextAccessLogPublisher
       }
 
       // Check group membership.
-      if ((userIsNotMemberOf.length > 0 || userIsMemberOf.length > 0)
-          && !filterUserIsMemberOf(connection))
-      {
-        return false;
-      }
-
-      return true;
+      return (userIsNotMemberOf.length == 0 && userIsMemberOf.length == 0)
+          || filterUserIsMemberOf(connection);
     }
 
 

@@ -22,7 +22,7 @@
  *
  *
  *       Copyright 2008 Sun Microsystems, Inc.
- *       Portions copyright 2013 ForgeRock AS.
+ *       Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -100,11 +100,8 @@ public final class DataProviderID implements Comparable<DataProviderID> {
             return true;
         } else if (obj instanceof DataProviderID) {
             final DataProviderID other = (DataProviderID) obj;
-            if (isInternal != other.isInternal) {
-                return false;
-            } else {
-                return normalizedName.equals(other.normalizedName);
-            }
+            return isInternal == other.isInternal
+                && normalizedName.equals(other.normalizedName);
         } else {
             return false;
         }

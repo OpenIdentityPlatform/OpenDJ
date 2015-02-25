@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
@@ -294,7 +294,7 @@ public class UserPasswordSyntax
   public static boolean isEncoded(ByteSequence value)
   {
     // If the value is null or empty, then it's not.
-    if ((value == null) || value.length() == 0)
+    if (value == null || value.length() == 0)
     {
       return false;
     }
@@ -319,21 +319,10 @@ public class UserPasswordSyntax
       }
     }
 
-    if ((closingBracePos < 0) || (closingBracePos == 1))
-    {
-      return false;
-    }
-
-
-    // The closing curly brace must not be the last character of the password.
-    if (closingBracePos == (value.length() - 1))
-    {
-      return false;
-    }
-
-
-    // If we've gotten here, then it looks to be encoded.
-    return true;
+    return closingBracePos >= 0
+        && closingBracePos != 1
+        // The closing curly brace must not be the last character of the password.
+        && closingBracePos != value.length() - 1;
   }
 
 

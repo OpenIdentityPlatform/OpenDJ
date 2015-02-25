@@ -234,15 +234,8 @@ public class SynchronizationProviderConfigManager
       SynchronizationProviderCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
-    if (configuration.isEnabled())
-    {
-      // It's enabled so always validate the class.
-      return isJavaClassAcceptable(configuration, unacceptableReasons);
-    } else
-    {
-      // It's disabled so ignore it.
-      return true;
-    }
+    return !configuration.isEnabled()
+        || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
 
@@ -309,15 +302,8 @@ public class SynchronizationProviderConfigManager
       SynchronizationProviderCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
-    if (configuration.isEnabled())
-    {
-      // It's enabled so always validate the class.
-      return isJavaClassAcceptable(configuration, unacceptableReasons);
-    } else
-    {
-      // It's disabled so ignore it.
-      return true;
-    }
+    return !configuration.isEnabled()
+        || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
 
