@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -48,9 +48,9 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
   public abstract Object[][] createAcceptableValues();
 
   /**
-   * Get an instance of the attribute syntax that muste be tested.
+   * Get an instance of the attribute syntax that must be tested.
    *
-   * @return An instance of the attribute syntax that muste be tested.
+   * @return An instance of the attribute syntax that must be tested.
    */
   protected abstract AttributeSyntax getRule();
 
@@ -58,29 +58,16 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
    * Test the normalization and the approximate comparison.
    */
   @Test(dataProvider= "acceptableValues")
-  public void testAcceptableValues(ByteString value, Boolean result)
+  public void testAcceptableValues(ByteString value, boolean expectedResult)
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
     AttributeSyntax syntax = getRule();
 
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
-    // test the valueIsAcceptable method
-    Boolean liveResult =
-      syntax.valueIsAcceptable(value, reason);
 
-    if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value.toString() +
-          "reason : " + reason);
-
-    // call the getters
-    syntax.getApproximateMatchingRule();
-    syntax.getDescription();
-    syntax.getEqualityMatchingRule();
-    syntax.getOID();
-    syntax.getOrderingMatchingRule();
-    syntax.getSubstringMatchingRule();
-    syntax.getName();
-    syntax.toString();
+    boolean liveResult = syntax.valueIsAcceptable(value, reason);
+    assertEquals(liveResult, expectedResult,
+        syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
   }
 }
