@@ -243,7 +243,7 @@ public final class TestRDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "testRDNs")
-  public void testNormalizeToReadableString(String rawRDN, String normRDN, String stringRDN) throws Exception {
+  public void testNormalizationToSafeUrlString(String rawRDN, String normRDN, String stringRDN) throws Exception {
     RDN rdn = RDN.decode(rawRDN);
     StringBuilder buffer = new StringBuilder();
     buffer.append(normRDN);
@@ -310,19 +310,11 @@ public final class TestRDN extends TypesTestCase {
   }
 
 
-
-  /**
-   * Test getAttributeName IndexOutOfBoundsException.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
+  @SuppressWarnings("javadoc")
   @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testGetAttributeNameException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
+  public void ensureRDNIsCreatedWithNonEmptyArguments() throws Exception {
+      new RDN(new AttributeType[0], new String[0], new ByteString[0]);
   }
-
-
 
   /**
    * Test getAttributeType.
@@ -343,21 +335,6 @@ public final class TestRDN extends TypesTestCase {
     assertEquals(rdn.getAttributeType(1), AT_CN);
   }
 
-
-
-  /**
-   * Test getAttributeType IndexOutOfBoundsException.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testGetAttributeTypeException() throws Exception {
-    new RDN(new AttributeType[0], new String[0], new ByteString[0]);
-  }
-
-
   /**
    * Test getAttributeValue.
    *
@@ -376,22 +353,6 @@ public final class TestRDN extends TypesTestCase {
     assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
     assertEquals(rdn.getAttributeValue(1), AV_CN);
   }
-
-
-
-  /**
-   * Test getAttributeValue IndexOutOfBoundsException.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @SuppressWarnings("unused")
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testGetAttributeValueException() throws Exception {
-    new RDN(new AttributeType[0], new String[0], new ByteString[0]);
-  }
-
-
 
   /**
    * Test getAttributeValue.
