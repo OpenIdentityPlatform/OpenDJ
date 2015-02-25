@@ -76,7 +76,7 @@ public class FIFOEntryCacheTestCase
       "ds-cfg-cache-level: 1",
       "ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache",
       "ds-cfg-enabled: true",
-      "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES));
+      "ds-cfg-max-entries: " + super.MAXENTRIES);
     super.configuration = AdminTestCaseUtils.getConfiguration(
       FIFOEntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
@@ -92,32 +92,29 @@ public class FIFOEntryCacheTestCase
     super.testEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.testEntriesList.add(TestCaseUtils.makeEntry(
-        "dn: uid=test" + Integer.toString(i) + ".user" + Integer.toString(i)
-         + ",ou=test" + Integer.toString(i) + ",o=test",
+        "dn: uid=test" + i + ".user" + i + ",ou=test" + i + ",o=test",
         "objectClass: person",
         "objectClass: inetorgperson",
         "objectClass: top",
         "objectClass: organizationalperson",
-        "postalAddress: somewhere in Testville" + Integer.toString(i),
-        "street: Under Construction Street" + Integer.toString(i),
-        "l: Testcounty" + Integer.toString(i),
-        "st: Teststate" + Integer.toString(i),
-        "telephoneNumber: +878 8378 8378" + Integer.toString(i),
-        "mobile: +878 8378 8378" + Integer.toString(i),
-        "homePhone: +878 8378 8378" + Integer.toString(i),
-        "pager: +878 8378 8378" + Integer.toString(i),
-        "mail: test" + Integer.toString(i) + ".user" + Integer.toString(i)
-         + "@testdomain.net",
-        "postalCode: 8378" + Integer.toString(i),
-        "userPassword: testpassword" + Integer.toString(i),
-        "description: description for Test" + Integer.toString(i) + "User"
-         + Integer.toString(i),
-        "cn: Test" + Integer.toString(i) + "User" + Integer.toString(i),
-        "sn: User" + Integer.toString(i),
-        "givenName: Test" + Integer.toString(i),
-        "initials: TST" + Integer.toString(i),
-        "employeeNumber: 8378" + Integer.toString(i),
-        "uid: test" + Integer.toString(i) + ".user" + Integer.toString(i))
+        "postalAddress: somewhere in Testville" + i,
+        "street: Under Construction Street" + i,
+        "l: Testcounty" + i,
+        "st: Teststate" + i,
+        "telephoneNumber: +878 8378 8378" + i,
+        "mobile: +878 8378 8378" + i,
+        "homePhone: +878 8378 8378" + i,
+        "pager: +878 8378 8378" + i,
+        "mail: test" + i + ".user" + i + "@testdomain.net",
+        "postalCode: 8378" + i,
+        "userPassword: testpassword" + i,
+        "description: description for Test" + i + "User" + i,
+        "cn: Test" + i + "User" + i,
+        "sn: User" + i,
+        "givenName: Test" + i,
+        "initials: TST" + i,
+        "employeeNumber: 8378" + i,
+        "uid: test" + i + ".user" + i)
       );
     }
   }
