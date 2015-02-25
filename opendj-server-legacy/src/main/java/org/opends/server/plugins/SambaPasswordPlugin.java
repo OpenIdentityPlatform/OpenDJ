@@ -1012,15 +1012,7 @@ public final class SambaPasswordPlugin extends
     final Schema schema = DirectoryServer.getSchema();
     final ObjectClass sambaOc = schema
         .getObjectClass(toLowerCase(SAMBA_SAM_ACCOUNT_OC_NAME));
-    if (sambaOc == null)
-    {
-      // If the object class is not defined then presumably we're not syncing.
-      return false;
-    }
-    else
-    {
-      return entry.hasObjectClass(sambaOc);
-    }
+    return sambaOc != null && entry.hasObjectClass(sambaOc);
   }
 
 

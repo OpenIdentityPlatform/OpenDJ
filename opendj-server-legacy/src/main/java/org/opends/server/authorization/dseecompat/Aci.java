@@ -451,8 +451,7 @@ public class Aci implements Comparable<Aci>
      * needed to match ACI targets.
      * @return  True if this ACI targets are applicable or match.
      */
-    public static boolean
-    isApplicable(Aci aci, AciTargetMatchContext matchCtx) {
+    public static boolean isApplicable(Aci aci, AciTargetMatchContext matchCtx) {
       if(matchCtx.hasRights(ACI_EXT_OP)) {
         //Extended operation is being evaluated.
          return AciTargets.isTargetApplicable(aci, matchCtx) &&
@@ -465,16 +464,19 @@ public class Aci implements Comparable<Aci>
         //If an ACI has extOp or targetControl targets skip it because the
         //matchCtx right does not contain either ACI_EXT_OP or ACI_CONTROL at
         //this point.
-        if(aci.getTargets().getExtOp() != null
-                || aci.getTargets().getTargetControl() != null) {
-           return false;
-        }
-        return  haveSimilarRights(aci, matchCtx) &&
-                AciTargets.isTargetApplicable(aci, matchCtx) &&
-                AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
-                AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
-                AciTargets.isTargetAttrApplicable(aci, matchCtx);
+        return hasNoExtOpOrTargetControl(aci.getTargets())
+            && haveSimilarRights(aci, matchCtx)
+            && AciTargets.isTargetApplicable(aci, matchCtx)
+            && AciTargets.isTargetFilterApplicable(aci, matchCtx)
+            && AciTargets.isTargAttrFiltersApplicable(aci, matchCtx)
+            && AciTargets.isTargetAttrApplicable(aci, matchCtx);
       }
+    }
+
+    private static boolean hasNoExtOpOrTargetControl(AciTargets aciTargets)
+    {
+      return aciTargets.getExtOp() == null
+          && aciTargets.getTargetControl() == null;
     }
 
     private static boolean haveSimilarRights(Aci aci,

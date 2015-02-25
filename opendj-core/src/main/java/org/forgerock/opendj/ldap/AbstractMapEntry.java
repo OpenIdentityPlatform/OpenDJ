@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
@@ -110,14 +109,10 @@ abstract class AbstractMapEntry extends AbstractEntry {
             final Collection<? super ByteString> missingValues) {
         final AttributeDescription attributeDescription = attribute.getAttributeDescription();
         if (attribute.isEmpty()) {
-            if (attributes.remove(attributeDescription) != null) {
-                return true;
-            } else if (attributeDescription.isPlaceHolder()) {
-                // Fall-back to inefficient remove using place-holder.
-                return super.removeAttribute(attribute, missingValues);
-            } else {
-                return false;
-            }
+            return attributes.remove(attributeDescription) != null
+                || (attributeDescription.isPlaceHolder()
+                    // Fall-back to inefficient remove using place-holder.
+                    && super.removeAttribute(attribute, missingValues));
         } else {
             final Attribute oldAttribute = getAttribute(attributeDescription);
             if (oldAttribute != null) {

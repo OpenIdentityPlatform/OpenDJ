@@ -644,22 +644,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * {@inheritDoc}
      */
     public boolean isCellEditable(int row, int col) {
-      if (col == 0)
-      {
-        return false;
-      }
-      else
-      {
-        if (!isReadOnly)
-        {
-          return !schemaReadOnlyAttributesLowerCase.contains(
-              dataArray.get(row).attrName.toLowerCase());
-        }
-        else
-        {
-          return false;
-        }
-      }
+      return col != 0
+          && !isReadOnly
+          && !schemaReadOnlyAttributesLowerCase.contains(dataArray.get(row).attrName.toLowerCase());
     }
 
     /**

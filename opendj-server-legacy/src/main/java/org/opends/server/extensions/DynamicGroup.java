@@ -302,14 +302,7 @@ public class DynamicGroup
     }
 
     Entry entry = DirectoryConfig.getEntry(userDN);
-    if (entry == null)
-    {
-      return false;
-    }
-    else
-    {
-      return isMember(entry);
-    }
+    return entry != null && isMember(entry);
   }
 
 

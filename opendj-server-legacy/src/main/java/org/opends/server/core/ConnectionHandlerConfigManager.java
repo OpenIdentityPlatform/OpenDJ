@@ -320,13 +320,8 @@ public class ConnectionHandlerConfigManager implements
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons) {
-    if (configuration.isEnabled()) {
-      // It's enabled so always validate the class.
-      return isJavaClassAcceptable(configuration, unacceptableReasons);
-    } else {
-      // It's disabled so ignore it.
-      return true;
-    }
+    return !configuration.isEnabled()
+        || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
 
@@ -338,13 +333,8 @@ public class ConnectionHandlerConfigManager implements
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons) {
-    if (configuration.isEnabled()) {
-      // It's enabled so always validate the class.
-      return isJavaClassAcceptable(configuration, unacceptableReasons);
-    } else {
-      // It's disabled so ignore it.
-      return true;
-    }
+    return !configuration.isEnabled()
+        || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
 

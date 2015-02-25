@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -599,14 +599,8 @@ public abstract class ClientConnection
    */
   public final boolean mustChangePassword()
   {
-    if (authenticationInfo == null)
-    {
-      return false;
-    }
-    else
-    {
-      return authenticationInfo.mustChangePassword();
-    }
+    return authenticationInfo != null
+        && authenticationInfo.mustChangePassword();
   }
 
 

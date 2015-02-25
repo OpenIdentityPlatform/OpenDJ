@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
@@ -264,11 +263,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         @Override
         public boolean isSubTypeOf(final Impl other) {
             // Other must have no options or the same option.
-            if (other == ZERO_OPTION_IMPL) {
-                return true;
-            } else {
-                return equals(other);
-            }
+            return other == ZERO_OPTION_IMPL || equals(other);
         }
 
         @Override
@@ -1159,11 +1154,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code name} was {@code null}.
      */
     public boolean isSubTypeOf(final AttributeDescription other) {
-        if (!attributeType.isSubTypeOf(other.attributeType)) {
-            return false;
-        } else {
-            return pimpl.isSubTypeOf(other.pimpl);
-        }
+        return attributeType.isSubTypeOf(other.attributeType)
+            && pimpl.isSubTypeOf(other.pimpl);
     }
 
     /**
@@ -1189,11 +1181,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code name} was {@code null}.
      */
     public boolean isSuperTypeOf(final AttributeDescription other) {
-        if (!attributeType.isSuperTypeOf(other.attributeType)) {
-            return false;
-        } else {
-            return pimpl.isSuperTypeOf(other.pimpl);
-        }
+        return attributeType.isSuperTypeOf(other.attributeType)
+            && pimpl.isSuperTypeOf(other.pimpl);
     }
 
     /**
