@@ -352,7 +352,7 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
 
 
     // Next, test with a nonstandard Boolean type.
-    elementArray[0] = (byte) 0x50;
+    elementArray[0] = 0x50;
     assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
   }
 
@@ -376,7 +376,7 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
 
 
     // Next, test with a nonstandard Boolean type.
-    elementArray[0] = (byte) 0x50;
+    elementArray[0] = 0x50;
     assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
   }
 
@@ -399,7 +399,7 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
 
   /**
    * Tests the <CODE>decodeAsBoolean</CODE> method that takes a byte array
-   * argument with an array that takes too many bytes to expressthe length.
+   * argument with an array that takes too many bytes to express the length.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
