@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2010-2012 Very Old copyright owner Inc.
+ *      Copyright  2010-2012 Very Old copyright owner Inc.
  *      Copyright 2013-2014 Old copyright owner Inc.
  */
  
