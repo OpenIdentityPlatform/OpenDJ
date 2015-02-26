@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -35,8 +35,8 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class LoggingCategoryNamesTest extends DirectoryServerTestCase
 {
-  private final static String CORE_PACKAGE = DirectoryServer.class.getPackage().getName();
-  private final static String CORE_PACKAGE_NAME = "CORE";
+  private static final String CORE_PACKAGE = DirectoryServer.class.getPackage().getName();
+  private static final String CORE_PACKAGE_NAME = "CORE";
 
   @DataProvider
   public Object[][] matchingNames()

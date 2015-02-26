@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -193,20 +193,19 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @param baseDN The baseDN for which we want the generationId
    * @return The value of the generationId.
    */
-  static protected long getGenerationId(DN baseDN)
+  protected static long getGenerationId(DN baseDN)
   {
-    // This is the value of the generationId computed by the server when the
-    // test suffix (o=test) has only the root entry created.
-    long genId = TEST_DN_WITH_ROOT_ENTRY_GENID;
     try
     {
       LDAPReplicationDomain replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-      genId = replDomain.getGenerationID();
+      return replDomain.getGenerationID();
     }
     catch(Exception e) {
       logger.traceException(e);
     }
-    return genId;
+    // This is the value of the generationId computed by the server when the
+    // test suffix (o=test) has only the root entry created.
+    return TEST_DN_WITH_ROOT_ENTRY_GENID;
   }
 
   /**

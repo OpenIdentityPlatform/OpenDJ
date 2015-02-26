@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -263,7 +263,7 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n";
   }
 
-  static private ReplicationMsg createAddMsg(CSN csn) throws Exception
+  private static ReplicationMsg createAddMsg(CSN csn) throws Exception
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;

@@ -23,7 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -457,7 +457,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   ////////////////////////////////////////////////////////////////////////////
 
 
-  private static final String makeSimpleLdif(String givenname, String sn) {
+  private static String makeSimpleLdif(String givenname, String sn) {
     String cn = givenname + " " + sn;
     return TestCaseUtils.makeLdif(
           "dn: cn=" + cn + ",dc=example,dc=com",

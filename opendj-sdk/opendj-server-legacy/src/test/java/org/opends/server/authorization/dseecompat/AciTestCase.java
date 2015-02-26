@@ -124,16 +124,16 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
           "ldap://kansashost/OU=People,O=Kansas,C=US";
   //GLOBAL ACIs
 
-  protected final static String G_READ_ACI =
+  protected static final String G_READ_ACI =
           "(targetattr!=\"userPassword||authPassword\")" +
                   "(version 3.0; acl \"Anonymous read access\";" +
                   "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
 
-  protected final static String G_SELF_MOD =
+  protected static final String G_SELF_MOD =
           "(targetattr=\"*\")(version 3.0; acl \"Self entry modification\";" +
                   "allow (write) userdn=\"ldap:///self\";)";
 
-  protected final static String G_SCHEMA =
+  protected static final String G_SCHEMA =
           "(target=\"ldap:///cn=schema\")(targetscope=\"base\")" +
           "(targetattr=\"attributeTypes||dITContentRules||dITStructureRules||" +
                   "ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||" +
@@ -141,7 +141,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
           "(version 3.0; acl \"User-Visible Schema Operational Attributes\";" +
                   "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
 
-  protected final static String G_DSE =
+  protected static final String G_DSE =
           "(target=\"ldap:///\")(targetscope=\"base\")" +
                "(targetattr=\"namingContexts||supportedAuthPasswordSchemes||" +
                   "supportedControl||supportedExtension||supportedFeatures||" +
@@ -149,18 +149,18 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
         "(version 3.0; acl \"User-Visible Root DSE Operational Attributes\"; " +
                   "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
 
-  protected final static String G_USER_OPS =
+  protected static final String G_USER_OPS =
           "(targetattr=\"createTimestamp||creatorsName||modifiersName||" +
                   "modifyTimestamp||entryDN||entryUUID||subschemaSubentry\")" +
                  "(version 3.0; acl \"User-Visible Operational Attributes\"; " +
                   "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
 
-  protected final static String G_CONTROL =
+  protected static final String G_CONTROL =
           "(targetcontrol = \"*\")" +
           "(version 3.0; acl \"Anonymous control access\"; " +
                   "allow (read) userdn=\"ldap:///anyone\";)";
 
-  protected final static String E_EXTEND_OP =
+  protected static final String E_EXTEND_OP =
           "(extop = \"*\")" +
           "(version 3.0; acl \"Anonymous extend op access\"; " +
                   "allow (read) userdn=\"ldap:///anyone\";)";

@@ -49,7 +49,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class UpgradeTestCase extends ToolsTestCase
 {
-  private final static String configFilePath = DirectoryServer.getInstanceRoot()
+  private static final String configFilePath = DirectoryServer.getInstanceRoot()
       + File.separator + "config" + File.separator + "config.ldif";
 
   /**
