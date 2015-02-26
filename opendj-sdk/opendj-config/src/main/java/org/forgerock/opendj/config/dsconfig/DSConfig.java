@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -809,6 +810,8 @@ public final class DSConfig extends ConsoleApplication {
     /** Indicates whether or not a sub-command was provided. */
     private boolean hasSubCommand = true;
 
+    /** The argument which should be used to read dsconfig commands from standard input. */
+    private BooleanArgument batchArgument;
     /** The argument which should be used to read dsconfig commands from a file. */
     private StringArgument batchFileArgument;
 
@@ -946,6 +949,9 @@ public final class DSConfig extends ConsoleApplication {
             advancedModeArgument = CommonArguments.getAdvancedMode();
             showUsageArgument = CommonArguments.getShowUsage();
 
+            batchArgument = new BooleanArgument(OPTION_LONG_BATCH, null, OPTION_LONG_BATCH,
+                    INFO_DESCRIPTION_BATCH.get());
+
             batchFileArgument = new StringArgument(OPTION_LONG_BATCH_FILE_PATH, OPTION_SHORT_BATCH_FILE_PATH,
                     OPTION_LONG_BATCH_FILE_PATH, false, false, true, INFO_BATCH_FILE_PATH_PLACEHOLDER.get(), null,
                     null, INFO_DESCRIPTION_BATCH_FILE_PATH.get());
@@ -975,6 +981,7 @@ public final class DSConfig extends ConsoleApplication {
             parser.addGlobalArgument(quietArgument);
             parser.addGlobalArgument(scriptFriendlyArgument);
             parser.addGlobalArgument(noPromptArgument);
+            parser.addGlobalArgument(batchArgument);
             parser.addGlobalArgument(batchFileArgument);
             parser.addGlobalArgument(displayEquivalentArgument);
             parser.addGlobalArgument(equivalentCommandFileArgument);
@@ -1111,8 +1118,8 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         // Handle batch file if any
-        if (batchFileArgument.isPresent()) {
-            handleBatchFile(args);
+        if (batchArgument.isPresent() || batchFileArgument.isPresent()) {
+            handleBatch(args);
             return ReturnCode.SUCCESS.get();
         }
 
@@ -1139,8 +1146,10 @@ public final class DSConfig extends ConsoleApplication {
 
     private void checkForConflictingArguments() throws ArgumentException {
         throwIfConflictingArgsSet(quietArgument, verboseArgument);
+        throwIfConflictingArgsSet(batchArgument, batchFileArgument);
 
         throwIfSetInInteractiveMode(batchFileArgument);
+        throwIfSetInInteractiveMode(batchArgument);
         throwIfSetInInteractiveMode(quietArgument);
 
         throwIfConflictingArgsSet(scriptFriendlyArgument, verboseArgument);
@@ -1411,11 +1420,18 @@ public final class DSConfig extends ConsoleApplication {
         return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(getScriptName(), date).toString();
     }
 
-    private void handleBatchFile(String[] args) {
+    private void handleBatch(String[] args) {
         BufferedReader bReader = null;
         try {
-            final String batchFilePath = batchFileArgument.getValue().trim();
-            bReader = new BufferedReader(new FileReader(batchFilePath));
+            if (batchArgument.isPresent()) {
+                bReader = new BufferedReader(new InputStreamReader(System.in));
+            } else if (batchFileArgument.isPresent()) {
+                final String batchFilePath = batchFileArgument.getValue().trim();
+                bReader = new BufferedReader(new FileReader(batchFilePath));
+            } else {
+                throw new IllegalArgumentException("Either --" + OPTION_LONG_BATCH
+                    + " or --" + OPTION_LONG_BATCH_FILE_PATH + " argument should have been set");
+            }
 
             List<String> initialArgs = removeBatchArgs(args);
 
@@ -1486,8 +1502,13 @@ public final class DSConfig extends ConsoleApplication {
         Collections.addAll(initialArgs, args);
         for (Iterator<String> it = initialArgs.iterator(); it.hasNext();) {
             final String elem = it.next();
-            if (elem.startsWith("-" + batchFileArgument.getShortIdentifier())
-                    || elem.contains(batchFileArgument.getLongIdentifier())) {
+            if (batchArgument.isPresent()
+                    && elem.contains(batchArgument.getLongIdentifier())) {
+                it.remove();
+                break;
+            } else if (batchFileArgument.isPresent()
+                    && (elem.startsWith("-" + batchFileArgument.getShortIdentifier())
+                            || elem.contains(batchFileArgument.getLongIdentifier()))) {
                 // Remove both the batch file arg and its value
                 it.remove();
                 it.next();
