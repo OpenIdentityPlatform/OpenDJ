@@ -46,17 +46,16 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
 
     private final class FilenameExtensionFilter implements FilenameFilter {
         private final String extension;
-    
+
         private FilenameExtensionFilter(String suffix) {
             this.extension = suffix;
         }
-    
+
         @Override
         public boolean accept(File directory, String fileName) {
             return fileName.endsWith(extension);
         }
     }
-
 
     private static final String CURRENT_YEAR = Integer.toString(Calendar.getInstance().get(Calendar.YEAR));
     private static final String RESOURCE_DIR = "src/test/resources/files/";
@@ -69,7 +68,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
 
     @AfterTest
     public void deleteTempFiles() {
-    FilenameFilter tmpFilter = new FilenameExtensionFilter(".tmp");
+        FilenameFilter tmpFilter = new FilenameExtensionFilter(".tmp");
         for (String testFolder : TEST_FOLDERS) {
             for (File file : new File(RESOURCE_DIR, testFolder).listFiles(tmpFilter)) {
                 file.delete();
