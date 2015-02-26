@@ -795,16 +795,15 @@ final class Importer implements DiskSpaceMonitorHandler
 
   private EntryContainer createEntryContainer(WriteableStorage txn, DN baseDN) throws ConfigException
   {
-    DN tempDN;
     try
     {
-      tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+      DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+      return rootContainer.openEntryContainer(tempDN, txn);
     }
     catch (DirectoryException e)
     {
       throw new ConfigException(e.getMessageObject());
     }
-    return rootContainer.openEntryContainer(tempDN, txn);
   }
 
   private void clearSuffix(EntryContainer entryContainer)
