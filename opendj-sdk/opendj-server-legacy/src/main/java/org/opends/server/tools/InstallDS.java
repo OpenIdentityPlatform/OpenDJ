@@ -27,17 +27,14 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-
-import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
-import static com.forgerock.opendj.cli.Utils.canWrite;
-
-import static org.forgerock.util.Utils.joinAsString;
-
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,13 +44,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
-import java.util.*;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.naming.ldap.LdapName;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -79,13 +82,13 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.IntegerArgument;
-import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * This class provides a very simple mechanism for installing the OpenDS
@@ -616,13 +619,13 @@ public class InstallDS extends ConsoleApplication
         {
           if (!confirmAction(INFO_CLI_DO_YOU_WANT_TO_CONTINUE.get(), true))
           {
-            throw new InitializationException(LocalizableMessage.EMPTY, null);
+            throw new InitializationException(LocalizableMessage.EMPTY);
           }
         }
         catch (final ClientException ce)
         {
           logger.error(LocalizableMessage.raw("Unexpected error: "+ce, ce));
-          throw new InitializationException(LocalizableMessage.EMPTY, null);
+          throw new InitializationException(LocalizableMessage.EMPTY, ce);
         }
       }
       else
@@ -632,7 +635,7 @@ public class InstallDS extends ConsoleApplication
     }
     else if (installStatus.isInstalled())
     {
-      throw new InitializationException(installStatus.getInstallationMsg(), null);
+      throw new InitializationException(installStatus.getInstallationMsg());
     }
   }
 
@@ -974,27 +977,23 @@ public class InstallDS extends ConsoleApplication
         true);
     uData.setDirectoryManagerDn(dns.getFirst());
 
-    String pwd = argParser.getDirectoryManagerPassword();
     int nTries = 0;
+    String pwd = argParser.getDirectoryManagerPassword();
     while (pwd == null)
     {
       if (nTries >= CONFIRMATION_MAX_TRIES)
       {
         throw new UserDataException(null, ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
       }
-      char[] pwd1 = null;
 
       // Prompt for password and confirm.
-      while (pwd1 == null)
+      char[] pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
+      while (pwd1 == null || pwd1.length == 0)
       {
+        println();
+        println(INFO_EMPTY_PWD.get());
+        println();
         pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
-        if (pwd1 == null || pwd1.length == 0)
-        {
-          pwd1 = null;
-          println();
-          println(INFO_EMPTY_PWD.get());
-          println();
-        }
       }
 
       final char[] pwd2 = readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
@@ -1287,69 +1286,12 @@ public class InstallDS extends ConsoleApplication
         println();
         println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
-      while (importLDIFFiles.isEmpty())
-      {
-        println();
-        try
-        {
-          final String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
-              lastResetImportFile);
-          if (!Utils.fileExists(path))
-          {
-            println();
-            println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path));
-          }
-          else
-          {
-            importLDIFFiles.add(path);
-          }
-        }
-        catch (final ClientException ce)
-        {
-          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-        }
-      }
-      String rejectedFile = argParser.rejectedImportFileArg.getValue();
-      if (rejectedFile != null)
-      {
-        while (!canWrite(rejectedFile))
-        {
-          println();
-          println(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
-          println();
-          try
-          {
-            rejectedFile =
-              readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(),
-                  lastResetRejectedFile);
-          }
-          catch (final ClientException ce)
-          {
-            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-          }
-        }
-      }
-      String skippedFile = argParser.skippedImportFileArg.getValue();
-      if (skippedFile != null)
-      {
-        while (!canWrite(skippedFile))
-        {
-          println();
-          println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
-          println();
-          try
-          {
-            skippedFile =
-              readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(),
-                  lastResetSkippedFile);
-          }
-          catch (final ClientException ce)
-          {
-            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-          }
-        }
-      }
 
+      readImportLdifFile(importLDIFFiles, lastResetImportFile);
+      String rejectedFile = readValidFilePath(argParser.rejectedImportFileArg, lastResetRejectedFile,
+          ERR_INSTALLDS_CANNOT_WRITE_REJECTED, INFO_INSTALLDS_PROMPT_REJECTED_FILE);
+      String skippedFile = readValidFilePath(argParser.skippedImportFileArg, lastResetSkippedFile,
+          ERR_INSTALLDS_CANNOT_WRITE_SKIPPED, INFO_INSTALLDS_PROMPT_SKIPPED_FILE);
       dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
           importLDIFFiles, rejectedFile, skippedFile);
     }
@@ -1371,8 +1313,7 @@ public class InstallDS extends ConsoleApplication
         final LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
       }
-      dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
-          numUsers);
+      dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs, numUsers);
     }
     else
     {
@@ -1454,88 +1395,20 @@ public class InstallDS extends ConsoleApplication
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
       {
         final List<String> importLDIFFiles = new LinkedList<String>();
-        while (importLDIFFiles.isEmpty())
-        {
-          LocalizableMessage message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
-          println();
-          try
-          {
-            final String path = readInput(message, null);
-            if (Utils.fileExists(path))
-            {
-              importLDIFFiles.add(path);
-            }
-            else
-            {
-              message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
-              println();
-              println(message);
-            }
-          }
-          catch (final ClientException ce)
-          {
-            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-          }
-        }
-        String rejectedFile = argParser.rejectedImportFileArg.getValue();
-        if (rejectedFile != null)
-        {
-          while (!canWrite(rejectedFile))
-          {
-            println();
-            println(
-                ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
-            println();
-            try
-            {
-              rejectedFile =
-                readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
-            }
-            catch (final ClientException ce)
-            {
-              logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-            }
-          }
-        }
-        String skippedFile = argParser.skippedImportFileArg.getValue();
-        if (skippedFile != null)
-        {
-          while (!canWrite(skippedFile))
-          {
-            println();
-            println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
-            println();
-            try
-            {
-              skippedFile =
-                readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
-            }
-            catch (final ClientException ce)
-            {
-              logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-            }
-          }
-        }
+        readImportLdifFile(importLDIFFiles, null);
+        String rejectedFile = readValidFilePath(argParser.rejectedImportFileArg, null,
+            ERR_INSTALLDS_CANNOT_WRITE_REJECTED, INFO_INSTALLDS_PROMPT_REJECTED_FILE);
+        String skippedFile = readValidFilePath(argParser.skippedImportFileArg, null,
+            ERR_INSTALLDS_CANNOT_WRITE_SKIPPED, INFO_INSTALLDS_PROMPT_SKIPPED_FILE);
         dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
             importLDIFFiles, rejectedFile, skippedFile);
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
         final LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
-        int defaultValue;
-        if (lastResetNumEntries != null)
-        {
-          defaultValue = lastResetNumEntries;
-        }
-        else
-        {
-          defaultValue = 2000;
-        }
-        final int numUsers = promptForInteger(message, defaultValue, 0,
-            Integer.MAX_VALUE);
-
-        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
-            numUsers);
+        int defaultValue = lastResetNumEntries != null ? lastResetNumEntries : 2000;
+        final int numUsers = promptForInteger(message, defaultValue, 0, Integer.MAX_VALUE);
+        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs, numUsers);
       }
       else if (populateType == POPULATE_TYPE_LEAVE_EMPTY)
       {
@@ -1547,11 +1420,59 @@ public class InstallDS extends ConsoleApplication
       }
       else
       {
-        throw new IllegalStateException("Unexpected populateType: "+
-            populateType);
+        throw new IllegalStateException("Unexpected populateType: " + populateType);
       }
     }
     return dataOptions;
+  }
+
+  private void readImportLdifFile(final List<String> importLDIFFiles, String defaultValue)
+  {
+    while (importLDIFFiles.isEmpty())
+    {
+      println();
+      try
+      {
+        final String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(), defaultValue);
+        if (Utils.fileExists(path))
+        {
+          importLDIFFiles.add(path);
+        }
+        else
+        {
+          println();
+          println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path));
+        }
+      }
+      catch (final ClientException ce)
+      {
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
+      }
+    }
+  }
+
+  private String readValidFilePath(StringArgument arg, String defaultValue, Arg1<Object> errCannotWriteFile,
+      Arg0 infoPromptFile)
+  {
+    String file = arg.getValue();
+    if (file != null)
+    {
+      while (!canWrite(file))
+      {
+        println();
+        println(errCannotWriteFile.get(file));
+        println();
+        try
+        {
+          file = readInput(infoPromptFile.get(), defaultValue);
+        }
+        catch (final ClientException ce)
+        {
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
+        }
+      }
+    }
+    return file;
   }
 
   /**
@@ -1588,10 +1509,8 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
-        final boolean defaultValue = lastResetEnableSSL != null ? lastResetEnableSSL :
-          false;
-        enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(),
-            defaultValue);
+        final boolean defaultValue = lastResetEnableSSL != null ? lastResetEnableSSL : false;
+        enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(), defaultValue);
         if (enableSSL)
         {
           ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
@@ -1957,14 +1876,12 @@ public class InstallDS extends ConsoleApplication
             }
             if (!found)
             {
-              errorMessages.add(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND.get(
-                  aliasString));
+              errorMessages.add(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND.get(aliasString));
             }
           }
           else if (aliases.length > 1)
           {
-            errorMessages.add(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME.get(
-                aliasString));
+            errorMessages.add(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME.get(aliasString));
           }
         }
       }
@@ -1994,7 +1911,7 @@ public class InstallDS extends ConsoleApplication
             errorMessages.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
             break;
           default:
-            throw new IllegalArgumentException("Invalid type: " + type);
+            throw new IllegalArgumentException("Invalid type: " + type, ke);
           }
         }
       }
@@ -2179,10 +2096,8 @@ public class InstallDS extends ConsoleApplication
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
    * to a problem with the key store path and <CODE>false</CODE> otherwise.
    */
-  public static boolean containsKeyStorePathErrorMessage(
-      Collection<LocalizableMessage> msgs)
+  public static boolean containsKeyStorePathErrorMessage(Collection<LocalizableMessage> msgs)
   {
-    boolean found = false;
     for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
@@ -2196,11 +2111,10 @@ public class InstallDS extends ConsoleApplication
           StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
           StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
       {
-        found = true;
-        break;
+        return true;
       }
     }
-    return found;
+    return false;
   }
 
   /**
@@ -2210,10 +2124,8 @@ public class InstallDS extends ConsoleApplication
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
    * to a problem with the key store password and <CODE>false</CODE> otherwise.
    */
-  public static boolean containsKeyStorePasswordErrorMessage(
-      Collection<LocalizableMessage> msgs)
+  public static boolean containsKeyStorePasswordErrorMessage(Collection<LocalizableMessage> msgs)
   {
-    boolean found = false;
     for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
@@ -2226,11 +2138,10 @@ public class InstallDS extends ConsoleApplication
           StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
           StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG))
       {
-        found = true;
-        break;
+        return true;
       }
     }
-    return found;
+    return false;
   }
 
   /**
