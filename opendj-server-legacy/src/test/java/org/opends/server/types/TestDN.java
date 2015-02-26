@@ -26,20 +26,19 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-
-import java.util.ArrayList;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
 
 /**
  * This class defines a set of tests for the org.opends.server.core.DN
@@ -66,14 +65,10 @@ public class TestDN extends TypesTestCase {
         { "DC=COM", "dc=com", "DC=COM" },
         { "dc = com", "dc=com", "dc=com" },
         { " dc = com ", "dc=com", "dc=com" },
-        { "dc=example,dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc=example, dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc=example ,dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc =example , dc  =   com", "dc=example,dc=com",
-            "dc=example,dc=com" },
+        { "dc=example,dc=com", "dc=example,dc=com", "dc=example,dc=com" },
+        { "dc=example, dc=com", "dc=example,dc=com", "dc=example,dc=com" },
+        { "dc=example ,dc=com", "dc=example,dc=com", "dc=example,dc=com" },
+        { "dc =example , dc  =   com", "dc=example,dc=com", "dc=example,dc=com" },
         { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
             "cn=doe+givenname=john,ou=people,dc=example,dc=com",
             "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
@@ -170,8 +165,7 @@ public class TestDN extends TypesTestCase {
     TestCaseUtils.startServer();
 
     AttributeType dummy = DirectoryServer.getDefaultAttributeType(
-        "x-test-integer-type", DirectoryServer
-            .getDefaultIntegerSyntax());
+        "x-test-integer-type", DirectoryServer.getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
   }
 
@@ -303,8 +297,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testValueOf(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.valueOf(rawDN);
-    StringBuilder normalizedDnString = new StringBuilder(normDN);
-    assertEquals(dn.toNormalizedUrlSafeString(), normalizedDnString.toString());
+    assertEquals(dn.toNormalizedUrlSafeString(), normDN);
   }
 
 
@@ -325,9 +318,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testDecodeByteString(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.decode(ByteString.valueOf(rawDN));
-    StringBuilder normalizedDNString = new StringBuilder(normDN);
-
-    assertEquals(dn.toNormalizedUrlSafeString(), normalizedDNString.toString());
+    assertEquals(dn.toNormalizedUrlSafeString(), normDN);
   }
 
 
@@ -394,18 +385,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
   public void testIllegalStringDNs(String dn) throws Exception {
-    try {
-      DN.valueOf(dn);
-    } catch (DirectoryException e) {
-      throw e;
-    } catch (Exception e) {
-      System.out.println("Illegal DN <" + dn
-          + "> threw the wrong type of exception");
-      throw e;
-    }
-
-    throw new RuntimeException("Illegal DN <" + dn
-        + "> did not throw an exception");
+    DN.valueOf(dn);
   }
 
 
@@ -422,19 +402,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
   public void testIllegalOctetStringDNs(String dn) throws Exception {
     ByteString octetString = ByteString.valueOf(dn);
-
-    try {
-      DN.decode(octetString);
-    } catch (DirectoryException e) {
-      throw e;
-    } catch (Exception e) {
-      System.out.println("Illegal DN <" + dn
-          + "> threw the wrong type of exception");
-      throw e;
-    }
-
-    throw new RuntimeException("Illegal DN <" + dn
-        + "> did not throw an exception");
+    DN.decode(octetString);
   }
 
 
