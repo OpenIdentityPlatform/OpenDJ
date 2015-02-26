@@ -77,15 +77,14 @@ public class ShortCircuitPlugin
     /**
      * ControlDecoder implementation to decode this control from a ByteString.
      */
-    private final static class Decoder
+    private static final class Decoder
         implements ControlDecoder<ShortCircuitRequestControl>
     {
       /**
        * {@inheritDoc}
        */
       @Override
-      public ShortCircuitRequestControl decode(boolean isCritical,
-                                               ByteString value)
+      public ShortCircuitRequestControl decode(boolean isCritical, ByteString value)
           throws DirectoryException
       {
         ASN1Reader reader = ASN1.getReader(value);

@@ -87,16 +87,14 @@ public class DisconnectClientPlugin
     /**
      * ControlDecoder implementation to decode this control from a ByteString.
      */
-    private final static class Decoder
+    private static final class Decoder
         implements ControlDecoder<DisconnectClientControl>
     {
       /**
        * {@inheritDoc}
        */
       @Override
-      public DisconnectClientControl decode(boolean isCritical,
-                                            ByteString value)
-          throws DirectoryException
+      public DisconnectClientControl decode(boolean isCritical, ByteString value) throws DirectoryException
       {
         return new DisconnectClientControl(isCritical, value.toString());
       }

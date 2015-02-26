@@ -89,7 +89,7 @@ public final class TestCfg {
    * @throws Exception
    *           If an unexpected error occurred.
    */
-  public synchronized static void setUp() throws Exception {
+  public static synchronized void setUp() throws Exception {
     if (TEST_PARENT_OCD == null) {
       String ocd = "( 1.3.6.1.4.1.26027.1.2.4455114401 "
           + "NAME 'ds-cfg-test-parent-dummy' "

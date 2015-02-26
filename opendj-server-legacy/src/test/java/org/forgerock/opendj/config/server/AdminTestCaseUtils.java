@@ -104,7 +104,7 @@ public final class AdminTestCaseUtils {
 
 
   // Construct a dummy path.
-  private synchronized static <C extends ConfigurationClient, S extends Configuration>
+  private static synchronized <C extends ConfigurationClient, S extends Configuration>
   ManagedObjectPath<C, S> getPath(AbstractManagedObjectDefinition<C, S> d) {
     if (!isProfileRegistered) {
       LDAPProfile.Wrapper profile = new LDAPProfile.Wrapper() {

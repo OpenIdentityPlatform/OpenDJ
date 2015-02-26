@@ -55,7 +55,7 @@ public class TestUtilities {
 
   private static boolean initialized;
 
-  static public void initServer()
+  public static void initServer()
           throws IOException, ApplicationException, InterruptedException {
     File qsServerRoot = getQuickSetupTestServerRootDir();
     if (!initialized) {
@@ -70,22 +70,19 @@ public class TestUtilities {
     }
   }
 
-  static public Installation getInstallation() {
+  public static Installation getInstallation() {
     return new Installation(getQuickSetupTestServerRootDir(),getQuickSetupTestServerRootDir());
   }
 
-  static private void setupServer() throws IOException, InterruptedException {
+  private static void setupServer() throws IOException, InterruptedException {
     int[] ports = TestCaseUtils.findFreePorts(2);
     ldapPort = ports[0];
     jmxPort = ports[1];
 
     List<String> args = new ArrayList<String>();
     File root = getQuickSetupTestServerRootDir();
-    if (OperatingSystem.isUnixBased()) {
-      args.add(new File(root, "setup").getPath());
-    } else {
-      args.add(new File(root, "setup.bat").getPath());
-    }
+    String filename = OperatingSystem.isUnixBased() ? "setup" : "setup.bat";
+    args.add(new File(root, filename).getPath());
     args.add("--cli");
     args.add("-n");
     args.add("-p");
@@ -112,12 +109,12 @@ public class TestUtilities {
     }
   }
 
-  static public void stopServer() throws ApplicationException {
+  public static void stopServer() throws ApplicationException {
     ServerController controller = new ServerController(getInstallation());
     controller.stopServer();
   }
 
-  static public File getInstallPackageFile() throws FileNotFoundException {
+  public static File getInstallPackageFile() throws FileNotFoundException {
     File installPackageFile = null;
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
     File   buildDir  = new File(buildRoot, "build");
@@ -140,14 +137,14 @@ public class TestUtilities {
     return installPackageFile;
   }
 
-  static public File getQuickSetupTestWorkspace() {
+  public static File getQuickSetupTestWorkspace() {
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
     File   buildDir  = new File(buildRoot, "build");
     File   unitRootDir  = new File(buildDir, "unit-tests");
     return new File(unitRootDir, "quicksetup");
   }
 
-  static public File getQuickSetupTestServerRootDir() {
+  public static File getQuickSetupTestServerRootDir() {
     return new File(getQuickSetupTestWorkspace(), "OpenDS");
   }
 }

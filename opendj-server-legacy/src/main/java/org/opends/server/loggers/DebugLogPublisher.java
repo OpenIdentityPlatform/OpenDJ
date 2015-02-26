@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -282,8 +282,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  className  The class name.
    * @param  settings   The trace settings for the class.
    */
-  private synchronized final void setClassSettings(String className,
-                                       TraceSettings settings)
+  private final synchronized void setClassSettings(String className, TraceSettings settings)
   {
     if (classTraceSettings == null)
     {
@@ -301,7 +300,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  methodName  The method name.
    * @param  settings    The trace settings for the method.
    */
-  private synchronized final void setMethodSettings(String className,
+  private final synchronized void setMethodSettings(String className,
       String methodName, TraceSettings settings)
   {
     if (methodTraceSettings == null) {

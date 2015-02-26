@@ -66,8 +66,8 @@ public final class TimeBasedMatchingRuleTest
   private DN user5;
   private DN user6;
 
-  private final static String TIME_ATTR = "test-time";
-  private final static String DATE_ATTR = "test-date";
+  private static final String TIME_ATTR = "test-time";
+  private static final String DATE_ATTR = "test-date";
 
 
   /**
