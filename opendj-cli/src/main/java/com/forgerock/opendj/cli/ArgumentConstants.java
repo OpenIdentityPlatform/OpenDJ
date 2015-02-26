@@ -66,6 +66,8 @@ public final class ArgumentConstants {
      */
     public static final String SASL_PROPERTY_MECH = "mech";
 
+    /** The value for the long option batch. */
+    public static final String OPTION_LONG_BATCH = "batch";
     /** The value for the short option batchFilePath. */
     public static final char OPTION_SHORT_BATCH_FILE_PATH = 'F';
     /** The value for the long option batchFilePath. */
