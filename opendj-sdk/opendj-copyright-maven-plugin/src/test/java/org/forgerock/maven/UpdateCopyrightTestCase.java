@@ -79,20 +79,24 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] testCases() {
         return new Object[][] {
-            // Test case folder, Line before copyright token, NB lines to skip, NB spaces indentation,
-            // Portion copyright token, Copyright start token, Copyright end token
-            { TEST_FOLDERS[0], "Portions copyright [year] [name of copyright owner]", 1, 1,
-                "Portions copyright", "Copyright", "ForgeRock AS." },
-            { TEST_FOLDERS[1], "CDDL HEADER END", 1, 6, "Portions Copyright", "Copyright", "ForgeRock AS." },
-            { TEST_FOLDERS[2], "DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.", 1, 1,
-                "Portions Copyrighted", "Copyright (c)", "ForgeRock AS. All rights reserved." }
+                // Test case folder, Line before copyright regexp, NB lines to skip, NB spaces indentation,
+                // New portion copyright string, New copyright start string, Copyright end regexp,
+                // New copyright end String
+            { TEST_FOLDERS[0], "Portions\\s+Copyright\\s+\\[year\\]\\s+\\[name\\s+of\\s+copyright\\s+owner\\]",
+                1, 1, "Portions copyright", "Copyright", "ForgeRock\\s+AS", "ForgeRock AS." },
+            { TEST_FOLDERS[1], "CDDL\\s+HEADER\\s+END", 1, 6, "Portions Copyright", "Copyright",
+                "ForgeRock\\s+AS\\.", "ForgeRock AS." },
+            { TEST_FOLDERS[2],
+                "DO\\s+NOT\\s+ALTER\\s+OR\\s+REMOVE\\s+COPYRIGHT\\s+NOTICES\\s+OR\\s+THIS\\s+HEADER.", 1, 1,
+                "Portions Copyrighted", "Copyright (c)", "ForgeRock\\s+AS\\.",
+                "ForgeRock AS. All rights reserved." }
         };
     }
 
     @Test(dataProvider = "testCases")
     public void testUpdateCopyright(String testCaseFolderPath, String lineBeforeCopyrightToken,
-            int nbLinesToSkip, int numberSpacesIndentation, String portionCopyrightToken,
-            String copyrightStartToken, String copyrightEndToken) throws Exception {
+            int nbLinesToSkip, int numberSpacesIndentation, String newPortionCopyrightString,
+            String newCopyrightStartString, String copyrightEndToken, String newCopyrightOwnerStr) throws Exception {
         List<String> testFilePaths = new LinkedList<String>();
         List<String> updatedTestFilePaths = new LinkedList<String>();
 
@@ -108,8 +112,9 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
         spyMojo.setLineBeforeCopyrightToken(lineBeforeCopyrightToken);
         spyMojo.setNbLinesToSkip(nbLinesToSkip);
         spyMojo.setNumberSpaceIdentation(numberSpacesIndentation);
-        spyMojo.setPortionsCopyrightStartToken(portionCopyrightToken);
-        spyMojo.setCopyrightStartToken(copyrightStartToken);
+        spyMojo.setNewPortionsCopyrightString(newPortionCopyrightString);
+        spyMojo.setNewCopyrightStartToken(newCopyrightStartString);
+        spyMojo.setNewCopyrightOwnerString(newCopyrightOwnerStr);
         spyMojo.setCopyrightEndToken(copyrightEndToken);
 
         doNothing().when(spyMojo).checkCopyrights();

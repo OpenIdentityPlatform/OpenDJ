@@ -74,8 +74,8 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
             if (!ignoreCopyrightErrors) {
                 getLog().warn("Fix copyright date problems before proceeding, "
                                 + "or use '-DignoreCopyrightErrors=true' to ignore copyright errors.");
-                getLog().warn("You can use 'mvn org.forgerock.opendj:opendj-copyright-maven-plugin:update-copyright' "
-                        + "command to automatically update copyrights.");
+                getLog().warn("You can use copyrights-update profile (mvn -Pprecommit -Pcopyriths-update) "
+                        + "to automatically update copyrights.");
                 throw new MojoExecutionException("Found files with potential copyright year updates needed");
             }
         } else {
