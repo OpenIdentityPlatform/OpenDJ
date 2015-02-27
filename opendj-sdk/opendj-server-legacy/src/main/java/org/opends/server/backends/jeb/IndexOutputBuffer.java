@@ -67,7 +67,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   }
 
   /** The size of a Java int. A Java int is 32 bits, i.e. 4 bytes. */
-  private static final int INT_SIZE = 4;
+  static final int INT_SIZE = 4;
 
   /**
    * The record overhead. In addition to entryID, key length and key bytes, the
@@ -87,10 +87,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * Used to break a tie (keys equal) when the buffers are being merged
    * for writing to the index scratch file.
    */
-  private long id;
-
-  /** Temporary buffer used to store integer values. */
-  private final byte[] intBytes = new byte[INT_SIZE];
+  private long bufferID;
 
   /** OffSet where next key is written. */
   private int keyOffset;
@@ -168,13 +165,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   /**
    * Set the ID of a buffer to the specified value.
    *
-   * @param id The value to set the ID to.
+   * @param bufferID The value to set the buffer ID to.
    */
-  public void setID(long id)
+  public void setBufferID(long bufferID)
   {
-    this.id = id;
+    this.bufferID = bufferID;
   }
-
 
   /**
    * Return the ID of a buffer.
@@ -183,9 +179,8 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   private long getBufferID()
   {
-    return this.id;
+    return this.bufferID;
   }
-
 
   /**
    * Determines if a buffer is a poison buffer. A poison buffer is used to
@@ -224,12 +219,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * specified byte array in the buffer. It returns {@code false} otherwise.
    *
    * @param kBytes The byte array to check space against.
-   * @param id The id value to check space against.
+   * @param entryID The entryID value to check space against.
    * @return {@code true} if there is space to write the byte array in a
    *         buffer, or {@code false} otherwise.
    */
-  public boolean isSpaceAvailable(byte[] kBytes, long id) {
-    return getRequiredSize(kBytes.length, id) < bytesLeft;
+  public boolean isSpaceAvailable(byte[] kBytes, long entryID) {
+    return getRequiredSize(kBytes.length, entryID) < bytesLeft;
   }
 
   /**
@@ -282,14 +277,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * @param indexID The index ID the record belongs.
    * @param insert <CODE>True</CODE> if key is an insert, false otherwise.
    */
-  public void add(byte[] keyBytes, EntryID entryID, int indexID,
-                  boolean insert) {
+  public void add(byte[] keyBytes, EntryID entryID, int indexID, boolean insert) {
     // write the record data, but leave the space to write the record size just
     // before it
     recordOffset = addRecord(keyBytes, entryID.longValue(), indexID, insert);
     // then write the returned record size
-    System.arraycopy(getIntBytes(recordOffset), 0, buffer, keyOffset, INT_SIZE);
-    keyOffset += INT_SIZE;
+    keyOffset += writeIntBytes(buffer, keyOffset, recordOffset);
     bytesLeft = recordOffset - keyOffset;
     keys++;
   }
@@ -306,8 +299,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
      // write the INS/DEL bit
      buffer[offSet++] = insert ? INS : DEL;
      // write the indexID
-     System.arraycopy(getIntBytes(indexID), 0, buffer, offSet, INT_SIZE);
-     offSet += INT_SIZE;
+     offSet += writeIntBytes(buffer, offSet, indexID);
      // write the entryID
      offSet = PackedInteger.writeLong(buffer, offSet, id);
      // write the key length
@@ -322,35 +314,34 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * Computes the full size of the record.
    *
    * @param keyLen The length of the key of index
-   * @param id The entry id
+   * @param entryID The entry id
    * @return   The size that such record would take in the IndexOutputBuffer
    */
-  public static int getRequiredSize(int keyLen, long id)
+  public static int getRequiredSize(int keyLen, long entryID)
   {
     // Adds up the key length + key bytes + entryID + indexID + the INS/DEL bit
     // and finally the space needed to store the record size
-    return getRecordSize(keyLen, id) + INT_SIZE;
+    return getRecordSize(keyLen, entryID) + INT_SIZE;
   }
 
-  private static int getRecordSize(int keyLen, long id)
+  private static int getRecordSize(int keyLen, long entryID)
   {
      // Adds up the key length + key bytes + ...
      return PackedInteger.getWriteIntLength(keyLen) + keyLen +
             // ... entryID + (indexID + INS/DEL bit).
-            PackedInteger.getWriteLongLength(id) + REC_OVERHEAD;
+            PackedInteger.getWriteLongLength(entryID) + REC_OVERHEAD;
   }
-
 
   /**
    * Write record at specified index to the specified output stream. Used when
    * when writing the index scratch files.
-
+   *
    * @param stream The stream to write the record at the index to.
    * @param index The index of the record to write.
    */
   public void writeID(ByteArrayOutputStream stream, int index)
   {
-    int offSet = getIntegerValue(index * INT_SIZE);
+    int offSet = getOffset(index);
     int len = PackedInteger.getReadLongLength(buffer, offSet + REC_OVERHEAD);
     stream.write(buffer, offSet + REC_OVERHEAD, len);
   }
@@ -367,10 +358,9 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public boolean isInsertRecord(int index)
   {
-    int recOffset = getIntegerValue(index * INT_SIZE);
-    return buffer[recOffset] != DEL;
+    int recOffset = getOffset(index);
+    return buffer[recOffset] == INS;
   }
-
 
   /**
    * Return the size of the key part of the record.
@@ -379,11 +369,10 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public int getKeySize()
   {
-    int offSet = getIntegerValue(position * INT_SIZE) + REC_OVERHEAD;
+    int offSet = getOffset(position) + REC_OVERHEAD;
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     return PackedInteger.readInt(buffer, offSet);
   }
-
 
   /**
    * Return the key value part of a record indicated by the current buffer
@@ -400,7 +389,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   private ByteBuffer getKeyBuf(int x)
   {
     keyBuffer.clear();
-    int offSet = getIntegerValue(x * INT_SIZE) + REC_OVERHEAD;
+    int offSet = getOffset(x) + REC_OVERHEAD;
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
@@ -423,7 +412,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   private byte[] getKey(int x)
   {
-    int offSet = getIntegerValue(x * INT_SIZE) + REC_OVERHEAD;
+    int offSet = getOffset(x) + REC_OVERHEAD;
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
@@ -432,12 +421,10 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return key;
   }
 
-
-  private int getIndexID(int x)
+  private int getOffset(int position)
   {
-    return getIntegerValue(getIntegerValue(x * INT_SIZE) + 1);
+    return getIntegerValue(position * INT_SIZE);
   }
-
 
   /**
    * Return index id associated with the current position's record.
@@ -446,41 +433,48 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public int getIndexID()
   {
-     return getIntegerValue(getIntegerValue(position * INT_SIZE) + 1);
+    return getIndexID(position);
   }
 
-
-  private boolean is(int x, int y, CompareOp op)
+  private int getIndexID(int position)
   {
-    int xoffSet = getIntegerValue(x * INT_SIZE);
-    int xIndexID = getIntegerValue(xoffSet + 1);
+    return getIndexIDFromOffset(getOffset(position));
+  }
+
+  private int getIndexIDFromOffset(int offset)
+  {
+    return getIntegerValue(offset + 1);
+  }
+
+  private boolean is(CompareOp op, int x, int y)
+  {
+    int xoffSet = getOffset(x);
+    int xIndexID = getIndexIDFromOffset(xoffSet);
     xoffSet += REC_OVERHEAD;
     xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
     int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
     int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
-    int yoffSet = getIntegerValue(y * INT_SIZE);
-    int yIndexID = getIntegerValue(yoffSet + 1);
+    int yoffSet = getOffset(y);
+    int yIndexID = getIndexIDFromOffset(yoffSet);
     yoffSet += REC_OVERHEAD;
     yoffSet += PackedInteger.getReadIntLength(buffer, yoffSet);
     int yKeyLen = PackedInteger.readInt(buffer, yoffSet);
     int yKey = PackedInteger.getReadIntLength(buffer, yoffSet) + yoffSet;
-    return evaluateReturnCode(comparator.compare(buffer, xKey, xKeyLen,
-                              xIndexID, yKey, yKeyLen, yIndexID), op);
+    int cmp = comparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKeyLen, yIndexID);
+    return evaluateReturnCode(cmp, op);
   }
 
-
-  private boolean is(int x, byte[] yKey, CompareOp op, int yIndexID)
+  private boolean is(CompareOp op, int x, byte[] yKey, int yIndexID)
   {
-    int xoffSet = getIntegerValue(x * INT_SIZE);
-    int xIndexID = getIntegerValue(xoffSet + 1);
+    int xoffSet = getOffset(x);
+    int xIndexID = getIndexIDFromOffset(xoffSet);
     xoffSet += REC_OVERHEAD;
     xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
     int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
     int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
-    return evaluateReturnCode(comparator.compare(buffer, xKey, xKeyLen,
-                        xIndexID, yKey, yKey.length, yIndexID), op);
+    int cmp = comparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKey.length, yIndexID);
+    return evaluateReturnCode(cmp, op);
   }
-
 
   /**
    * Compare the byte array at the current position with the specified one and
@@ -495,8 +489,8 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public boolean compare(byte[]b, int bIndexID)
   {
-    int offset = getIntegerValue(position * INT_SIZE);
-    int indexID = getIntegerValue(offset + 1);
+    int offset = getOffset(position);
+    int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD;
     offset += PackedInteger.getReadIntLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
@@ -520,8 +514,8 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   public int compareTo(IndexOutputBuffer b)
   {
     final ByteBuffer keyBuf = b.getKeyBuf(b.position);
-    int offset = getIntegerValue(position * INT_SIZE);
-    int indexID = getIntegerValue(offset + 1);
+    int offset = getOffset(position);
+    int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD;
     offset += PackedInteger.getReadIntLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
@@ -537,7 +531,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     if (indexID == bIndexID)
     {
       // This is tested in a tree set remove when a buffer is removed from the tree set.
-      return compare(this.id, b.getBufferID());
+      return compare(this.bufferID, b.getBufferID());
     }
     else if (indexID < bIndexID)
     {
@@ -576,7 +570,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public void writeKey(DataOutputStream dataStream) throws IOException
   {
-    int offSet = getIntegerValue(position * INT_SIZE) + REC_OVERHEAD;
+    int offSet = getOffset(position) + REC_OVERHEAD;
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
@@ -592,7 +586,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public boolean compare(int i)
   {
-    return is(i, position, CompareOp.EQ);
+    return is(CompareOp.EQ, i, position);
   }
 
   /**
@@ -627,15 +621,14 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     position++;
   }
 
-  private byte[] getIntBytes(int val)
+  private int writeIntBytes(byte[] buffer, int offset, int val)
   {
-    for (int i = 3; i >= 0; i--) {
-      intBytes[i] = (byte) (val & 0xff);
+    for (int i = offset + INT_SIZE - 1; i >= offset; i--) {
+      buffer[i] = (byte) (val & 0xff);
       val >>>= 8;
     }
-    return intBytes;
+    return INT_SIZE;
   }
-
 
   private int getIntegerValue(int index)
   {
@@ -648,21 +641,19 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return answer;
   }
 
-
   private int med3(int a, int b, int c)
   {
-    return is(a, b, CompareOp.LT) ?
-           (is(b,c,CompareOp.LT) ? b : is(a,c,CompareOp.LT) ? c : a) :
-           (is(b,c,CompareOp.GT) ? b : is(a,c,CompareOp.GT) ? c : a);
+    return is(CompareOp.LT, a, b) ?
+           (is(CompareOp.LT,b,c) ? b : is(CompareOp.LT,a,c) ? c : a) :
+           (is(CompareOp.GT,b,c) ? b : is(CompareOp.GT,a,c) ? c : a);
   }
-
 
   private void sort(int off, int len)
   {
     if (len < 7) {
       for (int i=off; i<len+off; i++)
       {
-        for (int j=i; j>off && is(j-1, j, CompareOp.GT); j--)
+        for (int j=i; j>off && is(CompareOp.GT, j-1, j); j--)
         {
           swap(j, j-1);
         }
@@ -689,17 +680,17 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int a = off, b = a, c = off + len - 1, d = c;
     while(true)
     {
-      while (b <= c && is(b, mKey, CompareOp.LE, mIndexID))
+      while (b <= c && is(CompareOp.LE, b, mKey, mIndexID))
       {
-        if (is(b, mKey, CompareOp.EQ, mIndexID))
+        if (is(CompareOp.EQ, b, mKey, mIndexID))
         {
           swap(a++, b);
         }
         b++;
       }
-      while (c >= b && is(c, mKey, CompareOp.GE, mIndexID))
+      while (c >= b && is(CompareOp.GE, c, mKey, mIndexID))
       {
-        if (is(c, mKey, CompareOp.EQ, mIndexID))
+        if (is(CompareOp.EQ, c, mKey, mIndexID))
         {
           swap(c, d--);
         }
@@ -732,16 +723,14 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     }
   }
 
-
   private void swap(int a, int b)
   {
      int aOffset = a * INT_SIZE;
      int bOffset = b * INT_SIZE;
      int bVal = getIntegerValue(bOffset);
      System.arraycopy(buffer, aOffset, buffer, bOffset, INT_SIZE);
-     System.arraycopy(getIntBytes(bVal), 0, buffer, aOffset, INT_SIZE);
+     writeIntBytes(buffer, aOffset, bVal);
   }
-
 
   private void vectorSwap(int a, int b, int n)
   {
@@ -750,7 +739,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
       swap(a, b);
     }
   }
-
 
   private boolean evaluateReturnCode(int rc, CompareOp op)
   {

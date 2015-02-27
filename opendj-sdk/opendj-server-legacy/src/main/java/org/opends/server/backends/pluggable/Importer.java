@@ -224,11 +224,9 @@ final class Importer implements DiskSpaceMonitorHandler
       new ConcurrentHashMap<IndexKey, BlockingQueue<IndexOutputBuffer>>();
 
   /** Map of DB containers to index managers. Used to start phase 2. */
-  private final List<IndexManager> indexMgrList =
-      new LinkedList<IndexManager>();
+  private final List<IndexManager> indexMgrList = new LinkedList<IndexManager>();
   /** Map of DB containers to DN-based index managers. Used to start phase 2. */
-  private final List<IndexManager> DNIndexMgrList =
-      new LinkedList<IndexManager>();
+  private final List<IndexManager> DNIndexMgrList = new LinkedList<IndexManager>();
 
   /**
    * Futures used to indicate when the index file writers are done flushing
@@ -701,9 +699,13 @@ final class Importer implements DiskSpaceMonitorHandler
   {
     if (index != null)
     {
-      int id = System.identityHashCode(index);
-      idContainerMap.putIfAbsent(id, index);
+      idContainerMap.putIfAbsent(getIndexID(index), index);
     }
+  }
+
+  private static int getIndexID(DatabaseContainer index)
+  {
+    return System.identityHashCode(index);
   }
 
   private Suffix getSuffix(WriteableStorage txn, EntryContainer entryContainer)
@@ -1702,9 +1704,9 @@ final class Importer implements DiskSpaceMonitorHandler
         indexBuffer = getNewIndexBuffer(sizeNeeded);
         indexBufferMap.put(indexKey, indexBuffer);
       }
-      int id = System.identityHashCode(container);
-      indexBuffer.add(key, entryID, id, insert);
-      return id;
+      int indexID = getIndexID(container);
+      indexBuffer.add(key, entryID, indexID, insert);
+      return indexID;
     }
 
     IndexOutputBuffer getNewIndexBuffer(int size) throws InterruptedException
@@ -1956,7 +1958,6 @@ final class Importer implements DiskSpaceMonitorHandler
       ByteBuffer key = null;
       ImportIDSet insertIDSet = null;
       ImportIDSet deleteIDSet = null;
-      Integer indexID = null;
 
       if (isCanceled)
       {
@@ -1975,6 +1976,7 @@ final class Importer implements DiskSpaceMonitorHandler
             return null;
           }
 
+          Integer indexID = null;
           while (!bufferSet.isEmpty())
           {
             IndexInputBuffer b = bufferSet.pollFirst();
@@ -1998,7 +2000,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
               key = ByteBuffer.allocate(b.getKeyLen());
               key.flip();
-              b.getKey(key);
+              b.fetchKey(key);
 
               b.mergeIDSet(insertIDSet);
               b.mergeIDSet(deleteIDSet);
@@ -2032,7 +2034,7 @@ final class Importer implements DiskSpaceMonitorHandler
                 key = ByteBuffer.allocate(b.getKeyLen());
               }
               key.flip();
-              b.getKey(key);
+              b.fetchKey(key);
 
               b.mergeIDSet(insertIDSet);
               b.mergeIDSet(deleteIDSet);
@@ -2047,7 +2049,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
             if (b.hasMoreData())
             {
-              b.getNextRecord();
+              b.fetchNextRecord();
               bufferSet.add(b);
             }
           }
@@ -2266,17 +2268,18 @@ final class Importer implements DiskSpaceMonitorHandler
 
       private void id2child(EntryID childID) throws DirectoryException
       {
-        ImportIDSet idSet;
         if (parentID != null)
         {
-          if (!id2childTree.containsKey(parentID.toByteString()))
+          ImportIDSet idSet;
+          final ByteString parentIDBytes = parentID.toByteString();
+          if (!id2childTree.containsKey(parentIDBytes))
           {
             idSet = new ImportIDSet(1, childLimit, childDoCount);
-            id2childTree.put(parentID.toByteString(), idSet);
+            id2childTree.put(parentIDBytes, idSet);
           }
           else
           {
-            idSet = id2childTree.get(parentID.toByteString());
+            idSet = id2childTree.get(parentIDBytes);
           }
           idSet.addEntryID(childID);
           if (id2childTree.size() > DN_STATE_CACHE_SIZE)
@@ -2308,14 +2311,15 @@ final class Importer implements DiskSpaceMonitorHandler
         if (parentID != null)
         {
           ImportIDSet idSet;
-          if (!id2subtreeTree.containsKey(parentID.toByteString()))
+          final ByteString parentIDBytes = parentID.toByteString();
+          if (!id2subtreeTree.containsKey(parentIDBytes))
           {
             idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-            id2subtreeTree.put(parentID.toByteString(), idSet);
+            id2subtreeTree.put(parentIDBytes, idSet);
           }
           else
           {
-            idSet = id2subtreeTree.get(parentID.toByteString());
+            idSet = id2subtreeTree.get(parentIDBytes);
           }
           idSet.addEntryID(childID);
           // TODO:
@@ -2330,14 +2334,16 @@ final class Importer implements DiskSpaceMonitorHandler
               // Just ignore.
               break;
             }
-            if (!id2subtreeTree.containsKey(nodeID.toByteString()))
+
+            final ByteString nodeIDBytes = nodeID.toByteString();
+            if (!id2subtreeTree.containsKey(nodeIDBytes))
             {
               idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-              id2subtreeTree.put(nodeID.toByteString(), idSet);
+              id2subtreeTree.put(nodeIDBytes, idSet);
             }
             else
             {
-              idSet = id2subtreeTree.get(nodeID.toByteString());
+              idSet = id2subtreeTree.get(nodeIDBytes);
             }
             idSet.addEntryID(childID);
           }
@@ -2524,7 +2530,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       resetStreams();
 
-      long id = 0;
+      long bufferID = 0;
       long bufferLen = 0;
       for (IndexOutputBuffer b : buffers)
       {
@@ -2535,7 +2541,7 @@ final class Importer implements DiskSpaceMonitorHandler
         else
         {
           b.setPosition(0);
-          b.setID(id++);
+          b.setBufferID(bufferID++);
           indexSortedSet.add(b);
         }
       }
@@ -2621,43 +2627,53 @@ final class Importer implements DiskSpaceMonitorHandler
         insertByteStream.reset();
         insertByteStream.write(-1);
       }
-      bufferStream.writeInt(insertKeyCount);
+
       int insertSize = 4;
+      bufferStream.writeInt(insertKeyCount);
       if (insertByteStream.size() > 0)
       {
         insertByteStream.writeTo(bufferStream);
       }
-      bufferStream.write(deleteKeyCount);
+
       int deleteSize = 4;
+      bufferStream.write(deleteKeyCount);
       if (deleteByteStream.size() > 0)
       {
         deleteByteStream.writeTo(bufferStream);
       }
-      return insertSize + deleteSize;
+      return insertSize + insertByteStream.size() + deleteSize + deleteByteStream.size();
     }
 
     private int writeHeader(int indexID, int keySize) throws IOException
     {
       bufferStream.writeInt(indexID);
       bufferStream.writeInt(keySize);
-      return 4;
+      return 2 * INT_SIZE;
     }
 
     private int writeRecord(IndexOutputBuffer b) throws IOException
     {
       int keySize = b.getKeySize();
-      int packedSize = writeHeader(b.getIndexID(), keySize);
+      int headerSize = writeHeader(b.getIndexID(), keySize);
       b.writeKey(bufferStream);
-      packedSize += writeByteStreams();
-      return packedSize + keySize + insertByteStream.size() + deleteByteStream.size() + 4;
+      int bodySize = writeByteStreams();
+      return headerSize + bodySize + keySize;
     }
 
     private int writeRecord(byte[] k, int indexID) throws IOException
     {
-      int packedSize = writeHeader(indexID, k.length);
+      int keySize = k.length;
+      int headerSize = writeHeader(indexID, keySize);
       bufferStream.write(k);
-      packedSize += writeByteStreams();
-      return packedSize + k.length + insertByteStream.size() + deleteByteStream.size() + 4;
+      int bodySize = writeByteStreams();
+      return headerSize + bodySize + keySize;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName() + "(" + indexMgr.getBufferFileName() + ": " + indexMgr.getBufferFile() + ")";
     }
   }
 
@@ -2844,6 +2860,13 @@ final class Importer implements DiskSpaceMonitorHandler
     private int getNumberOfBuffers()
     {
       return numberOfBuffers;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName() + "(" + bufferFileName + ": " + bufferFile + ")";
     }
   }
 
