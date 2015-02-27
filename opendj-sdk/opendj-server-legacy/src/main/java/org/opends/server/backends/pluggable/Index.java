@@ -210,7 +210,12 @@ class Index extends DatabaseContainer
   void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
-    if(deletedIDs == null && addedIDs == null)
+    /*
+     * Check the special condition where both deletedIDs and addedIDs are null. This is used when
+     * deleting entries and corresponding id2children and id2subtree records must be completely
+     * removed.
+     */
+    if (deletedIDs == null && addedIDs == null)
     {
       boolean success = delete(txn, key);
       if (success && logger.isTraceEnabled())
