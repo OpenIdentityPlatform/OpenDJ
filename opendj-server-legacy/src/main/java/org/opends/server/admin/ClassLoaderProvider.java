@@ -662,9 +662,10 @@ public final class ClassLoaderProvider {
         throw new InitializationException(message);
       }
       try {
-        // Log build information of extensions in the error log
+        // Log build information of extensions in the information log
         String[] information = getBuildInformation(jarFile);
-        logger.info(NOTE_LOG_EXTENSION_INFORMATION, jarFile.getName(), information[1], information[2]);
+        LocalizedLogger extensionLogger = LocalizedLogger.getLocalizedLogger("org.opends.server.extensions");
+        extensionLogger.info(NOTE_LOG_EXTENSION_INFORMATION, jarFile.getName(), information[1], information[2]);
       } catch(Exception e) {
         // Do not log information for that extension
       }
