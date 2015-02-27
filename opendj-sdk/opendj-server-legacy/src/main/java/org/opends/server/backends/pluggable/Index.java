@@ -46,7 +46,6 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
@@ -146,13 +145,6 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Add an add entry ID operation into a index buffer.
-   *
-   * @param buffer The index buffer to insert the ID into.
-   * @param keyBytes         The index key bytes.
-   * @param entryID     The entry ID.
-   */
   final void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
@@ -215,15 +207,6 @@ class Index extends DatabaseContainer
     put(txn, key, value);
   }
 
-  /**
-   * Update the set of entry IDs for a given key.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param key The database key.
-   * @param deletedIDs The IDs to remove for the key.
-   * @param addedIDs the IDs to add for the key.
-   * @throws StorageRuntimeException If a database error occurs.
-   */
   void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
@@ -287,14 +270,11 @@ class Index extends DatabaseContainer
     return entryIDSet != null && entryIDSet.size() > 0;
   }
 
-  private void updateKeyWithRMW(WriteableStorage txn,
-                                           ByteString key,
-                                           EntryIDSet deletedIDs,
-                                           EntryIDSet addedIDs)
+  private void updateKeyWithRMW(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
     final ByteString value = read(txn, key, true);
-    if(value != null)
+    if (value != null)
     {
       EntryIDSet entryIDList = computeEntryIDList(key, value, deletedIDs, addedIDs);
       ByteString after = entryIDList.toByteString();
@@ -384,13 +364,6 @@ class Index extends DatabaseContainer
     return entryIDList;
   }
 
-  /**
-   * Add an remove entry ID operation into a index buffer.
-   *
-   * @param buffer The index buffer to insert the ID into.
-   * @param keyBytes    The index key bytes.
-   * @param entryID     The entry ID.
-   */
   final void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
@@ -409,12 +382,7 @@ class Index extends DatabaseContainer
     logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, treeName);
   }
 
-  /**
-   * Buffered delete of a key from the JE database.
-   * @param buffer The index buffer to use to store the deleted keys
-   * @param keyBytes The index key bytes.
-   */
-  public void delete(IndexBuffer buffer, ByteString keyBytes)
+  void delete(IndexBuffer buffer, ByteString keyBytes)
   {
     getBufferedIndexValues(buffer, keyBytes);
   }
@@ -427,15 +395,18 @@ class Index extends DatabaseContainer
   /**
    * Check if an entry ID is in the set of IDs indexed by a given key.
    *
-   * @param txn A database transaction, or null if none is required.
-   * @param key         The index key.
-   * @param entryID     The entry ID.
-   * @return true if the entry ID is indexed by the given key,
-   *         false if it is not indexed by the given key,
-   *         undefined if the key has exceeded the entry limit.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @param txn
+   *          A database transaction.
+   * @param key
+   *          The index key.
+   * @param entryID
+   *          The entry ID.
+   * @return true if the entry ID is indexed by the given key, false if it is not indexed by the
+   *         given key, undefined if the key has exceeded the entry limit.
+   * @throws StorageRuntimeException
+   *           If an error occurs in the JE database.
    */
-  public ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
+  ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
        throws StorageRuntimeException
   {
     if(rebuildRunning)
@@ -463,14 +434,7 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Reads the set of entry IDs for a given key.
-   *
-   * @param key The database key.
-   * @param txn A database transaction, or null if none is required.
-   * @return The entry IDs indexed by this key.
-   */
-  public EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
+  EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
   {
     if(rebuildRunning)
     {
@@ -501,33 +465,6 @@ class Index extends DatabaseContainer
   }
 
   /**
-   * Writes the set of entry IDs for a given key.
-   *
-   * @param key The database key.
-   * @param entryIDList The entry IDs indexed by this key.
-   * @param txn A database transaction, or null if none is required.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   */
-  public void writeKey(WriteableStorage txn, ByteString key, EntryIDSet entryIDList)
-       throws StorageRuntimeException
-  {
-    ByteString value = entryIDList.toByteString();
-    if (!value.isEmpty())
-    {
-      if (!entryIDList.isDefined())
-      {
-        entryLimitExceededCount++;
-      }
-      put(txn, key, value);
-    }
-    else
-    {
-      // No more IDs, so remove the key.
-      delete(txn, key);
-    }
-  }
-
-  /**
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
    *
@@ -550,7 +487,7 @@ class Index extends DatabaseContainer
    *                      specified.
    * @return The set of entry IDs.
    */
-  public EntryIDSet readRange(ReadableStorage txn,
+  EntryIDSet readRange(ReadableStorage txn,
       ByteSequence lower, ByteSequence upper, boolean lowerIncluded, boolean upperIncluded)
   {
     // If this index is not trusted, then just return an undefined id set.
@@ -637,29 +574,13 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Get the number of keys that have exceeded the entry limit since this
-   * object was created.
-   * @return The number of keys that have exceeded the entry limit since this
-   * object was created.
-   */
-  public int getEntryLimitExceededCount()
+  int getEntryLimitExceededCount()
   {
     return entryLimitExceededCount;
   }
 
-  /**
-   * Update the index buffer for a deleted entry.
-   *
-   * @param buffer The index buffer to use to store the deleted keys
-   * @param entryID     The entry ID.
-   * @param entry       The entry to be indexed.
-   * @param options     The indexing options to use
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
-      IndexingOptions options) throws StorageRuntimeException, DirectoryException
+  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+      throws StorageRuntimeException
   {
     HashSet<ByteString> addKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, addKeys, options);
@@ -670,18 +591,8 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Update the index buffer for a deleted entry.
-   *
-   * @param buffer The index buffer to use to store the deleted keys
-   * @param entryID     The entry ID
-   * @param entry       The contents of the deleted entry.
-   * @param options     The indexing options to use
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
-      IndexingOptions options) throws StorageRuntimeException, DirectoryException
+  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+      throws StorageRuntimeException
   {
     HashSet<ByteString> delKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, delKeys, options);
@@ -692,24 +603,8 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Update the index to reflect a sequence of modifications in a Modify
-   * operation.
-   *
-   * @param buffer The index buffer to use to store the deleted keys
-   * @param entryID The ID of the entry that was modified.
-   * @param oldEntry The entry before the modifications were applied.
-   * @param newEntry The entry after the modifications were applied.
-   * @param mods The sequence of modifications in the Modify operation.
-   * @param options The indexing options to use
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   */
-  public void modifyEntry(IndexBuffer buffer,
-                          EntryID entryID,
-                          Entry oldEntry,
-                          Entry newEntry,
-                          List<Modification> mods, IndexingOptions options)
-      throws StorageRuntimeException
+  void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
+      IndexingOptions options) throws StorageRuntimeException
   {
     TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
@@ -727,88 +622,45 @@ class Index extends DatabaseContainer
     }
   }
 
-  /**
-   * Set the index entry limit.
-   *
-   * @param indexEntryLimit The index entry limit to set.
-   * @return True if a rebuild is required or false otherwise.
-   */
-  public boolean setIndexEntryLimit(int indexEntryLimit)
+  boolean setIndexEntryLimit(int indexEntryLimit)
   {
-    final boolean rebuildRequired =
-        this.indexEntryLimit < indexEntryLimit && entryLimitExceededCount > 0;
+    final boolean rebuildRequired = this.indexEntryLimit < indexEntryLimit && entryLimitExceededCount > 0;
     this.indexEntryLimit = indexEntryLimit;
     return rebuildRequired;
   }
 
-  /**
-   * Set the indexer.
-   *
-   * @param indexer The indexer to set
-   */
   final void setIndexer(Indexer indexer)
   {
     this.indexer = indexer;
   }
 
-  /**
-   * Return entry limit.
-   *
-   * @return The entry limit.
-   */
-  public int getIndexEntryLimit() {
-    return this.indexEntryLimit;
+  int getIndexEntryLimit()
+  {
+    return indexEntryLimit;
   }
 
-  /**
-   * Set the index trust state.
-   * @param txn A database transaction, or null if none is required.
-   * @param trusted True if this index should be trusted or false
-   *                otherwise.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   */
-  public synchronized void setTrusted(WriteableStorage txn, boolean trusted)
-      throws StorageRuntimeException
+  synchronized void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
     state.putIndexTrustState(txn, this, trusted);
   }
 
-  /**
-   * Return true iff this index is trusted.
-   * @return the trusted state of this index
-   */
-  public synchronized boolean isTrusted()
+  synchronized boolean isTrusted()
   {
     return trusted;
   }
 
-  /**
-   * Return <code>true</code> iff this index is being rebuilt.
-   * @return The rebuild state of this index
-   */
-  public synchronized boolean isRebuildRunning()
+  synchronized boolean isRebuildRunning()
   {
     return rebuildRunning;
   }
 
-  /**
-   * Set the rebuild status of this index.
-   * @param rebuildRunning True if a rebuild process on this index
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
+  synchronized void setRebuildStatus(boolean rebuildRunning)
   {
     this.rebuildRunning = rebuildRunning;
   }
 
-  /**
-   * Whether this index maintains a count of IDs for keys once the
-   * entry limit has exceeded.
-   * @return <code>true</code> if this index maintains court of IDs
-   * or <code>false</code> otherwise
-   */
-  public boolean getMaintainCount()
+  boolean getMaintainCount()
   {
     return maintainCount;
   }

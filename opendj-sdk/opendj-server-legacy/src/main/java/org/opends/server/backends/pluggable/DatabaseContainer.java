@@ -49,12 +49,12 @@ abstract class DatabaseContainer implements Closeable
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The database entryContainer. */
-  protected final EntryContainer entryContainer;
+  final EntryContainer entryContainer;
   /** The name of the database within the entryContainer. */
-  protected TreeName treeName;
+  TreeName treeName;
 
   /** The reference to the JE Storage. */
-  protected final Storage storage;
+  final Storage storage;
 
   /**
    * Create a new DatabaseContainer object.
@@ -63,7 +63,7 @@ abstract class DatabaseContainer implements Closeable
    * @param storage The JE Storage.
    * @param entryContainer The entryContainer of the entry database.
    */
-  protected DatabaseContainer(TreeName treeName, Storage storage, EntryContainer entryContainer)
+  DatabaseContainer(TreeName treeName, Storage storage, EntryContainer entryContainer)
   {
     this.storage = storage;
     this.entryContainer = entryContainer;
@@ -79,7 +79,7 @@ abstract class DatabaseContainer implements Closeable
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
-  public void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableStorage txn) throws StorageRuntimeException
   {
     txn.openTree(treeName);
     if (logger.isTraceEnabled())
@@ -209,7 +209,7 @@ abstract class DatabaseContainer implements Closeable
    * @return The count of key/data pairs in the database.
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  public long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
+  long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
     long count = count(txn);
     if (logger.isTraceEnabled())
