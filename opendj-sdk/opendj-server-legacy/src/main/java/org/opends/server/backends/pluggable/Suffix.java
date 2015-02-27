@@ -60,7 +60,6 @@ class Suffix
   private final ConcurrentHashMap<DN, CountDownLatch> pendingMap =
           new ConcurrentHashMap<DN, CountDownLatch>();
   private final Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
-  private DN parentDN;
 
   /**
    * Creates a suffix instance using the specified parameters.
