@@ -46,7 +46,7 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
     @Parameter(required = true, property = "ignoreCopyrightErrors", defaultValue = "false")
     private boolean ignoreCopyrightErrors;
 
-    @Parameter(required = true, property = "skipCoyprightCheck", defaultValue = "false")
+    @Parameter(required = true, property = "skipCopyrightCheck", defaultValue = "false")
     private boolean checkDisabled;
 
     /**
@@ -74,7 +74,7 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
             if (!ignoreCopyrightErrors) {
                 getLog().warn("Fix copyright date problems before proceeding, "
                                 + "or use '-DignoreCopyrightErrors=true' to ignore copyright errors.");
-                getLog().warn("You can use copyrights-update profile (mvn -Pprecommit -Pcopyriths-update) "
+                getLog().warn("You can use update-copyrights profile (mvn -Pprecommit -Pupdate-copyrights) "
                         + "to automatically update copyrights.");
                 throw new MojoExecutionException("Found files with potential copyright year updates needed");
             }

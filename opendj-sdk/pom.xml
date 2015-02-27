@@ -514,7 +514,7 @@
     </profile>
     
     <profile>
-      <id>copyrights-update</id>
+      <id>update-copyrights</id>
         <build>
           <plugins>
             <plugin>
