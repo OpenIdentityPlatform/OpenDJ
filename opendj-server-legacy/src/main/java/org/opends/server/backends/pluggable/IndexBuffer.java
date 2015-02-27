@@ -59,7 +59,12 @@ class IndexBuffer
   private final LinkedHashMap<VLVIndex, BufferedVLVIndexValues> bufferedVLVIndexes =
       new LinkedHashMap<VLVIndex, BufferedVLVIndexValues>();
 
-  /** A simple class representing a pair of added and deleted indexed IDs. */
+  /**
+   * A simple class representing a pair of added and deleted indexed IDs. Initially both addedIDs
+   * and deletedIDs are {@code null} indicating that that the whole record should be deleted. This
+   * state is only ever used when updating the id2children and id2subtree indexes when deleting an
+   * entry.
+   */
   static class BufferedIndexValues
   {
     private EntryIDSet addedIDs;

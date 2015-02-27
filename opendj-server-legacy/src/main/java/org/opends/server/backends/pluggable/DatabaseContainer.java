@@ -114,14 +114,6 @@ abstract class DatabaseContainer implements Closeable
     }
   }
 
-  /**
-   * Replace or insert a record into a JE database, with optional debug logging.
-   * This is a simple wrapper around the JE Database.put method.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The record key.
-   * @param value The record value.
-   * @throws StorageRuntimeException If an error occurs in the JE operation.
-   */
   void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
   {
     txn.create(treeName, key, value);
@@ -131,15 +123,6 @@ abstract class DatabaseContainer implements Closeable
     }
   }
 
-  /**
-   * Read a record from a JE database, with optional debug logging. This is a
-   * simple wrapper around the JE Database.get method.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The key of the record to be read.
-   * @param isRMW whether the read operation is part of a larger read-modify-write operation
-   * @return The operation status.
-   * @throws StorageRuntimeException If an error occurs in the JE operation.
-   */
   ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
     ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName, key);

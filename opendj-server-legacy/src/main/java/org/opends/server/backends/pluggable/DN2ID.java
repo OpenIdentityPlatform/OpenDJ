@@ -28,7 +28,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.server.backends.pluggable.JebFormat.*;
 
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -82,26 +81,6 @@ class DN2ID extends DatabaseContainer
   }
 
   /**
-   * Write a record to the DN database, where the key and value are already
-   * formatted.
-   *
-   * @param txn
-   *          A JE database transaction to be used for the database operation,
-   *          or null if none.
-   * @param key
-   *          A ByteString containing the record key.
-   * @param value
-   *          A ByteString containing the record value.
-   * @throws StorageRuntimeException
-   *           If an error occurred while attempting to write the record.
-   */
-  @Override
-  public void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
-  {
-    super.put(txn, key, value);
-  }
-
-  /**
    * Remove a record from the DN database.
    * @param txn A JE database transaction to be used for the database operation,
    * or null if none.
@@ -126,7 +105,7 @@ class DN2ID extends DatabaseContainer
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public EntryID get(ReadableStorage txn, DN dn, boolean isRMW) throws StorageRuntimeException
+  EntryID get(ReadableStorage txn, DN dn, boolean isRMW) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = read(txn, key, isRMW);
@@ -135,12 +114,5 @@ class DN2ID extends DatabaseContainer
       return new EntryID(value);
     }
     return null;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW)
-  {
-    return super.read(txn, key, isRMW);
   }
 }
