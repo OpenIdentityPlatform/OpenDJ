@@ -35,7 +35,6 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -46,31 +45,12 @@ import org.opends.server.types.Modification;
 final class NullIndex extends Index
 {
 
-  /**
-   * Create a new null index object.
-   *
-   * @param name
-   *          The name of the index database within the entryContainer.
-   * @param indexer
-   *          The indexer object to construct index keys from LDAP attribute values.
-   * @param state
-   *          The state database to persist index state info.
-   * @param storage
-   *          The JE Storage
-   * @param txn
-   *          The transaction to use when creating this object
-   * @param entryContainer
-   *          The database entryContainer holding this index.
-   * @throws StorageRuntimeException
-   *           If an error occurs in the JE database.
-   */
-  public NullIndex(TreeName name, Indexer indexer, State state, Storage storage, WriteableStorage txn,
+  NullIndex(TreeName name, Indexer indexer, State state, Storage storage, WriteableStorage txn,
       EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(name, indexer, state, 0, 0, false, storage, txn, entryContainer);
   }
 
-  /** {@inheritDoc} */
   @Override
   void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
@@ -78,167 +58,138 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void delete(IndexBuffer buffer, ByteString keyBytes)
+  void delete(IndexBuffer buffer, ByteString keyBytes)
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
+  ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
       throws StorageRuntimeException
   {
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
+  EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
   {
     return new EntryIDSet();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void writeKey(WriteableStorage txn, ByteString key, EntryIDSet entryIDList) throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public EntryIDSet readRange(ReadableStorage txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
+  EntryIDSet readRange(ReadableStorage txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
       boolean upperIncluded)
   {
     return new EntryIDSet();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public int getEntryLimitExceededCount()
+  int getEntryLimitExceededCount()
   {
     return 0;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
-      throws StorageRuntimeException, DirectoryException
+  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+      throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
-      throws StorageRuntimeException, DirectoryException
+  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+      throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
+  void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
       IndexingOptions options) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean setIndexEntryLimit(int indexEntryLimit)
+  boolean setIndexEntryLimit(int indexEntryLimit)
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public int getIndexEntryLimit()
+  int getIndexEntryLimit()
   {
     return 0;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+  void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isTrusted()
+  boolean isTrusted()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isRebuildRunning()
+  boolean isRebuildRunning()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void setRebuildStatus(boolean rebuildRunning)
+  void setRebuildStatus(boolean rebuildRunning)
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean getMaintainCount()
+  boolean getMaintainCount()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableStorage txn) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close() throws StorageRuntimeException
   {
     // Do nothing.
   }
 
-  /** {@inheritDoc} */
   @Override
   void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
+  long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
     return 0;
   }
