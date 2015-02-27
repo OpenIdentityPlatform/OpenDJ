@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -47,23 +47,23 @@ import org.opends.server.types.SortOrder;
  * <p>
  * FIXME: replace with the SDK's SortKey?
  */
-public class SortValues
+class SortValues
        implements Comparable<SortValues>
 {
   /** The set of sort keys (attribute values) in this sort order. */
-  private ByteString[] values;
+  private final ByteString[] values;
   /**
    * The types of sort keys.
    *
    * @see #values
    */
-  private AttributeType[] types;
+  private final AttributeType[] types;
 
   /** The entry ID for the entry associated with this sort values. */
-  private EntryID entryID;
+  private final EntryID entryID;
 
   /** The sort order for this set of sort values. */
-  private SortOrder sortOrder;
+  private final SortOrder sortOrder;
 
 
 
@@ -75,7 +75,7 @@ public class SortValues
    * @param values     The attribute values for this sort values.
    * @param sortOrder  The sort order to use to obtain the necessary values.
    */
-  public SortValues(EntryID entryID, ByteString[] values,
+  SortValues(EntryID entryID, ByteString[] values,
                     SortOrder sortOrder)
   {
     this.entryID = entryID;
@@ -99,7 +99,7 @@ public class SortValues
    *                    sorting.
    * @param  sortOrder  The sort order to use to obtain the necessary values.
    */
-  public SortValues(EntryID entryID, Entry entry, SortOrder sortOrder)
+  SortValues(EntryID entryID, Entry entry, SortOrder sortOrder)
   {
     this.entryID   = entryID;
     this.sortOrder = sortOrder;
@@ -194,7 +194,7 @@ public class SortValues
    *          is equal to the first sort value, or a positive value if the
    *          provided assertion value should come after the first sort value.
    */
-  public int compareTo(ByteString assertionValue)
+  int compareTo(ByteString assertionValue)
   {
     SortKey sortKey = sortOrder.getSortKeys()[0];
     return sortKey.compareValues(values[0], assertionValue);
@@ -219,7 +219,7 @@ public class SortValues
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
     buffer.append("SortValues(");
 
@@ -248,7 +248,7 @@ public class SortValues
    *
    * @return The array of attribute values for this sort values.
    */
-  public ByteString[] getValues()
+  ByteString[] getValues()
   {
     return values;
   }
@@ -258,7 +258,7 @@ public class SortValues
    *
    * @return The array of type of the attribute values for this sort values.
    */
-  public AttributeType[] getTypes()
+  AttributeType[] getTypes()
   {
     return types;
   }
@@ -268,7 +268,7 @@ public class SortValues
    *
    * @return The entry ID for this sort values.
    */
-  public long getEntryID()
+  long getEntryID()
   {
     return entryID.longValue();
   }

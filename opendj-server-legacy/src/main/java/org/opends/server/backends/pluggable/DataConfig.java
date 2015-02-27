@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -34,13 +34,13 @@ import org.opends.server.types.EntryEncodeConfig;
  * Configuration class to indicate desired compression and cryptographic options
  * for the data stored in the database.
  */
-public final class DataConfig
+final class DataConfig
 {
   /** Indicates whether data should be compressed before writing to the database. */
   private boolean compressed;
 
   /** The configuration to use when encoding entries in the database. */
-  private EntryEncodeConfig encodeConfig = new EntryEncodeConfig();
+  private EntryEncodeConfig encodeConfig;
 
   /**
    * Construct a new DataConfig object with the specified settings.
@@ -51,50 +51,10 @@ public final class DataConfig
    * @param compressedSchema the compressed schema manager to use.  It must not
    * be {@code null} if compactEncoding is {@code true}.
    */
-  public DataConfig(boolean compressed, boolean compactEncoding, CompressedSchema compressedSchema)
+  DataConfig(boolean compressed, boolean compactEncoding, CompressedSchema compressedSchema)
   {
     this.compressed = compressed;
-    setCompactEncoding(compactEncoding, compressedSchema);
-  }
 
-  /**
-   * Determine whether data should be compressed before writing to the database.
-   * @return true if data should be compressed, false if not.
-   */
-  public boolean isCompressed()
-  {
-    return compressed;
-  }
-
-  /**
-   * Determine whether entries should be encoded with the compact form before
-   * writing to the database.
-   * @return true if data should be encoded in the compact form.
-   */
-  public boolean isCompactEncoding()
-  {
-    return encodeConfig.compressAttributeDescriptions();
-  }
-
-  /**
-   * Configure whether data should be compressed before writing to the database.
-   * @param compressed true if data should be compressed, false if not.
-   */
-  public void setCompressed(boolean compressed)
-  {
-    this.compressed = compressed;
-  }
-
-  /**
-   * Configure whether data should be encoded with the compact form before
-   * writing to the database.
-   * @param compactEncoding true if data should be encoded in compact form,
-   * false if not.
-   * @param compressedSchema The compressed schema manager to use.  It must not
-   * be {@code null} if compactEncoding is {@code true}.
-   */
-  public void setCompactEncoding(boolean compactEncoding, CompressedSchema compressedSchema)
-  {
     if (compressedSchema == null)
     {
       Reject.ifTrue(compactEncoding);
@@ -102,17 +62,27 @@ public final class DataConfig
     }
     else
     {
-      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, compactEncoding, compressedSchema);
+      this.encodeConfig =
+          new EntryEncodeConfig(false, compactEncoding, compactEncoding, compressedSchema);
     }
+  }
+
+  /**
+   * Determine whether data should be compressed before writing to the database.
+   * @return true if data should be compressed, false if not.
+   */
+  boolean isCompressed()
+  {
+    return compressed;
   }
 
   /**
    * Get the EntryEncodeConfig object in use by this configuration.
    * @return the EntryEncodeConfig object in use by this configuration.
    */
-  public EntryEncodeConfig getEntryEncodeConfig()
+  EntryEncodeConfig getEntryEncodeConfig()
   {
-    return this.encodeConfig;
+    return encodeConfig;
   }
 
   /**

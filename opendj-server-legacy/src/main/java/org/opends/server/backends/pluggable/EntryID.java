@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * There are static methods to assign monotonically increasing entry IDs,
  * starting from 1.
  */
-public class EntryID implements Comparable<EntryID>
+class EntryID implements Comparable<EntryID>
 {
   /** The identifier integer value. */
   private final long id;
@@ -45,7 +45,7 @@ public class EntryID implements Comparable<EntryID>
    * Create a new entry ID object from a given long value.
    * @param id The long value of the ID.
    */
-  public EntryID(long id)
+  EntryID(long id)
   {
     this.id = id;
   }
@@ -54,7 +54,7 @@ public class EntryID implements Comparable<EntryID>
    * Create a new entry ID object from a value in database format.
    * @param value The database value of the ID.
    */
-  public EntryID(ByteString value)
+  EntryID(ByteString value)
   {
     this.value = value;
     id = value.toLong();
@@ -64,7 +64,7 @@ public class EntryID implements Comparable<EntryID>
    * Get the value of the entry ID as a long.
    * @return The entry ID.
    */
-  public long longValue()
+  long longValue()
   {
     return id;
   }
@@ -73,7 +73,7 @@ public class EntryID implements Comparable<EntryID>
    * Get the value of the ID in database format.
    * @return The value of the ID in database format.
    */
-  public ByteString toByteString()
+  ByteString toByteString()
   {
     if (value == null)
     {

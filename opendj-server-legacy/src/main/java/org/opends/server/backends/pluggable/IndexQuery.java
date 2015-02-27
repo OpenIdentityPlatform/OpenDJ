@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -40,7 +40,7 @@ import static org.opends.server.backends.jeb.IndexFilter.*;
     mayInstantiate = false,
     mayExtend = true,
     mayInvoke = false)
-public abstract class IndexQuery
+abstract class IndexQuery
 {
   /**
    * Evaluates the index query and returns the EntryIDSet.
@@ -62,7 +62,7 @@ public abstract class IndexQuery
    *          A collection of IndexQuery objects.
    * @return An IntersectionIndexQuery object.
    */
-  public static IndexQuery createIntersectionIndexQuery(
+  static IndexQuery createIntersectionIndexQuery(
       Collection<IndexQuery> subIndexQueries)
   {
     return new IntersectionIndexQuery(subIndexQueries);
@@ -78,7 +78,7 @@ public abstract class IndexQuery
    *          Collection of IndexQuery objects.
    * @return A UnionIndexQuery object.
    */
-  public static IndexQuery createUnionIndexQuery(
+  static IndexQuery createUnionIndexQuery(
       Collection<IndexQuery> subIndexQueries)
   {
     return new UnionIndexQuery(subIndexQueries);
@@ -91,7 +91,7 @@ public abstract class IndexQuery
    *
    * @return A NullIndexQuery object.
    */
-  public static IndexQuery createNullIndexQuery()
+  static IndexQuery createNullIndexQuery()
   {
     return new NullIndexQuery();
   }

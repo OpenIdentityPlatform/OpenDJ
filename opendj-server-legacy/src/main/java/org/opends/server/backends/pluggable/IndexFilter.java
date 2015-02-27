@@ -43,13 +43,13 @@ import static org.opends.messages.JebMessages.*;
  * An index filter is used to apply a search operation to a set of indexes
  * to generate a set of candidate entries.
  */
-public class IndexFilter
+class IndexFilter
 {
   /**
    * Stop processing the filter against the indexes when the
    * number of candidates is smaller than this value.
    */
-  public static final int FILTER_CANDIDATE_THRESHOLD = 10;
+  static final int FILTER_CANDIDATE_THRESHOLD = 10;
 
   /** The entry container holding the attribute indexes. */
   private final EntryContainer entryContainer;
@@ -79,7 +79,7 @@ public class IndexFilter
    *                     which will help determine how the indexes contributed
    *                     to this search.
    */
-  public IndexFilter(EntryContainer entryContainer, ReadableStorage txn, SearchOperation searchOp,
+  IndexFilter(EntryContainer entryContainer, ReadableStorage txn, SearchOperation searchOp,
       StringBuilder debugBuilder, DatabaseEnvironmentMonitor monitor)
   {
     this.entryContainer = entryContainer;
@@ -94,7 +94,7 @@ public class IndexFilter
    *
    * @return A set of entry IDs representing candidate entries.
    */
-  public EntryIDSet evaluate()
+  EntryIDSet evaluate()
   {
     if (buffer != null)
     {

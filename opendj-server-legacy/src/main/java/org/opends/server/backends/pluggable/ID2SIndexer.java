@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -36,7 +36,7 @@ import org.opends.server.types.Modification;
 /**
  * Implementation of an Indexer for the subtree index.
  */
-public class ID2SIndexer extends Indexer
+class ID2SIndexer extends Indexer
 {
   /**
    * Create a new indexer for a subtree index.
@@ -57,6 +57,7 @@ public class ID2SIndexer extends Indexer
   public void indexEntry(Entry entry, Set<ByteString> addKeys, IndexingOptions options)
   {
     // The superior entry IDs are in the entry attachment.
+    @SuppressWarnings("unchecked")
     ArrayList<EntryID> ids = (ArrayList<EntryID>) entry.getAttachment();
 
     // Skip the entry's own ID.

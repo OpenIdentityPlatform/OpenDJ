@@ -303,27 +303,6 @@ class Suffix
   }
 
   /**
-   * Get the parent DN of the last entry added to a suffix.
-   *
-   * @return The parent DN of the last entry added.
-   */
-  public DN getParentDN()
-  {
-    return parentDN;
-  }
-
-
-  /**
-   * Set the parent DN of the last entry added to a suffix.
-   *
-   * @param parentDN The parent DN to save.
-   */
-  public void setParentDN(DN parentDN)
-  {
-    this.parentDN = parentDN;
-  }
-
-  /**
    * Return a src entry container.
    *
    * @return  The src entry container.

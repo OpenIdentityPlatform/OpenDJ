@@ -55,7 +55,7 @@ import static org.opends.messages.JebMessages.*;
  * This class provides a compressed schema implementation whose definitions are
  * stored in a Berkeley DB JE database.
  */
-public final class JECompressedSchema extends CompressedSchema
+final class JECompressedSchema extends CompressedSchema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -93,7 +93,7 @@ public final class JECompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  public JECompressedSchema(final Storage storage, WriteableStorage txn)
+  JECompressedSchema(final Storage storage, WriteableStorage txn)
       throws StorageRuntimeException, InitializationException
   {
     this.storage = storage;

@@ -333,13 +333,6 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean isIndexed(final AttributeType attributeType, final IndexType indexType)
   {
     return true;

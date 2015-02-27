@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -32,12 +32,12 @@ import java.util.NoSuchElementException;
 /**
  * Iterator for a set of Entry IDs.  It must return values in order of ID.
  */
-public class IDSetIterator implements Iterator<EntryID>
+class IDSetIterator implements Iterator<EntryID>
 {
   /**
    * An array of ID values in order of ID.
    */
-  private long[] entryIDList;
+  private final long[] entryIDList;
 
   /**
    * Current position of the iterator as an index into the array of IDs.
@@ -48,7 +48,7 @@ public class IDSetIterator implements Iterator<EntryID>
    * Create a new iterator for a given array of entry IDs.
    * @param entryIDList An array of IDs in order or ID.
    */
-  public IDSetIterator(long[] entryIDList)
+  IDSetIterator(long[] entryIDList)
   {
     this.entryIDList = entryIDList;
   }
@@ -59,7 +59,7 @@ public class IDSetIterator implements Iterator<EntryID>
    * @param begin The entry ID of the first entry that should be returned, or
    *              {@code null} if it should start at the beginning of the list.
    */
-  public IDSetIterator(long[] entryIDList, EntryID begin)
+  IDSetIterator(long[] entryIDList, EntryID begin)
   {
     this.entryIDList = entryIDList;
 

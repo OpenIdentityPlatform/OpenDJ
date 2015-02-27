@@ -359,13 +359,6 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.

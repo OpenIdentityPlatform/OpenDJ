@@ -40,7 +40,7 @@ import org.opends.server.types.SortKey;
 /**
  * This class represents a partial sorted set of sorted entries in a VLV index.
  */
-public class SortValuesSet
+class SortValuesSet
 {
   private long[] entryIDs;
   private int[] valuesBytesOffsets;
@@ -53,7 +53,7 @@ public class SortValuesSet
    *
    * @param vlvIndex The VLV index using this set.
    */
-  public SortValuesSet(VLVIndex vlvIndex)
+  SortValuesSet(VLVIndex vlvIndex)
   {
     this(vlvIndex, ByteString.empty(), null, null, null);
   }
@@ -65,7 +65,7 @@ public class SortValuesSet
    * @param value The bytes to decode and construct this set.
    * @param vlvIndex The VLV index using this set.
    */
-  public SortValuesSet(ByteString key, ByteString value, VLVIndex vlvIndex)
+  SortValuesSet(ByteString key, ByteString value, VLVIndex vlvIndex)
   {
     this.key = key;
     this.vlvIndex = vlvIndex;
@@ -117,7 +117,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean add(long entryID, ByteString[] values, AttributeType[] types)
+  private boolean add(long entryID, ByteString[] values, AttributeType[] types)
       throws StorageRuntimeException, DirectoryException
   {
     if(values == null)
@@ -292,7 +292,7 @@ public class SortValuesSet
    * @param splitLength The size of the new set.
    * @return The split set.
    */
-  public SortValuesSet split(int splitLength)
+  SortValuesSet split(int splitLength)
   {
     if(valuesBytesOffsets == null)
     {
@@ -343,7 +343,7 @@ public class SortValuesSet
    * @return The encoded bytes representing this set or null if
    * this set is empty.
    */
-  public ByteString toByteString()
+  ByteString toByteString()
   {
     if(size() == 0)
     {
@@ -366,7 +366,7 @@ public class SortValuesSet
    * @param bytes The encoded bytes of a SortValuesSet to decode the IDs from.
    * @return The decoded IDs in the provided encoded set.
    */
-  public static long[] getEncodedIDs(ByteString bytes)
+  static long[] getEncodedIDs(ByteString bytes)
   {
     final ByteSequenceReader reader = bytes.asReader();
     final int length = reader.getInt();
@@ -424,7 +424,7 @@ public class SortValuesSet
    *
    * @return The size of this set.
    */
-  public int size()
+  int size()
   {
     if(entryIDs == null)
     {
@@ -439,7 +439,7 @@ public class SortValuesSet
    *
    * @return The entry IDs in this set.
    */
-  public long[] getEntryIDs()
+  long[] getEntryIDs()
   {
     return entryIDs;
   }
@@ -485,7 +485,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public ByteString getKeyBytes()
+  ByteString getKeyBytes()
       throws StorageRuntimeException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -523,7 +523,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public SortValues getKeySortValues()
+  SortValues getKeySortValues()
       throws StorageRuntimeException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -558,7 +558,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public SortValues getSortValues(int index) throws StorageRuntimeException, DirectoryException
+  SortValues getSortValues(int index) throws StorageRuntimeException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
@@ -617,7 +617,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public ByteString getValue(int index)
+  ByteString getValue(int index)
       throws StorageRuntimeException, DirectoryException
   {
     if(valuesBytesOffsets == null)

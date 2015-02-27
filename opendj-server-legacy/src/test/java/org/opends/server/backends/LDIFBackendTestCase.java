@@ -723,7 +723,6 @@ public class LDIFBackendTestCase
   {
     LDIFBackend b = getLDIFBackend();
     assertTrue(b.getEntryCount() > 0);
-    assertTrue(b.isLocal());
     assertFalse(b.supports(BackendOperation.BACKUP));
 
     try

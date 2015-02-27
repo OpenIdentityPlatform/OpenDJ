@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -40,7 +40,7 @@ import static org.opends.messages.JebMessages.*;
  * This class is an implementation of IndexQueryFactory which creates
  * IndexQuery objects as part of the query of the JEB index.
  */
-public final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
+final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 {
 
   private static final String PRESENCE_INDEX_KEY = "presence";
@@ -57,7 +57,7 @@ public final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery
    * @param attributeIndex
    *          The targeted attribute index
    */
-  public IndexQueryFactoryImpl(ReadableStorage txn, AttributeIndex attributeIndex)
+  IndexQueryFactoryImpl(ReadableStorage txn, AttributeIndex attributeIndex)
   {
     this.txn = txn;
     this.attributeIndex = attributeIndex;

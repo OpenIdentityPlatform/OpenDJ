@@ -280,13 +280,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public boolean isLocal()
-  {
-    return true;
-  }
-
 
 
   /** {@inheritDoc} */

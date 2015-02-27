@@ -42,7 +42,7 @@ import org.opends.server.types.DN;
  * for each entry.  The key is the normalized entry DN and the value
  * is the entry ID.
  */
-public class DN2ID extends DatabaseContainer
+class DN2ID extends DatabaseContainer
 {
   private final int prefixRDNComponents;
 
@@ -79,25 +79,6 @@ public class DN2ID extends DatabaseContainer
     ByteString value = id.toByteString();
 
     return insert(txn, key, value);
-  }
-
-  /**
-   * Write a record to the DN database.  If a record with the given key already
-   * exists, the record will be replaced, otherwise a new record will be
-   * inserted.
-   * @param txn A JE database transaction to be used for the database operation,
-   * or null if none.
-   * @param dn The entry DN, which is the key to the record.
-   * @param id The entry ID, which is the value of the record.
-   * @throws StorageRuntimeException If an error occurred while attempting to write
-   * the record.
-   */
-  public void put(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
-  {
-    ByteString key = dnToDNKey(dn, prefixRDNComponents);
-    ByteString value = id.toByteString();
-
-    put(txn, key, value);
   }
 
   /**

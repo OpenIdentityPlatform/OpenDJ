@@ -95,17 +95,6 @@ public class SchemaBackendTestCase extends BackendTestCase
 
 
   /**
-   * Tests the {@code isLocal} method to ensure that it is considered local.
-   */
-  @Test
-  public void testIsLocal()
-  {
-    assertTrue(schemaBackend.isLocal());
-  }
-
-
-
-  /**
    * Tests the {@code getEntry} method to ensure that it is able to retrieve
    * the schema entry if it is given a valid entry DN.
    *

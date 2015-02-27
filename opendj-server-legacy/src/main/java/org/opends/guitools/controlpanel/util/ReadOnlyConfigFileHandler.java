@@ -367,13 +367,6 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
   throws DirectoryException
   {

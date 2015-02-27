@@ -95,19 +95,6 @@ public class GenericBackendTestCase
 
 
   /**
-   * Tests the {@code isLocal} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
-  @Test(dataProvider = "backends")
-  public void testIsLocal(Backend<?> b)
-  {
-    b.isLocal();
-  }
-
-
-
-  /**
    * Tests the {@code getSupportedControls} method for the provided backend.
    *
    * @param  b  The backend to test.
@@ -143,19 +130,6 @@ public class GenericBackendTestCase
   {
     assertNotNull(b.getSupportedFeatures());
     b.getSupportedFeatures();
-  }
-
-
-
-  /**
-   * Tests the {@code supportsFeature} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
-  @Test(dataProvider = "backends")
-  public void testSupportsFeature(Backend<?> b)
-  {
-    assertFalse(b.supportsFeature("1.2.3.4"));
   }
 
 

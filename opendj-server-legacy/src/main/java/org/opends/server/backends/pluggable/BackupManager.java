@@ -64,26 +64,26 @@ import org.opends.server.util.StaticUtils;
 /**
  * A backup manager for backends.
  */
-public class BackupManager
+class BackupManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The common prefix for archive files.
    */
-  public static final String BACKUP_BASE_FILENAME = "backup-";
+  private static final String BACKUP_BASE_FILENAME = "backup-";
 
   /**
    * The name of the property that holds the name of the latest log file
    * at the time the backup was created.
    */
-  public static final String PROPERTY_LAST_LOGFILE_NAME = "last_logfile_name";
+  private static final String PROPERTY_LAST_LOGFILE_NAME = "last_logfile_name";
 
   /**
    * The name of the property that holds the size of the latest log file
    * at the time the backup was created.
    */
-  public static final String PROPERTY_LAST_LOGFILE_SIZE = "last_logfile_size";
+  private static final String PROPERTY_LAST_LOGFILE_SIZE = "last_logfile_size";
 
 
   /**
@@ -91,19 +91,19 @@ public class BackupManager
    * containing a list of log files that are unchanged since the
    * previous backup.
    */
-  public static final String ZIPENTRY_UNCHANGED_LOGFILES = "unchanged.txt";
+  private static final String ZIPENTRY_UNCHANGED_LOGFILES = "unchanged.txt";
 
   /**
    * The name of a dummy entry in the backup archive file that will act
    * as a placeholder in case a backup is done on an empty backend.
    */
-  public static final String ZIPENTRY_EMPTY_PLACEHOLDER = "empty.placeholder";
+  private static final String ZIPENTRY_EMPTY_PLACEHOLDER = "empty.placeholder";
 
 
   /**
    * The backend ID.
    */
-  private String backendID;
+  private final String backendID;
 
 
   /**
@@ -111,7 +111,7 @@ public class BackupManager
    * @param backendID The ID of the backend instance for which a backup
    * manager is required.
    */
-  public BackupManager(String backendID)
+  BackupManager(String backendID)
   {
     this.backendID   = backendID;
   }
@@ -128,7 +128,7 @@ public class BackupManager
    * @param  backupConfig  The configuration to use when performing the backup.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void createBackup(File backendDir, BackupConfig backupConfig)
+  void createBackup(File backendDir, BackupConfig backupConfig)
        throws DirectoryException
   {
     // Get the properties to use for the backup.
@@ -577,7 +577,7 @@ public class BackupManager
    * @param  restoreConfig The configuration to use when performing the restore.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void restoreBackup(File backendDir,
+  void restoreBackup(File backendDir,
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
@@ -682,7 +682,7 @@ public class BackupManager
    *                              exists or there are other backups that are
    *                              dependent upon it).
    */
-  public void removeBackup(BackupDirectory backupDir,
+  void removeBackup(BackupDirectory backupDir,
                            String backupID)
          throws DirectoryException
   {

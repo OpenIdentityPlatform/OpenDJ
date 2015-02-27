@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -44,7 +44,7 @@ import org.opends.server.types.DirectoryException;
  * the same transaction. The transaction may be null if it is known
  * that there are no other concurrent updates to the index.
  */
-public class IndexBuffer
+class IndexBuffer
 {
   private final EntryContainer entryContainer;
 
@@ -169,7 +169,7 @@ public class IndexBuffer
    * @param entryContainer The database entryContainer using this
    * index buffer.
    */
-  public IndexBuffer(EntryContainer entryContainer)
+  IndexBuffer(EntryContainer entryContainer)
   {
     this.entryContainer = entryContainer;
   }
@@ -232,7 +232,7 @@ public class IndexBuffer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void flush(WriteableStorage txn) throws StorageRuntimeException, DirectoryException
+  void flush(WriteableStorage txn) throws StorageRuntimeException, DirectoryException
   {
     /*
      * FIXME: this seems like a surprising way to update the indexes. Why not

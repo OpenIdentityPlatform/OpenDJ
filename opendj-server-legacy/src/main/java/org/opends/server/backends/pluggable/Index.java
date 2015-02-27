@@ -57,12 +57,12 @@ import org.opends.server.util.StaticUtils;
  * normalized form of an attribute value (or fragment of a value) appearing
  * in the entry.
  */
-public class Index extends DatabaseContainer
+class Index extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The indexer object to construct index keys from LDAP attribute values. */
-  public Indexer indexer;
+  Indexer indexer;
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
@@ -153,7 +153,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes         The index key bytes.
    * @param entryID     The entry ID.
    */
-  void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  final void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
   }
@@ -166,7 +166,9 @@ public class Index extends DatabaseContainer
    * @param importIdSet The import ID set to delete.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  void delete(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet) throws StorageRuntimeException {
+  final void delete(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
+      throws StorageRuntimeException
+  {
     ByteString value = read(txn, key, false);
     if (value != null) {
       newImportIDSet.clear();
@@ -194,7 +196,9 @@ public class Index extends DatabaseContainer
    * @param importIdSet The set of import IDs.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  void insert(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet) throws StorageRuntimeException {
+  final void insert(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
+      throws StorageRuntimeException
+  {
     ByteString value = read(txn, key, false);
     if(value != null) {
       newImportIDSet.clear();
@@ -387,7 +391,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes    The index key bytes.
    * @param entryID     The entry ID.
    */
-  void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  final void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
   }
@@ -742,7 +746,7 @@ public class Index extends DatabaseContainer
    *
    * @param indexer The indexer to set
    */
-  public void setIndexer(Indexer indexer)
+  final void setIndexer(Indexer indexer)
   {
     this.indexer = indexer;
   }

@@ -50,7 +50,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class provides a mechanism for sorting the contents of an entry ID set
  * based on a given sort order.
  */
-public class EntryIDSetSorter
+class EntryIDSetSorter
 {
   /**
    * Creates a new entry ID set which is a sorted representation of the provided

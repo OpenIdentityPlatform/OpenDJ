@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
  * Represents a set of Entry IDs.  It can represent a set where the IDs are
  * not defined, for example when the index entry limit has been exceeded.
  */
-public class EntryIDSet implements Iterable<EntryID>
+class EntryIDSet implements Iterable<EntryID>
 {
 
   /**
@@ -71,7 +71,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @param size The undefined size for this set.
    */
-  public EntryIDSet(long size)
+  EntryIDSet(long size)
   {
     this.key = null;
     this.undefinedSize = size;
@@ -85,7 +85,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * @param bytes
    *          The database value, or null if there are no entry IDs.
    */
-  public EntryIDSet(ByteSequence key, ByteString bytes)
+  EntryIDSet(ByteSequence key, ByteString bytes)
   {
     this.key = key;
 
@@ -167,7 +167,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * duplicates should be eliminated.
    * @return The union of the provided entry ID sets.
    */
-  public static EntryIDSet unionOfSets(ArrayList<EntryIDSet> sets,
+  static EntryIDSet unionOfSets(ArrayList<EntryIDSet> sets,
                                          boolean allowDuplicates)
   {
     int count = 0;
@@ -269,7 +269,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @param buffer The string is appended to this string builder.
    */
-  public void toString(StringBuilder buffer)
+  void toString(StringBuilder buffer)
   {
     if (!isDefined())
     {
@@ -306,7 +306,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @return true if the set of IDs is defined.
    */
-  public boolean isDefined()
+  boolean isDefined()
   {
     return values != null;
   }
@@ -315,7 +315,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * Get a database representation of this object.
    * @return A database representation of this object as a byte array.
    */
-  public ByteString toByteString()
+  ByteString toByteString()
   {
     if (isDefined())
     {
@@ -434,7 +434,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * @return true if this set contains the given ID,
    *         or if the set is undefined.
    */
-  public boolean contains(EntryID entryID)
+  boolean contains(EntryID entryID)
   {
     if (values == null)
     {
@@ -453,7 +453,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @param that The set of IDs that are to be retained from this object.
    */
-  public void retainAll(EntryIDSet that)
+  void retainAll(EntryIDSet that)
   {
     if (!isDefined())
     {
@@ -612,7 +612,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @param that The set of IDs to be deleted. It MUST be defined.
    */
-  public void deleteAll(EntryIDSet that)
+  void deleteAll(EntryIDSet that)
   {
     if(!that.isDefined())
     {
@@ -687,7 +687,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @return An EntryID iterator.
    */
-  public Iterator<EntryID> iterator(EntryID begin)
+  Iterator<EntryID> iterator(EntryID begin)
   {
     if (values != null)
     {

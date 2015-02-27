@@ -44,7 +44,7 @@ import org.opends.server.util.StaticUtils;
  * This class is a wrapper around the JE database object and provides basic
  * read and write methods for entries.
  */
-public abstract class DatabaseContainer implements Closeable
+abstract class DatabaseContainer implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -197,7 +197,7 @@ public abstract class DatabaseContainer implements Closeable
    * @throws StorageRuntimeException If an error occurs while attempting to open
    * the cursor.
    */
-  public Cursor openCursor(ReadableStorage txn) throws StorageRuntimeException
+  final Cursor openCursor(ReadableStorage txn) throws StorageRuntimeException
   {
     return txn.openCursor(treeName);
   }
@@ -252,7 +252,7 @@ public abstract class DatabaseContainer implements Closeable
    *
    * @return JE database name for this database container.
    */
-  public TreeName getName()
+  final TreeName getName()
   {
     return treeName;
   }
@@ -262,7 +262,7 @@ public abstract class DatabaseContainer implements Closeable
    *
    * @param name The database name to use for this container.
    */
-  void setName(TreeName name)
+  final void setName(TreeName name)
   {
     this.treeName = name;
   }
