@@ -318,7 +318,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   int compare(ByteBuffer cKey, Integer cIndexID)
   {
     ensureRecordFetched();
-    final int cmp = Importer.indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(), cKey.array(), cKey.limit());
+    int cmp = Importer.indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(), cKey.array(), cKey.limit());
     if (cmp == 0)
     {
       return (indexID.intValue() == cIndexID.intValue()) ? 0 : 1;
@@ -357,15 +357,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   {
     if (keyBuf.limit() == 0)
     {
-      try
-      {
-        fetchNextRecord();
-      }
-      catch (IOException ex)
-      {
-        logger.error(ERR_JEB_IMPORT_BUFFER_IO_ERROR, indexMgr.getBufferFileName());
-        throw new RuntimeException(ex);
-      }
+      getIndexID();
     }
   }
 }
