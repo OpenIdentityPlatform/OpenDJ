@@ -233,20 +233,24 @@ class Index extends DatabaseContainer
       return;
     }
 
-    if(maintainCount)
+    if (maintainCount)
     {
       updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
     }
     else
     {
+      /*
+       * Avoid taking a write lock on a record which has hit all IDs because it is likely to be a
+       * point of contention.
+       */
       ByteString value = read(txn, key, false);
-      if(value != null)
+      if (value != null)
       {
         EntryIDSet entryIDList = new EntryIDSet(key, value);
         if (entryIDList.isDefined())
         {
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
-        }
+        } // else the record exists but we've hit all IDs.
       }
       else
       {
