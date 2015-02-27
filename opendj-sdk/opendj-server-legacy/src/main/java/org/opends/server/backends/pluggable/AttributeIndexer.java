@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -44,7 +44,7 @@ import org.opends.server.types.Modification;
 /**
  * This class implements an attribute indexer for matching rules in JE Backend.
  */
-public final class AttributeIndexer extends Indexer
+final class AttributeIndexer extends Indexer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -64,7 +64,8 @@ public final class AttributeIndexer extends Indexer
    *                                            required.
    * @param extensibleIndexer The extensible indexer to be used.
    */
-  public AttributeIndexer(AttributeType attributeType, org.forgerock.opendj.ldap.spi.Indexer extensibleIndexer)
+  AttributeIndexer(AttributeType attributeType,
+      org.forgerock.opendj.ldap.spi.Indexer extensibleIndexer)
   {
     this.attributeType = attributeType;
     this.indexer = extensibleIndexer;

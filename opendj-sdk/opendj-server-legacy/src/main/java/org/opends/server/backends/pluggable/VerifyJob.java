@@ -67,7 +67,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /** This class is used to run an index verification process on the backend. */
-public class VerifyJob
+class VerifyJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -124,7 +124,7 @@ public class VerifyJob
    *
    * @param verifyConfig The verify configuration.
    */
-  public VerifyJob(VerifyConfig verifyConfig)
+  VerifyJob(VerifyConfig verifyConfig)
   {
     this.verifyConfig = verifyConfig;
   }
@@ -137,7 +137,8 @@ public class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
-  public long verifyBackend(final RootContainer rootContainer) throws StorageRuntimeException, DirectoryException
+  long verifyBackend(final RootContainer rootContainer) throws StorageRuntimeException,
+      DirectoryException
   {
     try
     {

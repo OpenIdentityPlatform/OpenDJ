@@ -45,7 +45,7 @@ import org.opends.server.util.TimeThread;
  * It uses reflection on the environment statistics object
  * so that we don't need to keep a list of all the stats.
  */
-public class DatabaseEnvironmentMonitor
+class DatabaseEnvironmentMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -83,10 +83,10 @@ public class DatabaseEnvironmentMonitor
   }
 
   /** The name of this monitor instance. */
-  private String name;
+  private final String name;
 
   /** The root container to be monitored. */
-  private RootContainer rootContainer;
+  private final RootContainer rootContainer;
 
   private int maxEntries = 1024;
   private boolean filterUseEnabled;
@@ -102,7 +102,7 @@ public class DatabaseEnvironmentMonitor
    * @param rootContainer A root container handle for the database to be
    * monitored.
    */
-  public DatabaseEnvironmentMonitor(String name, RootContainer rootContainer)
+  DatabaseEnvironmentMonitor(String name, RootContainer rootContainer)
   {
     this.name = name;
     this.rootContainer = rootContainer;
@@ -252,7 +252,7 @@ public class DatabaseEnvironmentMonitor
    * @param searchFilter The search filter that was evaluated.
    * @param failureMessage The reason why an index was not used.
    */
-  public void updateStats(SearchFilter searchFilter, LocalizableMessage failureMessage)
+  void updateStats(SearchFilter searchFilter, LocalizableMessage failureMessage)
   {
     if(!filterUseEnabled)
     {
@@ -287,7 +287,7 @@ public class DatabaseEnvironmentMonitor
    * @param matchingEntries The number of entries matched by the successful
    *                        index lookup.
    */
-  public void updateStats(SearchFilter searchFilter, long matchingEntries)
+  void updateStats(SearchFilter searchFilter, long matchingEntries)
   {
     if(!filterUseEnabled)
     {
@@ -319,7 +319,7 @@ public class DatabaseEnvironmentMonitor
    *
    * @param enabled <code>true></code> to enable index filter statics gathering.
    */
-  public void enableFilterUseStats(boolean enabled)
+  void enableFilterUseStats(boolean enabled)
   {
     if(enabled && !filterUseEnabled)
     {
@@ -339,7 +339,7 @@ public class DatabaseEnvironmentMonitor
    *
    * @return <code>true</code> If index filter statistics gathering is enabled.
    */
-  public boolean isFilterUseEnabled()
+  boolean isFilterUseEnabled()
   {
     return filterUseEnabled;
   }
@@ -351,14 +351,15 @@ public class DatabaseEnvironmentMonitor
    * @param maxEntries The maximum number of search filters statistics
    * entries to keep
    */
-  public void setMaxEntries(int maxEntries) {
+  void setMaxEntries(int maxEntries)
+  {
     this.maxEntries = maxEntries;
   }
 
   /**
    * Updates the statistics counter to include an indexed search.
    */
-  public void updateIndexedSearchCount()
+  void updateIndexedSearchCount()
   {
     indexedSearchCount.getAndIncrement();
   }
@@ -366,7 +367,7 @@ public class DatabaseEnvironmentMonitor
   /**
    * Updates the statistics counter to include an unindexed search.
    */
-  public void updateUnindexedSearchCount()
+  void updateUnindexedSearchCount()
   {
     unindexedSearchCount.getAndIncrement();
   }

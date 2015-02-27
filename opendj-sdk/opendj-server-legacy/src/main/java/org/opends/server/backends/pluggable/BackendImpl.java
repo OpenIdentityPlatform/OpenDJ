@@ -263,13 +263,6 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public boolean isLocal()
-  {
-    return true;
-  }
-
 
 
   /** {@inheritDoc} */
@@ -949,7 +942,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
    *
    * @return The RootContainer object currently used by this backend.
    */
-  public RootContainer getRootContainer()
+  public final RootContainer getRootContainer()
   {
     return rootContainer;
   }
@@ -966,7 +959,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
    *                                   that is not related to the server
    *                                   configuration.
    */
-  public RootContainer getReadOnlyRootContainer()
+  private final RootContainer getReadOnlyRootContainer()
       throws ConfigException, InitializationException
   {
     return initializeRootContainer();

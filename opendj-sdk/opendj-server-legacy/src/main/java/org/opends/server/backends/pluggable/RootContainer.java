@@ -126,7 +126,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   /** The backend to which this entry root container belongs. */
   private final BackendImpl backend;
   /** The backend configuration. */
-  private PluggableBackendCfg config;
+  private final PluggableBackendCfg config;
   /** The database environment monitor for this JE environment. */
   private DatabaseEnvironmentMonitor monitor;
 
@@ -459,7 +459,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @return The compressed schema manager for this backend.
    */
-  public CompressedSchema getCompressedSchema()
+  CompressedSchema getCompressedSchema()
   {
     return compressedSchema;
   }
@@ -470,7 +470,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @return The DatabaseEnvironmentMonitor object.
    */
-  public DatabaseEnvironmentMonitor getMonitorProvider()
+  DatabaseEnvironmentMonitor getMonitorProvider()
   {
     if (monitor == null)
     {
@@ -573,7 +573,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @return The set of DNs this root container stores.
    */
-  public Set<DN> getBaseDNs()
+  Set<DN> getBaseDNs()
   {
     return entryContainers.keySet();
   }
@@ -607,7 +607,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @return The backend configuration used by this root container.
    */
-  public PluggableBackendCfg getConfiguration()
+  PluggableBackendCfg getConfiguration()
   {
     return config;
   }
@@ -619,7 +619,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @throws StorageRuntimeException
    *           If an error occurs while retrieving the entry count.
    */
-  public long getEntryCount() throws StorageRuntimeException
+  long getEntryCount() throws StorageRuntimeException
   {
     try
     {
@@ -656,19 +656,9 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @return The assigned entry ID.
    */
-  public EntryID getNextEntryID()
+  EntryID getNextEntryID()
   {
     return new EntryID(nextid.getAndIncrement());
-  }
-
-  /**
-   * Return the lowest entry ID assigned.
-   *
-   * @return The lowest entry ID assigned.
-   */
-  public Long getLowestEntryID()
-  {
-    return 1L;
   }
 
   /**

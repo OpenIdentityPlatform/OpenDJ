@@ -69,7 +69,7 @@ import org.opends.server.util.StaticUtils;
  * by the ordering matching rule.  If these could be guaranteed to be identical
  * then we would not need a separate ordering index.
  */
-public class AttributeIndex
+class AttributeIndex
     implements ConfigurationChangeListener<BackendIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -134,7 +134,7 @@ public class AttributeIndex
    * @param txn The database transaction
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn)
+  AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn)
       throws ConfigException
   {
     this.entryContainer = entryContainer;
@@ -286,7 +286,7 @@ public class AttributeIndex
    * Get the attribute type of this attribute index.
    * @return The attribute type of this attribute index.
    */
-  public AttributeType getAttributeType()
+  AttributeType getAttributeType()
   {
     return indexConfig.getAttribute();
   }
@@ -296,7 +296,7 @@ public class AttributeIndex
    *
    * @return the indexing options of this AttributeIndex.
    */
-  public IndexingOptions getIndexingOptions()
+  IndexingOptions getIndexingOptions()
   {
     return indexingOptions;
   }
@@ -305,7 +305,7 @@ public class AttributeIndex
    * Get the JE index configuration used by this index.
    * @return The configuration in effect.
    */
-  public BackendIndexCfg getConfiguration()
+  BackendIndexCfg getConfiguration()
   {
     return indexConfig;
   }
@@ -319,7 +319,7 @@ public class AttributeIndex
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
     for (Index index : nameToIndexes.values())
@@ -337,7 +337,7 @@ public class AttributeIndex
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
     for (Index index : nameToIndexes.values())
@@ -358,7 +358,7 @@ public class AttributeIndex
    * @throws StorageRuntimeException If an error occurs during an operation on a
    * JE database.
    */
-  public void modifyEntry(IndexBuffer buffer,
+  void modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
@@ -469,7 +469,7 @@ public class AttributeIndex
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain match both filters.
    */
-  public EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
+  EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
       SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     // TODO : this implementation is not optimal
@@ -506,7 +506,8 @@ public class AttributeIndex
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter type.
    */
-  public EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
+  EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory,
+      IndexFilterType indexFilterType,
       SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     try
@@ -568,7 +569,7 @@ public class AttributeIndex
    *
    * @return The number of values that have exceeded the entry limit.
    */
-  public long getEntryLimitExceededCount()
+  long getEntryLimitExceededCount()
   {
     long entryLimitExceededCount = 0;
 
@@ -583,7 +584,7 @@ public class AttributeIndex
    * Get a list of the databases opened by this attribute index.
    * @param dbList A list of database containers.
    */
-  public void listDatabases(List<DatabaseContainer> dbList)
+  void listDatabases(List<DatabaseContainer> dbList)
   {
     dbList.addAll(nameToIndexes.values());
   }
@@ -871,7 +872,7 @@ public class AttributeIndex
    * Return true iff this index is trusted.
    * @return the trusted state of this index
    */
-  public boolean isTrusted()
+  boolean isTrusted()
   {
     for (Index index : nameToIndexes.values())
     {
@@ -901,7 +902,7 @@ public class AttributeIndex
    *
    * @return JE database name for this database container.
    */
-  public String getName()
+  String getName()
   {
     return entryContainer.getDatabasePrefix()
         + "_"
@@ -913,7 +914,8 @@ public class AttributeIndex
    *
    * @return The equality index.
    */
-  public Index getEqualityIndex() {
+  Index getEqualityIndex()
+  {
     return getIndexById(IndexType.EQUALITY.toString());
   }
 
@@ -922,7 +924,8 @@ public class AttributeIndex
    *
    * @return The approximate index.
    */
-  public Index getApproximateIndex() {
+  Index getApproximateIndex()
+  {
     return getIndexById(IndexType.APPROXIMATE.toString());
   }
 
@@ -931,7 +934,8 @@ public class AttributeIndex
    *
    * @return  The ordering index.
    */
-  public Index getOrderingIndex() {
+  Index getOrderingIndex()
+  {
     return getIndexById(IndexType.ORDERING.toString());
   }
 
@@ -940,7 +944,8 @@ public class AttributeIndex
    *
    * @return The substring index.
    */
-  public Index getSubstringIndex() {
+  Index getSubstringIndex()
+  {
     return getIndexById(IndexType.SUBSTRING.toString());
   }
 
@@ -949,7 +954,8 @@ public class AttributeIndex
    *
    * @return The presence index.
    */
-  public Index getPresenceIndex() {
+  Index getPresenceIndex()
+  {
     return getIndexById(IndexType.PRESENCE.toString());
   }
 
@@ -964,7 +970,7 @@ public class AttributeIndex
    * @return The index identified by the provided identifier, or null if no such
    *         index exists
    */
-  public Index getIndexById(String indexId)
+  Index getIndexById(String indexId)
   {
     return nameToIndexes.get(indexId);
   }
@@ -974,7 +980,7 @@ public class AttributeIndex
    *
    * @return The map containing entries (extensible index type, list of indexes)
    */
-  public Map<String, Collection<Index>> getExtensibleIndexes()
+  Map<String, Collection<Index>> getExtensibleIndexes()
   {
     return extensibleIndexesMapping;
   }
@@ -1019,7 +1025,8 @@ public class AttributeIndex
    * @return A collection of all indexes in use by this attribute
    * index.
    */
-  public Collection<Index> getAllIndexes() {
+  Collection<Index> getAllIndexes()
+  {
     return new LinkedHashSet<Index>(nameToIndexes.values());
   }
 
@@ -1036,7 +1043,8 @@ public class AttributeIndex
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
-  public EntryIDSet evaluateExtensibleFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
+  EntryIDSet evaluateExtensibleFilter(IndexQueryFactory<IndexQuery> indexQueryFactory,
+      SearchFilter filter,
       StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     //Get the Matching Rule OID of the filter.

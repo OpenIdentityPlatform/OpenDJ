@@ -650,8 +650,8 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  private void initializeSuffixes(WriteableStorage txn) throws StorageRuntimeException, ConfigException,
-      InitializationException
+  private void initializeSuffixes(WriteableStorage txn) throws StorageRuntimeException,
+      ConfigException
   {
     for (EntryContainer ec : rootContainer.getEntryContainers())
     {
@@ -707,7 +707,7 @@ final class Importer implements DiskSpaceMonitorHandler
   }
 
   private Suffix getSuffix(WriteableStorage txn, EntryContainer entryContainer)
-      throws ConfigException, InitializationException
+      throws ConfigException
   {
     DN baseDN = entryContainer.getBaseDN();
     EntryContainer sourceEntryContainer = null;
@@ -2926,11 +2926,8 @@ final class Importer implements DiskSpaceMonitorHandler
 
     /**
      * Print start message.
-     *
-     * @throws StorageRuntimeException
-     *           If an database error occurred.
      */
-    public void printStartMessage(WriteableStorage txn) throws StorageRuntimeException
+    void printStartMessage(WriteableStorage txn) throws StorageRuntimeException
     {
       this.txn = txn;
       totalEntries = suffix.getID2Entry().getRecordCount(txn);
@@ -3760,7 +3757,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return Entry's suffix instance;
      */
-    public Suffix getSuffix()
+    private Suffix getSuffix()
     {
       return suffix;
     }
@@ -3792,7 +3789,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The entry ID associated with the entry.
      */
-    public EntryID getEntryID()
+    private EntryID getEntryID()
     {
       return entryID;
     }
@@ -3895,7 +3892,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The attribute type.
      */
-    public AttributeType getAttributeType()
+    private AttributeType getAttributeType()
     {
       return attributeType;
     }
@@ -3905,7 +3902,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The index type.
      */
-    public ImportIndexType getIndexType()
+    private ImportIndexType getIndexType()
     {
       return indexType;
     }
@@ -3917,7 +3914,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The index key name.
      */
-    public String getName()
+    private String getName()
     {
       return attributeType.getPrimaryName() + "."
           + StaticUtils.toLowerCase(indexType.name());
@@ -3928,7 +3925,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The entry limit.
      */
-    public int getEntryLimit()
+    private int getEntryLimit()
     {
       return entryLimit;
     }

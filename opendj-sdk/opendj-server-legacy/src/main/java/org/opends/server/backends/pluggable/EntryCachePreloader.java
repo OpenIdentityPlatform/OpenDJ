@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -73,17 +73,17 @@ class EntryCachePreloader
   /**
    * BackendImpl object.
    */
-  private BackendImpl backend;
+  private final BackendImpl backend;
 
   /**
    * Interrupt flag for the arbiter to terminate worker threads.
    */
-  private AtomicBoolean interruptFlag = new AtomicBoolean(false);
+  private final AtomicBoolean interruptFlag = new AtomicBoolean(false);
 
   /**
    * Processed entries counter.
    */
-  private AtomicLong processedEntries = new AtomicLong(0);
+  private final AtomicLong processedEntries = new AtomicLong(0);
 
   /**
    * Progress report resolution.
@@ -93,7 +93,7 @@ class EntryCachePreloader
   /**
    * Default resolution time.
    */
-  public static final long
+  private static final long
     PRELOAD_DEFAULT_SLEEP_TIME = 10000;
 
   /**
@@ -104,7 +104,7 @@ class EntryCachePreloader
   /**
    * Default queue capacity.
    */
-  public static final int
+  private static final int
     PRELOAD_DEFAULT_QUEUE_CAPACITY = 128;
 
   /**
@@ -115,20 +115,20 @@ class EntryCachePreloader
   /**
    * Worker threads.
    */
-  private List<Thread> preloadThreads =
+  private final List<Thread> preloadThreads =
     Collections.synchronizedList(
     new LinkedList<Thread>());
 
   /**
    * Collector thread.
    */
-  private EntryCacheCollector collector =
+  private final EntryCacheCollector collector =
     new EntryCacheCollector();
 
   /**
    * This queue is for workers to take from.
    */
-  private LinkedBlockingQueue<PreloadEntry> entryQueue;
+  private final LinkedBlockingQueue<PreloadEntry> entryQueue;
 
   /**
    * The number of bytes in a megabyte.
@@ -357,15 +357,15 @@ class EntryCachePreloader
   private class PreloadEntry {
 
     // Encoded Entry.
-    public ByteString entryBytes;
+    private ByteString entryBytes;
 
     // Encoded EntryID.
-    public ByteString entryIDBytes;
+    private ByteString entryIDBytes;
 
     /**
      * Default constructor.
      */
-    public PreloadEntry(ByteString entryBytes, ByteString entryIDBytes)
+    private PreloadEntry(ByteString entryBytes, ByteString entryIDBytes)
     {
       this.entryBytes = entryBytes;
       this.entryIDBytes = entryIDBytes;

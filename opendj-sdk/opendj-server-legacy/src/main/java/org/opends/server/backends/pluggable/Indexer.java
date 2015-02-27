@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -39,7 +39,7 @@ import org.opends.server.types.Modification;
  * This class attempts to abstract the generation and comparison of keys
  * for an index. It is subclassed for the specific type of indexing.
  */
-public abstract class Indexer
+abstract class Indexer
 {
   /**
    * Generate the set of index keys for an entry.

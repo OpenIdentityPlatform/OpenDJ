@@ -458,14 +458,6 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    // For the purposes of this method, this is a local backend.
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public long numSubordinates(final DN entryDN, final boolean subtree)
       throws DirectoryException
   {

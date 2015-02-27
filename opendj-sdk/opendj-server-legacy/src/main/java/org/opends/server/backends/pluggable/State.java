@@ -38,7 +38,7 @@ import org.opends.server.util.StaticUtils;
  * This class is responsible for storing the configuration state of
  * the JE backend for a particular suffix.
  */
-public class State extends DatabaseContainer
+class State extends DatabaseContainer
 {
   private static final ByteString falseBytes = ByteString.wrap(new byte[] { 0x00 });
   private static final ByteString trueBytes = ByteString.wrap(new byte[] { 0x01 });
@@ -90,7 +90,7 @@ public class State extends DatabaseContainer
    * @return The trusted state of the index in the database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean getIndexTrustState(ReadableStorage txn, DatabaseContainer index)
+  boolean getIndexTrustState(ReadableStorage txn, DatabaseContainer index)
       throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);

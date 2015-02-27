@@ -169,7 +169,7 @@ public class EntryContainer
    * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
    * For example when a root container contains multiple suffixes.
    */
-  private String databasePrefix;
+  private final String databasePrefix;
 
   /**
    * This class is responsible for managing the configuration for attribute
@@ -588,7 +588,7 @@ public class EntryContainer
    * @return  A reference to the root container in which this entry container
    *          exists.
    */
-  public RootContainer getRootContainer()
+  RootContainer getRootContainer()
   {
     return rootContainer;
   }
@@ -599,7 +599,7 @@ public class EntryContainer
    *
    * @return The DN database.
    */
-  public DN2ID getDN2ID()
+  DN2ID getDN2ID()
   {
     return dn2id;
   }
@@ -610,7 +610,7 @@ public class EntryContainer
    *
    * @return The entry database.
    */
-  public ID2Entry getID2Entry()
+  ID2Entry getID2Entry()
   {
     return id2entry;
   }
@@ -621,7 +621,7 @@ public class EntryContainer
    *
    * @return The referral database.
    */
-  public DN2URI getDN2URI()
+  DN2URI getDN2URI()
   {
     return dn2uri;
   }
@@ -632,7 +632,7 @@ public class EntryContainer
    *
    * @return The children database.
    */
-  public Index getID2Children()
+  Index getID2Children()
   {
     return id2children;
   }
@@ -643,20 +643,9 @@ public class EntryContainer
    *
    * @return The subtree database.
    */
-  public Index getID2Subtree()
+  Index getID2Subtree()
   {
     return id2subtree;
-  }
-
-  /**
-   * Get the state database used by this entry container.
-   * The entry container must have been opened.
-   *
-   * @return The state database.
-   */
-  public State getState()
-  {
-    return state;
   }
 
   /**
@@ -675,7 +664,8 @@ public class EntryContainer
    *
    * @return The attribute index map.
    */
-  public Map<AttributeType, AttributeIndex> getAttributeIndexMap() {
+  Map<AttributeType, AttributeIndex> getAttributeIndexMap()
+  {
     return attrIndexMap;
   }
 
@@ -695,7 +685,7 @@ public class EntryContainer
    *
    * @return All attribute indexes defined in this entry container.
    */
-  public Collection<AttributeIndex> getAttributeIndexes()
+  Collection<AttributeIndex> getAttributeIndexes()
   {
     return attrIndexMap.values();
   }
@@ -705,7 +695,7 @@ public class EntryContainer
    *
    * @return The collection of VLV indexes defined in this entry container.
    */
-  public Collection<VLVIndex> getVLVIndexes()
+  Collection<VLVIndex> getVLVIndexes()
   {
     return vlvIndexMap.values();
   }
@@ -1316,7 +1306,7 @@ public class EntryContainer
   Entry getEntry(ReadableStorage txn, EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
-    final EntryCache entryCache = getEntryCache();
+    final EntryCache<?> entryCache = getEntryCache();
     final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
     if (cacheEntry != null)
     {
@@ -2760,23 +2750,6 @@ public class EntryContainer
     }
   }
 
-  /**
-   * Get the number of values for which the entry limit has been exceeded
-   * since the entry container was opened.
-   * @return The number of values for which the entry limit has been exceeded.
-   */
-  public int getEntryLimitExceededCount()
-  {
-    int count = 0;
-    count += id2children.getEntryLimitExceededCount();
-    count += id2subtree.getEntryLimitExceededCount();
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      count += index.getEntryLimitExceededCount();
-    }
-    return count;
-  }
-
 
   /**
    * Get a list of the databases opened by the entryContainer.
@@ -2895,7 +2868,7 @@ public class EntryContainer
    *
    * @return The container name for the base DN.
    */
-  public String getDatabasePrefix()
+  String getDatabasePrefix()
   {
     return databasePrefix;
   }
@@ -2907,7 +2880,7 @@ public class EntryContainer
    * @param newBaseDN The new database prefix to use.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
+  void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -3161,7 +3134,8 @@ public class EntryContainer
    * @param database The database to clear.
    * @throws StorageRuntimeException if a JE database error occurs.
    */
-  public void clearDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
+  void clearDatabase(WriteableStorage txn, DatabaseContainer database)
+      throws StorageRuntimeException
   {
     database.close();
     try
@@ -3309,12 +3283,14 @@ public class EntryContainer
   }
 
   /** Get the exclusive lock. */
-  public void lock() {
+  void lock()
+  {
     exclusiveLock.lock();
   }
 
   /** Unlock the exclusive lock. */
-  public void unlock() {
+  void unlock()
+  {
     exclusiveLock.unlock();
   }
 

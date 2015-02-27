@@ -53,7 +53,7 @@ public interface ReadableStorage
    * @param key
    *          the record's key
    * @return the record's value, or {@code null} if none exists
-   * @deprecated use {@link #update(TreeName, ByteSequence, UpdateFunction)} instead
+   * @deprecated use {@link WriteableStorage#update(TreeName, ByteSequence, UpdateFunction)} instead
    */
   @Deprecated
   ByteString getRMW(TreeName treeName, ByteSequence key);

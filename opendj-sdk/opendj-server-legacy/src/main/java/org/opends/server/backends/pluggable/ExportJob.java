@@ -49,7 +49,7 @@ import static org.opends.messages.JebMessages.*;
 /**
  * Export a JE backend to LDIF.
  */
-public class ExportJob
+class ExportJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -57,12 +57,12 @@ public class ExportJob
   /**
    * The requested LDIF export configuration.
    */
-  private LDIFExportConfig exportConfig;
+  private final LDIFExportConfig exportConfig;
 
   /**
    * The number of milliseconds between job progress reports.
    */
-  private long progressInterval = 10000;
+  private final long progressInterval = 10000;
 
   /**
    * The current number of entries exported.
@@ -79,7 +79,7 @@ public class ExportJob
    *
    * @param exportConfig The requested LDIF export configuration.
    */
-  public ExportJob(LDIFExportConfig exportConfig)
+  ExportJob(LDIFExportConfig exportConfig)
   {
     this.exportConfig = exportConfig;
   }
@@ -92,7 +92,7 @@ public class ExportJob
    * @throws LDIFException If an error occurs while trying to determine whether
    * to write an entry.
    */
-  public void exportLDIF(RootContainer rootContainer)
+  void exportLDIF(RootContainer rootContainer)
        throws IOException, LDIFException, StorageRuntimeException
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
@@ -267,7 +267,7 @@ public class ExportJob
   /**
    * This class reports progress of the export job at fixed intervals.
    */
-  class ProgressTask extends TimerTask
+  private class ProgressTask extends TimerTask
   {
     /**
      * The number of entries that had been exported at the time of the

@@ -217,19 +217,6 @@ public abstract class Backend<C extends Configuration>
   public abstract void preloadEntryCache() throws UnsupportedOperationException;
 
   /**
-   * Indicates whether the data associated with this backend may be
-   * considered local (i.e., in a repository managed by the Directory
-   * Server) rather than remote (i.e., in an external repository
-   * accessed by the Directory Server but managed through some other
-   * means).
-   *
-   * @return  {@code true} if the data associated with this backend
-   *          may be considered local, or {@code false} if it is
-   *          remote.
-   */
-  public abstract boolean isLocal();
-
-  /**
    * Indicates whether search operations which target the specified
    * attribute in the indicated manner would be considered indexed
    * in this backend.  The operation should be considered indexed only
@@ -589,21 +576,6 @@ public abstract class Backend<C extends Configuration>
    */
   public abstract Set<String> getSupportedFeatures();
 
-  /**
-   * Indicates whether this backend supports the specified feature.
-   *
-   * @param  featureOID  The OID of the feature for which to make the
-   *                     determination.
-   *
-   * @return  {@code true} if this backend supports the feature with
-   *          the specified OID, or {@code false} if it does not.
-   */
-  public final boolean supportsFeature(String featureOID)
-  {
-    Set<String> supportedFeatures = getSupportedFeatures();
-    return supportedFeatures != null && supportedFeatures.contains(featureOID);
-  }
-
   /** Enumeration of optional backend operations. */
   public static enum BackendOperation
   {
@@ -916,17 +888,6 @@ public abstract class Backend<C extends Configuration>
   public final Backend<?>[] getSubordinateBackends()
   {
     return subordinateBackends;
-  }
-
-  /**
-   * Specifies the set of subordinate backends for this backend.
-   *
-   * @param  subordinateBackends  The set of subordinate backends for
-   *                              this backend.
-   */
-  public final synchronized void setSubordinateBackends(Backend<?>[] subordinateBackends)
-  {
-    this.subordinateBackends = subordinateBackends;
   }
 
   /**

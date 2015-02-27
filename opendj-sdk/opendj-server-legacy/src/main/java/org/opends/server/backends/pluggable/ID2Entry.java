@@ -58,7 +58,7 @@ import org.opends.server.types.LDAPException;
  * Represents the database containing the LDAP entries. The database key is
  * the entry ID and the value is the entry contents.
  */
-public class ID2Entry extends DatabaseContainer
+class ID2Entry extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -93,6 +93,8 @@ public class ID2Entry extends DatabaseContainer
    */
   private static final class EntryCodec
   {
+    /** The ASN1 tag for the ByteString type. */
+    private static final byte TAG_DATABASE_ENTRY = 0x60;
     private static final int BUFFER_INIT_SIZE = 512;
 
     private final ByteStringBuilder encodedBuffer = new ByteStringBuilder();
@@ -116,8 +118,7 @@ public class ID2Entry extends DatabaseContainer
     }
 
     private Entry decode(ByteString bytes, CompressedSchema compressedSchema)
-        throws DirectoryException, DecodeException, LDAPException,
-        DataFormatException, IOException
+        throws DirectoryException, DecodeException, IOException
     {
       // Get the format version.
       byte formatVersion = bytes.byteAt(0);
@@ -187,7 +188,7 @@ public class ID2Entry extends DatabaseContainer
       try
       {
         // Then start the ASN1 sequence.
-        writer.writeStartSequence(JebFormat.TAG_DATABASE_ENTRY);
+        writer.writeStartSequence(TAG_DATABASE_ENTRY);
 
         if (dataConfig.isCompressed())
         {
@@ -273,7 +274,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws IOException if an error occurs while reading the ASN1 sequence.
    */
-  public static Entry entryFromDatabase(ByteString bytes,
+  static Entry entryFromDatabase(ByteString bytes,
       CompressedSchema compressedSchema) throws DirectoryException,
       DecodeException, LDAPException, DataFormatException, IOException
   {
@@ -419,7 +420,7 @@ public class ID2Entry extends DatabaseContainer
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
    */
-  public void setDataConfig(DataConfig dataConfig)
+  void setDataConfig(DataConfig dataConfig)
   {
     this.dataConfig = dataConfig;
   }

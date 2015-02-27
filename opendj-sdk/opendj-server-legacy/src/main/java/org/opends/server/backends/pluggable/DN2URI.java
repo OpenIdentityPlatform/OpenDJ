@@ -74,7 +74,7 @@ import org.opends.server.util.StaticUtils;
  * as in the DN database so that all referrals in a subtree can be retrieved by
  * cursoring through a range of the records.
  */
-public class DN2URI extends DatabaseContainer
+class DN2URI extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -205,7 +205,7 @@ public class DN2URI extends DatabaseContainer
    * @return true if the values were deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean delete(WriteableStorage txn, DN dn) throws StorageRuntimeException
+  private boolean delete(WriteableStorage txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
 
@@ -226,7 +226,8 @@ public class DN2URI extends DatabaseContainer
    * @return true if the value was deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean delete(WriteableStorage txn, DN dn, Collection<String> labeledURIs) throws StorageRuntimeException
+  private boolean delete(WriteableStorage txn, DN dn, Collection<String> labeledURIs)
+      throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
 
@@ -356,7 +357,7 @@ public class DN2URI extends DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  public void replaceEntry(WriteableStorage txn, Entry before, Entry after)
+  void replaceEntry(WriteableStorage txn, Entry before, Entry after)
        throws StorageRuntimeException
   {
     deleteEntry(txn, before);
@@ -372,7 +373,7 @@ public class DN2URI extends DatabaseContainer
    * @return True if the entry was added successfully or False otherwise.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean addEntry(WriteableStorage txn, Entry entry)
+  boolean addEntry(WriteableStorage txn, Entry entry)
        throws StorageRuntimeException
   {
     Set<String> labeledURIs = entry.getReferralURLs();
@@ -434,7 +435,8 @@ public class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  void throwReferralException(DN targetDN, DN referralDN, Collection<String> labeledURIs, SearchScope searchScope)
+  private void throwReferralException(DN targetDN, DN referralDN, Collection<String> labeledURIs,
+      SearchScope searchScope)
       throws DirectoryException
   {
     ArrayList<String> URIList = new ArrayList<String>(labeledURIs.size());

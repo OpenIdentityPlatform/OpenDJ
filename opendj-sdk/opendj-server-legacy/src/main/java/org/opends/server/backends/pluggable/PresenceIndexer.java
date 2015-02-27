@@ -40,23 +40,23 @@ import org.opends.server.types.Modification;
 /**
  * An implementation of an Indexer for attribute presence.
  */
-public class PresenceIndexer extends Indexer
+class PresenceIndexer extends Indexer
 {
   /** The key bytes used for the presence index. */
-  static final byte[] presenceKeyBytes = "+".getBytes();
+  private static final byte[] presenceKeyBytes = "+".getBytes();
 
   /** The key bytes used for the presence index as a {@link ByteString}. */
   static final ByteString presenceKey = ByteString.wrap(presenceKeyBytes);
 
   /** The attribute type for which this instance will generate index keys. */
-  private AttributeType attributeType;
+  private final AttributeType attributeType;
 
   /**
    * Create a new attribute presence indexer.
    * @param attributeType The attribute type for which the indexer
    * is required.
    */
-  public PresenceIndexer(AttributeType attributeType)
+  PresenceIndexer(AttributeType attributeType)
   {
     this.attributeType = attributeType;
   }

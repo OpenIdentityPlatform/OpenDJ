@@ -38,11 +38,7 @@ public class JebFormat
 {
 
   /** The format version used by this class to encode and decode a ByteString. */
-  public static final byte FORMAT_VERSION = 0x01;
-  /** The ASN1 tag for the ByteString type. */
-  public static final byte TAG_DATABASE_ENTRY = 0x60;
-  /** The ASN1 tag for the DirectoryServerEntry type. */
-  public static final byte TAG_DIRECTORY_SERVER_ENTRY = 0x61;
+  static final byte FORMAT_VERSION = 0x01;
 
   /**
    * Find the length of bytes that represents the superior DN of the given DN
@@ -53,7 +49,7 @@ public class JebFormat
    * @return The length of the superior DN or -1 if the given dn is the root DN
    *         or 0 if the superior DN is removed.
    */
-  public static int findDNKeyParent(ByteSequence dnKey)
+  static int findDNKeyParent(ByteSequence dnKey)
   {
     if (dnKey.length() == 0)
     {
@@ -81,7 +77,7 @@ public class JebFormat
    *                   representation.
    * @return A ByteString containing the key.
    */
-  public static ByteString dnToDNKey(DN dn, int prefixRDNs)
+  static ByteString dnToDNKey(DN dn, int prefixRDNs)
   {
     final ByteStringBuilder builder = new ByteStringBuilder();
     final int startSize = dn.size() - prefixRDNs - 1;

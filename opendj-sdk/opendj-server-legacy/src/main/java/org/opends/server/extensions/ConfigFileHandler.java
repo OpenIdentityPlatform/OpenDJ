@@ -825,14 +825,6 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    // The configuration information will always be local.
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.

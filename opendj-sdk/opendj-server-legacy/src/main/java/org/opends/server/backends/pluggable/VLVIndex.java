@@ -84,7 +84,7 @@ import org.opends.server.util.StaticUtils;
  * attribute value is bigger then the previous key but smaller or equal
  * to its own key.
  */
-public class VLVIndex extends DatabaseContainer
+class VLVIndex extends DatabaseContainer
     implements ConfigurationChangeListener<BackendVLVIndexCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -933,7 +933,7 @@ public class VLVIndex extends DatabaseContainer
    *                otherwise.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public synchronized void setTrusted(WriteableStorage txn, boolean trusted)
+  synchronized void setTrusted(WriteableStorage txn, boolean trusted)
       throws StorageRuntimeException
   {
     this.trusted = trusted;
@@ -944,7 +944,7 @@ public class VLVIndex extends DatabaseContainer
    * Return true iff this index is trusted.
    * @return the trusted state of this index
    */
-  public boolean isTrusted()
+  boolean isTrusted()
   {
     return trusted;
   }
@@ -1021,7 +1021,7 @@ public class VLVIndex extends DatabaseContainer
    * @return The encoded bytes.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  ByteString encodeKey(long entryID, ByteString[] values, AttributeType[] types)
+  private ByteString encodeKey(long entryID, ByteString[] values, AttributeType[] types)
       throws DirectoryException
   {
     try

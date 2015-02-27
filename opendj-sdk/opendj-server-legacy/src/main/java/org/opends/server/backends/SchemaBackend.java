@@ -544,14 +544,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean isLocal()
-  {
-    // For the purposes of this method, this is a local backend.
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
