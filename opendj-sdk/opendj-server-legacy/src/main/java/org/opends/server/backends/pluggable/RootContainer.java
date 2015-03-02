@@ -53,6 +53,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
@@ -60,9 +61,11 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -70,6 +73,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.RuntimeInformation;
@@ -690,12 +695,27 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   }
 
   /**
-   * Returns whether this container JE database environment is open, valid and
-   * can be used.
+   * Checks the storage has enough resources for an operation.
    *
-   * @return {@code true} if valid, or {@code false} otherwise.
+   * @param operation the current operation
+   * @throws DirectoryException if resources are in short supply
    */
-  public boolean isValid() {
-    return storage.isValid();
+  public void checkForEnoughResources(Operation operation) throws DirectoryException
+  {
+    StorageStatus status = storage.getStorageStatus();
+    if (status.isUnusable()
+        || (status.isLockedDown() && hasBypassLockdownPrivileges(operation)))
+    {
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, status.getReason());
+    }
+  }
+
+  private boolean hasBypassLockdownPrivileges(Operation operation)
+  {
+    return operation != null
+          // Read operations are always allowed in lock down mode
+          && !(operation instanceof SearchOperation)
+          && !operation.getClientConnection().hasPrivilege(
+              Privilege.BYPASS_LOCKDOWN, operation);
   }
 }

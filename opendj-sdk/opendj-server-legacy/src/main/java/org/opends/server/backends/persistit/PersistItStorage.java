@@ -30,13 +30,19 @@ import static java.util.Arrays.*;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_MODE_INVALID;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_FULL;
+import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_SPACE_LOW;
+import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_FULL;
+import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_SPACE_LOW;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -46,17 +52,22 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
+import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.DiskSpaceMonitor;
+import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 
 import com.persistit.Configuration;
@@ -74,7 +85,8 @@ import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
-public final class PersistItStorage implements Storage, ConfigurationChangeListener<PersistitBackendCfg>
+public final class PersistItStorage implements Storage, ConfigurationChangeListener<PersistitBackendCfg>,
+  DiskSpaceMonitorHandler, AlertGenerator
 {
   private static final String VOLUME_NAME = "dj";
   /** The buffer / page size used by the PersistIt storage. */
@@ -501,6 +513,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   private Volume volume;
   private Configuration dbCfg;
   private PersistitBackendCfg config;
+  private DiskSpaceMonitor diskMonitor;
 
   /** {@inheritDoc} */
   @Override
@@ -519,6 +532,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       }
     }
     config.removePersistitChangeListener(this);
+    DirectoryServer.deregisterMonitorProvider(diskMonitor);
+    DirectoryServer.deregisterAlertGenerator(this);
   }
 
   /** {@inheritDoc} */
@@ -562,13 +577,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
 
   /** {@inheritDoc} */
   @Override
-  public boolean isValid()
-  {
-    return !db.isFatal();
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void open() throws Exception
   {
     setupStorageFiles();
@@ -588,6 +596,11 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       throw new StorageRuntimeException(e);
     }
+    // Register as disk space monitor handler
+    diskMonitor = newDiskMonitor(config);
+    DirectoryServer.registerMonitorProvider(diskMonitor);
+    //Register as an AlertGenerator.
+    DirectoryServer.registerAlertGenerator(this);
   }
 
   /** {@inheritDoc} */
@@ -900,6 +913,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
 
         setDBDirPermissions(cfg, newBackendDirectory);
       }
+      diskMonitor.setFullThreshold(cfg.getDiskFullThreshold());
+      diskMonitor.setLowThreshold(cfg.getDiskLowThreshold());
 
       config = cfg;
     }
@@ -956,6 +971,79 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
       throw new StorageRuntimeException(message.toString(), e);
     }
+  }
+
+  @Override
+  public StorageStatus getStorageStatus()
+  {
+    if (diskMonitor.isFullThresholdReached())
+    {
+      return StorageStatus.unusable(WARN_JEB_OUT_OF_DISK_SPACE.get());
+    }
+    if (diskMonitor.isLowThresholdReached())
+    {
+      return StorageStatus.lockedDown(WARN_JEB_OUT_OF_DISK_SPACE.get());
+    }
+    return StorageStatus.working();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
+    LocalizableMessage msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
+        monitor.getDirectory().getPath(), config.getBackendId(), monitor.getFreeSpace(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_FULL, msg);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
+    LocalizableMessage msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
+        monitor.getDirectory().getPath(), config.getBackendId(), monitor.getFreeSpace(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_SPACE_LOW, msg);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void diskSpaceRestored(DiskSpaceMonitor monitor) {
+    logger.error(NOTE_JEB_DISK_SPACE_RESTORED, monitor.getFreeSpace(),
+        monitor.getDirectory().getPath(), config.getBackendId(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
+  }
+
+  private DiskSpaceMonitor newDiskMonitor(PersistitBackendCfg config) throws Exception
+  {
+    File parentDirectory = getFileForPath(config.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, config.getBackendId());
+    DiskSpaceMonitor dm = new DiskSpaceMonitor(config.getBackendId() + " backend",
+        backendDirectory, config.getDiskLowThreshold(), config.getDiskFullThreshold(),
+        5, TimeUnit.SECONDS, this);
+    dm.initializeMonitorProvider(null);
+    return dm;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public DN getComponentEntryDN() {
+    return config.dn();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getClassName() {
+    return PersistItStorage.class.getName();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Map<String, String> getAlerts()
+  {
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    alerts.put(ALERT_TYPE_DISK_SPACE_LOW, ALERT_DESCRIPTION_DISK_SPACE_LOW);
+    alerts.put(ALERT_TYPE_DISK_FULL, ALERT_DESCRIPTION_DISK_FULL);
+    return alerts;
   }
 }
 
