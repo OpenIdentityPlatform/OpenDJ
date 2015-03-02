@@ -49,9 +49,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
-import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
-import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
@@ -60,7 +58,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.*;
-import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
 
 /**
@@ -68,8 +65,7 @@ import org.opends.server.types.*;
  * locally in a Berkeley DB JE database.
  */
 public abstract class BackendImpl extends Backend<PluggableBackendCfg> implements
-    ConfigurationChangeListener<PluggableBackendCfg>, AlertGenerator,
-    DiskSpaceMonitorHandler
+    ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -85,9 +81,6 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   private DN[] baseDNs;
 
   private MonitorProvider<?> rootContainerMonitor;
-  /** Disk space monitoring if the storage supports it. */
-  private DiskSpaceMonitor diskMonitor;
-
   /** The controls supported by this backend. */
   private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
@@ -96,10 +89,24 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL));
 
-  /** Begin a Backend API method that accesses the database. */
-  private void accessBegin()
+  /**
+   * Begin a Backend API method that accesses the database and returns the <code>EntryContainer</code> for
+   * <code>entryDN</code>.
+   * @param operation requesting the storage
+   * @param entryDN the target DN for the operation
+   * @return <code>EntryContainer</code> where <code>entryDN</code> resides
+   */
+  private EntryContainer accessBegin(Operation operation, DN entryDN) throws DirectoryException
   {
+    checkRootContainerInitialized();
+    rootContainer.checkForEnoughResources(operation);
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    if (ec == null)
+    {
+      throw new DirectoryException(ResultCode.UNDEFINED, ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
+    }
     threadTotalCount.getAndIncrement();
+    return ec;
   }
 
   /** End a Backend API method that accesses the database. */
@@ -181,38 +188,9 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     rootContainerMonitor = rootContainer.getMonitorProvider();
     DirectoryServer.registerMonitorProvider(rootContainerMonitor);
 
-    // Register as disk space monitor handler
-    diskMonitor = newDiskMonitor(cfg);
-    if (diskMonitor != null)
-    {
-      DirectoryServer.registerMonitorProvider(diskMonitor);
-    }
-    //Register as an AlertGenerator.
-    DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
     cfg.addPluggableChangeListener(this);
   }
-
-  /**
-   * Let the storage create a new disk monitor if supported.
-   *
-   * @param cfg this storage current configuration
-   * @return a new disk monitor if supported or null
-   *
-   * @throws ConfigException if configuration is incorrect
-   * @throws InitializationException when disk monitor cannot be initialized
-   */
-  protected abstract DiskSpaceMonitor newDiskMonitor(PluggableBackendCfg cfg) throws
-    ConfigException, InitializationException;
-
-  /**
-   * Updates the disk monitor when configuration changes.
-   *
-   * @param dm the disk monitor to update
-   * @param newCfg the new configuration
-   */
-  protected abstract void updateDiskMonitor(DiskSpaceMonitor dm, PluggableBackendCfg newCfg);
-
 
   /** {@inheritDoc} */
   @Override
@@ -235,7 +213,6 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
     }
 
     DirectoryServer.deregisterMonitorProvider(rootContainerMonitor);
-    DirectoryServer.deregisterMonitorProvider(diskMonitor);
 
     // We presume the server will prevent more operations coming into this
     // backend, but there may be existing operations already in the
@@ -253,8 +230,6 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
       logger.traceException(e);
       logger.error(ERR_JEB_DATABASE_EXCEPTION, e.getMessage());
     }
-
-    DirectoryServer.deregisterAlertGenerator(this);
 
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
@@ -364,8 +339,7 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult hasSubordinates(DN entryDN)
-         throws DirectoryException
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     long ret = numSubordinates(entryDN, false);
     if(ret < 0)
@@ -379,17 +353,26 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
   {
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
-    if(ec == null)
+    EntryContainer ec;
+
+    /*
+     * Only place where we need special handling. Should return -1 instead of an
+     * error if the EntryContainer is null...
+     */
+    try {
+      ec = accessBegin(null, entryDN);
+    }
+    catch (DirectoryException de)
     {
-      return -1;
+      if (de.getResultCode() == ResultCode.UNDEFINED)
+      {
+        return -1;
+      }
+      throw de;
     }
 
-    accessBegin();
     ec.sharedLock.lock();
     try
     {
@@ -419,10 +402,8 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
-    accessBegin();
+    EntryContainer ec = accessBegin(null, entryDN);
 
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     ec.sharedLock.lock();
     Entry entry;
     try
@@ -447,14 +428,10 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void addEntry(Entry entry, AddOperation addOperation)
-      throws DirectoryException, CanceledOperationException
+  public void addEntry(Entry entry, AddOperation addOperation) throws DirectoryException, CanceledOperationException
   {
-    checkDiskSpace(addOperation);
-    accessBegin();
+    EntryContainer ec = accessBegin(addOperation, entry.getName());
 
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(entry.getName());
     ec.sharedLock.lock();
     try
     {
@@ -479,11 +456,8 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
   {
-    checkDiskSpace(deleteOperation);
-    accessBegin();
+    EntryContainer ec = accessBegin(deleteOperation, entryDN);
 
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     ec.sharedLock.lock();
     try
     {
@@ -505,15 +479,11 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-      ModifyOperation modifyOperation) throws DirectoryException,
-      CanceledOperationException
+  public void replaceEntry(Entry oldEntry, Entry newEntry, ModifyOperation modifyOperation)
+      throws DirectoryException, CanceledOperationException
   {
-    checkDiskSpace(modifyOperation);
-    accessBegin();
+    EntryContainer ec = accessBegin(modifyOperation, newEntry.getName());
 
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(newEntry.getName());
     ec.sharedLock.lock();
 
     try
@@ -536,23 +506,18 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void renameEntry(DN currentDN, Entry entry,
-                          ModifyDNOperation modifyDNOperation)
+  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
       throws DirectoryException, CanceledOperationException
   {
-    checkDiskSpace(modifyDNOperation);
-    accessBegin();
-
-    checkRootContainerInitialized();
-    EntryContainer currentContainer = rootContainer.getEntryContainer(currentDN);
+    EntryContainer currentContainer = accessBegin(modifyDNOperation, currentDN);
     EntryContainer container = rootContainer.getEntryContainer(entry.getName());
 
     if (currentContainer != container)
     {
+      accessEnd();
       // FIXME: No reason why we cannot implement a move between containers
       // since the containers share the same database environment.
-      LocalizableMessage msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, WARN_JEB_FUNCTION_NOT_SUPPORTED.get());
     }
 
     currentContainer.sharedLock.lock();
@@ -576,13 +541,10 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void search(SearchOperation searchOperation)
-      throws DirectoryException, CanceledOperationException
+  public void search(SearchOperation searchOperation) throws DirectoryException, CanceledOperationException
   {
-    accessBegin();
+    EntryContainer ec = accessBegin(searchOperation, searchOperation.getBaseDN());
 
-    checkRootContainerInitialized();
-    EntryContainer ec = rootContainer.getEntryContainer(searchOperation.getBaseDN());
     ec.sharedLock.lock();
 
     try
@@ -876,11 +838,6 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
             baseDNs = newBaseDNsArray;
 
-            if (diskMonitor != null)
-            {
-              updateDiskMonitor(diskMonitor, newCfg);
-            }
-
             // Put the new configuration in place.
             cfg = newCfg;
           }
@@ -975,62 +932,18 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
    */
   private DirectoryException createDirectoryException(StorageRuntimeException e)
   {
-    if (true) // FIXME JNR
+    Throwable cause = e.getCause();
+    if (cause instanceof OpenDsException)
     {
-      Throwable cause = e.getCause();
-      if (cause instanceof OpenDsException)
-      {
-        return new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), (OpenDsException) cause);
-      }
-      else
-      {
-        return new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(),
-            LocalizableMessage.raw(e.getMessage()), e);
-      }
+      return new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(), (OpenDsException) cause);
     }
-    if (/*e instanceof EnvironmentFailureException && */ !rootContainer.isValid()) {
-      LocalizableMessage message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
-      logger.info(message);
-      DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
-              ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, message);
+    else
+    {
+      return new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(),
+          LocalizableMessage.raw(e.getMessage()), e);
     }
-
-    String jeMessage = e.getMessage();
-    if (jeMessage == null) {
-      jeMessage = stackTraceToSingleLineString(e);
-    }
-    LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
-    return new DirectoryException(
-        DirectoryServer.getServerErrorResultCode(), message, e);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getClassName() {
-    return BackendImpl.class.getName();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Map<String, String> getAlerts()
-  {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
-
-    alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
-            ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
-    alerts.put(ALERT_TYPE_DISK_SPACE_LOW,
-            ALERT_DESCRIPTION_DISK_SPACE_LOW);
-    alerts.put(ALERT_TYPE_DISK_FULL,
-            ALERT_DESCRIPTION_DISK_FULL);
-    return alerts;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public DN getComponentEntryDN() {
-    return cfg.dn();
   }
 
   private RootContainer initializeRootContainer()
@@ -1055,44 +968,5 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
           UnsupportedOperationException {
     EntryCachePreloader preloader = new EntryCachePreloader(this);
     preloader.preload();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
-    LocalizableMessage msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
-        monitor.getDirectory().getPath(), cfg.getBackendId(), monitor.getFreeSpace(),
-        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
-    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_SPACE_LOW, msg);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
-    LocalizableMessage msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
-        monitor.getDirectory().getPath(), cfg.getBackendId(), monitor.getFreeSpace(),
-        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
-    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_FULL, msg);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskSpaceRestored(DiskSpaceMonitor monitor) {
-    logger.error(NOTE_JEB_DISK_SPACE_RESTORED, monitor.getFreeSpace(),
-        monitor.getDirectory().getPath(), cfg.getBackendId(),
-        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
-  }
-
-  private void checkDiskSpace(Operation operation) throws DirectoryException
-  {
-    if(diskMonitor.isFullThresholdReached() ||
-        (diskMonitor.isLowThresholdReached()
-            && operation != null
-            && !operation.getClientConnection().hasPrivilege(
-                Privilege.BYPASS_LOCKDOWN, operation)))
-    {
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          WARN_JEB_OUT_OF_DISK_SPACE.get());
-    }
   }
 }

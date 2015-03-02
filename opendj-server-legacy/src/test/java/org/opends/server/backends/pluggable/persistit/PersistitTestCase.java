@@ -28,7 +28,6 @@ package org.opends.server.backends.pluggable.persistit;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertTrue;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
@@ -46,10 +45,17 @@ import org.testng.annotations.Test;
  */
 public class PersistitTestCase extends PluggableBackendImplTestCase
 {
+  /**
+   * Tests the storage API for resource checking.
+   * The tested method has no return value, but an exception, while not systematic, may be thrown,
+   * in which case the test must fail.
+   *
+   * @throws Exception if resources are low.
+   */
   @Test
   public void testPersistitCfg() throws Exception
   {
-    assertTrue(backend.getRootContainer().isValid());
+    backend.getRootContainer().checkForEnoughResources(null);
   }
 
   @Override

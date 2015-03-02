@@ -100,13 +100,6 @@ public interface Storage extends Closeable
   void closeTree(TreeName treeName);
 
   /**
-   * Returns whether the storage engine is in a valid state, i.e. whether it can be used for processing.
-   *
-   * @return {@code true} if the storage engine is in a valid state, {@code false} otherwise
-   */
-  boolean isValid();
-
-  /**
    * Returns a filename filter which selects the files to be included in a backup.
    * @return a filename filter which selects the files to be included in a backup
    */
@@ -122,4 +115,11 @@ public interface Storage extends Closeable
    * @throws StorageRuntimeException if removal fails
    */
   void removeStorageFiles() throws StorageRuntimeException;
+
+  /**
+   * Returns the current status of the storage.
+   *
+   * @return the current status of the storage
+   */
+  StorageStatus getStorageStatus();
 }
