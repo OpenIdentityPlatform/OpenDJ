@@ -27,6 +27,7 @@
 package org.opends.server.protocols.jmx;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -75,13 +76,6 @@ public class RmiConnector
    * The MBean server used to handle JMX interaction.
    */
   private MBeanServer mbs;
-
-
-  /**
-   * the client address to connect to the common registry. Note that a
-   * remote client should use the correct IP address.
-   */
-  private String registryClientAddress = "0.0.0.0";
 
   /**
    * The associated JMX Connection Handler.
@@ -198,6 +192,7 @@ public class RmiConnector
    */
   private void startCommonRegistry() throws Exception
   {
+    final InetAddress listenAddress = jmxConnectionHandler.getListenAddress();
     int registryPort = jmxConnectionHandler.getListenPort();
 
     //
@@ -213,7 +208,7 @@ public class RmiConnector
       // TODO Not yet implemented: If the host has several interfaces
       if (registry == null)
       {
-        rmiSsf = new OpendsRmiServerSocketFactory();
+        rmiSsf = new OpendsRmiServerSocketFactory(listenAddress);
         registry = LocateRegistry.createRegistry(registryPort, null, rmiSsf);
       }
     }
@@ -367,7 +362,7 @@ public class RmiConnector
       // Create the JMX Service URL
       String uri = "org.opends.server.protocols.jmx.client-unknown";
       String serviceUrl = "service:jmx:rmi:///jndi/rmi://"
-          + registryClientAddress + ":" + jmxConnectionHandler.getListenPort()
+          + jmxConnectionHandler.getListenAddress().getHostName() + ":" + jmxConnectionHandler.getListenPort()
           + "/" + uri;
       JMXServiceURL url = new JMXServiceURL(serviceUrl);
 

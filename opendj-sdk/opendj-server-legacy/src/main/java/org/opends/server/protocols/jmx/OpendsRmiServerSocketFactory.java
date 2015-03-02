@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.rmi.server.RMIServerSocketFactory;
-import java.rmi.server.RMISocketFactory;
 
 
 /**
@@ -52,29 +53,33 @@ import java.rmi.server.RMISocketFactory;
  */
 public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
 {
+  /** The address to listen on, which could be INADDR_ANY. */
+  private final InetAddress listenAddress;
+
+  /** The Created ServerSocket. */
+  ServerSocket serverSocket;
 
   /**
-   * The Platform RMISocketFactory.
+   * Create a new socket factory which will listen on the specified address.
+   *
+   * @param listenAddress The address to listen on.
    */
-  private RMIServerSocketFactory ssf =
-    RMISocketFactory.getDefaultSocketFactory() ;
-
-  /*
-   * The Created ServerSocket.
-   */
-  ServerSocket serverSocket ;
+  public OpendsRmiServerSocketFactory(InetAddress listenAddress)
+  {
+    this.listenAddress = listenAddress;
+  }
 
   /**
-   *  Create a server socket on the specified port
-   *  (port 0 indicates an anonymous port).
+   *  Create a server socket on the specified port, listening on the address
+   *  passed in the constructor. (port 0 indicates an anonymous port).
+   *
    *  @param port the port number
    *  @return the server socket on the specified port
    *  @throws IOException if an I/O error occurs during server socket creation
    */
-  public ServerSocket  createServerSocket(int port)  throws IOException
+  public ServerSocket createServerSocket(int port)  throws IOException
   {
-    serverSocket = ssf.createServerSocket(port) ;
-    return serverSocket ;
+    return new ServerSocket(port, 100, listenAddress);
   }
 
   /**
@@ -84,6 +89,6 @@ public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
    */
   protected void close() throws IOException
   {
-    serverSocket.close() ;
+    serverSocket.close();
   }
 }
