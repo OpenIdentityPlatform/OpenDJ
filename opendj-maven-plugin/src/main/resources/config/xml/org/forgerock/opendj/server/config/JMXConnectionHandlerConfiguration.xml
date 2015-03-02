@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
-  !      Portions Copyright 2013 ForgeRock AS.
+  !      Portions Copyright 2013-2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="jmx-connection-handler"
   plural-name="jmx-connection-handlers"
@@ -67,16 +67,14 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="listen-address" multi-valued="true" read-only="true">
+  <adm:property name="listen-address" multi-valued="false">
     <adm:synopsis>
-      Specifies the address or set of addresses on which this
+      Specifies the address on which this
       <adm:user-friendly-name />
-      should listen for connections from JMX clients. However JMX/RMI
-      doesn't allow this, and this property cannot be set.
+      should listen for connections from JMX clients.
     </adm:synopsis>
     <adm:description>
-      Multiple addresses may be provided as separate values for this
-      attribute. If no values are provided, then the
+      If no value is provided, then the
       <adm:user-friendly-name />
       listens on all interfaces.
     </adm:description>

@@ -31,6 +31,7 @@ import static org.opends.server.types.HostPort.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -238,6 +239,15 @@ public final class JmxConnectionHandler extends
   }
 
 
+  /**
+   * Get the JMX connection handler's listen address.
+   *
+   * @return Returns the JMX connection handler's listen address.
+   */
+  public InetAddress getListenAddress()
+  {
+    return currentConfig.getListenAddress();
+  }
 
   /**
    * Get the JMX connection handler's listen port.

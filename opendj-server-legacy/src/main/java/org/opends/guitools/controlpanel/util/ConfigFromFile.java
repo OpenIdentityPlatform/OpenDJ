@@ -450,7 +450,7 @@ public class ConfigFromFile extends ConfigReader
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMX;
       }
-      addAll(addresses, jmx.getListenAddress());
+      addresses.add(jmx.getListenAddress());
       port = jmx.getListenPort();
     }
     else if (connHandler instanceof LDIFConnectionHandlerCfg)
