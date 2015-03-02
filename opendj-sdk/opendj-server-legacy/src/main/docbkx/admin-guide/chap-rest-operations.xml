@@ -40,7 +40,13 @@
   resources over HTTP.
   This chapter demonstrates basic RESTful client operations
   by using the default configuration
-  and sample directory data imported into OpenDJ from
+  and sample directory data
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#import-ldif"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  >imported into OpenDJ</link>
+  from
   <link
    xlink:show="new"
    xlink:href="http://opendj.forgerock.org/Example.ldif"
