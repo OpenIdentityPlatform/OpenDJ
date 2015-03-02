@@ -251,21 +251,49 @@ public class LDIFBackend
       }
     }
 
-    StaticUtils.close(writer);
-
-
-    // Rename the existing "live" file out of the way and move the new file
-    // into place.
+    // On Linux the final write() on a file can actually fail but not throw an Exception.
+    // The close() will throw an Exception in this case so we MUST check for Exceptions
+    // here.
     try
     {
-      if (oldFile.exists())
-      {
-        oldFile.delete();
-      }
+        writer.close();
     }
     catch (Exception e)
     {
       logger.traceException(e);
+      LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_CLOSING_FILE.get(
+                       tempFile.getAbsolutePath(),
+                       currentConfig.dn(),
+                       stackTraceToSingleLineString(e));
+      DirectoryServer.sendAlertNotification(this,
+                           ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   m, e);
+    }
+
+    // Extra sanity check
+    if (!entryMap.isEmpty() && tempFile.exists() && tempFile.length() == 0)
+    {
+      LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_EMPTY_FILE.get(
+                       tempFile.getAbsolutePath(),
+                       currentConfig.dn());
+      DirectoryServer.sendAlertNotification(this,
+                           ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
+    }
+
+    if (tempFile.exists())
+    {
+      // Rename the existing "live" file out of the way and move the new file
+      // into place.
+      try
+      {
+        oldFile.delete();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
     }
 
     try
