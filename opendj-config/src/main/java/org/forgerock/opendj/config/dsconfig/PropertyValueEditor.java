@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -1681,13 +1681,18 @@ final class PropertyValueEditor {
 
             if (result.isSuccess()) {
                 // Set the new property value(s).
-                Collection<T> newValues = result.getValues();
+                Collection<T> values = result.getValues();
+                // Both newValues and oldValues sets need to use the PropertyDefinition
+                // as their comparator. Constructing a TreeSet<T> directly with the
+                // values collection will fail if the values are e.g. InetAddresses.
+                SortedSet<T> newValues = new TreeSet<T>(d);
+                newValues.addAll(values);
                 SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
-                mo.setPropertyValues(d, newValues);
+                mo.setPropertyValues(d, values);
 
-                // If there are no newValues when we do a reset.
-                isLastChoiceReset = newValues.isEmpty();
-                registerModification(d, new TreeSet<T>(newValues), oldValues);
+                // If there are no values when we do a reset.
+                isLastChoiceReset = values.isEmpty();
+                registerModification(d, newValues, oldValues);
                 app.println();
                 app.pressReturnToContinue();
                 return MenuResult.success(false);
