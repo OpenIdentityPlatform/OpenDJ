@@ -26,9 +26,8 @@
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.FilenameFilter;
-
-import org.opends.server.admin.std.server.PluggableBackendCfg;
 
 /**
  * This interface abstracts the underlying storage engine,
@@ -36,17 +35,6 @@ import org.opends.server.admin.std.server.PluggableBackendCfg;
  */
 public interface Storage extends Closeable
 {
-  /**
-   * Initializes the storage engine before opening it.
-   *
-   * @param cfg
-   *          the configuration object
-   * @throws Exception
-   *           if a problem occurs with the underlying storage engine
-   * @see #open() to open the storage engine
-   */
-  void initialize(PluggableBackendCfg cfg) throws Exception;
-
   /**
    * Starts the import operation.
    *
@@ -99,12 +87,6 @@ public interface Storage extends Closeable
    */
   void closeTree(TreeName treeName);
 
-  /**
-   * Returns a filename filter which selects the files to be included in a backup.
-   * @return a filename filter which selects the files to be included in a backup
-   */
-  FilenameFilter getFilesToBackupFilter();
-
   /** {@inheritDoc} */
   @Override
   void close();
@@ -122,4 +104,31 @@ public interface Storage extends Closeable
    * @return the current status of the storage
    */
   StorageStatus getStorageStatus();
+
+  /**
+   * Returns {@code true} if this storage supports backup and restore.
+   *
+   * @return {@code true} if this storage supports backup and restore.
+   */
+  boolean supportsBackupAndRestore();
+
+  /**
+   * Returns the file system directory in which any database files are located. This method is
+   * called when performing backup and restore operations.
+   *
+   * @return The file system directory in which any database files are located.
+   * @throws UnsupportedOperationException
+   *           If backup and restore is not supported by this storage.
+   */
+  File getDirectory();
+
+  /**
+   * Returns a filename filter which selects the files to be included in a backup. This method is
+   * called when performing backup operations.
+   *
+   * @return A filename filter which selects the files to be included in a backup.
+   * @throws UnsupportedOperationException
+   *           If backup and restore is not supported by this storage.
+   */
+  FilenameFilter getFilesToBackupFilter();
 }

@@ -51,7 +51,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -515,6 +514,36 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   private PersistitBackendCfg config;
   private DiskSpaceMonitor diskMonitor;
 
+  /**
+   * Creates a new persistit storage with the provided configuration.
+   *
+   * @param cfg
+   *          The configuration.
+   */
+  // FIXME: should be package private once importer is decoupled.
+  public PersistItStorage(final PersistitBackendCfg cfg)
+  {
+    backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
+    config = cfg;
+    dbCfg = new Configuration();
+    dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
+    dbCfg.setJournalPath(new File(backendDirectory, VOLUME_NAME + "_journal").getPath());
+    dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
+        BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
+    final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg();
+    bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
+    if (cfg.getDBCacheSize() > 0)
+    {
+      bufferPoolCfg.setMaximumMemory(cfg.getDBCacheSize());
+    }
+    else
+    {
+      bufferPoolCfg.setFraction(cfg.getDBCachePercent() / 100.0f);
+    }
+    dbCfg.setCommitPolicy(cfg.isDBTxnNoSync() ? SOFT : GROUP);
+    cfg.addPersistitChangeListener(this);
+  }
+
   /** {@inheritDoc} */
   @Override
   public void close()
@@ -541,33 +570,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   public void closeTree(final TreeName treeName)
   {
     // nothing to do, in persistit you close the volume itself
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void initialize(final PluggableBackendCfg configuration)
-  {
-    final PersistitBackendCfg cfg = (PersistitBackendCfg) configuration;
-    backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
-    config = cfg;
-    dbCfg = new Configuration();
-    dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
-    dbCfg.setJournalPath(new File(backendDirectory, VOLUME_NAME + "_journal").getPath());
-    dbCfg.setVolumeList(asList(new VolumeSpecification(new File(
-        backendDirectory, VOLUME_NAME).getPath(), null, BUFFER_SIZE, 4096,
-        Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
-    final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg();
-    bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
-    if (cfg.getDBCacheSize() > 0)
-    {
-      bufferPoolCfg.setMaximumMemory(cfg.getDBCacheSize());
-    }
-    else
-    {
-      bufferPoolCfg.setFraction(cfg.getDBCachePercent() / 100.0f);
-    }
-    dbCfg.setCommitPolicy(cfg.isDBTxnNoSync() ? SOFT : GROUP);
-    cfg.addPersistitChangeListener(this);
   }
 
   private BufferPoolConfiguration getBufferPoolCfg()
@@ -721,6 +723,19 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
   }
 
+  @Override
+  public boolean supportsBackupAndRestore()
+  {
+    return true;
+  }
+
+  @Override
+  public File getDirectory()
+  {
+    File parentDir = getFileForPath(config.getDBDirectory());
+    return new File(parentDir, config.getBackendId());
+  }
+
   /** {@inheritDoc} */
   @Override
   public FilenameFilter getFilesToBackupFilter()
@@ -815,7 +830,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
    *
    * @param cfg a (possibly new) backend configuration
    * @param ccr the current list of change results
-   * @return true if permissions are valid
    * @throws forwards a file exception
    */
   private void checkDBDirPermissions(PersistitBackendCfg cfg, ConfigChangeResult ccr)

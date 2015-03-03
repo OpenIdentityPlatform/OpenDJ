@@ -827,8 +827,6 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     backupPath = TestCaseUtils.createTemporaryDirectory("backup").getAbsolutePath();
     backupDirectory = new BackupDirectory(backupPath, testBaseDN);
     BackupConfig backupConf = new BackupConfig(backupDirectory, backupID, false);
-    backupConf.setFilesToBackupFilter(backend.getRootContainer().getStorage().getFilesToBackupFilter());
-
     backend.createBackup(backupConf);
   }
 

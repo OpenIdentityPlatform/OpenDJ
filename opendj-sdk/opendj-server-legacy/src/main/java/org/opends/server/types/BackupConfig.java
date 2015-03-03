@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2015 Forgerock AS
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.opends.server.types;
-
-import java.io.FilenameFilter;
 
 /**
  * This class defines a data structure for holding configuration
@@ -91,12 +89,6 @@ public final class BackupConfig extends OperationConfig
    * which the incremental backup should be based.
    */
   private String incrementalBaseID;
-
-  /**
-   * The filename filter to decide which files should be included as defined
-   * by the storage.
-   */
-  private FilenameFilter filesToBackupFilter;
 
 
   /**
@@ -314,26 +306,6 @@ public final class BackupConfig extends OperationConfig
   public void setSignHash(boolean signHash)
   {
     this.signHash = signHash;
-  }
-
-  /**
-   * Returns the storage-defined filename filter deciding which files should go into a backup.
-   *
-   * @return the storage-defined filename filter deciding which files should go into a backup
-   */
-  public FilenameFilter getFilesToBackupFilter()
-  {
-    return filesToBackupFilter;
-  }
-
-  /**
-   * Sets the storage-defined filter for files belonging to the backend.
-   *
-   * @param filenameFilter the filenameFilter to set
-   */
-  public void setFilesToBackupFilter(FilenameFilter filenameFilter)
-  {
-    this.filesToBackupFilter = filenameFilter;
   }
 }
 

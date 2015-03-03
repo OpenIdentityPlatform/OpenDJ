@@ -73,7 +73,7 @@ class EntryCachePreloader
   /**
    * BackendImpl object.
    */
-  private final BackendImpl backend;
+  private final BackendImpl<?> backend;
 
   /**
    * Interrupt flag for the arbiter to terminate worker threads.
@@ -141,7 +141,8 @@ class EntryCachePreloader
    *
    * @param  jeb  The JEB instance to pre-load.
    */
-  public EntryCachePreloader(BackendImpl jeb) {
+  public EntryCachePreloader(BackendImpl<?> jeb)
+  {
     // These should not be exposed as configuration
     // parameters and are only useful for testing.
     syncSleepTime = Long.getLong(

@@ -129,7 +129,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private Storage storage;
 
   /** The backend to which this entry root container belongs. */
-  private final BackendImpl backend;
+  private final BackendImpl<?> backend;
   /** The backend configuration. */
   private final PluggableBackendCfg config;
   /** The database environment monitor for this JE environment. */
@@ -154,7 +154,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *          A reference to the JE back end that is creating this root
    *          container.
    */
-  RootContainer(BackendImpl backend, PluggableBackendCfg config)
+  RootContainer(BackendImpl<?> backend, PluggableBackendCfg config)
   {
     this.backend = backend;
     this.config = config;
@@ -194,9 +194,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     {
       try
       {
-        Storage storage = backend.newStorageInstance();
-        storage.initialize(config);
-        storage.removeStorageFiles();
+        backend.getStorage().removeStorageFiles();
       }
       catch (Exception e)
       {
@@ -344,8 +342,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     try
     {
-      storage = backend.newStorageInstance();
-      storage.initialize(config);
+      storage = backend.getStorage();
       storage.open();
       storage.write(new WriteOperation()
       {
