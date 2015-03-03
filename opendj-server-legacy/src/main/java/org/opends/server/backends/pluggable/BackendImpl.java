@@ -32,7 +32,6 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -61,10 +60,13 @@ import org.opends.server.core.*;
 import org.opends.server.types.*;
 
 /**
- * This is an implementation of a Directory Server Backend which stores entries
- * locally in a Berkeley DB JE database.
+ * This is an implementation of a Directory Server Backend which stores entries locally in a
+ * Berkeley DB JE database.
+ *
+ * @param <C>
+ *          the type of the BackendCfg for the current backend
  */
-public abstract class BackendImpl extends Backend<PluggableBackendCfg> implements
+public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend<C> implements
     ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -81,6 +83,10 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   private DN[] baseDNs;
 
   private MonitorProvider<?> rootContainerMonitor;
+
+  /** The underlying storage engine. */
+  private Storage storage;
+
   /** The controls supported by this backend. */
   private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
@@ -138,12 +144,13 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(PluggableBackendCfg cfg) throws ConfigException
+  public void configureBackend(C cfg) throws ConfigException
   {
     Reject.ifNull(cfg);
 
     this.cfg = cfg;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
+    storage = configureStorage(cfg);
   }
 
   /** {@inheritDoc} */
@@ -292,8 +299,16 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
-    // it supports all the operations so far
-    return true;
+    switch (backendOperation)
+    {
+    case BACKUP:
+    case RESTORE:
+      // Responsibility of the underlying storage.
+      return storage.supportsBackupAndRestore();
+    default: // INDEXING, LDIF_EXPORT, LDIF_IMPORT
+      // Responsibility of this pluggable backend.
+      return true;
+    }
   }
 
   /** {@inheritDoc} */
@@ -754,49 +769,39 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    File backendDir = getBackupDirectory(cfg);
-    Storage storage = newStorageInstance();
-    backupConfig.setFilesToBackupFilter(storage.getFilesToBackupFilter());
-    backupManager.createBackup(backendDir, backupConfig);
+    new BackupManager(getBackendID()).createBackup(storage, backupConfig);
   }
-
-  /**
-   * Returns the storage corresponding to the backend class defined in the configuration.
-   * @return the storage corresponding to the backend class defined in the configuration
-   */
-  protected abstract Storage newStorageInstance();
 
   /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    backupManager.removeBackup(backupDirectory, backupID);
+    new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-      throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    File backendDir = getBackupDirectory(cfg);
-    backupManager.restoreBackup(backendDir, restoreConfig);
+    new BackupManager(getBackendID()).restoreBackup(storage, restoreConfig);
   }
 
   /**
-   * Returns the backup directory.
+   * Creates the storage engine which will be used by this pluggable backend. Implementations should
+   * create and configure a new storage engine but not open it.
    *
-   * @param cfg the configuration for this backend
-   * @return the backup directory
+   * @param cfg
+   *          the configuration object
+   * @return The storage engine to be used by this pluggable backend.
+   * @throws ConfigException
+   *           If there is an error in the configuration.
    */
-  protected abstract File getBackupDirectory(PluggableBackendCfg cfg);
+  protected abstract Storage configureStorage(C cfg) throws ConfigException;
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAcceptable(PluggableBackendCfg config, List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(C config, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
@@ -968,5 +973,10 @@ public abstract class BackendImpl extends Backend<PluggableBackendCfg> implement
           UnsupportedOperationException {
     EntryCachePreloader preloader = new EntryCachePreloader(this);
     preloader.preload();
+  }
+
+  Storage getStorage()
+  {
+    return storage;
   }
 }

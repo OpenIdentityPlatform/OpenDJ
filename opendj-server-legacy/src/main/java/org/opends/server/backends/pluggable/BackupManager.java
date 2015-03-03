@@ -56,6 +56,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
@@ -123,13 +124,11 @@ class BackupManager
    * log files that are unchanged since the previous backup.  The remaining
    * zip entries are the log files themselves, which, for an incremental,
    * only include those files that have changed.
-   * @param backendDir The directory of the backend instance for
-   * which the backup is required.
+   * @param storage The underlying storage to be backed up.
    * @param  backupConfig  The configuration to use when performing the backup.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  void createBackup(File backendDir, BackupConfig backupConfig)
-       throws DirectoryException
+  void createBackup(Storage storage, BackupConfig backupConfig) throws DirectoryException
   {
     // Get the properties to use for the backup.
     String          backupID        = backupConfig.getBackupID();
@@ -140,7 +139,6 @@ class BackupManager
     boolean         encrypt         = backupConfig.encryptData();
     boolean         hash            = backupConfig.hashData();
     boolean         signHash        = backupConfig.signHash();
-    FilenameFilter  filenameFilter  = backupConfig.getFilesToBackupFilter();
 
 
     HashMap<String,String> backupProperties = new HashMap<String,String>();
@@ -320,8 +318,9 @@ class BackupManager
       zipStream.setLevel(Deflater.NO_COMPRESSION);
     }
 
+    File backendDir = storage.getDirectory();
+    FilenameFilter filenameFilter = storage.getFilesToBackupFilter();
     File[] logFiles;
-
     try
     {
       logFiles = backendDir.listFiles(filenameFilter);
@@ -572,14 +571,11 @@ class BackupManager
 
   /**
    * Restore a backend from backup, or verify the backup.
-   * @param backendDir The configuration of the backend instance to be
-   * restored.
+   * @param storage The underlying storage to be backed up.
    * @param  restoreConfig The configuration to use when performing the restore.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  void restoreBackup(File backendDir,
-                            RestoreConfig restoreConfig)
-       throws DirectoryException
+  void restoreBackup(Storage storage, RestoreConfig restoreConfig) throws DirectoryException
   {
     // Get the properties to use for the restore.
     String          backupID        = restoreConfig.getBackupID();
@@ -590,6 +586,7 @@ class BackupManager
 
     // Create a restore directory with a different name to the backend
     // directory.
+    File backendDir = storage.getDirectory();
     File restoreDir = new File(backendDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {

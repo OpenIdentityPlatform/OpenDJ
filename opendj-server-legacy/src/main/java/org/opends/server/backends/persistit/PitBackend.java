@@ -26,32 +26,19 @@
 
 package org.opends.server.backends.persistit;
 
-import static org.opends.server.util.StaticUtils.getFileForPath;
-
-import java.io.File;
-
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.spi.Storage;
 
 /**
  * Class defined in the configuration for this backend type.
  */
-public class PitBackend extends BackendImpl
+public final class PitBackend extends BackendImpl<PersistitBackendCfg>
 {
-  /** {@inheritDoc} */
   @Override
-  protected Storage newStorageInstance()
+  protected Storage configureStorage(PersistitBackendCfg cfg) throws ConfigException
   {
-    return new PersistItStorage();
-  }
-
-  /** {@inheritDoc} */
-  protected File getBackupDirectory(PluggableBackendCfg cfg)
-  {
-    PersistitBackendCfg config = (PersistitBackendCfg) cfg;
-    File parentDir = getFileForPath(config.getDBDirectory());
-    return new File(parentDir, config.getBackendId());
+    return new PersistItStorage(cfg);
   }
 }
