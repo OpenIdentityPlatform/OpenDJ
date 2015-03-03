@@ -461,11 +461,6 @@ class VLVIndex extends DatabaseContainer
     return pos >= 0;
   }
 
-  private void put(WriteableStorage txn, SortValuesSet set) throws DirectoryException
-  {
-    put(txn, set.getKeyBytes(), set.toByteString());
-  }
-
   /**
    * Gets the types of the attribute values to sort.
    *
@@ -588,8 +583,8 @@ class VLVIndex extends DatabaseContainer
       if(newSize >= sortedSetCapacity)
       {
         SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-        put(txn, splitSortValuesSet); // splitAfter
-        put(txn, sortValuesSet); // after
+        put(txn, splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
+        put(txn, sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after
 
         if(logger.isTraceEnabled())
         {

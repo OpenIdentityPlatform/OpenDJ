@@ -197,7 +197,7 @@ abstract class DatabaseContainer implements Closeable
     long count = count(txn);
     if (logger.isTraceEnabled())
     {
-      logger.trace(messageToLog(true, treeName, null, null, null));
+      logger.trace(messageToLog(true, treeName, txn, null, null));
     }
     return count;
   }
@@ -260,16 +260,8 @@ abstract class DatabaseContainer implements Closeable
     builder.append(")");
     builder.append(" db=");
     builder.append(treeName);
-    if (txn != null)
-    {
-      builder.append(" txn=");
-      builder.append(txn);
-    }
-    else
-    {
-      builder.append(" txnid=none");
-    }
-
+    builder.append(" txn=");
+    builder.append(txn);
     builder.append(ServerConstants.EOL);
     if (key != null)
     {
