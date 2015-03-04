@@ -264,7 +264,7 @@ class AttributeIndex
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
-  public void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableStorage txn) throws StorageRuntimeException
   {
     for (Index index : nameToIndexes.values())
     {

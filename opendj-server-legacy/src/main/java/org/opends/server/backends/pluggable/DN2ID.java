@@ -76,8 +76,7 @@ class DN2ID extends DatabaseContainer
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = id.toByteString();
-
-    return insert(txn, key, value);
+    return txn.putIfAbsent(getName(), key, value);
   }
 
   /**
@@ -93,7 +92,7 @@ class DN2ID extends DatabaseContainer
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
 
-    return delete(txn, key);
+    return txn.delete(getName(), key);
   }
 
   /**
@@ -101,14 +100,24 @@ class DN2ID extends DatabaseContainer
    * @param txn A JE database transaction to be used for the database read, or
    * null if none is required.
    * @param dn The DN for which the entry ID is desired.
-   * @param isRMW whether the read operation is part of a larger read-modify-write operation
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  EntryID get(ReadableStorage txn, DN dn, boolean isRMW) throws StorageRuntimeException
+  EntryID get(ReadableStorage txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
-    ByteString value = read(txn, key, isRMW);
+    ByteString value = txn.read(getName(), key);
+    if (value != null)
+    {
+      return new EntryID(value);
+    }
+    return null;
+  }
+
+  EntryID getRMW(ReadableStorage txn, DN dn) throws StorageRuntimeException
+  {
+    ByteString key = dnToDNKey(dn, prefixRDNComponents);
+    ByteString value = txn.getRMW(getName(), key);
     if (value != null)
     {
       return new EntryID(value);

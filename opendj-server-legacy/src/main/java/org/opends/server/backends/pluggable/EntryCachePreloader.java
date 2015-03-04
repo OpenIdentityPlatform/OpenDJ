@@ -136,24 +136,18 @@ class EntryCachePreloader
   private static final int bytesPerMegabyte = 1024*1024;
 
   /**
-   * Constructs the Entry Cache Pre-loader for
-   * a given JEB implementation instance.
+   * Constructs the Entry Cache Pre-loader for a given JEB implementation instance.
    *
-   * @param  jeb  The JEB instance to pre-load.
+   * @param jeb
+   *          The JEB instance to pre-load.
    */
   public EntryCachePreloader(BackendImpl<?> jeb)
   {
     // These should not be exposed as configuration
     // parameters and are only useful for testing.
-    syncSleepTime = Long.getLong(
-      "org.opends.server.entrycache.preload.sleep",
-      PRELOAD_DEFAULT_SLEEP_TIME);
-    queueCapacity = Integer.getInteger(
-      "org.opends.server.entrycache.preload.queue",
-      PRELOAD_DEFAULT_QUEUE_CAPACITY);
-    entryQueue =
-      new LinkedBlockingQueue<PreloadEntry>(
-      queueCapacity);
+    syncSleepTime = Long.getLong("org.opends.server.entrycache.preload.sleep", PRELOAD_DEFAULT_SLEEP_TIME);
+    queueCapacity = Integer.getInteger("org.opends.server.entrycache.preload.queue", PRELOAD_DEFAULT_QUEUE_CAPACITY);
+    entryQueue = new LinkedBlockingQueue<PreloadEntry>(queueCapacity);
     this.backend = jeb;
   }
 
@@ -305,11 +299,12 @@ class EntryCachePreloader
     public void run() {
       Cursor cursor = null;
       ID2Entry id2entry = null;
-      Collection<EntryContainer> entryContainers =
-        backend.getRootContainer().getEntryContainers();
-      Iterator<EntryContainer> ecIterator =
-        entryContainers.iterator();
-      boolean success = true;
+      RootContainer rootContainer = backend.getRootContainer();
+      Collection<EntryContainer> entryContainers = rootContainer.getEntryContainers();
+      Iterator<EntryContainer> ecIterator = entryContainers.iterator();
+
+      // FIXME: this loop needs fixing.
+      boolean success = false;
 
       try {
         while (success) {
@@ -325,7 +320,8 @@ class EntryCachePreloader
                 break;
               }
               if (id2entry != null) {
-                cursor = id2entry.openCursor(null);
+                // FIXME: "null" should be a transaction.
+                // cursor = null.openCursor(id2entry.getName());
               } else {
                 continue;
               }

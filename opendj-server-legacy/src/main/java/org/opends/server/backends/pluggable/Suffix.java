@@ -233,7 +233,7 @@ class Suffix
     // or else check the dn2id database for the DN (only if backend wasn't cleared)
     final boolean parentThere = dnCache.contains(dn)
         || (!clearedBackend
-            && getDN2ID().get(txn, dn, false) != null);
+            && getDN2ID().get(txn, dn) != null);
     //Add the DN to the parent set if needed.
     if (parentThere) {
       synchronized(synchObject) {

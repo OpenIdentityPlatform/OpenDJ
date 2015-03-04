@@ -80,7 +80,7 @@ class State extends DatabaseContainer
   boolean removeIndexTrustState(WriteableStorage txn, DatabaseContainer index) throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
-    return delete(txn, key);
+    return txn.delete(getName(), key);
   }
 
   /**
@@ -94,7 +94,7 @@ class State extends DatabaseContainer
       throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
-    ByteString value = read(txn, key, false);
+    ByteString value = txn.read(getName(), key);
 
     return value != null && value.equals(trueBytes);
   }
@@ -111,7 +111,7 @@ class State extends DatabaseContainer
   {
     ByteString key = keyForIndex(index);
 
-    txn.create(treeName, key, trusted ? trueBytes : falseBytes);
+    txn.create(getName(), key, trusted ? trueBytes : falseBytes);
   }
 
 }

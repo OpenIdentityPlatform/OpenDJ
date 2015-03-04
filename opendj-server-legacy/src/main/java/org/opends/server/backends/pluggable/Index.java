@@ -161,18 +161,18 @@ class Index extends DatabaseContainer
   final void delete(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
       throws StorageRuntimeException
   {
-    ByteString value = read(txn, key, false);
+    ByteString value = txn.read(getName(), key);
     if (value != null) {
       newImportIDSet.clear();
       newImportIDSet.remove(value, importIdSet);
       if (newImportIDSet.isDefined() && newImportIDSet.size() == 0)
       {
-        delete(txn, key);
+        txn.delete(getName(), key);
       }
       else
       {
         value = newImportIDSet.valueToByteString();
-        put(txn, key, value);
+        txn.create(getName(), key, value);
       }
     } else {
       // Should never happen -- the keys should always be there.
@@ -191,7 +191,7 @@ class Index extends DatabaseContainer
   final void insert(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
       throws StorageRuntimeException
   {
-    ByteString value = read(txn, key, false);
+    ByteString value = txn.read(getName(), key);
     if(value != null) {
       newImportIDSet.clear();
       if (newImportIDSet.merge(value, importIdSet)) {
@@ -204,7 +204,7 @@ class Index extends DatabaseContainer
       }
       value = importIdSet.valueToByteString();
     }
-    put(txn, key, value);
+    txn.create(getName(), key, value);
   }
 
   void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
@@ -217,12 +217,12 @@ class Index extends DatabaseContainer
      */
     if (deletedIDs == null && addedIDs == null)
     {
-      boolean success = delete(txn, key);
+      boolean success = txn.delete(getName(), key);
       if (success && logger.isTraceEnabled())
       {
         StringBuilder builder = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
-        logger.trace("The expected key does not exist in the index %s.\nKey:%s ", treeName, builder);
+        logger.trace("The expected key does not exist in the index %s.\nKey:%s ", getName(), builder);
       }
       return;
     }
@@ -243,7 +243,7 @@ class Index extends DatabaseContainer
        * Avoid taking a write lock on a record which has hit all IDs because it is likely to be a
        * point of contention.
        */
-      ByteString value = read(txn, key, false);
+      ByteString value = txn.read(getName(), key);
       if (value != null)
       {
         EntryIDSet entryIDList = new EntryIDSet(key, value);
@@ -261,7 +261,7 @@ class Index extends DatabaseContainer
 
         if ((rebuildRunning || trusted)
             && isNotNullOrEmpty(addedIDs)
-            && !insert(txn, key, addedIDs.toByteString()))
+            && !txn.putIfAbsent(getName(), key, addedIDs.toByteString()))
         {
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
         }
@@ -282,21 +282,21 @@ class Index extends DatabaseContainer
   private void updateKeyWithRMW(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
-    final ByteString value = read(txn, key, true);
+    final ByteString value = txn.getRMW(getName(), key);
     if (value != null)
     {
       EntryIDSet entryIDList = computeEntryIDList(key, value, deletedIDs, addedIDs);
       ByteString after = entryIDList.toByteString();
       if (!after.isEmpty())
       {
-        put(txn, key, after);
+        txn.create(getName(), key, after);
       }
       else
       {
         // No more IDs, so remove the key. If index is not
         // trusted then this will cause all subsequent reads
         // for this key to return undefined set.
-        delete(txn, key);
+        txn.delete(getName(), key);
       }
     }
     else
@@ -308,7 +308,7 @@ class Index extends DatabaseContainer
 
       if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
       {
-        insert(txn, key, addedIDs.toByteString());
+        txn.putIfAbsent(getName(), key, addedIDs.toByteString());
       }
     }
   }
@@ -344,7 +344,7 @@ class Index extends DatabaseContainer
             StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
             logger.trace("Index entry exceeded in index %s. " +
                 "Limit: %d. ID list size: %d.\nKey:%s",
-                treeName, indexEntryLimit, idCountDelta + addedIDs.size(), builder);
+                getName(), indexEntryLimit, idCountDelta + addedIDs.size(), builder);
 
           }
         }
@@ -384,11 +384,11 @@ class Index extends DatabaseContainer
     {
       StringBuilder builder = new StringBuilder();
       StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
-      logger.trace("The expected key does not exist in the index %s.\nKey:%s", treeName, builder);
+      logger.trace("The expected key does not exist in the index %s.\nKey:%s", getName(), builder);
     }
 
     setTrusted(txn, false);
-    logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, treeName);
+    logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, getName());
   }
 
   void delete(IndexBuffer buffer, ByteString keyBytes)
@@ -423,7 +423,7 @@ class Index extends DatabaseContainer
       return ConditionResult.UNDEFINED;
     }
 
-    ByteString value = read(txn, key, false);
+    ByteString value = txn.read(getName(), key);
     if (value != null)
     {
       EntryIDSet entryIDList = new EntryIDSet(key, value);
@@ -452,7 +452,7 @@ class Index extends DatabaseContainer
 
     try
     {
-      ByteString value = read(txn, key, false);
+      ByteString value = txn.read(getName(), key);
       if (value == null)
       {
         if(trusted)
@@ -512,7 +512,7 @@ class Index extends DatabaseContainer
 
       ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
 
-      Cursor cursor = txn.openCursor(treeName);
+      Cursor cursor = txn.openCursor(getName());
       try
       {
         boolean success;

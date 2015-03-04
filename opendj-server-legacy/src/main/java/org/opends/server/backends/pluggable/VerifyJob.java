@@ -388,7 +388,7 @@ class VerifyJob
    */
   private void iterateID2Entry(ReadableStorage txn) throws StorageRuntimeException
   {
-    Cursor cursor = id2entry.openCursor(txn);
+    Cursor cursor = txn.openCursor(id2entry.getName());
     try
     {
       long storedEntryCount = id2entry.getRecordCount(txn);
@@ -499,7 +499,7 @@ class VerifyJob
    */
   private void iterateDN2ID(ReadableStorage txn) throws StorageRuntimeException
   {
-    Cursor cursor = dn2id.openCursor(txn);
+    Cursor cursor = txn.openCursor(dn2id.getName());
     try
     {
       while (cursor.next())
@@ -529,7 +529,7 @@ class VerifyJob
         Entry entry;
         try
         {
-          entry = id2entry.get(txn, entryID, false);
+          entry = id2entry.get(txn, entryID);
         }
         catch (Exception e)
         {
@@ -570,7 +570,7 @@ class VerifyJob
    */
   private void iterateID2Children(ReadableStorage txn) throws StorageRuntimeException
   {
-    Cursor cursor = id2c.openCursor(txn);
+    Cursor cursor = txn.openCursor(id2c.getName());
     try
     {
       while (cursor.next())
@@ -623,7 +623,7 @@ class VerifyJob
           Entry entry;
           try
           {
-            entry = id2entry.get(txn, entryID, false);
+            entry = id2entry.get(txn, entryID);
           }
           catch (Exception e)
           {
@@ -647,7 +647,7 @@ class VerifyJob
             Entry childEntry;
             try
             {
-              childEntry = id2entry.get(txn, id, false);
+              childEntry = id2entry.get(txn, id);
             }
             catch (Exception e)
             {
@@ -696,7 +696,7 @@ class VerifyJob
    */
   private void iterateID2Subtree(ReadableStorage txn) throws StorageRuntimeException
   {
-    Cursor cursor = id2s.openCursor(txn);
+    Cursor cursor = txn.openCursor(id2s.getName());
     try
     {
       while (cursor.next())
@@ -748,7 +748,7 @@ class VerifyJob
           Entry entry;
           try
           {
-            entry = id2entry.get(txn, entryID, false);
+            entry = id2entry.get(txn, entryID);
           }
           catch (Exception e)
           {
@@ -772,7 +772,7 @@ class VerifyJob
             Entry subordEntry;
             try
             {
-              subordEntry = id2entry.get(txn, id, false);
+              subordEntry = id2entry.get(txn, id);
             }
             catch (Exception e)
             {
@@ -880,7 +880,7 @@ class VerifyJob
       return;
     }
 
-    Cursor cursor = vlvIndex.openCursor(txn);
+    Cursor cursor = txn.openCursor(vlvIndex.getName());
     try
     {
       SortValues lastValues = null;
@@ -929,7 +929,7 @@ class VerifyJob
             EntryID id = new EntryID(values.getEntryID());
             try
             {
-              entry = id2entry.get(txn, id, false);
+              entry = id2entry.get(txn, id);
             }
             catch (Exception e)
             {
@@ -984,7 +984,7 @@ class VerifyJob
       return;
     }
 
-    Cursor cursor = index.openCursor(txn);
+    Cursor cursor = txn.openCursor(index.getName());
     try
     {
       while (cursor.next())
@@ -1029,7 +1029,7 @@ class VerifyJob
             Entry entry;
             try
             {
-              entry = id2entry.get(txn, id, false);
+              entry = id2entry.get(txn, id);
             }
             catch (Exception e)
             {
@@ -1146,7 +1146,7 @@ class VerifyJob
     // Check the ID is in dn2id with the correct DN.
     try
     {
-      EntryID id = dn2id.get(txn, dn, false);
+      EntryID id = dn2id.get(txn, dn);
       if (id == null)
       {
         if (logger.isTraceEnabled())
@@ -1180,7 +1180,7 @@ class VerifyJob
     {
       try
       {
-        EntryID id = dn2id.get(txn, parentDN, false);
+        EntryID id = dn2id.get(txn, parentDN);
         if (id == null)
         {
           if (logger.isTraceEnabled())
@@ -1218,7 +1218,7 @@ class VerifyJob
       EntryID parentID = null;
       try
       {
-        parentID = dn2id.get(txn, parentDN, false);
+        parentID = dn2id.get(txn, parentDN);
         if (parentID == null)
         {
           if (logger.isTraceEnabled())
@@ -1282,7 +1282,7 @@ class VerifyJob
       EntryID id = null;
       try
       {
-        id = dn2id.get(txn, dn, false);
+        id = dn2id.get(txn, dn);
         if (id == null)
         {
           if (logger.isTraceEnabled())

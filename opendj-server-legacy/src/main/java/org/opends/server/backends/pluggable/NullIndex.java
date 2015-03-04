@@ -166,29 +166,6 @@ final class NullIndex extends Index
   }
 
   @Override
-  void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
-  {
-  }
-
-  @Override
-  ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
-  {
-    return null;
-  }
-
-  @Override
-  boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
-  {
-    return true;
-  }
-
-  @Override
-  boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
-  {
-    return true;
-  }
-
-  @Override
   long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
     return 0;

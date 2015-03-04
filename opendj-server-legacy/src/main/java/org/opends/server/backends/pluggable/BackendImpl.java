@@ -150,7 +150,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
     this.cfg = cfg;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
-    storage = configureStorage(cfg);
+    storage = new TracedStorage(configureStorage(cfg), cfg.getBackendId());
   }
 
   /** {@inheritDoc} */
@@ -969,8 +969,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws
-          UnsupportedOperationException {
+  public void preloadEntryCache() throws UnsupportedOperationException
+  {
     EntryCachePreloader preloader = new EntryCachePreloader(this);
     preloader.preload();
   }
