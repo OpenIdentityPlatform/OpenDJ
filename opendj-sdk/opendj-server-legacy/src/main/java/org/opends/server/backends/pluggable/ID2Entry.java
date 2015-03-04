@@ -333,7 +333,7 @@ class ID2Entry extends DatabaseContainer
     try
     {
       ByteString value = codec.encodeInternal(entry, dataConfig);
-      return insert(txn, key, value);
+      return txn.putIfAbsent(getName(), key, value);
     }
     finally
     {
@@ -359,7 +359,7 @@ class ID2Entry extends DatabaseContainer
     try
     {
       ByteString value = codec.encodeInternal(entry, dataConfig);
-      put(txn, key, value);
+      txn.create(getName(), key, value);
     }
     finally
     {
@@ -377,7 +377,7 @@ class ID2Entry extends DatabaseContainer
    */
   boolean remove(WriteableStorage txn, EntryID id) throws StorageRuntimeException
   {
-    return delete(txn, id.toByteString());
+    return txn.delete(getName(), id.toByteString());
   }
 
   /**
@@ -385,15 +385,23 @@ class ID2Entry extends DatabaseContainer
    *
    * @param txn The database transaction or null if none.
    * @param id The desired entry ID which forms the key.
-   * @param isRMW whether the read operation is part of a larger read-modify-write operation
    * @return The requested entry, or null if there is no such record.
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public Entry get(ReadableStorage txn, EntryID id, boolean isRMW)
+  public Entry get(ReadableStorage txn, EntryID id)
        throws DirectoryException, StorageRuntimeException
   {
-    ByteString value = read(txn, id.toByteString(), isRMW);
+    return get0(id, txn.read(getName(), id.toByteString()));
+  }
+
+  public Entry getRMW(ReadableStorage txn, EntryID id) throws DirectoryException, StorageRuntimeException
+  {
+    return get0(id, txn.getRMW(getName(), id.toByteString()));
+  }
+
+  private Entry get0(EntryID id, ByteString value) throws DirectoryException
+  {
     if (value == null)
     {
       return null;

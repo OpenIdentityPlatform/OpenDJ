@@ -178,19 +178,19 @@ class DN2URI extends DatabaseContainer
   {
     ByteString key = toKey(dn);
 
-    ByteString oldValue = read(txn, key, true);
+    ByteString oldValue = txn.getRMW(getName(), key);
     if (oldValue != null)
     {
       final Pair<DN, List<String>> dnAndUris = decode(oldValue);
       final Collection<String> newUris = dnAndUris.getSecond();
       if (newUris.addAll(labeledURIs))
       {
-        put(txn, key, encode(dn, newUris));
+        txn.create(getName(), key, encode(dn, newUris));
       }
     }
     else
     {
-      txn.putIfAbsent(treeName, key, encode(dn, labeledURIs));
+      txn.putIfAbsent(getName(), key, encode(dn, labeledURIs));
     }
     containsReferrals = ConditionResult.TRUE;
   }
@@ -209,7 +209,7 @@ class DN2URI extends DatabaseContainer
   {
     ByteString key = toKey(dn);
 
-    if (delete(txn, key))
+    if (txn.delete(getName(), key))
     {
       containsReferrals = containsReferrals(txn);
       return true;
@@ -231,14 +231,14 @@ class DN2URI extends DatabaseContainer
   {
     ByteString key = toKey(dn);
 
-    ByteString oldValue = read(txn, key, true);
+    ByteString oldValue = txn.getRMW(getName(), key);
     if (oldValue != null)
     {
       final Pair<DN, List<String>> dnAndUris = decode(oldValue);
       final Collection<String> oldUris = dnAndUris.getSecond();
       if (oldUris.removeAll(labeledURIs))
       {
-        put(txn, key, encode(dn, oldUris));
+        txn.create(getName(), key, encode(dn, oldUris));
         containsReferrals = containsReferrals(txn);
         return true;
       }
@@ -256,7 +256,7 @@ class DN2URI extends DatabaseContainer
    */
   private ConditionResult containsReferrals(ReadableStorage txn)
   {
-    Cursor cursor = txn.openCursor(treeName);
+    Cursor cursor = txn.openCursor(getName());
     try
     {
       return ConditionResult.valueOf(cursor.next());
@@ -529,7 +529,7 @@ class DN2URI extends DatabaseContainer
 
     try
     {
-      final Cursor cursor = txn.openCursor(treeName);
+      final Cursor cursor = txn.openCursor(getName());
       try
       {
         // Go up through the DIT hierarchy until we find a referral.
@@ -601,7 +601,7 @@ class DN2URI extends DatabaseContainer
 
     try
     {
-      final Cursor cursor = txn.openCursor(treeName);
+      final Cursor cursor = txn.openCursor(getName());
       try
       {
         // Initialize the cursor very close to the starting value then

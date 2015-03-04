@@ -747,7 +747,7 @@ public class EntryContainer
         @Override
         public Long run(ReadableStorage txn) throws Exception
         {
-          EntryID entryID = dn2id.get(txn, entryDN, false);
+          EntryID entryID = dn2id.get(txn, entryDN);
           if (entryID != null)
           {
             ByteString key = entryID.toByteString();
@@ -928,7 +928,7 @@ public class EntryContainer
             if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
             {
               // Read the ID from dn2id.
-              EntryID baseID = dn2id.get(txn, aBaseDN, false);
+              EntryID baseID = dn2id.get(txn, aBaseDN);
               if (baseID == null)
               {
                 LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN);
@@ -1313,7 +1313,7 @@ public class EntryContainer
       return cacheEntry;
     }
 
-    final Entry entry = id2entry.get(txn, entryID, false);
+    final Entry entry = id2entry.get(txn, entryID);
     if (entry != null)
     {
       // Put the entry in the cache making sure not to overwrite a newer copy
@@ -1518,7 +1518,7 @@ public class EntryContainer
           try
           {
             // Check whether the entry already exists.
-            if (dn2id.get(txn, entry.getName(), false) != null)
+            if (dn2id.get(txn, entry.getName()) != null)
             {
               throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry
                   .getName()));
@@ -1532,7 +1532,7 @@ public class EntryContainer
               dn2uri.targetEntryReferrals(txn, entry.getName(), null);
 
               // Read the parent ID from dn2id.
-              parentID = dn2id.get(txn, parentDN, false);
+              parentID = dn2id.get(txn, parentDN);
               if (parentID == null)
               {
                 LocalizableMessage message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(entry.getName());
@@ -1586,7 +1586,7 @@ public class EntryContainer
               for (DN dn = getParentWithinBase(parentDN); dn != null; dn = getParentWithinBase(dn))
               {
                 // Read the ID from dn2id.
-                EntryID nodeID = dn2id.get(txn, dn, false);
+                EntryID nodeID = dn2id.get(txn, dn);
                 if (nodeID == null)
                 {
                   throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(dn).toString());
@@ -1697,7 +1697,7 @@ public class EntryContainer
 
             int subordinateEntriesDeleted = 0;
 
-            Cursor cursor = dn2id.openCursor(txn);
+            Cursor cursor = txn.openCursor(dn2id.getName());
             try
             {
               // Step forward until we pass the ending value.
@@ -1722,7 +1722,7 @@ public class EntryContainer
                 // Invoke any subordinate delete plugins on the entry.
                 if (deleteOperation != null && !deleteOperation.isSynchronizationOperation())
                 {
-                  Entry subordinateEntry = id2entry.get(txn, entryID, false);
+                  Entry subordinateEntry = id2entry.get(txn, entryID);
                   SubordinateDelete pluginResult =
                       getPluginConfigManager().invokeSubordinateDeletePlugins(deleteOperation, subordinateEntry);
 
@@ -1825,7 +1825,7 @@ public class EntryContainer
       {
         leafDNKey = dnToDNKey(targetDN, baseDN.size());
       }
-      ByteString value = dn2id.read(txn, leafDNKey, true);
+      ByteString value = txn.getRMW(dn2id.getName(), leafDNKey);
       if (value == null)
       {
         LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(targetDN);
@@ -1836,7 +1836,7 @@ public class EntryContainer
     }
 
     // Remove from dn2id.
-    if (!dn2id.delete(txn, leafDNKey))
+    if (!txn.delete(dn2id.getName(), leafDNKey))
     {
       // Do not expect to ever come through here.
       LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
@@ -1845,7 +1845,7 @@ public class EntryContainer
     }
 
     // Check that the entry exists in id2entry and read its contents.
-    Entry entry = id2entry.get(txn, leafID, true);
+    Entry entry = id2entry.getRMW(txn, leafID);
     if (entry == null)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1881,7 +1881,7 @@ public class EntryContainer
     parentDN = getParentWithinBase(parentDN))
     {
       // Read the ID from dn2id.
-      EntryID parentID = dn2id.get(txn, parentDN, false);
+      EntryID parentID = dn2id.get(txn, parentDN);
       if (parentID == null)
       {
         throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN).toString());
@@ -1932,7 +1932,7 @@ public class EntryContainer
         @Override
         public Boolean run(ReadableStorage txn) throws Exception
         {
-          EntryID id = dn2id.get(null, entryDN, false);
+          EntryID id = dn2id.get(null, entryDN);
         return id != null;
         }
       });
@@ -1995,7 +1995,7 @@ public class EntryContainer
     try
     {
       // Read dn2id.
-      EntryID entryID = dn2id.get(txn, entryDN, false);
+      EntryID entryID = dn2id.get(txn, entryDN);
       if (entryID == null)
       {
         // The entryDN does not exist.
@@ -2005,7 +2005,7 @@ public class EntryContainer
       }
 
       // Read id2entry.
-      final Entry entry = id2entry.get(txn, entryID, false);
+      final Entry entry = id2entry.get(txn, entryID);
       if (entry == null)
       {
         // The entryID does not exist.
@@ -2055,7 +2055,7 @@ public class EntryContainer
           try
           {
             // Read dn2id.
-            EntryID entryID = dn2id.get(txn, newEntry.getName(), true);
+            EntryID entryID = dn2id.getRMW(txn, newEntry.getName());
             if (entryID == null)
             {
               // The entry does not exist.
@@ -2201,13 +2201,13 @@ public class EntryContainer
           try
           {
             // Check whether the renamed entry already exists.
-            if (!currentDN.equals(entry.getName()) && dn2id.get(txn, entry.getName(), false) != null)
+            if (!currentDN.equals(entry.getName()) && dn2id.get(txn, entry.getName()) != null)
             {
               LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(entry.getName());
               throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
             }
 
-            EntryID oldApexID = dn2id.get(txn, currentDN, false);
+            EntryID oldApexID = dn2id.get(txn, currentDN);
             if (oldApexID == null)
             {
               // Check for referral entries above the target entry.
@@ -2218,7 +2218,7 @@ public class EntryContainer
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
             }
 
-            Entry oldApexEntry = id2entry.get(txn, oldApexID, false);
+            Entry oldApexEntry = id2entry.get(txn, oldApexID);
             if (oldApexEntry == null)
             {
               throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD
@@ -2238,7 +2238,7 @@ public class EntryContainer
                * greater than its parent, since search results are returned in
                * ID order.
                */
-              EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN, false);
+              EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN);
               if (newSuperiorID == null)
               {
                 LocalizableMessage msg = ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN);
@@ -2297,7 +2297,7 @@ public class EntryContainer
               {
                 // We have found a subordinate entry.
                 EntryID oldID = new EntryID(cursor.getValue());
-                Entry oldEntry = id2entry.get(txn, oldID, false);
+                Entry oldEntry = id2entry.get(txn, oldID);
 
                 // Construct the new DN of the entry.
                 DN newDN = modDN(oldEntry.getName(), currentDN.size(), entry.getName());
@@ -2429,7 +2429,7 @@ public class EntryContainer
       for (DN dn = getParentWithinBase(newEntry.getName()); dn != null;
            dn = getParentWithinBase(dn))
       {
-        EntryID parentID = dn2id.get(txn, dn, false);
+        EntryID parentID = dn2id.get(txn, dn);
         ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
@@ -2474,7 +2474,7 @@ public class EntryContainer
       boolean isParent = true;
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
-        EntryID parentID = dn2id.get(txn, dn, false);
+        EntryID parentID = dn2id.get(txn, dn);
         ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
@@ -2580,7 +2580,7 @@ public class EntryContainer
       // Remove the old ID from id2subtree of old apex superior entries.
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
-        EntryID parentID = dn2id.get(txn, dn, false);
+        EntryID parentID = dn2id.get(txn, dn);
         ByteString parentIDKeyBytes = parentID.toByteString();
         id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
       }
@@ -2726,7 +2726,7 @@ public class EntryContainer
    */
   long getEntryCount(ReadableStorage txn) throws StorageRuntimeException
   {
-    final EntryID entryID = dn2id.get(txn, baseDN, false);
+    final EntryID entryID = dn2id.get(txn, baseDN);
     if (entryID != null)
     {
       final EntryIDSet entryIDSet = id2subtree.readKey(entryID.toByteString(), txn);
@@ -2893,6 +2893,7 @@ public class EntryContainer
 
     try
     {
+      // Rename in transaction.
       storage.write(new WriteOperation()
       {
         @Override
@@ -2906,19 +2907,13 @@ public class EntryContainer
           }
         }
       });
-      storage.write(new WriteOperation()
+      // Only rename the containers if the txn succeeded.
+      for (DatabaseContainer db : databases)
       {
-        @Override
-        public void run(WriteableStorage txn) throws Exception
-        {
-          for (DatabaseContainer db : databases)
-          {
-            TreeName oldName = db.getName();
-            TreeName newName = oldName.replaceBaseDN(newBaseDN);
-            db.setName(newName);
-          }
-        }
-      });
+        TreeName oldName = db.getName();
+        TreeName newName = oldName.replaceBaseDN(newBaseDN);
+        db.setName(newName);
+      }
     }
     catch (Exception e)
     {

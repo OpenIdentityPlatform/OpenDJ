@@ -145,7 +145,7 @@ class VLVIndex extends DatabaseContainer
     catch(Exception e)
     {
       LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-          config.getFilter(), treeName, stackTraceToSingleLineString(e));
+          config.getFilter(), getName(), stackTraceToSingleLineString(e));
       throw new ConfigException(msg);
     }
 
@@ -190,7 +190,7 @@ class VLVIndex extends DatabaseContainer
       catch (Exception e)
       {
         throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-            sortKeys[i], treeName));
+            sortKeys[i], getName()));
       }
 
       AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]
@@ -198,7 +198,7 @@ class VLVIndex extends DatabaseContainer
       if (attrType == null)
       {
         LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-            sortAttrs[i], treeName);
+            sortAttrs[i], getName());
         throw new ConfigException(msg);
       }
       sortKeys[i] = new SortKey(attrType, ascending);
@@ -225,7 +225,7 @@ class VLVIndex extends DatabaseContainer
   {
     super.open(txn);
 
-    final Cursor cursor = txn.openCursor(treeName);
+    final Cursor cursor = txn.openCursor(getName());
     try
     {
       while (cursor.next())
@@ -408,7 +408,7 @@ class VLVIndex extends DatabaseContainer
 
   private SortValuesSet getSortValuesSet(ReadableStorage txn, ByteString key, boolean isRMW)
   {
-    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName, key);
+    ByteString value = isRMW ? txn.getRMW(getName(), key) : txn.read(getName(), key);
     if (value == null)
     {
       // There are no records in the database
@@ -583,8 +583,8 @@ class VLVIndex extends DatabaseContainer
       if(newSize >= sortedSetCapacity)
       {
         SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-        put(txn, splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
-        put(txn, sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after
+        txn.create(getName(), splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
+        txn.create(getName(), sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after
 
         if(logger.isTraceEnabled())
         {
@@ -597,12 +597,12 @@ class VLVIndex extends DatabaseContainer
       }
       else if(newSize == 0)
       {
-        delete(txn, key);
+        txn.delete(getName(), key);
       }
       else
       {
         ByteString after = sortValuesSet.toByteString();
-        put(txn, key, after);
+        txn.create(getName(), key, after);
       }
 
       count.getAndAdd(newSize - oldSize);
@@ -656,7 +656,7 @@ class VLVIndex extends DatabaseContainer
     {
       debugBuilder.append("vlv=");
       debugBuilder.append("[INDEX:");
-      debugBuilder.append(treeName.getIndexId());
+      debugBuilder.append(getName().getIndexId());
       debugBuilder.append("]");
     }
 
@@ -715,7 +715,7 @@ class VLVIndex extends DatabaseContainer
         int count = 1 + beforeCount + afterCount;
         selectedIDs = new long[count];
 
-        Cursor cursor = txn.openCursor(treeName);
+        Cursor cursor = txn.openCursor(getName());
         try
         {
           //Locate the set that contains the target entry.
@@ -769,7 +769,7 @@ class VLVIndex extends DatabaseContainer
         int includedAfterCount  = 0;
         LinkedList<EntryID> idList = new LinkedList<EntryID>();
 
-        Cursor cursor = openCursor(txn);
+        Cursor cursor = txn.openCursor(getName());
         try
         {
           ByteSequence vBytes = vlvRequest.getGreaterThanOrEqualAssertion();
@@ -884,7 +884,7 @@ class VLVIndex extends DatabaseContainer
       LinkedList<long[]> idSets = new LinkedList<long[]>();
       int currentCount = 0;
 
-      Cursor cursor = openCursor(txn);
+      Cursor cursor = txn.openCursor(getName());
       try
       {
         while (cursor.next())
@@ -1124,7 +1124,7 @@ class VLVIndex extends DatabaseContainer
     catch(Exception e)
     {
       LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-              cfg.getFilter(), treeName,
+              cfg.getFilter(), getName(),
               stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
       return false;
@@ -1207,7 +1207,7 @@ class VLVIndex extends DatabaseContainer
       catch(Exception e)
       {
         ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-            config.getFilter(), treeName, stackTraceToSingleLineString(e)));
+            config.getFilter(), getName(), stackTraceToSingleLineString(e)));
         ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
       }
     }
@@ -1224,24 +1224,6 @@ class VLVIndex extends DatabaseContainer
         ccr.addMessage(e.getMessageObject());
         ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
       }
-
-      // We have to close the database and open it using the new comparator.
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        close();
-        open(txn);
-      }
-      catch (StorageRuntimeException de)
-      {
-        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-
       ccr.setAdminActionRequired(true);
     }
 
@@ -1249,7 +1231,7 @@ class VLVIndex extends DatabaseContainer
     if (ccr.adminActionRequired())
     {
       trusted = false;
-      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(treeName));
+      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
       try
       {
         state.putIndexTrustState(txn, this, false);

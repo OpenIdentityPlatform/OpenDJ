@@ -1240,7 +1240,7 @@ final class Importer implements DiskSpaceMonitorHandler
         if (entryContainer != null && !suffix.getExcludeBranches().isEmpty())
         {
           logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
-          Cursor cursor = entryContainer.getDN2ID().openCursor(txn);
+          Cursor cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
             for (DN excludedDN : suffix.getExcludeBranches())
@@ -1260,7 +1260,7 @@ final class Importer implements DiskSpaceMonitorHandler
                     && !importConfiguration.isCancelled() && !isCanceled)
                 {
                   EntryID id = new EntryID(cursor.getValue());
-                  Entry entry = entryContainer.getID2Entry().get(txn, id, false);
+                  Entry entry = entryContainer.getID2Entry().get(txn, id);
                   processEntry(entry, rootContainer.getNextEntryID(), suffix);
                   migratedCount++;
                   success = cursor.next();
@@ -1303,7 +1303,7 @@ final class Importer implements DiskSpaceMonitorHandler
         if (entryContainer != null && !suffix.getIncludeBranches().isEmpty())
         {
           logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
-          Cursor cursor = entryContainer.getDN2ID().openCursor(txn);
+          Cursor cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
             final List<ByteString> includeBranches = includeBranchesAsBytes(suffix);
@@ -1315,7 +1315,7 @@ final class Importer implements DiskSpaceMonitorHandler
               if (!includeBranches.contains(key))
               {
                 EntryID id = new EntryID(key);
-                Entry entry = entryContainer.getID2Entry().get(txn, id, false);
+                Entry entry = entryContainer.getID2Entry().get(txn, id);
                 processEntry(entry, rootContainer.getNextEntryID(), suffix);
                 migratedCount++;
                 success = cursor.next();
@@ -1426,10 +1426,10 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       DN entryDN = entry.getName();
       DN2ID dn2id = suffix.getDN2ID();
-      EntryID oldID = dn2id.get(txn, entryDN, false);
+      EntryID oldID = dn2id.get(txn, entryDN);
       if (oldID != null)
       {
-        oldEntry = suffix.getID2Entry().get(txn, oldID, false);
+        oldEntry = suffix.getID2Entry().get(txn, oldID);
       }
       if (oldEntry == null)
       {
@@ -1574,7 +1574,7 @@ final class Importer implements DiskSpaceMonitorHandler
       //the suffixes dn2id DB, then the dn cache is used.
       if (!clearedBackend)
       {
-        EntryID id = suffix.getDN2ID().get(txn, entryDN, false);
+        EntryID id = suffix.getDN2ID().get(txn, entryDN);
         if (id != null || !tmpEnv.insert(entryDN))
         {
           reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
@@ -2208,7 +2208,7 @@ final class Importer implements DiskSpaceMonitorHandler
           if (parentDN != null)
           {
             ByteString key = toByteString(parentDN);
-            ByteString value = entryContainer.getDN2ID().read(txn, key, false);
+            ByteString value = txn.read(entryContainer.getDN2ID().getName(), key);
             if (value != null)
             {
               parentID = new EntryID(value);
@@ -2302,7 +2302,7 @@ final class Importer implements DiskSpaceMonitorHandler
           return parentIDMap.get(dn);
         }
         ByteString key = toByteString(dn);
-        ByteString value = entryContainer.getDN2ID().read(txn, key, false);
+        ByteString value = txn.read(entryContainer.getDN2ID().getName(), key);
         return value != null ? new EntryID(value) : null;
       }
 
@@ -2361,7 +2361,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       public void writeToDB() throws DirectoryException
       {
-        entryContainer.getDN2ID().put(txn, dnKey, dnValue);
+        txn.create(entryContainer.getDN2ID().getName(), dnKey, dnValue);
         indexMgr.addTotDNCount(1);
         if (parentDN != null)
         {
@@ -3001,7 +3001,7 @@ final class Importer implements DiskSpaceMonitorHandler
     public Void call() throws Exception
     {
       ID2Entry id2entry = entryContainer.getID2Entry();
-      Cursor cursor = id2entry.openCursor(txn);
+      Cursor cursor = txn.openCursor(id2entry.getName());
       try
       {
         while (cursor.next())
