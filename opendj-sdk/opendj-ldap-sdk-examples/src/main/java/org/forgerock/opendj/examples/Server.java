@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -50,7 +50,6 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
  * An LDAP directory server which exposes data contained in an LDIF file. This
  * is implementation is very simple and is only intended as an example:
  * <ul>
- * <li>It does not support SSL connections
  * <li>It does not support StartTLS
  * <li>It does not support Abandon or Cancel requests
  * <li>Very basic authentication and authorization support.
@@ -58,7 +57,7 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;listenAddress> &lt;listenPort> [&lt;ldifFile>]
+ *  &lt;listenAddress> &lt;listenPort> &lt;ldifFile> [&lt;keyStoreFile> &lt;keyStorePassword> &lt;certNickname>]
  * </pre>
  */
 public final class Server {
@@ -67,8 +66,8 @@ public final class Server {
      * Main method.
      *
      * @param args
-     *            The command line arguments: listen address, listen port,
-     *            ldifFile
+     *            The command line arguments: listen address, listen port, ldifFile,
+     *            and optionally: key store, key store password and certificate nick name
      */
     public static void main(final String[] args) {
         if (args.length != 3 && args.length != 6) {
