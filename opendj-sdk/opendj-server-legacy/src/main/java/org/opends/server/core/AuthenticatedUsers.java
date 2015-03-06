@@ -230,11 +230,12 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
   @Override
   public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
-    if (op.getResultCode() != ResultCode.SUCCESS) {
+    final Entry oldEntry = op.getCurrentEntry();
+
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null) {
       return PostResponse.continueOperationProcessing();
     }
 
-    final Entry oldEntry = op.getCurrentEntry();
     final Entry newEntry = op.getModifiedEntry();
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
@@ -262,14 +263,15 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
   @Override
   public PostResponse doPostResponse(PostResponseModifyDNOperation op)
   {
-    if (op.getResultCode() != ResultCode.SUCCESS) {
+    final Entry oldEntry = op.getOriginalEntry();
+    final Entry newEntry = op.getUpdatedEntry();
+
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null || newEntry == null) {
       return PostResponse.continueOperationProcessing();
     }
 
-    Entry oldEntry = op.getOriginalEntry();
-    Entry newEntry = op.getUpdatedEntry();
-    DN oldDN = oldEntry.getName();
-    DN newDN = newEntry.getName();
+    final DN oldDN = oldEntry.getName();
+    final DN newDN = newEntry.getName();
 
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
@@ -277,7 +279,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      Set<CopyOnWriteArraySet<ClientConnection>> arraySet =
+      final Set<CopyOnWriteArraySet<ClientConnection>> arraySet =
         new HashSet<CopyOnWriteArraySet<ClientConnection>>();
       userMap.removeSubtree(oldEntry.getName(), arraySet);
       for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
@@ -316,8 +318,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
               logger.traceException(e);
             }
           }
-          if (newAuthNDN != null && authNDN != null &&
-               authNDN.isDescendantOf(oldEntry.getName()))
+          if (newAuthNDN != null && authNDN != null && authNDN.isDescendantOf(oldEntry.getName()))
           {
             if (newAuthNSet == null)
             {
@@ -326,8 +327,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
             conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
             newAuthNSet.add(conn);
           }
-          if (newAuthZDN != null && authZDN != null &&
-               authZDN.isDescendantOf(oldEntry.getName()))
+          if (newAuthZDN != null && authZDN != null && authZDN.isDescendantOf(oldEntry.getName()))
           {
             if (newAuthZSet == null)
             {
