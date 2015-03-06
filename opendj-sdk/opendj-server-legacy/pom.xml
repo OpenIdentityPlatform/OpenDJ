@@ -38,7 +38,7 @@
   <packaging>jar</packaging>
   <name>OpenDJ</name>
   <description>
-    This module provides the OpenDJ server.  
+    This module provides the OpenDJ server.
   </description>
   <inceptionYear>2006</inceptionYear>
 
@@ -398,8 +398,7 @@
           </execution>
         </executions>
       </plugin>
-      
-      
+
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
@@ -435,8 +434,7 @@
           </execution>
 
           <!-- Generate configuration classes from XML definitions -->
-          <!-- Leave default lifecycle phase once new config framework migration 
-            is done -->
+          <!-- Leave default lifecycle phase once new config framework migration is done -->
           <execution>
             <id>generate-config</id>
             <phase>generate-sources</phase>
@@ -449,7 +447,7 @@
               <isExtension>false</isExtension>
             </configuration>
           </execution>
-          
+
           <!-- Create consolidated schema file for use in upgrade -->
           <execution>
             <id>creates-base-schema-files</id>
@@ -462,7 +460,7 @@
               <outputFile>schema.ldif.${buildRevision}</outputFile>
             </configuration>
           </execution>
-          
+
           <!-- Generates log references for documentation -->
           <execution>
             <goals>
@@ -473,8 +471,7 @@
               <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
               <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
               <messageFileNames>
-                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml 
-                  file -->
+                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
                 <messageFileName>admin</messageFileName>
                 <messageFileName>backend</messageFileName>
                 <messageFileName>config</messageFileName>
@@ -491,8 +488,7 @@
                 <messageFileName>tool</messageFileName>
                 <messageFileName>utility</messageFileName>
 
-                <!-- Ignore following message files as we document only serious 
-                  errors. -->
+                <!-- Ignore following message files as we document only serious errors. -->
                 <!-- <messageFileName>access_control</messageFileName> -->
                 <!-- <messageFileName>admin_tool</messageFileName> -->
                 <!-- <messageFileName>quicksetup.properties</messageFileName> -->
@@ -527,8 +523,7 @@
               </sources>
             </configuration>
           </execution>
-          <!-- Parse version to generate properties (major.version, minor.version, 
-            ...) -->
+          <!-- Parse version to generate properties (major.version, minor.version, ...) -->
           <execution>
             <id>parse-version</id>
             <goals>
@@ -594,8 +589,7 @@
         </executions>
       </plugin>
 
-      <!-- Disable surefire plugin because all tests are run with failsafe 
-        plugin -->
+      <!-- Disable surefire plugin because all tests are run with failsafe plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -610,8 +604,7 @@
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
-          <!-- Package boostrap jar - contains only a manifest with classpath 
-            for the server -->
+          <!-- Package boostrap jar - contains only a manifest with classpath for the server -->
           <execution>
             <id>build-bootstrap-jar</id>
             <phase>prepare-package</phase>
@@ -630,8 +623,7 @@
               </archive>
             </configuration>
           </execution>
-          <!-- Package boostrap-client jar - contains only a manifest with 
-            classpath for clients -->
+          <!-- Package boostrap-client jar - contains only a manifest with classpath for clients -->
           <execution>
             <id>build-bootstrap-client-jar</id>
             <phase>prepare-package</phase>
@@ -994,8 +986,7 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <!-- Temporary solution for configuration classes until migration 
-              to new config framework -->
+            <!-- Temporary solution for configuration classes until migration to new config framework -->
             <id>generate-config</id>
             <phase>generate-sources</phase>
             <configuration>
@@ -1009,7 +1000,7 @@
               <goal>run</goal>
             </goals>
           </execution>
-          
+
           <execution>
             <!-- Copy config.ldif in build dir (needed if snmp config merge is needed) -->
             <id>copy-config-ldif</id>
@@ -1023,7 +1014,7 @@
               <goal>run</goal>
             </goals>
           </execution>
-          
+
           <!-- Generate final zip and attach artefact -->
           <execution>
             <id>attach-artifact</id>
@@ -1133,8 +1124,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
-          <!-- Required for release:perform: the parent pom specifies a value 
-            for "arguments" in the plugin configuration. This prevents command line setting 
+          <!-- Required for release:perform: the parent pom specifies a value
+            for "arguments" in the plugin configuration. This prevents command line setting
             of the option. -->
           <arguments>-Penforce -Dopendmk.lib.dir=${opendmk.lib.dir}</arguments>
         </configuration>
@@ -1181,12 +1172,11 @@
   </reporting>
 
   <profiles>
-    <!-- 
+    <!--
        Profile to run precommit tasks: checkstyle, copyright (TODO), SVN eol check (TODO),
        unit-tests
-       
+
        Tests are not run by default due to running time (average of 8-10 minutes).
-     
     -->
     <profile>
       <id>precommit</id>
@@ -1246,18 +1236,17 @@
               </execution>
             </executions>
          </plugin>
-        
-          <!-- 
+
+          <!--
              Run unit/integration tests.
-             
+
              A lot of existing tests requires a running server, which is why the tests are
              run using failsafe instead of surefire.
-             
-             It should be possible in the future to separate tests into unit (no server) and 
-             integration (with server), by using respectively surefire and failsafe plugin 
-             to run them, but it will require identifying them. 
+
+             It should be possible in the future to separate tests into unit (no server) and
+             integration (with server), by using respectively surefire and failsafe plugin
+             to run them, but it will require identifying them.
              We could use an "unit" marker in TestNG groups to do so.
-          
           -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -1319,12 +1308,12 @@
       </build>
     </profile>
 
-    <!-- 
-      Profile to build SNMP extension. 
-      
-      This profile is only actived when command line contains the 'opendmk.lib.dir' 
-      property that must point to the directory where OpenDMK jars are located. 
-      Example: mvn install -Dopendmk.lib.dir=/path/to/opendmk/jars 
+    <!--
+      Profile to build SNMP extension.
+
+      This profile is only actived when command line contains the 'opendmk.lib.dir'
+      property that must point to the directory where OpenDMK jars are located.
+      Example: mvn install -Dopendmk.lib.dir=/path/to/opendmk/jars
     -->
     <profile>
       <id>snmp</id>
@@ -1369,8 +1358,7 @@
             <artifactId>build-helper-maven-plugin</artifactId>
             <version>1.7</version>
             <executions>
-              <!-- Add snmp source directory and snmp generated directory 
-                as sources -->
+              <!-- Add snmp source directory and snmp generated directory as sources -->
               <execution>
                 <id>snmp-java-sources</id>
                 <phase>generate-sources</phase>
@@ -1421,7 +1409,7 @@
               </execution>
             </executions>
           </plugin>
-          
+
           <!-- MIB generation -->
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -1488,7 +1476,7 @@
               </execution>
             </executions>
           </plugin>
-          
+
           <!-- Package the final zip -->
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
