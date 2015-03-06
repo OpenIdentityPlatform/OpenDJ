@@ -75,9 +75,14 @@
     <!-- Dependencies version properties -->
     <project.version>3.0.0-SNAPSHOT</project.version>
     <i18n.version>1.4.2-SNAPSHOT</i18n.version>
- 
+
+    <!-- RPM package properties -->
+    <rpm.prefix>/opt/${lowerCaseProductName}</rpm.prefix>
+    <rpm.release>1</rpm.release>
+
     <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+    <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
 
   </properties>
 
@@ -1509,6 +1514,217 @@
       </build>
     </profile>
 
+    <!-- Build the RPM package -->
+    <profile>
+      <id>package-rpm</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <version>2.0.1</version>
+            <executions>
+              <execution>
+                  <id>generate-rpm-package</id>
+                  <phase>verify</phase>
+                  <goals>
+                      <goal>rpm</goal>
+                  </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <summary>${shortProductName}</summary>
+              <name>${lowerCaseProductName}</name>
+              <version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</version>
+              <release>${rpm.release}.${maven.build.timestamp}</release>
+              <prefix>${rpm.prefix}</prefix>
+              <license>CDDL</license>
+              <group>Productivity/Networking/LDAP/Servers</group>
+              <url>${docHomepageUrl}</url>
+              <needarch>noarch</needarch>
+              <targetOS>linux</targetOS>
+
+              <defineStatements>
+                <defineStatement>arch noarch</defineStatement>
+                <defineStatement>_prefix ${rpm.prefix}</defineStatement>
+                <defineStatement>_pre ${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</defineStatement>
+                <defineStatement>__os_install_post %{nil}</defineStatement>
+              </defineStatements>
+
+              <mappings>
+                <!-- Add directories -->
+                <mapping>
+                  <directory>${rpm.prefix}</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/bin</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/lib</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/lib/extensions</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/snmp</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/snmp/mib</directory>
+                </mapping>
+
+                <!-- Add service script -->
+                <mapping>
+                  <directory>/etc/init.d</directory>
+                  <directoryIncluded>false</directoryIncluded>
+                  <filemode>755</filemode>
+                  <sources>
+                    <source>
+                      <location>${basedir}/resource/sysv/opendj</location>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add documentation sources -->
+                <mapping>
+                  <documentation>true</documentation>
+                  <directory>/usr/share/doc/${lowerCaseProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
+                      <excludes>
+                        <exclude>**/template/**</exclude>
+                        <exclude>**/legals/**</exclude>
+                        <exclude>**/snmp/**</exclude>
+                        <exclude>**/legal-notices/**</exclude>
+                      </excludes>
+                      <includes>
+                        <include>**/*.doc</include>
+                        <include>**/*.txt</include>
+                        <include>**/*example-plugin*</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add legal notices documentation sources under doc main folder -->
+                <mapping>
+                  <documentation>true</documentation>
+                  <directory>/usr/share/doc/${lowerCaseProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}/legal-notices</location>
+                      <includes>
+                        <include>**/*.doc</include>
+                        <include>**/*.txt</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add executables scripts and librairies -->
+                <mapping>
+                  <directory>${rpm.prefix}</directory>
+                  <filemode>755</filemode>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
+                      <includes>
+                        <include>bin/**</include>
+                        <include>lib/*.sh</include>
+                        <include>setup</include>
+                        <include>uninstall</include>
+                        <include>upgrade</include>
+                      </includes>
+                      <excludes>
+                        <exclude>**/*.exe</exclude>
+                        <exclude>**/*bat</exclude>
+                        <exclude>**/*.app/**</exclude>
+                        <exclude>**/*.app</exclude>
+                      </excludes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add other files to the rpm -->
+                <mapping>
+                  <directory>${rpm.prefix}</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
+                      <excludes>
+                        <exclude>template/**</exclude>
+                        <exclude>bin/**</exclude>
+                        <exclude>lib/*.sh</exclude>
+                        <exclude>setup</exclude>
+                        <exclude>uninstall</exclude>
+                        <exclude>upgrade</exclude>
+                        <exclude>**/*.exe</exclude>
+                        <exclude>**/*bat</exclude>
+                        <exclude>**/readme</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.app/**</exclude>
+                        <exclude>**/*.app</exclude>
+                        <exclude>**/legal-notices</exclude>
+                        <exclude>**/*.doc</exclude>
+                        <exclude>**/*.txt</exclude>
+                        <exclude>**/*example-plugin*</exclude>
+                      </excludes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add files excluded in documentation mapping -->
+                <mapping>
+                  <directory>${rpm.prefix}</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
+                      <includes>
+                        <include>**/legals/**/*.doc</include>
+                        <include>**/legals/**/*.txt</include>
+                        <include>**/snmp/**/*.doc</include>
+                        <include>**/snmp/**/*.txt</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add template dir -->
+                <mapping>
+                  <directory>${rpm.prefix}/template</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/package/${lowerCaseProductName}/template</location>
+                    </source>
+                  </sources>
+                </mapping>
+              </mappings>
+              <preinstallScriptlet>
+                  <scriptFile>${basedir}/resource/rpm/specs/preinstall.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+              </preinstallScriptlet>
+              <postinstallScriptlet>
+                  <scriptFile>${basedir}/resource/rpm/specs/postinstall.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+              </postinstallScriptlet>
+              <preremoveScriptlet>
+                  <scriptFile>${basedir}/resource/rpm/specs/preuninstall.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+              </preremoveScriptlet>
+              <postremoveScriptlet>
+                  <scriptFile>${basedir}/resource/rpm/specs/postuninstall.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+              </postremoveScriptlet>
+              <cleanScriptlet>
+                  <scriptFile>${basedir}/resource/rpm/specs/clean.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+              </cleanScriptlet>
+              <changelogFile>${basedir}/resource/rpm/changelog</changelogFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
