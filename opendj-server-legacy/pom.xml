@@ -1591,32 +1591,16 @@
                   <sources>
                     <source>
                       <location>${project.build.directory}/package/${lowerCaseProductName}</location>
-                      <excludes>
-                        <exclude>**/template/**</exclude>
-                        <exclude>**/legals/**</exclude>
-                        <exclude>**/snmp/**</exclude>
-                        <exclude>**/legal-notices/**</exclude>
-                      </excludes>
                       <includes>
                         <include>**/*.doc</include>
                         <include>**/*.txt</include>
                         <include>**/*example-plugin*</include>
                       </includes>
-                    </source>
-                  </sources>
-                </mapping>
-
-                <!-- Add legal notices documentation sources under doc main folder -->
-                <mapping>
-                  <documentation>true</documentation>
-                  <directory>/usr/share/doc/${lowerCaseProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</directory>
-                  <sources>
-                    <source>
-                      <location>${project.build.directory}/package/${lowerCaseProductName}/legal-notices</location>
-                      <includes>
-                        <include>**/*.doc</include>
-                        <include>**/*.txt</include>
-                      </includes>
+                      <excludes>
+                        <exclude>**/template/**</exclude>
+                        <exclude>**/legals/**</exclude>
+                        <exclude>**/snmp/**</exclude>
+                      </excludes>
                     </source>
                   </sources>
                 </mapping>
