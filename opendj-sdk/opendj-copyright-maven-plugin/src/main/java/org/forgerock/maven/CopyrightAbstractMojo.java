@@ -44,6 +44,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFile;
 import org.apache.maven.scm.ScmFileSet;
+import org.apache.maven.scm.ScmFileStatus;
 import org.apache.maven.scm.command.status.StatusScmResult;
 import org.apache.maven.scm.manager.BasicScmManager;
 import org.apache.maven.scm.manager.NoSuchScmProviderException;
@@ -167,7 +168,9 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             List<ScmFile> scmFiles = statusResult.getChangedFiles();
             List<String> changedFilePaths = new LinkedList<String>();
             for (ScmFile scmFile : scmFiles) {
-                changedFilePaths.add(scmFile.getPath());
+                if (scmFile.getStatus() != ScmFileStatus.UNKNOWN) {
+                    changedFilePaths.add(scmFile.getPath());
+                }
             }
 
             return changedFilePaths;
