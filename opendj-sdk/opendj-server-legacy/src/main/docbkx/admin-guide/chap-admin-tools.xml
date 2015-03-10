@@ -291,6 +291,12 @@
      useful when you have many <command>dsconfig</command> commands to run
      and want to avoid starting the JVM and setting up a new connection for
      each command.</para>
+
+     <para>
+      Alternatively, you can read commands from standard input
+      by using the <option>--batch</option> option.
+     </para>
+
      <para>In addition to the <link xlink:href="reference#dsconfig-1"
      xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
      that covers subcommands, the <link xlink:show="new"

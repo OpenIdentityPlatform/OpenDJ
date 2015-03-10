@@ -70,6 +70,17 @@
 
     <listitem>
      <para>
+      The <command>dsconfig</command> command now supports
+      a <option>--batch</option> option for reading subcommands from standard input
+      (<link
+        xlink:show="new"
+        xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1840"
+      >OPENDJ-1840</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
       OpenDJ directory server now requires a privilege,
       <literal>changelog-read</literal> to read and search entries
       under <literal>cn=changelog</literal>
