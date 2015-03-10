@@ -74,8 +74,8 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
             if (!ignoreCopyrightErrors) {
                 getLog().warn("Fix copyright date problems before proceeding, "
                                 + "or use '-DignoreCopyrightErrors=true' to ignore copyright errors.");
-                getLog().warn("You can use update-copyrights profile (mvn -Pprecommit -Pupdate-copyrights) "
-                        + "to automatically update copyrights.");
+                getLog().warn("You can use update-copyrights maven profile "
+                        + "(mvn clean install -Pprecommit -Pupdate-copyrights) to automatically update copyrights.");
                 throw new MojoExecutionException("Found files with potential copyright year updates needed");
             }
         } else {
