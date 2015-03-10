@@ -732,9 +732,48 @@ unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip &amp;&
     with <command>dsconfig</command> commands to configure the server.
     To run a series of configuration commands as a batch
     using the <command>dsconfig</command> command,
-    use the <option>--batchFilePath <replaceable>file</replaceable></option> option,
-    where <replaceable>file</replaceable> contains the configuration commands.
+    use either
+    the <option>--batchFilePath <replaceable>file</replaceable></option> option,
+    where <replaceable>file</replaceable> contains the configuration commands,
+    or the <option>--batch</option> option to read from standard input
+    as in the following example that creates a backend and sets up indexes.
    </para>
+
+   <screen>
+<userinput>/path/to/opendj/bin/dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --no-prompt \
+ --trustAll \
+ --batch &lt;&lt;END_OF_COMMAND_INPUT
+ create-backend        --backend-name newBackend \
+                       --type persistit \
+                       --set base-dn:"dc=example,dc=org" \
+                       --set db-cache-percent:20 \
+                       --set enabled:true
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name cn
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name sn
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --index-name uid
+ create-backend-index  --backend-name newBackend \
+                       --type generic \
+                       --set index-type:equality \
+                       --set index-type:substring \
+                       --index-name mail
+END_OF_COMMAND_INPUT</userinput>
+   </screen>
   </step>
 
   <step>
