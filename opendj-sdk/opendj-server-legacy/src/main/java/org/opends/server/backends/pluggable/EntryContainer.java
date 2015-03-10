@@ -64,6 +64,7 @@ import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
 import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -817,8 +818,8 @@ public class EntryContainer
             searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
             return null;
           }
-          VLVRequestControl vlvRequest = searchOperation.getRequestControl(VLVRequestControl.DECODER);
 
+          VLVRequestControl vlvRequest = searchOperation.getRequestControl(VLVRequestControl.DECODER);
           if (vlvRequest != null && pageRequest != null)
           {
             LocalizableMessage message = ERR_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get();
@@ -906,15 +907,9 @@ public class EntryContainer
 
           if (entryIDList == null)
           {
-            // See if we could use a virtual attribute rule to process the
-            // search.
-            for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+            if (processSearchWithVirtualAttributeRule(searchOperation, true))
             {
-              if (rule.getProvider().isSearchable(rule, searchOperation, true))
-              {
-                rule.getProvider().processSearch(rule, searchOperation);
-                return null;
-              }
+              return null;
             }
 
             // Create an index filter to get the search result candidate entries
@@ -954,8 +949,7 @@ public class EntryContainer
               entryIDList.retainAll(scopeList);
               if (debugBuffer != null)
               {
-                debugBuffer.append(" scope=");
-                debugBuffer.append(searchScope);
+                debugBuffer.append(" scope=").append(searchScope);
                 scopeList.toString(debugBuffer);
               }
               if (scopeList.isDefined())
@@ -1011,40 +1005,25 @@ public class EntryContainer
             debugBuffer.append(" final=");
             entryIDList.toString(debugBuffer);
 
-            Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX, debugBuffer.toString());
-            Entry debugEntry = new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
-            debugEntry.addAttribute(attr, new ArrayList<ByteString>());
-
+            Entry debugEntry = buildDebugSearchIndexEntry(debugBuffer);
             searchOperation.returnEntry(debugEntry, null);
             return null;
           }
 
           if (entryIDList.isDefined())
           {
-            if (rootContainer.getMonitorProvider().isFilterUseEnabled())
-            {
-              rootContainer.getMonitorProvider().updateIndexedSearchCount();
-            }
+            rootContainer.getMonitorProvider().updateIndexedSearchCount();
             searchIndexed(txn, entryIDList, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
-            if (rootContainer.getMonitorProvider().isFilterUseEnabled())
-            {
-              rootContainer.getMonitorProvider().updateUnindexedSearchCount();
-            }
+            rootContainer.getMonitorProvider().updateUnindexedSearchCount();
 
             searchOperation.addAdditionalLogItem(keyOnly(getClass(), "unindexed"));
 
-            // See if we could use a virtual attribute rule to process the
-            // search.
-            for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+            if (processSearchWithVirtualAttributeRule(searchOperation, false))
             {
-              if (rule.getProvider().isSearchable(rule, searchOperation, false))
-              {
-                rule.getProvider().processSearch(rule, searchOperation);
-                return null;
-              }
+              return null;
             }
 
             ClientConnection clientConnection = searchOperation.getClientConnection();
@@ -1056,8 +1035,7 @@ public class EntryContainer
 
             if (sortRequest != null)
             {
-              // FIXME -- Add support for sorting unindexed searches using
-              // indexes
+              // FIXME -- Add support for sorting unindexed searches using indexes
               // like DSEE currently does.
               searchOperation.addResponseControl(new ServerSideSortResponseControl(UNWILLING_TO_PERFORM, null));
 
@@ -1107,6 +1085,28 @@ public class EntryContainer
     {
       throw clazz2.cast(cause);
     }
+  }
+
+  private boolean processSearchWithVirtualAttributeRule(final SearchOperation searchOperation, boolean isPreIndexed)
+  {
+    for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+    {
+      VirtualAttributeProvider<?> provider = rule.getProvider();
+      if (provider.isSearchable(rule, searchOperation, isPreIndexed))
+      {
+        provider.processSearch(rule, searchOperation);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private Entry buildDebugSearchIndexEntry(StringBuilder debugBuffer) throws DirectoryException
+  {
+    Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX, debugBuffer.toString());
+    Entry entry = new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
+    entry.addAttribute(attr, new ArrayList<ByteString>());
+    return entry;
   }
 
   /**
@@ -1392,6 +1392,7 @@ public class EntryContainer
     // Iterate through the index candidates.
     if (continueSearch)
     {
+      final SearchFilter filter = searchOperation.getFilter();
       for (Iterator<EntryID> it = entryIDList.iterator(begin); it.hasNext();)
       {
         final EntryID id = it.next();
@@ -1408,8 +1409,10 @@ public class EntryContainer
         }
 
         // Process the candidate entry.
-        if (entry != null && isInScope(candidatesAreInScope, searchScope, aBaseDN, entry)
-              && (manageDsaIT || entry.getReferralURLs() == null) && searchOperation.getFilter().matchesEntry(entry))
+        if (entry != null
+              && isInScope(candidatesAreInScope, searchScope, aBaseDN, entry)
+              && (manageDsaIT || entry.getReferralURLs() == null)
+              && filter.matchesEntry(entry))
           {
             if (pageRequest != null
                 && searchOperation.getEntriesSent() == pageRequest.getSize())
