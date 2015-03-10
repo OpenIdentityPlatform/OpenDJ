@@ -499,15 +499,8 @@ public class EntryContainer
       {
         // Use a null index and ensure that future attempts to use the real
         // subordinate indexes will fail.
-        id2children = new NullIndex(getIndexName(ID2CHILDREN_DATABASE_NAME),
-            new ID2CIndexer(), state, storage, txn, this);
-        state.putIndexTrustState(txn, id2children, false);
-        id2children.open(txn); // No-op
-
-        id2subtree = new NullIndex(getIndexName(ID2SUBTREE_DATABASE_NAME),
-            new ID2SIndexer(), state, storage, txn, this);
-        state.putIndexTrustState(txn, id2subtree, false);
-        id2subtree.open(txn); // No-op
+        id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
+        id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
 
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
@@ -549,6 +542,14 @@ public class EntryContainer
       close();
       throw de;
     }
+  }
+
+  private NullIndex openNewNullIndex(WriteableStorage txn, String indexId, Indexer indexer)
+  {
+    final NullIndex index = new NullIndex(getIndexName(indexId), indexer, state, storage, txn, this);
+    state.putIndexTrustState(txn, index, false);
+    index.open(txn); // No-op
+    return index;
   }
 
   /**
@@ -3016,16 +3017,10 @@ public class EntryContainer
               // Disabling subordinate indexes. Use a null index and ensure that
               // future attempts to use the real indexes will fail.
               id2children.close();
-              id2children = new NullIndex(getIndexName(ID2CHILDREN_DATABASE_NAME),
-                  new ID2CIndexer(), state, storage, txn, EntryContainer.this);
-              state.putIndexTrustState(txn, id2children, false);
-              id2children.open(txn); // No-op
+              id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
 
               id2subtree.close();
-              id2subtree = new NullIndex(getIndexName(ID2SUBTREE_DATABASE_NAME),
-                  new ID2SIndexer(), state, storage, txn, EntryContainer.this);
-              state.putIndexTrustState(txn, id2subtree, false);
-              id2subtree.open(txn); // No-op
+              id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
 
               logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
             }
