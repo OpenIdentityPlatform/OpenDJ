@@ -361,7 +361,10 @@ class DatabaseEnvironmentMonitor
    */
   void updateIndexedSearchCount()
   {
-    indexedSearchCount.getAndIncrement();
+    if (filterUseEnabled)
+    {
+      indexedSearchCount.getAndIncrement();
+    }
   }
 
   /**
@@ -369,7 +372,10 @@ class DatabaseEnvironmentMonitor
    */
   void updateUnindexedSearchCount()
   {
-    unindexedSearchCount.getAndIncrement();
+    if (filterUseEnabled)
+    {
+      unindexedSearchCount.getAndIncrement();
+    }
   }
 
   private void removeLowestHit()
