@@ -1,17 +1,17 @@
 #!/bin/bash
 set -e
 # Pre rm script
-# Stops the service. 
+# Stops the service.
 /etc/init.d/opendj stop >/dev/null 2>&1
-# Deletes the service.   
+# Deletes the service.
 update-rc.d -f opendj remove
 # Unlink the symlink to the process ID if it exists.
 test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid
 # Stops the server
 # Only if the instance has been configured
-if [ "$1" = "remove" ] && ( [ -f @prefix@/config/buildinfo ] && [ "$(ls -A @prefix@/config/archived-configs)" ] )
+if [ "$1" = "remove" ] && ( [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs)" ] )
 then
   echo *Stopping OpenDJ server...
-  @prefix@/bin/./stop-ds
+  ${deb.prefix}/bin/./stop-ds
 fi
 # End prem script
