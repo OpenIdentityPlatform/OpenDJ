@@ -78,7 +78,7 @@
  <refsynopsisdiv>
   <cmdsynopsis>
    <command>${name}</command>
-   <arg choice="plain">${args}</arg>
+   <#if args??><arg choice="plain">${args}</arg></#if>
   </cmdsynopsis>
  </refsynopsisdiv>
 
@@ -92,44 +92,17 @@
    <#if info??>${info}</#if>
  </refsect1>
 
- <#if options??>
-   <refsect1>
-    <title>${optsTitle}</title>
-
-    <variablelist>
-     <para>
-      ${optsIntro}
-     </para>
-
-     <#list options as option>
-       <varlistentry>
-         <term><option>${option.synopsis?xml}</option></term>
-         <listitem>
-           <para>
-             ${option.description}
-           </para>
-
-           <#if option.default??>
-             <para>
-               ${option.default}
-             </para>
-           </#if>
-
-           <#if option.info??>${option.info}</#if>
-         </listitem>
-       </varlistentry>
-
-     </#list>
-
-     </variablelist>
-   </refsect1>
+ <#if optionSection??>
+   ${optionSection}
  </#if>
 
- <!-- TODO: subcommands -->
- <!-- TODO: filter -->
- <!-- TODO: attribute -->
- <!-- TODO: exitCodes -->
- <!-- TODO: files -->
- <!-- TODO: examples -->
- <!-- TODO: seeAlso -->
+ <#if subcommands??>
+   ${subcommands}
+ </#if>
+
+ <#if trailingSections??>
+   <#list trailingSections as section>
+    ${section}
+   </#list>
+ </#if>
 </refentry>

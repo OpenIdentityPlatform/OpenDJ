@@ -39,7 +39,7 @@ import org.forgerock.i18n.LocalizableMessage;
  * This class defines a data structure for holding information about a subcommand that may be used with the subcommand
  * argument parser. The subcommand has a name, a description, and a set of arguments.
  */
-public class SubCommand {
+public class SubCommand implements DocDescriptionSupplement {
     /** Indicates whether this subCommand should be hidden in the usage information. */
     private boolean isHidden;
 
@@ -169,25 +169,12 @@ public class SubCommand {
      */
     private LocalizableMessage docDescriptionSupplement;
 
-    /**
-     * Retrieves a supplement to the description for this subcommand
-     * intended for use in generated reference documentation.
-     *
-     * @return The supplement to the description for this subcommand
-     *         for use in generated reference documentation,
-     *         or LocalizableMessage.EMPTY if there is no supplement.
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getDocDescriptionSupplement() {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    /**
-     * Sets a supplement to the description for this subcommand
-     * intended for use in generated reference documentation.
-     *
-     * @param docDescriptionSupplement  The supplement to the description for this subcommand
-     *                                  for use in generated reference documentation.
-     */
+    /** {@inheritDoc} */
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
     }
