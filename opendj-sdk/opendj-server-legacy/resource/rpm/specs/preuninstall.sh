@@ -33,14 +33,16 @@
 
 if [ "$1" == "0" ] ; then
     echo "Pre Uninstall - uninstall"
-    # Stops the service and delete it.
-    /etc/init.d/opendj stop >/dev/null 2>&1
-    /sbin/chkconfig --del opendj
     # Unlink the symlink to the process ID.
     test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid
     # Only if the instance has been configured
     if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
 	   "%{_prefix}"/bin/./stop-ds
+    fi
+
+    if [ -e /etc/init.d/opendj ] ; then
+        # Deletes the service.
+        /sbin/chkconfig --del opendj
     fi
 else if [ "$1" == "1" ] ; then
     echo "Pre Uninstall - upgrade uninstall"
