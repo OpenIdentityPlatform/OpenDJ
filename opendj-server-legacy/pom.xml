@@ -76,10 +76,6 @@
     <project.version>3.0.0-SNAPSHOT</project.version>
     <i18n.version>1.4.2-SNAPSHOT</i18n.version>
 
-    <!-- RPM package properties -->
-    <rpm.prefix>/opt/${lowerCaseProductName}</rpm.prefix>
-    <rpm.release>1</rpm.release>
-
     <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
@@ -1674,6 +1670,12 @@
     <!-- Build the RPM package -->
     <profile>
       <id>package-rpm</id>
+
+      <properties>
+        <rpm.prefix>/opt/${lowerCaseProductName}</rpm.prefix>
+        <rpm.release>1</rpm.release>
+      </properties>
+
       <build>
         <plugins>
           <plugin>
