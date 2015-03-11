@@ -46,14 +46,23 @@ class ImportIDSet {
   private int count;
   /** Boolean to keep track if the instance is defined or not. */
   private boolean isDefined = true;
-  /** Size of the undefined if count is kept. */
-  private long undefinedSize;
   /** Key related to an ID set. */
   private ByteBuffer key;
-  /** The entry limit size. */
-  private final int limit;
-  /** Set to true if a count of ids above the entry limit should be kept. */
-  private final boolean doCount;
+  /** The index entry limit size. */
+  private final int indexEntryLimit;
+  /**
+   * Set to true if a count of ids above the index entry limit should be kept, a.k.a
+   * {@link #undefinedSize}.
+   *
+   * @see #undefinedSize
+   */
+  private final boolean maintainCount;
+  /**
+   * Size of the undefined id set, if count is maintained.
+   *
+   * @see #maintainCount
+   */
+  private long undefinedSize;
 
   /**
    * Create an import ID set of the specified size, index limit and index
@@ -61,21 +70,14 @@ class ImportIDSet {
    *
    * @param size The size of the the underlying array, plus some extra space.
    * @param limit The index entry limit.
-   * @param doCount The index maintain count.
+   * @param maintainCount whether to maintain the count when size is undefined.
    */
-  public ImportIDSet(int size, int limit, boolean doCount)
+  public ImportIDSet(int size, int limit, boolean maintainCount)
   {
     this.array = new long[size + 128];
     // A limit of 0 means unlimited.
-    this.limit = limit == 0 ? Integer.MAX_VALUE : limit;
-    this.doCount = doCount;
-  }
-
-  /** Create an empty import instance. */
-  public ImportIDSet()
-  {
-    this.limit = -1;
-    this.doCount = false;
+    this.indexEntryLimit = limit == 0 ? Integer.MAX_VALUE : limit;
+    this.maintainCount = maintainCount;
   }
 
   /**
@@ -117,26 +119,26 @@ class ImportIDSet {
   /**
    * Add the specified long value to an import ID set.
    *
-   * @param l The long value to add to an import ID set.
+   * @param entryID The {@link EntryID} to add to an import ID set.
    */
-  void addEntryID(long l) {
+  void addEntryID(long entryID) {
     if(!isDefined()) {
-      if(doCount)  {
+      if (maintainCount)  {
         undefinedSize++;
       }
       return;
     }
-    if (l < 0 || (isDefined() && count + 1 > limit))
+    if (entryID < 0 || (isDefined() && count + 1 > indexEntryLimit))
     {
       setUndefined();
-      if(doCount)  {
+      if (maintainCount)  {
         undefinedSize = count + 1;
       } else {
         undefinedSize = Long.MAX_VALUE;
       }
       count = 0;
     } else {
-      add(l);
+      add(entryID);
     }
   }
 
@@ -157,7 +159,7 @@ class ImportIDSet {
       incrementLimitCount = true;
     } else {
       array = EntryIDSet.decodeEntryIDList(dBbytes);
-      if(array.length + importIdSet.size() > limit) {
+      if (array.length + importIdSet.size() > indexEntryLimit) {
         undefinedSize = array.length + importIdSet.size();
         isDefined=false;
         incrementLimitCount=true;
@@ -186,7 +188,7 @@ class ImportIDSet {
       undefinedSize = Long.MAX_VALUE;
     } else {
       array = EntryIDSet.decodeEntryIDList(bytes);
-      if(array.length - importIdSet.size() > limit) {
+      if (array.length - importIdSet.size() > indexEntryLimit) {
         isDefined=false;
         count = 0;
         importIdSet.setUndefined();
@@ -211,7 +213,7 @@ class ImportIDSet {
   public boolean merge(ByteString bytes, ImportIDSet importIdSet)
   {
     boolean incrementLimitCount=false;
-    if(doCount) {
+    if (maintainCount) {
       incrementLimitCount = mergeCount(bytes,  importIdSet);
     } else if (isDBUndefined(bytes)) {
       isDefined = false;
@@ -225,7 +227,7 @@ class ImportIDSet {
       count = 0;
     } else {
       array = EntryIDSet.decodeEntryIDList(bytes);
-      if (array.length + importIdSet.size() > limit) {
+      if (array.length + importIdSet.size() > indexEntryLimit) {
         isDefined = false;
         incrementLimitCount = true;
         count = 0;
@@ -348,17 +350,17 @@ class ImportIDSet {
     return count;
   }
 
-  private boolean add(long v)
+  private boolean add(long entryID)
   {
     resize(count+1);
 
-    if (count == 0 || v > array[count-1])
+    if (count == 0 || entryID > array[count-1])
     {
-      array[count++] = v;
+      array[count++] = entryID;
       return true;
     }
 
-    int pos = binarySearch(array, count, v);
+    int pos = binarySearch(array, count, entryID);
     if (pos >=0)
     {
       return false;
@@ -370,7 +372,7 @@ class ImportIDSet {
     pos = -(pos+1);
 
     System.arraycopy(array, pos, array, pos+1, count-pos);
-    array[pos] = v;
+    array[pos] = entryID;
     count++;
     return true;
   }
@@ -429,7 +431,7 @@ class ImportIDSet {
    */
   ByteString keyToByteString()
   {
-    return ByteString.wrap(getKey().array(), 0, getKey().limit());
+    return ByteString.wrap(key.array(), 0, key.limit());
   }
 
   /**
@@ -474,5 +476,26 @@ class ImportIDSet {
   public ByteBuffer getKey()
   {
     return key;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    if (isDefined())
+    {
+      sb.append("[COUNT:").append(size()).append("]");
+    }
+    else
+    {
+      sb.append("[LIMIT-EXCEEDED");
+      if (undefinedSize < Long.MAX_VALUE)
+      {
+        sb.append(":").append(undefinedSize);
+      }
+      sb.append("]");
+    }
+    return sb.toString();
   }
 }

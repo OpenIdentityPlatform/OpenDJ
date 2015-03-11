@@ -339,7 +339,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * @param stream The stream to write the record at the index to.
    * @param position The position of the record to write.
    */
-  public void writeID(ByteArrayOutputStream stream, int position)
+  public void writeEntryID(ByteArrayOutputStream stream, int position)
   {
     int offSet = getOffset(position);
     int len = PackedInteger.getReadLongLength(buffer, offSet + REC_OVERHEAD);
@@ -369,7 +369,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   public int getKeySize()
   {
     int offSet = getOffset(position) + REC_OVERHEAD;
-    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    offSet += PackedInteger.getReadLongLength(buffer, offSet);
     return PackedInteger.readInt(buffer, offSet);
   }
 
@@ -389,7 +389,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   {
     keyBuffer.clear();
     int offSet = getOffset(position) + REC_OVERHEAD;
-    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    offSet += PackedInteger.getReadLongLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     //Re-allocate if the key is bigger than the capacity.
@@ -412,7 +412,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   private byte[] getKey(int position)
   {
     int offSet = getOffset(position) + REC_OVERHEAD;
-    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    offSet += PackedInteger.getReadLongLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     byte[] key = new byte[keyLen];
@@ -450,14 +450,14 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int xoffSet = getOffset(xPosition);
     int xIndexID = getIndexIDFromOffset(xoffSet);
     xoffSet += REC_OVERHEAD;
-    xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
+    xoffSet += PackedInteger.getReadLongLength(buffer, xoffSet);
     int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
     int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
 
     int yoffSet = getOffset(yPosition);
     int yIndexID = getIndexIDFromOffset(yoffSet);
     yoffSet += REC_OVERHEAD;
-    yoffSet += PackedInteger.getReadIntLength(buffer, yoffSet);
+    yoffSet += PackedInteger.getReadLongLength(buffer, yoffSet);
     int yKeyLen = PackedInteger.readInt(buffer, yoffSet);
     int yKey = PackedInteger.getReadIntLength(buffer, yoffSet) + yoffSet;
 
@@ -470,7 +470,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int xoffSet = getOffset(xPosition);
     int xIndexID = getIndexIDFromOffset(xoffSet);
     xoffSet += REC_OVERHEAD;
-    xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
+    xoffSet += PackedInteger.getReadLongLength(buffer, xoffSet);
     int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
     int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
 
@@ -494,7 +494,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int offset = getOffset(position);
     int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD;
-    offset += PackedInteger.getReadIntLength(buffer, offset);
+    offset += PackedInteger.getReadLongLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
     int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
     return comparator.compare(buffer, key, keyLen, b, b.length) == 0
@@ -519,7 +519,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int offset = getOffset(position);
     int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD;
-    offset += PackedInteger.getReadIntLength(buffer, offset);
+    offset += PackedInteger.getReadLongLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
     int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
 
@@ -573,7 +573,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   public void writeKey(DataOutputStream dataStream) throws IOException
   {
     int offSet = getOffset(position) + REC_OVERHEAD;
-    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    offSet += PackedInteger.getReadLongLength(buffer, offSet);
     int keyLen = PackedInteger.readInt(buffer, offSet);
     offSet += PackedInteger.getReadIntLength(buffer, offSet);
     dataStream.write(buffer, offSet, keyLen);

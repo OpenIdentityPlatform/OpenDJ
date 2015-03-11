@@ -267,37 +267,27 @@ class EntryIDSet implements Iterable<EntryID>
   /**
    * Convert to a short string to aid with debugging.
    *
-   * @param buffer The string is appended to this string builder.
+   * @param sb The string is appended to this string builder.
    */
-  void toString(StringBuilder buffer)
+  void toString(StringBuilder sb)
   {
-    if (!isDefined())
+    if (isDefined())
     {
-      if (key != null)
+      sb.append("[COUNT:").append(size()).append("]");
+    }
+    else if (key != null)
+    {
+      // The index entry limit was exceeded
+      sb.append("[LIMIT-EXCEEDED");
+      if (undefinedSize == Long.MAX_VALUE)
       {
-        // The index entry limit was exceeded
-        if(undefinedSize == Long.MAX_VALUE)
-        {
-          buffer.append("[LIMIT-EXCEEDED]");
-        }
-        else
-        {
-          buffer.append("[LIMIT-EXCEEDED:");
-          buffer.append(undefinedSize);
-          buffer.append("]");
-        }
+        sb.append(":").append(undefinedSize);
       }
-      else
-      {
-        // Not indexed
-        buffer.append("[NOT-INDEXED]");
-      }
+      sb.append("]");
     }
     else
     {
-      buffer.append("[COUNT:");
-      buffer.append(size());
-      buffer.append("]");
+      sb.append("[NOT-INDEXED]");
     }
   }
 
