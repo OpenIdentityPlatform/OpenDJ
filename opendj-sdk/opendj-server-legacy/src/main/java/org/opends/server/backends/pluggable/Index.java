@@ -443,7 +443,7 @@ class Index extends DatabaseContainer
     }
   }
 
-  EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
+  EntryIDSet read(ReadableStorage txn, ByteSequence key)
   {
     if(rebuildRunning)
     {

@@ -72,7 +72,7 @@ final class NullIndex extends Index
   }
 
   @Override
-  EntryIDSet readKey(ByteSequence key, ReadableStorage txn)
+  EntryIDSet read(ReadableStorage txn, ByteSequence key)
   {
     return new EntryIDSet();
   }
