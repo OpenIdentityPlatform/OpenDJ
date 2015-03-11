@@ -26,14 +26,15 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.IndexFilter.*;
+
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import static org.opends.server.backends.jeb.IndexFilter.*;
+import org.forgerock.util.Utils;
 
 /**
- * This class represents a JE Backend Query.
+ * This class represents a Backend Query.
  */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.VOLATILE,
@@ -42,6 +43,8 @@ import static org.opends.server.backends.jeb.IndexFilter.*;
     mayInvoke = false)
 abstract class IndexQuery
 {
+  private static final String SEPARATOR = "\n  ";
+
   /**
    * Evaluates the index query and returns the EntryIDSet.
    *
@@ -52,8 +55,6 @@ abstract class IndexQuery
    */
   public abstract EntryIDSet evaluate(LocalizableMessageBuilder debugMessage);
 
-
-
   /**
    * Creates an IntersectionIndexQuery object from a collection of
    * IndexQuery objects.
@@ -62,13 +63,10 @@ abstract class IndexQuery
    *          A collection of IndexQuery objects.
    * @return An IntersectionIndexQuery object.
    */
-  static IndexQuery createIntersectionIndexQuery(
-      Collection<IndexQuery> subIndexQueries)
+  static IndexQuery createIntersectionIndexQuery(Collection<IndexQuery> subIndexQueries)
   {
     return new IntersectionIndexQuery(subIndexQueries);
   }
-
-
 
   /**
    * Creates a union IndexQuery object from a collection of IndexQuery
@@ -78,13 +76,10 @@ abstract class IndexQuery
    *          Collection of IndexQuery objects.
    * @return A UnionIndexQuery object.
    */
-  static IndexQuery createUnionIndexQuery(
-      Collection<IndexQuery> subIndexQueries)
+  static IndexQuery createUnionIndexQuery(Collection<IndexQuery> subIndexQueries)
   {
     return new UnionIndexQuery(subIndexQueries);
   }
-
-
 
   /**
    * Creates an empty IndexQuery object.
@@ -97,7 +92,6 @@ abstract class IndexQuery
   }
 
 
-
   /**
    * This class creates a Null IndexQuery. It is used when there is no
    * record in the index. It may also be used when the index contains
@@ -106,11 +100,16 @@ abstract class IndexQuery
    */
   private static final class NullIndexQuery extends IndexQuery
   {
-    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
       return new EntryIDSet();
+    }
+
+    @Override
+    public String toString()
+    {
+      return "Null";
     }
   }
 
@@ -120,12 +119,8 @@ abstract class IndexQuery
    */
   private static final class IntersectionIndexQuery extends IndexQuery
   {
-    /**
-     * Collection of IndexQuery objects.
-     */
+    /** Collection of IndexQuery objects. */
     private final Collection<IndexQuery> subIndexQueries;
-
-
 
     /**
      * Creates an instance of IntersectionIndexQuery.
@@ -138,7 +133,6 @@ abstract class IndexQuery
       this.subIndexQueries = subIndexQueries;
     }
 
-    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
@@ -161,19 +155,19 @@ abstract class IndexQuery
       }
       return entryIDs;
     }
+
+    @Override
+    public String toString()
+    {
+      return "Intersection(" + SEPARATOR + Utils.joinAsString(SEPARATOR, subIndexQueries) + ")";
+    }
   }
 
-  /**
-   * This class creates a union of IndexQuery objects.
-   */
+  /** This class creates a union of IndexQuery objects. */
   private static final class UnionIndexQuery extends IndexQuery
   {
-    /**
-     * Collection containing IndexQuery objects.
-     */
+    /** Collection containing IndexQuery objects. */
     private final Collection<IndexQuery> subIndexQueries;
-
-
 
     /**
      * Creates an instance of UnionIndexQuery.
@@ -186,7 +180,6 @@ abstract class IndexQuery
       this.subIndexQueries = subIndexQueries;
     }
 
-    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
@@ -208,6 +201,12 @@ abstract class IndexQuery
         }
       }
       return entryIDs;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "Union(" + SEPARATOR + Utils.joinAsString(SEPARATOR, subIndexQueries) + ")";
     }
   }
 }

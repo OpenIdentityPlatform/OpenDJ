@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -33,8 +35,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-
-import static org.opends.messages.JebMessages.*;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -91,6 +91,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           }
           return entrySet;
         }
+
+        @Override
+        public String toString()
+        {
+          return "ExactMatch(" + indexID + "=" + key + ")";
+        }
       };
   }
 
@@ -123,6 +129,19 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             updateStatsUndefinedResults(debugMessage, index);
           }
           return entrySet;
+        }
+
+        @Override
+        public String toString()
+        {
+          final StringBuilder sb = new StringBuilder("RangeMatch(");
+          sb.append(lowerBound).append(" ");
+          sb.append(includeLowerBound ? "<=" : "<").append(" ");
+          sb.append(indexID).append(" ");
+          sb.append(includeUpperBound ? ">=" : ">").append(" ");
+          sb.append(upperBound);
+          sb.append(")");
+          return sb.toString();
         }
       };
   }
@@ -172,6 +191,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             updateStatsUndefinedResults(debugMessage, index);
           }
           return entrySet;
+        }
+
+        @Override
+        public String toString()
+        {
+          return "MatchAll(" + PRESENCE_INDEX_KEY + ")";
         }
       };
   }
