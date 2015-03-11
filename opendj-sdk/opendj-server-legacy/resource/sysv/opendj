@@ -26,7 +26,7 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2013 ForgeRock AS
+#      Copyright 2013-2015 ForgeRock AS
 #
 
 
@@ -35,8 +35,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          opendj
-# Required-Start:    
-# Required-Stop:     
+# Required-Start:
+# Required-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: This is the opendj daemon
@@ -48,24 +48,18 @@
 ### END INIT INFO
 
 # Set up source function library depending on the distribution
-if [ -f /etc/redhat-release ]
-then
+if [ -f /etc/redhat-release ] ; then
     # Redhat
     . /etc/init.d/functions
-elif [ -f /etc/SuSE-release ]
-then
+elif [ -f /etc/SuSE-release ] ; then
     # SuSE
     . /etc/rc.status
-elif [ -f /etc/lsb-release ]
-then
+elif [ -f /etc/lsb-release ] ; then
     # Debian
     . /lib/lsb/init-functions
-else
+elif [ -f /etc/init.d/functions.sh ] ; then
     # Other dist.
-    if [ -f /etc/init.d/functions.sh ]
-    then
-        . /etc/init.d/functions.sh
-    fi
+    . /etc/init.d/functions.sh
 fi
 
 
@@ -73,8 +67,10 @@ fi
 INSTALL_ROOT="/opt/opendj/"
 export INSTALL_ROOT
 DAEMON=opendj
+
 # Original PID file
 ORIGINPIDFILE=/opt/opendj/logs/server.pid
+
 # Pid file is a symlink to /opt/opendj/log/server.pid
 PIDFILE=/var/run/opendj.pid
 RETVAL=0
@@ -82,23 +78,20 @@ RETVAL=0
 # If the daemon is not there, then exit / LSB return code.
 test -x "$INSTALL_ROOT/bin/start-ds" || exit 5
 
-# /var/run is deleted after reboot (eg. debian)
-# recreates the symlink if needed.
+# Recreates the symlink if needed (/var/run is deleted after reboot (eg. debian)).
 test -h "$PIDFILE" || ln -s $ORIGINPIDFILE $PIDFILE
 
-#Starts the server and creates pid file.
+# Starts the server and creates pid file.
 start() {
-    echo -n $"Starting $DAEMON: "
+    echo -n "Starting $DAEMON: "
     # Server is running
-    if [ -e $PIDFILE ]
-    then    
+    if [ -e $PIDFILE ] ; then
         echo "> Already running."
         return 0
-    else 
+    else
         "$INSTALL_ROOT"/bin/start-ds --quiet
         RETVAL=$?
-        if [ $RETVAL = 0 ]
-        then
+        if [ $RETVAL = 0 ] ; then
             echo "> SUCCESS."
         else
             echo "> FAILURE."
@@ -108,37 +101,35 @@ start() {
     fi
 }
 
-#Stops the server and removes pid file.
+# Stops the server and removes pid file.
 stop() {
-    echo -n $"Stopping $DAEMON: "
-    # Server is running
+    echo -n "Stopping $DAEMON: "
     if [ -e $PIDFILE ]
     then
+        # Server is running
         "$INSTALL_ROOT"/bin/stop-ds --quiet
         RETVAL=$?
-        if [ $RETVAL = 0 ]
-        then
+        if [ $RETVAL = 0 ] ; then
             echo "> SUCCESS."
         else
             echo "> FAILURE."
         fi
         echo ""
         return $RETVAL
-    else         
+    else
         echo "> Already stopped."
         echo ""
         return 3
-    fi    
+    fi
 }
 
 # Displays the service status
 status() {
     echo -n $"$DAEMON status: "
-    if [ -e $PIDFILE ]
-    then
+    if [ -e $PIDFILE ] ; then
         echo "> Running."
         return 0
-    else             
+    else
         echo "> Stopped."
         return 3
     fi
@@ -158,12 +149,13 @@ case "$1" in
     ;;
     force-reload)
         # Not implemented.
+        echo "Not implemented."
     ;;
     status)
         status
     ;;
     *)
-        echo $"Usage: /etc/init.d/$DAEMON {start|restart|stop|force-reload|status}"
+        echo "Usage: /etc/init.d/$DAEMON {start|restart|stop|force-reload|status}"
         exit 1
     ;;
 esac
