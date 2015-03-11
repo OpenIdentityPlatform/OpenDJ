@@ -65,7 +65,7 @@ import org.forgerock.util.Utils;
  * file to obtain default values for arguments there if they are not specified
  * on the command-line.
  */
-public class ArgumentParser {
+public class ArgumentParser implements ToolRefDocContainer {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
@@ -617,23 +617,14 @@ public class ArgumentParser {
      */
     private LocalizableMessage shortToolDescription;
 
-    /**
-     * Gets a short description for this tool, suitable in a man page summary line.
-     *
-     * @return  A short description for this tool,
-     *          suitable in a man page summary line,
-     *          or LocalizableMessage.EMPTY if there is no short description.
-     */
-    LocalizableMessage getShortToolDescription() {
+    /** {@inheritDoc} */
+    @Override
+    public LocalizableMessage getShortToolDescription() {
         return shortToolDescription != null ? shortToolDescription : LocalizableMessage.EMPTY;
     }
 
-    /**
-     * Sets a short description for this tool, suitable in a man page summary line.
-     *
-     * @param   shortDescription    The short description for this tool,
-     *                              suitable in a man page summary line.
-     */
+    /** {@inheritDoc} */
+    @Override
     public void setShortToolDescription(final LocalizableMessage shortDescription) {
         this.shortToolDescription = shortDescription;
     }
@@ -642,29 +633,86 @@ public class ArgumentParser {
      * A supplement to the description for this tool
      * intended for use in generated reference documentation.
      */
-    private LocalizableMessage docToolDescriptionSupplement;
+    private DocDescriptionSupplement docToolDescriptionSupplement;
 
-    /**
-     * Retrieves a supplement to the description for this tool,
-     * intended for use in generated reference documentation.
-     *
-     * @return A supplement to the description for this tool
-     *         intended for use in generated reference documentation,
-     *         or LocalizableMessage.EMPTY if there is no supplement.
-     */
-    LocalizableMessage getDocToolDescriptionSupplement() {
-        return docToolDescriptionSupplement != null ? docToolDescriptionSupplement : LocalizableMessage.EMPTY;
+    /** {@inheritDoc} */
+    @Override
+    public LocalizableMessage getDocToolDescriptionSupplement() {
+        this.docToolDescriptionSupplement =
+                constructIfNull(this.docToolDescriptionSupplement);
+        return this.docToolDescriptionSupplement.getDocDescriptionSupplement();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setDocToolDescriptionSupplement(final LocalizableMessage supplement) {
+        this.docToolDescriptionSupplement =
+                constructIfNull(this.docToolDescriptionSupplement);
+        this.docToolDescriptionSupplement.setDocDescriptionSupplement(supplement);
     }
 
     /**
-     * Sets a supplement to the description for this tool,
+     * A supplement to the description for all subcommands of this tool,
      * intended for use in generated reference documentation.
-     *
-     * @param docToolDescriptionSupplement  The supplement to the description for this tool
-     *                                      intended for use in generated reference documentation.
      */
-    public void setDocToolDescriptionSupplement(final LocalizableMessage docToolDescriptionSupplement) {
-        this.docToolDescriptionSupplement = docToolDescriptionSupplement;
+    private class DocSubcommandsDescriptionSupplement implements DocDescriptionSupplement {
+        /**
+         * A supplement to the description intended for use in generated reference documentation.
+         */
+        private LocalizableMessage docDescriptionSupplement;
+
+        /** {@inheritDoc} */
+        public LocalizableMessage getDocDescriptionSupplement() {
+            return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
+        }
+
+        /** {@inheritDoc} */
+        public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
+            this.docDescriptionSupplement = docDescriptionSupplement;
+        }
+    }
+
+    private DocDescriptionSupplement docSubcommandsDescriptionSupplement;
+
+    /** {@inheritDoc} */
+    @Override
+    public LocalizableMessage getDocSubcommandsDescriptionSupplement() {
+        this.docSubcommandsDescriptionSupplement =
+                constructIfNull(this.docSubcommandsDescriptionSupplement);
+        return this.docSubcommandsDescriptionSupplement.getDocDescriptionSupplement();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setDocSubcommandsDescriptionSupplement(final LocalizableMessage supplement) {
+        this.docSubcommandsDescriptionSupplement =
+                constructIfNull(this.docSubcommandsDescriptionSupplement);
+        this.docSubcommandsDescriptionSupplement.setDocDescriptionSupplement(supplement);
+    }
+
+    private DocDescriptionSupplement constructIfNull(DocDescriptionSupplement supplement) {
+        if (supplement != null) {
+            return supplement;
+        }
+        return new DocSubcommandsDescriptionSupplement();
+    }
+
+    /**
+     * Additional paths to DocBook XML {@code RefSect1} documents
+     * to be appended after generated content in reference documentation.
+     */
+    private String[] pathsToTrailingRefSect1s;
+
+    /** {@inheritDoc} */
+    @Override
+    public String[] getPathsToTrailingRefSect1s() {
+        return pathsToTrailingRefSect1s != null ? pathsToTrailingRefSect1s : new String[0];
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setPathsToTrailingRefSect1s(final String... paths) {
+        this.pathsToTrailingRefSect1s = paths;
     }
 
     /**
@@ -689,7 +737,7 @@ public class ArgumentParser {
         final StringBuilder buffer = new StringBuilder();
         usageOrVersionDisplayed = true;
         if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
-            toRefEntry(buffer);
+            toRefEntry(buffer, getSynopsisArgs(), argumentList);
         } else {
             getUsage(buffer);
         }
@@ -697,56 +745,128 @@ public class ArgumentParser {
     }
 
     /**
+     * Return the list of arguments for the generated reference documentation.
+     *
+     * @return  The list of arguments for the generated reference documentation.
+     */
+    String getSynopsisArgs() {
+        if (allowsTrailingArguments()) {
+            if (trailingArgsDisplayName != null) {
+                return trailingArgsDisplayName;
+            } else {
+                return INFO_ARGPARSER_USAGE_TRAILINGARGS.get().toString();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Appends a generated DocBook XML RefEntry (man page) to the StringBuilder.
      *
-     * @param sb    Append the RefEntry element to this.
+     * @param builder       Append the RefEntry element to this.
+     * @param synopsisArgs  List of arguments for the command synopsis.
+     * @param argList       List of (global) arguments for this tool.
      */
-    private void toRefEntry(StringBuilder sb) {
+    void toRefEntry(StringBuilder builder, String synopsisArgs, List<Argument> argList) {
         final String scriptName = getScriptName();
         if (scriptName == null) {
             throw new RuntimeException("The script name should have been set via the environment property '"
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        // Model for a FreeMarker template.
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("locale", Locale.getDefault().getLanguage());
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("name", scriptName);
         map.put("shortDesc", getShortToolDescription());
         map.put("descTitle", REF_TITLE_DESCRIPTION.get());
-        map.put("optsTitle", REF_TITLE_OPTIONS.get());
-        map.put("optsIntro", REF_INTRO_OPTIONS.get(scriptName));
-        String args = null;
-        if (allowsTrailingArguments) {
-            if (trailingArgsDisplayName != null) {
-                args = trailingArgsDisplayName;
-            } else {
-                args = INFO_ARGPARSER_USAGE_TRAILINGARGS.get().toString();
-            }
-        }
-        map.put("args", args);
+        map.put("args", synopsisArgs);
         map.put("description", getToolDescription());
-
-        // If there is a supplement to the description for this utility,
-        // then it is already DocBook XML, so use it as is.
         map.put("info", getDocToolDescriptionSupplement());
-        if (!argumentList.isEmpty()) {
-            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
-            for (Argument a : argumentList) {
-                Map<String, Object> option = new HashMap<String, Object>();
-                option.put("synopsis", getOptionSynopsis(a));
-                option.put("description", a.getDescription());
-                option.put("default", REF_DEFAULT.get(a.getDefaultValue()));
-
-                // If there is a supplement to the description for this argument,
-                // then it is already DocBook XML, so use it as is.
-                option.put("info", a.getDocDescriptionSupplement());
-                options.add(option);
-            }
-            map.put("options", options);
+        if (!argList.isEmpty()) {
+            map.put("optionSection", getOptionsRefSect1(scriptName));
         }
-        applyTemplate(sb, "refEntry.ftl", map);
+        map.put("subcommands", null);
+        map.put("trailingSections", pathsToXIncludes(getPathsToTrailingRefSect1s()));
+        applyTemplate(builder, "refEntry.ftl", map);
+    }
+
+
+    /**
+     * Returns a generated DocBook XML RefSect1 element for all command options.
+     * @param scriptName    The name of this script.
+     * @return              The RefSect1 element as a String.
+     */
+    protected String getOptionsRefSect1(String scriptName) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("name", scriptName);
+        map.put("title", REF_TITLE_OPTIONS.get());
+        map.put("intro", REF_INTRO_OPTIONS.get(scriptName));
+
+        Argument helpArgument = null;
+        final boolean printHeaders = printUsageGroupHeaders();
+        List<Map<String, Object>> groups = new LinkedList<Map<String, Object>>();
+        for (final ArgumentGroup argGroup : argumentGroups) {
+            Map<String, Object> group = new HashMap<String, Object>();
+
+            // Add the group's description if any
+            if (argGroup.containsArguments() && printHeaders) {
+                LocalizableMessage description = argGroup.getDescription();
+                if (description != LocalizableMessage.EMPTY) {
+                    group.put("description", argGroup.getDescription());
+                } else {
+                    group.put("description", INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
+                }
+            }
+
+            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
+            final SortedSet<Argument> args = sortArguments(argGroup.getArguments());
+            for (final Argument a : args) {
+                if (a.isHidden()) {
+                    continue;
+                }
+
+                // The help argument should be added at the end.
+                if (isUsageArgument(a)) {
+                    helpArgument = a;
+                    continue;
+                }
+
+                options.add(getArgumentMap(a));
+            }
+            group.put("options", options);
+            if (!options.isEmpty()) {
+                groups.add(group);
+            }
+        }
+        if (helpArgument != null) {
+            Map<String, Object> helpGroup = new HashMap<String, Object>();
+            helpGroup.put("description", null);
+            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
+            options.add(getArgumentMap(helpArgument));
+            helpGroup.put("options", options);
+            groups.add(helpGroup);
+        }
+        map.put("groups", groups);
+
+        StringBuilder sb = new StringBuilder();
+        applyTemplate(sb, "optionsRefSect1.ftl", map);
+        return sb.toString();
+    }
+
+    /**
+     * Returns a map containing information about an argument option.
+     * @param   a   The argument
+     * @return      A map containing information about an argument option
+     */
+    private Map<String, Object> getArgumentMap(final Argument a) {
+        Map<String, Object> option = new HashMap<String, Object>();
+        option.put("synopsis", getOptionSynopsis(a));
+        option.put("description", a.getDescription());
+        String dv = a.getDefaultValue();
+        option.put("default", dv != null ? REF_DEFAULT.get(dv) : null);
+        option.put("info", a.getDocDescriptionSupplement());
+        return option;
     }
 
     /**
@@ -805,33 +925,8 @@ public class ArgumentParser {
                 }
             }
 
-            final SortedSet<Argument> args = new TreeSet<Argument>(new Comparator<Argument>() {
-
-                /** {@inheritDoc} */
-                @Override
-                public int compare(final Argument o1, final Argument o2) {
-                    final String s1 = getIdentifier(o1);
-                    final String s2 = getIdentifier(o2);
-                    final int res = s1.compareToIgnoreCase(s2);
-                    if (res != 0) {
-                        return res;
-                    }
-                    // Lowercase options first then uppercase.
-                    return -s1.compareTo(s2);
-                }
-
-                private String getIdentifier(final Argument o1) {
-                    if (o1.getShortIdentifier() != null) {
-                        return o1.getShortIdentifier().toString();
-                    }
-                    return o1.getLongIdentifier();
-                }
-
-            });
-            args.addAll(argGroup.getArguments());
-
+            final SortedSet<Argument> args = sortArguments(argGroup.getArguments());
             for (final Argument a : args) {
-                // If this argument is hidden, then skip it.
                 if (a.isHidden()) {
                     continue;
                 }
@@ -851,6 +946,40 @@ public class ArgumentParser {
             buffer.append("-?");
             buffer.append(EOL);
         }
+    }
+
+    /**
+     * Sorts arguments by identifier, lowercase options first then uppercase.
+     *
+     * @param arguments     The arguments to sort.
+     * @return              The set of arguments in sorted order.
+     */
+    SortedSet<Argument> sortArguments(final List<Argument> arguments) {
+        final SortedSet<Argument> result = new TreeSet<Argument>(new Comparator<Argument>() {
+
+            /** {@inheritDoc} */
+            @Override
+            public int compare(final Argument o1, final Argument o2) {
+                final String s1 = getIdentifier(o1);
+                final String s2 = getIdentifier(o2);
+                final int res = s1.compareToIgnoreCase(s2);
+                if (res != 0) {
+                    return res;
+                }
+                // Lowercase options first then uppercase.
+                return -s1.compareTo(s2);
+            }
+
+            private String getIdentifier(final Argument o1) {
+                if (o1.getShortIdentifier() != null) {
+                    return o1.getShortIdentifier().toString();
+                }
+                return o1.getLongIdentifier();
+            }
+
+        });
+        result.addAll(arguments);
+        return result;
     }
 
     /**

@@ -487,7 +487,7 @@ public final class DSConfig extends ConsoleApplication {
                     final Object[] constants = en.getEnumConstants();
                     for (Object enumConstant : constants) {
                         final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
-                        appendVarListEntry(b, enumConstant.toString(), valueSynopsis);
+                        appendVarListEntry(b, enumConstant.toString(), op + valueSynopsis + cp);
                     }
                     b.append("</variablelist>").append(EOL);
                     return null;
@@ -864,6 +864,8 @@ public final class DSConfig extends ConsoleApplication {
 
         this.parser = new SubCommandArgumentParser(getClass().getName(), INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
         this.parser.setShortToolDescription(REF_SHORT_DESC_DSCONFIG.get());
+        this.parser.setDocToolDescriptionSupplement(REF_DSCFG_DOC_TOOL_DESCRIPTION.get());
+        this.parser.setDocSubcommandsDescriptionSupplement(REF_DSCFG_DOC_SUBCOMMANDS_DESCRIPTION.get());
         this.parser.setVersionHandler(new VersionHandler() {
             @Override
             public void printVersion() {

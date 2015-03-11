@@ -40,7 +40,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * for an application. This is an abstract class that must be subclassed in
  * order to provide specific functionality.
  */
-public abstract class Argument {
+public abstract class Argument implements DocDescriptionSupplement {
     /**
      * Indicates whether this argument should be hidden in the usage
      * information.
@@ -239,30 +239,16 @@ public abstract class Argument {
     }
 
     /**
-     * A supplement to the description for this argument
-     * intended for use in generated reference documentation.
+     * A supplement to the description intended for use in generated reference documentation.
      */
     private LocalizableMessage docDescriptionSupplement;
 
-    /**
-     * Retrieves a supplement to the description for this argument
-     * intended for use in generated reference documentation.
-     *
-     * @return The supplement to the description for this argument
-     *         for use in generated reference documentation,
-     *         or LocalizableMessage.EMPTY if there is no supplement.
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getDocDescriptionSupplement() {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    /**
-     * Sets a supplement to the description for this argument
-     * intended for use in generated reference documentation.
-     *
-     * @param docDescriptionSupplement  The supplement to the description for this argument
-     *                                  for use in generated reference documentation.
-     */
+    /** {@inheritDoc} */
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
     }

@@ -33,12 +33,15 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
@@ -1104,31 +1107,32 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Appends a list generated DocBook XML RefSect2 elements to the StringBuilder, one per subcommand.
+     * Appends a generated DocBook XML RefEntry element for this command to the StringBuilder.
      *
-     * <br>
-     *
-     * Note: The result is not a complete XML document.
-     * Instead you must wrap the resulting list of RefSect2 elements in a RefSect1.
-     *
-     * @param builder   Append the list of RefSect2 elements to this.
-     * @param values    The SubCommands containing the reference information.
+     * @param builder       Append the RefEntry element to this.
+     * @param subCommands   SubCommands containing reference information.
      */
-    private void generateReferenceDoc(final StringBuilder builder, Collection<SubCommand> values) {
-        for (SubCommand s : values) {
-            toRefSect2(s, builder);
+    private void generateReferenceDoc(final StringBuilder builder, Collection<SubCommand> subCommands) {
+        toRefEntry(builder, subCommands);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    String getSynopsisArgs() {
+        if (subCommands.isEmpty()) {
+            return INFO_SUBCMDPARSER_OPTIONS.get().toString();
+        } else {
+            return INFO_SUBCMDPARSER_SUBCMD_AND_OPTIONS.get().toString();
         }
     }
 
     /**
-     * Appends a generated DocBook XML RefSect2 element for a single subcommand to the StringBuilder.
+     * Appends a generated DocBook XML RefEntry (man page) to the StringBuilder.
      *
-     * @param sc
-     *            The SubCommand containing reference information.
-     * @param sb
-     *            Append the RefSect2 element to this.
+     * @param builder       Append the RefEntry element to this.
+     * @param subCommands   Collection of subcommands for this tool.
      */
-    private void toRefSect2(SubCommand sc, StringBuilder sb) {
+    void toRefEntry(StringBuilder builder, Collection<SubCommand> subCommands) {
         final String scriptName = getScriptName();
         if (scriptName == null) {
             throw new RuntimeException("The script name should have been set via the environment property '"
@@ -1137,20 +1141,72 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         // Model for a FreeMarker template.
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", scriptName + "-" + sc.getName());
-        final String name = scriptName + " " + sc.getName();
+        map.put("locale", Locale.getDefault().getLanguage());
+        map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
+        map.put("name", scriptName);
+        map.put("shortDesc", getShortToolDescription());
+        map.put("descTitle", REF_TITLE_DESCRIPTION.get());
+        map.put("args", getSynopsisArgs());
+        map.put("description", getToolDescription());
+        map.put("info", getDocToolDescriptionSupplement());
+        if (!globalArgumentList.isEmpty()) {
+            map.put("optionSection", getOptionsRefSect1(scriptName));
+        }
+        map.put("subcommands", toRefSect1(scriptName, subCommands));
+        map.put("trailingSections", pathsToXIncludes(getPathsToTrailingRefSect1s()));
+        applyTemplate(builder, "refEntry.ftl", map);
+    }
+
+    /**
+     * Returns a generated DocBook XML RefSect1 element for all subcommands.
+     * @param scriptName    The name of this script.
+     * @param subCommands   The SubCommands containing the reference information.
+     * @return              The RefSect1 element as a String.
+     */
+    private String toRefSect1(String scriptName, Collection<SubCommand> subCommands) {
+        if (subCommands.isEmpty()) {
+            return "";
+        }
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("name", scriptName);
+        map.put("info", getDocSubcommandsDescriptionSupplement());
+
+        List<String> scUsageList = new ArrayList<String>();
+        for (SubCommand subCommand : subCommands) {
+            scUsageList.add(toRefSect2(scriptName, subCommand));
+        }
+        map.put("subcommands", scUsageList);
+
+        StringBuilder sb = new StringBuilder();
+        applyTemplate(sb, "refSect1.ftl", map);
+        return sb.toString();
+    }
+
+    /**
+     * Returns a generated DocBook XML RefSect2 element for a single subcommand to the StringBuilder.
+     *
+     * @param scriptName    The name of this script.
+     * @param subCommand    The SubCommand containing reference information.
+     * @return    The RefSect2 element as a String.
+     */
+    private String toRefSect2(String scriptName, SubCommand subCommand) {
+        // Model for a FreeMarker template.
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id", scriptName + "-" + subCommand.getName());
+        final String name = scriptName + " " + subCommand.getName();
         map.put("name", name);
-        map.put("description", sc.getDescription());
-        map.put("optsTitle", REF_TITLE_OPTIONS.get());
-        map.put("optsIntro", REF_INTRO_OPTIONS.get(name));
+        map.put("description", subCommand.getDescription());
+        map.put("optionsTitle", REF_TITLE_OPTIONS.get());
+        map.put("optionsIntro", REF_INTRO_OPTIONS.get(name));
 
         // If there is a supplement to the description for this subcommand,
         // then it is already DocBook XML, so use it as is.
-        map.put("info", sc.getDocDescriptionSupplement());
-        if (!sc.getArguments().isEmpty()) {
+        map.put("info", subCommand.getDocDescriptionSupplement());
+        if (!subCommand.getArguments().isEmpty()) {
             List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
             String nameOption = null;
-            for (Argument a : sc.getArguments()) {
+            for (Argument a : subCommand.getArguments()) {
                 Map<String, Object> option = new HashMap<String, Object>();
                 String optionSynopsis = getOptionSynopsis(a);
                 option.put("synopsis", optionSynopsis);
@@ -1162,9 +1218,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     }
 
                     // Let this build its own arbitrarily formatted additional info.
-                    info.put("usage", subCommandUsageHandler.getArgumentAdditionalInfo(sc, a, nameOption));
+                    info.put("usage", subCommandUsageHandler.getArgumentAdditionalInfo(subCommand, a, nameOption));
                 } else {
-                    info.put("default", REF_DEFAULT.get(a.getDefaultValue()));
+                    String defaultValue = a.getDefaultValue();
+                    info.put("default", defaultValue != null ? REF_DEFAULT.get(defaultValue) : null);
 
                     // If there is a supplement to the description for this argument,
                     // then it is already DocBook XML, so use it as is.
@@ -1177,8 +1234,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
 
         if (subCommandUsageHandler != null) {
-            map.put("properties", subCommandUsageHandler.getProperties(sc));
+            map.put("propertiesInfo", subCommandUsageHandler.getProperties(subCommand));
         }
+
+        StringBuilder sb = new StringBuilder();
         applyTemplate(sb, "refSect2.ftl", map);
+        return sb.toString();
     }
 }

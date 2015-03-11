@@ -35,42 +35,42 @@
 
   <#if options??>
     <refsect3 xml:id="${id}-options">
-      <title>${optsTitle}</title>
+      <title>${optionsTitle}</title>
 
       <variablelist>
         <para>
-         ${optsIntro}
+         ${optionsIntro}
         </para>
 
         <#list options as option>
 
-        <varlistentry>
-          <term><option>${option.synopsis?xml}</option></term>
-          <listitem>
-           <para>
-             ${option.description}
-           </para>
+          <varlistentry>
+            <term><option>${option.synopsis?xml}</option></term>
+            <listitem>
+             <para>
+               ${option.description}
+             </para>
 
-           <#if option.info??>
-             <#if info.usage??>${option.info.usage}</#if>
+             <#if option.info??>
+               <#if option.info.usage??>${option.info.usage}</#if>
 
-             <#if info.default??>
-                <para>
-                  ${option.info.default}
-                </para>
+               <#if option.info.default??>
+                  <para>
+                    ${option.info.default}
+                  </para>
+               </#if>
+
+               <#if option.info.doc??>${option.info.doc}</#if>
              </#if>
-
-             <#if info.doc??>${option.info.doc}</#if>
-           </#if>
-          </listitem>
-        </varlistentry>
+            </listitem>
+          </varlistentry>
 
         </#list>
       </variablelist>
     </refsect3>
   </#if>
 
-  <#if properties??>
-    ${properties}
+  <#if propertiesInfo??>
+    ${propertiesInfo}
   </#if>
 </refsect2>
