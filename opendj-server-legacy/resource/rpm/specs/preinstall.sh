@@ -28,20 +28,17 @@
 # RPM Pre Install Script (%pre)
 # =============================
 
-# If the first argument to %pre is 1, the RPM operation is an initial
-#  installation. If the argument to %pre is 2, the operation is an upgrade
-#  from an existing version to a new one.
+# If the first argument to %pre is 1, the RPM operation is an initial installation.
+# If the argument to %pre is 2, the operation is an upgrade from an existing version to a new one.
 
 if [ "$1" == "1" ]; then
     echo "Pre Install - initial install"
 else if [ "$1" == "2" ] ; then
-# Only if the instance has been configured
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
-    then
+    # Only if the instance has been configured
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
         echo "Pre Install - upgrade install"
-# If the server is running before upgrade, creates a file flag
-        if [ -f "%{_prefix}"/logs/server.pid ]
-        then
+        # If the server is running before upgrade, creates a file flag
+        if [ -f "%{_prefix}"/logs/server.pid ] ; then
             touch "%{_prefix}"/logs/status
         fi
         "%{_prefix}"/bin/./stop-ds

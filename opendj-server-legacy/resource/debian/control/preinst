@@ -26,23 +26,21 @@
 #
 
 set -e
+
 # Pre installation script
-if [ "$1" = "upgrade" ]
-then
-# Only if the instance has been configured
-  if [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs)" ]
-  then
-# If the server is running before upgrade, creates a flag.
-    if [ -f ${deb.prefix}/logs/server.pid ]
-    then
-      touch ${deb.prefix}/logs/status
+if [ "$1" = "upgrade" ] ; then
+    # Only if the instance has been configured
+    if [ -f ${deb.prefix}/config/buildinfo ] && [ "$(ls -A ${deb.prefix}/config/archived-configs)" ] ; then
+        # If the server is running before upgrade, creates a flag.
+        if [ -f ${deb.prefix}/logs/server.pid ] ; then
+            touch ${deb.prefix}/logs/status
+        fi
+        echo *Stopping OpenDJ server...
+        ${deb.prefix}/bin/./stop-ds
+    else
+        echo "Instance is not configured. Upgrade aborded."
+        exit -1
     fi
-    echo *Stopping OpenDJ server...
-    ${deb.prefix}/bin/./stop-ds
-  else
-    echo "Instance is not configured. Upgrade aborded."
-    exit -1
-  fi
 fi
 echo
 # End of the pre installation script

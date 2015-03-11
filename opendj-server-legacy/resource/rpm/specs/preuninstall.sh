@@ -28,21 +28,19 @@
 # RPM Pre Uninstall Script (%preun)
 # =================================
 
-# If the first argument to %preun and %postun is 0, the action is
-#  uninstallation.
+# If the first argument to %preun and %postun is 0, the action is uninstallation.
 # If the first argument to %preun and %postun is 1, the action is an upgrade.
 
 if [ "$1" == "0" ] ; then
     echo "Pre Uninstall - uninstall"
-# Stops the service and delete it.
+    # Stops the service and delete it.
     /etc/init.d/opendj stop >/dev/null 2>&1
     /sbin/chkconfig --del opendj
     # Unlink the symlink to the process ID.
     test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid
-# Only if the instance has been configured
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
-    then
-	"%{_prefix}"/bin/./stop-ds
+    # Only if the instance has been configured
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
+	   "%{_prefix}"/bin/./stop-ds
     fi
 else if [ "$1" == "1" ] ; then
     echo "Pre Uninstall - upgrade uninstall"

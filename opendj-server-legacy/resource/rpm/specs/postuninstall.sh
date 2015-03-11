@@ -28,8 +28,7 @@
 # RPM Post Uninstall Script (%postun)
 # ===================================
 
-# If the first argument to %preun and %postun is 0, the action is
-#  uninstallation.
+# If the first argument to %preun and %postun is 0, the action is uninstallation.
 # If the first argument to %preun and %postun is 1, the action is an upgrade.
 
 if [ "$1" == "0" ] ; then

@@ -34,29 +34,27 @@
 
 # Registers the service
 /sbin/chkconfig --add opendj
+
 # Symlinks to process ID
 test -h "/var/run/opendj.pid" || ln -s /opt/opendj/logs/server.pid /var/run/opendj.pid
+
 if [ "$1" == "1" ] ; then
     echo "Post Install - initial install"
 else if [ "$1" == "2" ] ; then
     echo "Post Install - upgrade install"
-# Only if the instance has been configured
-    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
-    then
+    # Only if the instance has been configured
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
         "%{_prefix}"/./upgrade -n --acceptLicense
-# Upgrade ok
-        if [ "$?" == "0" ] ; then
-# Checks the server status flag for restart.
-            if [ -f "%{_prefix}"/logs/status ]
-            then
-                echo ""
-                echo "Restarting server..."
-                "%{_prefix}"/./bin/start-ds
-                echo ""
-                rm -f "%{_prefix}"/logs/status
-            fi
+        # If upgrade is ok, checks the server status flag for restart
+        if [ "$?" == "0" ] && [ -f "%{_prefix}"/logs/status ] ; then
+            echo ""
+            echo "Restarting server..."
+            "%{_prefix}"/./bin/start-ds
+            echo ""
+            rm -f "%{_prefix}"/logs/status
         fi
-# Upgrade fails, needs user interaction (eg. manual mode)
+
+        # Upgrade fails, needs user interaction (eg. manual mode)
         if [ "$?" == "2" ] ; then
             exit "0"
         fi
