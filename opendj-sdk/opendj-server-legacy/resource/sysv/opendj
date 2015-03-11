@@ -64,7 +64,7 @@ fi
 
 
 # Sets the script vars
-INSTALL_ROOT="/opt/opendj/"
+INSTALL_ROOT="/opt/opendj"
 export INSTALL_ROOT
 DAEMON=opendj
 
@@ -81,8 +81,21 @@ test -x "$INSTALL_ROOT/bin/start-ds" || exit 5
 # Recreates the symlink if needed (/var/run is deleted after reboot (eg. debian)).
 test -h "$PIDFILE" || ln -s $ORIGINPIDFILE $PIDFILE
 
+instance_configured() {
+  if [ -f $INSTALL_ROOT/config/buildinfo ] && [ "$(ls -A $INSTALL_ROOT/config/archived-configs)" ] ; then
+      return 1
+  fi
+
+  return 0
+}
+
 # Starts the server and creates pid file.
 start() {
+    instance_configured
+    if [ $? = 0 ] ; then
+        echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
+        return 1
+    fi
     echo -n "Starting $DAEMON: "
     # Server is running
     if [ -e $PIDFILE ] ; then
@@ -103,6 +116,12 @@ start() {
 
 # Stops the server and removes pid file.
 stop() {
+    instance_configured
+    if [ $? = 0 ] ; then
+        echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
+        return 1
+    fi
+
     echo -n "Stopping $DAEMON: "
     if [ -e $PIDFILE ]
     then
@@ -125,6 +144,12 @@ stop() {
 
 # Displays the service status
 status() {
+    instance_configured
+    if [ $? = 0 ] ; then
+        echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
+        return 1
+    fi
+
     echo -n $"$DAEMON status: "
     if [ -e $PIDFILE ] ; then
         echo "> Running."
@@ -143,9 +168,15 @@ case "$1" in
         stop
     ;;
     restart)
-        stop
-        sleep 5
-        start
+        instance_configured
+        if [ $? = 0 ] ; then
+            echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
+            exit 1
+        else
+            stop
+            sleep 5
+            start
+        fi
     ;;
     force-reload)
         # Not implemented.
