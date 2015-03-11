@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -34,8 +35,6 @@ import java.nio.channels.FileChannel;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.pluggable.Importer.IndexManager;
-
-import com.sleepycat.util.PackedInteger;
 
 /**
  * The buffer class is used to process a buffer from the temporary index files
@@ -208,11 +207,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     indexID = getInt();
 
     ensureData(20);
-    byte[] ba = cache.array();
-    int p = cache.position();
-    int len = PackedInteger.getReadIntLength(ba, p);
-    int keyLen = PackedInteger.readInt(ba, p);
-    cache.position(p + len);
+    int keyLen = getInt();
     if (keyLen > keyBuf.capacity())
     {
       keyBuf = ByteBuffer.allocate(keyLen);
@@ -227,8 +222,14 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
   private int getInt() throws IOException
   {
-    ensureData(4);
+    ensureData(INT_SIZE);
     return cache.getInt();
+  }
+
+  private long getLong() throws IOException
+  {
+    ensureData(LONG_SIZE);
+    return cache.getLong();
   }
 
   /**
@@ -248,27 +249,15 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     }
 
     ensureData(20);
-    int p = cache.position();
-    byte[] ba = cache.array();
-    int len = PackedInteger.getReadIntLength(ba, p);
-    int keyCount = PackedInteger.readInt(ba, p);
-    p += len;
-    cache.position(p);
+    int keyCount = getInt();
     for (int k = 0; k < keyCount; k++)
     {
-      if (ensureData(9))
-      {
-        p = cache.position();
-      }
-      len = PackedInteger.getReadLongLength(ba, p);
-      long l = PackedInteger.readLong(ba, p);
-      p += len;
-      cache.position(p);
+      long entryID = getLong();
 
       // idSet will be null if skipping.
       if (idSet != null)
       {
-        idSet.addEntryID(l);
+        idSet.addEntryID(entryID);
       }
     }
 

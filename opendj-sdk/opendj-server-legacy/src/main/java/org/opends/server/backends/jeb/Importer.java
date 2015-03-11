@@ -1796,7 +1796,6 @@ final class Importer implements DiskSpaceMonitorHandler
     private final DatabaseEntry dbKey, dbValue;
     private final int cacheSize;
     private final Map<Integer, DNState> dnStateMap = new HashMap<Integer, DNState>();
-    private final Map<Integer, Index> indexMap = new HashMap<Integer, Index>();
     private final Semaphore permits;
     private final int maxPermits;
     private final AtomicLong bytesRead = new AtomicLong();
@@ -2041,7 +2040,7 @@ final class Importer implements DiskSpaceMonitorHandler
             }
             else if (b.compare(key, indexID) != 0)
             {
-              addToDB(insertIDSet, deleteIDSet, indexID);
+              addToDB(indexID, insertIDSet, deleteIDSet);
               keyCount.incrementAndGet();
 
               indexID = b.getIndexID();
@@ -2088,7 +2087,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
           if (key != null)
           {
-            addToDB(insertIDSet, deleteIDSet, indexID);
+            addToDB(indexID, insertIDSet, deleteIDSet);
           }
         }
         return null;
@@ -2104,40 +2103,30 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void addToDB(ImportIDSet insertSet, ImportIDSet deleteSet,
-        int indexID) throws DirectoryException
+    private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
     {
-      if (!indexMgr.isDN2ID())
+      if (indexMgr.isDN2ID())
+      {
+        addDN2ID(indexID, insertSet);
+      }
+      else
       {
         if (deleteSet.size() > 0 || !deleteSet.isDefined())
         {
           dbKey.setData(deleteSet.getKey().array(), 0, deleteSet.getKey().limit());
           final Index index = idContainerMap.get(indexID);
           index.delete(dbKey, deleteSet, dbValue);
-          if (!indexMap.containsKey(indexID))
-          {
-            indexMap.put(indexID, index);
-          }
         }
         if (insertSet.size() > 0 || !insertSet.isDefined())
         {
           dbKey.setData(insertSet.getKey().array(), 0, insertSet.getKey().limit());
           final Index index = idContainerMap.get(indexID);
           index.insert(dbKey, insertSet, dbValue);
-          if (!indexMap.containsKey(indexID))
-          {
-            indexMap.put(indexID, index);
-          }
         }
-      }
-      else
-      {
-        addDN2ID(insertSet, indexID);
       }
     }
 
-    private void addDN2ID(ImportIDSet record, Integer indexID)
-        throws DirectoryException
+    private void addDN2ID(int indexID, ImportIDSet record) throws DirectoryException
     {
       DNState dnState;
       if (!dnStateMap.containsKey(indexID))
@@ -2635,32 +2624,32 @@ final class Importer implements DiskSpaceMonitorHandler
       deleteKeyCount = 0;
     }
 
-    private void insertOrDeleteKey(IndexOutputBuffer indexBuffer, int i)
+    private void insertOrDeleteKey(IndexOutputBuffer indexBuffer, int position)
     {
-      if (indexBuffer.isInsertRecord(i))
+      if (indexBuffer.isInsertRecord(position))
       {
-        indexBuffer.writeID(insertByteStream, i);
+        indexBuffer.writeEntryID(insertByteStream, position);
         insertKeyCount++;
       }
       else
       {
-        indexBuffer.writeID(deleteByteStream, i);
+        indexBuffer.writeEntryID(deleteByteStream, position);
         deleteKeyCount++;
       }
     }
 
-    private void insertOrDeleteKeyCheckEntryLimit(IndexOutputBuffer indexBuffer, int i)
+    private void insertOrDeleteKeyCheckEntryLimit(IndexOutputBuffer indexBuffer, int position)
     {
-      if (indexBuffer.isInsertRecord(i))
+      if (indexBuffer.isInsertRecord(position))
       {
         if (insertKeyCount++ <= indexMgr.getLimit())
         {
-          indexBuffer.writeID(insertByteStream, i);
+          indexBuffer.writeEntryID(insertByteStream, position);
         }
       }
       else
       {
-        indexBuffer.writeID(deleteByteStream, i);
+        indexBuffer.writeEntryID(deleteByteStream, position);
         deleteKeyCount++;
       }
     }

@@ -67,13 +67,6 @@ class ImportIDSet {
     this.doCount = doCount;
   }
 
-  /** Create an empty import instance. */
-  public ImportIDSet()
-  {
-    this.limit = -1;
-    this.doCount = false;
-  }
-
   /**
    * Clear the set so it can be reused again. The boolean indexParam specifies
    * if the index parameters should be cleared also.
@@ -113,16 +106,16 @@ class ImportIDSet {
   /**
    * Add the specified long value to an import ID set.
    *
-   * @param l The long value to add to an import ID set.
+   * @param entryID The long value to add to an import ID set.
    */
-  void addEntryID(long l) {
+  void addEntryID(long entryID) {
     if(!isDefined()) {
       if(doCount)  {
         undefinedSize++;
       }
       return;
     }
-    if (l < 0 || (isDefined() && count + 1 > limit))
+    if (entryID < 0 || (isDefined() && count + 1 > limit))
     {
       setUndefined();
       if(doCount)  {
@@ -132,7 +125,7 @@ class ImportIDSet {
       }
       count = 0;
     } else {
-      add(l);
+      add(entryID);
     }
   }
 
@@ -346,17 +339,17 @@ class ImportIDSet {
     return count;
   }
 
-  private boolean add(long v)
+  private boolean add(long entryID)
   {
     resize(count+1);
 
-    if (count == 0 || v > array[count-1])
+    if (count == 0 || entryID > array[count-1])
     {
-      array[count++] = v;
+      array[count++] = entryID;
       return true;
     }
 
-    int pos = binarySearch(array, count, v);
+    int pos = binarySearch(array, count, entryID);
     if (pos >=0)
     {
       return false;
@@ -368,7 +361,7 @@ class ImportIDSet {
     pos = -(pos+1);
 
     System.arraycopy(array, pos, array, pos+1, count-pos);
-    array[pos] = v;
+    array[pos] = entryID;
     count++;
     return true;
   }

@@ -1181,6 +1181,7 @@ final class Importer implements DiskSpaceMonitorHandler
     // Ensure that there are minimum two threads available for parallel
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
+    dbThreads = 1; // FIXME JNR
 
     logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
 
@@ -1765,7 +1766,6 @@ final class Importer implements DiskSpaceMonitorHandler
     private final IndexManager indexMgr;
     private final int cacheSize;
     private final Map<Integer, DNState> dnStateMap = new HashMap<Integer, DNState>();
-    private final Map<Integer, Index> indexMap = new HashMap<Integer, Index>();
     private final Semaphore permits;
     private final int maxPermits;
     private final AtomicLong bytesRead = new AtomicLong();
@@ -1993,9 +1993,9 @@ final class Importer implements DiskSpaceMonitorHandler
               {
                 final Index index = idContainerMap.get(indexID);
                 int limit = index.getIndexEntryLimit();
-                boolean doCount = index.getMaintainCount();
-                insertIDSet = new ImportIDSet(1, limit, doCount);
-                deleteIDSet = new ImportIDSet(1, limit, doCount);
+                boolean maintainCount = index.getMaintainCount();
+                insertIDSet = new ImportIDSet(1, limit, maintainCount);
+                deleteIDSet = new ImportIDSet(1, limit, maintainCount);
               }
 
               key = ByteBuffer.allocate(b.getKeyLen());
@@ -2009,7 +2009,7 @@ final class Importer implements DiskSpaceMonitorHandler
             }
             else if (b.compare(key, indexID) != 0)
             {
-              addToDB(insertIDSet, deleteIDSet, indexID);
+              addToDB(indexID, insertIDSet, deleteIDSet);
               keyCount.incrementAndGet();
 
               indexID = b.getIndexID();
@@ -2023,9 +2023,9 @@ final class Importer implements DiskSpaceMonitorHandler
               {
                 final Index index = idContainerMap.get(indexID);
                 int limit = index.getIndexEntryLimit();
-                boolean doCount = index.getMaintainCount();
-                insertIDSet = new ImportIDSet(1, limit, doCount);
-                deleteIDSet = new ImportIDSet(1, limit, doCount);
+                boolean maintainCount = index.getMaintainCount();
+                insertIDSet = new ImportIDSet(1, limit, maintainCount);
+                deleteIDSet = new ImportIDSet(1, limit, maintainCount);
               }
 
               key.clear();
@@ -2056,7 +2056,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
           if (key != null)
           {
-            addToDB(insertIDSet, deleteIDSet, indexID);
+            addToDB(indexID, insertIDSet, deleteIDSet);
           }
         }
         return null;
@@ -2072,11 +2072,11 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void addToDB(ImportIDSet insertSet, ImportIDSet deleteSet, int indexID) throws DirectoryException
+    private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
     {
       if (indexMgr.isDN2ID())
       {
-        addDN2ID(insertSet, indexID);
+        addDN2ID(indexID, insertSet);
       }
       else
       {
@@ -2085,25 +2085,17 @@ final class Importer implements DiskSpaceMonitorHandler
           ByteString key = deleteSet.keyToByteString();
           final Index index = idContainerMap.get(indexID);
           index.delete(txn, key, deleteSet);
-          if (!indexMap.containsKey(indexID))
-          {
-            indexMap.put(indexID, index);
-          }
         }
         if (insertSet.size() > 0 || !insertSet.isDefined())
         {
           ByteString key = insertSet.keyToByteString();
           final Index index = idContainerMap.get(indexID);
           index.insert(txn, key, insertSet);
-          if (!indexMap.containsKey(indexID))
-          {
-            indexMap.put(indexID, index);
-          }
         }
       }
     }
 
-    private void addDN2ID(ImportIDSet record, Integer indexID) throws DirectoryException
+    private void addDN2ID(int indexID, ImportIDSet record) throws DirectoryException
     {
       DNState dnState;
       if (!dnStateMap.containsKey(indexID))
@@ -2402,7 +2394,9 @@ final class Importer implements DiskSpaceMonitorHandler
     private final int DRAIN_TO = 3;
     private final IndexManager indexMgr;
     private final BlockingQueue<IndexOutputBuffer> queue;
+    /** Stream where to output insert ImportIDSet data. */
     private final ByteArrayOutputStream insertByteStream = new ByteArrayOutputStream(2 * bufferSize);
+    /** Stream where to output delete ImportIDSet data. */
     private final ByteArrayOutputStream deleteByteStream = new ByteArrayOutputStream(2 * bufferSize);
     private final DataOutputStream bufferStream;
     private final DataOutputStream bufferIndexStream;
@@ -2511,7 +2505,7 @@ final class Importer implements DiskSpaceMonitorHandler
           insertOrDeleteKey(indexBuffer, i);
           continue;
         }
-        if (!indexBuffer.compare(i))
+        if (!indexBuffer.byteArraysEqual(i))
         {
           bufferLen += writeRecord(indexBuffer);
           indexBuffer.setPosition(i);
@@ -2556,7 +2550,7 @@ final class Importer implements DiskSpaceMonitorHandler
           saveIndexID = b.getIndexID();
           insertOrDeleteKey(b, b.getPosition());
         }
-        else if (!b.compare(saveKey, saveIndexID))
+        else if (!b.recordsEqual(saveKey, saveIndexID))
         {
           bufferLen += writeRecord(saveKey, saveIndexID);
           resetStreams();
@@ -2589,32 +2583,32 @@ final class Importer implements DiskSpaceMonitorHandler
       deleteKeyCount = 0;
     }
 
-    private void insertOrDeleteKey(IndexOutputBuffer indexBuffer, int i)
+    private void insertOrDeleteKey(IndexOutputBuffer indexBuffer, int position)
     {
-      if (indexBuffer.isInsertRecord(i))
+      if (indexBuffer.isInsertRecord(position))
       {
-        indexBuffer.writeID(insertByteStream, i);
+        indexBuffer.writeEntryID(insertByteStream, position);
         insertKeyCount++;
       }
       else
       {
-        indexBuffer.writeID(deleteByteStream, i);
+        indexBuffer.writeEntryID(deleteByteStream, position);
         deleteKeyCount++;
       }
     }
 
-    private void insertOrDeleteKeyCheckEntryLimit(IndexOutputBuffer indexBuffer, int i)
+    private void insertOrDeleteKeyCheckEntryLimit(IndexOutputBuffer indexBuffer, int position)
     {
-      if (indexBuffer.isInsertRecord(i))
+      if (indexBuffer.isInsertRecord(position))
       {
         if (insertKeyCount++ <= indexMgr.getLimit())
         {
-          indexBuffer.writeID(insertByteStream, i);
+          indexBuffer.writeEntryID(insertByteStream, position);
         }
       }
       else
       {
-        indexBuffer.writeID(deleteByteStream, i);
+        indexBuffer.writeEntryID(deleteByteStream, position);
         deleteKeyCount++;
       }
     }
@@ -2628,15 +2622,15 @@ final class Importer implements DiskSpaceMonitorHandler
         insertByteStream.write(-1);
       }
 
-      int insertSize = 4;
+      int insertSize = INT_SIZE;
       bufferStream.writeInt(insertKeyCount);
       if (insertByteStream.size() > 0)
       {
         insertByteStream.writeTo(bufferStream);
       }
 
-      int deleteSize = 4;
-      bufferStream.write(deleteKeyCount);
+      int deleteSize = INT_SIZE;
+      bufferStream.writeInt(deleteKeyCount);
       if (deleteByteStream.size() > 0)
       {
         deleteByteStream.writeTo(bufferStream);
@@ -2657,7 +2651,7 @@ final class Importer implements DiskSpaceMonitorHandler
       int headerSize = writeHeader(b.getIndexID(), keySize);
       b.writeKey(bufferStream);
       int bodySize = writeByteStreams();
-      return headerSize + bodySize + keySize;
+      return headerSize + keySize + bodySize;
     }
 
     private int writeRecord(byte[] k, int indexID) throws IOException
@@ -2666,7 +2660,7 @@ final class Importer implements DiskSpaceMonitorHandler
       int headerSize = writeHeader(indexID, keySize);
       bufferStream.write(k);
       int bodySize = writeByteStreams();
-      return headerSize + bodySize + keySize;
+      return headerSize + keySize + bodySize;
     }
 
     /** {@inheritDoc} */
