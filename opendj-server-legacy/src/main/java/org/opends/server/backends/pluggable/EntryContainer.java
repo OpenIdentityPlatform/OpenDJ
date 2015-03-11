@@ -752,16 +752,8 @@ public class EntryContainer
           EntryID entryID = dn2id.get(txn, entryDN);
           if (entryID != null)
           {
-            ByteString key = entryID.toByteString();
-            EntryIDSet entryIDSet;
-            if (subtree)
-            {
-              entryIDSet = id2subtree.readKey(key, txn);
-            }
-            else
-            {
-              entryIDSet = id2children.readKey(key, txn);
-            }
+            final Index index = subtree ? id2subtree : id2children;
+            final EntryIDSet entryIDSet = index.read(txn, entryID.toByteString());
             long count = entryIDSet.size();
             if (count != Long.MAX_VALUE)
             {
@@ -936,11 +928,11 @@ public class EntryContainer
               EntryIDSet scopeList;
               if (searchScope == SearchScope.SINGLE_LEVEL)
               {
-                scopeList = id2children.readKey(baseIDData, txn);
+                scopeList = id2children.read(txn, baseIDData);
               }
               else
               {
-                scopeList = id2subtree.readKey(baseIDData, txn);
+                scopeList = id2subtree.read(txn, baseIDData);
                 if (searchScope == SearchScope.WHOLE_SUBTREE)
                 {
                   // The id2subtree list does not include the base entry ID.
@@ -2733,7 +2725,7 @@ public class EntryContainer
     final EntryID entryID = dn2id.get(txn, baseDN);
     if (entryID != null)
     {
-      final EntryIDSet entryIDSet = id2subtree.readKey(entryID.toByteString(), txn);
+      final EntryIDSet entryIDSet = id2subtree.read(txn, entryID.toByteString());
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
       {

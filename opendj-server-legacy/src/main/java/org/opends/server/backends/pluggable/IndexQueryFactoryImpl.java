@@ -84,8 +84,8 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             return createMatchAllQuery().evaluate(debugMessage);
           }
 
-          final EntryIDSet entrySet = index.readKey(key, txn);
-          if(debugMessage != null && !entrySet.isDefined())
+          final EntryIDSet entrySet = index.read(txn, key);
+          if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
           }
@@ -185,7 +185,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             return new EntryIDSet();
           }
 
-          final EntryIDSet entrySet = index.readKey(PresenceIndexer.presenceKey, txn);
+          final EntryIDSet entrySet = index.read(txn, PresenceIndexer.presenceKey);
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
