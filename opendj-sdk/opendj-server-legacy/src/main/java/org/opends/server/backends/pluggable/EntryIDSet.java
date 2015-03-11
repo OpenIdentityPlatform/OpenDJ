@@ -279,7 +279,7 @@ class EntryIDSet implements Iterable<EntryID>
     {
       // The index entry limit was exceeded
       sb.append("[LIMIT-EXCEEDED");
-      if (undefinedSize == Long.MAX_VALUE)
+      if (undefinedSize < Long.MAX_VALUE)
       {
         sb.append(":").append(undefinedSize);
       }
