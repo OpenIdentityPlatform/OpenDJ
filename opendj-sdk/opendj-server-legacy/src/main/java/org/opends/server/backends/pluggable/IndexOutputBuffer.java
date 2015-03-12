@@ -193,7 +193,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   }
 
   /**
-   * Determines if buffer should be re-cycled by calling {@link IndexOutputBuffer#reset()}.
+   * Determines if buffer should be re-cycled by calling {@link #reset()}.
    *
    * @return {@code true} if buffer should be recycled, or {@code false} if it should not.
    */
@@ -486,29 +486,20 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int keyLen = readInt(buffer, offset);
     int key = INT_SIZE + offset;
 
-    final int cmp = indexComparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
-    if (cmp != 0)
+    int cmp = indexComparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
+    if (cmp == 0)
     {
-      return cmp;
+      cmp = compareInts(indexID, b.getIndexID());
+      if (cmp == 0)
+      {
+        // This is tested in a tree set remove when a buffer is removed from the tree set.
+        return compareLongs(bufferID, b.getBufferID());
+      }
     }
-
-    final int bIndexID = b.getIndexID();
-    if (indexID == bIndexID)
-    {
-      // This is tested in a tree set remove when a buffer is removed from the tree set.
-      return compare(this.bufferID, b.getBufferID());
-    }
-    else if (indexID < bIndexID)
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return cmp;
   }
 
-  private int compare(long l1, long l2)
+  private static int compareLongs(long l1, long l2)
   {
     if (l1 == l2)
     {
@@ -800,24 +791,23 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
       }
       return 0;
     }
-
-    private int compareInts(int i1, int i2)
-    {
-      if (i1 == i2)
-      {
-        return 0;
-      }
-      else if (i1 > i2)
-      {
-        return 1;
-      }
-      else
-      {
-        return -1;
-      }
-    }
   }
 
+  private static int compareInts(int i1, int i2)
+  {
+    if (i1 == i2)
+    {
+      return 0;
+    }
+    else if (i1 > i2)
+    {
+      return 1;
+    }
+    else
+    {
+      return -1;
+    }
+  }
 
   /**
    * Set the index key associated with an index buffer.
