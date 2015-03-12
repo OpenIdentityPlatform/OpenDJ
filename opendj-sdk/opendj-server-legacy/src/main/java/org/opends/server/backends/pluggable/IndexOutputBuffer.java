@@ -65,11 +65,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
  */
 final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
-  /** Enumeration used when sorting a buffer. */
-  private enum CompareOp {
-    LT, GT, LE, GE, EQ
-  }
-
   /** The number of bytes of a Java int. */
   static final int INT_SIZE = 4;
   /** The number of bytes of a Java long. */
@@ -424,7 +419,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return readInt(offset + 1);
   }
 
-  private boolean is(CompareOp op, int xPosition, int yPosition)
+  private int compare(int xPosition, int yPosition)
   {
     int xoffSet = getOffset(xPosition);
     int xIndexID = getIndexIDFromOffset(xoffSet);
@@ -438,11 +433,10 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int yKeyLen = readInt(buffer, yoffSet);
     int yKey = INT_SIZE + yoffSet;
 
-    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, buffer, yKey, yKeyLen, yIndexID);
-    return evaluateReturnCode(cmp, op);
+    return indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, buffer, yKey, yKeyLen, yIndexID);
   }
 
-  private boolean is(CompareOp op, int xPosition, byte[] yKey, int yIndexID)
+  private int compare(int xPosition, byte[] yKey, int yIndexID)
   {
     int xoffSet = getOffset(xPosition);
     int xIndexID = getIndexIDFromOffset(xoffSet);
@@ -450,8 +444,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int xKeyLen = readInt(buffer, xoffSet);
     int xKey = INT_SIZE + xoffSet;
 
-    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, 0, yKey.length, yIndexID);
-    return evaluateReturnCode(cmp, op);
+    return indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, 0, yKey.length, yIndexID);
   }
 
   /**
@@ -557,7 +550,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    */
   public boolean byteArraysEqual(int position)
   {
-    return is(CompareOp.EQ, position, this.position);
+    return compare(position, this.position) == 0;
   }
 
   /**
@@ -630,9 +623,9 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
   private int med3(int a, int b, int c)
   {
-    return is(CompareOp.LT, a, b) ?
-           (is(CompareOp.LT,b,c) ? b : is(CompareOp.LT,a,c) ? c : a) :
-           (is(CompareOp.GT,b,c) ? b : is(CompareOp.GT,a,c) ? c : a);
+    return compare(a,b) < 0
+        ? (compare(b,c) < 0 ? b : compare(a,c) < 0 ? c : a)
+        : (compare(b,c) > 0 ? b : compare(a,c) > 0 ? c : a);
   }
 
   private void sort(int off, int len)
@@ -640,7 +633,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     if (len < 7) {
       for (int i=off; i<len+off; i++)
       {
-        for (int j=i; j>off && is(CompareOp.GT, j-1, j); j--)
+        for (int j=i; j>off && compare(j-1, j)>0; j--)
         {
           swap(j, j-1);
         }
@@ -667,17 +660,17 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int a = off, b = a, c = off + len - 1, d = c;
     while(true)
     {
-      while (b <= c && is(CompareOp.LE, b, mKey, mIndexID))
+      while (b <= c && compare(b, mKey, mIndexID) <= 0)
       {
-        if (is(CompareOp.EQ, b, mKey, mIndexID))
+        if (compare(b, mKey, mIndexID) == 0)
         {
           swap(a++, b);
         }
         b++;
       }
-      while (c >= b && is(CompareOp.GE, c, mKey, mIndexID))
+      while (c >= b && compare(c, mKey, mIndexID) >= 0)
       {
-        if (is(CompareOp.EQ, c, mKey, mIndexID))
+        if (compare(c, mKey, mIndexID) == 0)
         {
           swap(c, d--);
         }
@@ -724,24 +717,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     for (int i=0; i<n; i++, a++, b++)
     {
       swap(a, b);
-    }
-  }
-
-  private boolean evaluateReturnCode(int rc, CompareOp op)
-  {
-    switch(op) {
-    case LT:
-      return rc < 0;
-    case GT:
-      return rc > 0;
-    case LE:
-      return rc <= 0;
-    case GE:
-      return rc >= 0;
-    case EQ:
-      return rc == 0;
-    default:
-      return false;
     }
   }
 
@@ -798,7 +773,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
      *         offset value is less than, equal to, or greater than the second
      *         byte array.
      */
-    public int compare(byte[] b, int offset, int length, byte[] other, int otherLength)
+    int compare(byte[] b, int offset, int length, byte[] other, int otherLength)
     {
       final int cmp = compareInts(length, otherLength);
       if (cmp != 0)
