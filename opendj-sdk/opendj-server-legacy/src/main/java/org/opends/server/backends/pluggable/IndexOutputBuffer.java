@@ -438,7 +438,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int yKeyLen = readInt(buffer, yoffSet);
     int yKey = INT_SIZE + yoffSet;
 
-    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKeyLen, yIndexID);
+    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, buffer, yKey, yKeyLen, yIndexID);
     return evaluateReturnCode(cmp, op);
   }
 
@@ -450,7 +450,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int xKeyLen = readInt(buffer, xoffSet);
     int xKey = INT_SIZE + xoffSet;
 
-    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKey.length, yIndexID);
+    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, 0, yKey.length, yIndexID);
     return evaluateReturnCode(cmp, op);
   }
 
@@ -745,164 +745,44 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     }
   }
 
-
   /**
-   * Interface that defines two methods used to compare keys used in this
-   * class. The Comparator interface cannot be used in this class, so this
+   * Used to compare keys when they are non-DN indexes.
+   * <p>
+   * The Comparator interface cannot be used in this class, so this
    * special one is used that knows about the special properties of this class.
-   *
-   * @param <T> object to use in the compare
    */
-  public static interface ComparatorBuffer<T> {
-
-
-     /**
-     * Compare two offsets in an object, usually a byte array.
-     *
-     * @param o The object.
-     * @param offset The first offset.
-     * @param length The first length.
-     * @param indexID The first index id.
-     * @param otherOffset The second offset.
-     * @param otherLength The second length.
-     * @param otherIndexID The second index id.
-     * @return a negative integer, zero, or a positive integer as the first
-     *         offset value is less than, equal to, or greater than the second.
-     */
-    int compare(T o, int offset, int length, int indexID, int otherOffset,
-                int otherLength, int otherIndexID);
-
-
-    /**
-     * Compare an offset in an object with the specified object.
-     *
-     * @param o The first object.
-     * @param offset The first offset.
-     * @param length The first length.
-     * @param indexID The first index id.
-     * @param other The second object.
-     * @param otherLength The length of the second object.
-     * @param otherIndexID The second index id.
-     * @return a negative integer, zero, or a positive integer as the first
-     *         offset value is less than, equal to, or greater than the second
-     *         object.
-     */
-    int compare(T o, int offset, int length, int indexID, T other,
-                int otherLength, int otherIndexID);
-
-
-    /**
-     * Compare an offset in an object with the specified object.
-     *
-     * @param o The first object.
-     * @param offset The first offset.
-     * @param length The first length.
-     * @param other The second object.
-     * @param otherLen The length of the second object.
-     * @return a negative integer, zero, or a positive integer as the first
-     *         offset value is less than, equal to, or greater than the second
-     *         object.
-     */
-    int compare(T o, int offset, int length, T other,
-                int otherLen);
-
-  }
-
-
-  /**
-   * Implementation of ComparatorBuffer interface. Used to compare keys when
-   * they are non-DN indexes.
-   */
-  public static class IndexComparator implements IndexOutputBuffer.ComparatorBuffer<byte[]>
+  public static class IndexComparator
   {
 
     /**
-     * Compare two offsets in an byte array using the index compare
-     * algorithm.  The specified index ID is used in the comparison if the
-     * byte arrays are equal.
+     * Compare an offset in a byte array and indexID with the specified offset in the other byte array
+     * and other indexID, using the DN compare algorithm.
      *
-     * @param b The byte array.
-     * @param offset The first offset.
-     * @param length The first length.
-     * @param indexID The first index id.
-     * @param otherOffset The second offset.
-     * @param otherLength The second length.
-     * @param otherIndexID The second index id.
-     * @return a negative integer, zero, or a positive integer as the first
-     *         offset value is less than, equal to, or greater than the second.
-     */
-    @Override
-    public int compare(byte[] b, int offset, int length, int indexID,
-                       int otherOffset, int otherLength, int otherIndexID)
-    {
-      for(int i = 0; i < length && i < otherLength; i++)
-      {
-        byte b1 = b[offset + i];
-        byte b2 = b[otherOffset + i];
-        if (b1 > b2)
-        {
-          return 1;
-        }
-        else if (b1 < b2)
-        {
-          return -1;
-        }
-      }
-      return compareLengthThenIndexID(length, indexID, otherLength, otherIndexID);
-    }
-
-    /**
-     * Compare an offset in an byte array with the specified byte array,
-     * using the DN compare algorithm.   The specified index ID is used in the
-     * comparison if the byte arrays are equal.
-     *
-     * @param b The byte array.
-     * @param offset The first offset.
-     * @param length The first length.
-     * @param indexID The first index id.
-     * @param other The second byte array to compare to.
-     * @param otherLength The second byte array's length.
-     * @param otherIndexID The second index id.
+     * @param array1   The first byte array.
+     * @param offset1  The first byte array's offset.
+     * @param length1  The first byte array's length.
+     * @param indexID1 The first index id.
+     * @param array2   The second byte array to compare to.
+     * @param offset1  The second byte array's offset.
+     * @param length2  The second byte array's length.
+     * @param indexID2 The second index id.
      * @return a negative integer, zero, or a positive integer as the first
      *         offset value is less than, equal to, or greater than the second
      *         byte array.
      */
-    @Override
-    public int compare(byte[] b, int offset, int length, int indexID,
-                       byte[] other, int otherLength, int otherIndexID)
+    private int compare(byte[] array1, int offset1, int length1, int indexID1,
+                        byte[] array2, int offset2, int length2, int indexID2)
     {
-      for(int i = 0; i < length && i < otherLength; i++)
+      int cmp = compareInts(indexID1, indexID2);
+      if (cmp == 0)
       {
-        if(b[offset + i] > other[i])
+        cmp = compareInts(length1, length2);
+        if (cmp == 0)
         {
-          return 1;
-        }
-        else if (b[offset + i] < other[i])
-        {
-          return -1;
+          return compareArrays(array1, offset1, length1, array2, offset2, length2);
         }
       }
-      return compareLengthThenIndexID(length, indexID, otherLength, otherIndexID);
-    }
-
-    /**
-     * The arrays are equal, make sure they are in the same index
-     * since multiple suffixes might have the same key.
-     */
-    private int compareLengthThenIndexID(int length, int indexID, int otherLength, int otherIndexID)
-    {
-      if (length == otherLength)
-      {
-        return compare(indexID, otherIndexID);
-      }
-      else if (length > otherLength)
-      {
-        return 1;
-      }
-      else
-      {
-        return -1;
-      }
+      return cmp;
     }
 
     /**
@@ -918,25 +798,35 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
      *         offset value is less than, equal to, or greater than the second
      *         byte array.
      */
-    @Override
-    public int compare(byte[] b, int offset, int length, byte[] other,
-                       int otherLength)
+    public int compare(byte[] b, int offset, int length, byte[] other, int otherLength)
     {
-      for(int i = 0; i < length && i < otherLength; i++)
+      final int cmp = compareInts(length, otherLength);
+      if (cmp != 0)
       {
-        if(b[offset + i] > other[i])
+        return cmp;
+      }
+      return compareArrays(b, offset, length, other, 0, otherLength);
+    }
+
+    private int compareArrays(byte[] array1, int offset1, int length1, byte[] array2, int offset2, int length2)
+    {
+      for (int i = 0; i < length1 && i < length2; i++)
+      {
+        byte b1 = array1[offset1 + i];
+        byte b2 = array2[offset2 + i];
+        if (b1 > b2)
         {
           return 1;
         }
-        else if (b[offset + i] < other[i])
+        else if (b1 < b2)
         {
           return -1;
         }
       }
-      return compare(length, otherLength);
+      return 0;
     }
 
-    private int compare(int i1, int i2)
+    private int compareInts(int i1, int i2)
     {
       if (i1 == i2)
       {
