@@ -1082,7 +1082,7 @@ public class VerifyJob
 
             };
 
-            index.indexer.indexEntry(entry, dummySet, options);
+            index.indexEntry(entry, dummySet, options);
 
             if (!foundMatchingKey.get())
             {

@@ -33,7 +33,6 @@ import static org.opends.messages.JebMessages.*;
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -56,12 +55,7 @@ public class Index extends DatabaseContainer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The indexer object to construct index keys from LDAP attribute values. */
-  public Indexer indexer;
-
-  /** The comparator for index keys. */
-  private final Comparator<byte[]> comparator;
-  /** The comparator for index keys. */
-  private final Comparator<ByteSequence> bsComparator;
+  private Indexer indexer;
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
@@ -133,8 +127,6 @@ public class Index extends DatabaseContainer
   {
     super(name, env, entryContainer);
     this.indexer = indexer;
-    this.comparator = indexer.getComparator();
-    this.bsComparator = indexer.getBSComparator();
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
@@ -144,7 +136,7 @@ public class Index extends DatabaseContainer
     this.dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(env);
     this.dbConfig.setOverrideBtreeComparator(true);
     this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
-                                     comparator.getClass());
+                                     indexer.getComparator().getClass());
 
     this.state = state;
 
@@ -155,6 +147,11 @@ public class Index extends DatabaseContainer
       // is no reason why this index can't be upgraded to trusted.
       setTrusted(null, true);
     }
+  }
+
+  void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  {
+    indexer.indexEntry(entry, keys, options);
   }
 
   /**
@@ -460,7 +457,7 @@ public class Index extends DatabaseContainer
 
   private BufferedIndexValues getBufferedIndexValues(IndexBuffer buffer, ByteString keyBytes)
   {
-    return buffer.getBufferedIndexValues(this, keyBytes, bsComparator);
+    return buffer.getBufferedIndexValues(this, keyBytes, indexer.getBSComparator());
   }
 
   /**
@@ -619,6 +616,7 @@ public class Index extends DatabaseContainer
       Cursor cursor = openCursor(null, CursorConfig.READ_COMMITTED);
       try
       {
+        final Comparator<byte[]> comparator = indexer.getComparator();
         OperationStatus status;
         // Set the lower bound if necessary.
         if(lower.length > 0)
@@ -874,6 +872,6 @@ public class Index extends DatabaseContainer
    */
   public Comparator<byte[]> getComparator()
   {
-    return this.comparator;
+    return indexer.getComparator();
   }
 }

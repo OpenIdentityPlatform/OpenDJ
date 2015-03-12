@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -61,7 +62,7 @@ class Index extends DatabaseContainer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The indexer object to construct index keys from LDAP attribute values. */
-  Indexer indexer;
+  private Indexer indexer;
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
@@ -143,6 +144,11 @@ class Index extends DatabaseContainer
       // is no reason why this index can't be upgraded to trusted.
       setTrusted(txn, true);
     }
+  }
+
+  void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  {
+    indexer.indexEntry(entry, keys, options);
   }
 
   final void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)

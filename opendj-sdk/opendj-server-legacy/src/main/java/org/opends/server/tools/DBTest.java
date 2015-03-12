@@ -35,7 +35,13 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -45,7 +51,19 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.jeb.*;
+import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.backends.jeb.DN2ID;
+import org.opends.server.backends.jeb.DN2URI;
+import org.opends.server.backends.jeb.DatabaseContainer;
+import org.opends.server.backends.jeb.EntryContainer;
+import org.opends.server.backends.jeb.EntryID;
+import org.opends.server.backends.jeb.EntryIDSet;
+import org.opends.server.backends.jeb.ID2Entry;
+import org.opends.server.backends.jeb.Index;
+import org.opends.server.backends.jeb.JebFormat;
+import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.SortValuesSet;
+import org.opends.server.backends.jeb.VLVIndex;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -1517,7 +1535,7 @@ public class DBTest
   {
     if(databaseContainer instanceof Index)
     {
-      return ((Index)databaseContainer).indexer.getComparator();
+      return ((Index) databaseContainer).getComparator();
     }
     else if(databaseContainer instanceof VLVIndex)
     {

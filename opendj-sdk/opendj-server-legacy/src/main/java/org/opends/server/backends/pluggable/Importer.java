@@ -1477,17 +1477,17 @@ final class Importer implements DiskSpaceMonitorHandler
       if (oldEntry != null)
       {
         deleteKeySet.clear();
-        index.indexer.indexEntry(oldEntry, deleteKeySet, options);
+        index.indexEntry(oldEntry, deleteKeySet, options);
         for (ByteString delKey : deleteKeySet)
         {
-          processKey(index, delKey, entryID, indexComparator, indexKey, false);
+          processKey(index, delKey, entryID, indexKey, false);
         }
       }
       insertKeySet.clear();
-      index.indexer.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet, options);
       for (ByteString key : insertKeySet)
       {
-        processKey(index, key, entryID, indexComparator, indexKey, true);
+        processKey(index, key, entryID, indexKey, true);
       }
     }
   }
@@ -1659,10 +1659,10 @@ final class Importer implements DiskSpaceMonitorHandler
         IndexKey indexKey) throws StorageRuntimeException, InterruptedException
     {
       insertKeySet.clear();
-      index.indexer.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet, options);
       for (ByteString key : insertKeySet)
       {
-        processKey(index, key, entryID, indexComparator, indexKey, true);
+        processKey(index, key, entryID, indexKey, true);
       }
     }
 
@@ -1676,7 +1676,6 @@ final class Importer implements DiskSpaceMonitorHandler
         IndexKey indexKey = e.getKey();
         IndexOutputBuffer indexBuffer = e.getValue();
         it.remove();
-        indexBuffer.setComparator(indexComparator);
         indexBuffer.setIndexKey(indexKey);
         indexBuffer.discard();
         futures.add(bufferSortService.submit(new SortTask(indexBuffer)));
@@ -1685,7 +1684,6 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     int processKey(DatabaseContainer container, ByteString key, EntryID entryID,
-        IndexOutputBuffer.ComparatorBuffer<byte[]> comparator,
         IndexKey indexKey, boolean insert) throws InterruptedException
     {
       int sizeNeeded = IndexOutputBuffer.getRequiredSize(key.length(), entryID.longValue());
@@ -1698,7 +1696,6 @@ final class Importer implements DiskSpaceMonitorHandler
       else if (!indexBuffer.isSpaceAvailable(key, entryID.longValue()))
       {
         // complete the current buffer...
-        indexBuffer.setComparator(comparator);
         indexBuffer.setIndexKey(indexKey);
         bufferSortService.submit(new SortTask(indexBuffer));
         // ... and get a new one
@@ -1738,7 +1735,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       DN2ID dn2id = suffix.getDN2ID();
       ByteString dnBytes = JebFormat.dnToDNKey(dn, suffix.getBaseDN().size());
-      int id = processKey(dn2id, dnBytes, entryID, indexComparator, dnIndexKey, true);
+      int id = processKey(dn2id, dnBytes, entryID, dnIndexKey, true);
       idECMap.putIfAbsent(id, suffix.getEntryContainer());
     }
 
