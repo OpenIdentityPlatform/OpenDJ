@@ -739,13 +739,13 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     private int compare(byte[] array1, int offset1, int length1, int indexID1,
                         byte[] array2, int offset2, int length2, int indexID2)
     {
-      int cmp = compareInts(indexID1, indexID2);
+      int cmp = compareArrays(array1, offset1, length1, array2, offset2, length2);
       if (cmp == 0)
       {
         cmp = compareInts(length1, length2);
         if (cmp == 0)
         {
-          return compareArrays(array1, offset1, length1, array2, offset2, length2);
+          return compareInts(indexID1, indexID2);
         }
       }
       return cmp;
@@ -766,12 +766,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
      */
     int compare(byte[] b, int offset, int length, byte[] other, int otherLength)
     {
-      final int cmp = compareInts(length, otherLength);
-      if (cmp != 0)
+      int cmp = compareArrays(b, offset, length, other, 0, otherLength);
+      if (cmp == 0)
       {
-        return cmp;
+        return compareInts(length, otherLength);
       }
-      return compareArrays(b, offset, length, other, 0, otherLength);
+      return cmp;
     }
 
     private int compareArrays(byte[] array1, int offset1, int length1, byte[] array2, int offset2, int length2)
