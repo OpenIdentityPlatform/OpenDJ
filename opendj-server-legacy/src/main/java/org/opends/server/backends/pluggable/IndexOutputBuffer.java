@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.Importer.indexComparator;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -104,9 +106,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   /** Used to iterate over the buffer when writing to a scratch file. */
   private int position;
 
-  /** The comparator to use sort the keys. */
-  private ComparatorBuffer<byte[]> comparator;
-
   /**
    * Used to make sure that an instance of this class is put on the
    * correct scratch file writer work queue for processing.
@@ -152,7 +151,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     recordOffset = size - 1;
     keys = 0;
     position = 0;
-    comparator = null;
     indexKey = null;
   }
 
@@ -231,18 +229,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   }
 
   /**
-   * Set the comparator to be used in the buffer processing to the specified
-   * comparator.
-   *
-   * @param comparator The comparator to set the buffer's comparator to.
-   */
-  public void setComparator(ComparatorBuffer<byte[]> comparator)
-  {
-    this.comparator = comparator;
-  }
-
-
-  /**
    * Return a buffer's current position value.
    *
    * @return The buffer's current position value.
@@ -251,7 +237,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   {
     return position;
   }
-
 
   /**
    * Set a buffer's position value to the specified position.
@@ -263,14 +248,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     this.position = position;
   }
 
-
   /**
    * Sort the buffer.
    */
   public void sort() {
     sort(0, keys);
   }
-
 
   /**
    * Add the specified key byte array and EntryID to the buffer.
@@ -455,7 +438,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int yKeyLen = readInt(buffer, yoffSet);
     int yKey = INT_SIZE + yoffSet;
 
-    int cmp = comparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKeyLen, yIndexID);
+    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKeyLen, yIndexID);
     return evaluateReturnCode(cmp, op);
   }
 
@@ -467,7 +450,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int xKeyLen = readInt(buffer, xoffSet);
     int xKey = INT_SIZE + xoffSet;
 
-    int cmp = comparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKey.length, yIndexID);
+    int cmp = indexComparator.compare(buffer, xKey, xKeyLen, xIndexID, yKey, yKey.length, yIndexID);
     return evaluateReturnCode(cmp, op);
   }
 
@@ -486,7 +469,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     offset += REC_OVERHEAD + LONG_SIZE;
     int keyLen = readInt(buffer, offset);
     int key = INT_SIZE + offset;
-    return comparator.compare(buffer, key, keyLen, b, b.length) == 0
+    return indexComparator.compare(buffer, key, keyLen, b, b.length) == 0
         && indexID == bIndexID;
   }
 
@@ -510,7 +493,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int keyLen = readInt(buffer, offset);
     int key = INT_SIZE + offset;
 
-    final int cmp = comparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
+    final int cmp = indexComparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
     if (cmp != 0)
     {
       return cmp;
