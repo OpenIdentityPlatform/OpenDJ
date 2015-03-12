@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.nio.ByteBuffer;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -47,7 +45,7 @@ class ImportIDSet {
   /** Boolean to keep track if the instance is defined or not. */
   private boolean isDefined = true;
   /** Key related to an ID set. */
-  private ByteBuffer key;
+  private ByteSequence key;
   /** The index entry limit size. */
   private final int indexEntryLimit;
   /**
@@ -68,12 +66,14 @@ class ImportIDSet {
    * Create an import ID set of the specified size, index limit and index
    * maintain count, plus an extra 128 slots.
    *
+   * @param key The key associated to this ID set
    * @param size The size of the the underlying array, plus some extra space.
    * @param limit The index entry limit.
    * @param maintainCount whether to maintain the count when size is undefined.
    */
-  public ImportIDSet(int size, int limit, boolean maintainCount)
+  public ImportIDSet(ByteSequence key, int size, int limit, boolean maintainCount)
   {
+    this.key = key;
     this.array = new long[size + 128];
     // A limit of 0 means unlimited.
     this.indexEntryLimit = limit == 0 ? Integer.MAX_VALUE : limit;
@@ -425,16 +425,6 @@ class ImportIDSet {
   }
 
   /**
-   * Create a byte string representing this object's key that is suitable to write to a DB.
-   *
-   * @return A byte string representing this object's key
-   */
-  ByteString keyToByteString()
-  {
-    return ByteString.wrap(key.array(), 0, key.limit());
-  }
-
-  /**
    * Create a byte string representing this object's value that is suitable to write to a DB.
    *
    * @return A byte string representing this object's value
@@ -459,21 +449,11 @@ class ImportIDSet {
   }
 
   /**
-   * Set the DB key related to an import ID set.
-   *
-   * @param key Byte array containing the key.
-   */
-  public void setKey(ByteBuffer key)
-  {
-    this.key = key;
-  }
-
-  /**
    * Return the DB key related to an import ID set.
    *
-   * @return  The byte array containing the key.
+   * @return  The byte string containing the key.
    */
-  public ByteBuffer getKey()
+  public ByteSequence getKey()
   {
     return key;
   }

@@ -134,7 +134,7 @@ class Index extends DatabaseContainer
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
-    this.newImportIDSet = new ImportIDSet(indexEntryLimit, indexEntryLimit, maintainCount);
+    this.newImportIDSet = new ImportIDSet(null, indexEntryLimit, indexEntryLimit, maintainCount);
 
     this.state = state;
     this.trusted = state.getIndexTrustState(txn, this);
@@ -160,13 +160,12 @@ class Index extends DatabaseContainer
    * Delete the specified import ID set from the import ID set associated with the key.
    *
    * @param txn The database transaction
-   * @param key The key to delete the set from.
    * @param importIdSet The import ID set to delete.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  final void delete(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
-      throws StorageRuntimeException
+  final void delete(WriteableStorage txn, ImportIDSet importIdSet) throws StorageRuntimeException
   {
+    ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if (value != null) {
       newImportIDSet.clear();
@@ -190,13 +189,12 @@ class Index extends DatabaseContainer
    * Insert the specified import ID set into this index. Creates a DB cursor if needed.
    *
    * @param txn The database transaction
-   * @param key The key to add the set to.
    * @param importIdSet The set of import IDs.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  final void insert(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet)
-      throws StorageRuntimeException
+  final void insert(WriteableStorage txn, ImportIDSet importIdSet) throws StorageRuntimeException
   {
+    ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if(value != null) {
       newImportIDSet.clear();

@@ -34,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.backends.pluggable.Importer.IndexManager;
 
 /**
@@ -62,7 +63,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
   // Next fields are the fetched record data
   private Integer indexID;
-  private ByteBuffer keyBuf = ByteBuffer.allocate(128);
+  private final ByteStringBuilder keyBuffer = new ByteStringBuilder(128);
   private RecordState recordState = RecordState.START;
 
   /**
@@ -96,7 +97,6 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
     loadCache();
     cache.flip();
-    keyBuf.flip();
   }
 
   private void loadCache() throws IOException
@@ -142,19 +142,18 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    */
   public int getKeyLen()
   {
-    return keyBuf.limit();
+    return keyBuffer.length();
   }
 
   /**
-   * Fetches the next key into the provided byte buffer.
+   * Fetches the next key into the provided byte string builder.
    *
    * @param b
-   *          A buffer where to fetch the key
+   *          A builder where to fetch the key
    */
-  public void fetchKey(ByteBuffer b)
+  public void fetchKey(ByteStringBuilder b)
   {
-    keyBuf.get(b.array(), 0, keyBuf.limit());
-    b.limit(keyBuf.limit());
+    b.clear().append(keyBuffer);
   }
 
   /**
@@ -208,14 +207,8 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
     ensureData(20);
     int keyLen = getInt();
-    if (keyLen > keyBuf.capacity())
-    {
-      keyBuf = ByteBuffer.allocate(keyLen);
-    }
     ensureData(keyLen);
-    keyBuf.clear();
-    cache.get(keyBuf.array(), 0, keyLen);
-    keyBuf.limit(keyLen);
+    keyBuffer.clear().append(cache, keyLen);
 
     recordState = RecordState.NEED_INSERT_ID_SET;
   }
@@ -304,11 +297,10 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    *         index ID, a positive number if this buffer is greater, or zero if
    *         it is the same.
    */
-  int compare(ByteBuffer cKey, Integer cIndexID)
+  int compare(ByteStringBuilder cKey, Integer cIndexID)
   {
     ensureRecordFetched();
-    int cmp = Importer.indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(), cKey.array(), cKey.limit());
-    if (cmp == 0)
+    if (Importer.indexComparator.compare(keyBuffer, cKey) == 0)
     {
       return (indexID.intValue() == cIndexID.intValue()) ? 0 : 1;
     }
@@ -328,9 +320,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     ensureRecordFetched();
     o.ensureRecordFetched();
 
-    byte[] oKey = o.keyBuf.array();
-    int oLen = o.keyBuf.limit();
-    int cmp = Importer.indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(), oKey, oLen);
+    int cmp = Importer.indexComparator.compare(keyBuffer, o.keyBuffer);
     if (cmp == 0)
     {
       cmp = indexID.intValue() - o.getIndexID().intValue();
@@ -344,7 +334,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
   private void ensureRecordFetched()
   {
-    if (keyBuf.limit() == 0)
+    if (keyBuffer.length() == 0)
     {
       getIndexID();
     }
