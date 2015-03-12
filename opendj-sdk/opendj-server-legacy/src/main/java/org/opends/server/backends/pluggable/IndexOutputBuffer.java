@@ -449,13 +449,19 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * @param bIndexID The index key to compare.
    * @return <CODE>True</CODE> if the byte arrays are equal.
    */
-  public boolean recordsEqual(byte[] b, int bIndexID)
+  public boolean sameKeyAndIndexID(byte[] b, int bIndexID)
   {
+    if (b == null)
+    {
+      return false;
+    }
+
     int offset = getOffset(position);
     int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD + LONG_SIZE;
     int keyLen = readInt(buffer, offset);
     int key = INT_SIZE + offset;
+
     return indexComparator.compare(buffer, key, keyLen, b, b.length) == 0
         && indexID == bIndexID;
   }
@@ -533,7 +539,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * @param position The index pointing to the byte array to compare.
    * @return {@code true} if the byte arrays are equal, or {@code false} otherwise
    */
-  public boolean byteArraysEqual(int position)
+  public boolean sameKeyAndIndexID(int position)
   {
     return compare(position, this.position) == 0;
   }

@@ -289,22 +289,17 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   /**
    * Compares this buffer with the provided key and index ID.
    *
-   * @param cKey
+   * @param key
    *          The key.
-   * @param cIndexID
+   * @param indexID
    *          The index ID.
-   * @return A negative number if this buffer is less than the provided key and
-   *         index ID, a positive number if this buffer is greater, or zero if
-   *         it is the same.
+   * @return true if this buffer represent the same key and indexID, false otherwise.
    */
-  int compare(ByteStringBuilder cKey, Integer cIndexID)
+  boolean sameKeyAndIndexID(final ByteStringBuilder key, Integer indexID)
   {
     ensureRecordFetched();
-    if (Importer.indexComparator.compare(keyBuffer, cKey) == 0)
-    {
-      return (indexID.intValue() == cIndexID.intValue()) ? 0 : 1;
-    }
-    return 1;
+    return Importer.indexComparator.compare(keyBuffer, key) == 0
+        && this.indexID.equals(indexID);
   }
 
   /** {@inheritDoc} */
