@@ -2944,6 +2944,5 @@ Please:
     <ivy:cleancache/>
   </target>
 
-  <import file="build-svr4.xml"/>
   <import file="build-pkg.xml"/>
 </project>
