@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2010-2013 ForgeRock AS.
+ !      Portions Copyright 2010-2015 ForgeRock AS.
  ! -->
 
 <project name="OpenDJ SVR4 layout" basedir=".">
@@ -32,82 +32,52 @@
   </description>
 
 
-  <target name="pkgversion"
-	     description="Set svr4.version property" >
-  <!-- Construct the version number string -->
-  <taskdef name="getversionnumber"
-             classname="org.opends.build.tools.CreateVersionString">
-  <classpath>
-    <fileset dir="${build.dir}/build-tools">
-       <include name="*.jar" />
-       </fileset>
-    </classpath>
-  </taskdef>
-
-  <getversionnumber property="svr4.fullversion" />
-  <property name="svr4.version"
-    value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
+  <target name="pkgversion" description="Set svr4.version property">
+    <property name="svr4.version"
+      value="${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}" />
+    <property name="svr4.fullversion" value="${svr4.version}-${parsedVersion.qualifier}-${buildRevision}" />
   </target>
 
-  <property name="resource.dir"      location="src/resource" />
+  <property name="resource.dir" location="resource" />
 
   <!-- Construct layout -->
-  <target name="layout" if="isSunOS"
-		description="Create layout based on zip layout" >
-    <!-- Get the revision number of the current Subversion workspace -->
-    <taskdef name="getsvnrevision"
-             classname="org.opends.build.tools.GetSubversionRevision">
-      <classpath>
-        <fileset dir="${build.dir}/build-tools">
-          <include name="*.jar" />
-        </fileset>
-        <fileset dir="${svnkit.dir}">
-          <include name="*.jar" />
-        </fileset>
-      </classpath>
-    </taskdef>
+  <target name="layout" if="isSunOS" description="Create layout based on zip layout">
+    <property name="zip.dir" location="${package.dir}/${lowerCaseProductName}" />
 
-    <getsvnrevision property="REVISION_NUMBER" />
+    <echo message="Building layout for ${svr4.name} pkg based on ${zip.dir}" />
+    <!-- copy ZIP layout. Use exec instead of copy task to preserve file permissions -->
+    <mkdir dir="${svr4.layout.dir}" />
+    <exec executable="cp">
+      <arg value="-R" />
+      <arg value="${zip.dir}" />
+      <arg value="${svr4.layout.pkg.dir}" />
+    </exec>
+    <chmod dir="${svr4.layout.pkg.dir}" perm="755" />
 
-    <property name="zip.dir"
-        location="${package.dir}/${product}-${svr4.fullversion}" />
+    <!-- Remove Windows specific files -->
+    <delete includeemptydirs="true">
+      <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe" />
+      <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat" />
+      <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/" />
+    </delete>
 
-	<echo
-        message="Building layout for ${svr4.name} pkg based on ${zip.dir}" />
-	<!-- copy ZIP layout.
-        Use exec instead of copy task to preserve file permissions -->
-	<mkdir dir="${svr4.layout.dir}"/>
-	<exec executable="cp">
-	    <arg value="-R"/>
-	    <arg value="${zip.dir}"/>
-	    <arg value="${svr4.layout.pkg.dir}"/>
-	</exec>
-        <chmod dir="${svr4.layout.pkg.dir}" perm="755"/>
-	<!-- Remove Windows specific files -->
-	<delete includeemptydirs="true">
-	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
-	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat"/>
-	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/"/>
-	</delete>
-	<!-- Remove MacOS specific files  -->
-	<delete includeemptydirs="true">
-	  <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.app/" />
-	</delete>
-	<!-- Remove uninstall file -->
-	<delete file="${svr4.layout.pkg.dir}/uninstall" />
+    <!-- Remove MacOS specific files -->
+    <delete includeemptydirs="true">
+      <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.app/" />
+    </delete>
+
     <!-- Add svc-opendj.sh wrapper -->
-    <copy file="${svr4.src.dir}/_svc-opendj.sh"
-        tofile="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" />
+    <copy file="${svr4.src.dir}/_svc-opendj.sh" tofile="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" />
     <chmod file="${svr4.layout.pkg.dir}/lib/_svc-opendj.sh" perm="755" />
+
     <!-- Add the SMF Manifest for OpenDJ in a resources directory -->
-    <mkdir dir="${svr4.layout.pkg.dir}/resources"/>
-    <copy file="${svr4.src.dir}/opendj-manifest.xml"
-        tofile="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml" />
-    <chmod file="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml"
-        perm="644" />
+    <mkdir dir="${svr4.layout.pkg.dir}/resources" />
+    <copy file="${svr4.src.dir}/opendj-manifest.xml" tofile="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml" />
+    <chmod file="${svr4.layout.pkg.dir}/resources/opendj-manifest.xml" perm="644" />
+
     <!-- Add man pages -->
     <copy todir="${svr4.layout.pkg.dir}/man">
-      <fileset dir="${resource.dir}/man"/>
+      <fileset dir="${resource.dir}/man" />
     </copy>
   </target>
 
