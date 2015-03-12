@@ -31,9 +31,9 @@ import static org.opends.server.backends.pluggable.Importer.indexComparator;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 /**
  * This class represents a index buffer used to store the keys and entry IDs
@@ -114,7 +114,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * This buffer is reused during key compares. It's main purpose is to keep
    * memory footprint as small as possible.
    */
-  private ByteBuffer keyBuffer = ByteBuffer.allocate(CAP);
+  private ByteStringBuilder keyBuffer = new ByteStringBuilder(CAP);
 
   /**
    * Set to {@code true} if the buffer should not be recycled. Used when the
@@ -361,19 +361,13 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   }
 
   /** Used to minimized memory usage when comparing keys. */
-  private ByteBuffer getKeyBuf(int position)
+  private ByteStringBuilder getKeyBuf(int position)
   {
     keyBuffer.clear();
     int offSet = getOffset(position) + REC_OVERHEAD + LONG_SIZE;
     int keyLen = readInt(buffer, offSet);
     offSet += INT_SIZE;
-    //Re-allocate if the key is bigger than the capacity.
-    if(keyLen > keyBuffer.capacity())
-    {
-      keyBuffer = ByteBuffer.allocate(keyLen);
-    }
-    keyBuffer.put(buffer, offSet, keyLen);
-    keyBuffer.flip();
+    keyBuffer.append(buffer, offSet, keyLen);
     return keyBuffer;
   }
 
@@ -479,14 +473,14 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   @Override
   public int compareTo(IndexOutputBuffer b)
   {
-    final ByteBuffer keyBuf = b.getKeyBuf(b.position);
+    final ByteStringBuilder keyBuf = b.getKeyBuf(b.position);
     int offset = getOffset(position);
     int indexID = getIndexIDFromOffset(offset);
     offset += REC_OVERHEAD + LONG_SIZE;
     int keyLen = readInt(buffer, offset);
     int key = INT_SIZE + offset;
 
-    int cmp = indexComparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
+    int cmp = indexComparator.compare(buffer, key, keyLen, keyBuf.getBackingArray(), keyBuf.length());
     if (cmp == 0)
     {
       cmp = compareInts(indexID, b.getIndexID());
@@ -749,6 +743,11 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
         }
       }
       return cmp;
+    }
+
+    int compare(ByteStringBuilder key1, ByteStringBuilder key2)
+    {
+      return compare(key1.getBackingArray(), 0, key1.length(), key2.getBackingArray(), key2.length());
     }
 
     /**

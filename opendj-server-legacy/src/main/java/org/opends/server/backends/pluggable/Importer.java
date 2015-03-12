@@ -47,7 +47,6 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1952,7 +1951,7 @@ final class Importer implements DiskSpaceMonitorHandler
     @Override
     public Void call() throws Exception
     {
-      ByteBuffer key = null;
+      ByteStringBuilder key = null;
       ImportIDSet insertIDSet = null;
       ImportIDSet deleteIDSet = null;
 
@@ -1979,30 +1978,13 @@ final class Importer implements DiskSpaceMonitorHandler
             IndexInputBuffer b = bufferSet.pollFirst();
             if (key == null)
             {
+              key = new ByteStringBuilder(b.getKeyLen());
+
               indexID = b.getIndexID();
-
-              if (indexMgr.isDN2ID())
-              {
-                insertIDSet = new ImportIDSet(1, 1, false);
-                deleteIDSet = new ImportIDSet(1, 1, false);
-              }
-              else
-              {
-                final Index index = idContainerMap.get(indexID);
-                int limit = index.getIndexEntryLimit();
-                boolean maintainCount = index.getMaintainCount();
-                insertIDSet = new ImportIDSet(1, limit, maintainCount);
-                deleteIDSet = new ImportIDSet(1, limit, maintainCount);
-              }
-
-              key = ByteBuffer.allocate(b.getKeyLen());
-              key.flip();
               b.fetchKey(key);
 
-              b.mergeIDSet(insertIDSet);
-              b.mergeIDSet(deleteIDSet);
-              insertIDSet.setKey(key);
-              deleteIDSet.setKey(key);
+              insertIDSet = newImportIDSet(key, indexID);
+              deleteIDSet = newImportIDSet(key, indexID);
             }
             else if (b.compare(key, indexID) != 0)
             {
@@ -2010,39 +1992,14 @@ final class Importer implements DiskSpaceMonitorHandler
               keyCount.incrementAndGet();
 
               indexID = b.getIndexID();
-
-              if (indexMgr.isDN2ID())
-              {
-                insertIDSet = new ImportIDSet(1, 1, false);
-                deleteIDSet = new ImportIDSet(1, 1, false);
-              }
-              else
-              {
-                final Index index = idContainerMap.get(indexID);
-                int limit = index.getIndexEntryLimit();
-                boolean maintainCount = index.getMaintainCount();
-                insertIDSet = new ImportIDSet(1, limit, maintainCount);
-                deleteIDSet = new ImportIDSet(1, limit, maintainCount);
-              }
-
-              key.clear();
-              if (b.getKeyLen() > key.capacity())
-              {
-                key = ByteBuffer.allocate(b.getKeyLen());
-              }
-              key.flip();
               b.fetchKey(key);
 
-              b.mergeIDSet(insertIDSet);
-              b.mergeIDSet(deleteIDSet);
-              insertIDSet.setKey(key);
-              deleteIDSet.setKey(key);
+              insertIDSet = newImportIDSet(key, indexID);
+              deleteIDSet = newImportIDSet(key, indexID);
             }
-            else
-            {
-              b.mergeIDSet(insertIDSet);
-              b.mergeIDSet(deleteIDSet);
-            }
+
+            b.mergeIDSet(insertIDSet);
+            b.mergeIDSet(deleteIDSet);
 
             if (b.hasMoreData())
             {
@@ -2069,6 +2026,17 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
+    private ImportIDSet newImportIDSet(ByteStringBuilder key, Integer indexID)
+    {
+      if (indexMgr.isDN2ID())
+      {
+        return new ImportIDSet(key, 1, 1, false);
+      }
+
+      final Index index = idContainerMap.get(indexID);
+      return new ImportIDSet(key, 1, index.getIndexEntryLimit(), index.getMaintainCount());
+    }
+
     private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
     {
       if (indexMgr.isDN2ID())
@@ -2079,20 +2047,18 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         if (deleteSet.size() > 0 || !deleteSet.isDefined())
         {
-          ByteString key = deleteSet.keyToByteString();
           final Index index = idContainerMap.get(indexID);
-          index.delete(txn, key, deleteSet);
+          index.delete(txn, deleteSet);
         }
         if (insertSet.size() > 0 || !insertSet.isDefined())
         {
-          ByteString key = insertSet.keyToByteString();
           final Index index = idContainerMap.get(indexID);
-          index.insert(txn, key, insertSet);
+          index.insert(txn, insertSet);
         }
       }
     }
 
-    private void addDN2ID(int indexID, ImportIDSet record) throws DirectoryException
+    private void addDN2ID(int indexID, ImportIDSet idSet) throws DirectoryException
     {
       DNState dnState;
       if (!dnStateMap.containsKey(indexID))
@@ -2104,9 +2070,9 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         dnState = dnStateMap.get(indexID);
       }
-      if (dnState.checkParent(txn, record))
+      if (dnState.checkParent(txn, idSet))
       {
-        dnState.writeToDB();
+        dnState.writeToDN2ID(idSet);
       }
     }
 
@@ -2119,75 +2085,49 @@ final class Importer implements DiskSpaceMonitorHandler
      * This class is used to by a index DB merge thread performing DN processing
      * to keep track of the state of individual DN2ID index processing.
      */
-    class DNState
+    final class DNState
     {
       private static final int DN_STATE_CACHE_SIZE = 64 * KB;
 
-      private ByteBuffer parentDN, lastDN;
-      private EntryID parentID, lastID, entryID;
-      private ByteString dnKey, dnValue;
-      private final TreeMap<ByteBuffer, EntryID> parentIDMap = new TreeMap<ByteBuffer, EntryID>();
       private final EntryContainer entryContainer;
+      private final TreeName dn2id;
+      private final TreeMap<ByteString, EntryID> parentIDMap = new TreeMap<ByteString, EntryID>();
       private final Map<ByteString, ImportIDSet> id2childTree = new TreeMap<ByteString, ImportIDSet>();
       private final Map<ByteString, ImportIDSet> id2subtreeTree = new TreeMap<ByteString, ImportIDSet>();
       private final int childLimit, subTreeLimit;
       private final boolean childDoCount, subTreeDoCount;
+      private ByteSequence parentDN;
+      private final ByteStringBuilder lastDN = new ByteStringBuilder();
+      private EntryID parentID, lastID, entryID;
 
       DNState(EntryContainer entryContainer)
       {
         this.entryContainer = entryContainer;
+        dn2id = entryContainer.getDN2ID().getName();
         final Index id2c = entryContainer.getID2Children();
         childLimit = id2c.getIndexEntryLimit();
         childDoCount = id2c.getMaintainCount();
         final Index id2s = entryContainer.getID2Subtree();
         subTreeLimit = id2s.getIndexEntryLimit();
         subTreeDoCount = id2s.getMaintainCount();
-        lastDN = ByteBuffer.allocate(BYTE_BUFFER_CAPACITY);
       }
 
-      private ByteBuffer getParent(ByteBuffer buffer)
+      private ByteSequence getParent(ByteSequence dn)
       {
-        int parentIndex = JebFormat.findDNKeyParent(toByteString(buffer));
+        int parentIndex = JebFormat.findDNKeyParent(dn);
         if (parentIndex < 0)
         {
           // This is the root or base DN
           return null;
         }
-        ByteBuffer parent = buffer.duplicate();
-        parent.limit(parentIndex);
-        return parent;
-      }
-
-      private ByteString toByteString(ByteBuffer buffer)
-      {
-        return ByteString.wrap(buffer.array(), 0, buffer.limit());
-      }
-
-      private ByteBuffer deepCopy(ByteBuffer srcBuffer, ByteBuffer destBuffer)
-      {
-        if (destBuffer == null
-            || destBuffer.clear().remaining() < srcBuffer.limit())
-        {
-          byte[] bytes = new byte[srcBuffer.limit()];
-          System.arraycopy(srcBuffer.array(), 0, bytes, 0, srcBuffer.limit());
-          return ByteBuffer.wrap(bytes);
-        }
-        else
-        {
-          destBuffer.put(srcBuffer);
-          destBuffer.flip();
-          return destBuffer;
-        }
+        return dn.subSequence(0, parentIndex).toByteString();
       }
 
       /** Why do we still need this if we are checking parents in the first phase? */
-      private boolean checkParent(ReadableStorage txn, ImportIDSet record) throws StorageRuntimeException
+      private boolean checkParent(ReadableStorage txn, ImportIDSet idSet) throws StorageRuntimeException
       {
-        dnKey = record.keyToByteString();
-        dnValue = record.valueToByteString();
-
-        entryID = new EntryID(dnValue);
-        parentDN = getParent(record.getKey());
+        entryID = new EntryID(idSet.valueToByteString());
+        parentDN = getParent(idSet.getKey());
 
         //Bypass the cache for append data, lookup the parent in DN2ID and return.
         if (importConfiguration != null
@@ -2196,8 +2136,7 @@ final class Importer implements DiskSpaceMonitorHandler
           //If null is returned than this is a suffix DN.
           if (parentDN != null)
           {
-            ByteString key = toByteString(parentDN);
-            ByteString value = txn.read(entryContainer.getDN2ID().getName(), key);
+            ByteString value = txn.read(dn2id, parentDN);
             if (value != null)
             {
               parentID = new EntryID(value);
@@ -2213,36 +2152,36 @@ final class Importer implements DiskSpaceMonitorHandler
         }
         else if (parentIDMap.isEmpty())
         {
-          parentIDMap.put(deepCopy(record.getKey(), null), entryID);
+          parentIDMap.put(idSet.getKey().toByteString(), entryID);
           return true;
         }
-        else if (lastDN != null && lastDN.equals(parentDN))
+        else if (lastDN.equals(parentDN))
         {
-          parentIDMap.put(deepCopy(lastDN, null), lastID);
+          parentIDMap.put(lastDN.toByteString(), lastID);
           parentID = lastID;
-          lastDN = deepCopy(record.getKey(), lastDN);
+          lastDN.clear().append(idSet.getKey());
           lastID = entryID;
           return true;
         }
         else if (parentIDMap.lastKey().equals(parentDN))
         {
           parentID = parentIDMap.get(parentDN);
-          lastDN = deepCopy(record.getKey(), lastDN);
+          lastDN.clear().append(idSet.getKey());
           lastID = entryID;
           return true;
         }
         else if (parentIDMap.containsKey(parentDN))
         {
           EntryID newParentID = parentIDMap.get(parentDN);
-          ByteBuffer key = parentIDMap.lastKey();
+          ByteSequence key = parentIDMap.lastKey();
           while (!parentDN.equals(key))
           {
             parentIDMap.remove(key);
             key = parentIDMap.lastKey();
           }
-          parentIDMap.put(deepCopy(record.getKey(), null), entryID);
+          parentIDMap.put(idSet.getKey().toByteString(), entryID);
           parentID = newParentID;
-          lastDN = deepCopy(record.getKey(), lastDN);
+          lastDN.clear().append(idSet.getKey());
           lastID = entryID;
         }
         else
@@ -2259,18 +2198,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         if (parentID != null)
         {
-          ImportIDSet idSet;
-          final ByteString parentIDBytes = parentID.toByteString();
-          if (!id2childTree.containsKey(parentIDBytes))
-          {
-            idSet = new ImportIDSet(1, childLimit, childDoCount);
-            id2childTree.put(parentIDBytes, idSet);
-          }
-          else
-          {
-            idSet = id2childTree.get(parentIDBytes);
-          }
-          idSet.addEntryID(childID);
+          getId2childtreeImportIDSet().addEntryID(childID);
           if (id2childTree.size() > DN_STATE_CACHE_SIZE)
           {
             flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
@@ -2283,15 +2211,26 @@ final class Importer implements DiskSpaceMonitorHandler
         }
       }
 
-      private EntryID getParentID(ReadableStorage txn, ByteBuffer dn) throws StorageRuntimeException
+      private ImportIDSet getId2childtreeImportIDSet()
+      {
+        final ByteString parentIDBytes = parentID.toByteString();
+        ImportIDSet idSet = id2childTree.get(parentIDBytes);
+        if (idSet == null)
+        {
+          idSet = new ImportIDSet(parentIDBytes, 1, childLimit, childDoCount);
+          id2childTree.put(parentIDBytes, idSet);
+        }
+        return idSet;
+      }
+
+      private EntryID getParentID(ReadableStorage txn, ByteSequence dn) throws StorageRuntimeException
       {
         // Bypass the cache for append data, lookup the parent DN in the DN2ID db
         if (importConfiguration == null || !importConfiguration.appendToExistingData())
         {
           return parentIDMap.get(dn);
         }
-        ByteString key = toByteString(dn);
-        ByteString value = txn.read(entryContainer.getDN2ID().getName(), key);
+        ByteString value = txn.read(dn2id, dn);
         return value != null ? new EntryID(value) : null;
       }
 
@@ -2299,42 +2238,19 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         if (parentID != null)
         {
-          ImportIDSet idSet;
-          final ByteString parentIDBytes = parentID.toByteString();
-          if (!id2subtreeTree.containsKey(parentIDBytes))
-          {
-            idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-            id2subtreeTree.put(parentIDBytes, idSet);
-          }
-          else
-          {
-            idSet = id2subtreeTree.get(parentIDBytes);
-          }
-          idSet.addEntryID(childID);
+          getId2subtreeImportIDSet(parentID).addEntryID(childID);
           // TODO:
           // Instead of doing this,
           // we can just walk to parent cache if available
-          for (ByteBuffer dn = getParent(parentDN); dn != null; dn = getParent(dn))
+          for (ByteSequence dn = getParent(parentDN); dn != null; dn = getParent(dn))
           {
             EntryID nodeID = getParentID(txn, dn);
-            if (nodeID == null)
+            if (nodeID != null)
             {
-              // We have a missing parent. Maybe parent checking was turned off?
-              // Just ignore.
-              break;
+              getId2subtreeImportIDSet(nodeID).addEntryID(childID);
             }
-
-            final ByteString nodeIDBytes = nodeID.toByteString();
-            if (!id2subtreeTree.containsKey(nodeIDBytes))
-            {
-              idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
-              id2subtreeTree.put(nodeIDBytes, idSet);
-            }
-            else
-            {
-              idSet = id2subtreeTree.get(nodeIDBytes);
-            }
-            idSet.addEntryID(childID);
+            // else we have a missing parent. Maybe parent checking was turned off?
+            // Just ignore.
           }
           if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
           {
@@ -2348,9 +2264,21 @@ final class Importer implements DiskSpaceMonitorHandler
         }
       }
 
-      public void writeToDB() throws DirectoryException
+      private ImportIDSet getId2subtreeImportIDSet(EntryID entryID)
       {
-        txn.create(entryContainer.getDN2ID().getName(), dnKey, dnValue);
+        ByteString entryIDBytes = entryID.toByteString();
+        ImportIDSet idSet = id2subtreeTree.get(entryIDBytes);
+        if (idSet == null)
+        {
+          idSet = new ImportIDSet(entryIDBytes, 1, subTreeLimit, subTreeDoCount);
+          id2subtreeTree.put(entryIDBytes, idSet);
+        }
+        return idSet;
+      }
+
+      public void writeToDN2ID(ImportIDSet idSet) throws DirectoryException
+      {
+        txn.create(dn2id, idSet.getKey(), entryID.toByteString());
         indexMgr.addTotDNCount(1);
         if (parentDN != null)
         {
@@ -2359,25 +2287,22 @@ final class Importer implements DiskSpaceMonitorHandler
         }
       }
 
-      private void flushMapToDB(Map<ByteString, ImportIDSet> map, Index index,
-          boolean clearMap)
+      public void flush()
       {
-        for (Map.Entry<ByteString, ImportIDSet> e : map.entrySet())
+        flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
+        flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+      }
+
+      private void flushMapToDB(Map<ByteString, ImportIDSet> map, Index index, boolean clearMap)
+      {
+        for (ImportIDSet idSet : map.values())
         {
-          dnKey = e.getKey();
-          ImportIDSet idSet = e.getValue();
-          index.insert(txn, dnKey, idSet);
+          index.insert(txn, idSet);
         }
         if (clearMap)
         {
           map.clear();
         }
-      }
-
-      public void flush()
-      {
-        flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
-        flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
       }
     }
   }
@@ -4151,7 +4076,7 @@ final class Importer implements DiskSpaceMonitorHandler
             return builder;
           }
 
-          /** Create a list of dn made of one element */
+          /** Create a list of dn made of one element. */
           private ByteSequence singletonList(final ByteSequence dntoAdd)
           {
             final ByteStringBuilder singleton = new ByteStringBuilder(dntoAdd.length() + INT_SIZE);
