@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="ldap-pass-through-authentication-policy"
   plural-name="ldap-pass-through-authentication-policies" extends="authentication-policy"
@@ -31,7 +31,7 @@
 
   <adm:synopsis>
     An authentication policy for users whose credentials are managed
-    by a remote LDAP directory service. 
+    by a remote LDAP directory service.
   </adm:synopsis>
 
   <adm:description>
@@ -230,7 +230,7 @@
           By default, no trust manager is specified indicating that only
           certificates signed by the authorities associated with this JVM will
           be accepted.
-        </adm:synopsis> 
+        </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
@@ -394,7 +394,7 @@
 
   <adm:property name="mapped-search-bind-password-environment-variable">
     <adm:synopsis>
-      Specifies the name of an environment variable containing the bind 
+      Specifies the name of an environment variable containing the bind
       password which should be used to perform user searches in the remote LDAP
       directory service.
     </adm:synopsis>
@@ -415,7 +415,7 @@
 
   <adm:property name="mapped-search-bind-password-file">
     <adm:synopsis>
-      Specifies the name of a file containing the bind 
+      Specifies the name of a file containing the bind
       password which should be used to perform user searches in the remote LDAP
       directory service.
     </adm:synopsis>
@@ -596,7 +596,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  
+
   <adm:property name="cached-password-storage-scheme">
     <adm:synopsis>
       Specifies the name of a password storage scheme which should be used
@@ -628,12 +628,12 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  
+
   <adm:property name="cached-password-ttl">
     <adm:synopsis>
       Specifies the maximum length of time that a locally cached password may
       be used for authentication before it is refreshed from the remote LDAP
-      service. 
+      service.
     </adm:synopsis>
     <adm:description>
       This property represents a cache timeout. Increasing the timeout period

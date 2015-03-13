@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions copyright 2013 ForgeRock AS
+  !      Portions copyright 2013-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="debug-log-publisher"
   plural-name="debug-log-publishers"
@@ -37,8 +37,8 @@
     logger to a destination.
   </adm:synopsis>
   <adm:description>
-    Debug log messages provide information that can be used for debugging 
-    or troubleshooting problems in the server, or for providing more 
+    Debug log messages provide information that can be used for debugging
+    or troubleshooting problems in the server, or for providing more
     detailed information about the processing that the server performs.
   </adm:description>
   <adm:profile name="ldap">
