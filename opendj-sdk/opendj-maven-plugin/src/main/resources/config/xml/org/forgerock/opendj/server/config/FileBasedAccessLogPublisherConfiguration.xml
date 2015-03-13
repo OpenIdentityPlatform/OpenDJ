@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS.
+  !      Portions copyright 2011-2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="file-based-access-log-publisher"
   plural-name="file-based-access-log-publishers"
@@ -83,7 +83,7 @@
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The <adm:user-friendly-name /> must be restarted if this property 
+          The <adm:user-friendly-name /> must be restarted if this property
           is changed and the asynchronous property is set to true.
         </adm:synopsis>
       </adm:other>
@@ -158,7 +158,7 @@
   </adm:property>
   <adm:property name="time-interval" advanced="true">
     <adm:synopsis>
-      Specifies the interval at which to check whether the log files 
+      Specifies the interval at which to check whether the log files
       need to be rotated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -332,7 +332,7 @@
         <adm:regex>.*</adm:regex>
         <adm:usage>STRING</adm:usage>
           <adm:synopsis>
-            Any valid format string that can be used with the 
+            Any valid format string that can be used with the
             java.text.SimpleDateFormat class.
           </adm:synopsis>
         </adm:pattern>

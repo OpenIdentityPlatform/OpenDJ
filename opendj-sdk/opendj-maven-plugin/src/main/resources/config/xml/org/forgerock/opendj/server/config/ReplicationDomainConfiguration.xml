@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2011-2013 ForgeRock AS
+  !      Portions Copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -171,7 +171,7 @@
     </adm:synopsis>
     <adm:description>
       The directory server sends a regular heart-beat to the Replication
-      within the specified interval. The heart-beat indicates the 
+      within the specified interval. The heart-beat indicates the
       change time of the directory server to the Replication Server.
     </adm:description>
     <adm:default-behavior>
@@ -208,7 +208,7 @@
             not possible to send them to any Replication Server. Best
             effort is made to re-send those updates to a
             Replication Servers when one of them is available, however
-            those changes are at risk because they are only 
+            those changes are at risk because they are only
             available from the historical information. This mode can
             also introduce high replication latency.
           </adm:synopsis>
@@ -463,9 +463,9 @@
     <adm:description>
       This boolean indicates if this domain keeps the historical information
       necessary to solve conflicts.
-      When set to false the server will not maintain historical information 
+      When set to false the server will not maintain historical information
       and will therefore not be able to solve conflict. This should therefore
-      be done only if the replication is used in a single master type 
+      be done only if the replication is used in a single master type
       of deployment.
     </adm:description>
     <adm:default-behavior>
@@ -487,7 +487,7 @@
       Indicates if this server logs the ChangeNumber in access log.
     </adm:synopsis>
     <adm:description>
-      This boolean indicates if the domain should log the ChangeNumber 
+      This boolean indicates if the domain should log the ChangeNumber
       of replicated operations in the access log.
     </adm:description>
     <adm:default-behavior>
@@ -526,7 +526,7 @@
   <adm:property name="conflicts-historical-purge-delay">
     <adm:synopsis>
       This delay indicates the time (in minutes) the domain keeps the historical
-      information necessary to solve conflicts.When a change stored in the 
+      information necessary to solve conflicts.When a change stored in the
       historical part of the user entry has a date (from its replication ChangeNumber)
       older than this delay, it is candidate to be purged.
       The purge is applied on 2 events: modify of the entry, dedicated purge task.

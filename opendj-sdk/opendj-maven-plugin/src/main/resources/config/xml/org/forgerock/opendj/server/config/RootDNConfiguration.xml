@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="root-dn" plural-name="root-dns"
   package="org.forgerock.opendj.server.config"
@@ -217,7 +217,7 @@
             Allows the associated user to perform LDAP subentry write
             operations.
           </adm:synopsis>
-        </adm:value>  
+        </adm:value>
         <adm:value name="changelog-read">
           <adm:synopsis>
             Allows the user to perform read operations on the changelog
