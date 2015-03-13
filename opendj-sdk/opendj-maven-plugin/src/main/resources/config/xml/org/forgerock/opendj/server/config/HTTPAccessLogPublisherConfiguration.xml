@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="http-access-log-publisher"
   plural-name="http-access-log-publishers"
@@ -51,7 +51,7 @@
   <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>org.opends.server.HTTPAccessLogPublisher</adm:value>
+        <adm:value>org.opends.server.loggers.HTTPAccessLogPublisher</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

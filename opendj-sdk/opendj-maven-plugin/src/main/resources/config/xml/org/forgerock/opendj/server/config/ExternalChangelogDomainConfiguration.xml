@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2009 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS
+  !      Portions copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="external-changelog-domain"
   plural-name="external-changelog-domains"
@@ -44,9 +44,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicates whether the
-      <adm:user-friendly-name />
-      is enabled.
+      Indicates whether the <adm:user-friendly-name /> is enabled.
+      To enable computing the change numbers, set the Replication Server's
+      "ds-cfg-compute-change-number" property to true.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
