@@ -438,12 +438,12 @@
           <!-- Leave default lifecycle phase once new config framework migration is done -->
           <execution>
             <id>generate-config</id>
+            <!-- <phase>generate-sources</phase> -->
+            <phase>none</phase>
             <goals>
               <goal>generate-config</goal>
             </goals>
             <configuration>
-              <!-- <phase>generate-sources</phase> -->
-              <phase>none</phase>
               <packageName>org.forgerock.opendj.server.config</packageName>
               <isExtension>false</isExtension>
             </configuration>
