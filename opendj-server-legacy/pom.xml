@@ -79,6 +79,8 @@
     <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+    <!-- Could be removed once migration to new config framework will be done-->
+    <old.config.files.path>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</old.config.files.path>
 
   </properties>
 
@@ -283,6 +285,35 @@
             </fileset>
           </filesets>
         </configuration>
+      </plugin>
+
+      <!-- Unpack configuration files from opendj-maven-plugin -->
+      <!-- This plugin could be removed once the migration to the new config framework will be done -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-maven-plugin</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</outputDirectory>
+                  <includes>config/xml/**/*.xml</includes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Generate i18n messages -->
@@ -986,6 +1017,30 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
+          <execution>
+            <!-- Temporary solution for configuration classes until migration to new config framework -->
+            <!-- Change package name and XML namespaces references to match the old config framework -->
+            <id>configure-config-files</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+                <move todir="${old.config.files.path}">
+                  <fileset dir="${old.config.files.path}/config/xml/org/forgerock/opendj/server/config/" />
+                </move>
+                <delete dir="${old.config.files.path}/config" />
+                <replace dir="${old.config.files.path}"
+                         token="org.forgerock.opendj.server.config"
+                         value="org.opends.server.admin.std"/>
+                <replace dir="${old.config.files.path}"
+                         token="http://opendj.forgerock.org/admin"
+                         value="http://www.opends.org/admin"/>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
           <execution>
             <!-- Temporary solution for configuration classes until migration to new config framework -->
             <id>generate-config</id>
