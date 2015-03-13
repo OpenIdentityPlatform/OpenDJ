@@ -111,6 +111,7 @@ class Index extends DatabaseContainer
   /**
    * Create a new index object.
    * @param name The name of the index database within the entryContainer.
+   * @param storage The JE Storage
    * @param indexer The indexer object to construct index keys from LDAP
    * attribute values.
    * @param state The state database to persist index state info.
@@ -119,17 +120,16 @@ class Index extends DatabaseContainer
    * @param cursorEntryLimit The configured limit on the number of entry IDs
    * @param maintainCount Whether to maintain a count of IDs for a key once
    * the entry limit has exceeded.
-   * @param storage The JE Storage
    * @param txn The transaction to use when creating this object
    * @param entryContainer The database entryContainer holding this index.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  Index(TreeName name, Indexer indexer, State state,
-        int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
-        Storage storage, WriteableStorage txn, EntryContainer entryContainer)
+  Index(TreeName name, Storage storage, Indexer indexer,
+        State state, int indexEntryLimit, int cursorEntryLimit,
+        boolean maintainCount, WriteableStorage txn, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
-    super(name, storage, entryContainer);
+    super(name, storage);
     this.indexer = indexer;
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;

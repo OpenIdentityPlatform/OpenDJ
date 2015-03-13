@@ -56,8 +56,7 @@ class DN2ID extends DatabaseContainer
   DN2ID(TreeName treeName, Storage env, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
-    super(treeName, env, entryContainer);
-
+    super(treeName, env);
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 

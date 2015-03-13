@@ -131,7 +131,7 @@ class VLVIndex extends DatabaseContainer
   VLVIndex(BackendVLVIndexCfg config, State state, Storage storage, EntryContainer entryContainer, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
-    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), storage, entryContainer);
+    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), storage);
 
     this.config = config;
     this.baseDN = config.getBaseDN();

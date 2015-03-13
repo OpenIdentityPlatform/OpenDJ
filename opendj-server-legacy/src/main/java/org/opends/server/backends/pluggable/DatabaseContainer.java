@@ -41,9 +41,6 @@ import org.opends.server.backends.pluggable.spi.WriteableStorage;
  */
 abstract class DatabaseContainer implements Closeable
 {
-  /** The database entryContainer. */
-  final EntryContainer entryContainer;
-
   /** The name of the database within the entryContainer. */
   private TreeName name;
 
@@ -55,12 +52,10 @@ abstract class DatabaseContainer implements Closeable
    *
    * @param treeName The name of the entry database.
    * @param storage The JE Storage.
-   * @param entryContainer The entryContainer of the entry database.
    */
-  DatabaseContainer(TreeName treeName, Storage storage, EntryContainer entryContainer)
+  DatabaseContainer(TreeName treeName, Storage storage)
   {
     this.storage = storage;
-    this.entryContainer = entryContainer;
     this.name = treeName;
   }
 

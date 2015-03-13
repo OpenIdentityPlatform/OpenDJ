@@ -48,11 +48,10 @@ class State extends DatabaseContainer
    *
    * @param name The name of the entry database.
    * @param env The JE Storage.
-   * @param entryContainer The entryContainer of the entry database.
    */
-  State(TreeName name, Storage env, EntryContainer entryContainer)
+  State(TreeName name, Storage env)
   {
-    super(name, env, entryContainer);
+    super(name, env);
   }
 
   /**

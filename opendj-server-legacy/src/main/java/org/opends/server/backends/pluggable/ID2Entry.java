@@ -225,17 +225,16 @@ class ID2Entry extends DatabaseContainer
    * Create a new ID2Entry object.
    *
    * @param name The name of the entry database.
+   * @param storage The JE Storage.
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
-   * @param storage The JE Storage.
    * @param entryContainer The entryContainer of the entry database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    *
    */
-  ID2Entry(TreeName name, DataConfig dataConfig, Storage storage, EntryContainer entryContainer)
-      throws StorageRuntimeException
+  ID2Entry(TreeName name, Storage storage, DataConfig dataConfig) throws StorageRuntimeException
   {
-    super(name, storage, entryContainer);
+    super(name, storage);
     this.dataConfig = dataConfig;
   }
 
@@ -409,8 +408,7 @@ class ID2Entry extends DatabaseContainer
 
     try
     {
-      Entry entry = entryFromDatabase(value,
-          entryContainer.getRootContainer().getCompressedSchema());
+      Entry entry = entryFromDatabase(value, dataConfig.getEntryEncodeConfig().getCompressedSchema());
       entry.processVirtualAttributes();
       return entry;
     }

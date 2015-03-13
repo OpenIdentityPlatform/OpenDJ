@@ -112,8 +112,7 @@ class DN2URI extends DatabaseContainer
   DN2URI(TreeName treeName, Storage storage, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
-    super(treeName, storage, entryContainer);
-
+    super(treeName, storage);
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 
@@ -533,8 +532,7 @@ class DN2URI extends DatabaseContainer
       try
       {
         // Go up through the DIT hierarchy until we find a referral.
-        for (DN dn = entryContainer.getParentWithinBase(targetDN); dn != null;
-             dn = entryContainer.getParentWithinBase(dn))
+        for (DN dn = getParentWithinBase(targetDN); dn != null; dn = getParentWithinBase(dn))
         {
           // Look for a record whose key matches the current DN.
           if (cursor.positionToKey(toKey(dn)))
@@ -555,6 +553,11 @@ class DN2URI extends DatabaseContainer
     {
       logger.traceException(e);
     }
+  }
+
+  private DN getParentWithinBase(DN targetDN)
+  {
+    return targetDN.size() == prefixRDNComponents ? null: targetDN.parent();
   }
 
   /**
