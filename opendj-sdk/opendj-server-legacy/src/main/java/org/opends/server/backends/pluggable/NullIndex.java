@@ -48,7 +48,7 @@ final class NullIndex extends Index
   NullIndex(TreeName name, Indexer indexer, State state, Storage storage, WriteableStorage txn,
       EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(name, indexer, state, 0, 0, false, storage, txn, entryContainer);
+    super(name, storage, indexer, state, 0, 0, false, txn, entryContainer);
   }
 
   @Override

@@ -482,13 +482,13 @@ public class EntryContainer
             config.isCompactEncoding(),
             rootContainer.getCompressedSchema());
 
-      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), entryDataConfig, storage, this);
+      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), storage, entryDataConfig);
       id2entry.open(txn);
 
       dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), storage, this);
       dn2id.open(txn);
 
-      state = new State(getIndexName(STATE_DATABASE_NAME), storage, this);
+      state = new State(getIndexName(STATE_DATABASE_NAME), storage);
       state.open(txn);
 
       if (config.isSubordinateIndexesEnabled())
@@ -3170,7 +3170,7 @@ public class EntryContainer
   private Index newIndex(WriteableStorage txn, String name, Indexer indexer)
   {
     final Index index = new Index(getIndexName(name),
-        indexer, state, config.getIndexEntryLimit(), 0, true, storage, txn, this);
+        storage, indexer, state, config.getIndexEntryLimit(), 0, true, txn, this);
     index.open(txn);
     if (!index.isTrusted())
     {
@@ -3191,7 +3191,7 @@ public class EntryContainer
   Index newIndexForAttribute(WriteableStorage txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
   {
     final int cursorEntryLimit = 100000;
-    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, storage, txn, this);
+    return new Index(indexName, storage, indexer, state, indexEntryLimit, cursorEntryLimit, false, txn, this);
   }
 
 
