@@ -61,7 +61,7 @@
   <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>org.opends.server.api.AccessLogPublisher</adm:value>
+        <adm:value>org.opends.server.loggers.AccessLogPublisher</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

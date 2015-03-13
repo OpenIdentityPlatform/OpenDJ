@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions copyright 2011-2014 ForgeRock AS
+  !      Portions copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -72,6 +72,30 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-replication-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="source-address" multi-valued="false" mandatory="false">
+    <adm:synopsis>
+      If specified, the server will bind to the address before connecting to the
+      remote server.
+    </adm:synopsis>
+    <adm:description>
+      The address must be one assigned to an existing network interface.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+        <adm:ip-address />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-source-address</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2010-2013 ForgeRock AS.
+  !      Portions Copyright 2010-2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.forgerock.opendj.server.config"
@@ -44,6 +44,23 @@
     can be used to quickly locate target entries based on different
     kinds of criteria.
   </adm:description>
+  <adm:constraint>
+    <adm:synopsis>
+      The properties db-txn-no-sync and db-txn-write-no-sync are
+      mutually exclusive and cannot be both set at the same time.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="enabled" value="true" />
+        <adm:not>
+          <adm:and>
+            <adm:contains property="db-txn-no-sync" value="true" />
+            <adm:contains property="db-txn-write-no-sync" value="true" />
+          </adm:and>
+        </adm:not>
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-local-db-backend</ldap:name>

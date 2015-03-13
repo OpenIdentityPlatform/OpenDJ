@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions copyright 2013 ForgeRock AS
+  !      Portions copyright 2013-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="log-publisher" plural-name="log-publishers"
   package="org.forgerock.opendj.server.config" abstract="true"
@@ -65,7 +65,7 @@
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
-          org.opends.server.api.LogPublisher
+          org.opends.server.loggers.LogPublisher
         </adm:instance-of>
       </adm:java-class>
     </adm:syntax>
