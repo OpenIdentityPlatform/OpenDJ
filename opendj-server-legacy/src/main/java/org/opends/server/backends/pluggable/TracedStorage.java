@@ -279,18 +279,19 @@ final class TracedStorage implements Storage
   @Override
   public <T> T read(final ReadOperation<T> readOperation) throws Exception
   {
+    ReadOperation<T> op = readOperation;
     if (logger.isTraceEnabled())
     {
-      return storage.read(new ReadOperation<T>()
+      op = new ReadOperation<T>()
       {
         @Override
         public T run(final ReadableStorage txn) throws Exception
         {
           return readOperation.run(new TracedReadableStorage(txn));
         }
-      });
+      };
     }
-    return storage.read(readOperation);
+    return storage.read(op);
   }
 
   @Override
@@ -324,22 +325,23 @@ final class TracedStorage implements Storage
   @Override
   public void write(final WriteOperation writeOperation) throws Exception
   {
+    WriteOperation op = writeOperation;
     if (logger.isTraceEnabled())
     {
-      storage.write(new WriteOperation()
+      op = new WriteOperation()
       {
         @Override
         public void run(final WriteableStorage txn) throws Exception
         {
           writeOperation.run(new TracedWriteableStorage(txn));
         }
-      });
+      };
     }
-    storage.write(writeOperation);
+    storage.write(op);
   }
 
   private String hex(final ByteSequence bytes)
   {
-    return bytes.toByteString().toHexString();
+    return bytes != null ? bytes.toByteString().toHexString() : "null";
   }
 }
