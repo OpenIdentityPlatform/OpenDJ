@@ -152,7 +152,7 @@
   <property file="PRODUCT"                                                />
 
   <!-- Properties for administration framework code generation. -->
-  <property name="admin.defn.dir"  location="src/admin/defn" />
+  <property name="admin.defn.dir"  location="${build.dir}/config/admin/defn" />
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
   <property name="configguide.resource.dir" location="resource/admin/config-guide" />
