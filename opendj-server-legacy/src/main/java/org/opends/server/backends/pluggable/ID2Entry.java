@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -225,16 +224,15 @@ class ID2Entry extends DatabaseContainer
    * Create a new ID2Entry object.
    *
    * @param name The name of the entry database.
-   * @param storage The JE Storage.
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
    * @param entryContainer The entryContainer of the entry database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    *
    */
-  ID2Entry(TreeName name, Storage storage, DataConfig dataConfig) throws StorageRuntimeException
+  ID2Entry(TreeName name, DataConfig dataConfig) throws StorageRuntimeException
   {
-    super(name, storage);
+    super(name);
     this.dataConfig = dataConfig;
   }
 

@@ -100,20 +100,6 @@ final class JECompressedSchema extends CompressedSchema
     load(txn);
   }
 
-
-
-  /**
-   * Closes the databases and releases any resources held by this compressed
-   * schema manager.
-   */
-  public void close()
-  {
-    storage.closeTree(adTreeName);
-    storage.closeTree(ocTreeName);
-
-    storage = null;
-  }
-
   /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,

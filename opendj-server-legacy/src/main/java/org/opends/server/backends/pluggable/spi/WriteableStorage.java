@@ -41,14 +41,6 @@ public interface WriteableStorage extends ReadableStorage
   void openTree(TreeName name);
 
   /**
-   * Truncates the tree identified by the provided name. It removes all the records in the tree.
-   *
-   * @param name
-   *          the tree name
-   */
-  void truncateTree(TreeName name);
-
-  /**
    * Renames the tree from the old to the new name.
    *
    * @param oldName

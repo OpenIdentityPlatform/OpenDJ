@@ -79,14 +79,6 @@ public interface Storage extends Closeable
    */
   void write(WriteOperation writeOperation) throws Exception;
 
-  /**
-   * Closes the tree identified by the provided name.
-   *
-   * @param treeName
-   *          the tree name
-   */
-  void closeTree(TreeName treeName);
-
   /** {@inheritDoc} */
   @Override
   void close();

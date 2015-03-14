@@ -28,7 +28,6 @@ package org.opends.server.backends.pluggable;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -47,11 +46,10 @@ class State extends DatabaseContainer
    * Create a new State object.
    *
    * @param name The name of the entry database.
-   * @param env The JE Storage.
    */
-  State(TreeName name, Storage env)
+  State(TreeName name)
   {
-    super(name, env);
+    super(name);
   }
 
   /**

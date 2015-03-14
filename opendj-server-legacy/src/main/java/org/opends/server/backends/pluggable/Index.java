@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.pluggable.IndexBuffer.BufferedIndexValues;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -111,7 +110,6 @@ class Index extends DatabaseContainer
   /**
    * Create a new index object.
    * @param name The name of the index database within the entryContainer.
-   * @param storage The JE Storage
    * @param indexer The indexer object to construct index keys from LDAP
    * attribute values.
    * @param state The state database to persist index state info.
@@ -124,12 +122,10 @@ class Index extends DatabaseContainer
    * @param entryContainer The database entryContainer holding this index.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  Index(TreeName name, Storage storage, Indexer indexer,
-        State state, int indexEntryLimit, int cursorEntryLimit,
-        boolean maintainCount, WriteableStorage txn, EntryContainer entryContainer)
-      throws StorageRuntimeException
+  Index(TreeName name, Indexer indexer, State state, int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
+      WriteableStorage txn, EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(name, storage);
+    super(name);
     this.indexer = indexer;
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;

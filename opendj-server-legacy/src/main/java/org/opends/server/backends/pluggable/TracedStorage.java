@@ -202,13 +202,6 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public void truncateTree(final TreeName name)
-    {
-      txn.truncateTree(name);
-      logger.trace("Storage.WriteableStorage.truncateTree(%s, %s)", backendId, name);
-    }
-
-    @Override
     public boolean update(final TreeName name, final ByteSequence key, final UpdateFunction f)
     {
       final boolean isUpdated = txn.update(name, key, f);
@@ -235,16 +228,6 @@ final class TracedStorage implements Storage
     if (logger.isTraceEnabled())
     {
       logger.trace("Storage.close(%s)", backendId);
-    }
-  }
-
-  @Override
-  public void closeTree(final TreeName name)
-  {
-    storage.closeTree(name);
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage.closeTree(%s, %s)", backendId, name);
     }
   }
 

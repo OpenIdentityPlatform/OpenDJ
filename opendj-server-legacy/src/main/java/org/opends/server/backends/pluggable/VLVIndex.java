@@ -29,6 +29,7 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.Closeable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,7 +86,7 @@ import org.opends.server.util.StaticUtils;
  * to its own key.
  */
 class VLVIndex extends DatabaseContainer
-    implements ConfigurationChangeListener<BackendVLVIndexCfg>
+    implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -113,6 +114,8 @@ class VLVIndex extends DatabaseContainer
   private SearchFilter filter;
   private SearchScope scope;
 
+  /** The storage associated with this index. */
+  private final Storage storage;
 
   /**
    * Create a new VLV vlvIndex object.
@@ -131,12 +134,13 @@ class VLVIndex extends DatabaseContainer
   VLVIndex(BackendVLVIndexCfg config, State state, Storage storage, EntryContainer entryContainer, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
-    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), storage);
+    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()));
 
     this.config = config;
     this.baseDN = config.getBaseDN();
     this.scope = valueOf(config.getScope());
     this.sortedSetCapacity = config.getMaxBlockSize();
+    this.storage = storage;
 
     try
     {
@@ -245,16 +249,9 @@ class VLVIndex extends DatabaseContainer
     return bytes.toInt();
   }
 
-  /**
-   * Close the VLV index.
-   *
-   * @throws StorageRuntimeException if a JE database error occurs while
-   * closing the index.
-   */
   @Override
-  public void close() throws StorageRuntimeException
+  public void close()
   {
-    super.close();
     this.config.removeChangeListener(this);
   }
 

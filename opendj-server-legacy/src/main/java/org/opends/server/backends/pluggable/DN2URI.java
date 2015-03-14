@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Pair;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -102,17 +101,14 @@ class DN2URI extends DatabaseContainer
    *
    * @param treeName
    *          The name of the referral database.
-   * @param storage
-   *          The JE environment.
    * @param entryContainer
    *          The entryContainer of the DN database.
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  DN2URI(TreeName treeName, Storage storage, EntryContainer entryContainer)
-      throws StorageRuntimeException
+  DN2URI(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(treeName, storage);
+    super(treeName);
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 

@@ -549,10 +549,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         ec.exclusiveLock.unlock();
       }
     }
-
-    compressedSchema.close();
     config.removePluggableChangeListener(this);
-
     if (storage != null)
     {
       storage.close();
