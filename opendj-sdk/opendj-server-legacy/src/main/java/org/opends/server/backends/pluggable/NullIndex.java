@@ -31,7 +31,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -45,10 +44,10 @@ import org.opends.server.types.Modification;
 final class NullIndex extends Index
 {
 
-  NullIndex(TreeName name, Indexer indexer, State state, Storage storage, WriteableStorage txn,
+  NullIndex(TreeName name, Indexer indexer, State state, WriteableStorage txn,
       EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(name, storage, indexer, state, 0, 0, false, txn, entryContainer);
+    super(name, indexer, state, 0, 0, false, txn, entryContainer);
   }
 
   @Override
@@ -155,12 +154,6 @@ final class NullIndex extends Index
 
   @Override
   void open(WriteableStorage txn) throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  @Override
-  public void close() throws StorageRuntimeException
   {
     // Do nothing.
   }

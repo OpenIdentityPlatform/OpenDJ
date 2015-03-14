@@ -27,6 +27,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -54,7 +55,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -482,13 +482,13 @@ public class EntryContainer
             config.isCompactEncoding(),
             rootContainer.getCompressedSchema());
 
-      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), storage, entryDataConfig);
+      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), entryDataConfig);
       id2entry.open(txn);
 
-      dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), storage, this);
+      dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), this);
       dn2id.open(txn);
 
-      state = new State(getIndexName(STATE_DATABASE_NAME), storage);
+      state = new State(getIndexName(STATE_DATABASE_NAME));
       state.open(txn);
 
       if (config.isSubordinateIndexesEnabled())
@@ -501,11 +501,10 @@ public class EntryContainer
         // subordinate indexes will fail.
         id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
         id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
-
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
 
-      dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), storage, this);
+      dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), this);
       dn2uri.open(txn);
 
       for (String idx : config.listBackendIndexes())
@@ -546,8 +545,10 @@ public class EntryContainer
 
   private NullIndex openNewNullIndex(WriteableStorage txn, String indexId, Indexer indexer)
   {
-    final NullIndex index = new NullIndex(getIndexName(indexId), indexer, state, storage, txn, this);
+    final TreeName indexName = getIndexName(indexId);
+    final NullIndex index = new NullIndex(indexName, indexer, state, txn, this);
     state.putIndexTrustState(txn, index, false);
+    txn.deleteTree(indexName);
     index.open(txn); // No-op
     return index;
   }
@@ -560,20 +561,8 @@ public class EntryContainer
   @Override
   public void close() throws StorageRuntimeException
   {
-    // Close core indexes.
-    dn2id.close();
-    id2entry.close();
-    dn2uri.close();
-    id2children.close();
-    id2subtree.close();
-    state.close();
-
-    Utils.closeSilently(attrIndexMap.values());
-
-    for (VLVIndex vlvIndex : vlvIndexMap.values())
-    {
-      vlvIndex.close();
-    }
+    closeSilently(attrIndexMap.values());
+    closeSilently(vlvIndexMap.values());
 
     // Deregister any listeners.
     config.removePluggableChangeListener(this);
@@ -2831,8 +2820,6 @@ public class EntryContainer
       // The state database can not be removed individually.
       return;
     }
-
-    database.close();
     txn.deleteTree(database.getName());
     if(database instanceof Index)
     {
@@ -2880,13 +2867,6 @@ public class EntryContainer
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-
-    // close the containers.
-    for(DatabaseContainer db : databases)
-    {
-      db.close();
-    }
-
     try
     {
       // Rename in transaction.
@@ -3008,12 +2988,8 @@ public class EntryContainer
             {
               // Disabling subordinate indexes. Use a null index and ensure that
               // future attempts to use the real indexes will fail.
-              id2children.close();
               id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
-
-              id2subtree.close();
               id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
-
               logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
             }
           }
@@ -3083,16 +3059,11 @@ public class EntryContainer
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-
-    for(DatabaseContainer db : databases)
-    {
-      db.close();
-    }
     try
     {
       for (DatabaseContainer db : databases)
       {
-        txn.truncateTree(db.getName());
+        txn.deleteTree(db.getName());
       }
     }
     finally
@@ -3122,7 +3093,6 @@ public class EntryContainer
   void clearDatabase(WriteableStorage txn, DatabaseContainer database)
       throws StorageRuntimeException
   {
-    database.close();
     try
     {
       txn.deleteTree(database.getName());
@@ -3169,8 +3139,7 @@ public class EntryContainer
 
   private Index newIndex(WriteableStorage txn, String name, Indexer indexer)
   {
-    final Index index = new Index(getIndexName(name),
-        storage, indexer, state, config.getIndexEntryLimit(), 0, true, txn, this);
+    final Index index = new Index(getIndexName(name), indexer, state, config.getIndexEntryLimit(), 0, true, txn, this);
     index.open(txn);
     if (!index.isTrusted())
     {
@@ -3191,7 +3160,7 @@ public class EntryContainer
   Index newIndexForAttribute(WriteableStorage txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
   {
     final int cursorEntryLimit = 100000;
-    return new Index(indexName, storage, indexer, state, indexEntryLimit, cursorEntryLimit, false, txn, this);
+    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, txn, this);
   }
 
 

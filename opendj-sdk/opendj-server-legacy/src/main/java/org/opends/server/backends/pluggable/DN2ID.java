@@ -30,7 +30,6 @@ import static org.opends.server.backends.pluggable.JebFormat.*;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -49,14 +48,12 @@ class DN2ID extends DatabaseContainer
    * Create a DN2ID instance for the DN database in a given entryContainer.
    *
    * @param treeName The name of the DN database.
-   * @param env The JE environment.
    * @param entryContainer The entryContainer of the DN database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  DN2ID(TreeName treeName, Storage env, EntryContainer entryContainer)
-      throws StorageRuntimeException
+  DN2ID(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(treeName, env);
+    super(treeName);
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 

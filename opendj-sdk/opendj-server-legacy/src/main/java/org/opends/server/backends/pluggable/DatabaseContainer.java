@@ -26,11 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.io.Closeable;
-
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
-import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -39,23 +36,18 @@ import org.opends.server.backends.pluggable.spi.WriteableStorage;
  * This class is a wrapper around the JE database object and provides basic
  * read and write methods for entries.
  */
-abstract class DatabaseContainer implements Closeable
+abstract class DatabaseContainer
 {
   /** The name of the database within the entryContainer. */
   private TreeName name;
-
-  /** The reference to the JE Storage. */
-  final Storage storage;
 
   /**
    * Create a new DatabaseContainer object.
    *
    * @param treeName The name of the entry database.
-   * @param storage The JE Storage.
    */
-  DatabaseContainer(TreeName treeName, Storage storage)
+  DatabaseContainer(TreeName treeName)
   {
-    this.storage = storage;
     this.name = treeName;
   }
 
@@ -72,28 +64,6 @@ abstract class DatabaseContainer implements Closeable
   {
     // FIXME: remove?
     txn.openTree(name);
-  }
-
-  /**
-   * Flush any cached database information to disk and close the
-   * database container.
-   *
-   * The database container should not be closed while other processes
-   * acquired the container. The container should not be closed
-   * while cursors handles into the database remain open, or
-   * transactions that include operations on the database have not yet
-   * been committed or aborted.
-   *
-   * The container may not be accessed again after this method is
-   * called, regardless of the method's success or failure.
-   *
-   * @throws StorageRuntimeException if an error occurs.
-   */
-  @Override
-  public synchronized void close() throws StorageRuntimeException
-  {
-    // FIXME: is this method needed?
-    storage.closeTree(name);
   }
 
   /**

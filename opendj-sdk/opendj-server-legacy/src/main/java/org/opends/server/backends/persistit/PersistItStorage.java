@@ -418,19 +418,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
-    public void truncateTree(final TreeName treeName)
-    {
-      try
-      {
-        getExchangeFromCache(treeName).removeAll();
-      }
-      catch (final PersistitException e)
-      {
-        throw new StorageRuntimeException(e);
-      }
-    }
-
-    @Override
     public boolean update(final TreeName treeName, final ByteSequence key, final UpdateFunction f)
     {
       try
@@ -563,13 +550,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     config.removePersistitChangeListener(this);
     DirectoryServer.deregisterMonitorProvider(diskMonitor);
     DirectoryServer.deregisterAlertGenerator(this);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void closeTree(final TreeName treeName)
-  {
-    // nothing to do, in persistit you close the volume itself
   }
 
   private BufferPoolConfiguration getBufferPoolCfg()

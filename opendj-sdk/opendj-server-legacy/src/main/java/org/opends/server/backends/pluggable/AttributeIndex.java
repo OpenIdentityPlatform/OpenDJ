@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
@@ -273,13 +272,10 @@ class AttributeIndex
     indexConfig.addChangeListener(this);
   }
 
-  /** Closes the attribute index. */
   @Override
   public void close()
   {
-    Utils.closeSilently(nameToIndexes.values());
     indexConfig.removeChangeListener(this);
-    // The entryContainer is responsible for closing the JE databases.
   }
 
   /**
