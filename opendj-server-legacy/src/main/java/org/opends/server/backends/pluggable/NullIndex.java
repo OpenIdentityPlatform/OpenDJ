@@ -25,6 +25,7 @@
 package org.opends.server.backends.pluggable;
 
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -48,6 +49,8 @@ final class NullIndex extends Index
       EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(name, indexer, state, 0, 0, false, txn, entryContainer);
+    state.putIndexTrustState(txn, this, false);
+    super.delete(txn);
   }
 
   @Override
@@ -163,4 +166,17 @@ final class NullIndex extends Index
   {
     return 0;
   }
+
+  @Override
+  void delete(WriteableStorage txn) throws StorageRuntimeException
+  {
+    // Do nothing.
+  }
+
+  @Override
+  void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  {
+    // Do nothing.
+  }
+
 }

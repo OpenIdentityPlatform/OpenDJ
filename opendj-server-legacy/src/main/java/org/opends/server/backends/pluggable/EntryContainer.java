@@ -545,12 +545,7 @@ public class EntryContainer
 
   private NullIndex openNewNullIndex(WriteableStorage txn, String indexId, Indexer indexer)
   {
-    final TreeName indexName = getIndexName(indexId);
-    final NullIndex index = new NullIndex(indexName, indexer, state, txn, this);
-    state.putIndexTrustState(txn, index, false);
-    txn.deleteTree(indexName);
-    index.open(txn); // No-op
-    return index;
+    return new NullIndex(getIndexName(indexId), indexer, state, txn, this);
   }
 
   /**
@@ -2801,7 +2796,7 @@ public class EntryContainer
 
     for (DatabaseContainer db : databases)
     {
-      txn.deleteTree(db.getName());
+      db.delete(txn);
     }
   }
 
@@ -2820,7 +2815,7 @@ public class EntryContainer
       // The state database can not be removed individually.
       return;
     }
-    txn.deleteTree(database.getName());
+    database.delete(txn);
     if(database instanceof Index)
     {
       state.removeIndexTrustState(txn, database);
@@ -2839,7 +2834,7 @@ public class EntryContainer
     attributeIndex.close();
     for (Index index : attributeIndex.getAllIndexes())
     {
-      txn.deleteTree(index.getName());
+      index.delete(txn);
       state.removeIndexTrustState(txn, index);
     }
   }
@@ -3063,7 +3058,7 @@ public class EntryContainer
     {
       for (DatabaseContainer db : databases)
       {
-        txn.deleteTree(db.getName());
+        db.delete(txn);
       }
     }
     finally
@@ -3095,7 +3090,7 @@ public class EntryContainer
   {
     try
     {
-      txn.deleteTree(database.getName());
+      database.delete(txn);
     }
     finally
     {

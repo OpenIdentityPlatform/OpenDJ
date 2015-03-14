@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -52,51 +51,49 @@ abstract class DatabaseContainer
   }
 
   /**
-   * Opens a JE database in this database container. If the provided
-   * database configuration is transactional, a transaction will be
-   * created and used to perform the open.
+   * Opens a JE database in this database container. If the provided database configuration is
+   * transactional, a transaction will be created and used to perform the open.
    *
-   * @param txn The JE transaction handle, or null if none.
-   * @throws StorageRuntimeException if a JE database error occurs while
-   * opening the index.
+   * @param txn
+   *          The transaction.
+   * @throws StorageRuntimeException
+   *           if a JE database error occurs while opening the index.
    */
   void open(WriteableStorage txn) throws StorageRuntimeException
   {
-    // FIXME: remove?
     txn.openTree(name);
   }
 
   /**
-   * Get the count of key/data pairs in the database in a JE database.
-   * This is a simple wrapper around the JE Database.count method.
-   * @param txn The JE transaction handle, or null if none.
-   * @return The count of key/data pairs in the database.
-   * @throws StorageRuntimeException If an error occurs in the JE operation.
+   * Deletes this database and all of its contents.
+   *
+   * @param txn
+   *          The transaction.
+   * @throws StorageRuntimeException
+   *           if a database error occurs while deleting the index.
+   */
+  void delete(WriteableStorage txn) throws StorageRuntimeException
+  {
+    txn.deleteTree(name);
+  }
+
+  /**
+   * Returns the number of key/value pairs in this database container.
+   *
+   * @param txn
+   *          The transaction.
+   * @return the number of key/value pairs in the provided tree.
+   * @throws StorageRuntimeException
+   *           If an error occurs in the DB operation.
    */
   long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
-    /*
-     * FIXME: push down to storage. Some DBs have native support for this, e.g. using counted
-     * B-Trees.
-     */
-    final Cursor cursor = txn.openCursor(name);
-    try
-    {
-      long count = 0;
-      while (cursor.next())
-      {
-        count++;
-      }
-      return count;
-    }
-    finally
-    {
-      cursor.close();
-    }
+    return txn.getRecordCount(name);
   }
 
   /**
    * Get a string representation of this object.
+   *
    * @return return A string representation of this object.
    */
   @Override

@@ -95,6 +95,14 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public long getRecordCount(TreeName name)
+    {
+      final long count = txn.getRecordCount(name);
+      logger.trace("Storage.ReadableStorage.getRecordCount(%s, %s) = %d", backendId, name, count);
+      return count;
+    }
+
+    @Override
     public ByteString getRMW(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.getRMW(name, key);
@@ -152,6 +160,14 @@ final class TracedStorage implements Storage
     {
       txn.deleteTree(name);
       logger.trace("Storage.WriteableStorage.deleteTree(%s, %s)", backendId, name);
+    }
+
+    @Override
+    public long getRecordCount(TreeName name)
+    {
+      final long count = txn.getRecordCount(name);
+      logger.trace("Storage.WriteableStorage.getRecordCount(%s, %s) = %d", backendId, name, count);
+      return count;
     }
 
     @Override
