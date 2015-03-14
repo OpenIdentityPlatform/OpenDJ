@@ -66,4 +66,13 @@ public interface ReadableStorage
    * @return a new cursor
    */
   Cursor openCursor(TreeName treeName);
+
+  /**
+   * Returns the number of key/value pairs in the provided tree.
+   *
+   * @param treeName
+   *          the tree name
+   * @return the number of key/value pairs in the provided tree.
+   */
+  long getRecordCount(TreeName treeName);
 }

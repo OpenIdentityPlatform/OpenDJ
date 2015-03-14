@@ -326,6 +326,26 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
+    public long getRecordCount(TreeName treeName)
+    {
+      // FIXME: is the a better/quicker way to do this?
+      final Cursor cursor = openCursor(treeName);
+      try
+      {
+        long count = 0;
+        while (cursor.next())
+        {
+          count++;
+        }
+        return count;
+      }
+      finally
+      {
+        cursor.close();
+      }
+    }
+
+    @Override
     public ByteString getRMW(final TreeName treeName, final ByteSequence key)
     {
       return read(treeName, key);
