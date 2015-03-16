@@ -258,7 +258,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     /**
      * Compares the provided DN values to determine their relative order in a
-     * sorted list.
+     * sorted list. The order is the natural order as defined by the
+     * {@code toNormalizedByteString()} method.
      *
      * @param dn1
      *            The first DN to be compared. It must not be {@code null}.
@@ -270,42 +271,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *         values can be considered equal.
      */
     private static int compareTo(final DN dn1, final DN dn2) {
-        // Quickly check if we are comparing against root dse.
-        if (dn1.isRootDN()) {
-            if (dn2.isRootDN()) {
-                // both are equal.
-                return 0;
-            }
-            // dn1 comes before dn2.
-            return -1;
-        }
-
-        if (dn2.isRootDN()) {
-            // dn1 comes after dn2.
-            return 1;
-        }
-
-        int dn1Size = dn1.size - 1;
-        int dn2Size = dn2.size - 1;
-        while (dn1Size >= 0 && dn2Size >= 0) {
-            final DN dn1Parent = dn1.parent(dn1Size--);
-            final DN dn2Parent = dn2.parent(dn2Size--);
-            final int result = dn1Parent.rdn.compareTo(dn2Parent.rdn);
-            if (result > 0) {
-                return 1;
-            } else if (result < 0) {
-                return -1;
-            }
-        }
-
-        // What do we have here?
-        if (dn1Size > dn2Size) {
-            return 1;
-        } else if (dn1Size < dn2Size) {
-            return -1;
-        }
-
-        return 0;
+        return dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
     }
 
     /** Decodes a DN using the provided reader and schema. */
@@ -368,6 +334,12 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     private DN parent;
 
     private final int size;
+
+    /**
+     * The normalized byte string representation of this DN, which is not
+     * a valid DN and is not reversible to a valid DN.
+     */
+    private ByteString normalizedDN;
 
     /**
      * We need to store the original string value if provided in order to
@@ -497,29 +469,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
-        } else if (obj instanceof DN) {
-            DN other = (DN) obj;
-            if (size == other.size()) {
-                if (size == 0) {
-                    return true;
-                }
-
-                if (rdn.equals(other.rdn)) {
-                    return parent.equals(other.parent);
-                }
-            }
         }
-
+        if (obj instanceof DN) {
+            DN otherDN = (DN) obj;
+            return toNormalizedByteString().equals(otherDN.toNormalizedByteString());
+        }
         return false;
     }
 
     /** {@inheritDoc} */
     @Override
     public int hashCode() {
-        if (size == 0) {
-            return 0;
-        }
-        return 31 * parent.hashCode() + rdn.hashCode();
+        return toNormalizedByteString().hashCode();
     }
 
     /**
@@ -920,62 +881,60 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Returns the irreversible normalized byte string representation of a DN,
-     * suitable for equality and comparisons, and providing a natural hierarchical
-     * ordering, but not usable as a valid DN nor reversible to a valid DN.
+     * Retrieves a normalized byte string representation of this DN.
      * <p>
-     * This representation should be used only when a byte string representation
-     * is needed and when no reversibility to a valid DN is needed. Always consider
-     * using a {@code CompactDn} as an alternative.
+     * This representation is suitable for equality and comparisons, and
+     * for providing a natural hierarchical ordering.
+     * However, it is not a valid DN and can't be reverted to a valid DN.
+     * You should consider using a {@code CompactDn} as an alternative.
      *
-     * @return The normalized byte string representation of the provided DN, not
-     *         usable as a valid DN
+     * @return The normalized string representation of this DN.
      */
-    public ByteString toIrreversibleNormalizedByteString() {
-        if (rdn() == null) {
-            return ByteString.empty();
-        }
-
-        final ByteStringBuilder builder = new ByteStringBuilder();
-        int i = size() - 1;
-        parent(i).rdn().toNormalizedByteString(builder);
-        for (i--; i >= 0; i--) {
-            final RDN rdn = parent(i).rdn();
-            // Only add a separator if the RDN is not RDN.maxValue().
-            if (rdn.size() != 0) {
-                builder.append(DN.NORMALIZED_RDN_SEPARATOR);
+    public ByteString toNormalizedByteString() {
+        if (normalizedDN == null) {
+            if (rdn() == null) {
+                normalizedDN = ByteString.empty();
+            } else {
+                final ByteStringBuilder builder = new ByteStringBuilder();
+                int i = size() - 1;
+                parent(i).rdn().toNormalizedByteString(builder);
+                for (i--; i >= 0; i--) {
+                    final RDN rdn = parent(i).rdn();
+                    // Only add a separator if the RDN is not RDN.maxValue().
+                    if (rdn.size() != 0) {
+                        builder.append(DN.NORMALIZED_RDN_SEPARATOR);
+                    }
+                    rdn.toNormalizedByteString(builder);
+                }
+                normalizedDN = builder.toByteString();
             }
-            rdn.toNormalizedByteString(builder);
         }
-        return builder.toByteString();
+        return normalizedDN;
     }
 
     /**
-     * Returns the irreversible readable string representation of a DN, suitable
-     * for equality and usage as a name in file system or URL, but not usable as
-     * a valid DN nor reversible to a valid DN.
+     * Retrieves a normalized string representation of this DN.
      * <p>
-     * This representation should be used only when a string representation is
-     * needed and when no reversibility to a valid DN is needed.
+     * This representation is safe to use in an URL or in a file name.
+     * However, it is not a valid DN and can't be reverted to a valid DN.
      *
-     * @return The readable string representation of the provided DN,
-     *         not usable as a valid DN
+     * @return The normalized string representation of this DN.
      */
-    public String toIrreversibleReadableString() {
+    public String toNormalizedUrlSafeString() {
         if (rdn() == null) {
             return "";
         }
 
         final StringBuilder builder = new StringBuilder();
         int i = size() - 1;
-        parent(i).rdn().toNormalizedReadableString(builder);
+        parent(i).rdn().toNormalizedUrlSafeString(builder);
         for (i--; i >= 0; i--) {
             final RDN rdn = parent(i).rdn();
             // Only add a separator if the RDN is not RDN.maxValue().
             if (rdn.size() != 0) {
                 builder.append(',');
             }
-            rdn.toNormalizedReadableString(builder);
+            rdn.toNormalizedUrlSafeString(builder);
         }
         return builder.toString();
     }
@@ -1058,7 +1017,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
         private byte[] getNormalizedValue() {
             if (normalizedValue == null) {
-                normalizedValue = toDn().toIrreversibleNormalizedByteString().toByteArray();
+                normalizedValue = toDn().toNormalizedByteString().toByteArray();
             }
             return normalizedValue;
         }

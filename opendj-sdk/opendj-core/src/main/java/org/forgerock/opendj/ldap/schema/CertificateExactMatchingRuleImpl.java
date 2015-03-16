@@ -187,7 +187,7 @@ final class CertificateExactMatchingRuleImpl
     private ByteString normalizeDN(final Schema schema, final String dnstring) throws DecodeException {
         try {
             DN dn = DN.valueOf(dnstring, schema.asNonStrictSchema());
-            return dn.toIrreversibleNormalizedByteString();
+            return dn.toNormalizedByteString();
         } catch (Exception e) {
             logger.traceException(e);
 

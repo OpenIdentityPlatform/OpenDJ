@@ -799,7 +799,7 @@ public final class AVA implements Comparable<AVA> {
      * @param builder
      *            The builder to use to construct the normalized byte string.
      * @return The normalized byte string representation.
-     * @see DN#toIrreversibleNormalizedByteString()
+     * @see DN#toNormalizedByteString()
      */
     ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
         builder.append(toLowerCase(attributeType.getNameOrOID()));
@@ -819,9 +819,9 @@ public final class AVA implements Comparable<AVA> {
      * @param builder
      *            The builder to use to construct the normalized string.
      * @return The normalized readable string representation.
-     * @see DN#toIrreversibleReadableString()
+     * @see DN#toNormalizedUrlSafeString()
      */
-    StringBuilder toNormalizedReadableString(final StringBuilder builder) {
+    StringBuilder toNormalizedUrlSafe(final StringBuilder builder) {
         builder.append(toLowerCase(attributeType.getNameOrOID()));
         builder.append('=');
         final ByteString value = getEqualityNormalizedValue();
