@@ -25,15 +25,9 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.opends.server.backends.pluggable.EntryIDSet.decodeEntryIDList;
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromUnion;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithKey;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithSize;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
-import static org.opends.server.backends.pluggable.Utils.assertIdsEquals;
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.Utils.*;
 
 import java.util.Arrays;
 
@@ -182,10 +176,10 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   public void testDefinedByteString()
   {
     ByteString string = newDefinedSet(4, 6, 8, 10, 12).toByteString();
-    assertThat(decodeEntryIDList(string)).containsExactly(4, 6, 8, 10, 12);
+    assertThat(decodeEntryIDSet(string)).containsExactly(4, 6, 8, 10, 12);
 
     string = newDefinedSet().toByteString();
-    assertThat(decodeEntryIDList(string)).isEmpty();
+    assertThat(decodeEntryIDSet(string)).isEmpty();
   }
 
   @Test(expectedExceptions = NullPointerException.class)

@@ -26,8 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.EntryIDSet.decodeEntryIDList;
-import static org.opends.server.backends.pluggable.EntryIDSet.decodeUndefinedSize;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -156,12 +155,12 @@ class ImportIDSet {
       undefinedSize = decodeUndefinedSize(dBbytes) + importIdSet.size();
       isDefined=false;
     } else if(!importIdSet.isDefined()) {
-      int dbSize = decodeEntryIDList(dBbytes).length;
+      int dbSize = decodeEntryIDSet(dBbytes).length;
       undefinedSize = dbSize + importIdSet.undefinedSize;
       isDefined = false;
       incrementLimitCount = true;
     } else {
-      array = decodeEntryIDList(dBbytes);
+      array = decodeEntryIDSet(dBbytes);
       if (array.length + importIdSet.size() > indexEntryLimit) {
         undefinedSize = array.length + importIdSet.size();
         isDefined=false;
@@ -190,7 +189,7 @@ class ImportIDSet {
       isDefined=false;
       undefinedSize = Long.MAX_VALUE;
     } else {
-      array = decodeEntryIDList(bytes);
+      array = decodeEntryIDSet(bytes);
       if (array.length - importIdSet.size() > indexEntryLimit) {
         isDefined=false;
         count = 0;
@@ -229,7 +228,7 @@ class ImportIDSet {
       undefinedSize = Long.MAX_VALUE;
       count = 0;
     } else {
-      array = decodeEntryIDList(bytes);
+      array = decodeEntryIDSet(bytes);
       if (array.length + importIdSet.size() > indexEntryLimit) {
         isDefined = false;
         incrementLimitCount = true;

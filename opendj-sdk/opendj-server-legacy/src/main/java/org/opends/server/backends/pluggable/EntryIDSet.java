@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.util.Reject.checkNotNull;
+import static org.forgerock.util.Reject.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -45,9 +45,10 @@ import com.forgerock.opendj.util.Iterators;
  * Represents a set of Entry IDs. It can represent a set where the IDs are not defined, for example when the index entry
  * limit has been exceeded.
  */
+@SuppressWarnings("javadoc")
 final class EntryIDSet implements Iterable<EntryID>
 {
-  public static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
+  private static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
 
   /**
    * Interface for EntryIDSet concrete implementations
@@ -273,13 +274,13 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public long[] getRange()
     {
-      if (entryIDs.length == 0)
+      if (entryIDs.length != 0)
       {
-        return new long[] { 0, 0 };
+        return new long[] { entryIDs[0], entryIDs[entryIDs.length - 1] };
       }
       else
       {
-        return new long[] { entryIDs[0], entryIDs[entryIDs.length - 1] };
+        return new long[] { 0, 0 };
       }
     }
 
@@ -429,24 +430,24 @@ final class EntryIDSet implements Iterable<EntryID>
    */
   private static final class IDSetIterator implements Iterator<EntryID>
   {
-    private final long[] entryIDList;
+    private final long[] entryIDSet;
     private int currentIndex;
 
-    IDSetIterator(long[] entryIDList)
+    IDSetIterator(long[] entryIDSet)
     {
-      this.entryIDList = entryIDList;
+      this.entryIDSet = entryIDSet;
     }
 
-    IDSetIterator(long[] entryIDList, long begin)
+    IDSetIterator(long[] entryIDSet, long begin)
     {
-      this(entryIDList);
-      currentIndex = Math.max(0, Arrays.binarySearch(entryIDList, begin));
+      this(entryIDSet);
+      currentIndex = Math.max(0, Arrays.binarySearch(entryIDSet, begin));
     }
 
     @Override
     public boolean hasNext()
     {
-      return currentIndex < entryIDList.length;
+      return currentIndex < entryIDSet.length;
     }
 
     @Override
@@ -454,7 +455,7 @@ final class EntryIDSet implements Iterable<EntryID>
     {
       if (hasNext())
       {
-        return new EntryID(entryIDList[currentIndex++]);
+        return new EntryID(entryIDSet[currentIndex++]);
       }
       throw new NoSuchElementException();
     }
@@ -466,58 +467,46 @@ final class EntryIDSet implements Iterable<EntryID>
     }
   }
 
-  /**
-   * Create a new undefined set
-   */
-  public static EntryIDSet newUndefinedSet()
+  static EntryIDSet newUndefinedSet()
   {
     return new EntryIDSet(new UndefinedImpl(NO_KEY, Long.MAX_VALUE));
   }
 
-  /**
-   * Create a new undefined set
-   */
-  public static EntryIDSet newUndefinedSetWithKey(ByteSequence key)
+  static EntryIDSet newUndefinedSetWithKey(ByteSequence key)
   {
     return newUndefinedSetWithSize(key, Long.MAX_VALUE);
   }
 
-  /**
-   * Create a new undefined set with a initial size.
-   *
-   * @param size
-   *          The undefined size for this set.
-   */
-  public static EntryIDSet newUndefinedSetWithSize(ByteSequence key, long undefinedSize)
+  static EntryIDSet newUndefinedSetWithSize(ByteSequence key, long undefinedSize)
   {
     return new EntryIDSet(new UndefinedImpl(key, undefinedSize));
   }
 
   /**
-   * Create a new defined entry ID set with the specified ids.
+   * Creates a new defined entry ID set with the specified ids.
    *
    * @param ids
    *          Entry IDs contained in the set.
    * @throws NullPointerException
    *           if ids is null
    */
-  public static EntryIDSet newDefinedSet(long... ids)
+  static EntryIDSet newDefinedSet(long... ids)
   {
     checkNotNull(ids, "ids must not be null");
     return new EntryIDSet(new DefinedImpl(ids));
   }
 
   /**
-   * Create a new entry ID set from the raw database value.
+   * Creates a new entry ID set from the raw database value.
    *
    * @param key
    *          The database key that contains this value.
-   * @param bytes
+   * @param value
    *          The database value, or null if there are no entry IDs.
    * @throws NullPointerException
    *           if either key or value is null
    */
-  public static EntryIDSet newSetFromBytes(ByteSequence key, ByteString value)
+  static EntryIDSet newSetFromBytes(ByteSequence key, ByteString value)
   {
     checkNotNull(key, "key must not be null");
     checkNotNull(value, "value must not be null");
@@ -535,7 +524,7 @@ final class EntryIDSet implements Iterable<EntryID>
     else
     {
       // Seems like entry limit has not been exceeded and the bytes is a list of entry IDs.
-      return newDefinedSet(decodeEntryIDList(value));
+      return newDefinedSet(decodeEntryIDSet(value));
     }
   }
 
@@ -569,13 +558,13 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Create a new set of entry IDs that is the union of several entry ID sets.
+   * Creates a new set of entry IDs that is the union of several entry ID sets.
    *
    * @param sets
    *          A list of entry ID sets.
    * @return The union of the provided entry ID sets.
    */
-  public static EntryIDSet newSetFromUnion(List<EntryIDSet> sets)
+  static EntryIDSet newSetFromUnion(List<EntryIDSet> sets)
   {
     checkNotNull(sets, "sets must not be null");
 
@@ -648,16 +637,16 @@ final class EntryIDSet implements Iterable<EntryID>
    *          the encoded entryID list
    * @return a long array representing the entryID list
    */
-  public static long[] decodeEntryIDList(ByteSequence bytes)
+  static long[] decodeEntryIDSet(ByteSequence bytes)
   {
     final ByteSequenceReader reader = bytes.asReader();
     final int count = bytes.length() / 8;
-    final long[] entryIDList = new long[count];
+    final long[] entryIDSet = new long[count];
     for (int i = 0; i < count; i++)
     {
-      entryIDList[i] = reader.getLong();
+      entryIDSet[i] = reader.getLong();
     }
-    return entryIDList;
+    return entryIDSet;
   }
 
   /**
@@ -667,9 +656,11 @@ final class EntryIDSet implements Iterable<EntryID>
    *          the encoded undefined size
    * @return the undefined size
    */
-  public static long decodeUndefinedSize(ByteString bytes)
+  static long decodeUndefinedSize(ByteString bytes)
   {
-    return bytes.length() == 8 ? bytes.toLong() & Long.MAX_VALUE : Long.MAX_VALUE; // remove top bit
+    return bytes.length() == 8
+        ? bytes.toLong() & Long.MAX_VALUE
+        : Long.MAX_VALUE; // remove top bit
   }
 
   private EntryIDSetImplementor concreteImpl;
@@ -850,7 +841,7 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Create an iterator over the set or an empty iterator if the set is not defined.
+   * Creates an iterator over the set or an empty iterator if the set is not defined.
    *
    * @return An EntryID iterator.
    */
@@ -861,7 +852,7 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Create an iterator over the set or an empty iterator if the set is not defined.
+   * Creates an iterator over the set or an empty iterator if the set is not defined.
    *
    * @param begin
    *          The entry ID of the first entry to return in the list.
