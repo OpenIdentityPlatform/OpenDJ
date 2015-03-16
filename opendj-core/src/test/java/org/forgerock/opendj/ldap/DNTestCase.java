@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static java.lang.Integer.*;
+
 import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.*;
 
@@ -389,8 +391,8 @@ public class DNTestCase extends SdkTestCase {
 
         assertEquals(c.size(), 3);
 
-        assertEquals(c.compareTo(p), 1);
-        assertEquals(p.compareTo(c), -1);
+        assertEquals(signum(c.compareTo(p)), 1);
+        assertEquals(signum(p.compareTo(c)), -1);
 
         assertTrue(p.isParentOf(c));
         assertFalse(c.isParentOf(p));
@@ -666,8 +668,8 @@ public class DNTestCase extends SdkTestCase {
 
         assertEquals(p.size(), 3);
 
-        assertEquals(p.compareTo(c), -1);
-        assertEquals(c.compareTo(p), 1);
+        assertEquals(signum(p.compareTo(c)), -1);
+        assertEquals(signum(c.compareTo(p)), 1);
 
         assertTrue(p.isParentOf(c));
         assertFalse(c.isParentOf(p));
@@ -1005,12 +1007,12 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(actual, "\\#cn\\=foo\\+sn\\=bar");
     }
 
-    /** Tests the {@link DN#toIrreversibleNormalizedByteString()} method. */
-    @Test
-    public void testToIrreversibleNormalizedByteStringWithRootDN() {
-        ByteString actual = DN.rootDN().toIrreversibleNormalizedByteString();
-        assertEquals(actual, ByteString.empty());
-    }
+    /** Tests the {@link DN#toNormalizedByteString()} method. */
+        @Test
+        public void testToNormalizedByteStringWithRootDN() {
+            ByteString actual = DN.rootDN().toNormalizedByteString();
+            assertEquals(actual, ByteString.empty());
+        }
 
     /** Tests the {@link DN#iterator()} method. */
     @Test
@@ -1080,24 +1082,24 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @Test(dataProvider = "toIrreversibleNormalizedByteStringDataProvider")
-    public void testToIrreversibleNormalizedByteString(String first, String second, int expectedCompareResult) {
-        DN actual = DN.valueOf(first);
-        DN expected = DN.valueOf(second);
-        int cmp = actual.toIrreversibleNormalizedByteString().compareTo(expected.toIrreversibleNormalizedByteString());
-        assertThat(Integer.signum(cmp)).isEqualTo(expectedCompareResult);
-    }
+        public void testToNormalizedByteString(String first, String second, int expectedCompareResult) {
+            DN actual = DN.valueOf(first);
+            DN expected = DN.valueOf(second);
+            int cmp = actual.toNormalizedByteString().compareTo(expected.toNormalizedByteString());
+            assertThat(signum(cmp)).isEqualTo(expectedCompareResult);
+        }
 
     /** Additional tests with testDNs data provider. */
-    @Test(dataProvider = "testDNs")
-    public void testToIrreversibleNormalizedByteString2(String one, String two, String three) {
-        DN dn1 = DN.valueOf(one);
-        DN dn2 = DN.valueOf(two);
-        DN dn3 = DN.valueOf(three);
-        int cmp = dn1.toIrreversibleNormalizedByteString().compareTo(dn2.toIrreversibleNormalizedByteString());
-        assertThat(cmp).isEqualTo(0);
-        int cmp2 = dn1.toIrreversibleNormalizedByteString().compareTo(dn3.toIrreversibleNormalizedByteString());
-        assertThat(cmp2).isEqualTo(0);
-    }
+        @Test(dataProvider = "testDNs")
+        public void testToNormalizedByteString2(String one, String two, String three) {
+            DN dn1 = DN.valueOf(one);
+            DN dn2 = DN.valueOf(two);
+            DN dn3 = DN.valueOf(three);
+            int cmp = dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
+            assertThat(cmp).isEqualTo(0);
+            int cmp2 = dn1.toNormalizedByteString().compareTo(dn3.toNormalizedByteString());
+            assertThat(cmp2).isEqualTo(0);
+        }
 
     @DataProvider
     public Object[][] toIrreversibleReadableStringDataProvider() {
@@ -1134,19 +1136,19 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @Test(dataProvider = "toIrreversibleReadableStringDataProvider")
-    public void testToIrreversibleReadableString(String dnAsString, String expectedReadableString) {
-        DN actual = DN.valueOf(dnAsString);
-        assertEquals(actual.toIrreversibleReadableString(), expectedReadableString);
-    }
+        public void testToNormalizedUrlSafeString(String dnAsString, String expectedReadableString) {
+            DN actual = DN.valueOf(dnAsString);
+            assertEquals(actual.toNormalizedUrlSafeString(), expectedReadableString);
+        }
 
     /** Additional tests with testDNs data provider. */
-    @Test(dataProvider = "testDNs")
-    public void testToIrreversibleReadableString2(String one, String two, String three) {
-        DN dn1 = DN.valueOf(one);
-        DN dn2 = DN.valueOf(two);
-        DN dn3 = DN.valueOf(three);
-        String irreversibleReadableString = dn1.toIrreversibleReadableString();
-        assertEquals(irreversibleReadableString, dn2.toIrreversibleReadableString());
-        assertEquals(irreversibleReadableString, dn3.toIrreversibleReadableString());
-    }
+        @Test(dataProvider = "testDNs")
+        public void testToNormalizedUrlSafeString2(String one, String two, String three) {
+            DN dn1 = DN.valueOf(one);
+            DN dn2 = DN.valueOf(two);
+            DN dn3 = DN.valueOf(three);
+            String irreversibleReadableString = dn1.toNormalizedUrlSafeString();
+            assertEquals(irreversibleReadableString, dn2.toNormalizedUrlSafeString());
+            assertEquals(irreversibleReadableString, dn3.toNormalizedUrlSafeString());
+        }
 }

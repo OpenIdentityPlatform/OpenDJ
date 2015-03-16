@@ -257,6 +257,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int compareTo(final RDN rdn) {
         // Identity.
         if (this == rdn) {
@@ -373,6 +374,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      *
      * @return An iterator of the AVAs contained in this RDN.
      */
+    @Override
     public Iterator<AVA> iterator() {
         return Iterators.arrayIterator(avas);
     }
@@ -421,7 +423,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      * @param builder
      *            The builder to use to construct the normalized byte string.
      * @return The normalized byte string representation.
-     * @see DN#toIrreversibleNormalizedByteString()
+     * @see DN#toNormalizedByteString()
      */
     ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
         switch (size()) {
@@ -445,30 +447,29 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     /**
-     * Returns the normalized readable string representation of this RDN.
+     * Retrieves a normalized string representation of this RDN.
      * <p>
-     * The representation is not a valid RDN.
+     * This representation is safe to use in an URL or in a file name.
+     * However, it is not a valid RDN and can't be reverted to a valid RDN.
      *
-     * @param builder
-     *            The builder to use to construct the normalized string.
-     * @return The normalized readable string representation.
-     * @see DN#toIrreversibleReadableString()
+     * @return The normalized string representation of this RDN.
+     * @see DN#toNormalizedUrlSafeString()
      */
-    StringBuilder toNormalizedReadableString(final StringBuilder builder) {
+    StringBuilder toNormalizedUrlSafeString(final StringBuilder builder) {
         switch (size()) {
         case 0:
             // Handle RDN.maxValue().
             builder.append(RDN.AVA_CHAR_SEPARATOR);
             break;
         case 1:
-            getFirstAVA().toNormalizedReadableString(builder);
+            getFirstAVA().toNormalizedUrlSafe(builder);
             break;
         default:
             Iterator<AVA> it = getSortedAvas();
-            it.next().toNormalizedReadableString(builder);
+            it.next().toNormalizedUrlSafe(builder);
             while (it.hasNext()) {
                 builder.append(RDN.AVA_CHAR_SEPARATOR);
-                it.next().toNormalizedReadableString(builder);
+                it.next().toNormalizedUrlSafe(builder);
             }
             break;
         }

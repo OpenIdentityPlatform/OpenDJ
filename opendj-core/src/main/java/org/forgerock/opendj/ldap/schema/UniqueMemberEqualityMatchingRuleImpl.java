@@ -57,7 +57,7 @@ final class UniqueMemberEqualityMatchingRuleImpl extends AbstractEqualityMatchin
         try {
             DN dn = DN.valueOf(stringValue.substring(0, dnEndPosition), schema.asNonStrictSchema());
             return new ByteStringBuilder()
-                .append(dn.toIrreversibleNormalizedByteString())
+                .append(dn.toNormalizedByteString())
                 .append(optionalUid).toByteString();
         } catch (final LocalizedIllegalArgumentException e) {
             throw DecodeException.error(e.getMessageObject());

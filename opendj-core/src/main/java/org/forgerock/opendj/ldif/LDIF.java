@@ -830,7 +830,7 @@ public final class LDIF {
     }
 
     private static byte[] toNormalizedByteArray(DN dn) {
-        return dn.toIrreversibleNormalizedByteString().toByteArray();
+        return dn.toNormalizedByteString().toByteArray();
     }
 
     private static byte[][] encodeEntry(final Entry entry) {
