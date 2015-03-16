@@ -24,7 +24,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.util.List;
 import java.util.Set;
@@ -143,12 +143,6 @@ final class NullIndex extends Index
   boolean isRebuildRunning()
   {
     return false;
-  }
-
-  @Override
-  void setRebuildStatus(boolean rebuildRunning)
-  {
-    // Do nothing.
   }
 
   @Override

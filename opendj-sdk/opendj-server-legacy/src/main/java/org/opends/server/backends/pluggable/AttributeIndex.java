@@ -28,9 +28,9 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import java.io.Closeable;
 import java.util.*;
@@ -879,19 +879,6 @@ class AttributeIndex
       }
     }
     return true;
-  }
-
-  /**
-   * Set the rebuild status of this index.
-   * @param rebuildRunning True if a rebuild process on this index
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    for (Index index : nameToIndexes.values())
-    {
-      index.setRebuildStatus(rebuildRunning);
-    }
   }
 
   /**

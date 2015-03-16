@@ -26,12 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromUnion;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithSize;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -100,15 +96,6 @@ class Index extends DatabaseContainer
    * - undefined entryIdSet will be returned whenever a key is not found.
    */
   private boolean trusted;
-
-  /**
-   * A flag to indicate if a rebuild process is running on this index.
-   * During the rebuild process, we assume that no entryIDSets are
-   * accurate and return an undefined set on all read operations.
-   * However all write operations will succeed. The rebuildRunning
-   * flag overrides all behaviors of the trusted flag.
-   */
-  private boolean rebuildRunning;
 
   private final ImportIDSet newImportIDSet;
 
@@ -257,15 +244,14 @@ class Index extends DatabaseContainer
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
         } // else the record exists but we've hit all IDs.
       }
-      else
+      else if (trusted)
       {
-        if (deletedIDs != null && trusted && !rebuildRunning)
+        if (deletedIDs != null)
         {
           logIndexCorruptError(txn, key);
         }
 
-        if ((rebuildRunning || trusted)
-            && isNotNullOrEmpty(addedIDs)
+        if (isNotNullOrEmpty(addedIDs)
             && !txn.putIfAbsent(getName(), key, addedIDs.toByteString()))
         {
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
@@ -304,14 +290,14 @@ class Index extends DatabaseContainer
         txn.delete(getName(), key);
       }
     }
-    else
+    else if (trusted)
     {
-      if (deletedIDs != null && trusted && !rebuildRunning)
+      if (deletedIDs != null)
       {
         logIndexCorruptError(txn, key);
       }
 
-      if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
+      if (isNotNullOrEmpty(addedIDs))
       {
         txn.putIfAbsent(getName(), key, addedIDs.toByteString());
       }
@@ -422,11 +408,6 @@ class Index extends DatabaseContainer
   ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
        throws StorageRuntimeException
   {
-    if(rebuildRunning)
-    {
-      return ConditionResult.UNDEFINED;
-    }
-
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
@@ -449,11 +430,6 @@ class Index extends DatabaseContainer
 
   EntryIDSet read(ReadableStorage txn, ByteSequence key)
   {
-    if(rebuildRunning)
-    {
-      return newUndefinedSet();
-    }
-
     try
     {
       ByteString value = txn.read(getName(), key);
@@ -504,7 +480,7 @@ class Index extends DatabaseContainer
       ByteSequence lower, ByteSequence upper, boolean lowerIncluded, boolean upperIncluded)
   {
     // If this index is not trusted, then just return an undefined id set.
-    if(rebuildRunning || !trusted)
+    if (!trusted)
     {
       return newUndefinedSet();
     }
@@ -665,12 +641,7 @@ class Index extends DatabaseContainer
 
   synchronized boolean isRebuildRunning()
   {
-    return rebuildRunning;
-  }
-
-  synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    this.rebuildRunning = rebuildRunning;
+    return false; // FIXME inline?
   }
 
   boolean getMaintainCount()
