@@ -614,33 +614,11 @@ class BackupManager
     List<BackupInfo> dependents = getDependents(backupDir, backupInfo);
     for (BackupInfo dependent : dependents)
     {
-      try
-      {
-        restoreArchive(restoreDir, restoreConfig, dependent, includeFiles);
-      }
-      catch (IOException e)
-      {
-        logger.traceException(e);
-        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
-            dependent.getBackupID(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
+      restoreArchive(restoreConfig, restoreDir, dependent, includeFiles);
     }
 
     // Restore the final archive file.
-    try
-    {
-      restoreArchive(restoreDir, restoreConfig, backupInfo, null);
-    }
-    catch (IOException e)
-    {
-      logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
-          backupInfo.getBackupID(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
+    restoreArchive(restoreConfig, restoreDir, backupInfo, null);
 
     // Delete the current backend directory and rename the restore directory.
     if (!verifyOnly)
@@ -717,15 +695,29 @@ class BackupManager
 
   }
 
-  private File getArchiveFile(BackupDirectory backupDir,
-                              BackupInfo backupInfo) {
+  private File getArchiveFile(BackupDirectory backupDir, BackupInfo backupInfo)
+  {
     Map<String,String> backupProperties = backupInfo.getBackupProperties();
 
-    String archiveFilename =
-         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
+    String archiveFilename = backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     return new File(backupDir.getPath(), archiveFilename);
   }
 
+  private void restoreArchive(RestoreConfig restoreConfig, File restoreDir, BackupInfo dependent,
+      Set<String> includeFiles) throws DirectoryException
+  {
+    try
+    {
+      restoreArchive(restoreDir, restoreConfig, dependent, includeFiles);
+    }
+    catch (IOException e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message =
+          ERR_JEB_BACKUP_CANNOT_RESTORE.get(dependent.getBackupID(), stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+  }
 
   /**
    * Restore the contents of an archive file.  If the archive is being
@@ -752,7 +744,6 @@ class BackupManager
     boolean verifyOnly              = restoreConfig.verifyOnly();
 
     String          backupID        = backupInfo.getBackupID();
-    boolean         encrypt         = backupInfo.isEncrypted();
     byte[]          hash            = backupInfo.getUnsignedHash();
     byte[]          signHash        = backupInfo.getSignedHash();
 
@@ -760,78 +751,15 @@ class BackupManager
 
     String archiveFilename =
          backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    File archiveFile = new File(backupDir.getPath(), archiveFilename);
-
-    InputStream inputStream = new FileInputStream(archiveFile);
 
     // Get the crypto manager and use it to obtain references to the message
     // digest and/or MAC to use for hashing and/or signing.
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
-    Mac           mac             = null;
-    MessageDigest digest          = null;
+    Mac mac = getMacEngine(signHash, backupProperties, cryptoManager);
+    MessageDigest digest = getMessageDigest(hash, backupProperties, cryptoManager);
 
-    if (signHash != null)
-    {
-      String macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
-
-      try
-      {
-        mac = cryptoManager.getMacEngine(macKeyID);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
-            macKeyID, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    if (hash != null)
-    {
-      String digestAlgorithm = backupProperties.get(
-          BACKUP_PROPERTY_DIGEST_ALGORITHM);
-
-      try
-      {
-        digest = cryptoManager.getMessageDigest(digestAlgorithm);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
-            digestAlgorithm, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // If the data is encrypted, then wrap the input stream in a cipher
-    // input stream.
-    if (encrypt)
-    {
-      try
-      {
-        inputStream = cryptoManager.getCipherInputStream(inputStream);
-      }
-      catch (CryptoManagerException e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Wrap the file input stream in a zip input stream.
-    ZipInputStream zipStream = new ZipInputStream(inputStream);
+    File archiveFile = new File(backupDir.getPath(), archiveFilename);
+    ZipInputStream zipStream = getZipInputStream(archiveFile, backupInfo, cryptoManager);
 
     // Iterate through the entries in the zip file.
     ZipEntry zipEntry = zipStream.getNextEntry();
@@ -839,7 +767,7 @@ class BackupManager
     {
       String name = zipEntry.getName();
 
-      if (name.equals(ZIPENTRY_EMPTY_PLACEHOLDER))
+      if (ZIPENTRY_EMPTY_PLACEHOLDER.equals(name))
       {
         // This entry is treated specially to indicate a backup of an empty
         // backend was attempted.
@@ -848,39 +776,19 @@ class BackupManager
         continue;
       }
 
-      if (name.equals(ZIPENTRY_UNCHANGED_LOGFILES))
+      if (ZIPENTRY_UNCHANGED_LOGFILES.equals(name))
       {
         // This entry is treated specially. It is never restored,
         // and its hash is computed on the strings, not the bytes.
         if (mac != null || digest != null)
         {
           // The file name is part of the hash.
-          if (mac != null)
+          update(mac, digest, name);
+
+          ArrayList<String> lines = readAllLines(zipStream);
+          for (String line : lines)
           {
-            mac.update(getBytes(name));
-          }
-
-          if (digest != null)
-          {
-            digest.update(getBytes(name));
-          }
-
-          InputStreamReader reader = new InputStreamReader(zipStream);
-          BufferedReader bufferedReader = new BufferedReader(reader);
-          String line = bufferedReader.readLine();
-          while (line != null)
-          {
-            if (mac != null)
-            {
-              mac.update(getBytes(line));
-            }
-
-            if (digest != null)
-            {
-              digest.update(getBytes(line));
-            }
-
-            line = bufferedReader.readLine();
+            update(mac, digest, line);
           }
         }
 
@@ -904,15 +812,7 @@ class BackupManager
         }
 
         // The file name is part of the hash.
-        if (mac != null)
-        {
-          mac.update(getBytes(name));
-        }
-
-        if (digest != null)
-        {
-          digest.update(getBytes(name));
-        }
+        update(mac, digest, name);
 
         // Process the file.
         long totalBytesRead = 0;
@@ -922,15 +822,7 @@ class BackupManager
         {
           totalBytesRead += bytesRead;
 
-          if (mac != null)
-          {
-            mac.update(buffer, 0, bytesRead);
-          }
-
-          if (digest != null)
-          {
-            digest.update(buffer, 0, bytesRead);
-          }
+          update(mac, digest, buffer, 0, bytesRead);
 
           if (outputStream != null)
           {
@@ -957,24 +849,83 @@ class BackupManager
     if (digest != null && !Arrays.equals(digest.digest(), hash))
     {
       LocalizableMessage message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
 
-    if (mac != null)
+    if (mac != null && !Arrays.equals(mac.doFinal(), signHash))
     {
-      byte[] computedSignHash = mac.doFinal();
-
-      if (!Arrays.equals(computedSignHash, signHash))
-      {
-        LocalizableMessage message = ERR_JEB_BACKUP_SIGNED_HASH_ERROR.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
+      LocalizableMessage message = ERR_JEB_BACKUP_SIGNED_HASH_ERROR.get(backupID);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
   }
 
+  private Mac getMacEngine(byte[] signHash, HashMap<String, String> backupProperties, CryptoManager cryptoManager)
+      throws DirectoryException
+  {
+    if (signHash != null)
+    {
+      String macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
+      try
+      {
+        return cryptoManager.getMacEngine(macKeyID);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
 
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(macKeyID, stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      }
+    }
+    return null;
+  }
+
+  private MessageDigest getMessageDigest(byte[] hash, HashMap<String, String> backupProperties,
+      CryptoManager cryptoManager) throws DirectoryException
+  {
+    if (hash != null)
+    {
+      String digestAlgorithm = backupProperties.get(BACKUP_PROPERTY_DIGEST_ALGORITHM);
+      try
+      {
+        return cryptoManager.getMessageDigest(digestAlgorithm);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        LocalizableMessage message =
+            ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(digestAlgorithm, stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      }
+    }
+    return null;
+  }
+
+  private ZipInputStream getZipInputStream(File archiveFile, BackupInfo backupInfo, CryptoManager cryptoManager)
+      throws FileNotFoundException, DirectoryException
+  {
+    InputStream inputStream = new FileInputStream(archiveFile);
+
+    // If the data is encrypted, then wrap the input stream in a cipher input stream
+    if (backupInfo.isEncrypted())
+    {
+      try
+      {
+        inputStream = cryptoManager.getCipherInputStream(inputStream);
+      }
+      catch (CryptoManagerException e)
+      {
+        logger.traceException(e);
+
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      }
+    }
+
+    // Wrap the file input stream in a zip input stream.
+    return new ZipInputStream(inputStream);
+  }
 
   /**
    * Writes a file to an entry in the archive file.
@@ -1001,15 +952,7 @@ class BackupManager
     zipStream.putNextEntry(zipEntry);
 
     // Put the name in the hash.
-    if (mac != null)
-    {
-      mac.update(getBytes(file.getName()));
-    }
-
-    if (digest != null)
-    {
-      digest.update(getBytes(file.getName()));
-    }
+    update(mac, digest, file.getName());
 
     // Write the file.
     long totalBytesRead = 0;
@@ -1017,15 +960,7 @@ class BackupManager
     int bytesRead = inputStream.read(buffer);
     while (bytesRead > 0 && !backupConfig.isCancelled())
     {
-      if (mac != null)
-      {
-        mac.update(buffer, 0, bytesRead);
-      }
-
-      if (digest != null)
-      {
-        digest.update(buffer, 0, bytesRead);
-      }
+      update(mac, digest, buffer, 0, bytesRead);
 
       zipStream.write(buffer, 0, bytesRead);
       totalBytesRead += bytesRead;
@@ -1039,6 +974,35 @@ class BackupManager
     logger.info(NOTE_JEB_BACKUP_ARCHIVED_FILE, zipEntry.getName());
 
     return totalBytesRead;
+  }
+
+  private void update(Mac mac, MessageDigest digest, byte[] buffer, int offset, int len)
+  {
+    if (mac != null)
+    {
+      mac.update(buffer, offset, len);
+    }
+    if (digest != null)
+    {
+      digest.update(buffer, offset, len);
+    }
+  }
+
+  private void update(Mac mac, MessageDigest digest, String s)
+  {
+    if (mac != null || digest != null)
+    {
+      final byte[] bytes = getBytes(s);
+
+      if (mac != null)
+      {
+        mac.update(bytes);
+      }
+      if (digest != null)
+      {
+        digest.update(bytes);
+      }
+    }
   }
 
   /**
@@ -1063,28 +1027,12 @@ class BackupManager
     zipStream.putNextEntry(zipEntry);
 
     // Put the name in the hash.
-    if (mac != null)
-    {
-      mac.update(getBytes(fileName));
-    }
-
-    if (digest != null)
-    {
-      digest.update(getBytes(fileName));
-    }
+    update(mac, digest, fileName);
 
     Writer writer = new OutputStreamWriter(zipStream);
     for (String s : list)
     {
-      if (mac != null)
-      {
-        mac.update(getBytes(s));
-      }
-
-      if (digest != null)
-      {
-        digest.update(getBytes(s));
-      }
+      update(mac, digest, s);
 
       writer.write(s);
       writer.write(EOL);
@@ -1113,54 +1061,21 @@ class BackupManager
   {
     HashSet<String> hashSet = new HashSet<String>();
 
-    boolean         encrypt         = backupInfo.isEncrypted();
-
-    File archiveFile = getArchiveFile(backupDir, backupInfo);
-
-    InputStream inputStream = new FileInputStream(archiveFile);
-
     // Get the crypto manager and use it to obtain references to the message
     // digest and/or MAC to use for hashing and/or signing.
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
 
-    // If the data is encrypted, then wrap the input stream in a cipher
-    // input stream.
-    if (encrypt)
-    {
-      try
-      {
-        inputStream = cryptoManager.getCipherInputStream(inputStream);
-      }
-      catch (CryptoManagerException e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-                stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Wrap the file input stream in a zip input stream.
-    ZipInputStream zipStream = new ZipInputStream(inputStream);
+    File archiveFile = getArchiveFile(backupDir, backupInfo);
+    ZipInputStream zipStream = getZipInputStream(archiveFile, backupInfo, cryptoManager);
 
     // Iterate through the entries in the zip file.
     ZipEntry zipEntry = zipStream.getNextEntry();
     while (zipEntry != null)
     {
       // We are looking for the entry containing the list of unchanged files.
-      if (zipEntry.getName().equals(ZIPENTRY_UNCHANGED_LOGFILES))
+      if (ZIPENTRY_UNCHANGED_LOGFILES.equals(zipEntry.getName()))
       {
-        InputStreamReader reader = new InputStreamReader(zipStream);
-        BufferedReader bufferedReader = new BufferedReader(reader);
-        String line = bufferedReader.readLine();
-        while (line != null)
-        {
-          hashSet.add(line);
-          line = bufferedReader.readLine();
-        }
+        hashSet.addAll(readAllLines(zipStream));
         break;
       }
 
@@ -1169,6 +1084,19 @@ class BackupManager
 
     zipStream.close();
     return hashSet;
+  }
+
+  private ArrayList<String> readAllLines(ZipInputStream zipStream) throws IOException
+  {
+    final ArrayList<String> results = new ArrayList<String>();
+
+    String line;
+    BufferedReader reader = new BufferedReader(new InputStreamReader(zipStream));
+    while ((line = reader.readLine()) != null)
+    {
+      results.add(line);
+    }
+    return results;
   }
 
   /**
@@ -1238,7 +1166,7 @@ class BackupManager
         return false;
       }
       int compareTo = name.compareTo(latest);
-      return compareTo > 0 || compareTo == 0 && d.length() > latestSize;
+      return compareTo > 0 || (compareTo == 0 && d.length() > latestSize);
     }
   }
 }
