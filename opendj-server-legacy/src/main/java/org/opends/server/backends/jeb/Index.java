@@ -93,15 +93,6 @@ public class Index extends DatabaseContainer
    */
   private boolean trusted;
 
-  /**
-   * A flag to indicate if a rebuild process is running on this index.
-   * During the rebuild process, we assume that no entryIDSets are
-   * accurate and return an undefined set on all read operations.
-   * However all write operations will succeed. The rebuildRunning
-   * flag overrides all behaviors of the trusted flag.
-   */
-  private boolean rebuildRunning;
-
   private final ImportIDSet newImportIDSet;
 
   /**
@@ -282,14 +273,14 @@ public class Index extends DatabaseContainer
           }
         }
       }
-      else
+      else if (trusted)
       {
-        if (deletedIDs != null && trusted && !rebuildRunning)
+        if (deletedIDs != null)
         {
           logIndexCorruptError(txn, key);
         }
 
-        if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
+        if (isNotNullOrEmpty(addedIDs))
         {
           data.setData(addedIDs.toDatabase());
 
@@ -344,20 +335,20 @@ public class Index extends DatabaseContainer
         return delete(txn, key);
       }
     }
-    else
+    else if (trusted)
     {
-      if (deletedIDs != null && trusted && !rebuildRunning)
+      if (deletedIDs != null)
       {
         logIndexCorruptError(txn, key);
       }
 
-      if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
+      if (isNotNullOrEmpty(addedIDs))
       {
         data.setData(addedIDs.toDatabase());
         return insert(txn, key, data);
       }
-      return OperationStatus.SUCCESS;
     }
+    return OperationStatus.SUCCESS;
   }
 
   private EntryIDSet computeEntryIDList(DatabaseEntry key, DatabaseEntry data, EntryIDSet deletedIDs,
@@ -474,11 +465,6 @@ public class Index extends DatabaseContainer
   public ConditionResult containsID(Transaction txn, DatabaseEntry key, EntryID entryID)
        throws DatabaseException
   {
-    if(rebuildRunning)
-    {
-      return ConditionResult.UNDEFINED;
-    }
-
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status = read(txn, key, data, LockMode.DEFAULT);
@@ -511,11 +497,6 @@ public class Index extends DatabaseContainer
    */
   public EntryIDSet readKey(DatabaseEntry key, Transaction txn, LockMode lockMode)
   {
-    if(rebuildRunning)
-    {
-      return new EntryIDSet();
-    }
-
     try
     {
       DatabaseEntry data = new DatabaseEntry();
@@ -594,11 +575,8 @@ public class Index extends DatabaseContainer
   public EntryIDSet readRange(byte[] lower, byte[] upper,
                                boolean lowerIncluded, boolean upperIncluded)
   {
-    LockMode lockMode = LockMode.DEFAULT;
-
-    // If this index is not trusted, then just return an undefined
-    // id set.
-    if(rebuildRunning || !trusted)
+    // If this index is not trusted, then just return an undefined id set.
+    if (!trusted)
     {
       return new EntryIDSet();
     }
@@ -607,6 +585,7 @@ public class Index extends DatabaseContainer
     {
       // Total number of IDs found so far.
       int totalIDCount = 0;
+      LockMode lockMode = LockMode.DEFAULT;
 
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key;
@@ -841,17 +820,7 @@ public class Index extends DatabaseContainer
    */
   public synchronized boolean isRebuildRunning()
   {
-    return rebuildRunning;
-  }
-
-  /**
-   * Set the rebuild status of this index.
-   * @param rebuildRunning True if a rebuild process on this index
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    this.rebuildRunning = rebuildRunning;
+    return false; // FIXME inline?
   }
 
   /**

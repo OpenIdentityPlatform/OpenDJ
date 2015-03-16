@@ -190,13 +190,6 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void setRebuildStatus(boolean rebuildRunning)
-  {
-    // Do nothing.
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean getMaintainCount()
   {
     return false;

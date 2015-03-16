@@ -907,19 +907,6 @@ public class AttributeIndex
   }
 
   /**
-   * Set the rebuild status of this index.
-   * @param rebuildRunning True if a rebuild process on this index
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    for (Index index : nameToIndexes.values())
-    {
-      index.setRebuildStatus(rebuildRunning);
-    }
-  }
-
-  /**
    * Get the JE database name prefix for indexes in this attribute index.
    *
    * @return JE database name for this database container.

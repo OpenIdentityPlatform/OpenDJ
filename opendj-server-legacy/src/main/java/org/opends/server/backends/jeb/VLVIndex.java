@@ -100,8 +100,6 @@ public class VLVIndex extends DatabaseContainer
    * with the entries database.
    */
   private boolean trusted;
-  /** A flag to indicate if a rebuild process is running on this vlvIndex. */
-  private boolean rebuildRunning;
 
   /** The VLV vlvIndex configuration. */
   private LocalDBVLVIndexCfg config;
@@ -739,7 +737,7 @@ public class VLVIndex extends DatabaseContainer
                              StringBuilder debugBuilder)
       throws DirectoryException, DatabaseException
   {
-    if (!trusted || rebuildRunning
+    if (!trusted
         || !searchOperation.getBaseDN().equals(baseDN)
         || !searchOperation.getScope().equals(scope)
         || !searchOperation.getFilter().equals(filter)
@@ -1063,16 +1061,6 @@ public class VLVIndex extends DatabaseContainer
   public boolean isTrusted()
   {
     return trusted;
-  }
-
-  /**
-   * Set the rebuild status of this vlvIndex.
-   * @param rebuildRunning True if a rebuild process on this vlvIndex
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    this.rebuildRunning = rebuildRunning;
   }
 
   /**

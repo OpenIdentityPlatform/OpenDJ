@@ -27,8 +27,8 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
 
 import java.io.Closeable;
 import java.util.Iterator;
@@ -940,16 +940,6 @@ class VLVIndex extends DatabaseContainer
   boolean isTrusted()
   {
     return trusted;
-  }
-
-  /**
-   * Set the rebuild status of this vlvIndex.
-   * @param rebuildRunning True if a rebuild process on this vlvIndex
-   *                       is running or False otherwise.
-   */
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
-  {
-    this.rebuildRunning = rebuildRunning;
   }
 
   /**
