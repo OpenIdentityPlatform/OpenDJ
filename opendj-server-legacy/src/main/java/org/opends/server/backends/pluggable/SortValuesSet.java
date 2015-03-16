@@ -370,12 +370,12 @@ class SortValuesSet
   {
     final ByteSequenceReader reader = bytes.asReader();
     final int length = reader.getInt();
-    final long[] entryIDList = new long[length];
+    final long[] entryIDSet = new long[length];
     for (int i = 0; i < length; i++)
     {
-      entryIDList[i] = reader.getLong();
+      entryIDSet[i] = reader.getLong();
     }
-    return entryIDList;
+    return entryIDSet;
   }
 
   /**

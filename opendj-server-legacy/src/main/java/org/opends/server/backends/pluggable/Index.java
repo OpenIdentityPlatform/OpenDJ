@@ -290,7 +290,7 @@ class Index extends DatabaseContainer
     final ByteString value = txn.getRMW(getName(), key);
     if (value != null)
     {
-      EntryIDSet entryIDSet = computeEntryIDList(key, value, deletedIDs, addedIDs);
+      EntryIDSet entryIDSet = computeEntryIDSet(key, value, deletedIDs, addedIDs);
       ByteString after = entryIDSet.toByteString();
       if (!after.isEmpty())
       {
@@ -318,8 +318,7 @@ class Index extends DatabaseContainer
     }
   }
 
-  private EntryIDSet computeEntryIDList(ByteString key, ByteString value, EntryIDSet deletedIDs,
-      EntryIDSet addedIDs)
+  private EntryIDSet computeEntryIDSet(ByteString key, ByteString value, EntryIDSet deletedIDs, EntryIDSet addedIDs)
   {
     EntryIDSet entryIDSet = newSetFromBytes(key, value);
     if(addedIDs != null)
