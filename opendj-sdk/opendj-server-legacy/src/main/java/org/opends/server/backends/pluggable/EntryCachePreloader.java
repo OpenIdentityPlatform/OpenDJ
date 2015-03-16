@@ -26,8 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -44,9 +45,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to pre-load the Directory
@@ -70,85 +68,48 @@ class EntryCachePreloader
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * BackendImpl object.
-   */
+  /** BackendImpl object. */
   private final BackendImpl<?> backend;
 
-  /**
-   * Interrupt flag for the arbiter to terminate worker threads.
-   */
+  /** Interrupt flag for the arbiter to terminate worker threads. */
   private final AtomicBoolean interruptFlag = new AtomicBoolean(false);
-
-  /**
-   * Processed entries counter.
-   */
+  /** Processed entries counter. */
   private final AtomicLong processedEntries = new AtomicLong(0);
 
-  /**
-   * Progress report resolution.
-   */
+  /** Progress report resolution. */
   private static final long progressInterval = 5000;
-
-  /**
-   * Default resolution time.
-   */
-  private static final long
-    PRELOAD_DEFAULT_SLEEP_TIME = 10000;
-
-  /**
-   * Effective synchronization time.
-   */
+  /** Default resolution time. */
+  private static final long PRELOAD_DEFAULT_SLEEP_TIME = 10000;
+  /** Effective synchronization time. */
   private static long syncSleepTime;
-
-  /**
-   * Default queue capacity.
-   */
-  private static final int
-    PRELOAD_DEFAULT_QUEUE_CAPACITY = 128;
-
-  /**
-   * Effective queue capacity.
-   */
+  /** Default queue capacity. */
+  private static final int PRELOAD_DEFAULT_QUEUE_CAPACITY = 128;
+  /** Effective queue capacity. */
   private static int queueCapacity;
 
-  /**
-   * Worker threads.
-   */
-  private final List<Thread> preloadThreads =
-    Collections.synchronizedList(
-    new LinkedList<Thread>());
-
-  /**
-   * Collector thread.
-   */
-  private final EntryCacheCollector collector =
-    new EntryCacheCollector();
-
-  /**
-   * This queue is for workers to take from.
-   */
+  /** Worker threads. */
+  private final List<Thread> preloadThreads = Collections.synchronizedList(new LinkedList<Thread>());
+  /** Collector thread. */
+  private final EntryCacheCollector collector = new EntryCacheCollector();
+  /** This queue is for workers to take from. */
   private final LinkedBlockingQueue<PreloadEntry> entryQueue;
-
-  /**
-   * The number of bytes in a megabyte.
-   */
+  /** The number of bytes in a megabyte. */
   private static final int bytesPerMegabyte = 1024*1024;
 
   /**
-   * Constructs the Entry Cache Pre-loader for a given JEB implementation instance.
+   * Constructs the Entry Cache Pre-loader for a given backend implementation instance.
    *
-   * @param jeb
-   *          The JEB instance to pre-load.
+   * @param backend
+   *          The backend instance to pre-load.
    */
-  public EntryCachePreloader(BackendImpl<?> jeb)
+  public EntryCachePreloader(BackendImpl<?> backend)
   {
     // These should not be exposed as configuration
     // parameters and are only useful for testing.
     syncSleepTime = Long.getLong("org.opends.server.entrycache.preload.sleep", PRELOAD_DEFAULT_SLEEP_TIME);
     queueCapacity = Integer.getInteger("org.opends.server.entrycache.preload.queue", PRELOAD_DEFAULT_QUEUE_CAPACITY);
     entryQueue = new LinkedBlockingQueue<PreloadEntry>(queueCapacity);
-    this.backend = jeb;
+    this.backend = backend;
   }
 
   /**
@@ -300,8 +261,7 @@ class EntryCachePreloader
       Cursor cursor = null;
       ID2Entry id2entry = null;
       RootContainer rootContainer = backend.getRootContainer();
-      Collection<EntryContainer> entryContainers = rootContainer.getEntryContainers();
-      Iterator<EntryContainer> ecIterator = entryContainers.iterator();
+      Iterator<EntryContainer> ecIterator = rootContainer.getEntryContainers().iterator();
 
       // FIXME: this loop needs fixing.
       boolean success = false;
@@ -314,17 +274,15 @@ class EntryCachePreloader
           }
           try {
             if (cursor == null) {
-              if (ecIterator.hasNext()) {
-                id2entry = ecIterator.next().getID2Entry();
-              } else {
+              if (!ecIterator.hasNext()) {
                 break;
               }
-              if (id2entry != null) {
-                // FIXME: "null" should be a transaction.
-                // cursor = null.openCursor(id2entry.getName());
-              } else {
+              id2entry = ecIterator.next().getID2Entry();
+              if (id2entry == null) {
                 continue;
               }
+              // FIXME: "null" should be a transaction.
+              // cursor = null.openCursor(id2entry.getName());
             }
             // BUG cursor might be null ? If not why testing below ?
             success = cursor.next();
@@ -348,20 +306,15 @@ class EntryCachePreloader
     }
   }
 
-  /**
-   * This inner class represents pre-load entry object.
-   */
-  private class PreloadEntry {
+  /** This inner class represents pre-load entry object. */
+  private static final class PreloadEntry {
 
-    // Encoded Entry.
+    /** Encoded Entry. */
     private ByteString entryBytes;
-
-    // Encoded EntryID.
+    /** Encoded EntryID. */
     private ByteString entryIDBytes;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     private PreloadEntry(ByteString entryBytes, ByteString entryIDBytes)
     {
       this.entryBytes = entryBytes;
