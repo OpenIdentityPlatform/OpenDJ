@@ -26,9 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromUnion;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +50,7 @@ class IndexFilter
    * Stop processing the filter against the indexes when the
    * number of candidates is smaller than this value.
    */
-  static final int FILTER_CANDIDATE_THRESHOLD = 10;
+  private static final int FILTER_CANDIDATE_THRESHOLD = 10;
 
   /**
    * Limit on the number of entry IDs that may be retrieved by cursoring through an index.
@@ -285,7 +284,7 @@ class IndexFilter
     return results;
   }
 
-  private boolean isBelowFilterThreshold(EntryIDSet set)
+  static boolean isBelowFilterThreshold(EntryIDSet set)
   {
     return set.isDefined() && set.size() <= FILTER_CANDIDATE_THRESHOLD;
   }

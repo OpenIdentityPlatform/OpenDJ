@@ -26,9 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
-import static org.opends.server.backends.pluggable.IndexFilter.CURSOR_ENTRY_LIMIT;
-import static org.opends.server.backends.pluggable.IndexFilter.FILTER_CANDIDATE_THRESHOLD;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.IndexFilter.*;
 
 import java.util.Collection;
 
@@ -148,8 +147,7 @@ abstract class IndexQuery
         {
           entryIDs.retainAll(query.evaluate(debugMessage));
         }
-        if (entryIDs.isDefined()
-            && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)
+        if (isBelowFilterThreshold(entryIDs))
         {
           break;
         }

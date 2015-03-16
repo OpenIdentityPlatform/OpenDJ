@@ -27,17 +27,16 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.Reject.checkNotNull;
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.backends.pluggable.IndexFilter.CURSOR_ENTRY_LIMIT;
 import static org.opends.server.types.AdditionalLogItem.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -906,10 +905,9 @@ public class EntryContainer
             // Evaluate the filter against the attribute indexes.
             entryIDSet = indexFilter.evaluate();
 
-            // Evaluate the search scope against the id2children and id2subtree indexes
-            if (entryIDSet.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+            if (!isBelowFilterThreshold(entryIDSet))
             {
-              // Read the ID from dn2id.
+              // Evaluate the search scope against the id2children and id2subtree indexes
               EntryID baseID = dn2id.get(txn, aBaseDN);
               if (baseID == null)
               {
