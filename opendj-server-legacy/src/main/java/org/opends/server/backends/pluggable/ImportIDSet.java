@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.EntryIDSet.decodeEntryIDList;
+import static org.opends.server.backends.pluggable.EntryIDSet.decodeUndefinedSize;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -147,18 +150,18 @@ class ImportIDSet {
     boolean dbUndefined = isDBUndefined(dBbytes);
 
     if (dbUndefined && !importIdSet.isDefined())  {
-      undefinedSize = EntryIDSet.decodeUndefinedSize(dBbytes) + importIdSet.undefinedSize;
+      undefinedSize = decodeUndefinedSize(dBbytes) + importIdSet.undefinedSize;
       isDefined=false;
     } else if (dbUndefined && importIdSet.isDefined())  {
-      undefinedSize = EntryIDSet.decodeUndefinedSize(dBbytes) + importIdSet.size();
+      undefinedSize = decodeUndefinedSize(dBbytes) + importIdSet.size();
       isDefined=false;
     } else if(!importIdSet.isDefined()) {
-      int dbSize = EntryIDSet.decodeEntryIDList(dBbytes).length;
+      int dbSize = decodeEntryIDList(dBbytes).length;
       undefinedSize = dbSize + importIdSet.undefinedSize;
       isDefined = false;
       incrementLimitCount = true;
     } else {
-      array = EntryIDSet.decodeEntryIDList(dBbytes);
+      array = decodeEntryIDList(dBbytes);
       if (array.length + importIdSet.size() > indexEntryLimit) {
         undefinedSize = array.length + importIdSet.size();
         isDefined=false;
@@ -187,7 +190,7 @@ class ImportIDSet {
       isDefined=false;
       undefinedSize = Long.MAX_VALUE;
     } else {
-      array = EntryIDSet.decodeEntryIDList(bytes);
+      array = decodeEntryIDList(bytes);
       if (array.length - importIdSet.size() > indexEntryLimit) {
         isDefined=false;
         count = 0;
@@ -226,7 +229,7 @@ class ImportIDSet {
       undefinedSize = Long.MAX_VALUE;
       count = 0;
     } else {
-      array = EntryIDSet.decodeEntryIDList(bytes);
+      array = decodeEntryIDList(bytes);
       if (array.length + importIdSet.size() > indexEntryLimit) {
         isDefined = false;
         incrementLimitCount = true;

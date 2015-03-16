@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -82,7 +84,7 @@ class IndexBuffer
       {
         if (this.addedIDs == null)
         {
-          this.addedIDs = new EntryIDSet(keyBytes, null);
+          this.addedIDs = newDefinedSet();
         }
         this.addedIDs.add(entryID);
       }
@@ -100,7 +102,7 @@ class IndexBuffer
       {
         if (this.deletedIDs == null)
         {
-          this.deletedIDs = new EntryIDSet(keyBytes, null);
+          this.deletedIDs = newDefinedSet();
         }
         this.deletedIDs.add(entryID);
       }

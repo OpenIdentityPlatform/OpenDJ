@@ -30,6 +30,7 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import java.io.Closeable;
 import java.util.*;
@@ -514,7 +515,7 @@ class AttributeIndex
     catch (DecodeException e)
     {
       logger.traceException(e);
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
   }
 

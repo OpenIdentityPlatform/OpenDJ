@@ -26,6 +26,10 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED;
+import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromUnion;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +40,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
-
-import static org.opends.messages.JebMessages.*;
 
 /**
  * An index filter is used to apply a search operation to a set of indexes
@@ -50,6 +52,11 @@ class IndexFilter
    * number of candidates is smaller than this value.
    */
   static final int FILTER_CANDIDATE_THRESHOLD = 10;
+
+  /**
+   * Limit on the number of entry IDs that may be retrieved by cursoring through an index.
+   */
+  static final int CURSOR_ENTRY_LIMIT = 100000;
 
   /** The entry container holding the attribute indexes. */
   private final EntryContainer entryContainer;
@@ -96,10 +103,7 @@ class IndexFilter
    */
   EntryIDSet evaluate()
   {
-    if (buffer != null)
-    {
-      buffer.append("filter=");
-    }
+    appendToDebugBuffer("filter=");
     return evaluateFilter(searchOp.getFilter());
   }
 
@@ -124,27 +128,15 @@ class IndexFilter
     switch (filter.getFilterType())
     {
       case AND:
-        if (buffer != null)
-        {
-          buffer.append("(&");
-        }
+        appendToDebugBuffer("(&");
         final EntryIDSet res1 = evaluateLogicalAndFilter(filter);
-        if (buffer != null)
-        {
-          buffer.append(")");
-        }
+        appendToDebugBuffer(")");
         return res1;
 
       case OR:
-        if (buffer != null)
-        {
-          buffer.append("(|");
-        }
+        appendToDebugBuffer("(|");
         final EntryIDSet res2 = evaluateLogicalOrFilter(filter);
-        if (buffer != null)
-        {
-          buffer.append(")");
-        }
+        appendToDebugBuffer(")");
         return res2;
 
       case EQUALITY:
@@ -179,7 +171,7 @@ class IndexFilter
           filter.toString(buffer);
         }
         //NYI
-        return new EntryIDSet();
+        return newUndefinedSet();
     }
   }
 
@@ -191,9 +183,6 @@ class IndexFilter
    */
   private EntryIDSet evaluateLogicalAndFilter(SearchFilter andFilter)
   {
-    // Start off with an undefined set.
-    EntryIDSet results = new EntryIDSet();
-
     // Put the slow range filters (greater-or-equal, less-or-equal)
     // into a hash map, the faster components (equality, presence, approx)
     // into one list and the remainder into another list.
@@ -230,13 +219,13 @@ class IndexFilter
       }
     }
 
+    EntryIDSet results = newUndefinedSet();
     // First, process the fast components.
-    if (evaluateFilters(results, fastComps)
-        // Next, process the other (non-range) components.
-        || evaluateFilters(results, otherComps)
-        // Are there any range component pairs like (cn>=A)(cn<=B) ?
-        || rangeComps.isEmpty())
-    {
+    results = applyFiltersUntilThreshold(results, fastComps);
+    // Next, process the other (non-range) components.
+    results = applyFiltersUntilThreshold(results, otherComps);
+
+    if ( isBelowFilterThreshold(results) || rangeComps.isEmpty() ) {
       return results;
     }
 
@@ -268,7 +257,8 @@ class IndexFilter
         {
           monitor.updateStats(SearchFilter.createANDFilter(rangeList), set.size());
         }
-        if (retainAll(results, set))
+        results.retainAll(set);
+        if (isBelowFilterThreshold(results))
         {
           return results;
         }
@@ -281,39 +271,23 @@ class IndexFilter
     }
 
     // Finally, process the remaining slow range components.
-    evaluateFilters(results, remainComps);
+    return applyFiltersUntilThreshold(results, remainComps);
+  }
 
+  private EntryIDSet applyFiltersUntilThreshold(EntryIDSet results, ArrayList<SearchFilter> filters)
+  {
+    for(SearchFilter filter : filters) {
+      if (isBelowFilterThreshold(results)) {
+        return results;
+      }
+      results.retainAll(evaluateFilter(filter));
+    }
     return results;
   }
 
-  private boolean evaluateFilters(EntryIDSet results, ArrayList<SearchFilter> filters)
+  private boolean isBelowFilterThreshold(EntryIDSet set)
   {
-    for (SearchFilter filter : filters)
-    {
-      final EntryIDSet filteredSet = evaluateFilter(filter);
-      if (retainAll(results, filteredSet))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Retain all IDs in a given set that appear in a second set.
-   *
-   * @param a The set of entry IDs to be updated.
-   * @param b Only those IDs that are in this set are retained.
-   * @return true if the number of IDs in the updated set is now below
-   *         the filter candidate threshold.
-   */
-  private boolean retainAll(EntryIDSet a, EntryIDSet b)
-  {
-    a.retainAll(b);
-
-    // We may have reached the point of diminishing returns where
-    // it is quicker to stop now and process the current small number of candidates.
-    return a.isDefined() && a.size() <= FILTER_CANDIDATE_THRESHOLD;
+    return set.isDefined() && set.size() <= FILTER_CANDIDATE_THRESHOLD;
   }
 
   /**
@@ -337,7 +311,7 @@ class IndexFilter
       }
       candidateSets.add(set);
     }
-    return EntryIDSet.unionOfSets(candidateSets, false);
+    return newSetFromUnion(candidateSets);
   }
 
   private EntryIDSet evaluateFilterWithDiagnostic(IndexFilterType indexFilterType, SearchFilter filter)
@@ -363,7 +337,7 @@ class IndexFilter
       monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
           indexFilterType.toString(), filter.getAttributeType().getNameOrOID()));
     }
-    return new EntryIDSet();
+    return newUndefinedSet();
   }
 
   /**
@@ -389,5 +363,13 @@ class IndexFilter
       return attributeIndex.evaluateExtensibleFilter(indexQueryFactory, extensibleFilter, buffer, monitor);
     }
     return IndexQuery.createNullIndexQuery().evaluate(null);
+  }
+
+  private void appendToDebugBuffer(String content)
+  {
+    if (buffer != null)
+    {
+      buffer.append(content);
+    }
   }
 }

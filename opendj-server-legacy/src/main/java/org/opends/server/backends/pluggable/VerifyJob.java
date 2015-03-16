@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -597,11 +598,11 @@ class VerifyJob
           continue;
         }
 
-        EntryIDSet entryIDList;
+        EntryIDSet entryIDSet;
 
         try
         {
-          entryIDList = new EntryIDSet(key, value);
+          entryIDSet = newSetFromBytes(key, value);
         }
         catch (Exception e)
         {
@@ -616,9 +617,9 @@ class VerifyJob
           continue;
         }
 
-        updateIndexStats(entryIDList);
+        updateIndexStats(entryIDSet);
 
-        if (entryIDList.isDefined())
+        if (entryIDSet.isDefined())
         {
           Entry entry;
           try
@@ -642,7 +643,7 @@ class VerifyJob
             continue;
           }
 
-          for (EntryID id : entryIDList)
+          for (EntryID id : entryIDSet)
           {
             Entry childEntry;
             try
@@ -723,10 +724,10 @@ class VerifyJob
           continue;
         }
 
-        EntryIDSet entryIDList;
+        EntryIDSet entryIDSet;
         try
         {
-          entryIDList = new EntryIDSet(key, value);
+          entryIDSet = newSetFromBytes(key, value);
         }
         catch (Exception e)
         {
@@ -741,9 +742,9 @@ class VerifyJob
           continue;
         }
 
-        updateIndexStats(entryIDList);
+        updateIndexStats(entryIDSet);
 
-        if (entryIDList.isDefined())
+        if (entryIDSet.isDefined())
         {
           Entry entry;
           try
@@ -767,7 +768,7 @@ class VerifyJob
             continue;
           }
 
-          for (EntryID id : entryIDList)
+          for (EntryID id : entryIDSet)
           {
             Entry subordEntry;
             try
@@ -994,10 +995,10 @@ class VerifyJob
         final ByteString key = cursor.getKey();
         ByteString value = cursor.getValue();
 
-        EntryIDSet entryIDList;
+        EntryIDSet entryIDSet;
         try
         {
-          entryIDList = new EntryIDSet(key, value);
+          entryIDSet = newSetFromBytes(key, value);
         }
         catch (Exception e)
         {
@@ -1012,13 +1013,13 @@ class VerifyJob
           continue;
         }
 
-        updateIndexStats(entryIDList);
+        updateIndexStats(entryIDSet);
 
-        if (entryIDList.isDefined())
+        if (entryIDSet.isDefined())
         {
           EntryID prevID = null;
 
-          for (EntryID id : entryIDList)
+          for (EntryID id : entryIDSet)
           {
             if (prevID != null && id.equals(prevID) && logger.isTraceEnabled())
             {
