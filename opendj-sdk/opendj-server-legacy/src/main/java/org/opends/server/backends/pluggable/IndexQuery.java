@@ -26,7 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.IndexFilter.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.server.backends.pluggable.IndexFilter.CURSOR_ENTRY_LIMIT;
+import static org.opends.server.backends.pluggable.IndexFilter.FILTER_CANDIDATE_THRESHOLD;
 
 import java.util.Collection;
 
@@ -91,7 +93,6 @@ abstract class IndexQuery
     return new NullIndexQuery();
   }
 
-
   /**
    * This class creates a Null IndexQuery. It is used when there is no
    * record in the index. It may also be used when the index contains
@@ -103,7 +104,7 @@ abstract class IndexQuery
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
 
     @Override
@@ -194,8 +195,7 @@ abstract class IndexQuery
         {
           entryIDs.addAll(query.evaluate(debugMessage));
         }
-        if (entryIDs.isDefined()
-            && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)
+        if (entryIDs.isDefined() && entryIDs.size() >= CURSOR_ENTRY_LIMIT)
         {
           break;
         }

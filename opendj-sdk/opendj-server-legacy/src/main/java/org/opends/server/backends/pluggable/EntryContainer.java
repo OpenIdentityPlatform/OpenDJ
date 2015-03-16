@@ -28,20 +28,27 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Utils.closeSilently;
+import static org.forgerock.util.Reject.checkNotNull;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.backends.pluggable.IndexFilter.CURSOR_ENTRY_LIMIT;
 import static org.opends.server.types.AdditionalLogItem.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -80,12 +87,14 @@ import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.controls.VLVRequestControl;
+import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
@@ -100,6 +109,7 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SortKey;
+import org.opends.server.types.SortOrder;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -853,7 +863,7 @@ public class EntryContainer
             debugBuffer = new StringBuilder();
           }
 
-          EntryIDSet entryIDList = null;
+          EntryIDSet entryIDSet = null;
           boolean candidatesAreInScope = false;
           if (sortRequest != null)
           {
@@ -861,8 +871,8 @@ public class EntryContainer
             {
               try
               {
-                entryIDList = vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest, debugBuffer);
-                if (entryIDList != null)
+                entryIDSet = vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest, debugBuffer);
+                if (entryIDSet != null)
                 {
                   searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
                   candidatesAreInScope = true;
@@ -882,7 +892,7 @@ public class EntryContainer
             }
           }
 
-          if (entryIDList == null)
+          if (entryIDSet == null)
           {
             if (processSearchWithVirtualAttributeRule(searchOperation, true))
             {
@@ -894,10 +904,10 @@ public class EntryContainer
                 EntryContainer.this, txn, searchOperation, debugBuffer, rootContainer.getMonitorProvider());
 
             // Evaluate the filter against the attribute indexes.
-            entryIDList = indexFilter.evaluate();
+            entryIDSet = indexFilter.evaluate();
 
             // Evaluate the search scope against the id2children and id2subtree indexes
-            if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+            if (entryIDSet.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
             {
               // Read the ID from dn2id.
               EntryID baseID = dn2id.get(txn, aBaseDN);
@@ -909,27 +919,27 @@ public class EntryContainer
               }
               ByteString baseIDData = baseID.toByteString();
 
-              EntryIDSet scopeList;
+              EntryIDSet scopeSet;
               if (searchScope == SearchScope.SINGLE_LEVEL)
               {
-                scopeList = id2children.read(txn, baseIDData);
+                scopeSet = id2children.read(txn, baseIDData);
               }
               else
               {
-                scopeList = id2subtree.read(txn, baseIDData);
+                scopeSet = id2subtree.read(txn, baseIDData);
                 if (searchScope == SearchScope.WHOLE_SUBTREE)
                 {
                   // The id2subtree list does not include the base entry ID.
-                  scopeList.add(baseID);
+                  scopeSet.add(baseID);
                 }
               }
-              entryIDList.retainAll(scopeList);
+              entryIDSet.retainAll(scopeSet);
               if (debugBuffer != null)
               {
                 debugBuffer.append(" scope=").append(searchScope);
-                scopeList.toString(debugBuffer);
+                scopeSet.toString(debugBuffer);
               }
-              if (scopeList.isDefined())
+              if (scopeSet.isDefined())
               {
                 // In this case we know that every candidate is in scope.
                 candidatesAreInScope = true;
@@ -943,9 +953,7 @@ public class EntryContainer
                 // If the sort key is not present, the sorting will generate the
                 // default ordering. VLV search request goes through as if
                 // this sort key was not found in the user entry.
-                entryIDList =
-                    EntryIDSetSorter.sort(EntryContainer.this, txn, entryIDList, searchOperation,
-                        sortRequest.getSortOrder(), vlvRequest);
+                entryIDSet = sort(txn, entryIDSet, searchOperation, sortRequest.getSortOrder(), vlvRequest);
                 if (sortRequest.containsSortKeys())
                 {
                   searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
@@ -980,17 +988,17 @@ public class EntryContainer
           if (debugBuffer != null)
           {
             debugBuffer.append(" final=");
-            entryIDList.toString(debugBuffer);
+            entryIDSet.toString(debugBuffer);
 
             Entry debugEntry = buildDebugSearchIndexEntry(debugBuffer);
             searchOperation.returnEntry(debugEntry, null);
             return null;
           }
 
-          if (entryIDList.isDefined())
+          if (entryIDSet.isDefined())
           {
             rootContainer.getMonitorProvider().updateIndexedSearchCount();
-            searchIndexed(txn, entryIDList, candidatesAreInScope, searchOperation, pageRequest);
+            searchIndexed(txn, entryIDSet, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
@@ -1314,7 +1322,7 @@ public class EntryContainer
    * <li>return entry if it matches the filter
    * </ul>
    *
-   * @param entryIDList The candidate entry IDs.
+   * @param entryIDSet The candidate entry IDs.
    * @param candidatesAreInScope true if it is certain that every candidate
    *                             entry is in the search scope.
    * @param searchOperation The search operation.
@@ -1322,7 +1330,7 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchIndexed(ReadableStorage txn, EntryIDSet entryIDList, boolean candidatesAreInScope,
+  private void searchIndexed(ReadableStorage txn, EntryIDSet entryIDSet, boolean candidatesAreInScope,
       SearchOperation searchOperation, PagedResultsControl pageRequest) throws DirectoryException,
       CanceledOperationException
   {
@@ -1357,7 +1365,7 @@ public class EntryContainer
     // Make sure the candidate list is smaller than the lookthrough limit
     int lookthroughLimit =
       searchOperation.getClientConnection().getLookthroughLimit();
-    if(lookthroughLimit > 0 && entryIDList.size() > lookthroughLimit)
+    if(lookthroughLimit > 0 && entryIDSet.size() > lookthroughLimit)
     {
       //Lookthrough limit exceeded
       searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
@@ -1370,7 +1378,7 @@ public class EntryContainer
     if (continueSearch)
     {
       final SearchFilter filter = searchOperation.getFilter();
-      for (Iterator<EntryID> it = entryIDList.iterator(begin); it.hasNext();)
+      for (Iterator<EntryID> it = entryIDSet.iterator(begin); it.hasNext();)
       {
         final EntryID id = it.next();
 
@@ -3154,8 +3162,7 @@ public class EntryContainer
    */
   Index newIndexForAttribute(WriteableStorage txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
   {
-    final int cursorEntryLimit = 100000;
-    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, txn, this);
+    return new Index(indexName, indexer, state, indexEntryLimit, CURSOR_ENTRY_LIMIT, false, txn, this);
   }
 
 
@@ -3231,6 +3238,195 @@ public class EntryContainer
     return baseEntry;
   }
 
+  private EntryIDSet sort(ReadableStorage txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
+      SortOrder sortOrder, VLVRequestControl vlvRequest) throws DirectoryException
+  {
+    if (!entryIDSet.isDefined())
+    {
+      return newUndefinedSet();
+    }
+
+    final DN baseDN = searchOperation.getBaseDN();
+    final SearchScope scope = searchOperation.getScope();
+    final SearchFilter filter = searchOperation.getFilter();
+
+    final TreeMap<SortValues, Long> sortMap = new TreeMap<SortValues, Long>();
+    for (EntryID id : entryIDSet)
+    {
+      try
+      {
+        Entry e = getEntry(txn, id);
+        if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
+        {
+          sortMap.put(new SortValues(id, e, sortOrder), id.longValue());
+        }
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(id, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      }
+    }
+
+    // See if there is a VLV request to further pare down the set of results, and if there is where it should be
+    // processed by offset or assertion value.
+    if (vlvRequest == null)
+    {
+      return newDefinedSet(toArray(sortMap.values()));
+    }
+
+    if (vlvRequest.getTargetType() == VLVRequestControl.TYPE_TARGET_BYOFFSET)
+    {
+      return sortByOffset(searchOperation, vlvRequest, sortMap);
+    }
+
+    return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortMap);
+  }
+
+  // FIXME: Might be moved into a util.Longs class
+  private static final long[] toArray(Collection<? extends Number> collection)
+  {
+    checkNotNull(collection, "collection must not be null");
+    final long[] array = new long[collection.size()];
+    int i = 0;
+    for (Number number : collection)
+    {
+      array[i++] = number.longValue();
+    }
+    return array;
+  }
+
+  private static final EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
+      VLVRequestControl vlvRequest, final TreeMap<SortValues, Long> sortMap)
+  {
+    ByteString assertionValue = vlvRequest.getGreaterThanOrEqualAssertion();
+
+    boolean targetFound = false;
+    int targetOffset = 0;
+    int includedBeforeCount = 0;
+    int includedAfterCount = 0;
+
+    LinkedList<Long> idList = new LinkedList<Long>();
+    for (Map.Entry<SortValues, Long> entry : sortMap.entrySet())
+    {
+      SortValues sortValues = entry.getKey();
+      long id = entry.getValue().longValue();
+
+      if (targetFound)
+      {
+        idList.add(id);
+        includedAfterCount++;
+        if (includedAfterCount >= vlvRequest.getBeforeCount())
+        {
+          break;
+        }
+      }
+      else
+      {
+        targetFound = sortValues.compareTo(assertionValue) >= 0;
+        targetOffset++;
+
+        if (targetFound)
+        {
+          idList.add(id);
+        }
+        else if (vlvRequest.getBeforeCount() > 0)
+        {
+          idList.add(id);
+          includedBeforeCount++;
+          if (includedBeforeCount > vlvRequest.getBeforeCount())
+          {
+            idList.removeFirst();
+            includedBeforeCount--;
+          }
+        }
+      }
+    }
+
+    if (!targetFound)
+    {
+      // No entry was found to be greater than or equal to the sort key, so the target offset will be one greater
+      // than the content count.
+      targetOffset = sortMap.size() + 1;
+    }
+
+    searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
+
+    return newDefinedSet(toArray(idList));
+  }
+
+  private static final EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
+      TreeMap<SortValues, Long> sortMap) throws DirectoryException
+  {
+    int targetOffset = vlvRequest.getOffset();
+    if (targetOffset < 0)
+    {
+      // The client specified a negative target offset. This
+      // should never be allowed.
+      searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(),
+          LDAPResultCode.OFFSET_RANGE_ERROR));
+
+      LocalizableMessage message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
+      throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, message);
+    }
+
+    // This is an easy mistake to make, since VLV offsets start at 1 instead of 0. We'll assume the client meant
+    // to use 1.
+    targetOffset = (targetOffset == 0) ? 1 : targetOffset;
+
+    int beforeCount = vlvRequest.getBeforeCount();
+    int afterCount = vlvRequest.getAfterCount();
+    int listOffset = targetOffset - 1; // VLV offsets start at 1, not 0.
+    int startPos = listOffset - beforeCount;
+    if (startPos < 0)
+    {
+      // This can happen if beforeCount >= offset, and in this case we'll just adjust the start position to ignore
+      // the range of beforeCount that doesn't exist.
+      startPos = 0;
+      beforeCount = listOffset;
+    }
+    else if (startPos >= sortMap.size())
+    {
+      // The start position is beyond the end of the list. In this case, we'll assume that the start position was
+      // one greater than the size of the list and will only return the beforeCount entries.
+      targetOffset = sortMap.size() + 1;
+      listOffset = sortMap.size();
+      startPos = listOffset - beforeCount;
+      afterCount = 0;
+    }
+
+    int count = 1 + beforeCount + afterCount;
+
+    long[] sortedIDs = new long[count];
+
+    int treePos = 0;
+    int arrayPos = 0;
+    for (Long id : sortMap.values())
+    {
+      if (treePos++ < startPos)
+      {
+        continue;
+      }
+
+      sortedIDs[arrayPos++] = id.longValue();
+      if (arrayPos >= count)
+      {
+        break;
+      }
+    }
+
+    if (arrayPos < count)
+    {
+      // We don't have enough entries in the set to meet the requested page size, so we'll need to shorten the
+      // array.
+      sortedIDs = Arrays.copyOf(sortedIDs, arrayPos);
+    }
+
+    searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
+
+    return newDefinedSet(sortedIDs);
+  }
+
   /** Get the exclusive lock. */
   void lock()
   {
@@ -3248,4 +3444,5 @@ public class EntryContainer
   public String toString() {
     return databasePrefix;
   }
+
 }

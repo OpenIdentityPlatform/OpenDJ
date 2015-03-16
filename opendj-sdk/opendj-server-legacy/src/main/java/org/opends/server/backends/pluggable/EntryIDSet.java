@@ -26,55 +26,485 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.util.ArrayList;
+import static org.forgerock.util.Reject.checkNotNull;
+
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.util.Reject;
+
+import com.forgerock.opendj.util.Iterators;
 
 /**
- * Represents a set of Entry IDs.  It can represent a set where the IDs are
- * not defined, for example when the index entry limit has been exceeded.
+ * Represents a set of Entry IDs. It can represent a set where the IDs are not defined, for example when the index entry
+ * limit has been exceeded.
  */
-class EntryIDSet implements Iterable<EntryID>
+final class EntryIDSet implements Iterable<EntryID>
 {
+  public static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
 
   /**
-   * The IDs are stored here in an array in ascending order.
-   * A null array implies not defined, rather than zero IDs.
+   * Interface for EntryIDSet concrete implementations
    */
-  private long[] values;
-
-  /**
-   * The size of the set when it is not defined. This value is only maintained
-   * when the set is undefined.
-   */
-  private long undefinedSize = Long.MAX_VALUE;
-
-  /**
-   * The database key containing this set, if the set was constructed
-   * directly from the database.
-   */
-  private final ByteSequence key;
-
-  /** Create a new undefined set. */
-  public EntryIDSet()
+  private interface EntryIDSetImplementor extends Iterable<EntryID>
   {
-    this(Long.MAX_VALUE);
+    long size();
+
+    void toString(StringBuilder buffer);
+
+    boolean isDefined();
+
+    ByteString toByteString();
+
+    long[] getRange();
+
+    long[] getIDs();
+
+    boolean add(EntryID entryID);
+
+    boolean remove(EntryID entryID);
+
+    boolean contains(EntryID entryID);
+
+    void addAll(EntryIDSet that);
+
+    void removeAll(EntryIDSet that);
+
+    @Override
+    Iterator<EntryID> iterator();
+
+    Iterator<EntryID> iterator(EntryID begin);
+  }
+
+  /**
+   * Concrete implements representing a set of EntryIDs, sorted in ascending order.
+   */
+  private static final class DefinedImpl implements EntryIDSetImplementor
+  {
+    /**
+     * The IDs are stored here in an array in ascending order. A null array implies not defined, rather than zero IDs.
+     */
+    private long[] entryIDs;
+
+    DefinedImpl(long... entryIDs)
+    {
+      this.entryIDs = entryIDs;
+    }
+
+    @Override
+    public long size()
+    {
+      return entryIDs.length;
+    }
+
+    @Override
+    public void toString(StringBuilder buffer)
+    {
+      buffer.append("[COUNT:").append(size()).append("]");
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      return true;
+    }
+
+    @Override
+    public ByteString toByteString()
+    {
+      final ByteStringBuilder builder = new ByteStringBuilder(8 * entryIDs.length);
+      for (long value : entryIDs)
+      {
+        builder.append(value);
+      }
+      return builder.toByteString();
+    }
+
+    @Override
+    public boolean add(EntryID entryID)
+    {
+      long id = entryID.longValue();
+      if (entryIDs.length == 0)
+      {
+        entryIDs = new long[] { id };
+      }
+      else if (id > entryIDs[entryIDs.length - 1])
+      {
+        long[] updatedValues = Arrays.copyOf(entryIDs, entryIDs.length + 1);
+        updatedValues[entryIDs.length] = id;
+        entryIDs = updatedValues;
+      }
+      else
+      {
+        int pos = Arrays.binarySearch(entryIDs, id);
+        if (pos >= 0)
+        {
+          // The ID is already present.
+          return false;
+        }
+
+        // For a negative return value r, the index -(r+1) gives the array
+        // index at which the specified value can be inserted to maintain
+        // the sorted order of the array.
+        pos = -(pos + 1);
+
+        long[] updatedValues = new long[entryIDs.length + 1];
+        System.arraycopy(entryIDs, 0, updatedValues, 0, pos);
+        System.arraycopy(entryIDs, pos, updatedValues, pos + 1, entryIDs.length - pos);
+        updatedValues[pos] = id;
+        entryIDs = updatedValues;
+      }
+      return true;
+    }
+
+    @Override
+    public boolean remove(EntryID entryID)
+    {
+      // Binary search to locate the ID.
+      final int pos = Arrays.binarySearch(entryIDs, entryID.longValue());
+      if (pos >= 0)
+      {
+        // Found it.
+        final long[] updatedValues = new long[entryIDs.length - 1];
+        System.arraycopy(entryIDs, 0, updatedValues, 0, pos);
+        System.arraycopy(entryIDs, pos + 1, updatedValues, pos, entryIDs.length - pos - 1);
+        entryIDs = updatedValues;
+        return true;
+      }
+      // Not found.
+      return false;
+    }
+
+    @Override
+    public boolean contains(EntryID entryID)
+    {
+      return Arrays.binarySearch(entryIDs, entryID.longValue()) >= 0;
+    }
+
+    @Override
+    public void addAll(EntryIDSet anotherEntryIDSet)
+    {
+      if (anotherEntryIDSet.size() == 0)
+      {
+        return;
+      }
+
+      if (entryIDs.length == 0)
+      {
+        entryIDs = Arrays.copyOf(anotherEntryIDSet.getIDs(), anotherEntryIDSet.getIDs().length);
+        return;
+      }
+
+      final int overlap = compareForOverlap(getRange(), anotherEntryIDSet.getRange());
+      if (overlap < 0)
+      {
+        entryIDs = concatIdsFrom(entryIDs, anotherEntryIDSet.getIDs());
+      }
+      else if (overlap > 0)
+      {
+        entryIDs = concatIdsFrom(anotherEntryIDSet.getIDs(), entryIDs);
+      }
+      else
+      {
+        entryIDs = mergeOverlappingEntryIDSet(entryIDs, anotherEntryIDSet.getIDs());
+      }
+    }
+
+    @Override
+    public void removeAll(EntryIDSet that)
+    {
+      if (compareForOverlap(getRange(), that.getRange()) == 0)
+      {
+        // Set overlaps
+        final long[] newEntryIds = new long[entryIDs.length];
+        final long[] entriesToRemove = that.getIDs();
+
+        int sourceIndex, toRemoveIndex, targetIndex;
+        for (sourceIndex = 0, targetIndex = 0, toRemoveIndex = 0; sourceIndex < entryIDs.length
+            && toRemoveIndex < entriesToRemove.length;)
+        {
+          if (entryIDs[sourceIndex] < entriesToRemove[toRemoveIndex])
+          {
+            newEntryIds[targetIndex++] = entryIDs[sourceIndex++];
+          }
+          else if (entriesToRemove[toRemoveIndex] < entryIDs[sourceIndex])
+          {
+            toRemoveIndex++;
+          }
+          else
+          {
+            sourceIndex++;
+            toRemoveIndex++;
+          }
+        }
+
+        System.arraycopy(entryIDs, sourceIndex, newEntryIds, targetIndex, entryIDs.length - sourceIndex);
+        targetIndex += entryIDs.length - sourceIndex;
+
+        if (targetIndex < entryIDs.length)
+        {
+          entryIDs = Arrays.copyOf(newEntryIds, targetIndex);
+        }
+        else
+        {
+          entryIDs = newEntryIds;
+        }
+      }
+    }
+
+    @Override
+    public Iterator<EntryID> iterator()
+    {
+      return new IDSetIterator(entryIDs);
+    }
+
+    @Override
+    public Iterator<EntryID> iterator(EntryID begin)
+    {
+      return new IDSetIterator(entryIDs, begin == null ? 0 : begin.longValue());
+    }
+
+    @Override
+    public long[] getRange()
+    {
+      if (entryIDs.length == 0)
+      {
+        return new long[] { 0, 0 };
+      }
+      else
+      {
+        return new long[] { entryIDs[0], entryIDs[entryIDs.length - 1] };
+      }
+    }
+
+    @Override
+    public long[] getIDs()
+    {
+      return entryIDs;
+    }
+  }
+
+  /**
+   * Concrete implementation the EntryIDs are not defined, for example when the index entry limit has been exceeded.
+   */
+  private static final class UndefinedImpl implements EntryIDSetImplementor
+  {
+    /**
+     * The number of entry IDs in the set if the size is being maintained, otherwise Long.MAX_VALUE
+     */
+    private long undefinedSize;
+
+    /**
+     * The database key containing this set, if the set was constructed directly from the database.
+     */
+    private final ByteSequence databaseKey;
+
+    UndefinedImpl(ByteSequence key, long size)
+    {
+      databaseKey = checkNotNull(key, "key must not be null");
+      undefinedSize = size;
+    }
+
+    @Override
+    public long size()
+    {
+      return undefinedSize;
+    }
+
+    @Override
+    public void toString(StringBuilder buffer)
+    {
+      if (databaseKey == NO_KEY)
+      {
+        buffer.append("[NOT-INDEXED]");
+      }
+      else if (maintainUndefinedSize())
+      {
+        buffer.append("[LIMIT-EXCEEDED:").append(undefinedSize).append("]");
+      }
+      else
+      {
+        buffer.append("[LIMIT-EXCEEDED]");
+      }
+    }
+
+    private boolean maintainUndefinedSize()
+    {
+      return undefinedSize != Long.MAX_VALUE;
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      return false;
+    }
+
+    @Override
+    public ByteString toByteString()
+    {
+      // Set top bit.
+      return ByteString.valueOf(undefinedSize | Long.MIN_VALUE);
+    }
+
+    @Override
+    public boolean add(EntryID entryID)
+    {
+      if (maintainUndefinedSize())
+      {
+        undefinedSize++;
+      }
+      return true;
+    }
+
+    @Override
+    public boolean remove(EntryID entryID)
+    {
+      if (maintainUndefinedSize() && undefinedSize > 0)
+      {
+        undefinedSize--;
+      }
+      return true;
+    }
+
+    @Override
+    public boolean contains(EntryID entryID)
+    {
+      return true;
+    }
+
+    @Override
+    public void addAll(EntryIDSet that)
+    {
+      // Assume there are no overlap between IDs in that set with this set
+      if (maintainUndefinedSize())
+      {
+        undefinedSize += that.size();
+      }
+    }
+
+    @Override
+    public void removeAll(EntryIDSet that)
+    {
+      // Assume all IDs in the given set exists in this set.
+      if (maintainUndefinedSize())
+      {
+        undefinedSize = Math.max(0, undefinedSize - that.size());
+      }
+    }
+
+    @Override
+    public Iterator<EntryID> iterator()
+    {
+      return Iterators.emptyIterator();
+    }
+
+    @Override
+    public Iterator<EntryID> iterator(EntryID begin)
+    {
+      return Iterators.emptyIterator();
+    }
+
+    @Override
+    public long[] getRange()
+    {
+      return new long[] { 0, 0 };
+    }
+
+    @Override
+    public long[] getIDs()
+    {
+      return new long[0];
+    }
+
+  }
+
+  /**
+   * Iterator for a set of Entry IDs. It must return values in order of ID.
+   */
+  private static final class IDSetIterator implements Iterator<EntryID>
+  {
+    private final long[] entryIDList;
+    private int currentIndex;
+
+    IDSetIterator(long[] entryIDList)
+    {
+      this.entryIDList = entryIDList;
+    }
+
+    IDSetIterator(long[] entryIDList, long begin)
+    {
+      this(entryIDList);
+      currentIndex = Math.max(0, Arrays.binarySearch(entryIDList, begin));
+    }
+
+    @Override
+    public boolean hasNext()
+    {
+      return currentIndex < entryIDList.length;
+    }
+
+    @Override
+    public EntryID next()
+    {
+      if (hasNext())
+      {
+        return new EntryID(entryIDList[currentIndex++]);
+      }
+      throw new NoSuchElementException();
+    }
+
+    @Override
+    public void remove()
+    {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  /**
+   * Create a new undefined set
+   */
+  public static EntryIDSet newUndefinedSet()
+  {
+    return new EntryIDSet(new UndefinedImpl(NO_KEY, Long.MAX_VALUE));
+  }
+
+  /**
+   * Create a new undefined set
+   */
+  public static EntryIDSet newUndefinedSetWithKey(ByteSequence key)
+  {
+    return newUndefinedSetWithSize(key, Long.MAX_VALUE);
   }
 
   /**
    * Create a new undefined set with a initial size.
    *
-   * @param size The undefined size for this set.
+   * @param size
+   *          The undefined size for this set.
    */
-  EntryIDSet(long size)
+  public static EntryIDSet newUndefinedSetWithSize(ByteSequence key, long undefinedSize)
   {
-    this.key = null;
-    this.undefinedSize = size;
+    return new EntryIDSet(new UndefinedImpl(key, undefinedSize));
+  }
+
+  /**
+   * Create a new defined entry ID set with the specified ids.
+   *
+   * @param ids
+   *          Entry IDs contained in the set.
+   * @throws NullPointerException
+   *           if ids is null
+   */
+  public static EntryIDSet newDefinedSet(long... ids)
+  {
+    checkNotNull(ids, "ids must not be null");
+    return new EntryIDSet(new DefinedImpl(ids));
   }
 
   /**
@@ -84,111 +514,94 @@ class EntryIDSet implements Iterable<EntryID>
    *          The database key that contains this value.
    * @param bytes
    *          The database value, or null if there are no entry IDs.
+   * @throws NullPointerException
+   *           if either key or value is null
    */
-  EntryIDSet(ByteSequence key, ByteString bytes)
+  public static EntryIDSet newSetFromBytes(ByteSequence key, ByteString value)
   {
-    this.key = key;
+    checkNotNull(key, "key must not be null");
+    checkNotNull(value, "value must not be null");
 
-    if (bytes == null)
-    {
-      values = new long[0];
-    }
-    else if (bytes.length() == 0)
+    if (value.isEmpty())
     {
       // Entry limit has exceeded and there is no encoded undefined set size.
-      undefinedSize = Long.MAX_VALUE;
+      return newUndefinedSetWithKey(key);
     }
-    else if ((bytes.byteAt(0) & 0x80) == 0x80)
+    else if ((value.byteAt(0) & 0x80) == 0x80)
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
-      undefinedSize = decodeUndefinedSize(bytes);
+      return newUndefinedSetWithSize(key, decodeUndefinedSize(value));
     }
     else
     {
-      // Seems like entry limit has not been exceeded and the bytes is a
-      // list of entry IDs.
-      values = decodeEntryIDList(bytes);
+      // Seems like entry limit has not been exceeded and the bytes is a list of entry IDs.
+      return newDefinedSet(decodeEntryIDList(value));
     }
   }
 
-  /**
-   * Decodes and returns the undefined size out of the provided byte string.
-   *
-   * @param bytes
-   *          the encoded undefined size
-   * @return the undefined size
-   */
-  static long decodeUndefinedSize(ByteString bytes)
+  private static long[] intersection(long[] set1, long[] set2)
   {
-    return bytes.length() == 8
-            ? bytes.toLong() & Long.MAX_VALUE // remove top bit
-            : Long.MAX_VALUE;
-  }
+    long[] target = new long[Math.min(set1.length, set2.length)];
 
-  /**
-   * Decodes and returns the entryID list out of the provided byte sequence.
-   *
-   * @param bytes
-   *          the encoded entryID list
-   * @return a long array representing the entryID list
-   */
-  static long[] decodeEntryIDList(ByteSequence bytes)
-  {
-    final ByteSequenceReader reader = bytes.asReader();
-    final int count = bytes.length() / 8;
-    final long[] entryIDList = new long[count];
-    for (int i = 0; i < count; i++)
+    int index1, index2, ci;
+    for (index1 = 0, index2 = 0, ci = 0; index1 < set1.length && index2 < set2.length;)
     {
-      entryIDList[i] = reader.getLong();
+      if (set1[index1] == set2[index2])
+      {
+        target[ci++] = set1[index1++];
+        index2++;
+      }
+      else if (set1[index1] > set2[index2])
+      {
+        index2++;
+      }
+      else
+      {
+        index1++;
+      }
     }
-    return entryIDList;
-  }
 
-  /**
-   * Construct an EntryIDSet from an array of longs.
-   *
-   * @param values The array of IDs represented as longs.
-   * @param pos The position of the first ID to take from the array.
-   * @param len the number of IDs to take from the array.
-   */
-  EntryIDSet(long[] values, int pos, int len)
-  {
-    this.key = null;
-    this.values = new long[len];
-    System.arraycopy(values, pos, this.values, 0, len);
+    if (ci < target.length)
+    {
+      target = Arrays.copyOf(target, ci);
+    }
+    return target;
   }
 
   /**
    * Create a new set of entry IDs that is the union of several entry ID sets.
    *
-   * @param sets A list of entry ID sets.
-   * @param allowDuplicates true if duplicate IDs are allowed in the resulting
-   * set, or if the provided sets are sure not to overlap; false if
-   * duplicates should be eliminated.
+   * @param sets
+   *          A list of entry ID sets.
    * @return The union of the provided entry ID sets.
    */
-  static EntryIDSet unionOfSets(ArrayList<EntryIDSet> sets,
-                                         boolean allowDuplicates)
+  public static EntryIDSet newSetFromUnion(List<EntryIDSet> sets)
   {
+    checkNotNull(sets, "sets must not be null");
+
+    // FIXME: Benchmarks shown that its possible to have a 5x performance gain if we sort the non overlapping sets. To
+    // do that, we can use compareForOverlap(). In case sets are unordered and non overlapping, this optimization allow
+    // to skip the final sort() applied on the resulting set.
+
     int count = 0;
 
-    boolean undefined = false;
+    boolean containsUndefinedSet = false;
     for (EntryIDSet l : sets)
     {
       if (!l.isDefined())
       {
-        if(l.undefinedSize == Long.MAX_VALUE)
+        if (l.size() == Long.MAX_VALUE)
         {
-          return new EntryIDSet();
+          return newUndefinedSet();
         }
-        undefined = true;
+        containsUndefinedSet = true;
       }
       count += l.size();
     }
 
-    if(undefined)
+    if (containsUndefinedSet)
     {
-      return new EntryIDSet(count);
+      return newUndefinedSetWithSize(null, count);
     }
 
     boolean needSort = false;
@@ -196,26 +609,18 @@ class EntryIDSet implements Iterable<EntryID>
     int pos = 0;
     for (EntryIDSet l : sets)
     {
-      if (l.values.length != 0)
+      if (l.size() != 0)
       {
-        if (!needSort && pos > 0 && l.values[0] < n[pos-1])
-        {
-          needSort = true;
-        }
-        System.arraycopy(l.values, 0, n, pos, l.values.length);
-        pos += l.values.length;
+        needSort |= pos > 0 && l.iterator().next().longValue() < n[pos - 1];
+        System.arraycopy(l.getIDs(), 0, n, pos, l.getIDs().length);
+        pos += l.size();
       }
     }
     if (needSort)
     {
       Arrays.sort(n);
     }
-    if (allowDuplicates)
-    {
-      EntryIDSet ret = new EntryIDSet();
-      ret.values = n;
-      return ret;
-    }
+
     long[] n1 = new long[n.length];
     long last = -1;
     int j = 0;
@@ -228,14 +633,50 @@ class EntryIDSet implements Iterable<EntryID>
     }
     if (j == n1.length)
     {
-      EntryIDSet ret = new EntryIDSet();
-      ret.values = n1;
-      return ret;
+      return newDefinedSet(n1);
     }
     else
     {
-      return new EntryIDSet(n1, 0, j);
+      return newDefinedSet(Arrays.copyOf(n1, j));
     }
+  }
+
+  /**
+   * Decodes and returns the entryID list out of the provided byte sequence.
+   *
+   * @param bytes
+   *          the encoded entryID list
+   * @return a long array representing the entryID list
+   */
+  public static long[] decodeEntryIDList(ByteSequence bytes)
+  {
+    final ByteSequenceReader reader = bytes.asReader();
+    final int count = bytes.length() / 8;
+    final long[] entryIDList = new long[count];
+    for (int i = 0; i < count; i++)
+    {
+      entryIDList[i] = reader.getLong();
+    }
+    return entryIDList;
+  }
+
+  /**
+   * Decodes and returns the undefined size out of the provided byte string.
+   *
+   * @param bytes
+   *          the encoded undefined size
+   * @return the undefined size
+   */
+  public static long decodeUndefinedSize(ByteString bytes)
+  {
+    return bytes.length() == 8 ? bytes.toLong() & Long.MAX_VALUE : Long.MAX_VALUE; // remove top bit
+  }
+
+  private EntryIDSetImplementor concreteImpl;
+
+  private EntryIDSet(EntryIDSetImplementor concreteImpl)
+  {
+    this.concreteImpl = concreteImpl;
   }
 
   /**
@@ -245,50 +686,28 @@ class EntryIDSet implements Iterable<EntryID>
    */
   public long size()
   {
-    if (values != null)
-    {
-      return values.length;
-    }
-    return undefinedSize;
-  }
-
-  /**
-   * Get a string representation of this object.
-   * @return A string representation of this object.
-   */
-  @Override
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder(16);
-    toString(buffer);
-    return buffer.toString();
+    return concreteImpl.size();
   }
 
   /**
    * Convert to a short string to aid with debugging.
    *
-   * @param sb The string is appended to this string builder.
+   * @param buffer
+   *          The string is appended to this string builder.
+   * @throws NullPointerException
+   *           if buffer is null
    */
-  void toString(StringBuilder sb)
+  public void toString(StringBuilder buffer)
   {
-    if (isDefined())
-    {
-      sb.append("[COUNT:").append(size()).append("]");
-    }
-    else if (key != null)
-    {
-      // The index entry limit was exceeded
-      sb.append("[LIMIT-EXCEEDED");
-      if (undefinedSize < Long.MAX_VALUE)
-      {
-        sb.append(":").append(undefinedSize);
-      }
-      sb.append("]");
-    }
-    else
-    {
-      sb.append("[NOT-INDEXED]");
-    }
+    checkNotNull(buffer, "buffer must not be null");
+    concreteImpl.toString(buffer);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder  = new StringBuilder(16);
+    toString(builder);
+    return builder.toString();
   }
 
   /**
@@ -296,396 +715,268 @@ class EntryIDSet implements Iterable<EntryID>
    *
    * @return true if the set of IDs is defined.
    */
-  boolean isDefined()
+  public boolean isDefined()
   {
-    return values != null;
+    return concreteImpl.isDefined();
   }
 
   /**
    * Get a database representation of this object.
+   *
    * @return A database representation of this object as a byte array.
    */
-  ByteString toByteString()
+  public ByteString toByteString()
   {
-    if (isDefined())
-    {
-      final ByteStringBuilder builder = new ByteStringBuilder(8 * values.length);
-      for (long value : values)
-      {
-        builder.append(value);
-      }
-      return builder.toByteString();
-    }
-    else
-    {
-      // Set top bit.
-      return ByteString.valueOf(undefinedSize | Long.MIN_VALUE);
-    }
+    return concreteImpl.toByteString();
   }
 
   /**
    * Insert an ID into this set.
    *
-   * @param entryID The ID to be inserted.
-   * @return true if the set was changed, false if it was not changed,
-   *         for example if the set is undefined or the ID was already present.
+   * @param entryID
+   *          The ID to be inserted.
+   * @return true if the set was changed, false if it was not changed, for example if the set is undefined or the ID was
+   *         already present.
+   * @throws NullPointerException
+   *           if entryID is null
    */
   public boolean add(EntryID entryID)
   {
-    if (values == null)
-    {
-      if(undefinedSize != Long.MAX_VALUE)
-      {
-        undefinedSize++;
-      }
-      return true;
-    }
-
-    long id = entryID.longValue();
-    if (values.length == 0)
-    {
-      values = new long[] { id };
-      return true;
-    }
-
-    if (id > values[values.length-1])
-    {
-      long[] updatedValues = Arrays.copyOf(values, values.length + 1);
-      updatedValues[values.length] = id;
-      values = updatedValues;
-    }
-    else
-    {
-      int pos = Arrays.binarySearch(values, id);
-      if (pos >= 0)
-      {
-        // The ID is already present.
-        return false;
-      }
-
-      // For a negative return value r, the index -(r+1) gives the array
-      // index at which the specified value can be inserted to maintain
-      // the sorted order of the array.
-      pos = -(pos+1);
-
-      long[] updatedValues = new long[values.length+1];
-      System.arraycopy(values, 0, updatedValues, 0, pos);
-      System.arraycopy(values, pos, updatedValues, pos+1, values.length-pos);
-      updatedValues[pos] = id;
-      values = updatedValues;
-    }
-
-    return true;
+    checkNotNull(entryID, "entryID must not be null");
+    return concreteImpl.add(entryID);
   }
 
   /**
    * Remove an ID from this set.
    *
-   * @param entryID The ID to be removed
-   * @return true if the set was changed, false if it was not changed,
-   *         for example if the set was undefined or the ID was not present.
+   * @param entryID
+   *          The ID to be removed
+   * @return true if the set was changed, false if it was not changed, for example if the set was undefined or the ID
+   *         was not present.
+   * @throws NullPointerException
+   *           if entryID is null
    */
   public boolean remove(EntryID entryID)
   {
-    if (values == null)
-    {
-      if(undefinedSize != Long.MAX_VALUE)
-      {
-        undefinedSize--;
-      }
-      return true;
-    }
-
-    if (values.length == 0)
-    {
-      return false;
-    }
-
-    // Binary search to locate the ID.
-    long id = entryID.longValue();
-    int pos = Arrays.binarySearch(values, id);
-    if (pos >= 0)
-    {
-      // Found it.
-      long[] updatedValues = new long[values.length-1];
-      System.arraycopy(values, 0, updatedValues, 0, pos);
-      System.arraycopy(values, pos+1, updatedValues, pos, values.length-pos-1);
-      values = updatedValues;
-      return true;
-    }
-    // Not found.
-    return false;
+    checkNotNull(entryID, "entryID must not be null");
+    return concreteImpl.remove(entryID);
   }
 
   /**
    * Check whether this set of entry IDs contains a given ID.
    *
-   * @param entryID The ID to be checked.
-   * @return true if this set contains the given ID,
-   *         or if the set is undefined.
+   * @param entryID
+   *          The ID to be checked.
+   * @return true if this set contains the given ID, or if the set is undefined.
+   * @throws NullPointerException
+   *           if entryID is null
    */
-  boolean contains(EntryID entryID)
+  public boolean contains(EntryID entryID)
   {
-    if (values == null)
-    {
-      return true;
-    }
-
-    final long id = entryID.longValue();
-    return values.length != 0
-        && id <= values[values.length - 1]
-        && Arrays.binarySearch(values, id) >= 0;
-  }
-
-  /**
-   * Takes the intersection of this set with another.
-   * Retain those IDs that appear in the given set.
-   *
-   * @param that The set of IDs that are to be retained from this object.
-   */
-  void retainAll(EntryIDSet that)
-  {
-    if (!isDefined())
-    {
-      this.values = that.values;
-      this.undefinedSize = that.undefinedSize;
-      return;
-    }
-
-    if (!that.isDefined())
-    {
-      return;
-    }
-
-    // TODO Perhaps Arrays.asList and retainAll list method are more efficient?
-
-    long[] a = this.values;
-    long[] b = that.values;
-
-    int ai = 0, bi = 0, ci = 0;
-    long[] c = new long[Math.min(a.length,b.length)];
-    while (ai < a.length && bi < b.length)
-    {
-      if (a[ai] == b[bi])
-      {
-        c[ci] = a[ai];
-        ai++;
-        bi++;
-        ci++;
-      }
-      else if (a[ai] > b[bi])
-      {
-        bi++;
-      }
-      else
-      {
-        ai++;
-      }
-    }
-    if (ci < c.length)
-    {
-      values = Arrays.copyOf(c, ci);
-    }
-    else
-    {
-      values = c;
-    }
+    checkNotNull(entryID, "entryID must not be null");
+    return concreteImpl.contains(entryID);
   }
 
   /**
    * Add all the IDs from a given set that are not already present.
    *
-   * @param that The set of IDs to be added. It MUST be defined
+   * @param that
+   *          The set of IDs to be added. It MUST be defined
+   * @throws NullPointerException
+   *           if that is null
+   * @throws IllegalArgumentException
+   *           if that is undefined.
    */
   public void addAll(EntryIDSet that)
   {
-    if(!that.isDefined())
-    {
-      return;
-    }
-
-    if (!isDefined())
-    {
-      // Assume there are no overlap between IDs in that set with this set
-      if(undefinedSize != Long.MAX_VALUE)
-      {
-        undefinedSize += that.size();
-      }
-      return;
-    }
-
-    long[] a = this.values;
-    long[] b = that.values;
-
-    if (a.length == 0)
-    {
-      values = b;
-      return;
-    }
-
-    if (b.length == 0)
-    {
-      return;
-    }
-
-    // Optimize for case where the two sets are sure to have no overlap.
-    if (b[0] > a[a.length-1])
-    {
-      // All IDs in 'b' are greater than those in 'a'.
-      long[] n = new long[a.length + b.length];
-      System.arraycopy(a, 0, n, 0, a.length);
-      System.arraycopy(b, 0, n, a.length, b.length);
-      values = n;
-      return;
-    }
-
-    if (a[0] > b[b.length-1])
-    {
-      // All IDs in 'a' are greater than those in 'b'.
-      long[] n = new long[a.length + b.length];
-      System.arraycopy(b, 0, n, 0, b.length);
-      System.arraycopy(a, 0, n, b.length, a.length);
-      values = n;
-      return;
-    }
-
-    long[] n;
-    if ( b.length < a.length ) {
-      n = a;
-      a = b;
-      b = n;
-    }
-
-    n = new long[a.length + b.length];
-
-    int ai, bi, ni;
-    for ( ni = 0, ai = 0, bi = 0; ai < a.length && bi < b.length; ) {
-      if ( a[ai] < b[bi] ) {
-        n[ni++] = a[ai++];
-      } else if ( b[bi] < a[ai] ) {
-        n[ni++] = b[bi++];
-      } else {
-        n[ni++] = a[ai];
-        ai++;
-        bi++;
-      }
-    }
-
-    // Copy any remainder from the first array.
-    int aRemain = a.length - ai;
-    if (aRemain > 0)
-    {
-      System.arraycopy(a, ai, n, ni, aRemain);
-      ni += aRemain;
-    }
-
-    // Copy any remainder from the second array.
-    int bRemain = b.length - bi;
-    if (bRemain > 0)
-    {
-      System.arraycopy(b, bi, n, ni, bRemain);
-      ni += bRemain;
-    }
-
-    if (ni < n.length)
-    {
-      values = Arrays.copyOf(n, ni);
-    }
-    else
-    {
-      values = n;
-    }
+    checkNotNull(that, "that must not be null");
+    Reject.ifFalse(that.isDefined(), "that must be defined");
+    concreteImpl.addAll(that);
   }
 
   /**
-   * Delete all IDs in this set that are in a given set.
+   * Takes the intersection of this set with another. Retain those IDs that appear in the given set.
    *
-   * @param that The set of IDs to be deleted. It MUST be defined.
+   * @param that
+   *          The set of IDs that are to be retained from this object.
+   * @throws NullPointerException
+   *           if that is null
    */
-  void deleteAll(EntryIDSet that)
+  public void retainAll(EntryIDSet that)
   {
-    if(!that.isDefined())
+    checkNotNull(that, "that must not be null");
+    if (!concreteImpl.isDefined())
     {
-      return;
-    }
-
-    if (!isDefined())
-    {
-      // Assume all IDs in the given set exists in this set.
-      if(undefinedSize != Long.MAX_VALUE)
-      {
-        undefinedSize -= that.size();
-      }
-      return;
-    }
-
-    long[] a = this.values;
-    long[] b = that.values;
-
-    if (a.length == 0 || b.length == 0
-        // Optimize for cases where the two sets are sure to have no overlap.
-        || b[0] > a[a.length-1]
-        || a[0] > b[b.length-1])
-    {
-      return;
-    }
-
-    long[] n = new long[a.length];
-
-    int ai, bi, ni;
-    for ( ni = 0, ai = 0, bi = 0; ai < a.length && bi < b.length; ) {
-      if ( a[ai] < b[bi] ) {
-        n[ni++] = a[ai++];
-      } else if ( b[bi] < a[ai] ) {
-        bi++;
+      if ( that.isDefined() ) {
+        // NOTE: It's ok to share the same array instance here thanks to the copy-on-write
+        // performed by the implementation.
+        concreteImpl = new DefinedImpl(that.getIDs());
       } else {
-        ai++;
-        bi++;
+        concreteImpl = new UndefinedImpl(NO_KEY, that.size());
       }
+      return;
     }
 
-    System.arraycopy(a, ai, n, ni, a.length - ai);
-    ni += a.length - ai;
-
-    if (ni < a.length)
-    {
-      values = Arrays.copyOf(n, ni);
+    if ( !that.isDefined() ) {
+      return;
     }
-    else
+
+    final boolean thatSetOverlap = (compareForOverlap(getRange(), that.getRange()) == 0);
+    if (thatSetOverlap)
     {
-      values = n;
+      concreteImpl = new DefinedImpl(intersection(concreteImpl.getIDs(), that.getIDs()));
+    }
+    else if (size() != 0)
+    {
+      concreteImpl = new DefinedImpl();
     }
   }
 
   /**
-   * Create an iterator over the set or an empty iterator
-   * if the set is not defined.
+   * Remove all IDs in this set that are in a given set.
+   *
+   * @param that
+   *          The set of IDs to be deleted. It MUST be defined.
+   * @throws NullPointerException
+   *           if that is null
+   * @throws IllegalArgumentException
+   *           if that is undefined.
+   */
+  public void removeAll(EntryIDSet that)
+  {
+    checkNotNull(that, "that must not be null");
+    Reject.ifFalse(that.isDefined(), "that must be defined");
+    concreteImpl.removeAll(that);
+  }
+
+  /**
+   * Create an iterator over the set or an empty iterator if the set is not defined.
    *
    * @return An EntryID iterator.
    */
   @Override
   public Iterator<EntryID> iterator()
   {
-    return iterator(null);
+    return concreteImpl.iterator();
   }
 
   /**
-   * Create an iterator over the set or an empty iterator
-   * if the set is not defined.
+   * Create an iterator over the set or an empty iterator if the set is not defined.
    *
-   * @param  begin  The entry ID of the first entry to return in the list.
-   *
+   * @param begin
+   *          The entry ID of the first entry to return in the list.
    * @return An EntryID iterator.
    */
-  Iterator<EntryID> iterator(EntryID begin)
+  public Iterator<EntryID> iterator(EntryID begin)
   {
-    if (values != null)
+    return concreteImpl.iterator(begin);
+  }
+
+  private long[] getIDs()
+  {
+    return concreteImpl.getIDs();
+  }
+
+  private long[] getRange()
+  {
+    return concreteImpl.getRange();
+  }
+
+  private static long[] mergeOverlappingEntryIDSet(long set1[], long set2[])
+  {
+    final long[] a, b;
+    if (set1.length >= set2.length)
     {
-      // The set is defined.
-      return new IDSetIterator(values, begin);
+      a = set1;
+      b = set2;
     }
-    // The set is not defined.
-    return new IDSetIterator(new long[0]);
+    else
+    {
+      a = set2;
+      b = set1;
+    }
+
+    final long newEntryIDs[] = new long[a.length + b.length];
+    int sourceAIndex, sourceBIndex, targetIndex;
+    for (sourceAIndex = 0, sourceBIndex = 0, targetIndex = 0; sourceAIndex < a.length && sourceBIndex < b.length;)
+    {
+      if (a[sourceAIndex] < b[sourceBIndex])
+      {
+        newEntryIDs[targetIndex++] = a[sourceAIndex++];
+      }
+      else if (b[sourceBIndex] < a[sourceAIndex])
+      {
+        newEntryIDs[targetIndex++] = b[sourceBIndex++];
+      }
+      else
+      {
+        newEntryIDs[targetIndex++] = a[sourceAIndex];
+        sourceAIndex++;
+        sourceBIndex++;
+      }
+    }
+
+    targetIndex = copyRemainder(a, newEntryIDs, sourceAIndex, targetIndex);
+    targetIndex = copyRemainder(b, newEntryIDs, sourceBIndex, targetIndex);
+
+    if (targetIndex < newEntryIDs.length)
+    {
+      return Arrays.copyOf(newEntryIDs, targetIndex);
+    }
+    else
+    {
+      return newEntryIDs;
+    }
+  }
+
+  private static int copyRemainder(long[] sourceIDSet, final long[] newEntryIDs, int offset, int remainerIndex)
+  {
+    final int currentRemainder = sourceIDSet.length - offset;
+    if (currentRemainder > 0)
+    {
+      System.arraycopy(sourceIDSet, offset, newEntryIDs, remainerIndex, currentRemainder);
+      return remainerIndex + currentRemainder;
+    }
+    return remainerIndex;
+  }
+
+  private static long[] concatIdsFrom(long[] first, long[] second)
+  {
+    long[] ids = new long[first.length + second.length];
+    System.arraycopy(first, 0, ids, 0, first.length);
+    System.arraycopy(second, 0, ids, first.length, second.length);
+    return ids;
+  }
+
+  /**
+   * @return -1 if o1 < o2, 0 if o1 overlap o2, +1 if o1 > o2
+   */
+  private static final int compareForOverlap(long[] o1, long[] o2)
+  {
+    if (o1 == null && o2 == null)
+    {
+      return 0;
+    }
+    else if (o1 == null)
+    {
+      return 1;
+    }
+    else if (o2 == null)
+    {
+      return -1;
+    }
+    else if (o1[1] < o2[0])
+    {
+      return -1;
+    }
+    else if (o1[0] > o2[1])
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
   }
 
 }

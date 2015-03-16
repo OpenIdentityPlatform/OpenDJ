@@ -24,6 +24,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+
 import java.util.List;
 import java.util.Set;
 
@@ -76,14 +78,14 @@ final class NullIndex extends Index
   @Override
   EntryIDSet read(ReadableStorage txn, ByteSequence key)
   {
-    return new EntryIDSet();
+    return newUndefinedSet();
   }
 
   @Override
   EntryIDSet readRange(ReadableStorage txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
       boolean upperIncluded)
   {
-    return new EntryIDSet();
+    return newUndefinedSet();
   }
 
   @Override

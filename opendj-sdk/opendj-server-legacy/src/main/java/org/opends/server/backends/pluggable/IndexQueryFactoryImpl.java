@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import java.util.Collection;
 
@@ -182,7 +183,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             {
               debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
             }
-            return new EntryIDSet();
+            return newUndefinedSet();
           }
 
           final EntryIDSet entrySet = index.read(txn, PresenceIndexer.presenceKey);

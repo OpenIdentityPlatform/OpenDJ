@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
 
 import java.io.Closeable;
 import java.util.Iterator;
@@ -915,7 +916,7 @@ class VLVIndex extends DatabaseContainer
         debugBuilder.append("]");
       }
     }
-    return new EntryIDSet(selectedIDs, 0, selectedIDs.length);
+    return newDefinedSet(selectedIDs);
   }
 
     /**

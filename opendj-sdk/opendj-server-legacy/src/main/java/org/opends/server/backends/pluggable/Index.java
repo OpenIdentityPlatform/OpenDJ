@@ -26,7 +26,12 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
+import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
+import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
+import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromUnion;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithSize;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -246,8 +251,8 @@ class Index extends DatabaseContainer
       ByteString value = txn.read(getName(), key);
       if (value != null)
       {
-        EntryIDSet entryIDList = new EntryIDSet(key, value);
-        if (entryIDList.isDefined())
+        EntryIDSet entryIDSet = newSetFromBytes(key, value);
+        if (entryIDSet.isDefined())
         {
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
         } // else the record exists but we've hit all IDs.
@@ -285,8 +290,8 @@ class Index extends DatabaseContainer
     final ByteString value = txn.getRMW(getName(), key);
     if (value != null)
     {
-      EntryIDSet entryIDList = computeEntryIDList(key, value, deletedIDs, addedIDs);
-      ByteString after = entryIDList.toByteString();
+      EntryIDSet entryIDSet = computeEntryIDList(key, value, deletedIDs, addedIDs);
+      ByteString after = entryIDSet.toByteString();
       if (!after.isEmpty())
       {
         txn.create(getName(), key, after);
@@ -316,25 +321,25 @@ class Index extends DatabaseContainer
   private EntryIDSet computeEntryIDList(ByteString key, ByteString value, EntryIDSet deletedIDs,
       EntryIDSet addedIDs)
   {
-    EntryIDSet entryIDList = new EntryIDSet(key, value);
+    EntryIDSet entryIDSet = newSetFromBytes(key, value);
     if(addedIDs != null)
     {
-      if(entryIDList.isDefined() && indexEntryLimit > 0)
+      if(entryIDSet.isDefined() && indexEntryLimit > 0)
       {
         long idCountDelta = addedIDs.size();
         if(deletedIDs != null)
         {
           idCountDelta -= deletedIDs.size();
         }
-        if(idCountDelta + entryIDList.size() >= indexEntryLimit)
+        if(idCountDelta + entryIDSet.size() >= indexEntryLimit)
         {
           if(maintainCount)
           {
-            entryIDList = new EntryIDSet(entryIDList.size() + idCountDelta);
+            entryIDSet = newUndefinedSetWithSize(key, entryIDSet.size() + idCountDelta);
           }
           else
           {
-            entryIDList = new EntryIDSet();
+            entryIDSet = newUndefinedSet();
           }
           entryLimitExceededCount++;
 
@@ -350,27 +355,27 @@ class Index extends DatabaseContainer
         }
         else
         {
-          entryIDList.addAll(addedIDs);
+          entryIDSet.addAll(addedIDs);
           if(deletedIDs != null)
           {
-            entryIDList.deleteAll(deletedIDs);
+            entryIDSet.removeAll(deletedIDs);
           }
         }
       }
       else
       {
-        entryIDList.addAll(addedIDs);
+        entryIDSet.addAll(addedIDs);
         if(deletedIDs != null)
         {
-          entryIDList.deleteAll(deletedIDs);
+          entryIDSet.removeAll(deletedIDs);
         }
       }
     }
     else if(deletedIDs != null)
     {
-      entryIDList.deleteAll(deletedIDs);
+      entryIDSet.removeAll(deletedIDs);
     }
-    return entryIDList;
+    return entryIDSet;
   }
 
   final void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
@@ -426,12 +431,12 @@ class Index extends DatabaseContainer
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
-      EntryIDSet entryIDList = new EntryIDSet(key, value);
-      if (!entryIDList.isDefined())
+      EntryIDSet entryIDSet = newSetFromBytes(key, value);
+      if (!entryIDSet.isDefined())
       {
         return ConditionResult.UNDEFINED;
       }
-      return ConditionResult.valueOf(entryIDList.contains(entryID));
+      return ConditionResult.valueOf(entryIDSet.contains(entryID));
     }
     else if (trusted)
     {
@@ -447,7 +452,7 @@ class Index extends DatabaseContainer
   {
     if(rebuildRunning)
     {
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
 
     try
@@ -457,19 +462,19 @@ class Index extends DatabaseContainer
       {
         if(trusted)
         {
-          return new EntryIDSet(key, null);
+          return newDefinedSet();
         }
         else
         {
-          return new EntryIDSet();
+          return newUndefinedSet();
         }
       }
-      return new EntryIDSet(key, value);
+      return newSetFromBytes(key, value);
     }
     catch (StorageRuntimeException e)
     {
       logger.traceException(e);
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
   }
 
@@ -502,7 +507,7 @@ class Index extends DatabaseContainer
     // If this index is not trusted, then just return an undefined id set.
     if(rebuildRunning || !trusted)
     {
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
 
     try
@@ -510,7 +515,7 @@ class Index extends DatabaseContainer
       // Total number of IDs found so far.
       int totalIDCount = 0;
 
-      ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
+      ArrayList<EntryIDSet> sets = new ArrayList<EntryIDSet>();
 
       Cursor cursor = txn.openCursor(getName());
       try
@@ -537,7 +542,7 @@ class Index extends DatabaseContainer
         if (!success)
         {
           // There are no values.
-          return new EntryIDSet(lowerIncluded ? lower : null, null);
+          return newDefinedSet();
         }
 
         // Step through the keys until we hit the upper bound or the last key.
@@ -553,23 +558,23 @@ class Index extends DatabaseContainer
             }
           }
 
-          EntryIDSet list = new EntryIDSet(cursor.getKey(), cursor.getValue());
-          if (!list.isDefined())
+          EntryIDSet set = newSetFromBytes(cursor.getKey(), cursor.getValue());
+          if (!set.isDefined())
           {
             // There is no point continuing.
-            return list;
+            return set;
           }
-          totalIDCount += list.size();
+          totalIDCount += set.size();
           if (cursorEntryLimit > 0 && totalIDCount > cursorEntryLimit)
           {
             // There are too many. Give up and return an undefined list.
-            return new EntryIDSet();
+            return newUndefinedSet();
           }
-          lists.add(list);
+          sets.add(set);
           success = cursor.next();
         }
 
-        return EntryIDSet.unionOfSets(lists, false);
+        return newSetFromUnion(sets);
       }
       finally
       {
@@ -579,7 +584,7 @@ class Index extends DatabaseContainer
     catch (StorageRuntimeException e)
     {
       logger.traceException(e);
-      return new EntryIDSet();
+      return newUndefinedSet();
     }
   }
 
