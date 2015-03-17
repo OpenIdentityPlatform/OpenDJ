@@ -138,6 +138,12 @@ final class TracedStorage implements Storage
       return value;
     }
 
+    @Override
+    public void close()
+    {
+      logger.trace("Storage@%s.ReadableStorage@%s.close()", storageId(), id());
+    }
+
     private int id()
     {
       return System.identityHashCode(this);
@@ -249,6 +255,12 @@ final class TracedStorage implements Storage
       logger.trace("Storage@%s.WriteableStorage@%s.update(%s, %s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), f, isUpdated);
       return isUpdated;
+    }
+
+    @Override
+    public void close()
+    {
+      logger.trace("Storage@%s.WriteableStorage@%s.close()", storageId(), id());
     }
 
     private int id()
@@ -368,6 +380,17 @@ final class TracedStorage implements Storage
       };
     }
     storage.write(op);
+  }
+
+  @Override
+  public WriteableStorage getWriteableStorage()
+  {
+    final WriteableStorage writeableStorage = storage.getWriteableStorage();
+    if (logger.isTraceEnabled())
+    {
+      return new TracedWriteableStorage(writeableStorage);
+    }
+    return writeableStorage;
   }
 
   private String hex(final ByteSequence bytes)

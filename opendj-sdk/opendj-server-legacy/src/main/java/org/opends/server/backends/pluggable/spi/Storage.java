@@ -79,9 +79,12 @@ public interface Storage extends Closeable
    */
   void write(WriteOperation writeOperation) throws Exception;
 
-  /** {@inheritDoc} */
-  @Override
-  void close();
+  /**
+   * Returns a new writeable storage.
+   *
+   * @return a new writeable storage
+   */
+  WriteableStorage getWriteableStorage();
 
   /**
    * Remove all files for a backend of this storage.
@@ -123,4 +126,8 @@ public interface Storage extends Closeable
    *           If backup and restore is not supported by this storage.
    */
   FilenameFilter getFilesToBackupFilter();
+
+  /** {@inheritDoc} */
+  @Override
+  void close();
 }
