@@ -529,7 +529,28 @@
               </messageFileNames>
             </configuration>
           </execution>
-        </executions>
+
+          <!-- TODO: Generate man page sources
+          <execution>
+             <id>generate-doc</id>
+             <goals>
+               <goal>generate-refentry</goal>
+             </goals>
+             <configuration>
+               <outputDir>${project.build.directory}</outputDir>
+               <tools>
+                 <tool>
+                  <name>ldapsearch</name>
+                  <application>org.opends.server.tools.LDAPSearch</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>../shared/refsect1.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+               </tools>
+             </configuration>
+           </execution>
+          -->
+         </executions>
       </plugin>
 
       <plugin>

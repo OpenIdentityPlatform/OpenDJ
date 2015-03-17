@@ -698,24 +698,6 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Additional paths to DocBook XML {@code RefSect1} documents
-     * to be appended after generated content in reference documentation.
-     */
-    private String[] pathsToTrailingRefSect1s;
-
-    /** {@inheritDoc} */
-    @Override
-    public String[] getPathsToTrailingRefSect1s() {
-        return pathsToTrailingRefSect1s != null ? pathsToTrailingRefSect1s : new String[0];
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void setPathsToTrailingRefSect1s(final String... paths) {
-        this.pathsToTrailingRefSect1s = paths;
-    }
-
-    /**
      * Retrieves the set of unnamed trailing arguments that were provided on the
      * command line.
      *
@@ -787,7 +769,7 @@ public class ArgumentParser implements ToolRefDocContainer {
             map.put("optionSection", getOptionsRefSect1(scriptName));
         }
         map.put("subcommands", null);
-        map.put("trailingSections", pathsToXIncludes(getPathsToTrailingRefSect1s()));
+        map.put("trailingSectionString", System.getProperty("org.forgerock.opendj.gendoc.trailing"));
         applyTemplate(builder, "refEntry.ftl", map);
     }
 

@@ -1153,7 +1153,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             map.put("optionSection", getOptionsRefSect1(scriptName));
         }
         map.put("subcommands", toRefSect1(scriptName, subCommands));
-        map.put("trailingSections", pathsToXIncludes(getPathsToTrailingRefSect1s()));
+        map.put("trailingSectionString", System.getProperty("org.forgerock.opendj.gendoc.trailing"));
         applyTemplate(builder, "refEntry.ftl", map);
     }
 
