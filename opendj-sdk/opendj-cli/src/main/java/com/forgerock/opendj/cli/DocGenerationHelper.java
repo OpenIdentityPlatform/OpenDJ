@@ -32,8 +32,6 @@ import freemarker.template.TemplateExceptionHandler;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -135,26 +133,5 @@ public final class DocGenerationHelper {
 
         final String id = argument.getLongIdentifier();
         return ("add".equals(id) || "remove".equals(id) || "reset".equals(id) || "set".equals(id));
-    }
-
-    /**
-     * Translate paths to XML files to XInclude elements.
-     *
-     * @return  XInclude elements corresponding to the paths.
-     */
-    static List<String> pathsToXIncludes(final String[] paths) {
-        if (paths == null) {
-            return new LinkedList<String>();
-        }
-
-        // Assume xmlns:xinclude="http://www.w3.org/2001/XInclude",
-        // as in the declaration of resources/templates/refEntry.ftl.
-        final String nameSpace = "xinclude";
-        List<String> xIncludes = new LinkedList<String>();
-        for (int i = 0; i < paths.length; ++i) {
-            xIncludes.add("<" + nameSpace + ":include href=\"" + paths[i] + "\" />");
-        }
-
-        return xIncludes;
     }
 }

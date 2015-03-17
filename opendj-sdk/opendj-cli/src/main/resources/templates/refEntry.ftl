@@ -100,9 +100,7 @@
    ${subcommands}
  </#if>
 
- <#if trailingSections??>
-   <#list trailingSections as section>
-    ${section}
-   </#list>
+ <#if trailingSectionString??>
+   ${trailingSectionString}
  </#if>
 </refentry>
