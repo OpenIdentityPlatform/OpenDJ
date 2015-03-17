@@ -1008,11 +1008,11 @@ public class DNTestCase extends SdkTestCase {
     }
 
     /** Tests the {@link DN#toNormalizedByteString()} method. */
-        @Test
-        public void testToNormalizedByteStringWithRootDN() {
-            ByteString actual = DN.rootDN().toNormalizedByteString();
-            assertEquals(actual, ByteString.empty());
-        }
+    @Test
+    public void testToNormalizedByteStringWithRootDN() {
+        ByteString actual = DN.rootDN().toNormalizedByteString();
+        assertEquals(actual, ByteString.empty());
+    }
 
     /** Tests the {@link DN#iterator()} method. */
     @Test
@@ -1082,24 +1082,24 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @Test(dataProvider = "toIrreversibleNormalizedByteStringDataProvider")
-        public void testToNormalizedByteString(String first, String second, int expectedCompareResult) {
-            DN actual = DN.valueOf(first);
-            DN expected = DN.valueOf(second);
-            int cmp = actual.toNormalizedByteString().compareTo(expected.toNormalizedByteString());
-            assertThat(signum(cmp)).isEqualTo(expectedCompareResult);
-        }
+    public void testToNormalizedByteString(String first, String second, int expectedCompareResult) {
+        DN actual = DN.valueOf(first);
+        DN expected = DN.valueOf(second);
+        int cmp = actual.toNormalizedByteString().compareTo(expected.toNormalizedByteString());
+        assertThat(signum(cmp)).isEqualTo(expectedCompareResult);
+    }
 
     /** Additional tests with testDNs data provider. */
-        @Test(dataProvider = "testDNs")
-        public void testToNormalizedByteString2(String one, String two, String three) {
-            DN dn1 = DN.valueOf(one);
-            DN dn2 = DN.valueOf(two);
-            DN dn3 = DN.valueOf(three);
-            int cmp = dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
-            assertThat(cmp).isEqualTo(0);
-            int cmp2 = dn1.toNormalizedByteString().compareTo(dn3.toNormalizedByteString());
-            assertThat(cmp2).isEqualTo(0);
-        }
+    @Test(dataProvider = "testDNs")
+    public void testToNormalizedByteString2(String one, String two, String three) {
+        DN dn1 = DN.valueOf(one);
+        DN dn2 = DN.valueOf(two);
+        DN dn3 = DN.valueOf(three);
+        int cmp = dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
+        assertThat(cmp).isEqualTo(0);
+        int cmp2 = dn1.toNormalizedByteString().compareTo(dn3.toNormalizedByteString());
+        assertThat(cmp2).isEqualTo(0);
+    }
 
     @DataProvider
     public Object[][] toIrreversibleReadableStringDataProvider() {
@@ -1136,19 +1136,19 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @Test(dataProvider = "toIrreversibleReadableStringDataProvider")
-        public void testToNormalizedUrlSafeString(String dnAsString, String expectedReadableString) {
-            DN actual = DN.valueOf(dnAsString);
-            assertEquals(actual.toNormalizedUrlSafeString(), expectedReadableString);
-        }
+    public void testToNormalizedUrlSafeString(String dnAsString, String expectedReadableString) {
+        DN actual = DN.valueOf(dnAsString);
+        assertEquals(actual.toNormalizedUrlSafeString(), expectedReadableString);
+    }
 
     /** Additional tests with testDNs data provider. */
-        @Test(dataProvider = "testDNs")
-        public void testToNormalizedUrlSafeString2(String one, String two, String three) {
-            DN dn1 = DN.valueOf(one);
-            DN dn2 = DN.valueOf(two);
-            DN dn3 = DN.valueOf(three);
-            String irreversibleReadableString = dn1.toNormalizedUrlSafeString();
-            assertEquals(irreversibleReadableString, dn2.toNormalizedUrlSafeString());
-            assertEquals(irreversibleReadableString, dn3.toNormalizedUrlSafeString());
-        }
+    @Test(dataProvider = "testDNs")
+    public void testToNormalizedUrlSafeString2(String one, String two, String three) {
+        DN dn1 = DN.valueOf(one);
+        DN dn2 = DN.valueOf(two);
+        DN dn3 = DN.valueOf(three);
+        String irreversibleReadableString = dn1.toNormalizedUrlSafeString();
+        assertEquals(irreversibleReadableString, dn2.toNormalizedUrlSafeString());
+        assertEquals(irreversibleReadableString, dn3.toNormalizedUrlSafeString());
+    }
 }
