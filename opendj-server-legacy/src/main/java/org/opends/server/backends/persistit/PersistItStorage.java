@@ -27,13 +27,10 @@ package org.opends.server.backends.persistit;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_MODE_INVALID;
+
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_FULL;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_SPACE_LOW;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_FULL;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_SPACE_LOW;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -482,7 +479,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       return exchange;
     }
 
-    private void release()
+    @Override
+    public void close()
     {
       for (final Exchange ex : exchanges.values())
       {
@@ -632,7 +630,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         }
         finally
         {
-          storageImpl.release();
+          storageImpl.close();
         }
       }
       catch (final RollbackException e)
@@ -704,7 +702,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         }
         finally
         {
-          storageImpl.release();
+          storageImpl.close();
         }
       }
       catch (final RollbackException e)
@@ -721,6 +719,12 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         txn.end();
       }
     }
+  }
+
+  @Override
+  public WriteableStorage getWriteableStorage()
+  {
+    return new StorageImpl();
   }
 
   @Override
@@ -962,7 +966,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     setDBDirPermissions(config, backendDirectory);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void removeStorageFiles() throws StorageRuntimeException
   {
     if (!backendDirectory.isDirectory())
