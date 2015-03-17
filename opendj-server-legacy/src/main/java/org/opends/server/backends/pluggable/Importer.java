@@ -1236,16 +1236,15 @@ final class Importer implements DiskSpaceMonitorHandler
     // Ensure that there are minimum two threads available for parallel
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
-    dbThreads = 1; // FIXME JNR
 
     logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
 
     // Start indexing tasks.
-    List<Future<Void>> futures = new LinkedList<Future<Void>>();
     ExecutorService dbService = Executors.newFixedThreadPool(dbThreads);
     Semaphore permits = new Semaphore(buffers);
 
     // Start DN processing first.
+    List<Future<Void>> futures = new LinkedList<Future<Void>>();
     submitIndexDBWriteTasks(DNIndexMgrList, dbService, permits, buffers, readAheadSize, futures);
     submitIndexDBWriteTasks(indexMgrList, dbService, permits, buffers, readAheadSize, futures);
     getAll(futures);
@@ -2207,7 +2206,7 @@ final class Importer implements DiskSpaceMonitorHandler
           parentIDMap.put(idSet.getKey().toByteString(), entryID);
           return true;
         }
-        else if (lastDN.equals(parentDN))
+        else if (lastID != null && lastDN.equals(parentDN))
         {
           parentIDMap.put(lastDN.toByteString(), lastID);
           parentID = lastID;
@@ -2248,18 +2247,15 @@ final class Importer implements DiskSpaceMonitorHandler
 
       private void id2child(EntryID childID) throws DirectoryException
       {
-        if (parentID != null)
+        if (parentID == null)
         {
-          getId2childtreeImportIDSet().addEntryID(childID);
-          if (id2childTree.size() > DN_STATE_CACHE_SIZE)
-          {
-            flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
-          }
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, ERR_PARENT_ENTRY_IS_MISSING.get());
         }
-        else
+
+        getId2childtreeImportIDSet().addEntryID(childID);
+        if (id2childTree.size() > DN_STATE_CACHE_SIZE)
         {
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PARENT_ENTRY_IS_MISSING.get());
+          flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
         }
       }
 
@@ -2288,31 +2284,28 @@ final class Importer implements DiskSpaceMonitorHandler
 
       private void id2SubTree(ReadableStorage txn, EntryID childID) throws DirectoryException
       {
-        if (parentID != null)
+        if (parentID == null)
         {
-          getId2subtreeImportIDSet(parentID).addEntryID(childID);
-          // TODO:
-          // Instead of doing this,
-          // we can just walk to parent cache if available
-          for (ByteSequence dn = getParent(parentDN); dn != null; dn = getParent(dn))
-          {
-            EntryID nodeID = getParentID(txn, dn);
-            if (nodeID != null)
-            {
-              getId2subtreeImportIDSet(nodeID).addEntryID(childID);
-            }
-            // else we have a missing parent. Maybe parent checking was turned off?
-            // Just ignore.
-          }
-          if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
-          {
-            flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
-          }
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, ERR_PARENT_ENTRY_IS_MISSING.get());
         }
-        else
+
+        getId2subtreeImportIDSet(parentID).addEntryID(childID);
+        // TODO:
+        // Instead of doing this,
+        // we can just walk to parent cache if available
+        for (ByteSequence dn = getParent(parentDN); dn != null; dn = getParent(dn))
         {
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PARENT_ENTRY_IS_MISSING.get());
+          EntryID nodeID = getParentID(txn, dn);
+          if (nodeID != null)
+          {
+            getId2subtreeImportIDSet(nodeID).addEntryID(childID);
+          }
+          // else we have a missing parent. Maybe parent checking was turned off?
+          // Just ignore.
+        }
+        if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
+        {
+          flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
         }
       }
 
