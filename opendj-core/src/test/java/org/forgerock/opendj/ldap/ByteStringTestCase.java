@@ -267,6 +267,8 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     public void testToHex() throws Exception {
         ByteString byteString = new ByteStringBuilder().append("org=example").toByteString();
         assertThat(byteString.toHexString()).isEqualTo("6F 72 67 3D 65 78 61 6D 70 6C 65");
+
+        assertThat(ByteString.empty().toHexString()).isEqualTo("");
     }
 
     @Test

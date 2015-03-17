@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -432,6 +432,9 @@ public final class ByteString implements ByteSequence {
      * @return The string representation of the byte array sub-sequence.
      */
     static String toString(final byte[] b, final int offset, final int length) {
+        if (length == 0) {
+            return "";
+        }
         try {
             return new String(b, offset, length, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
@@ -756,6 +759,9 @@ public final class ByteString implements ByteSequence {
      *         using hexadecimal characters.
      */
     public String toHexString() {
+        if (isEmpty()) {
+            return "";
+        }
         StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
         builder.append(StaticUtils.byteToHex(buffer[offset]));
         for (int i = 1; i < length; i++) {
@@ -773,6 +779,9 @@ public final class ByteString implements ByteSequence {
      *         using percent + hexadecimal characters.
      */
     public String toPercentHexString() {
+        if (isEmpty()) {
+            return "";
+        }
         StringBuilder builder = new StringBuilder(length * 3);
         for (int i = 0; i < length; i++) {
             builder.append('%');

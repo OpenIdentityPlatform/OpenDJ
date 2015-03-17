@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -319,6 +319,10 @@ final class Base64 {
      */
     static String encode(final ByteSequence bytes) {
         Reject.ifNull(bytes);
+
+        if (bytes.isEmpty()) {
+            return "";
+        }
 
         final StringBuilder buffer = new StringBuilder(4 * bytes.length() / 3);
 
