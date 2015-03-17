@@ -89,8 +89,7 @@ public class PasswordModifyExtendedOperationTestCase
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-java-class: org.opends.server." +
-              "extensions.PasswordModifyExtendedOperation",
+         "ds-cfg-java-class: org.opends.server.extensions.PasswordModifyExtendedOperation",
          "ds-cfg-enabled: true",
          "",
          "dn: cn=Password Modify,cn=Extended Operations,cn=config",
@@ -98,8 +97,7 @@ public class PasswordModifyExtendedOperationTestCase
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-java-class: org.opends.server." +
-              "extensions.PasswordModifyExtendedOperation",
+         "ds-cfg-java-class: org.opends.server.extensions.PasswordModifyExtendedOperation",
          "ds-cfg-enabled: true",
          "ds-cfg-identity-mapper: invaliddn",
          "",
@@ -108,8 +106,7 @@ public class PasswordModifyExtendedOperationTestCase
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-java-class: org.opends.server." +
-              "extensions.PasswordModifyExtendedOperation",
+         "ds-cfg-java-class: org.opends.server.extensions.PasswordModifyExtendedOperation",
          "ds-cfg-enabled: true",
          "ds-cfg-identity-mapper: cn=nonexistent,cn=config");
 
@@ -131,27 +128,21 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "invalidConfigs",
-        expectedExceptions = { ConfigException.class,
-                               InitializationException.class })
+  @Test(dataProvider = "invalidConfigs", expectedExceptions = { ConfigException.class, InitializationException.class})
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
     PasswordModifyExtendedOperationHandlerCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              PasswordModifyExtendedOperationHandlerCfgDefn.getInstance(),
-              e);
+         AdminTestCaseUtils.getConfiguration(PasswordModifyExtendedOperationHandlerCfgDefn.getInstance(), e);
 
-    PasswordModifyExtendedOperation handler =
-         new PasswordModifyExtendedOperation();
+    PasswordModifyExtendedOperation handler = new PasswordModifyExtendedOperation();
     handler.initializeExtendedOperationHandler(configuration);
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a root user</LI>
@@ -176,17 +167,9 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
-
+    verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
     // Now change the password back to what it was.
     args = new String[]
@@ -199,15 +182,12 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "newPassword",
       "-n", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
   }
 
 
-
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a root user</LI>
@@ -233,17 +213,9 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword",
       "-A"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
-
+    verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
     // Now change the password back to what it was.
     args = new String[]
@@ -257,18 +229,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "password",
       "-A"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
   }
 
 
-
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
-   *   <LI>Unauthenticated client conection</LI>
+   *   <LI>Unauthenticated client connection</LI>
    *   <LI>Authorization ID provided</LI>
    *   <LI>Current password provided</LI>
    *   <LI>New password provided</LI>
@@ -289,17 +258,9 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
-
+    verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
     // Now change the password back to what it was.
     args = new String[]
@@ -311,15 +272,12 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "newPassword",
       "-n", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
   }
 
 
-
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -335,18 +293,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -359,22 +306,14 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
-
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -390,18 +329,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -413,22 +341,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -466,15 +387,12 @@ public class PasswordModifyExtendedOperationTestCase
       "-D", "uid=test.user,o=test",
       "-w", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
   }
 
 
-
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -490,18 +408,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -514,22 +421,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -545,18 +445,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -569,22 +458,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "u:test.user",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -600,18 +482,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -624,22 +495,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a normal user</LI>
@@ -655,18 +519,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
 
     String[] args =
@@ -679,22 +532,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "test.user",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Unauthenticated client connection</LI>
@@ -710,18 +556,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
     String[] args =
     {
@@ -732,22 +567,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Unauthenticated client connection</LI>
@@ -763,18 +591,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
     String[] args =
     {
@@ -785,22 +602,15 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP.  It will use the
-   * following configuration:
+   * Tests the password modify extended operation over LDAP.  It will use the following configuration:
    * <BR>
    * <UL>
    *   <LI>Authenticated as a root user</LI>
@@ -816,18 +626,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
     String[] args =
     {
@@ -839,22 +638,16 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
 
-    // Perform an internal bind to verify the password was actually changed.
-    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
-    BindOperation bindOperation =
-         conn.processSimpleBind(userEntry.getName(),
-                                ByteString.valueOf("newPassword"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+    verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using an
-   * authorization ID with the DN of a user that doesn't exist.
+   * Tests the password modify extended operation over LDAP using an authorization ID
+   * with the DN of a user that doesn't exist.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -876,16 +669,13 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using an
-   * authorization ID with a malformed DN.
+   * Tests the password modify extended operation over LDAP using an authorization ID with a malformed DN.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -907,17 +697,14 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using an
-   * authorization ID with the DN of a user where no part of the hierarchy
-   * exists.
+   * Tests the password modify extended operation over LDAP using an authorization ID with the DN
+   * of a user where no part of the hierarchy exists.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -939,16 +726,14 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using an
-   * authorization ID with the uid of a user that doesn't exist.
+   * Tests the password modify extended operation over LDAP using an authorization ID with the uid
+   * of a user that doesn't exist.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -970,17 +755,14 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using an
-   * authorization ID with the uid of a user that doesn't exist and providing
-   * the current password..
+   * Tests the password modify extended operation over LDAP using an authorization ID with the uid
+   * of a user that doesn't exist and providing the current password.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -1003,16 +785,13 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 32);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 32);
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using a malformed
-   * authorization ID.
+   * Tests the password modify extended operation over LDAP using a malformed authorization ID.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -1034,16 +813,13 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using a bad
-   * current password.
+   * Tests the password modify extended operation over LDAP using a bad current password.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -1053,17 +829,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
     String[] args =
     {
@@ -1077,17 +843,13 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 49);
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using a pre-encoded
-   * new password.
-   *
+   * Tests the password modify extended operation over LDAP using a pre-encoded new password.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1096,27 +858,12 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
 
     String[] args =
@@ -1130,23 +877,17 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "{SSHA}Fv4b7f4AnRMUiGqBi9QA1xJrTtRTqS3WpRi81g=="
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using a pre-encoded
-   * new password.
+   * Tests the password modify extended operation over LDAP using a pre-encoded new password.
    *
    *
    * @throws  Exception  If an unexpected error occurs.
@@ -1156,26 +897,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
     /* Make sure preEncoded passwords are rejected */
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "false");
 
     String[] args =
     {
@@ -1188,17 +916,14 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "{SSHA}Fv4b7f4AnRMUiGqBi9QA1xJrTtRTqS3WpRi81g=="
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    // don't restore password policy as this is already the default.
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP using a pre-encoded
-   * new password.
-   *
+   * Tests the password modify extended operation over LDAP using a pre-encoded new password.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1207,26 +932,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
-    /* Make sure preEncoded passwords are rejected */
+    /* Make sure preEncoded passwords are rejected. This should be the default, so we will not restore config after */
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "false");
 
     String[] args =
     {
@@ -1238,35 +950,30 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "{SSHA}Fv4b7f4AnRMUiGqBi9QA1xJrTtRTqS3WpRi81g=="
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
+    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
   }
 
 
 
   /**
-   * Tests the password modify extended operation over an internal connection
-   * with a request whose value isn't a valid encoded sequence.
+   * Tests the password modify extended operation over an internal connection with a request whose value
+   * isn't a valid encoded sequence.
    */
   @Test
   public void testFailureInvalidRequestValueFormat()
   {
     ByteString requestValue = ByteString.valueOf("malformed");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ExtendedOperation extOp =
-         conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST,
-                                       requestValue);
+    InternalClientConnection conn = getRootConnection();
+    ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
     assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
   }
 
 
 
   /**
-   * Tests the password modify extended operation over an internal connection
-   * with a request that contain an invalid sequence element type.
+   * Tests the password modify extended operation over an internal connection with a request that contain
+   * an invalid sequence element type.
    */
   @Test
   public void testFailureInvalidSequenceElementType() throws Exception
@@ -1278,19 +985,16 @@ public class PasswordModifyExtendedOperationTestCase
     writer.writeEndSequence();
     ByteString requestValue = builder.toByteString();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ExtendedOperation extOp =
-         conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST,
-                                       requestValue);
+    InternalClientConnection conn = getRootConnection();
+    ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
     assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
   }
 
 
 
   /**
-   * Tests the password modify extended operation over an unauthenticated
-   * internal connection and without providing an authorization ID.
+   * Tests the password modify extended operation over an unauthenticated internal connection
+   * and without providing an authorization ID.
    */
   @Test
   public void testFailureCompletelyAnonymous() throws Exception
@@ -1298,24 +1002,20 @@ public class PasswordModifyExtendedOperationTestCase
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
     writer.writeStartSequence();
-    writer.writeOctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
-                                     "newPassword");
+    writer.writeOctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD, "newPassword");
     writer.writeEndSequence();
     ByteString requestValue = builder.toByteString();
 
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-    ExtendedOperation extOp =
-         conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST,
-                                       requestValue);
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
+    ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
     assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password policy that
-   * doesn't allow users to change their own passwords.
+   * Tests the password modify extended operation with a password policy that doesn't allow users
+   * to change their own passwords. The current password is not provided in the extended operation.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1324,29 +1024,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, "false");
 
     String[] args =
     {
@@ -1358,23 +1042,18 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "true");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password policy that
-   * doesn't allow users to change their own passwords.
+   * Tests the password modify extended operation with a password policy that doesn't allow users to change
+   * their own passwords. The current password is provided.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1383,29 +1062,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, "false");
 
     String[] args =
     {
@@ -1418,23 +1081,18 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 53);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "true");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation without providing the current
-   * password but with a password policy that requires it.
+   * Tests the password modify extended operation without providing the current password
+   * but with a password policy that requires it.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1443,27 +1101,12 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-password-change-requires-current-password";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
 
     String[] args =
@@ -1477,23 +1120,19 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    } finally {
+      // Reset to default configuration
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation that requires secure
-   * authentication but a connection that doesn't provide it.
+   * Tests the password modify extended operation that requires secure authentication
+   * but a connection that doesn't provide it.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1502,28 +1141,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-authentication";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
 
     String[] args =
@@ -1536,23 +1160,19 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 13);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+    } finally {
+      // Reset to default configuration
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation that requires secure
-   * password changes but a connection that doesn't provide it.
+   * Tests the password modify extended operation that requires secure password changes
+   * but a connection that doesn't provide it, using self-authentication.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1561,28 +1181,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
 
     String[] args =
@@ -1595,23 +1200,18 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation that requires secure
-   * password changes but a connection that doesn't provide it.
+   * Tests the password modify extended operation that requires secure password changes
+   * but a connection that doesn't provide it. Authenticating as Directory Manager.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1620,28 +1220,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
 
     String[] args =
@@ -1649,29 +1234,25 @@ public class PasswordModifyExtendedOperationTestCase
       "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "uid=test.user,o=test",
+      "-D", "cn=Directory Manager",
       "-w", "password",
+      "-a", "uid=test.user,o=test",
       "-c", "password",
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 13);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+    } finally {
+      // Reset to default configuration
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change that is
-   * within the minimum password age.
+   * Tests the password modify extended operation with a password change that is within the minimum password age.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1680,29 +1261,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "24 hours")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, "24 hours");
 
     String[] args =
     {
@@ -1713,23 +1278,18 @@ public class PasswordModifyExtendedOperationTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
 
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "0 seconds");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change that is
-   * within the minimum password age.
+   * Tests the password modify extended operation with a password change that is within the minimum password age.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1738,29 +1298,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "24 hours")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, "24 hours");
 
     String[] args =
     {
@@ -1772,24 +1316,19 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 53);
 
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "0 seconds");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user whose password is expired but expired password changes are not
-   * allowed.
+   * Tests the password modify extended operation with a password change for a user whose password is expired
+   * but expired password changes are not allowed.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1798,68 +1337,40 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
+    applyPwdPolicyMods(conn, dnStr, attr1, "90 days");
+
     String attr2 = "ds-cfg-expire-passwords-without-warning";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr1, "90 days")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr2, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr2, "true");
 
+    try {
+      setPasswordChangedTime(conn, userEntry);
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create("pwdchangedtime",
-                                            "20050101000000.000Z")));
-    modifyOperation = conn.processModify(userEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-a", "dn:uid=test.user,o=test",
+        "-c", "password",
+        "-n", "newPassword"
+      };
 
-
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-a", "dn:uid=test.user,o=test",
-      "-c", "password",
-      "-n", "newPassword"
-    };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr1, "0 seconds")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr2, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr1, "0 seconds");
+      applyPwdPolicyMods(conn, dnStr, attr2, "false");
+    }
   }
 
 
-
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user whose password is expired but expired password changes are allowed.
+   * Tests the password modify extended operation with a password change for a user whose password is expired
+   * but expired password changes are allowed.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -1868,136 +1379,81 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "ds-privilege-name: bypass-acl",
-         "userPassword: password");
+    Entry userEntry = addDefaultTestEntry();
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
+    applyPwdPolicyMods(conn, dnStr, attr1, "90 days");
+
     String attr2 = "ds-cfg-expire-passwords-without-warning";
+    applyPwdPolicyMods(conn, dnStr, attr2, "true");
+
     String attr3 = "ds-cfg-allow-expired-password-changes";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr1, "90 days")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr2, "true")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr3, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr3, "true");
 
+    try {
+      setPasswordChangedTime(conn, userEntry);
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create("pwdchangedtime",
-                                            "20050101000000.000Z")));
-    modifyOperation = conn.processModify(userEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-a", "dn:uid=test.user,o=test",
+        "-c", "password",
+        "-n", "newPassword"
+      };
 
-
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-a", "dn:uid=test.user,o=test",
-      "-c", "password",
-      "-n", "newPassword"
-    };
-
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr1, "0 seconds")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr2, "false")));
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr3, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    }
+    finally {
+      applyPwdPolicyMods(conn, dnStr, attr1, "0 seconds");
+      applyPwdPolicyMods(conn, dnStr, attr2, "false");
+      applyPwdPolicyMods(conn, dnStr, attr3, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user where there is no new password provided and there is no password
-   * generator.
+   * Tests the password modify extended operation with a password change for a user
+   * where there is no new password provided and there is no password generator.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
   @Test
   public void testFailureNoPasswordNoGenerator()
-         throws Exception
-  {
+         throws Exception {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, null);
 
 
     String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "uid=test.user,o=test",
-      "-w", "password"
-    };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    String genDN =
-         "cn=Random Password Generator,cn=Password Generators,cn=config";
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, genDN)));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+        {
+            "--noPropertiesFile",
+            "-h", "127.0.0.1",
+            "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+            "-D", "uid=test.user,o=test",
+            "-w", "password"
+        };
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
+    }
   }
 
 
-
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user where there is no new password provided and there is no password
-   * generator.
+   * Tests the password modify extended operation with a password change for a user where there is no new password
+   * provided and there is no password generator.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -2006,29 +1462,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, null);
 
     String[] args =
     {
@@ -2038,25 +1478,19 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "dn:uid=test.user,o=test",
       "-c", "password"
     };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    String genDN =
-         "cn=Random Password Generator,cn=Password Generators,cn=config";
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, genDN)));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    }
+    finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user where a password validator rejects the change.
+   * Tests the password modify extended operation with a password change for a user where a password validator
+   * rejects the change.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -2065,30 +1499,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
-    String valDN =
-         "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, valDN)));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
 
 
     String[] args =
@@ -2100,23 +1517,19 @@ public class PasswordModifyExtendedOperationTestCase
       "-w", "password",
       "-n", "short"
     };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    }
+    finally {
+      applyPwdPolicyMods(conn, dnStr, attr, null);
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation with a password change for a
-   * user where a password validator rejects the change.
+   * Tests the password modify extended operation with a password change for a user where a password validator
+   * rejects the change.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -2125,31 +1538,13 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password");
+    addDefaultTestEntry();
 
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
-    String valDN =
-         "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, valDN)));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    applyPwdPolicyMods(conn, dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
 
     String[] args =
     {
@@ -2160,18 +1555,13 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "short"
     };
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertFalse(exitCode == 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    }
+    finally {
+      applyPwdPolicyMods(conn, dnStr, attr, null);
+    }
   }
-
 
 
   /**
@@ -2188,16 +1578,10 @@ public class PasswordModifyExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-multiple-password-values";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    InternalClientConnection conn = getRootConnection();
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -2225,24 +1609,17 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests the password modify extended operation over LDAP when the existing
-   * account has multiple passwords.
-   *
+   * Tests the password modify extended operation over LDAP when the existing account has multiple passwords.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -2252,16 +1629,10 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-multiple-password-values";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    applyPwdPolicyMods(conn, dnStr, attr, "true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -2276,8 +1647,7 @@ public class PasswordModifyExtendedOperationTestCase
         "cn: Test User",
         "authPassword: password",
         "authPassword: password2",
-        "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy," +
-        "cn=Password Policies,cn=config");
+        "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config");
 
 
     String[] args =
@@ -2292,23 +1662,18 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    int exitCode =
-         LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 0);
-
-
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    try {
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
+    } finally {
+      applyPwdPolicyMods(conn, dnStr, attr, "false");
+    }
   }
 
 
 
   /**
-   * Tests to ensure that if the user provides the correct old password, then
-   * the last login time will be updated if that feature is enabled.
+   * Tests to ensure that if the user provides the correct old password, then the last login time will be
+   * updated if that feature is enabled.
    *
    * @throws  Exception  If an unexpected error occurs.
    */
@@ -2317,27 +1682,8 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
+    addDefaultTestEntry();
 
-    TestCaseUtils.applyModifications(false,
-      "dn: uid=test.user,o=test",
-      "changetype: add",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: oldpassword",
-      // FIXME -- I shouldn't have to add this ACI explicitly, but for some
-      //          reason the global ACIs are getting removed and never put back,
-      //          and without this ACI the user won't have permission to change
-      //          its own password.  If we ever change the access control syntax
-      //          then this will likely need to be updated, but I don't want to
-      //          have to give the user the bypass-acl privilege.
-      "aci: (targetattr=\"*\")(version 3.0; acl \"Self Modify Rights\"; " +
-           "allow (read,search,compare,write) userdn=\"ldap:///self\";)");
     TestCaseUtils.applyModifications(true,
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
@@ -2364,13 +1710,11 @@ public class PasswordModifyExtendedOperationTestCase
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-a", "dn:uid=test.user,o=test",
-        "-c", "oldpassword",
+        "-c", "password",
         "-n", "newpassword"
       };
 
-      int exitCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                           System.err);
-      assertEquals(exitCode, 0);
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
 
       userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
@@ -2388,7 +1732,6 @@ public class PasswordModifyExtendedOperationTestCase
   }
 
 
-
   /**
    * Tests to ensure that if the user provides an incorrect old password, then
    * the auth failure times will be updated if that feature is enabled.
@@ -2401,23 +1744,12 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(false,
-      "dn: uid=test.user,o=test",
-      "changetype: add",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: oldpassword");
-    TestCaseUtils.applyModifications(true,
-      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-      "changetype: modify",
-      "replace: ds-cfg-lockout-failure-count",
-      "ds-cfg-lockout-failure-count: 3");
+    addDefaultTestEntry();
+
+    InternalClientConnection conn = getRootConnection();
+    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
+    applyPwdPolicyMods(conn, dnStr,
+        "ds-cfg-lockout-failure-count", "3");
 
     try
     {
@@ -2440,22 +1772,110 @@ public class PasswordModifyExtendedOperationTestCase
         "-n", "newpassword"
       };
 
-      int exitCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                           System.err);
-      assertFalse(exitCode == 0);
+      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, System.err));
 
       userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
       assertTrue(userEntry.hasAttribute(authFailureTimesAttr));
+    } finally {
+      applyPwdPolicyMods(conn, dnStr,
+          "ds-cfg-lockout-failure-count", "0");
+    }
+  }
+
+
+  /**
+   * Tests to ensure that if the password is changed with a generated password, the pwdHistory is getting
+   * updated properly.
+   *
+   * @throws  Exception  If an unexpected error occurs.
+   */
+  @Test()
+  public void testUpdatePasswordHistory()
+      throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    addDefaultTestEntry();
+
+    InternalClientConnection conn = getRootConnection();
+    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
+    applyPwdPolicyMods(conn, dnStr ,
+        "ds-cfg-password-history-count", "5");
+
+    try
+    {
+      AttributeType pwdHistoryAttr = DirectoryServer.getAttributeType("pwdhistory", false);
+      assertNotNull(pwdHistoryAttr);
+
+      DN userDN = DN.valueOf("uid=test.user,o=test");
+      Entry userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertFalse(userEntry.hasAttribute(pwdHistoryAttr));
+
+      String[] args =
+      {
+        "--noPropertiesFile",
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-a", "dn:uid=test.user,o=test",
+        "-c", "password"
+      };
+
+      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
+
+      userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertTrue(userEntry.hasAttribute(pwdHistoryAttr));
     }
     finally
     {
-      TestCaseUtils.applyModifications(true,
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-lockout-failure-count",
-        "ds-cfg-lockout-failure-count: 0");
+      applyPwdPolicyMods(conn, dnStr,
+          "ds-cfg-password-history-count", "0");
     }
   }
+
+  private Entry addDefaultTestEntry() throws Exception {
+    return TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "ds-privilege-name: bypass-acl",
+        "userPassword: password");
+  }
+
+  private void verifyPasswordPerformingInternalBind(DN name, String newPwd) throws DirectoryException {
+    // Perform an internal bind to verify the password was actually changed.
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
+    BindOperation bindOperation =
+        conn.processSimpleBind(name, ByteString.valueOf(newPwd));
+    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private void applyPwdPolicyMods(InternalClientConnection conn, String pwPolDN, String attr, String value)
+      throws DirectoryException
+  {
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+        value == null ? Attributes.empty(attr) : Attributes.create(attr, value)));
+    ModifyOperation modifyOperation = conn.processModify(DN.valueOf(pwPolDN), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private void setPasswordChangedTime(InternalClientConnection conn, Entry userEntry) {
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create("pwdchangedtime",
+            "20050101000000.000Z")));
+    ModifyOperation modifyOperation = conn.processModify(userEntry.getName(), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
 }
 
