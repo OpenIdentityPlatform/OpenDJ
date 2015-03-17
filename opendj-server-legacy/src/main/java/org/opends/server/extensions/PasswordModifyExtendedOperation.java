@@ -29,6 +29,8 @@ package org.opends.server.extensions;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.AccountStatusNotificationType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -203,11 +205,11 @@ public class PasswordModifyExtendedOperation
       for (Control c : controls)
       {
         String oid = c.getOID();
-        if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
         {
           noOpRequested = true;
         }
-        else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
         {
           pwPolicyRequested = true;
         }
@@ -263,7 +265,7 @@ public class PasswordModifyExtendedOperation
         // Make sure that the user actually is authenticated.
         ClientConnection   clientConnection = operation.getClientConnection();
         AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
-        if ((! authInfo.isAuthenticated()) || (requestorEntry == null))
+        if (!authInfo.isAuthenticated() || requestorEntry == null)
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
           operation.appendErrorMessage(ERR_EXTOP_PASSMOD_NO_AUTH_OR_USERID.get());
@@ -411,13 +413,13 @@ public class PasswordModifyExtendedOperation
       {
         selfChange = true;
       }
-      else if (requestorEntry == null)
+      else if (requestorEntry != null)
       {
-        selfChange = (oldPassword != null);
+        selfChange = userDN.equals(requestorEntry.getName());
       }
       else
       {
-        selfChange = userDN.equals(requestorEntry.getName());
+        selfChange = oldPassword != null;
       }
 
       if (! selfChange)
@@ -507,8 +509,7 @@ public class PasswordModifyExtendedOperation
           List<Modification> mods = pwPolicyState.getModifications();
           if (! mods.isEmpty())
           {
-            InternalClientConnection conn = InternalClientConnection.getRootConnection();
-            conn.processModify(userDN, mods);
+            getRootConnection().processModify(userDN, mods);
           }
 
           return;
@@ -612,77 +613,61 @@ public class PasswordModifyExtendedOperation
           }
         }
       }
+      else if (pwPolicyState.passwordIsPreEncoded(newPassword))
+      {
+        // The password modify extended operation isn't intended to be invoked
+        // by an internal operation or during synchronization, so we don't
+        // need to check for those cases.
+        isPreEncoded = true;
+        if (!pwPolicyState.getAuthenticationPolicy().isAllowPreEncodedPasswords())
+        {
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
+          return;
+        }
+      }
       else
       {
-        if (pwPolicyState.passwordIsPreEncoded(newPassword))
+        // Run the new password through the set of password validators.
+        if (selfChange || !pwPolicyState.getAuthenticationPolicy().isSkipValidationForAdministrators())
         {
-          // The password modify extended operation isn't intended to be invoked
-          // by an internal operation or during synchronization, so we don't
-          // need to check for those cases.
-          isPreEncoded = true;
-          if (!pwPolicyState.getAuthenticationPolicy().isAllowPreEncodedPasswords())
+          Set<ByteString> clearPasswords = new HashSet<ByteString>(pwPolicyState.getClearPasswords());
+          if (oldPassword != null)
           {
+            clearPasswords.add(oldPassword);
+          }
+
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+          if (!pwPolicyState.passwordIsAcceptable(operation, userEntry, newPassword, clearPasswords, invalidReason))
+          {
+            if (pwPolicyRequested)
+            {
+              pwPolicyErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+              operation.addResponseControl(
+                  new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
+            }
+
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-            operation.appendErrorMessage(ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
+            operation.appendErrorMessage(ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(invalidReason));
             return;
           }
         }
-        else
+
+        // Prepare to update the password history, if necessary.
+        if (pwPolicyState.maintainHistory())
         {
-          // Run the new password through the set of password validators.
-          if (selfChange || !pwPolicyState.getAuthenticationPolicy().isSkipValidationForAdministrators())
+          if (pwPolicyState.isPasswordInHistory(newPassword))
           {
-            Set<ByteString> clearPasswords;
-            if (oldPassword == null)
+            if (selfChange || !pwPolicyState.getAuthenticationPolicy().isSkipValidationForAdministrators())
             {
-              clearPasswords = new HashSet<ByteString>(pwPolicyState.getClearPasswords());
-            }
-            else
-            {
-              clearPasswords = new HashSet<ByteString>();
-              clearPasswords.add(oldPassword);
-              for (ByteString pw : pwPolicyState.getClearPasswords())
-              {
-                if (! pw.equals(oldPassword))
-                {
-                  clearPasswords.add(pw);
-                }
-              }
-            }
-
-            LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-            if (! pwPolicyState.passwordIsAcceptable(operation, userEntry, newPassword, clearPasswords, invalidReason))
-            {
-              if (pwPolicyRequested)
-              {
-                pwPolicyErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-                operation.addResponseControl(
-                     new PasswordPolicyResponseControl(pwPolicyWarningType,  pwPolicyWarningValue, pwPolicyErrorType));
-              }
-
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(invalidReason));
+              operation.appendErrorMessage(ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
               return;
             }
           }
-
-          // Prepare to update the password history, if necessary.
-          if (pwPolicyState.maintainHistory())
+          else
           {
-            if (pwPolicyState.isPasswordInHistory(newPassword))
-            {
-              if (selfChange || !pwPolicyState.getAuthenticationPolicy().isSkipValidationForAdministrators())
-              {
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                operation.appendErrorMessage(ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
-                return;
-              }
-            }
-            else
-            {
-              pwPolicyState.updatePasswordHistory();
-            }
+            pwPolicyState.updatePasswordHistory();
           }
         }
       }
@@ -733,12 +718,9 @@ public class PasswordModifyExtendedOperation
                 // The password is encoded using an unknown scheme.  Remove it from the user's entry.
                 deleteValues.add(v);
               }
-              else
+              else if (scheme.authPasswordMatches(oldPassword, components[1].toString(), components[2].toString()))
               {
-                if (scheme.authPasswordMatches(oldPassword, components[1].toString(), components[2].toString()))
-                {
-                  deleteValues.add(v);
-                }
+                deleteValues.add(v);
               }
             }
             catch (DirectoryException de)
@@ -764,12 +746,9 @@ public class PasswordModifyExtendedOperation
                 // The password is encoded using an unknown scheme.  Remove it from the user's entry.
                 deleteValues.add(v);
               }
-              else
+              else if (scheme.passwordMatches(oldPassword, ByteString.valueOf(components[1])))
               {
-                if (scheme.passwordMatches(oldPassword, ByteString.valueOf(components[1])))
-                {
-                  deleteValues.add(v);
-                }
+                deleteValues.add(v);
               }
             }
             catch (DirectoryException de)
@@ -782,22 +761,12 @@ public class PasswordModifyExtendedOperation
           }
         }
 
-        AttributeBuilder builder = new AttributeBuilder(attrType);
-        builder.addAll(deleteValues);
-        Attribute deleteAttr = builder.toAttribute();
-        modList.add(new Modification(ModificationType.DELETE, deleteAttr));
-
-        builder = new AttributeBuilder(attrType);
-        builder.addAll(toAttributeValues(encodedPasswords));
-        Attribute addAttr = builder.toAttribute();
-        modList.add(new Modification(ModificationType.ADD, addAttr));
+        modList.add(newModification(ModificationType.DELETE, attrType, deleteValues));
+        modList.add(newModification(ModificationType.ADD, attrType, encodedPasswords));
       }
       else
       {
-        AttributeBuilder builder = new AttributeBuilder(attrType);
-        builder.addAll(toAttributeValues(encodedPasswords));
-        Attribute addAttr = builder.toAttribute();
-        modList.add(new Modification(ModificationType.REPLACE, addAttr));
+        modList.add(newModification(ModificationType.REPLACE, attrType, encodedPasswords));
       }
 
       // Update the password changed time for the user entry.
@@ -805,14 +774,8 @@ public class PasswordModifyExtendedOperation
 
       // If the password was changed by an end user, then clear any reset flag that might exist.
       // If the password was changed by an administrator, then see if we need to set the reset flag.
-      if (selfChange)
-      {
-        pwPolicyState.setMustChangePassword(false);
-      }
-      else
-      {
-        pwPolicyState.setMustChangePassword(pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
-      }
+      pwPolicyState.setMustChangePassword(
+          selfChange && pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
 
       // Clear any record of grace logins, auth failures, and expiration warnings.
       pwPolicyState.clearFailureLockout();
@@ -855,8 +818,7 @@ public class PasswordModifyExtendedOperation
       List<Modification> pwPolicyMods = pwPolicyState.getModifications();
       if (! pwPolicyMods.isEmpty())
       {
-        InternalClientConnection rootConnection = InternalClientConnection.getRootConnection();
-        ModifyOperation modOp = rootConnection.processModify(userDN, pwPolicyMods);
+        ModifyOperation modOp = getRootConnection().processModify(userDN, pwPolicyMods);
         if (modOp.getResultCode() != ResultCode.SUCCESS)
         {
           // At this point, the user's password is already changed so there's
@@ -904,7 +866,9 @@ public class PasswordModifyExtendedOperation
       // then clear the "must change password" flag in the client connection.  Note that we're using the
       // authentication DN rather than the authorization DN in this case to avoid mistakenly clearing the flag
       // for the wrong user.
-      if (selfChange && (authInfo.getAuthenticationDN() != null) && (authInfo.getAuthenticationDN().equals(userDN)))
+      if (selfChange
+          && authInfo.getAuthenticationDN() != null
+          && authInfo.getAuthenticationDN().equals(userDN))
       {
         operation.getClientConnection().setMustChangePassword(false);
       }
@@ -924,25 +888,20 @@ public class PasswordModifyExtendedOperation
         currentPasswords = new ArrayList<ByteString>(1);
         currentPasswords.add(oldPassword);
       }
-      List<ByteString> newPasswords = null;
-      if (newPassword != null)
-      {
-        newPasswords = new ArrayList<ByteString>(1);
-        newPasswords.add(newPassword);
-      }
+      List<ByteString> newPasswords = new ArrayList<ByteString>(1);
+      newPasswords.add(newPassword);
+
+      Map<AccountStatusNotificationProperty, List<String>> notifProperties =
+          AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords);
       if (selfChange)
       {
-        LocalizableMessage message = INFO_MODIFY_PASSWORD_CHANGED.get();
         pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_CHANGED, userEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords));
+            PASSWORD_CHANGED, userEntry, INFO_MODIFY_PASSWORD_CHANGED.get(), notifProperties);
       }
       else
       {
-        LocalizableMessage message = INFO_MODIFY_PASSWORD_RESET.get();
         pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_RESET, userEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords));
+            PASSWORD_RESET, userEntry, INFO_MODIFY_PASSWORD_RESET.get(), notifProperties);
       }
     }
     finally
@@ -954,10 +913,13 @@ public class PasswordModifyExtendedOperation
     }
   }
 
-  private Collection<ByteString> toAttributeValues(Collection<ByteString> values)
+  private Modification newModification(ModificationType modType, AttributeType attrType, Collection<ByteString> value)
   {
-    return new LinkedHashSet<ByteString>(values);
+    AttributeBuilder builder = new AttributeBuilder(attrType);
+    builder.addAll(value);
+    return new Modification(modType, builder.toAttribute());
   }
+
 
   /**
    * Retrieves the entry for the specified user based on the provided DN.  If any problem is encountered or
@@ -1023,9 +985,7 @@ public class PasswordModifyExtendedOperation
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -1051,9 +1011,9 @@ public class PasswordModifyExtendedOperation
   public boolean isConfigurationChangeAcceptable(PasswordModifyExtendedOperationHandlerCfg config,
                                                  List<LocalizableMessage> unacceptableReasons)
   {
-    // Make sure that the specified identity mapper is OK.
     try
     {
+      // Make sure that the specified identity mapper is OK.
       DN mapperDN = config.getIdentityMapperDN();
       IdentityMapper<?> mapper = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
@@ -1061,6 +1021,7 @@ public class PasswordModifyExtendedOperation
         unacceptableReasons.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(mapperDN, config.dn()));
         return false;
       }
+      return true;
     }
     catch (Exception e)
     {
@@ -1069,9 +1030,6 @@ public class PasswordModifyExtendedOperation
       unacceptableReasons.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
       return false;
     }
-
-    // If we've gotten here, then everything is OK.
-    return true;
   }
 
 
