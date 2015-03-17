@@ -64,21 +64,29 @@ final class TracedStorage implements Storage
     public void close()
     {
       importer.close();
-      logger.trace("Storage.Importer.close(%s)", backendId);
+      logger.trace("Storage@%s.Importer@%s.close(%s)",
+          storageId(), id(), backendId);
     }
 
     @Override
     public void createTree(final TreeName name)
     {
       importer.createTree(name);
-      logger.trace("Storage.Importer.createTree(%s, %s)", backendId, name);
+      logger.trace("Storage@%s.Importer@%s.createTree(%s, %s)",
+          storageId(), id(), backendId, name);
     }
 
     @Override
     public void put(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
       importer.put(name, key, value);
-      logger.trace("Storage.Importer.put(%s, %s, %s, %s)", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.Importer@%s.put(%s, %s, %s, %s)",
+          storageId(), id(), backendId, name, hex(key), hex(value));
+    }
+
+    private int id()
+    {
+      return System.identityHashCode(this);
     }
   }
 
@@ -98,7 +106,8 @@ final class TracedStorage implements Storage
     public long getRecordCount(TreeName name)
     {
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage.ReadableStorage.getRecordCount(%s, %s) = %d", backendId, name, count);
+      logger.trace("Storage@%s.ReadableStorage@%s.getRecordCount(%s, %s) = %d",
+          storageId(), id(), backendId, name, count);
       return count;
     }
 
@@ -106,7 +115,8 @@ final class TracedStorage implements Storage
     public ByteString getRMW(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.getRMW(name, key);
-      logger.trace("Storage.ReadableStorage.getRMW(%s, %s, %s) = %s", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.ReadableStorage@%s.getRMW(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
     }
 
@@ -114,7 +124,8 @@ final class TracedStorage implements Storage
     public Cursor openCursor(final TreeName name)
     {
       final Cursor cursor = txn.openCursor(name);
-      logger.trace("Storage.ReadableStorage.openCursor(%s, %s)", backendId, name);
+      logger.trace("Storage@%s.ReadableStorage@%s.openCursor(%s, %s)",
+          storageId(), id(), backendId, name);
       return cursor;
     }
 
@@ -122,8 +133,14 @@ final class TracedStorage implements Storage
     public ByteString read(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage.ReadableStorage.read(%s, %s, %s) = %s", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.ReadableStorage@%s.read(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
+    }
+
+    private int id()
+    {
+      return System.identityHashCode(this);
     }
   }
 
@@ -143,30 +160,33 @@ final class TracedStorage implements Storage
     public void create(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
       txn.create(name, key, value);
-      logger.trace("Storage.WriteableStorage.create(%s, %s, %s, %s)", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.WriteableStorage@%s.create(%s, %s, %s, %s)",
+          storageId(), id(), backendId, name, hex(key), hex(value));
     }
 
     @Override
     public boolean delete(final TreeName name, final ByteSequence key)
     {
       final boolean isDeleted = txn.delete(name, key);
-      logger.trace("Storage.WriteableStorage.delete(%s, %s, %s) = %s", backendId, name, hex(key), isDeleted);
+      logger.trace("Storage@%s.WriteableStorage@%s.delete(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), isDeleted);
       return isDeleted;
-
     }
 
     @Override
     public void deleteTree(final TreeName name)
     {
       txn.deleteTree(name);
-      logger.trace("Storage.WriteableStorage.deleteTree(%s, %s)", backendId, name);
+      logger.trace("Storage@%s.WriteableStorage@%s.deleteTree(%s, %s)",
+          storageId(), id(), backendId, name);
     }
 
     @Override
     public long getRecordCount(TreeName name)
     {
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage.WriteableStorage.getRecordCount(%s, %s) = %d", backendId, name, count);
+      logger.trace("Storage@%s.WriteableStorage@%s.getRecordCount(%s, %s) = %d",
+          storageId(), id(), backendId, name, count);
       return count;
     }
 
@@ -174,7 +194,8 @@ final class TracedStorage implements Storage
     public ByteString getRMW(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.getRMW(name, key);
-      logger.trace("Storage.WriteableStorage.getRMW(%s, %s, %s) = %s", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.WriteableStorage@%s.getRMW(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
     }
 
@@ -182,7 +203,8 @@ final class TracedStorage implements Storage
     public Cursor openCursor(final TreeName name)
     {
       final Cursor cursor = txn.openCursor(name);
-      logger.trace("Storage.WriteableStorage.openCursor(%s, %s)", backendId, name);
+      logger.trace("Storage@%s.WriteableStorage@%s.openCursor(%s, %s)",
+          storageId(), id(), backendId, name);
       return cursor;
     }
 
@@ -190,15 +212,16 @@ final class TracedStorage implements Storage
     public void openTree(final TreeName name)
     {
       txn.openTree(name);
-      logger.trace("Storage.WriteableStorage.openTree(%s, %s)", backendId, name);
+      logger.trace("Storage@%s.WriteableStorage@%s.openTree(%s, %s)",
+          storageId(), id(), backendId, name);
     }
 
     @Override
     public boolean putIfAbsent(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
       final boolean isCreated = txn.putIfAbsent(name, key, value);
-      logger.trace("Storage.WriteableStorage.putIfAbsent(%s, %s, %s, %s) = %s", backendId, name, hex(key), hex(value),
-          isCreated);
+      logger.trace("Storage@%s.WriteableStorage@%s.putIfAbsent(%s, %s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value), isCreated);
       return isCreated;
     }
 
@@ -206,7 +229,8 @@ final class TracedStorage implements Storage
     public ByteString read(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage.WriteableStorage.read(%s, %s, %s) = %s", backendId, name, hex(key), hex(value));
+      logger.trace("Storage@%s.WriteableStorage@%s.read(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
     }
 
@@ -214,15 +238,22 @@ final class TracedStorage implements Storage
     public void renameTree(final TreeName oldName, final TreeName newName)
     {
       txn.renameTree(oldName, newName);
-      logger.trace("Storage.WriteableStorage.renameTree(%s, %s, %s)", backendId, oldName, newName);
+      logger.trace("Storage@%s.WriteableStorage@%s.renameTree(%s, %s, %s)",
+          storageId(), id(), backendId, oldName, newName);
     }
 
     @Override
     public boolean update(final TreeName name, final ByteSequence key, final UpdateFunction f)
     {
       final boolean isUpdated = txn.update(name, key, f);
-      logger.trace("Storage.WriteableStorage.update(%s, %s, %s, %s) = %s", backendId, name, hex(key), f, isUpdated);
+      logger.trace("Storage@%s.WriteableStorage@%s.update(%s, %s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), f, isUpdated);
       return isUpdated;
+    }
+
+    private int id()
+    {
+      return System.identityHashCode(this);
     }
   }
 
@@ -243,7 +274,7 @@ final class TracedStorage implements Storage
     storage.close();
     if (logger.isTraceEnabled())
     {
-      logger.trace("Storage.close(%s)", backendId);
+      logger.trace("Storage@%s.close(%s)", storageId(), backendId);
     }
   }
 
@@ -271,7 +302,7 @@ final class TracedStorage implements Storage
     storage.open();
     if (logger.isTraceEnabled())
     {
-      logger.trace("Opened storage for backend %s", backendId);
+      logger.trace("Storage@%s.open() - Opened storage for backend %s", storageId(), backendId);
     }
   }
 
@@ -299,7 +330,7 @@ final class TracedStorage implements Storage
     storage.removeStorageFiles();
     if (logger.isTraceEnabled())
     {
-      logger.trace("Storage.removeStorageFiles(%s)", backendId);
+      logger.trace("Storage@%s.removeStorageFiles(%s)", storageId(), backendId);
     }
   }
 
@@ -309,7 +340,7 @@ final class TracedStorage implements Storage
     final Importer importer = storage.startImport();
     if (logger.isTraceEnabled())
     {
-      logger.trace("Storage.startImport(%s)", backendId);
+      logger.trace("Storage@%s.startImport(%s)", storageId(), backendId);
       return new TracedImporter(importer);
     }
     return importer;
@@ -341,6 +372,11 @@ final class TracedStorage implements Storage
 
   private String hex(final ByteSequence bytes)
   {
-    return bytes != null ? bytes.toByteString().toHexString() : "null";
+    return bytes != null ? bytes.toByteString().toHexString() : null;
+  }
+
+  private int storageId()
+  {
+    return System.identityHashCode(this);
   }
 }
