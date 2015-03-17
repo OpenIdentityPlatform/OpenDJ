@@ -49,6 +49,8 @@ import com.forgerock.opendj.util.Iterators;
 final class EntryIDSet implements Iterable<EntryID>
 {
   private static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
+  private static final long[] EMPTY_LONG_ARRAY = new long[0];
+  private static final long[] NO_ENTRY_IDS_RANGE = new long[] { 0, 0 };
 
   /**
    * Interface for EntryIDSet concrete implementations
@@ -280,7 +282,7 @@ final class EntryIDSet implements Iterable<EntryID>
       }
       else
       {
-        return new long[] { 0, 0 };
+        return NO_ENTRY_IDS_RANGE;
       }
     }
 
@@ -414,15 +416,14 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public long[] getRange()
     {
-      return new long[] { 0, 0 };
+      return NO_ENTRY_IDS_RANGE;
     }
 
     @Override
     public long[] getIDs()
     {
-      return new long[0];
+      return EMPTY_LONG_ARRAY;
     }
-
   }
 
   /**
