@@ -306,7 +306,7 @@
                   <artifactId>opendj-maven-plugin</artifactId>
                   <version>${project.version}</version>
                   <type>jar</type>
-                  <overWrite>false</overWrite>
+                  <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</outputDirectory>
                   <includes>config/xml/**/*.xml</includes>
                 </artifactItem>
