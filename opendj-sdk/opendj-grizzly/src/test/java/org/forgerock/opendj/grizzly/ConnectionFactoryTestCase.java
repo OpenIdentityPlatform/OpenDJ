@@ -148,7 +148,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         factories[0][0] =
                 Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
                         serverAddress.getHostName(), serverAddress.getPort()),
-                        1000, 500, TimeUnit.MILLISECONDS, request);
+                        1000, 2000, TimeUnit.MILLISECONDS, request);
 
         // InternalConnectionFactory
         factories[1][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);
