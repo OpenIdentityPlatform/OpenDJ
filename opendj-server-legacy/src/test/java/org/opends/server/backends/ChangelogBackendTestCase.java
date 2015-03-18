@@ -1109,7 +1109,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       searchOp = connection.processSearch(request);
       count++;
     }
-    while (count < 300 && searchOp.getSearchEntries().size() != expectedNbEntries);
+    while (count < 500 && searchOp.getSearchEntries().size() != expectedNbEntries);
 
     final List<SearchResultEntry> entries = searchOp.getSearchEntries();
     assertThat(entries).hasSize(expectedNbEntries);
