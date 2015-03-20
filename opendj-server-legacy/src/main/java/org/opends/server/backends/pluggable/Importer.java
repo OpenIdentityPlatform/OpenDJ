@@ -32,6 +32,7 @@ import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -2080,11 +2081,11 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       if (indexMgr.isDN2ID())
       {
-        return new ImportIDSet(key, 1, 1, false);
+        return new ImportIDSet(key, newDefinedSet(), 1, false);
       }
 
       final Index index = idContainerMap.get(indexID);
-      return new ImportIDSet(key, 1, index.getIndexEntryLimit(), index.getMaintainCount());
+      return new ImportIDSet(key, newDefinedSet(), index.getIndexEntryLimit(), index.getMaintainCount());
     }
 
     private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
@@ -2265,7 +2266,7 @@ final class Importer implements DiskSpaceMonitorHandler
         ImportIDSet idSet = id2childTree.get(parentIDBytes);
         if (idSet == null)
         {
-          idSet = new ImportIDSet(parentIDBytes, 1, childLimit, childDoCount);
+          idSet = new ImportIDSet(parentIDBytes, newDefinedSet(), childLimit, childDoCount);
           id2childTree.put(parentIDBytes, idSet);
         }
         return idSet;
@@ -2315,7 +2316,7 @@ final class Importer implements DiskSpaceMonitorHandler
         ImportIDSet idSet = id2subtreeTree.get(entryIDBytes);
         if (idSet == null)
         {
-          idSet = new ImportIDSet(entryIDBytes, 1, subTreeLimit, subTreeDoCount);
+          idSet = new ImportIDSet(entryIDBytes, newDefinedSet(), subTreeLimit, subTreeDoCount);
           id2subtreeTree.put(entryIDBytes, idSet);
         }
         return idSet;
