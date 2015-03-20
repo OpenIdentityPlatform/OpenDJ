@@ -69,6 +69,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -279,7 +280,7 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(final Configuration config) throws ConfigException
+  public void configureBackend(final Configuration config, ServerContext serverContext) throws ConfigException
   {
     throw new UnsupportedOperationException("The changelog backend is not configurable");
   }

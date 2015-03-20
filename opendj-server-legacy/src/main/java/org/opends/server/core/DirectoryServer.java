@@ -2091,7 +2091,7 @@ public final class DirectoryServer
     }
 
     rootDSEBackend = new RootDSEBackend();
-    rootDSEBackend.configureBackend(rootDSECfg);
+    rootDSEBackend.configureBackend(rootDSECfg, serverContext);
     rootDSEBackend.initializeBackend();
   }
 
@@ -2425,7 +2425,7 @@ public final class DirectoryServer
     throw new InitializationException(message, e);
   }
   rootDSEBackend = new RootDSEBackend();
-  rootDSEBackend.configureBackend(rootDSECfg);
+  rootDSEBackend.configureBackend(rootDSECfg, serverContext);
   rootDSEBackend.initializeBackend();
 }
 

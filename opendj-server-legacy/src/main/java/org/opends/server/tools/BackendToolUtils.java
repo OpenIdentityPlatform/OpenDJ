@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -197,7 +197,7 @@ public class BackendToolUtils
         backend = (Backend) backendClass.newInstance();
         backend.setBackendID(backendID);
         cfg = root.getBackend(backendID);
-        backend.configureBackend(cfg);
+        backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
       }
       catch (Exception e)
       {

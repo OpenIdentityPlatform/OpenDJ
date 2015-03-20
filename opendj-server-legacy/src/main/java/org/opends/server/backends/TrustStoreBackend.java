@@ -77,6 +77,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
@@ -132,7 +133,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(TrustStoreBackendCfg config) throws ConfigException
+  public void configureBackend(TrustStoreBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(config);
     configuration = config;
@@ -140,8 +141,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-         throws ConfigException, InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
     DN configEntryDN = configuration.dn();
 

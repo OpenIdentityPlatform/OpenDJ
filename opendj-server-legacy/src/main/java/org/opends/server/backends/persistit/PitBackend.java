@@ -39,6 +39,6 @@ public final class PitBackend extends BackendImpl<PersistitBackendCfg>
   @Override
   protected Storage configureStorage(PersistitBackendCfg cfg) throws ConfigException
   {
-    return new PersistItStorage(cfg);
+    return new PersistItStorage(cfg, serverContext);
   }
 }

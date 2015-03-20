@@ -1231,7 +1231,7 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(LDIFBackendCfg config) throws ConfigException
+  public void configureBackend(LDIFBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {

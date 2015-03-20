@@ -1017,10 +1017,10 @@ public class BackendConfigManager implements
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  private static void initializeBackend(Backend backend, BackendCfg cfg)
+  private void initializeBackend(Backend backend, BackendCfg cfg)
        throws ConfigException, InitializationException
   {
-    backend.configureBackend(cfg);
+    backend.configureBackend(cfg, serverContext);
     backend.initializeBackend();
   }
 

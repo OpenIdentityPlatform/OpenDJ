@@ -160,7 +160,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(final MonitorBackendCfg config)
+  public void configureBackend(final MonitorBackendCfg config, ServerContext serverContext)
       throws ConfigException
   {
     Reject.ifNull(config);

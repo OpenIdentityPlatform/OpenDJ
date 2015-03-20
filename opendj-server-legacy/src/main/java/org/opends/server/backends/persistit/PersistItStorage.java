@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -60,8 +61,8 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
@@ -524,9 +525,12 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
    *
    * @param cfg
    *          The configuration.
+   * @param serverContext
+   *          This server instance context
+   * @throws ConfigException if memory cannot be reserved
    */
   // FIXME: should be package private once importer is decoupled.
-  public PersistItStorage(final PersistitBackendCfg cfg)
+  public PersistItStorage(final PersistitBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
     config = cfg;

@@ -53,6 +53,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 
@@ -157,7 +158,7 @@ public class BackupBackend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(BackupBackendCfg config) throws ConfigException
+  public void configureBackend(BackupBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
