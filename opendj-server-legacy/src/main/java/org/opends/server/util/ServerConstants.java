@@ -3152,6 +3152,9 @@ public final class ServerConstants
    */
   public static final String DN_EXTERNAL_CHANGELOG_ROOT = "cn=changelog";
 
-
+  /**
+   * Enable overcommit of memory in Old Gen space.
+   */
+  public static final String ENABLE_MEMORY_OVERCOMMIT = "org.forgerock.opendj.EnableMemoryOvercommit";
 }
 

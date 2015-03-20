@@ -26,6 +26,9 @@
 
 package org.opends.server.backends.persistit;
 
+import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.pluggable.BackendImpl;
@@ -36,6 +39,12 @@ import org.opends.server.backends.pluggable.spi.Storage;
  */
 public final class PitBackend extends BackendImpl<PersistitBackendCfg>
 {
+  @Override
+  public boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    return PersistItStorage.isConfigurationAcceptable(cfg, unacceptableReasons, serverContext);
+  }
+
   @Override
   protected Storage configureStorage(PersistitBackendCfg cfg) throws ConfigException
   {

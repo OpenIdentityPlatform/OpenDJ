@@ -114,7 +114,7 @@ public abstract class Backend<C extends Configuration>
 
   /**
    * Temporarily sets up the server context for the first phase of add of a new configuration entry.
-   * Will be needed for checking storage parameters before committing the change in configuration.
+   * Needed for checking storage parameters before committing the change in configuration.
    *
    * @param context the server context for this instance
    */

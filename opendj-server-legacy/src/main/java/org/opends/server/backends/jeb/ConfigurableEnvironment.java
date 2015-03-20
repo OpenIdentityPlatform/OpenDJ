@@ -41,6 +41,8 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.config.ConfigConstants;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.MemoryQuota;
 import org.forgerock.opendj.config.server.ConfigException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
@@ -469,6 +471,12 @@ public class ConfigurableEnvironment
         throw new ConfigException(
             ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
                 cfg.getDBCacheSize(), MemoryBudget.MIN_MAX_MEMORY_SIZE));
+      }
+      MemoryQuota memoryQuota = DirectoryServer.getInstance().getServerContext().getMemoryQuota();
+      if (!memoryQuota.acquireMemory(cfg.getDBCacheSize()))
+      {
+        logger.warn(ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            cfg.getDBCacheSize(), memoryQuota.getMaxMemory()));
       }
     }
 

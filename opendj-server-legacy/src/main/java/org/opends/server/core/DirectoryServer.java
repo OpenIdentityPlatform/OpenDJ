@@ -794,6 +794,9 @@ public final class DirectoryServer
   /** The writability mode for the Directory Server. */
   private WritabilityMode writabilityMode;
 
+  /** The memory reservation system */
+  private MemoryQuota memoryQuota;
+
   /**
    * The maximum size that internal buffers will be allowed to grow to until
    * they are trimmed.
@@ -890,6 +893,11 @@ public final class DirectoryServer
       return serverManagementContext;
     }
 
+    @Override
+    public MemoryQuota getMemoryQuota()
+    {
+      return directoryServer.memoryQuota;
+    }
   }
 
 
@@ -921,6 +929,7 @@ public final class DirectoryServer
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
     serverContext = new DirectoryServerContext();
     virtualAttributeConfigManager = new VirtualAttributeConfigManager(serverContext);
+    memoryQuota = new MemoryQuota();
   }
 
 
