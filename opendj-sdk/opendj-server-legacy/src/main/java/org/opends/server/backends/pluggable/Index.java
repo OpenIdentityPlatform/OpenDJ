@@ -97,8 +97,6 @@ class Index extends DatabaseContainer
    */
   private boolean trusted;
 
-  private final ImportIDSet newImportIDSet;
-
   /**
    * Create a new index object.
    * @param name The name of the index database within the entryContainer.
@@ -122,7 +120,6 @@ class Index extends DatabaseContainer
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
-    this.newImportIDSet = new ImportIDSet(null, indexEntryLimit, indexEntryLimit, maintainCount);
 
     this.state = state;
     this.trusted = state.getIndexTrustState(txn, this);
@@ -156,15 +153,15 @@ class Index extends DatabaseContainer
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if (value != null) {
-      newImportIDSet.clear();
-      newImportIDSet.remove(value, importIdSet);
-      if (newImportIDSet.isDefined() && newImportIDSet.size() == 0)
+      final ImportIDSet importIDSet = new ImportIDSet(key, newSetFromBytes(key, value), indexEntryLimit, maintainCount);
+      importIDSet.remove(importIdSet);
+      if (importIDSet.isDefined() && importIDSet.size() == 0)
       {
         txn.delete(getName(), key);
       }
       else
       {
-        value = newImportIDSet.valueToByteString();
+        value = importIDSet.valueToByteString();
         txn.create(getName(), key, value);
       }
     } else {
@@ -185,11 +182,11 @@ class Index extends DatabaseContainer
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if(value != null) {
-      newImportIDSet.clear();
-      if (newImportIDSet.merge(value, importIdSet)) {
+      final ImportIDSet importIDSet = new ImportIDSet(key, newSetFromBytes(key, value), indexEntryLimit, maintainCount);
+      if (importIDSet.merge(importIdSet)) {
         entryLimitExceededCount++;
       }
-      value = newImportIDSet.valueToByteString();
+      value = importIDSet.valueToByteString();
     } else {
       if(!importIdSet.isDefined()) {
         entryLimitExceededCount++;
