@@ -912,7 +912,7 @@ public class EntryContainer
               if (baseID == null)
               {
                 LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN);
-                DN matchedDN = getMatchedDN(aBaseDN);
+                DN matchedDN = getMatchedDN(txn, aBaseDN);
                 throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
               }
               ByteString baseIDData = baseID.toByteString();
@@ -1522,7 +1522,7 @@ public class EntryContainer
               if (parentID == null)
               {
                 LocalizableMessage message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(entry.getName());
-                DN matchedDN = getMatchedDN(baseDN);
+                DN matchedDN = getMatchedDN(txn, baseDN);
                 throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
               }
             }
@@ -1815,7 +1815,7 @@ public class EntryContainer
       if (value == null)
       {
         LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(targetDN);
-        DN matchedDN = getMatchedDN(baseDN);
+        DN matchedDN = getMatchedDN(txn, baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
       leafID = new EntryID(value);
@@ -1826,7 +1826,7 @@ public class EntryContainer
     {
       // Do not expect to ever come through here.
       LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
-      DN matchedDN = getMatchedDN(baseDN);
+      DN matchedDN = getMatchedDN(txn, baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
@@ -1902,7 +1902,7 @@ public class EntryContainer
    * @throws  DirectoryException  If a problem occurs while trying to make the
    *                              determination.
    */
-  private boolean entryExists(final DN entryDN) throws DirectoryException
+  private boolean entryExists(ReadableStorage txn, final DN entryDN) throws DirectoryException
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -1910,24 +1910,7 @@ public class EntryContainer
     {
       return true;
     }
-
-    try
-    {
-      return storage.read(new ReadOperation<Boolean>()
-      {
-        @Override
-        public Boolean run(ReadableStorage txn) throws Exception
-        {
-          EntryID id = dn2id.get(null, entryDN);
-        return id != null;
-        }
-      });
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      return false;
-    }
+    return dn2id.get(txn, entryDN) != null;
   }
 
   /**
@@ -2040,14 +2023,11 @@ public class EntryContainer
         {
           try
           {
-            // Read dn2id.
             EntryID entryID = dn2id.getRMW(txn, newEntry.getName());
             if (entryID == null)
             {
-              // The entry does not exist.
-              LocalizableMessage message =
-                  ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName());
-              DN matchedDN = getMatchedDN(baseDN);
+              LocalizableMessage message = ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName());
+              DN matchedDN = getMatchedDN(txn, baseDN);
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
                   message, matchedDN, null);
             }
@@ -2200,7 +2180,7 @@ public class EntryContainer
               dn2uri.targetEntryReferrals(txn, currentDN, null);
 
               LocalizableMessage message = ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN);
-              DN matchedDN = getMatchedDN(baseDN);
+              DN matchedDN = getMatchedDN(txn, baseDN);
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
             }
 
@@ -2228,7 +2208,7 @@ public class EntryContainer
               if (newSuperiorID == null)
               {
                 LocalizableMessage msg = ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN);
-                DN matchedDN = getMatchedDN(baseDN);
+                DN matchedDN = getMatchedDN(txn, baseDN);
                 throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, msg, matchedDN, null);
               }
 
@@ -3117,12 +3097,12 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the check of an
    * existing entry from being performed.
    */
-  private DN getMatchedDN(DN baseDN) throws DirectoryException
+  private DN getMatchedDN(ReadableStorage txn, DN baseDN) throws DirectoryException
   {
     DN parentDN  = baseDN.getParentDNInSuffix();
     while (parentDN != null && parentDN.isDescendantOf(getBaseDN()))
     {
-      if (entryExists(parentDN))
+      if (entryExists(txn, parentDN))
       {
         return parentDN;
       }
@@ -3228,7 +3208,7 @@ public class EntryContainer
       dn2uri.targetEntryReferrals(txn, baseDN, searchScope);
 
       LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN);
-      DN matchedDN = getMatchedDN(baseDN);
+      DN matchedDN = getMatchedDN(txn, baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
     }
