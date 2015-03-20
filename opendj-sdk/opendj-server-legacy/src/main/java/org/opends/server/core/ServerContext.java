@@ -80,4 +80,10 @@ public interface ServerContext
    */
   ServerManagementContext getServerManagementContext();
 
+  /**
+   * Returns the memory quota system for reserving long term memory.
+   *
+   * @return the memory quota system
+   */
+  MemoryQuota getMemoryQuota();
 }

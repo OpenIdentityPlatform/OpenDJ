@@ -680,10 +680,10 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = configEntry.getJavaClass();
 
-    Backend<?> backend;
+    Backend<BackendCfg> backend;
     try
     {
-      backend = loadBackendClass(className).newInstance();
+      backend = (Backend<BackendCfg>)loadBackendClass(className).newInstance();
     }
     catch (Exception e)
     {
@@ -715,6 +715,11 @@ public class BackendConfigManager implements
       }
     }
 
+    backend.setServerContext(serverContext);
+    if (!backend.isConfigurationAcceptable(configEntry, unacceptableReason))
+    {
+      return false;
+    }
 
     // If we've gotten to this point, then it is acceptable as far as we are
     // concerned.  If it is unacceptable according to the configuration for that

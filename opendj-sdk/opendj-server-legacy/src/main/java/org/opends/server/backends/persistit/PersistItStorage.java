@@ -30,6 +30,7 @@ import static java.util.Arrays.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -62,6 +63,7 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
@@ -519,6 +521,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   private Configuration dbCfg;
   private PersistitBackendCfg config;
   private DiskSpaceMonitor diskMonitor;
+  private MemoryQuota memQuota;
 
   /**
    * Creates a new persistit storage with the provided configuration.
@@ -541,13 +544,17 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg();
     bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
+
+    memQuota = serverContext.getMemoryQuota();
     if (cfg.getDBCacheSize() > 0)
     {
       bufferPoolCfg.setMaximumMemory(cfg.getDBCacheSize());
+      memQuota.acquireMemory(cfg.getDBCacheSize());
     }
     else
     {
       bufferPoolCfg.setFraction(cfg.getDBCachePercent() / 100.0f);
+      memQuota.acquireMemory(memQuota.memPercentToBytes(cfg.getDBCachePercent()));
     }
     dbCfg.setCommitPolicy(cfg.isDBTxnNoSync() ? SOFT : GROUP);
     cfg.addPersistitChangeListener(this);
@@ -568,6 +575,14 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       {
         throw new IllegalStateException(e);
       }
+    }
+    if (config.getDBCacheSize() > 0)
+    {
+      memQuota.releaseMemory(config.getDBCacheSize());
+    }
+    else
+    {
+      memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
     }
     config.removePersistitChangeListener(this);
     DirectoryServer.deregisterMonitorProvider(diskMonitor);
@@ -792,6 +807,41 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   @Override
   public boolean isConfigurationChangeAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
+    return checkConfigurationDirectories(cfg, unacceptableReasons);
+  }
+
+  /**
+   * Checks newly created backend has a valid configuration.
+   * @param cfg the new configuration
+   * @param unacceptableReasons the list of accumulated errors and their messages
+   * @param context TODO
+   * @return true if newly created backend has a valid configuration
+   */
+  public static boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
+      ServerContext context)
+  {
+    if (context != null)
+    {
+      MemoryQuota memQuota = context.getMemoryQuota();
+      if (cfg.getDBCacheSize() > 0 && !memQuota.isMemoryAvailable(cfg.getDBCacheSize()))
+      {
+        unacceptableReasons.add(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            cfg.getDBCacheSize(), memQuota.getAvailableMemory()));
+        return false;
+      }
+      else if (!memQuota.isMemoryAvailable(memQuota.memPercentToBytes(cfg.getDBCachePercent())))
+      {
+        unacceptableReasons.add(ERR_BACKEND_CONFIG_CACHE_PERCENT_GREATER_THAN_JVM_HEAP.get(
+            cfg.getDBCachePercent(), memQuota.memBytesToPercent(memQuota.getAvailableMemory())));
+        return false;
+      }
+    }
+    return checkConfigurationDirectories(cfg, unacceptableReasons);
+  }
+
+  private static boolean checkConfigurationDirectories(PersistitBackendCfg cfg,
+    List<LocalizableMessage> unacceptableReasons)
+  {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     File parentDirectory = getFileForPath(cfg.getDBDirectory());
     File newBackendDirectory = new File(parentDirectory, cfg.getBackendId());
@@ -813,7 +863,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
    * @param ccr the list of reasons to return upstream or null if called from setupStorage()
    * @param cleanup true if the directory should be deleted after creation
    */
-  private void checkDBDirExistsOrCanCreate(File backendDir, ConfigChangeResult ccr, boolean cleanup)
+  private static void checkDBDirExistsOrCanCreate(File backendDir, ConfigChangeResult ccr, boolean cleanup)
   {
     if (!backendDir.exists())
     {
@@ -840,7 +890,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
    * @param ccr the current list of change results
    * @throws forwards a file exception
    */
-  private void checkDBDirPermissions(PersistitBackendCfg cfg, ConfigChangeResult ccr)
+  private static void checkDBDirPermissions(PersistitBackendCfg cfg, ConfigChangeResult ccr)
   {
     try
     {
@@ -887,7 +937,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
   }
 
-  private FilePermission decodeDBDirPermissions(PersistitBackendCfg curCfg) throws ConfigException
+  private static FilePermission decodeDBDirPermissions(PersistitBackendCfg curCfg) throws ConfigException
   {
     try
     {
@@ -947,7 +997,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     return ccr;
   }
 
-  private void addErrorMessage(final ConfigChangeResult ccr, LocalizableMessage message)
+  private static void addErrorMessage(final ConfigChangeResult ccr, LocalizableMessage message)
   {
     ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     ccr.addMessage(message);
