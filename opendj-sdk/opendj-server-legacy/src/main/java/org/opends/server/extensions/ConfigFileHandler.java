@@ -76,6 +76,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.*;
@@ -794,7 +795,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(ConfigFileHandlerBackendCfg cfg)
+  public void configureBackend(ConfigFileHandlerBackendCfg cfg, ServerContext serverContext)
          throws ConfigException
   {
     // No action is required.
@@ -802,8 +803,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-         throws ConfigException, InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
     // No action is required, since all initialization was performed in the
     // initializeConfigHandler method.

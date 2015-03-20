@@ -65,6 +65,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
@@ -142,7 +143,7 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(RootDSEBackendCfg config) throws ConfigException
+  public void configureBackend(RootDSEBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(config);
     currentConfig = config;
@@ -151,8 +152,7 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-         throws ConfigException, InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
     ConfigEntry configEntry =
          DirectoryServer.getConfigEntry(configEntryDN);

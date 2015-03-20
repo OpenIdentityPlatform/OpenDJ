@@ -52,6 +52,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -148,7 +149,7 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(MemoryBackendCfg config) throws ConfigException
+  public void configureBackend(MemoryBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {

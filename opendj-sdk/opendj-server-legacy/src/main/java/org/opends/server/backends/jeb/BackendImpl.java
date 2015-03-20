@@ -153,7 +153,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(LocalDBBackendCfg cfg) throws ConfigException
+  public void configureBackend(LocalDBBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(cfg);
 

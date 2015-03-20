@@ -89,7 +89,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          throws Exception
   {
     SchemaBackend schemaBackend = new SchemaBackend();
-    schemaBackend.configureBackend(null);
+    schemaBackend.configureBackend(null, null);
   }
 
 

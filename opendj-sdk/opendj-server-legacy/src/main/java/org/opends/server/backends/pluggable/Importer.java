@@ -3979,7 +3979,8 @@ final class Importer implements DiskSpaceMonitorHandler
       returnValues.put("isDBTxnNoSync", true);
       try
       {
-        storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues));
+        storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues),
+            DirectoryServer.getInstance().getServerContext());
       }
       catch (Exception e)
       {

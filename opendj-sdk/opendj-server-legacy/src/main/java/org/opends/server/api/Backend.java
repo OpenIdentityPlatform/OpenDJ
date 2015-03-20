@@ -52,6 +52,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
@@ -112,15 +113,26 @@ public abstract class Backend<C extends Configuration>
       new ConcurrentLinkedQueue<PersistentSearch>();
 
   /**
+   * Temporarily sets up the server context for the first phase of add of a new configuration entry.
+   * Will be needed for checking storage parameters before committing the change in configuration.
+   *
+   * @param context the server context for this instance
+   */
+  public void setServerContext(ServerContext context)
+  {
+  }
+
+  /**
    * Configure this backend based on the information in the provided
    * configuration.
    *
    * @param  cfg          The configuration of this backend.
+   * @param  serverContext The server context for this instance
    *
    * @throws  ConfigException
    *                      If there is an error in the configuration.
    */
-  public abstract void configureBackend(C cfg) throws ConfigException;
+  public abstract void configureBackend(C cfg, ServerContext serverContext) throws ConfigException;
 
   /**
    * Indicates whether the provided configuration is acceptable for
@@ -166,8 +178,7 @@ public abstract class Backend<C extends Configuration>
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeBackend()
-         throws ConfigException, InitializationException;
+  public abstract void initializeBackend() throws ConfigException, InitializationException;
 
   /**
    * Performs any necessary work to finalize this backend, including

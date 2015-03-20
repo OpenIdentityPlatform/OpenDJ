@@ -51,6 +51,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -146,7 +147,7 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(BackendCfg config) throws ConfigException
+  public void configureBackend(BackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {

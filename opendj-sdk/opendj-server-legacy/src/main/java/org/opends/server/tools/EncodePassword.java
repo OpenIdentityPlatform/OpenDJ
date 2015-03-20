@@ -879,7 +879,7 @@ public class EncodePassword
         backend.setBackendID(backendID);
         backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
         try {
-          backend.configureBackend(backendCfg);
+          backend.configureBackend(backendCfg, directoryServer.getServerContext());
           backend.initializeBackend();
         } catch (Exception e) {
           LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(),

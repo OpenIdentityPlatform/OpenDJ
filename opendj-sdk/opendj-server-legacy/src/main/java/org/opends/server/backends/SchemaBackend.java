@@ -88,6 +88,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -252,7 +253,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(SchemaBackendCfg cfg) throws ConfigException
+  public void configureBackend(SchemaBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
@@ -353,8 +354,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-         throws ConfigException, InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.

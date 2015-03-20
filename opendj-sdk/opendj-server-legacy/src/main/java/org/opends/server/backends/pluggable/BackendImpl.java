@@ -95,6 +95,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL));
 
+  /** The server context for this directory server. */
+  protected ServerContext serverContext;
+
   /**
    * Begin a Backend API method that accesses the database and returns the <code>EntryContainer</code> for
    * <code>entryDN</code>.
@@ -144,19 +147,19 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(C cfg) throws ConfigException
+  public void configureBackend(C cfg, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(cfg);
 
     this.cfg = cfg;
+    this.serverContext = serverContext;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
     storage = new TracedStorage(configureStorage(cfg), cfg.getBackendId());
   }
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-      throws ConfigException, InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
     if (mustOpenRootContainer())
     {
@@ -798,6 +801,13 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
    *           If there is an error in the configuration.
    */
   protected abstract Storage configureStorage(C cfg) throws ConfigException;
+
+  /** {@inheritDoc} */
+  @Override
+  public void setServerContext(ServerContext context)
+  {
+    this.serverContext = context;
+  }
 
   /** {@inheritDoc} */
   @Override

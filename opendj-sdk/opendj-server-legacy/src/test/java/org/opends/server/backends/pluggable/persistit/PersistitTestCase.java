@@ -65,7 +65,7 @@ public class PersistitTestCase extends PluggableBackendImplTestCase
   
     PitBackend b = new PitBackend();
     b.setBackendID(backendCfg.getBackendId());
-    b.configureBackend((PersistitBackendCfg)backendCfg);
+    b.configureBackend((PersistitBackendCfg)backendCfg, DirectoryServer.getInstance().getServerContext());
     return b;
   }
 

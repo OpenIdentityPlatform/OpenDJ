@@ -137,7 +137,7 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(TaskBackendCfg cfg) throws ConfigException
+  public void configureBackend(TaskBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(cfg);
 
