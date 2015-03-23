@@ -167,69 +167,59 @@ public class BinaryValue
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (o != null)
+    if (this == o)
     {
-      equals = this == o;
-      if (!equals)
-      {
-        equals = o instanceof BinaryValue;
-        if (equals)
-        {
-          BinaryValue candidate = (BinaryValue)o;
-          equals = candidate.getType() == getType();
-          if (equals)
-          {
-            if (file == null)
-            {
-              equals = candidate.getFile() == null;
-            }
-            else if (candidate.getFile() != null)
-            {
-              equals = file.equals(candidate.getFile());
-            }
-            else
-            {
-              equals = false;
-            }
-          }
-          if (equals)
-          {
-            if (type == Type.BASE64_STRING)
-            {
-              equals = candidate.getBase64().equals(getBase64());
-            }
-            else
-            {
-              try
-              {
-                equals = candidate.getBytes().length == getBytes().length;
-                for (int i=0; i<getBytes().length && equals; i++)
-                {
-                  equals = bytes[i] == candidate.getBytes()[i];
-                }
-              }
-              catch (ParseException pe)
-              {
-                throw new RuntimeException(
-                    "Unexpected error getting bytes: "+pe, pe);
-              }
-            }
-          }
-        }
-      }
+      return true;
     }
-    return equals;
+    if (o instanceof BinaryValue)
+    {
+      BinaryValue candidate = (BinaryValue)o;
+      return candidate.getType() == getType()
+          && equal(file, candidate.getFile())
+          && bytesEqual(candidate);
+    }
+    return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private boolean equal(File o1, File o2)
+  {
+    if (o1 == null)
+    {
+      return o2 == null;
+    }
+    return o1.equals(o2);
+  }
+
+  private boolean bytesEqual(BinaryValue candidate)
+  {
+    if (type == Type.BASE64_STRING)
+    {
+      return candidate.getBase64().equals(getBase64());
+    }
+
+    try
+    {
+      if (candidate.getBytes().length != getBytes().length) {
+        return false;
+      }
+      boolean equals = true;
+      for (int i=0; i<getBytes().length && equals; i++)
+      {
+        equals = bytes[i] == candidate.getBytes()[i];
+      }
+      return equals;
+    }
+    catch (ParseException pe)
+    {
+      throw new RuntimeException(
+          "Unexpected error getting bytes: "+pe, pe);
+    }
+  }
+
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;

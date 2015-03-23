@@ -230,47 +230,35 @@ public class ConnectionHandlerDescriptor
     this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return toString;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
-    boolean equals = false;
     if (o == this)
     {
-      equals = true;
+      return true;
     }
-    else if (o instanceof ConnectionHandlerDescriptor)
+    if (o instanceof ConnectionHandlerDescriptor)
     {
-      equals = toString.equals(o.toString());
-      if (equals)
-      {
-        ConnectionHandlerDescriptor ch =
-          (ConnectionHandlerDescriptor)o;
-        // Compare monitoring entries
-        equals = (getMonitoringEntries().equals(ch.getMonitoringEntries()));
-      }
+      ConnectionHandlerDescriptor ch = (ConnectionHandlerDescriptor) o;
+      return toString.equals(o.toString())
+          && getMonitoringEntries().equals(ch.getMonitoringEntries());
     }
-    return equals;
+    return false;
   }
 
   /**

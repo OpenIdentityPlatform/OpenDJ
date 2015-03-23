@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -32,10 +32,7 @@ import java.util.TreeSet;
 
 import org.opends.admin.ads.ADSContext;
 
-/**
- * The class that describes the backend configuration.
- *
- */
+/** The class that describes the backend configuration. */
 public class BackendDescriptor
 {
   private final String backendID;
@@ -49,40 +46,24 @@ public class BackendDescriptor
   private final Type type;
   private int hashCode;
 
-  /**
-   * An enumeration describing the type of backend.
-   */
+  /** An enumeration describing the type of backend. */
   public enum Type
   {
-    /**
-     * The backend is a local backend.
-     */
+    /** The backend is a local backend. */
     LOCAL_DB,
-    /**
-     * The backend is a LDIF backend.
-     */
+    /** The backend is a LDIF backend. */
     LDIF,
-    /**
-     * The backend is a memory backend.
-     */
+    /** The backend is a memory backend. */
     MEMORY,
-    /**
-     * The backend is a backup backend.
-     */
+    /** The backend is a backup backend. */
     BACKUP,
-    /**
-     * The backend is a monitor backend.
-     */
+    /** The backend is a monitor backend. */
     MONITOR,
-    /**
-     * The backend is a task backend.
-     */
+    /** The backend is a task backend. */
     TASK,
-    /**
-     * The backend is another type of backend (for instance user defined).
-     */
+    /** The backend is another type of backend (for instance user defined). */
     OTHER
-  };
+  }
 
   /**
    * Constructor for this class.
@@ -156,55 +137,34 @@ public class BackendDescriptor
     return entries;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean equals(Object v)
+  public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (this != v)
+    if (this == o)
     {
-      if (v instanceof BackendDescriptor)
-      {
-        BackendDescriptor desc = (BackendDescriptor)v;
-        equals = getBackendID().equals(desc.getBackendID()) &&
-        (getEntries() == desc.getEntries());
-
-        if (equals)
-        {
-          equals = desc.getBaseDns().equals(getBaseDns());
-        }
-
-        if (equals)
-        {
-          equals = desc.getIndexes().equals(getIndexes());
-        }
-
-        if (equals)
-        {
-          equals = desc.getVLVIndexes().equals(getVLVIndexes());
-        }
-
-        if (equals)
-        {
-          // Compare monitoring entries
-          if (getMonitoringEntry() == null)
-          {
-            equals = desc.getMonitoringEntry() == null;
-          }
-          else
-          {
-            equals = getMonitoringEntry().equals(desc.getMonitoringEntry());
-          }
-        }
-      }
+      return true;
     }
-    else
+    if (o instanceof BackendDescriptor)
     {
-      equals = true;
+      BackendDescriptor desc = (BackendDescriptor)o;
+      return getBackendID().equals(desc.getBackendID())
+          && getEntries() == desc.getEntries()
+          && desc.getBaseDns().equals(getBaseDns())
+          && desc.getIndexes().equals(getIndexes())
+          && desc.getVLVIndexes().equals(getVLVIndexes())
+          && equal(getMonitoringEntry(), desc.getMonitoringEntry());
     }
-    return equals;
+    return false;
+  }
+
+  private boolean equal(CustomSearchResult m1, CustomSearchResult m2)
+  {
+    if (m1 == null)
+    {
+      return m2 == null;
+    }
+    return m1.equals(m2);
   }
 
   /**
@@ -216,9 +176,7 @@ public class BackendDescriptor
     return monitoringEntry;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -229,7 +187,6 @@ public class BackendDescriptor
    * Method called when one of the elements that affect the value of the
    * hashcode is modified.  It is used to minimize the time spent calculating
    * hashCode.
-   *
    */
   private void recalculateHashCode()
   {
@@ -259,8 +216,7 @@ public class BackendDescriptor
    *
    */
   private void updateBaseDnsAndIndexes(Set<BaseDNDescriptor> baseDns,
-      Set<IndexDescriptor> indexes,
-      Set<VLVIndexDescriptor> vlvIndexes)
+      Set<IndexDescriptor> indexes, Set<VLVIndexDescriptor> vlvIndexes)
   {
     for (BaseDNDescriptor baseDN : baseDns)
     {

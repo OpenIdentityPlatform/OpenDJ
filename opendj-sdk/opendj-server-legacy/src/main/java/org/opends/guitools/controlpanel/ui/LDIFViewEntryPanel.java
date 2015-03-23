@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -44,23 +43,45 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.Base64;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.StaticUtils;
 
 /**
  * The panel displaying an LDIF view of an entry.
- *
  */
 public class LDIFViewEntryPanel extends ViewEntryPanel
 {
+  /** Callback that sets the viewport's view position. */
+  private static final class SetViewPosition implements Runnable
+  {
+    private final Point p;
+    private final JScrollPane scroll;
+
+    private SetViewPosition(JScrollPane scroll, Point p)
+    {
+      this.p = p;
+      this.scroll = scroll;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void run()
+    {
+      if (p != null && scroll.getViewport().contains(p))
+      {
+        scroll.getViewport().setViewPosition(p);
+      }
+    }
+  }
+
   private static final long serialVersionUID = 2775960608128921072L;
   private JScrollPane editableScroll;
   private JScrollPane readOnlyScroll;
@@ -68,19 +89,13 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   private JTextArea readOnlyAttributes;
   private CustomSearchResult searchResult;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public LDIFViewEntryPanel()
   {
-    super();
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
@@ -89,7 +104,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
 
   /**
    * Creates the layout of the panel (but the contents are not populated here).
-   *
    */
   private void createLayout()
   {
@@ -141,8 +155,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     gbc.gridy ++;
     add(lReadOnly, gbc);
     gbc.insets.top = 5;
-    readOnlyAttributes = Utilities.createNonEditableTextArea(LocalizableMessage.EMPTY, 10,
-        30);
+    readOnlyAttributes = Utilities.createNonEditableTextArea(LocalizableMessage.EMPTY, 10, 30);
     gbc.weightx = 1.0;
     gbc.weighty = 0.4;
     gbc.fill = GridBagConstraints.BOTH;
@@ -151,24 +164,20 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     add(readOnlyScroll, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
-    if ((searchResult != null) && (sr != null))
+    if (searchResult != null && sr != null)
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());
     }
 
     searchResult = sr;
-
     updateTitle(sr, path);
 
     StringBuilder sb = new StringBuilder();
-
     sb.append("dn: ").append(sr.getDN());
 
     if (isReadOnly)
@@ -185,20 +194,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       final Point p1 = sameEntry ?
           readOnlyScroll.getViewport().getViewPosition() : new Point(0, 0);
       readOnlyAttributes.setText(sb.toString());
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void run()
-        {
-          if ((p1 != null) && (readOnlyScroll.getViewport().contains(p1)))
-          {
-            readOnlyScroll.getViewport().setViewPosition(p1);
-          }
-        }
-      });
+      SwingUtilities.invokeLater(new SetViewPosition(readOnlyScroll, p1));
     }
     else
     {
@@ -221,20 +217,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       editableAttributes.setText(sb.toString());
       ignoreEntryChangeEvents = false;
 
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void run()
-        {
-          if ((p1 != null) && (editableScroll.getViewport().contains(p1)))
-          {
-            editableScroll.getViewport().setViewPosition(p1);
-          }
-        }
-      });
+      SwingUtilities.invokeLater(new SetViewPosition(editableScroll, p1));
       // Read-only attributes
       boolean oneLineAdded = false;
       sb = new StringBuilder();
@@ -254,26 +237,11 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       final Point p2 = sameEntry ?
           readOnlyScroll.getViewport().getViewPosition() : new Point(0, 0);
       readOnlyAttributes.setText(sb.toString());
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void run()
-        {
-          if ((p2 != null) && (readOnlyScroll.getViewport().contains(p2)))
-          {
-            readOnlyScroll.getViewport().setViewPosition(p2);
-          }
-        }
-      });
+      SwingUtilities.invokeLater(new SetViewPosition(readOnlyScroll, p2));
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -281,9 +249,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected String getDisplayedDN()
   {
@@ -302,22 +268,17 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     return dn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected List<Object> getValues(String attrName)
   {
     throw new IllegalStateException("This method should not be called.");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntry() throws OpenDsException
   {
-    Entry entry = null;
     LDIFImportConfig ldifImportConfig = null;
     try
     {
@@ -325,8 +286,9 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
 
       ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
       LDIFReader reader = new LDIFReader(ldifImportConfig);
-      entry = reader.readEntry(checkSchema());
+      Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
+      return entry;
     }
     catch (IOException ioe)
     {
@@ -340,7 +302,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
         ldifImportConfig.close();
       }
     }
-    return entry;
   }
 
   /**
@@ -350,10 +311,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
    */
   private String getLDIF()
   {
-    StringBuilder sb = new StringBuilder();
-    sb.append(editableAttributes.getText());
-
-    return sb.toString();
+    return editableAttributes.getText();
   }
 
   /**
@@ -367,7 +325,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     String attrValue;
     if (o instanceof String)
     {
-      //
       if (Utilities.hasControlCharaters((String)o))
       {
         attrValue = Base64.encode(StaticUtils.getBytes((String)o));

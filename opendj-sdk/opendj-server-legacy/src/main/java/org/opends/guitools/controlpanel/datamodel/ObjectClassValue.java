@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.Set;
@@ -34,7 +34,6 @@ import java.util.TreeSet;
  * This class represent all the objectclass values for a given entry.  It is
  * used by the entry editors (SimplifiedEntryView and TableEntryView) to edit
  * and display the objectclass.
- *
  */
 public class ObjectClassValue
 {
@@ -80,54 +79,34 @@ public class ObjectClassValue
     return structural;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals;
-    if (o != this)
+    if (this == o)
     {
-      if (o != null)
-      {
-        if (o instanceof ObjectClassValue)
-        {
-          ObjectClassValue oc = (ObjectClassValue)o;
-          if (structural != null)
-          {
-            equals = structural.equals(oc.getStructural());
-          }
-          else
-          {
-            equals = oc.getStructural() == null;
-          }
-          if (equals)
-          {
-            equals = auxiliary.equals(oc.getAuxiliary());
-          }
-        }
-        else
-        {
-          equals = false;
-        }
-      }
-      else
-      {
-        equals = false;
-      }
+      return true;
     }
-    else
+    if (o instanceof ObjectClassValue)
     {
-      equals = true;
+      ObjectClassValue oc = (ObjectClassValue)o;
+      return equal(structural, oc.getStructural())
+          && auxiliary.equals(oc.getAuxiliary());
     }
-    return equals;
+    return false;
+  }
+
+  private boolean equal(String s1, String s2)
+  {
+    if (s1 == null)
+    {
+      return s2 == null;
+    }
+    return s1.equals(s2);
   }
 }
