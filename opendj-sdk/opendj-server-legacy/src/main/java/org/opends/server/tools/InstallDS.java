@@ -346,8 +346,7 @@ public class InstallDS extends ConsoleApplication
         return InstallReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
     }
 
-    if (argParser.usageOrVersionDisplayed() ||
-        argParser.testOnlyArg.isPresent())
+    if (argParser.usageOrVersionDisplayed() || argParser.testOnlyArg.isPresent())
     {
       return InstallReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
@@ -567,22 +566,13 @@ public class InstallDS extends ConsoleApplication
 
   private void printStatusCommand()
   {
-    String cmd;
-    // Use this instead a call to Installation to avoid to launch a new JVM
-    // just to retrieve a path.
-    final String root = Utils.getInstallPathFromClasspath();
-    if (isWindows())
-    {
-      final String binDir = Utils.getPath(root,
-          Installation.WINDOWS_BINARIES_PATH_RELATIVE);
-      cmd = Utils.getPath(binDir, Installation.WINDOWS_STATUSCLI_FILE_NAME);
-    }
-    else
-    {
-      final String binDir = Utils.getPath(root,
-          Installation.UNIX_BINARIES_PATH_RELATIVE);
-      cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
-    }
+    // Use this instead a call to Installation to avoid to launch a new JVM just to retrieve a path.
+    final String binariesRelativePath = isWindows() ? Installation.WINDOWS_BINARIES_PATH_RELATIVE :
+                                                      Installation.UNIX_BINARIES_PATH_RELATIVE;
+    final String statusCliFileName = isWindows() ? Installation.WINDOWS_STATUSCLI_FILE_NAME :
+                                                   Installation.UNIX_STATUSCLI_FILE_NAME;
+    final String binDir = Utils.getPath(Utils.getInstallPathFromClasspath(), binariesRelativePath);
+    final String cmd = Utils.getPath(binDir, statusCliFileName);
     println();
     println(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
     println();
@@ -969,12 +959,10 @@ public class InstallDS extends ConsoleApplication
    * @throws ClientException
    *           if something went wrong checking passwords.
    */
-  private void promptIfRequiredForDirectoryManager(UserData uData)
-      throws UserDataException, ClientException
+  private void promptIfRequiredForDirectoryManager(UserData uData) throws UserDataException, ClientException
   {
     final LinkedList<String> dns = promptIfRequiredForDNs(
-        argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(),
-        true);
+        argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(), true);
     uData.setDirectoryManagerDn(dns.getFirst());
 
     int nTries = 0;
@@ -1013,15 +1001,19 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method returns a list of DNs.  It checks that the provided list of
-   * DNs actually contain some values.  If no valid values are found it prompts
-   * the user to provide a valid DN.
-   * @param arg the Argument that the user provided to specify the DNs.
-   * @param promptMsg the prompt message to be displayed.
-   * @param includeLineBreak whether to include a line break before the first
-   * prompt or not.
+   * This method returns a list of DNs. It checks that the provided list of DNs
+   * actually contain some values. If no valid values are found it prompts the
+   * user to provide a valid DN.
+   *
+   * @param arg
+   *          the Argument that the user provided to specify the DNs.
+   * @param promptMsg
+   *          the prompt message to be displayed.
+   * @param includeLineBreak
+   *          whether to include a line break before the first prompt or not.
    * @return a list of valid DNs.
-   * @throws UserDataException if something went wrong checking the data.
+   * @throws UserDataException
+   *           if something went wrong checking the data.
    */
   private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
       LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
@@ -1035,8 +1027,7 @@ public class InstallDS extends ConsoleApplication
     {
       if (nTries >= CONFIRMATION_MAX_TRIES)
       {
-        throw new UserDataException(null,
-            ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+        throw new UserDataException(null, ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
       }
       boolean prompted = false;
       if (usedProvided || !arg.isPresent())
@@ -1095,11 +1086,12 @@ public class InstallDS extends ConsoleApplication
   /**
    * This method updates the contents of a UserData object with what the user
    * specified in the command-line for the administration connector, LDAP and
-   * JMX port parameters.
-   * If the user did not provide explicitly some data or if the provided data is
-   * not valid, it prompts the user to provide it.
+   * JMX port parameters. If the user did not provide explicitly some data or
+   * if the provided data is not valid, it prompts the user to provide it.
    * Note: this method does not update nor check the LDAPS port.
-   * @param uData the UserData object to be updated.
+   *
+   * @param uData
+   *          the UserData object to be updated.
    */
   private void promptIfRequiredForPortData(UserData uData)
   {
@@ -1113,8 +1105,7 @@ public class InstallDS extends ConsoleApplication
     usedPorts.add(ldapPort);
 
     //  Determine the Admin Connector port number.
-    final int adminConnectorPort =
-      promptIfRequiredForPortData(argParser.adminConnectorPortArg,
+    final int adminConnectorPort = promptIfRequiredForPortData(argParser.adminConnectorPortArg,
         INFO_INSTALLDS_PROMPT_ADMINCONNECTORPORT.get(), usedPorts, true);
     uData.setAdminConnectorPort(adminConnectorPort);
     usedPorts.add(adminConnectorPort);
@@ -1132,20 +1123,23 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method returns a valid port value.  It checks that the provided
-   * argument contains a valid port. If a valid port is not found it prompts
-   * the user to provide a valid port.
-   * @param portArg the Argument that the user provided to specify the port.
-   * @param promptMsg the prompt message to be displayed.
-   * @param usedPorts the list of ports the user provided before for other
-   * connection handlers.
-   * @param includeLineBreak whether to include a line break before the first
-   * prompt or not.
+   * This method returns a valid port value. It checks that the provided
+   * argument contains a valid port. If a valid port is not found it prompts the
+   * user to provide a valid port.
+   *
+   * @param portArg
+   *          the Argument that the user provided to specify the port.
+   * @param promptMsg
+   *          the prompt message to be displayed.
+   * @param usedPorts
+   *          the list of ports the user provided before for other connection
+   *          handlers.
+   * @param includeLineBreak
+   *          whether to include a line break before the first prompt or not.
    * @return a valid port number.
    */
-  private int promptIfRequiredForPortData(IntegerArgument portArg,
-      LocalizableMessage promptMsg, Collection<Integer> usedPorts,
-      boolean includeLineBreak)
+  private int promptIfRequiredForPortData(IntegerArgument portArg, LocalizableMessage promptMsg,
+      Collection<Integer> usedPorts, boolean includeLineBreak)
   {
     int portNumber = -1;
     boolean usedProvided = false;
@@ -1188,8 +1182,7 @@ public class InstallDS extends ConsoleApplication
           usedProvided = true;
         }
 
-        if (!argParser.skipPortCheckArg.isPresent()
-            && !SetupUtils.canUseAsPort(portNumber))
+        if (!argParser.skipPortCheckArg.isPresent() && !SetupUtils.canUseAsPort(portNumber))
         {
           final LocalizableMessage message = getCannotBindErrorMessage(portNumber);
           if (prompted || includeLineBreak)
@@ -1228,8 +1221,7 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if something went wrong checking the data.
    */
-  private NewSuffixOptions promptIfRequiredForImportData()
-  throws UserDataException
+  private NewSuffixOptions promptIfRequiredForImportData() throws UserDataException
   {
     boolean prompt = true;
     if (!argParser.baseDNArg.isPresent())
@@ -1237,29 +1229,24 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
-        prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(),
-            true);
+        prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(), true);
       }
       catch (final ClientException ce)
       {
         prompt = true;
-        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
+        logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
       }
     }
-    NewSuffixOptions dataOptions;
+
     if (!prompt)
     {
-      final List<String> baseDNs = new LinkedList<String>();
-      dataOptions = NewSuffixOptions.createEmpty(baseDNs);
+      return NewSuffixOptions.createEmpty(new LinkedList<String>());
     }
-    else
-    {
-      // Check the validity of the base DNs
-      final List<String> baseDNs = promptIfRequiredForDNs(
-          argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
-      dataOptions = promptIfRequiredForDataOptions(baseDNs);
-    }
-    return dataOptions;
+
+    // Check the validity of the base DNs
+    final List<String> baseDNs = promptIfRequiredForDNs(argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
+    return promptIfRequiredForDataOptions(baseDNs);
+
   }
 
   private NewSuffixOptions promptIfRequiredForDataOptions(List<String> baseDNs)
@@ -1486,10 +1473,10 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if the user did not manage to provide the keystore password after
    *           a certain number of tries.
-   * @throws ClientException If an error occurs when reading inputs.
+   * @throws ClientException
+   *           If an error occurs when reading inputs.
    */
-  private SecurityOptions promptIfRequiredForSecurityData(UserData uData)
-  throws UserDataException, ClientException
+  private SecurityOptions promptIfRequiredForSecurityData(UserData uData) throws UserDataException, ClientException
   {
     // Check that the security data provided is valid.
     boolean enableSSL = false;
@@ -1768,24 +1755,28 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Checks that the provided parameters are valid to access an existing
-   * key store.  This method adds the encountered errors to the provided
-   * list of LocalizableMessage.  It also adds the alias (nicknames) found to the provided
-   * list of String.
-   * @param type the type of key store.
-   * @param path the path of the key store.
-   * @param pwd the password (PIN) to access the key store.
-   * @param certNickname the certificate nickname that we are looking for (or
-   * null if we just one to get the one that is in the key store).
-   * @param errorMessages the list that will be updated with the errors
-   * encountered.
-   * @param nicknameList the list that will be updated with the nicknames found
-   * in the key store.
+   * Checks that the provided parameters are valid to access an existing key
+   * store. This method adds the encountered errors to the provided list of
+   * LocalizableMessage. It also adds the alias (nicknames) found to the
+   * provided list of String.
+   *
+   * @param type
+   *          the type of key store.
+   * @param path
+   *          the path of the key store.
+   * @param pwd
+   *          the password (PIN) to access the key store.
+   * @param certNickname
+   *          the certificate nickname that we are looking for (or null if we
+   *          just one to get the one that is in the key store).
+   * @param errorMessages
+   *          the list that will be updated with the errors encountered.
+   * @param nicknameList
+   *          the list that will be updated with the nicknames found in the key
+   *          store.
    */
-  public static void checkCertificateInKeystore(
-      SecurityOptions.CertificateType type,
-      String path, String pwd, String certNickname,
-      Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
+  public static void checkCertificateInKeystore(SecurityOptions.CertificateType type, String path, String pwd,
+      String certNickname, Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
   {
     boolean errorWithPath = false;
     if (type != SecurityOptions.CertificateType.PKCS11)
@@ -1920,20 +1911,25 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * Creates a SecurityOptions object that corresponds to the provided
-   * parameters.  If the parameters are not valid, it prompts the user to
-   * provide them.
-   * @param type the keystore type.
-   * @param enableSSL whether to enable SSL or not.
-   * @param enableStartTLS whether to enable StartTLS or not.
-   * @param ldapsPort the LDAPS port to use.
+   * parameters. If the parameters are not valid, it prompts the user to provide
+   * them.
+   *
+   * @param type
+   *          the keystore type.
+   * @param enableSSL
+   *          whether to enable SSL or not.
+   * @param enableStartTLS
+   *          whether to enable StartTLS or not.
+   * @param ldapsPort
+   *          the LDAPS port to use.
    * @return a SecurityOptions object that corresponds to the provided
-   * parameters (or to what the user provided after being prompted).
-   * @throws UserDataException if the user did not manage to provide the
-   * keystore password after a certain number of tries.
+   *         parameters (or to what the user provided after being prompted).
+   * @throws UserDataException
+   *           if the user did not manage to provide the keystore password after
+   *           a certain number of tries.
    * @throws ClientException
    */
-  private SecurityOptions createSecurityOptionsPrompting(
-      SecurityOptions.CertificateType type, boolean enableSSL,
+  private SecurityOptions createSecurityOptionsPrompting(SecurityOptions.CertificateType type, boolean enableSSL,
       boolean enableStartTLS, int ldapsPort) throws UserDataException, ClientException
   {
     SecurityOptions securityOptions;
@@ -2090,11 +2086,14 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Tells if any of the error messages provided corresponds to a problem
-   * with the key store path.
-   * @param msgs the messages to analyze.
+   * Tells if any of the error messages provided corresponds to a problem with
+   * the key store path.
+   *
+   * @param msgs
+   *          the messages to analyze.
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
-   * to a problem with the key store path and <CODE>false</CODE> otherwise.
+   *         to a problem with the key store path and <CODE>false</CODE>
+   *         otherwise.
    */
   public static boolean containsKeyStorePathErrorMessage(Collection<LocalizableMessage> msgs)
   {
@@ -2118,11 +2117,14 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Tells if any of the error messages provided corresponds to a problem
-   * with the key store password.
-   * @param msgs the messages to analyze.
+   * Tells if any of the error messages provided corresponds to a problem with
+   * the key store password.
+   *
+   * @param msgs
+   *          the messages to analyze.
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
-   * to a problem with the key store password and <CODE>false</CODE> otherwise.
+   *         to a problem with the key store password and <CODE>false</CODE>
+   *         otherwise.
    */
   public static boolean containsKeyStorePasswordErrorMessage(Collection<LocalizableMessage> msgs)
   {
@@ -2145,12 +2147,14 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Tells if any of the error messages provided corresponds to a problem
-   * with the certificate nickname.
-   * @param msgs the messages to analyze.
+   * Tells if any of the error messages provided corresponds to a problem with
+   * the certificate nickname.
+   *
+   * @param msgs
+   *          the messages to analyze.
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
-   * to a problem with the certificate nickname and <CODE>false</CODE>
-   * otherwise.
+   *         to a problem with the certificate nickname and <CODE>false</CODE>
+   *         otherwise.
    */
   public static boolean containsCertNicknameErrorMessage(
       Collection<LocalizableMessage> msgs)
@@ -2170,24 +2174,25 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * Interactively prompts (on standard output) the user to provide an integer
-   * value.  The answer provided must be parseable as an integer, and may be
-   * required to be within a given set of bounds.  It will keep prompting until
+   * value. The answer provided must be parseable as an integer, and may be
+   * required to be within a given set of bounds. It will keep prompting until
    * an acceptable value is given.
    *
-   * @param  prompt        The prompt to present to the user.
-   * @param  defaultValue  The default value to assume if the user presses ENTER
-   *                       without typing anything, or <CODE>null</CODE> if
-   *                       there should not be a default and the user must
-   *                       explicitly provide a value.
-   * @param  lowerBound    The lower bound that should be enforced, or
-   *                       <CODE>null</CODE> if there is none.
-   * @param  upperBound    The upper bound that should be enforced, or
-   *                       <CODE>null</CODE> if there is none.
-   *
-   * @return  The <CODE>int</CODE> value read from the user input.
+   * @param prompt
+   *          The prompt to present to the user.
+   * @param defaultValue
+   *          The default value to assume if the user presses ENTER without
+   *          typing anything, or <CODE>null</CODE> if there should not be a
+   *          default and the user must explicitly provide a value.
+   * @param lowerBound
+   *          The lower bound that should be enforced, or <CODE>null</CODE> if
+   *          there is none.
+   * @param upperBound
+   *          The upper bound that should be enforced, or <CODE>null</CODE> if
+   *          there is none.
+   * @return The <CODE>int</CODE> value read from the user input.
    */
-  private int promptForInteger(LocalizableMessage prompt, Integer defaultValue,
-                                      Integer lowerBound, Integer upperBound)
+  private int promptForInteger(LocalizableMessage prompt, Integer defaultValue, Integer lowerBound, Integer upperBound)
   {
     int returnValue = -1;
     while (returnValue == -1)
@@ -2245,9 +2250,11 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Prompts the user to accept on the certificates that appears on the list
-   * and returns the chosen certificate nickname.
-   * @param nicknames the list of certificates the user must choose from.
+   * Prompts the user to accept on the certificates that appears on the list and
+   * returns the chosen certificate nickname.
+   *
+   * @param nicknames
+   *          the list of certificates the user must choose from.
    * @return the chosen certificate nickname.
    */
   private String promptForCertificateNickname(List<String> nicknames)
@@ -2276,7 +2283,9 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * It displays the information provided by the user.
-   * @param uData the UserData that the user provided.
+   *
+   * @param uData
+   *          the UserData that the user provided.
    */
   private void printSummary(UserData uData)
   {
@@ -2378,11 +2387,12 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method asks the user to confirm to continue the setup.  It basically
+   * This method asks the user to confirm to continue the setup. It basically
    * displays the information provided by the user and at the end proposes a
    * menu with the different options to choose from.
+   *
    * @return the answer provided by the user: cancel setup, continue setup or
-   * provide information again.
+   *         provide information again.
    */
   private ConfirmCode askForConfirmation()
   {
@@ -2441,48 +2451,47 @@ public class InstallDS extends ConsoleApplication
     try
     {
       argParser.initializeArguments();
-      argParser.directoryManagerDNArg.setDefaultValue(
-          uData.getDirectoryManagerDn());
-      argParser.ldapPortArg.setDefaultValue(
-          String.valueOf(uData.getServerPort()));
-      argParser.adminConnectorPortArg.setDefaultValue(
-          String.valueOf(uData.getAdminConnectorPort()));
+      argParser.directoryManagerDNArg.setDefaultValue(uData.getDirectoryManagerDn());
+      argParser.ldapPortArg.setDefaultValue(String.valueOf(uData.getServerPort()));
+      argParser.adminConnectorPortArg.setDefaultValue(String.valueOf(uData.getAdminConnectorPort()));
+
       final int jmxPort = uData.getServerJMXPort();
       if (jmxPort != -1)
       {
         argParser.jmxPortArg.setDefaultValue(String.valueOf(jmxPort));
       }
+
       final LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
       if (!baseDNs.isEmpty())
       {
         argParser.baseDNArg.setDefaultValue(baseDNs.getFirst());
       }
+
       final NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();
       lastResetPopulateOption = suffixOptions.getType();
-      if (lastResetPopulateOption ==
-        NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
+
+      if (NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA == lastResetPopulateOption)
       {
         lastResetNumEntries = suffixOptions.getNumberEntries();
       }
-      else if (lastResetPopulateOption ==
-        NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE)
+      else if (NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE == lastResetPopulateOption)
       {
         lastResetImportFile = suffixOptions.getLDIFPaths().getFirst();
         lastResetRejectedFile = suffixOptions.getRejectedFile();
         lastResetSkippedFile = suffixOptions.getSkippedFile();
       }
+
       final SecurityOptions sec = uData.getSecurityOptions();
       if (sec.getEnableSSL())
       {
-        argParser.ldapsPortArg.setDefaultValue(
-            String.valueOf(sec.getSslPort()));
+        argParser.ldapsPortArg.setDefaultValue(String.valueOf(sec.getSslPort()));
       }
       lastResetEnableSSL = sec.getEnableSSL();
       lastResetEnableStartTLS = sec.getEnableStartTLS();
       lastResetCertType = sec.getCertificateType();
-      if (lastResetCertType == SecurityOptions.CertificateType.JKS ||
-          lastResetCertType == SecurityOptions.CertificateType.JCEKS ||
-          lastResetCertType == SecurityOptions.CertificateType.PKCS12)
+      if (SecurityOptions.CertificateType.JKS == lastResetCertType
+          || SecurityOptions.CertificateType.JCEKS == lastResetCertType
+          || SecurityOptions.CertificateType.PKCS12 == lastResetCertType)
       {
         lastResetKeyStorePath = sec.getKeystorePath();
       }
@@ -2496,7 +2505,7 @@ public class InstallDS extends ConsoleApplication
     }
     catch (final Throwable t)
     {
-      logger.warn(LocalizableMessage.raw("Error resetting arguments: "+t, t));
+      logger.warn(LocalizableMessage.raw("Error resetting arguments: " + t, t));
     }
   }
 
@@ -2514,8 +2523,7 @@ public class InstallDS extends ConsoleApplication
       {
         try
         {
-          hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(),
-              argParser.hostNameArg.getDefaultValue());
+          hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(), argParser.hostNameArg.getDefaultValue());
         }
         catch (final ClientException ce)
         {
@@ -2527,10 +2535,11 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * Returns the timeout to be used to connect in milliseconds.  The method
-   * must be called after parsing the arguments.
-   * @return the timeout to be used to connect in milliseconds.  Returns
-   * {@code 0} if there is no timeout.
+   * Returns the timeout to be used to connect in milliseconds. The method must
+   * be called after parsing the arguments.
+   *
+   * @return the timeout to be used to connect in milliseconds. Returns
+   *         {@code 0} if there is no timeout.
    */
   private int getConnectTimeout()
   {

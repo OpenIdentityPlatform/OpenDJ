@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.quicksetup.installer;
 
@@ -199,5 +199,27 @@ public class NewSuffixOptions
   public LinkedList<String> getBaseDns()
   {
     return new LinkedList<String>(baseDns);
+  }
+
+  /**
+   * Returns {@link InstallProgressStep} equivalent to the type of new suffix
+   * options.
+   *
+   * @return Returns {@link InstallProgressStep} equivalent to the type of new
+   *         suffix options.
+   */
+  public InstallProgressStep getInstallProgressStep()
+  {
+    switch (type)
+    {
+    case CREATE_BASE_ENTRY:
+      return InstallProgressStep.CREATING_BASE_ENTRY;
+    case IMPORT_FROM_LDIF_FILE:
+      return InstallProgressStep.IMPORTING_LDIF;
+    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+      return InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
+    default:
+      return null;
+    }
   }
 }

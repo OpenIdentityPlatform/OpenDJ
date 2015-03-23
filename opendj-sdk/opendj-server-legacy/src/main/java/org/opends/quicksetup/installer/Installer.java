@@ -22,9 +22,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.ServerDescriptor.*;
+import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.Step.*;
+import static org.opends.quicksetup.util.Utils.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -118,16 +128,6 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
-import static com.forgerock.opendj.cli.Utils.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.admin.ads.ServerDescriptor.*;
-import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.quicksetup.Step.*;
-import static org.opends.quicksetup.util.Utils.*;
-
 /**
  * This is an abstract class that is in charge of actually performing the
  * installation.
@@ -145,35 +145,17 @@ import static org.opends.quicksetup.util.Utils.*;
  */
 public abstract class Installer extends GuiApplication {
 
-  private TopologyCache lastLoadedCache;
+  /** The minimum integer value that can be used for a port. */
+  public static final int MIN_PORT_VALUE = 1;
 
-  /** Indicates that we've detected that there is something installed. */
-  boolean forceToDisplaySetup;
+  /** The maximum integer value that can be used for a port. */
+  public static final int MAX_PORT_VALUE = 65535;
 
-  /** When true indicates that the user has canceled this operation. */
-  protected boolean canceled;
-
-  private boolean javaVersionCheckFailed;
-
-  /** Map containing information about what has been configured remotely. */
-  private Map<ServerDescriptor, ConfiguredReplication>
-      hmConfiguredRemoteReplication =
-          new HashMap<ServerDescriptor, ConfiguredReplication>();
+  /** The name of the backend created on setup. */
+  public static final String BACKEND_NAME = "userRoot";
 
   /** Constants used to do checks. */
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * The minimum integer value that can be used for a port.
-   */
-  public static final int MIN_PORT_VALUE = 1;
-
-  /**
-   * The maximum integer value that can be used for a port.
-   */
-  public static final int MAX_PORT_VALUE = 65535;
 
   private static final int MIN_NUMBER_ENTRIES = 1;
 
@@ -191,9 +173,24 @@ public abstract class Installer extends GuiApplication {
    */
   private static final int THRESHOLD_VERBOSE_START = 100000;
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private TopologyCache lastLoadedCache;
+
+  /** Indicates that we've detected that there is something installed. */
+  boolean forceToDisplaySetup;
+
+  /** When true indicates that the user has canceled this operation. */
+  protected boolean canceled;
+
+  private boolean javaVersionCheckFailed;
+
+  /** Map containing information about what has been configured remotely. */
+  private Map<ServerDescriptor, ConfiguredReplication> hmConfiguredRemoteReplication =
+      new HashMap<ServerDescriptor, ConfiguredReplication>();
+
   /** Set of progress steps that have been completed. */
-  protected Set<InstallProgressStep>
-          completedProgress = new HashSet<InstallProgressStep>();
+  protected Set<InstallProgressStep> completedProgress = new HashSet<InstallProgressStep>();
 
   private final List<WizardStep> lstSteps = new ArrayList<WizardStep>();
 
@@ -205,8 +202,7 @@ public abstract class Installer extends GuiApplication {
     SUBSTEPS.add(Step.REMOTE_REPLICATION_PORTS);
   }
 
-  private final Map<WizardStep, WizardStep> hmPreviousSteps =
-    new HashMap<WizardStep, WizardStep>();
+  private final Map<WizardStep, WizardStep> hmPreviousSteps = new HashMap<WizardStep, WizardStep>();
 
   private char[] selfSignedCertPw;
 
@@ -215,24 +211,20 @@ public abstract class Installer extends GuiApplication {
   private boolean createdRemoteAds;
   private String lastImportProgress;
 
-  /**
-   * An static String that contains the class name of ConfigFileHandler.
-   */
-  protected static final String DEFAULT_CONFIG_CLASS_NAME =
-      "org.opends.server.extensions.ConfigFileHandler";
+  /** A static String that contains the class name of ConfigFileHandler. */
+  protected static final String DEFAULT_CONFIG_CLASS_NAME = "org.opends.server.extensions.ConfigFileHandler";
 
   /** Alias of a self-signed certificate. */
-  protected static final String SELF_SIGNED_CERT_ALIAS =
-    SecurityOptions.SELF_SIGNED_CERT_ALIAS;
-
-  /** The threshold in minutes used to know whether we must display a warning
-   * informing that there is a server clock difference between two servers
-   * whose contents are being replicated. */
-  public static final int THRESHOLD_CLOCK_DIFFERENCE_WARNING = 5;
+  protected static final String SELF_SIGNED_CERT_ALIAS = SecurityOptions.SELF_SIGNED_CERT_ALIAS;
 
   /**
-   * Creates a default instance.
+   * The threshold in minutes used to know whether we must display a warning
+   * informing that there is a server clock difference between two servers whose
+   * contents are being replicated.
    */
+  public static final int THRESHOLD_CLOCK_DIFFERENCE_WARNING = 5;
+
+  /** Creates a default instance. */
   public Installer() {
     lstSteps.add(WELCOME);
     if (LicenseFile.exists()) {
@@ -820,7 +812,9 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods configures the server based on the contents of the UserData
    * object provided in the constructor.
-   * @throws ApplicationException if something goes wrong.
+   *
+   * @throws ApplicationException
+   *           if something goes wrong.
    */
   protected void configureServer() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
@@ -832,11 +826,8 @@ public abstract class Installer extends GuiApplication {
     }
 
     copyTemplateInstance();
-
     writeOpenDSJavaHome();
-
     writeHostName();
-
     checkAbort();
 
     List<String> argList = new ArrayList<String>();
@@ -866,77 +857,7 @@ public abstract class Installer extends GuiApplication {
       argList.add("-q");
     }
 
-    String aliasInKeyStore = sec.getAliasToUse();
-    String aliasInTrustStore = aliasInKeyStore != null ? aliasInKeyStore : SELF_SIGNED_CERT_ALIAS;
-
-    switch (sec.getCertificateType())
-    {
-    case SELF_SIGNED_CERTIFICATE:
-      argList.add("-k");
-      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      break;
-    case JKS:
-      argList.add("-k");
-      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
-      break;
-    case JCEKS:
-      argList.add("-k");
-      argList.add("cn=JCEKS,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      argList.add("cn=JCEKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
-      break;
-    case PKCS12:
-      argList.add("-k");
-      argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      // We are going to import the PCKS12 certificate in a JKS trust store
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
-      break;
-    case PKCS11:
-      argList.add("-k");
-      argList.add("cn=PKCS11,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      // We are going to import the PCKS11 certificate in a JKS trust store
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
-      break;
-    case NO_CERTIFICATE:
-      // Nothing to do.
-      break;
-    default:
-      throw new IllegalStateException("Unknown certificate type: "+
-          sec.getCertificateType());
-    }
-
+    addCertificateArguments(sec, argList);
     // For the moment do not enable JMX
     if (getUserData().getServerJMXPort() > 0)
     {
@@ -1002,7 +923,7 @@ public abstract class Installer extends GuiApplication {
           }
           else if (getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
           {
-            helper.deleteBackend(getBackendName());
+            helper.deleteBackend(BACKEND_NAME);
           }
         } catch (ApplicationException aex)
         {
@@ -1019,6 +940,7 @@ public abstract class Installer extends GuiApplication {
         }
         isOver = true;
       }
+
       @Override
       public void abort()
       {
@@ -1028,18 +950,19 @@ public abstract class Installer extends GuiApplication {
     invokeLongOperation(thread);
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
+    configureCertificate(sec);
+  }
 
+  private void configureCertificate(SecurityOptions sec) throws ApplicationException
+  {
     try
     {
       SecurityOptions.CertificateType certType = sec.getCertificateType();
       if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
       {
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_UPDATING_CERTIFICATES.get()));
+        notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UPDATING_CERTIFICATES.get()));
       }
-      CertificateManager certManager;
-      CertificateManager trustManager;
-      File f;
+
       switch (certType)
       {
       case NO_CERTIFICATE:
@@ -1047,132 +970,38 @@ public abstract class Installer extends GuiApplication {
         break;
       case SELF_SIGNED_CERTIFICATE:
         String pwd = getSelfSignedCertificatePwd();
-        certManager = new CertificateManager(
-            getSelfSignedKeystorePath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            pwd);
+        final CertificateManager certManager =
+            new CertificateManager(getSelfSignedKeystorePath(), CertificateManager.KEY_STORE_TYPE_JKS, pwd);
         certManager.generateSelfSignedCertificate(SELF_SIGNED_CERT_ALIAS,
-            getSelfSignedCertificateSubjectDN(),
-            getSelfSignedCertificateValidity());
-        SetupUtils.exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS,
-            getTemporaryCertificatePath());
-
-        trustManager = new CertificateManager(
-            getTrustManagerPath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            pwd);
-        trustManager.addCertificate(SELF_SIGNED_CERT_ALIAS,
-            new File(getTemporaryCertificatePath()));
-        createProtectedFile(getKeystorePinPath(), pwd);
-        f = new File(getTemporaryCertificatePath());
-        f.delete();
-
+            getSelfSignedCertificateSubjectDN(), getSelfSignedCertificateValidity());
+        SetupUtils.exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS, getTemporaryCertificatePath());
+        configureTrustStore(CertificateManager.KEY_STORE_TYPE_JKS, SELF_SIGNED_CERT_ALIAS, pwd);
         break;
+
       case JKS:
-        certManager = new CertificateManager(
-            sec.getKeystorePath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            sec.getKeystorePassword());
-        if (aliasInKeyStore != null)
-        {
-          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
-              getTemporaryCertificatePath());
-        }
-        else
-        {
-          SetupUtils.exportCertificate(certManager,
-              getTemporaryCertificatePath());
-        }
-
-        trustManager = new CertificateManager(
-            getTrustManagerPath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            sec.getKeystorePassword());
-        trustManager.addCertificate(aliasInTrustStore,
-            new File(getTemporaryCertificatePath()));
-        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
-        f = new File(getTemporaryCertificatePath());
-        f.delete();
+        configureKeyAndTrustStore(sec.getKeystorePath(), CertificateManager.KEY_STORE_TYPE_JKS,
+            CertificateManager.KEY_STORE_TYPE_JKS, sec);
         break;
+
       case JCEKS:
-        certManager = new CertificateManager(
-            sec.getKeystorePath(),
-            CertificateManager.KEY_STORE_TYPE_JCEKS,
-            sec.getKeystorePassword());
-        if (aliasInKeyStore != null)
-        {
-          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
-              getTemporaryCertificatePath());
-        }
-        else
-        {
-          SetupUtils.exportCertificate(certManager,
-              getTemporaryCertificatePath());
-        }
-
-        trustManager = new CertificateManager(
-            getTrustManagerPath(),
-            CertificateManager.KEY_STORE_TYPE_JCEKS,
-            sec.getKeystorePassword());
-        trustManager.addCertificate(aliasInTrustStore,
-            new File(getTemporaryCertificatePath()));
-        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
-        f = new File(getTemporaryCertificatePath());
-        f.delete();
+        configureKeyAndTrustStore(sec.getKeystorePath(), CertificateManager.KEY_STORE_TYPE_JCEKS,
+            CertificateManager.KEY_STORE_TYPE_JCEKS, sec);
         break;
+
       case PKCS12:
-        certManager = new CertificateManager(
-            sec.getKeystorePath(),
-            CertificateManager.KEY_STORE_TYPE_PKCS12,
-            sec.getKeystorePassword());
-        if (aliasInKeyStore != null)
-        {
-          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
-              getTemporaryCertificatePath());
-        }
-        else
-        {
-          SetupUtils.exportCertificate(certManager,
-              getTemporaryCertificatePath());
-        }
-
-        trustManager = new CertificateManager(
-            getTrustManagerPath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            sec.getKeystorePassword());
-        trustManager.addCertificate(aliasInTrustStore,
-            new File(getTemporaryCertificatePath()));
-        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
-        f = new File(getTemporaryCertificatePath());
-        f.delete();
+        configureKeyAndTrustStore(sec.getKeystorePath(), CertificateManager.KEY_STORE_TYPE_PKCS12,
+            CertificateManager.KEY_STORE_TYPE_JKS, sec);
         break;
+
       case PKCS11:
-        certManager = new CertificateManager(
-            CertificateManager.KEY_STORE_PATH_PKCS11,
-            CertificateManager.KEY_STORE_TYPE_PKCS11,
-            sec.getKeystorePassword());
-        if (aliasInKeyStore != null)
-        {
-          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
-              getTemporaryCertificatePath());
-        }
-        else
-        {
-          SetupUtils.exportCertificate(certManager,
-              getTemporaryCertificatePath());
-        }
-
-        trustManager = new CertificateManager(
-            getTrustManagerPath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            sec.getKeystorePassword());
-        trustManager.addCertificate(aliasInTrustStore,
-            new File(getTemporaryCertificatePath()));
-        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
+        configureKeyAndTrustStore(CertificateManager.KEY_STORE_PATH_PKCS11, CertificateManager.KEY_STORE_TYPE_PKCS11,
+            CertificateManager.KEY_STORE_TYPE_JKS, sec);
         break;
+
       default:
-        throw new IllegalStateException("Unknown certificate type: "+certType);
+        throw new IllegalStateException("Unknown certificate type: " + certType);
       }
+
       if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
       {
         notifyListeners(getFormattedDoneWithLineBreak());
@@ -1180,11 +1009,104 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      logger.error(LocalizableMessage.raw("Error configuring certificate: "+t, t));
+      logger.error(LocalizableMessage.raw("Error configuring certificate: " + t, t));
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          getThrowableMsg(INFO_ERROR_CONFIGURING_CERTIFICATE.get(),
-                  t), t);
+          ReturnCode.CONFIGURATION_ERROR, getThrowableMsg(INFO_ERROR_CONFIGURING_CERTIFICATE.get(), t), t);
+    }
+  }
+
+  private void configureKeyAndTrustStore(final String keyStorePath, final String keyStoreType,
+      final String trustStoreType, final SecurityOptions sec) throws Exception
+  {
+    final String keystorePassword = sec.getKeystorePassword();
+    final String keyStoreAlias = sec.getAliasToUse();
+
+    CertificateManager certManager = new CertificateManager(keyStorePath, keyStoreType, keystorePassword);
+    SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
+    configureTrustStore(trustStoreType, keyStoreAlias, keystorePassword);
+  }
+
+  private void configureTrustStore(final String type, final String keyStoreAlias, final String password)
+      throws Exception
+  {
+    final String alias = keyStoreAlias != null ? keyStoreAlias : SELF_SIGNED_CERT_ALIAS;
+    final CertificateManager trustMgr = new CertificateManager(getTrustManagerPath(), type, password);
+    trustMgr.addCertificate(alias, new File(getTemporaryCertificatePath()));
+
+    createProtectedFile(getKeystorePinPath(), password);
+    final File f = new File(getTemporaryCertificatePath());
+    f.delete();
+  }
+
+  private void addCertificateArguments(SecurityOptions sec, List<String> argList)
+  {
+    final String aliasInKeyStore = sec.getAliasToUse();
+
+    switch (sec.getCertificateType())
+    {
+    case SELF_SIGNED_CERTIFICATE:
+      argList.add("-k");
+      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      break;
+    case JKS:
+      argList.add("-k");
+      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
+      break;
+    case JCEKS:
+      argList.add("-k");
+      argList.add("cn=JCEKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JCEKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
+      break;
+    case PKCS12:
+      argList.add("-k");
+      argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      // We are going to import the PCKS12 certificate in a JKS trust store
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
+      break;
+    case PKCS11:
+      argList.add("-k");
+      argList.add("cn=PKCS11,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      // We are going to import the PCKS11 certificate in a JKS trust store
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
+      break;
+    case NO_CERTIFICATE:
+      // Nothing to do.
+      break;
+    default:
+      throw new IllegalStateException("Unknown certificate type: " + sec.getCertificateType());
     }
   }
 
@@ -1219,7 +1141,7 @@ public abstract class Installer extends GuiApplication {
 
     List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(getBackendName());
+    argList.add(BACKEND_NAME);
     for (File f : ldifFiles)
     {
       argList.add("-l");
@@ -1274,37 +1196,33 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods imports the contents of an LDIF file based on the contents of
    * the UserData object provided in the constructor.
-   * @throws ApplicationException if something goes wrong.
+   *
+   * @throws ApplicationException
+   *           if something goes wrong.
    */
   private void importLDIF() throws ApplicationException {
-    LinkedList<String> ldifPaths =
-      getUserData().getNewSuffixOptions().getLDIFPaths();
+    LinkedList<String> ldifPaths = getUserData().getNewSuffixOptions().getLDIFPaths();
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (ldifPaths.size() > 1)
     {
       if (isVerbose())
       {
-        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(
-            joinAsString(", ", ldifPaths))));
+        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(joinAsString(", ", ldifPaths))));
         mb.append(getLineBreak());
       }
       else
       {
-        mb.append(getFormattedProgress(
-            INFO_PROGRESS_IMPORTING_LDIFS_NON_VERBOSE.get(
-            joinAsString(", ", ldifPaths))));
+        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS_NON_VERBOSE.get(joinAsString(", ", ldifPaths))));
       }
     }
     else if (isVerbose())
     {
-      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
-        ldifPaths.getFirst())));
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(ldifPaths.getFirst())));
       mb.append(getLineBreak());
     }
     else
     {
-      mb.append(getFormattedProgress(
-          INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(ldifPaths.getFirst())));
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(ldifPaths.getFirst())));
     }
     notifyListeners(mb.toMessage());
 
@@ -1318,7 +1236,7 @@ public abstract class Installer extends GuiApplication {
 
     List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(getBackendName());
+    argList.add(BACKEND_NAME);
     for (String ldifPath : ldifPaths)
     {
       argList.add("-l");
@@ -1420,14 +1338,12 @@ public abstract class Installer extends GuiApplication {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (isVerbose() || nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE)
     {
-      mb.append(getFormattedProgress(
-            INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries)));
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries)));
       mb.append(getLineBreak());
     }
     else
     {
-      mb.append(getFormattedProgress(
-          INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(nEntries)));
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(nEntries)));
     }
     notifyListeners(mb.toMessage());
 
@@ -1443,7 +1359,7 @@ public abstract class Installer extends GuiApplication {
     }
     final List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(getBackendName());
+    argList.add(BACKEND_NAME);
     argList.add("-A");
     argList.add(templatePath.getAbsolutePath());
     argList.add("-s"); // seed
@@ -1470,7 +1386,8 @@ public abstract class Installer extends GuiApplication {
                 ReturnCode.IMPORT_ERROR,
                 INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(result), null);
           }
-        } catch (Throwable t)
+        }
+        catch (Throwable t)
         {
           ae = new ApplicationException(
               ReturnCode.IMPORT_ERROR,
@@ -1626,7 +1543,7 @@ public abstract class Installer extends GuiApplication {
     {
       Set<String> baseDns = new HashSet<String>(
         getUserData().getNewSuffixOptions().getBaseDns());
-      hmBackendSuffix.put(getBackendName(), baseDns);
+      hmBackendSuffix.put(BACKEND_NAME, baseDns);
     }
     else
     {
@@ -1684,7 +1601,7 @@ public abstract class Installer extends GuiApplication {
       deleteUserRoot = true;
       for (String backendName : hmBackendSuffix.keySet())
       {
-        if (backendName.equalsIgnoreCase(getBackendName()))
+        if (backendName.equalsIgnoreCase(BACKEND_NAME))
         {
           deleteUserRoot = false;
           break;
@@ -1701,12 +1618,12 @@ public abstract class Installer extends GuiApplication {
       if (deleteUserRoot)
       {
         // Delete the userRoot backend.
-        helper.deleteBackend(ctx, getBackendName(),
+        helper.deleteBackend(ctx, BACKEND_NAME,
             ConnectionUtils.getHostPort(ctx));
       }
       for (String backendName : hmBackendSuffix.keySet())
       {
-        if (backendName.equalsIgnoreCase(getBackendName()))
+        if (backendName.equalsIgnoreCase(BACKEND_NAME))
         {
           helper.setBaseDns(
               ctx, backendName, hmBackendSuffix.get(backendName),
@@ -2234,15 +2151,6 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
-   * Returns the default backend name (the one that will be created).
-   * @return the default backend name (the one that will be created).
-   */
-  private String getBackendName()
-  {
-    return "userRoot";
-  }
-
-  /**
    * Sets the current progress step of the installation process.
    * @param currentProgressStep the current progress step of the installation
    * process.
@@ -2258,38 +2166,33 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods updates the data on the server based on the contents of the
    * UserData object provided in the constructor.
-   * @throws ApplicationException if something goes wrong.
+   *
+   * @throws ApplicationException
+   *           if something goes wrong.
    */
   protected void createData() throws ApplicationException
   {
-    if (createNotReplicatedSuffix())
+    if (createNotReplicatedSuffix() &&
+        getUserData().getNewSuffixOptions().getType() != NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY)
     {
+      currentProgressStep = getUserData().getNewSuffixOptions().getInstallProgressStep();
+      if (isVerbose())
+      {
+        notifyListeners(getTaskSeparator());
+      }
+
       switch (getUserData().getNewSuffixOptions().getType())
       {
       case CREATE_BASE_ENTRY:
-        currentProgressStep = InstallProgressStep.CREATING_BASE_ENTRY;
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
         createBaseEntry();
         break;
       case IMPORT_FROM_LDIF_FILE:
-        currentProgressStep = InstallProgressStep.IMPORTING_LDIF;
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
         importLDIF();
         break;
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        currentProgressStep =
-          InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
         importAutomaticallyGenerated();
+        break;
+      default:
         break;
       }
     }
