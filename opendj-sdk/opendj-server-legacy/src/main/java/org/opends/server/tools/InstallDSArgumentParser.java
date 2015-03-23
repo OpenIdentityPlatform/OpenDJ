@@ -538,9 +538,10 @@ public class InstallDSArgumentParser extends ArgumentParser
 
   /**
    * Checks that there are no conflicts with the import data arguments.
-   * @param errorMessages the list of messages to which we add the error
-   * messages describing the problems encountered during the execution of the
-   * checking.
+   *
+   * @param errorMessages
+   *          the list of messages to which we add the error messages describing
+   *          the problems encountered during the execution of the checking.
    */
   private void checkImportDataArguments(Collection<LocalizableMessage> errorMessages)
   {
@@ -579,16 +580,15 @@ public class InstallDSArgumentParser extends ArgumentParser
       errorMessages.add(conflictingArgs(skippedImportFileArg, sampleDataArg));
     }
 
-    if (noPromptArg.isPresent() && !baseDNArg.isPresent() &&
-        baseDNArg.getDefaultValue() == null)
+    final boolean noBaseDNProvided = !baseDNArg.isPresent() && baseDNArg.getDefaultValue() == null;
+    if (noPromptArg.isPresent() && noBaseDNProvided)
     {
       Argument[] args = {importLDIFArg, addBaseEntryArg, sampleDataArg};
       for (Argument arg : args)
       {
         if (arg.isPresent())
         {
-          errorMessages.add(ERR_INSTALLDS_NO_BASE_DN_AND_CONFLICTING_ARG.get(
-              "--"+arg.getLongIdentifier()));
+          errorMessages.add(ERR_INSTALLDS_NO_BASE_DN_AND_CONFLICTING_ARG.get("--" + arg.getLongIdentifier()));
         }
       }
     }

@@ -27,22 +27,41 @@
 
 package org.opends.quicksetup.installer;
 
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-
-import javax.naming.ldap.InitialLdapContext;
-
+import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.messages.CoreMessages;
+import org.opends.messages.JebMessages;
+import org.opends.messages.ReplicationMessages;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
@@ -51,27 +70,25 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
-
-import static org.opends.quicksetup.util.Utils.*;
-
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.std.client.*;
-import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.BackendCfgClient;
+import org.opends.server.admin.std.client.CryptoManagerCfgClient;
+import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
+import org.opends.server.admin.std.client.ReplicationServerCfgClient;
+import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
+import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.std.meta.BackendCfgDefn;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationSynchronizationProviderCfgDefn;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.CoreMessages;
-import org.opends.messages.JebMessages;
-import org.opends.messages.ReplicationMessages;
-
-import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
@@ -101,7 +118,7 @@ public class InstallerHelper {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
-
+  private static final long ONE_MEGABYTE = 1024L * 1024;
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
    * @param args the arguments to be passed to ConfigureDS.configMain.
@@ -116,98 +133,86 @@ public class InstallerHelper {
 
   /**
    * Invokes the import-ldif command-line with the provided parameters.
-   * @param application the application that is launching this.
-   * @param args the arguments to be passed to import-ldif.
+   *
+   * @param application
+   *          the application that is launching this.
+   * @param args
+   *          the arguments to be passed to import-ldif.
    * @return the return code of the import-ldif call.
-   * @throws IOException if the process could not be launched.
-   * @throws InterruptedException if the process was interrupted.
+   * @throws IOException
+   *           if the process could not be launched.
+   * @throws InterruptedException
+   *           if the process was interrupted.
    */
-  public int invokeImportLDIF(final Application application, String[] args)
-  throws IOException, InterruptedException
+  public int invokeImportLDIF(final Application application, String[] args) throws IOException, InterruptedException
   {
-    File installPath = new File(application.getInstallationPath());
-    ArrayList<String> argList = new ArrayList<String>();
-    File binPath;
-    if (isWindows())
-    {
-      binPath =
-        new File(installPath, Installation.WINDOWS_BINARIES_PATH_RELATIVE);
-    } else
-    {
-      binPath =
-        new File(installPath, Installation.UNIX_BINARIES_PATH_RELATIVE);
-    }
-    File importPath;
-    if (isWindows())
-    {
-      importPath = new File(binPath, Installation.WINDOWS_IMPORT_LDIF);
-    } else
-    {
-      importPath = new File(binPath, Installation.UNIX_IMPORT_LDIF);
-    }
-    argList.add(Utils.getScriptPath(importPath.getAbsolutePath()));
-    argList.addAll(Arrays.asList(args));
+    final File installPath = new File(application.getInstallationPath());
+    final File binPath = new File(installPath, isWindows() ? Installation.WINDOWS_BINARIES_PATH_RELATIVE
+                                                           : Installation.UNIX_BINARIES_PATH_RELATIVE);
+    final File importLDIFPath = new File(binPath, isWindows() ? Installation.WINDOWS_IMPORT_LDIF
+                                                              : Installation.UNIX_IMPORT_LDIF);
 
-    String[] allArgs = new String[argList.size()];
-    argList.toArray(allArgs);
-    logger.info(LocalizableMessage.raw("import-ldif arg list: "+argList));
-    ProcessBuilder pb = new ProcessBuilder(allArgs);
-    Map<String, String> env = pb.environment();
+    final ArrayList<String> argList = new ArrayList<String>();
+    argList.add(Utils.getScriptPath(importLDIFPath.getAbsolutePath()));
+    argList.addAll(Arrays.asList(args));
+    logger.info(LocalizableMessage.raw("import-ldif arg list: " + argList));
+
+    final ProcessBuilder processBuilder = new ProcessBuilder(argList.toArray(new String[argList.size()]));
+    final Map<String, String> env = processBuilder.environment();
     env.remove(SetupUtils.OPENDJ_JAVA_HOME);
     env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
     env.remove("CLASSPATH");
-    pb.directory(installPath);
+    processBuilder.directory(installPath);
+
     Process process = null;
     try
     {
-      process = pb.start();
-      final BufferedReader err =
-        new BufferedReader(new InputStreamReader(process.getErrorStream()));
+      process = processBuilder.start();
+      final BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
       new OutputReader(err)
       {
         @Override
-        public void processLine(String line)
+        public void processLine(final String line)
         {
-          logger.warn(LocalizableMessage.raw("import-ldif error log: "+line));
+          logger.warn(LocalizableMessage.raw("import-ldif error log: " + line));
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
       };
-      BufferedReader out =
-        new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+      final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
       new OutputReader(out)
       {
         @Override
-        public void processLine(String line)
+        public void processLine(final String line)
         {
-          logger.info(LocalizableMessage.raw("import-ldif out log: "+line));
+          logger.info(LocalizableMessage.raw("import-ldif out log: " + line));
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
       };
+
       return process.waitFor();
     }
     finally
     {
       if (process != null)
       {
-        try
-        {
-          process.getErrorStream().close();
-        }
-        catch (Throwable t)
-        {
-          logger.warn(LocalizableMessage.raw("Error closing error stream: "+t, t));
-        }
-        try
-        {
-          process.getOutputStream().close();
-        }
-        catch (Throwable t)
-        {
-          logger.warn(LocalizableMessage.raw("Error closing output stream: "+t, t));
-        }
+        closeProcessStream(process.getErrorStream(), "error");
+        closeProcessStream(process.getOutputStream(), "output");
       }
+    }
+  }
+
+  private void closeProcessStream(final Closeable stream, final String streamName)
+  {
+    try
+    {
+      stream.close();
+    }
+    catch (Throwable t)
+    {
+      logger.warn(LocalizableMessage.raw("Error closing " + streamName + " stream: " + t, t));
     }
   }
 
@@ -604,7 +609,7 @@ public class InstallerHelper {
         ReplicationDomainCfgClient domain = null;
         boolean isCreated;
         String domainName = null;
-        for (int i=0; i<domains.length && (domain == null); i++)
+        for (int i = 0; i < domains.length && domain == null; i++)
         {
           if (areDnsEqual(dn,
               domains[i].getBaseDN().toString()))
@@ -667,31 +672,31 @@ public class InstallerHelper {
 
   /**
    * Configures the replication on a given server.
-   * @param remoteCtx the connection to the server where we want to configure
-   * the replication.
-   * @param replConf the object describing what was configured.
-   * @param serverDisplay the server display.
-   * @throws ApplicationException if something goes wrong.
+   *
+   * @param remoteCtx
+   *          the connection to the server where we want to configure the
+   *          replication.
+   * @param replConf
+   *          the object describing what was configured.
+   * @param serverDisplay
+   *          the server display.
+   * @throws ApplicationException
+   *           if something goes wrong.
    */
-  public void unconfigureReplication(
-      InitialLdapContext remoteCtx, ConfiguredReplication replConf,
-      String serverDisplay)
-  throws ApplicationException
+  public void unconfigureReplication(InitialLdapContext remoteCtx, ConfiguredReplication replConf, String serverDisplay)
+      throws ApplicationException
   {
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(remoteCtx));
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(remoteCtx));
       RootCfgClient root = mCtx.getRootConfiguration();
-
-      /*
-       * Unconfigure Synchronization plugin.
-       */
+      final String syncProvider = "Multimaster Synchronization";
+      // Unconfigure Synchronization plugin.
       if (replConf.isSynchProviderCreated())
       {
         try
         {
-          root.removeSynchronizationProvider("Multimaster Synchronization");
+          root.removeSynchronizationProvider(syncProvider);
         }
         catch (ManagedObjectNotFoundException monfe)
         {
@@ -703,20 +708,19 @@ public class InstallerHelper {
         try
         {
           ReplicationSynchronizationProviderCfgClient sync =
-            (ReplicationSynchronizationProviderCfgClient)
-            root.getSynchronizationProvider("Multimaster Synchronization");
+              (ReplicationSynchronizationProviderCfgClient) root.getSynchronizationProvider(syncProvider);
           if (replConf.isSynchProviderEnabled())
           {
             sync.setEnabled(Boolean.FALSE);
           }
+
           if (replConf.isReplicationServerCreated())
           {
             sync.removeReplicationServer();
           }
           else if (sync.hasReplicationServer())
           {
-            ReplicationServerCfgClient replicationServer =
-              sync.getReplicationServer();
+            ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
             Set<String> replServers = replicationServer.getReplicationServer();
             if (replServers != null)
             {
@@ -725,6 +729,7 @@ public class InstallerHelper {
               replicationServer.commit();
             }
           }
+
           for (ConfiguredDomain domain : replConf.getDomainsConf())
           {
             if (domain.isCreated())
@@ -735,8 +740,7 @@ public class InstallerHelper {
             {
               try
               {
-                ReplicationDomainCfgClient d =
-                  sync.getReplicationDomain(domain.getDomainName());
+                ReplicationDomainCfgClient d = sync.getReplicationDomain(domain.getDomainName());
                 Set<String> replServers = d.getReplicationServer();
                 if (replServers != null)
                 {
@@ -758,6 +762,7 @@ public class InstallerHelper {
           // It does not exist.
         }
       }
+
       if (replConf.isSecureReplicationEnabled())
       {
         CryptoManagerCfgClient crypto = root.getCryptoManager();
@@ -770,75 +775,78 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
-          t);
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+          serverDisplay, t), t);
     }
   }
 
   /**
    * For the given state provided by a Task tells if the task is done or not.
-   * @param sState the String representing the task state.
+   *
+   * @param sState
+   *          the String representing the task state.
    * @return <CODE>true</CODE> if the task is done and <CODE>false</CODE>
-   * otherwise.
+   *         otherwise.
    */
   public boolean isDone(String sState)
   {
-    TaskState state = TaskState.fromString(sState);
-    return TaskState.isDone(state);
+    return TaskState.isDone(TaskState.fromString(sState));
   }
 
   /**
    * For the given state provided by a Task tells if the task is successful or
    * not.
-   * @param sState the String representing the task state.
+   *
+   * @param sState
+   *          the String representing the task state.
    * @return <CODE>true</CODE> if the task is successful and <CODE>false</CODE>
-   * otherwise.
+   *         otherwise.
    */
   public boolean isSuccessful(String sState)
   {
-    TaskState state = TaskState.fromString(sState);
-    return TaskState.isSuccessful(state);
+    return TaskState.isSuccessful(TaskState.fromString(sState));
   }
 
   /**
    * For the given state provided by a Task tells if the task is complete with
    * errors or not.
-   * @param sState the String representing the task state.
+   *
+   * @param sState
+   *          the String representing the task state.
    * @return <CODE>true</CODE> if the task is complete with errors and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isCompletedWithErrors(String sState)
   {
-    TaskState state = TaskState.fromString(sState);
-    return state == TaskState.COMPLETED_WITH_ERRORS;
+    return TaskState.COMPLETED_WITH_ERRORS == TaskState.fromString(sState);
   }
 
   /**
    * For the given state provided by a Task tells if the task is stopped by
    * error or not.
-   * @param sState the String representing the task state.
+   *
+   * @param sState
+   *          the String representing the task state.
    * @return <CODE>true</CODE> if the task is stopped by error and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isStoppedByError(String sState)
   {
-    TaskState state = TaskState.fromString(sState);
-    return state == TaskState.STOPPED_BY_ERROR;
+    return TaskState.STOPPED_BY_ERROR == TaskState.fromString(sState);
   }
 
   /**
    * Tells whether the provided log message corresponds to a peers not found
    * error during the initialization of a replica or not.
-   * @param logMsg the log message.
+   *
+   * @param logMsg
+   *          the log message.
    * @return <CODE>true</CODE> if the log message corresponds to a peers not
-   * found error during initialization and <CODE>false</CODE> otherwise.
+   *         found error during initialization and <CODE>false</CODE> otherwise.
    */
   public boolean isPeersNotFoundError(String logMsg)
   {
-    return logMsg.contains("=" + ReplicationMessages.
-        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal());
+    return logMsg.contains("=" + ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal());
   }
 
   /**
@@ -850,7 +858,7 @@ public class InstallerHelper {
   {
     Random r = new Random();
     int id = 0;
-    while ((id == 0) || usedIds.contains(id))
+    while (id == 0 || usedIds.contains(id))
     {
       id = r.nextInt(MAX_ID_VALUE);
     }
@@ -891,33 +899,33 @@ public class InstallerHelper {
   }
 
   /**
-   * Writes the set-java-home file that is used by the scripts to set the
-   * java home and the java arguments.
-   * @param uData the data provided by the user.
-   * @param installPath where the server is installed.
-   * @throws IOException if an error occurred writing the file.
+   * Writes the set-java-home file that is used by the scripts to set the java
+   * home and the java arguments.
+   *
+   * @param uData
+   *          the data provided by the user.
+   * @param installPath
+   *          where the server is installed.
+   * @throws IOException
+   *           if an error occurred writing the file.
    */
-  public void writeSetOpenDSJavaHome(UserData uData,
-      String installPath) throws IOException
+  public void writeSetOpenDSJavaHome(UserData uData, String installPath) throws IOException
   {
     String javaHome = System.getProperty("java.home");
-    if ((javaHome == null) || (javaHome.length() == 0))
+    if (javaHome == null || javaHome.length() == 0)
     {
       javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
     }
 
     // Try to transform things if necessary.  The following map has as key
-    // the original JavaArgument object and as value the 'transformed'
-    // JavaArgument.
-    Map<JavaArguments, JavaArguments> hmJavaArguments =
-      new HashMap<JavaArguments, JavaArguments>();
+    // the original JavaArgument object and as value the 'transformed' JavaArgument.
+    Map<JavaArguments, JavaArguments> hmJavaArguments = new HashMap<JavaArguments, JavaArguments>();
     for (String script : uData.getScriptNamesForJavaArguments())
     {
       JavaArguments origJavaArguments = uData.getJavaArguments(script);
       if (hmJavaArguments.get(origJavaArguments) == null)
       {
-        if (Utils.supportsOption(origJavaArguments.getStringArguments(),
-            javaHome, installPath))
+        if (Utils.supportsOption(origJavaArguments.getStringArguments(), javaHome, installPath))
         {
           // The argument works, so just use it.
           hmJavaArguments.put(origJavaArguments, origJavaArguments);
@@ -926,16 +934,14 @@ public class InstallerHelper {
         {
           // We have to fix it somehow: test separately memory and other
           // arguments to see if something works.
-          JavaArguments transformedArguments =
-            getBestEffortArguments(origJavaArguments, javaHome, installPath);
+          JavaArguments transformedArguments = getBestEffortArguments(origJavaArguments, javaHome, installPath);
           hmJavaArguments.put(origJavaArguments, transformedArguments);
         }
       }
-        // else, support is already checked.
+      // else, support is already checked.
     }
 
-    Properties fileProperties = getJavaPropertiesFileContents(
-        getPropertiesFileName(installPath));
+    Properties fileProperties = getJavaPropertiesFileContents(getPropertiesFileName(installPath));
     Map<String, JavaArguments> args = new HashMap<String, JavaArguments>();
     Map<String, String> otherProperties = new HashMap<String, String>();
 
@@ -947,13 +953,10 @@ public class InstallerHelper {
 
       // Apply the following policy: overwrite the values in the file only
       // if the values provided by the user are not the default ones.
-
       String propertiesKey = getJavaArgPropertyForScript(script);
-      if (origJavaArgument.equals(defaultJavaArg) &&
-          fileProperties.containsKey(propertiesKey))
+      if (origJavaArgument.equals(defaultJavaArg) && fileProperties.containsKey(propertiesKey))
       {
-        otherProperties.put(propertiesKey,
-            fileProperties.getProperty(propertiesKey));
+        otherProperties.put(propertiesKey, fileProperties.getProperty(propertiesKey));
       }
       else
       {
@@ -961,28 +964,8 @@ public class InstallerHelper {
       }
     }
 
-    String v = fileProperties.getProperty("overwrite-env-java-home");
-    if (v == null ||
-       (!v.equalsIgnoreCase("true") && !v.equalsIgnoreCase("false")))
-    {
-      otherProperties.put("overwrite-env-java-home", "false");
-    }
-    else
-    {
-      otherProperties.put("overwrite-env-java-home", v.toLowerCase());
-    }
-
-    v = fileProperties.getProperty("overwrite-env-java-args");
-    if (v == null ||
-        (!v.equalsIgnoreCase("true") && !v.equalsIgnoreCase("false")))
-    {
-      otherProperties.put("overwrite-env-java-args", "false");
-    }
-    else
-    {
-      otherProperties.put("overwrite-env-java-args", v.toLowerCase());
-    }
-
+    putBooleanPropertyFrom("overwrite-env-java-home", fileProperties, otherProperties);
+    putBooleanPropertyFrom("overwrite-env-java-args", fileProperties, otherProperties);
 
     if (!fileProperties.containsKey("default.java-home"))
     {
@@ -992,17 +975,34 @@ public class InstallerHelper {
     writeSetOpenDSJavaHome(installPath, javaHome, args, otherProperties);
   }
 
+  private void putBooleanPropertyFrom(
+      final String propertyName, final Properties propertiesSource, final Map<String, String> destMap)
+  {
+    final String propertyValue = propertiesSource.getProperty(propertyName);
+    if (propertyValue == null || !("true".equalsIgnoreCase(propertyValue) || "false".equalsIgnoreCase(propertyValue)))
+    {
+      destMap.put(propertyName, "false");
+    }
+    else
+    {
+      destMap.put("overwrite-env-java-home", propertyValue.toLowerCase());
+    }
+  }
+
   /**
    * Tries to figure out a new JavaArguments object that works, based on the
-   * provided JavaArguments.  It is more efficient to call this method if we
-   * are sure that the provided JavaArguments object does not work.
-   * @param origJavaArguments the java arguments that does not work.
-   * @param javaHome the java home to be used to test the java arguments.
-   * @param installPath the install path.
+   * provided JavaArguments. It is more efficient to call this method if we are
+   * sure that the provided JavaArguments object does not work.
+   *
+   * @param origJavaArguments
+   *          the java arguments that does not work.
+   * @param javaHome
+   *          the java home to be used to test the java arguments.
+   * @param installPath
+   *          the install path.
    * @return a working JavaArguments object.
    */
-  private JavaArguments getBestEffortArguments(JavaArguments origJavaArguments,
-      String javaHome, String installPath)
+  private JavaArguments getBestEffortArguments(JavaArguments origJavaArguments, String javaHome, String installPath)
   {
     JavaArguments memArgs = new JavaArguments();
     memArgs.setInitialMemory(origJavaArguments.getInitialMemory());
@@ -1015,8 +1015,7 @@ public class InstallerHelper {
     }
 
     JavaArguments additionalArgs = new JavaArguments();
-    additionalArgs.setAdditionalArguments(
-        origJavaArguments.getAdditionalArguments());
+    additionalArgs.setAdditionalArguments(origJavaArguments.getAdditionalArguments());
     String a = additionalArgs.getStringArguments();
     boolean supportsAdditional = false;
     if (a.length() > 0)
@@ -1038,13 +1037,13 @@ public class InstallerHelper {
       if (maxMemory != -1)
       {
         maxMemory = maxMemory / 2;
-        while ((1024L * 1024 * maxMemory) < currentMaxMemory &&
-            !Utils.supportsOption(JavaArguments.getMaxMemoryArgument(maxMemory),
-                javaHome, installPath))
+        while (ONE_MEGABYTE * maxMemory < currentMaxMemory
+            && !Utils.supportsOption(JavaArguments.getMaxMemoryArgument(maxMemory), javaHome, installPath))
         {
           maxMemory = maxMemory / 2;
         }
-        if ((1024L * 1024 * maxMemory) > currentMaxMemory)
+
+        if (ONE_MEGABYTE * maxMemory > currentMaxMemory)
         {
           // Supports this option.
           javaArgs.setMaxMemory(maxMemory);
@@ -1053,14 +1052,12 @@ public class InstallerHelper {
     }
     if (supportsAdditional)
     {
-      javaArgs.setAdditionalArguments(
-          origJavaArguments.getAdditionalArguments());
+      javaArgs.setAdditionalArguments(origJavaArguments.getAdditionalArguments());
     }
     return javaArgs;
   }
 
-  private List<String> getJavaPropertiesFileComments(String propertiesFile)
-  throws IOException
+  private List<String> getJavaPropertiesFileComments(String propertiesFile) throws IOException
   {
     ArrayList<String> commentLines = new ArrayList<String>();
     BufferedReader reader = new BufferedReader(new FileReader(propertiesFile));
@@ -1068,7 +1065,7 @@ public class InstallerHelper {
     while ((line = reader.readLine()) != null)
     {
       String trimmedLine = line.trim();
-      if (trimmedLine.startsWith("#") || (trimmedLine.length() == 0))
+      if (trimmedLine.startsWith("#") || trimmedLine.length() == 0)
       {
         commentLines.add(line);
       }
@@ -1080,8 +1077,7 @@ public class InstallerHelper {
     return commentLines;
   }
 
-  private Properties getJavaPropertiesFileContents(String propertiesFile)
-  throws IOException
+  private Properties getJavaPropertiesFileContents(String propertiesFile) throws IOException
   {
     FileInputStream fs = null;
     Properties fileProperties = new Properties();
@@ -1102,78 +1098,65 @@ public class InstallerHelper {
 
   private String getPropertiesFileName(String installPath)
   {
-    String configDir = Utils.getPath(Utils
-        .getInstancePathFromInstallPath(installPath),
-        Installation.CONFIG_PATH_RELATIVE);
-    return Utils.getPath(
-        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    String configDir = Utils.getPath(
+        Utils.getInstancePathFromInstallPath(installPath), Installation.CONFIG_PATH_RELATIVE);
+    return Utils.getPath(configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
   }
 
   /**
-   * Writes the set-java-home file that is used by the scripts to set the
-   * java home and the java arguments.
-   * Since the set-java-home file is created and may be changed,
-   * it's created under the instancePath.
-   * @param installPath the install path of the server.
-   * @param javaHome the java home to be used.
-   * @param arguments a Map containing as key the name of the script and as
-   * value, the java arguments to be set for the script.
-   * @param otherProperties other properties that must be set in the file.
-   * @throws IOException if an error occurred writing the file.
+   * Writes the set-java-home file that is used by the scripts to set the java
+   * home and the java arguments. Since the set-java-home file is created and
+   * may be changed, it's created under the instancePath.
+   *
+   * @param installPath
+   *          the install path of the server.
+   * @param javaHome
+   *          the java home to be used.
+   * @param arguments
+   *          a Map containing as key the name of the script and as value, the
+   *          java arguments to be set for the script.
+   * @param otherProperties
+   *          other properties that must be set in the file.
+   * @throws IOException
+   *           if an error occurred writing the file.
    */
-  private void writeSetOpenDSJavaHome(String installPath,
-      String javaHome,
-      Map<String, JavaArguments> arguments,
+  private void writeSetOpenDSJavaHome(String installPath, String javaHome, Map<String, JavaArguments> arguments,
       Map<String, String> otherProperties) throws IOException
   {
     String propertiesFile = getPropertiesFileName(installPath);
     List<String> commentLines = getJavaPropertiesFileComments(propertiesFile);
-    BufferedWriter writer = new BufferedWriter(
-        new FileWriter(propertiesFile, false));
+    BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile, false));
 
     for (String line: commentLines)
     {
       writer.write(line);
       writer.newLine();
-
     }
 
     for (String key : otherProperties.keySet())
     {
-      writer.write(key+"="+otherProperties.get(key));
+      writer.write(key + "=" + otherProperties.get(key));
       writer.newLine();
     }
-
 
     for (String scriptName : arguments.keySet())
     {
       String argument = arguments.get(scriptName).getStringArguments();
       writer.newLine();
-      writer.write(getJavaArgPropertyForScript(scriptName)+"="+argument);
+      writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
     }
     writer.close();
 
-    String destinationFile;
-    String libDir = Utils.getPath(Utils
-        .getInstancePathFromInstallPath(installPath),
-        Installation.LIBRARIES_PATH_RELATIVE);
+    String libDir = Utils.getPath(
+        Utils.getInstancePathFromInstallPath(installPath), Installation.LIBRARIES_PATH_RELATIVE);
     // Create directory if it doesn't exist yet
     File fLib = new File(libDir);
-    if (! fLib.exists())
+    if (!fLib.exists())
     {
       fLib.mkdir();
     }
-    if (isWindows())
-    {
-      destinationFile = Utils.getPath(libDir,
-          Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
-    }
-    else
-    {
-      destinationFile = Utils.getPath(libDir,
-          Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
-    }
-
+    final String destinationFile = Utils.getPath(libDir, isWindows() ? Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS
+                                                                     : Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
     // Launch the script
     String[] args =
     {
@@ -1183,42 +1166,40 @@ public class InstallerHelper {
     };
 
     int returnValue = JavaPropertiesTool.mainCLI(args);
-
-    if ((returnValue !=
-      JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode()) &&
-      returnValue !=
-        JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    if (JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode() != returnValue &&
+        JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode() != returnValue)
     {
-      logger.warn(LocalizableMessage.raw("Error creating java home scripts, error code: "+
-          returnValue));
-      throw new IOException(
-          ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
+      logger.warn(LocalizableMessage.raw("Error creating java home scripts, error code: " + returnValue));
+      throw new IOException(ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
     }
   }
 
   /**
    * Returns the java argument property for a given script.
-   * @param scriptName the script name.
+   *
+   * @param scriptName
+   *          the script name.
    * @return the java argument property for a given script.
    */
   private static String getJavaArgPropertyForScript(String scriptName)
   {
-    return scriptName+".java-args";
+    return scriptName + ".java-args";
   }
 
   /**
    * If the log message is of type "[03/Apr/2008:21:25:43 +0200] category=JEB
    * severity=NOTICE msgID=8847454 Processed 1 entries, imported 0, skipped 1,
-   * rejected 0 and migrated 0 in 1 seconds (average rate 0.0/sec)" returns
-   * the message part.  Returns <CODE>null</CODE> otherwise.
-   * @param msg the message to be parsed.
+   * rejected 0 and migrated 0 in 1 seconds (average rate 0.0/sec)" returns the
+   * message part. Returns <CODE>null</CODE> otherwise.
+   *
+   * @param msg
+   *          the message to be parsed.
    * @return the parsed import message.
    */
   public String getImportProgressMessage(String msg)
   {
-    if (msg != null
-        && (msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())
-            || msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
+    if (msg != null && (msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())
+                        || msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
     {
       int index = msg.indexOf("msg=");
       if (index != -1)
