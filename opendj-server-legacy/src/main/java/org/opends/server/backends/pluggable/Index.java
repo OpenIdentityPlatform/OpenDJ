@@ -409,39 +409,32 @@ class Index extends DatabaseContainer
     if (value != null)
     {
       EntryIDSet entryIDSet = newSetFromBytes(key, value);
-      if (!entryIDSet.isDefined())
+      if (entryIDSet.isDefined())
       {
-        return ConditionResult.UNDEFINED;
+        return ConditionResult.valueOf(entryIDSet.contains(entryID));
       }
-      return ConditionResult.valueOf(entryIDSet.contains(entryID));
-    }
-    else if (trusted)
-    {
-      return ConditionResult.FALSE;
-    }
-    else
-    {
       return ConditionResult.UNDEFINED;
     }
+    return trusted ? ConditionResult.FALSE : ConditionResult.UNDEFINED;
   }
 
+  /**
+   * Reads the value associated to a key.
+   *
+   * @param txn The transaction to use for the operation
+   * @param key The key to read
+   * @return The non null set of entry IDs.
+   */
   EntryIDSet read(ReadableStorage txn, ByteSequence key)
   {
     try
     {
       ByteString value = txn.read(getName(), key);
-      if (value == null)
+      if (value != null)
       {
-        if(trusted)
-        {
-          return newDefinedSet();
-        }
-        else
-        {
-          return newUndefinedSet();
-        }
+        return newSetFromBytes(key, value);
       }
-      return newSetFromBytes(key, value);
+      return trusted ? newDefinedSet() : newUndefinedSet();
     }
     catch (StorageRuntimeException e)
     {
@@ -471,7 +464,7 @@ class Index extends DatabaseContainer
    *                      strictly less than the upper bound are included.
    *                      This value is ignored if the upper bound is not
    *                      specified.
-   * @return The set of entry IDs.
+   * @return The non null set of entry IDs.
    */
   EntryIDSet readRange(ReadableStorage txn,
       ByteSequence lower, ByteSequence upper, boolean lowerIncluded, boolean upperIncluded)
