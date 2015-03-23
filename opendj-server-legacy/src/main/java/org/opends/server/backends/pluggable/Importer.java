@@ -1503,6 +1503,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         processIndexes(suffix, entry, entryID);
       }
+      processVLVIndexes(suffix, entry, entryID);
       importCount.getAndIncrement();
     }
 
@@ -1511,8 +1512,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
-        AttributeType attributeType = mapEntry.getKey();
-        fillIndexKey(suffix, mapEntry.getValue(), entry, attributeType, entryID);
+        fillIndexKey(mapEntry.getValue(), entry, mapEntry.getKey(), entryID);
       }
     }
 
@@ -1601,6 +1601,7 @@ final class Importer implements DiskSpaceMonitorHandler
       processDN2ID(suffix, entryDN, entryID);
       processDN2URI(suffix, null, entry);
       processIndexes(suffix, entry, entryID);
+      processVLVIndexes(suffix, entry, entryID);
       suffix.getID2Entry().put(txn, entryID, entry);
       importCount.getAndIncrement();
     }
@@ -1645,12 +1646,12 @@ final class Importer implements DiskSpaceMonitorHandler
         AttributeType attributeType = mapEntry.getKey();
         if (entry.hasAttribute(attributeType))
         {
-          fillIndexKey(suffix, mapEntry.getValue(), entry, attributeType, entryID);
+          fillIndexKey(mapEntry.getValue(), entry, attributeType, entryID);
         }
       }
     }
 
-    void fillIndexKey(Suffix suffix, AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
+    void fillIndexKey(AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
         throws InterruptedException, DirectoryException, StorageRuntimeException
     {
       final IndexingOptions options = attrIndex.getIndexingOptions();
@@ -1661,14 +1662,6 @@ final class Importer implements DiskSpaceMonitorHandler
       processAttribute(attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, entry, attrType, entryID, options);
       processAttribute(attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, entry, attrType, entryID, options);
 
-      final EntryContainer entryContainer = suffix.getEntryContainer();
-      final IndexBuffer buffer = new IndexBuffer(entryContainer);
-      for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
-      {
-        vlvIdx.addEntry(buffer, entryID, entry);
-      }
-      buffer.flush(txn);
-
       Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
@@ -1677,6 +1670,17 @@ final class Importer implements DiskSpaceMonitorHandler
         Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
         processAttributes(sharedIndexes, ImportIndexType.EX_SHARED, entry, attrType, entryID, options);
       }
+    }
+
+    void processVLVIndexes(Suffix suffix, Entry entry, EntryID entryID) throws DirectoryException
+    {
+      final EntryContainer entryContainer = suffix.getEntryContainer();
+      final IndexBuffer buffer = new IndexBuffer(entryContainer);
+      for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+      {
+        vlvIdx.addEntry(buffer, entryID, entry);
+      }
+      buffer.flush(txn);
     }
 
     private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry,
