@@ -22,34 +22,23 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.Date;
 
-/**
- * The class to be used to describe the task schedule.
- *
- */
+/** The class to be used to describe the task schedule. */
 public class ScheduleType
 {
-  /**
-   * The different type of schedules.
-   *
-   */
+  /** The different type of schedules. */
   public enum Type
   {
-    /**
-     * Launch now.
-     */
+    /** Launch now. */
     LAUNCH_NOW,
-    /**
-     * Launch later in a specific date.
-     */
+    /** Launch later in a specific date. */
     LAUNCH_LATER,
-    /**
-     * Launch periodically.
-     */
+    /** Launch periodically. */
     LAUNCH_PERIODICALLY
   }
 
@@ -133,41 +122,24 @@ public class ScheduleType
     return cronValue;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals;
-    if (o != null)
+    if (o == this)
     {
-      if (o == this)
-      {
-        equals = true;
-      }
-      else
-      {
-        equals = toString().equals(o.toString());
-      }
+      return true;
     }
-    else
-    {
-      equals = false;
-    }
-    return equals;
+    return o != null
+        && toString().equals(o.toString());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String toString()
   {
     return toString;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;
@@ -185,21 +157,16 @@ public class ScheduleType
 
   private String calculateToString()
   {
-    String toString;
     switch (type)
     {
     case LAUNCH_NOW:
-      toString = "Schedule Type: Launch Now";
-      break;
+      return "Schedule Type: Launch Now";
     case LAUNCH_LATER:
-      toString = "Schedule Type: Launch Later at date "+launchLaterDate;
-      break;
+      return "Schedule Type: Launch Later at date " + launchLaterDate;
     case LAUNCH_PERIODICALLY:
-      toString = "Schedule Type: periodical schedule "+cronValue;
-      break;
-      default:
-        throw new RuntimeException("Invalid type: "+type);
+      return "Schedule Type: periodical schedule " + cronValue;
+    default:
+      throw new RuntimeException("Invalid type: " + type);
     }
-    return toString;
   }
 }

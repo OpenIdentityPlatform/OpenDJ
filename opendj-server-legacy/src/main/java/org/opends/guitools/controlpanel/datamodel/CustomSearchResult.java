@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -61,7 +60,6 @@ import org.opends.server.util.LDIFReader;
  * Basically it retrieves all the attributes and values on the SearchResult and
  * calculates its DN.  Using it we avoid having to handle the NamingException
  * exceptions that most of the methods in SearchResult throw.
- *
  */
 public class CustomSearchResult implements Comparable<CustomSearchResult>
 {
@@ -193,9 +191,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return attrNames;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compareTo(CustomSearchResult o) {
     if (this.equals(o))
     {
@@ -219,50 +215,41 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return sr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (o != null)
+    if (o == this)
     {
-      equals = o == this;
-      if (!equals && (o instanceof CustomSearchResult))
-      {
-        CustomSearchResult sr = (CustomSearchResult)o;
-        equals = getDN().equals(sr.getDN());
-        if (equals)
-        {
-          equals = getAttributeNames().equals(sr.getAttributeNames());
-          if (equals)
-          {
-            for (String attrName : getAttributeNames())
-            {
-              equals = getAttributeValues(attrName).equals(
-                  sr.getAttributeValues(attrName));
-              if (!equals)
-              {
-                break;
-              }
-            }
-          }
-        }
-      }
+      return true;
     }
-    return equals;
+    if (o instanceof CustomSearchResult)
+    {
+      CustomSearchResult sr = (CustomSearchResult)o;
+      return getDN().equals(sr.getDN())
+          && getAttributeNames().equals(sr.getAttributeNames())
+          && attrValuesEqual(sr);
+    }
+    return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private boolean attrValuesEqual(CustomSearchResult sr)
+  {
+    for (String attrName : getAttributeNames())
+    {
+      if (!getAttributeValues(attrName).equals(sr.getAttributeValues(attrName)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** {@inheritDoc} */
   public String toString() {
     return toString;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode() {
     return hashCode;
   }

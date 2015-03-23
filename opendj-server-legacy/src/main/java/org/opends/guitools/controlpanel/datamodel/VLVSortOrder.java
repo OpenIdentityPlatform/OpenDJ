@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 /**
@@ -66,30 +66,24 @@ public class VLVSortOrder
     return isAscending;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals = o == this;
-    if (!equals)
-    {
-      equals = o instanceof VLVSortOrder;
-      if (equals)
-      {
-        VLVSortOrder sortOrder = (VLVSortOrder)o;
-        equals = sortOrder.getAttributeName().equalsIgnoreCase(attributeName) &&
-          sortOrder.isAscending() == isAscending;
-      }
+    if (o == this) {
+      return  true;
     }
-    return equals;
+    if (o instanceof VLVSortOrder)
+    {
+      VLVSortOrder sortOrder = (VLVSortOrder)o;
+      return sortOrder.getAttributeName().equalsIgnoreCase(attributeName)
+          && sortOrder.isAscending() == isAscending;
+    }
+    return false;
   }
 }

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.util.LinkedHashSet;
@@ -38,26 +37,19 @@ import javax.naming.ldap.InitialLdapContext;
  */
 public class PreferredConnection
 {
-  private String ldapUrl;
-  private Type type;
-  /**
-   * The type of the connection.
-   */
+  /** The type of the connection. */
   public enum Type
   {
-    /**
-     * LDAP connection.
-     */
+    /** LDAP connection. */
     LDAP,
-    /**
-     * LDAPS connection.
-     */
+    /** LDAPS connection. */
     LDAPS,
-    /**
-     * Start TLS connection.
-     */
+    /** Start TLS connection. */
     START_TLS
   }
+
+  private String ldapUrl;
+  private Type type;
 
   /**
    * The constructor of the PreferredConnection.
@@ -89,35 +81,26 @@ public class PreferredConnection
     return type;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return (type+ldapUrl.toLowerCase()).hashCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (this != o)
+    if (this == o)
     {
-      if ((o != null) &&
-      (o instanceof PreferredConnection))
-      {
-        PreferredConnection p = (PreferredConnection)o;
-        equals = type == p.getType() &&
-        ldapUrl.equalsIgnoreCase(p.getLDAPURL());
-      }
+      return true;
     }
-    else
+    if (o instanceof PreferredConnection)
     {
-      equals = true;
+      PreferredConnection p = (PreferredConnection)o;
+      return type == p.getType()
+          && ldapUrl.equalsIgnoreCase(p.getLDAPURL());
     }
-    return equals;
+    return false;
   }
 
 
