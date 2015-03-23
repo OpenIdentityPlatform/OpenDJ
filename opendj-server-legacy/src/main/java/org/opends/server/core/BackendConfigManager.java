@@ -374,7 +374,7 @@ public class BackendConfigManager implements
       }
 
       Backend b = backendClass.newInstance();
-      if (! b.isConfigurationAcceptable(configEntry, unacceptableReason))
+      if (! b.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
       {
         return false;
       }
@@ -715,8 +715,7 @@ public class BackendConfigManager implements
       }
     }
 
-    backend.setServerContext(serverContext);
-    if (!backend.isConfigurationAcceptable(configEntry, unacceptableReason))
+    if (!backend.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
     {
       return false;
     }

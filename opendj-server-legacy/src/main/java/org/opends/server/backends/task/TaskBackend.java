@@ -1721,7 +1721,8 @@ public class TaskBackend
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(TaskBackendCfg config,
-                                           List<LocalizableMessage> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons,
+                                           ServerContext serverContext)
   {
     return isConfigAcceptable(config, unacceptableReasons, null);
   }
