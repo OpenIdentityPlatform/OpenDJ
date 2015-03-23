@@ -52,7 +52,7 @@ abstract class IndexQuery
    * @param debugMessage If not null, diagnostic message will be written
    *                      which will help to determine why the returned
    *                      EntryIDSet is not defined.
-   * @return The EntryIDSet as a result of evaluation of this query.
+   * @return The non null EntryIDSet as a result of evaluating this query
    */
   public abstract EntryIDSet evaluate(LocalizableMessageBuilder debugMessage);
 
@@ -136,17 +136,10 @@ abstract class IndexQuery
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
-      EntryIDSet entryIDs = null;
+      final EntryIDSet entryIDs = newUndefinedSet();
       for (IndexQuery query : subIndexQueries)
       {
-        if (entryIDs == null)
-        {
-          entryIDs = query.evaluate(debugMessage);
-        }
-        else
-        {
-          entryIDs.retainAll(query.evaluate(debugMessage));
-        }
+        entryIDs.retainAll(query.evaluate(debugMessage));
         if (isBelowFilterThreshold(entryIDs))
         {
           break;
@@ -182,17 +175,10 @@ abstract class IndexQuery
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
-      EntryIDSet entryIDs = null;
+      final EntryIDSet entryIDs = newDefinedSet();
       for (IndexQuery query : subIndexQueries)
       {
-        if (entryIDs == null)
-        {
-          entryIDs = query.evaluate(debugMessage);
-        }
-        else
-        {
-          entryIDs.addAll(query.evaluate(debugMessage));
-        }
+        entryIDs.addAll(query.evaluate(debugMessage));
         if (entryIDs.isDefined() && entryIDs.size() >= CURSOR_ENTRY_LIMIT)
         {
           break;
