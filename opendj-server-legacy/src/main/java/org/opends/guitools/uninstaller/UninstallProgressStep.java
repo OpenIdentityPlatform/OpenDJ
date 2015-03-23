@@ -22,80 +22,41 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.guitools.uninstaller;
 
 import org.opends.quicksetup.ProgressStep;
 
-/**
- * Enumeration of steps for an uninstall process.
- */
+/** Enumeration of steps for an uninstall process. */
 public enum UninstallProgressStep implements ProgressStep {
 
-  /**
-   * Uninstall not started.
-   */
+  /** Uninstall not started. */
   NOT_STARTED,
-
-  /**
-   * Unconfiguring replication in remote servers.
-   */
+  /** Unconfiguring replication in remote servers. */
   UNCONFIGURING_REPLICATION,
-
-  /**
-   * Stopping server.
-   */
+  /** Stopping server. */
   STOPPING_SERVER,
-
-  /**
-   * Disabling Windows Service.
-   */
+  /** Disabling Windows Service. */
   DISABLING_WINDOWS_SERVICE,
-
-  /**
-   * Removing External Database files.
-   */
+  /** Removing External Database files. */
   DELETING_EXTERNAL_DATABASE_FILES,
-
-  /**
-   * Removing External Log files.
-   */
+  /** Removing External Log files. */
   DELETING_EXTERNAL_LOG_FILES,
-
-  /**
-   * Removing external references.
-   */
+  /** Removing external references. */
   REMOVING_EXTERNAL_REFERENCES,
-
-  /**
-   * Removing installation files.
-   */
+  /** Removing installation files. */
   DELETING_INSTALLATION_FILES,
-
-  /**
-   * Installation finished successfully.
-   */
+  /** Installation finished successfully. */
   FINISHED_SUCCESSFULLY,
-
-  /**
-   * Installation finished with a non critical error updating remote servers.
-   */
+  /** Installation finished with a non critical error updating remote servers. */
   FINISHED_WITH_ERROR_ON_REMOTE,
-
-  /**
-   * Installation finished but not all the files could be deleted.
-   */
+  /** Installation finished but not all the files could be deleted. */
   FINISHED_WITH_ERROR_DELETING,
-
-  /**
-   * Installation finished with an error.
-   */
+  /** Installation finished with an error. */
   FINISHED_WITH_ERROR;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isLast() {
     return this == FINISHED_SUCCESSFULLY ||
     this == FINISHED_WITH_ERROR ||
@@ -103,9 +64,7 @@ public enum UninstallProgressStep implements ProgressStep {
     this == FINISHED_WITH_ERROR_DELETING;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isError() {
     return this.equals(FINISHED_WITH_ERROR);
   }

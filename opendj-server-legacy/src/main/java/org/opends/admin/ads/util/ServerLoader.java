@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.admin.ads.util;
 
@@ -451,9 +451,7 @@ public class ServerLoader extends Thread
     String startTLSUrl = getStartTlsLdapUrl(serverProperties);
     String ldapUrl = getLdapUrl(serverProperties);
 
-    /**
-     * Check the preferred connections passed in the constructor.
-     */
+    // Check the preferred connections passed in the constructor.
     for (PreferredConnection connection : preferredLDAPURLs)
     {
       String url = connection.getLDAPURL();

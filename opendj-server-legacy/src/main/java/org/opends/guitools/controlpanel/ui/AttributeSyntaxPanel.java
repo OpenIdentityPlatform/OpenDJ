@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -75,32 +75,24 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
@@ -173,9 +165,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
 
     KeyAdapter keyListener = new KeyAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void keyTyped(KeyEvent ev)
       {
         if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||

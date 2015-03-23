@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -89,43 +89,32 @@ public class TreePanel extends StatusGenericPanel
     return tree;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return tree;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 }
-

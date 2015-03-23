@@ -335,9 +335,7 @@ public class BinaryCellPanel extends JPanel
     deleteButton.removeActionListener(listener);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
       int condition, boolean pressed)
   {

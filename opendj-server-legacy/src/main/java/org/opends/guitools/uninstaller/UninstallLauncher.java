@@ -104,9 +104,7 @@ public class UninstallLauncher extends Launcher {
     initializeParser();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void launch() {
     //  Validate user provided data
     try
@@ -158,9 +156,7 @@ public class UninstallLauncher extends Launcher {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void guiLaunchFailed(String logFilePath) {
     if (logFilePath != null)
     {
@@ -173,32 +169,24 @@ public class UninstallLauncher extends Launcher {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ArgumentParser getArgumentParser() {
     return this.argParser;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void willLaunchGui() {
     System.out.println(INFO_UNINSTALL_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             org.opends.guitools.uninstaller.Uninstaller.class.getName());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected CliApplication createCliApplication() {
     return new Uninstaller();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
         INFO_FRAME_UNINSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),

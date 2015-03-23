@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -56,26 +56,20 @@ public class StopServerTask extends StartStopTask
     super(info, dlg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Type getType()
   {
     return Type.STOP_SERVER;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_STOP_SERVER_TASK_DESCRIPTION.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     super.runTask();
@@ -94,9 +88,7 @@ public class StopServerTask extends StartStopTask
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getCommandLinePath()
   {
     return getCommandLinePath("stop-ds");

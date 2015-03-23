@@ -348,33 +348,25 @@ implements Comparator<BaseDNDescriptor>
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int getColumnCount()
   {
     return displayReplicationInformation ? 6 : 4;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /**
-   * Updates the array data.  This includes resorting it.
-   */
+  /** Updates the array data.  This includes resorting it. */
   private void updateDataArray()
   {
     TreeSet<BaseDNDescriptor> sortedSet = new TreeSet<BaseDNDescriptor>(this);
@@ -382,27 +374,18 @@ implements Comparator<BaseDNDescriptor>
     dataArray.clear();
     for (BaseDNDescriptor desc : sortedSet)
     {
-      String[] s = new String[6];
-
-      s[0] = Utilities.unescapeUtf8(desc.getDn().toString());
-
-      s[1] = desc.getBackend().getBackendID();
-
-      s[2] = getValueForEntries(desc);
-
-      s[3] = getStringForReplState(desc);
-
-      s[4] = getValueForMissingChanges(desc);
-
-      s[5] = getValueForOldestMissingChange(desc);
-
-      dataArray.add(s);
+      dataArray.add(new String[] {
+        Utilities.unescapeUtf8(desc.getDn().toString()),
+        desc.getBackend().getBackendID(),
+        getValueForEntries(desc),
+        getStringForReplState(desc),
+        getValueForMissingChanges(desc),
+        getValueForOldestMissingChange(desc)
+      });
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getColumnName(int col) {
     return COLUMN_NAMES[col];
   }
@@ -444,9 +427,7 @@ implements Comparator<BaseDNDescriptor>
     this.sortColumn = sortColumn;
   }
 
-  /*
-   * Several comparison methods to be able to sort the table model.
-   */
+  /** Several comparison methods to be able to sort the table model. */
   private int compareBackendIDs(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
     return desc1.getBackend().getBackendID().compareTo(

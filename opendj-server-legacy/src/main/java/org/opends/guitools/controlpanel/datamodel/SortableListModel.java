@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -125,9 +126,7 @@ public class SortableListModel<T> extends AbstractListModel
     data.addAll(newData);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void fireContentsChanged(Object source, int index0, int index1)
   {
     super.fireContentsChanged(source, index0, index1);

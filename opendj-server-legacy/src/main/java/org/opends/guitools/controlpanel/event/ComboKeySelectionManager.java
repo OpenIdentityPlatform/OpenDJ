@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.event;
 
@@ -48,13 +49,15 @@ public class ComboKeySelectionManager implements KeySelectionManager
   private JComboBox combo;
   private JList list;
 
-  // The String that we are searching.
+  /** The String that we are searching. */
   private String lastSearchedString;
 
   private long lastSearchedTime;
 
-  // The number of milliseconds we wait between types before considering that
-  // the search starts again.
+  /**
+   * The number of milliseconds we wait between types before considering that
+   * the search starts again.
+   */
   private long RESET_BETWEEN_TYPES = 700;
 
   /**
@@ -67,9 +70,7 @@ public class ComboKeySelectionManager implements KeySelectionManager
     list = new JList();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int selectionForKey(char key, ComboBoxModel model)
   {
     int selectedIndex = -1;

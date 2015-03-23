@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -31,16 +32,12 @@ import javax.swing.SwingUtilities;
 /**
 * This class defines a thread that will be used to actually perform the
 * processing for a background task.
-* @param <T> type of object returned by the background task fed to this
-* object
+* @param <T> type of object returned by the background task fed to this object
 */
-class BackgroundTaskThread<T>
-     extends Thread
+class BackgroundTaskThread<T> extends Thread
 {
- // The background task that is to be processed.
+ /** The background task that is to be processed. */
  private final BackgroundTask<T> backgroundTask;
-
-
 
  /**
   * Creates a new background task thread that will be used to process the
@@ -53,9 +50,7 @@ class BackgroundTaskThread<T>
    this.backgroundTask = backgroundTask;
  }
 
- /**
-  * Performs the processing associated with the background task.
-  */
+ /** Performs the processing associated with the background task. */
  public void run()
  {
    try
@@ -63,9 +58,7 @@ class BackgroundTaskThread<T>
      final T returnValue = backgroundTask.processBackgroundTask();
      SwingUtilities.invokeLater(new Runnable()
      {
-       /**
-        * {@inheritDoc}
-        */
+       /** {@inheritDoc} */
        public void run()
        {
          backgroundTask.backgroundTaskCompleted(returnValue, null);
@@ -78,9 +71,7 @@ class BackgroundTaskThread<T>
      {
        SwingUtilities.invokeLater(new Runnable()
        {
-         /**
-          * {@inheritDoc}
-          */
+         /** {@inheritDoc} */
          public void run()
          {
            backgroundTask.backgroundTaskCompleted(null, t);

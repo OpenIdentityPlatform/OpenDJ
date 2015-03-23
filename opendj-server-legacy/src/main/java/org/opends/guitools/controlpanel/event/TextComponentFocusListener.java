@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -49,9 +50,7 @@ public class TextComponentFocusListener implements FocusListener
     this.tf = tf;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void focusGained(FocusEvent e)
   {
     if ((tf.getText() == null) || "".equals(tf.getText()))
@@ -66,9 +65,7 @@ public class TextComponentFocusListener implements FocusListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void focusLost(FocusEvent e)
   {
   }

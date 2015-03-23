@@ -80,7 +80,7 @@ import org.opends.server.types.OpenDsException;
 class StatusPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -6493442314639004717L;
-  // The place holder where we display errors.
+  /** The place holder where we display errors. */
   private JEditorPane serverStatus;
   private SelectableLabelWithHelpIcon currentConnections;
   private JEditorPane hostName;
@@ -157,9 +157,7 @@ class StatusPanel extends StatusGenericPanel
     inScrollPanel.add(Box.createVerticalGlue(), gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     if (startButton.isVisible())
@@ -173,9 +171,7 @@ class StatusPanel extends StatusGenericPanel
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresBorder()
   {
     return false;
@@ -188,17 +184,13 @@ class StatusPanel extends StatusGenericPanel
     Utilities.updateTableSizes(connectionHandlersTable);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STATUS_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(final ConfigurationChangeEvent ev)
   {
     if (SwingUtilities.isEventDispatchThread())
@@ -209,9 +201,7 @@ class StatusPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           updateContents(ev.getNewDescriptor());
@@ -220,9 +210,7 @@ class StatusPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
@@ -553,9 +541,7 @@ class StatusPanel extends StatusGenericPanel
     stopButton.setOpaque(false);
     stopButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         stopServer();
@@ -571,9 +557,7 @@ class StatusPanel extends StatusGenericPanel
     statusPanel.add(startButton, gbc);
     startButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         startServer();
@@ -586,9 +570,7 @@ class StatusPanel extends StatusGenericPanel
     restartButton.setOpaque(false);
     restartButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         restartServer();

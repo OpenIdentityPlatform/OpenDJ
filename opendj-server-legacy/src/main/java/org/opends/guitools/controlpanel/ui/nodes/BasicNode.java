@@ -57,8 +57,10 @@ public class BasicNode extends DefaultMutableTreeNode {
   private String[] referral;
   private int numSubOrdinates;
 
-  // This is required for the case where there is an undefined number of
-  // subordinates (for instance in the case of the changelog).
+  /**
+   * This is required for the case where there is an undefined number of
+   * subordinates (for instance in the case of the changelog).
+   */
   private boolean hasSubOrdinates;
 
   private String displayName;
@@ -320,9 +322,7 @@ public class BasicNode extends DefaultMutableTreeNode {
   /**
    * Rendering
    */
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String toString() {
     return getDisplayName();
   }

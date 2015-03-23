@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -69,26 +70,23 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
   {
     MouseAdapter mouseListener = new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mousePressed(MouseEvent ev)
       {
         isBeingPressed = true;
         table.repaint();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mouseReleased(MouseEvent ev)
       {
         isBeingPressed = false;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mouseExited(MouseEvent ev)
       {
         hasMouseOver = false;
@@ -96,9 +94,8 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
         table.repaint();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mouseEntered(MouseEvent ev)
       {
         if (ev.getSource() == table)
@@ -114,18 +111,16 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
     };
     MouseMotionAdapter mouseMotionAdapter = new MouseMotionAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mouseMoved(MouseEvent ev)
       {
         lastRowMouseOver = table.rowAtPoint(ev.getPoint());
         table.repaint();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mouseDragged(MouseEvent ev)
       {
         lastRowMouseOver = -1;
@@ -136,9 +131,8 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
     table.addMouseMotionListener(mouseMotionAdapter);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column)
   {
@@ -148,10 +142,7 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
     return this;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  protected void updateComponent(Component comp, JTable table, int row,
+  void updateComponent(Component comp, JTable table, int row,
       int column, boolean isSelected)
   {
     if (table.isCellEditable(row, column) && !isSelected)

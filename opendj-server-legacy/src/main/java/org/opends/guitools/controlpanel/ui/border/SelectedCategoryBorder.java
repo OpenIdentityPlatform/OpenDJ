@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.border;
@@ -34,42 +35,29 @@ import javax.swing.border.Border;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 
-/**
- * The border of the CategoryButton when is selected.
- *
- */
+/** The border of the CategoryButton when is selected. */
 public class SelectedCategoryBorder implements Border
 {
   private Insets insets = new Insets(5, 5, 6, 5);
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public SelectedCategoryBorder() {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Insets getBorderInsets(Component c)
   {
     return insets;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBorderOpaque()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void paintBorder(Component c, Graphics g, int x, int y, int width,
-      int height)
+  /** {@inheritDoc} */
+  public void paintBorder(Component c, Graphics g, int x, int y, int width, int height)
   {
     // render shadow on bottom
     g.setColor(ColorAndFontConstants.defaultBorderColor);

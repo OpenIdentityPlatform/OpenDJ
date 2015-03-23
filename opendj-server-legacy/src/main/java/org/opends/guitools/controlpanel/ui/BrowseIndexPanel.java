@@ -138,25 +138,19 @@ implements IndexModifiedListener
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -201,9 +195,7 @@ implements IndexModifiedListener
     backends.setModel(new DefaultComboBoxModel(new String[]{}));
     ItemListener comboListener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         if (!ignoreSelectionEvents &&
@@ -227,9 +219,7 @@ implements IndexModifiedListener
     newIndex.setOpaque(false);
     newIndex.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newIndexClicked();
@@ -244,9 +234,7 @@ implements IndexModifiedListener
     newVLVIndex.setOpaque(false);
     newVLVIndex.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newVLVIndexClicked();
@@ -269,49 +257,36 @@ implements IndexModifiedListener
     add(createSplitPane(), gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_INDEXES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return backends;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void closeClicked()
   {
     super.closeClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   private Component createSplitPane()
   {
     JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -325,9 +300,7 @@ implements IndexModifiedListener
 
     entryPane.addIndexSelectionListener(new IndexSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void indexSelected(IndexSelectionEvent ev)
       {
         AbstractIndexDescriptor index = ev.getIndex();
@@ -366,9 +339,7 @@ implements IndexModifiedListener
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -458,9 +429,7 @@ implements IndexModifiedListener
     return pane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -469,9 +438,7 @@ implements IndexModifiedListener
     info.addIndexModifiedListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ignoreSelectionEvents = true;
@@ -492,9 +459,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_NEW_INDEX_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newIndexClicked();
@@ -505,9 +470,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_NEW_VLV_INDEX_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newVLVIndexClicked();
@@ -519,9 +482,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_DELETE_INDEX_MENU.get());
     deleteMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         deleteClicked();
@@ -541,9 +502,7 @@ implements IndexModifiedListener
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         repopulateTree(treePane.getTree());
@@ -569,17 +528,13 @@ implements IndexModifiedListener
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
@@ -851,9 +806,7 @@ implements IndexModifiedListener
       newVLVIndexPanel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
               Object o = ev.getConfigurationObject();
@@ -982,9 +935,7 @@ implements IndexModifiedListener
 
     private static final long serialVersionUID = -6953837045703643228L;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
         boolean hasFocus)

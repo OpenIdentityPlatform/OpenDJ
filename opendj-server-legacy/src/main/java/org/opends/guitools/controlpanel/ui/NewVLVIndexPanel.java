@@ -88,25 +88,19 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     createBasicLayout(this, new GridBagConstraints(), false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -128,9 +122,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     backendName.setText(backend.getBackendID());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     List<LocalizableMessage> errors = checkErrors(true);
@@ -207,34 +199,26 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       maxBlock = Integer.parseInt(maxBlockSize.getText());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.NEW_INDEX;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(
           indexName, backendID);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -292,9 +276,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -316,9 +298,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -407,18 +387,14 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       index.commit();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
@@ -437,9 +413,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -471,9 +445,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void postOperation()
     {

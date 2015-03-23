@@ -100,30 +100,23 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DELETE_BASE_DN_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return list;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;
   }
-
 
   /**
    * Returns the no backend found label.
@@ -168,9 +161,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           @SuppressWarnings("deprecation")
@@ -271,9 +262,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_SELECT_ALL_BUTTON.get());
     selectAllButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         int[] indices = new int[list.getModel().getSize()];
@@ -297,9 +286,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_CLEAR_SELECTION_BUTTON.get());
     unselectAllButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         list.clearSelection();
@@ -309,9 +296,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
 
     list.addListSelectionListener(new ListSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(ListSelectionEvent ev)
       {
         checkOKButtonEnable();
@@ -325,9 +310,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     mainPanel.add(Box.createVerticalGlue(), gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -337,17 +320,13 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkOKButtonEnable()
   {
     setEnabledOK(!list.isSelectionEmpty() && mainPanel.isVisible());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -369,9 +348,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();

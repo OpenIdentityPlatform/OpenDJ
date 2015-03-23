@@ -294,73 +294,55 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     this.attributeName = attributeName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getMessage()
   {
     return msg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getAttributeName()
   {
     return attributeName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isAborted()
   {
     return isAborted;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isNumeric()
   {
     return isNumeric;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isTime()
   {
     return isTime;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isGMTDate()
   {
     return isGMTDate;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isValueInBytes()
   {
     return isValueInBytes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canHaveAverage()
   {
     return canHaveAverage;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isNumericDate()
   {
     return false;

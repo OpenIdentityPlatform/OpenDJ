@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -123,25 +123,19 @@ public class AddToGroupPanel extends StatusGenericPanel
     packParentDialog();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return groups;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public Void processBackgroundTask()
       {
         try
@@ -154,9 +148,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         updateErrors(errors);
         return null;
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         if (t != null)
@@ -175,17 +167,13 @@ public class AddToGroupPanel extends StatusGenericPanel
     worker.startBackgroundTask();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
@@ -240,9 +228,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     add(browse, gbc);
     browse.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         browseGroupsClicked();
@@ -251,37 +237,27 @@ public class AddToGroupPanel extends StatusGenericPanel
 
     DropTargetListener dropTargetlistener = new DropTargetListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragEnter(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragExit(DropTargetEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragOver(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dropActionChanged(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -365,9 +341,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         setPrimaryValid(lGroups);
@@ -416,9 +390,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           setPrimaryInvalid(lGroups);

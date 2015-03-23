@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.nodes;
 
@@ -73,17 +74,13 @@ public class GeneralMonitoringTreeNode extends DefaultMutableTreeNode
     return identifier;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isRoot()
   {
     return isRoot;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isLeaf()
   {
     return getChildCount() == 0;

@@ -24,7 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -38,9 +37,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -50,6 +46,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -60,7 +58,6 @@ import org.opends.server.types.Schema;
 /**
  * Panel that is displayed in the dialog where the user can specify the value
  * of a binary attribute.
- *
  */
 public class BinaryAttributeEditorPanel extends StatusGenericPanel
 {
@@ -107,9 +104,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
 //  Read the file or encode the base 64 content.
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public Void processBackgroundTask() throws Throwable
       {
         try
@@ -173,11 +169,9 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
         return null;
       }
 
-      /**
-       * {@inheritDoc}
-       */
-      public void backgroundTaskCompleted(Void returnValue,
-          Throwable t)
+      /** {@inheritDoc} */
+      @Override
+      public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         setPrimaryValid(useFile);
         setPrimaryValid(useBase64);
@@ -221,17 +215,15 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     valueChanged = false;
@@ -247,9 +239,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     refresh(true, false);
@@ -331,9 +322,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
       // Read the file or encode the base 64 content.
       BackgroundTask<BinaryValue> worker = new BackgroundTask<BinaryValue>()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public BinaryValue processBackgroundTask() throws Throwable
         {
           try
@@ -397,11 +387,10 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
           }
           return returnValue;
         }
-        /**
-         * {@inheritDoc}
-         */
-        public void backgroundTaskCompleted(BinaryValue returnValue,
-            Throwable t)
+
+        /** {@inheritDoc} */
+        @Override
+        public void backgroundTaskCompleted(BinaryValue returnValue, Throwable t)
         {
           setEnabledOK(true);
           displayMainPanel();
@@ -445,32 +434,31 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_BINARY_ATTRIBUTE_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
   /**
-   * {@inheritDoc}
+   * Returns whether the value has changed.
+   *
+   * @return {@code true} if the value has changed, {@code false} otherwise
    */
   public boolean valueChanged()
   {
     return valueChanged;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return true;
@@ -561,9 +549,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     add(Box.createHorizontalGlue(), gbc);
     refreshButton.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         refreshButtonClicked();
@@ -584,6 +571,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
 
     ActionListener listener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateEnabling();
@@ -684,9 +672,8 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
       super(field, type, parent);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     protected void fieldUpdated()
     {
       super.fieldUpdated();

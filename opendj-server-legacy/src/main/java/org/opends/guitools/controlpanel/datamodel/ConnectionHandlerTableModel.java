@@ -188,33 +188,25 @@ implements Comparator<ConnectionHandlerDescriptor>
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int getColumnCount()
   {
     return 3;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getColumnName(int col) {
     return COLUMN_NAMES[col];
   }

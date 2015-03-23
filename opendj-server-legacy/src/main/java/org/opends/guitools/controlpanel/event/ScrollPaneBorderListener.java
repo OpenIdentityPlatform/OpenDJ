@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -108,17 +109,13 @@ public class ScrollPaneBorderListener extends ComponentAdapter
     return listener;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void componentShown(ComponentEvent ev)
   {
     updateBorder();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void componentHidden(ComponentEvent ev)
   {
     updateBorder();

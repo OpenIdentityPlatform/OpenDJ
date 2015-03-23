@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -101,9 +101,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, getTitle(noEntryPanel));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -155,48 +153,37 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
     add(mainPanel, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return LocalizableMessage.EMPTY;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
   /**
    * Updates the contents of the panel with the root monitoring information.
-   *
    */
   public void updateRoot()
   {
@@ -207,7 +194,6 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
 
   /**
    * Updates the contents of the panel with the system information monitoring.
-   *
    */
   public void updateSystemInformation()
   {
@@ -216,11 +202,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
         getTitle(systemInformationPanel));
   }
 
-  /**
-   * Updates the contents of the panel with the work queue monitoring
-   * information.
-   *
-   */
+  /** Updates the contents of the panel with the work queue monitoring information. */
   public void updateWorkQueue()
   {
     workQueuePanel.updateContents();
@@ -231,7 +213,6 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   /**
    * Updates the contents of the panel with the entry caches monitoring
    * information.
-   *
    */
   public void updateEntryCaches()
   {
@@ -243,7 +224,6 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   /**
    * Updates the contents of the panel with the database environment monitoring
    * information.
-   *
    */
   public void updateDBEnvironment()
   {
@@ -252,10 +232,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
         getTitle(dbEnvironmentPanel));
   }
 
-  /**
-   * Updates the contents of the panel with the JAVA information.
-   *
-   */
+  /** Updates the contents of the panel with the JAVA information. */
   public void updateJavaInformation()
   {
     javaInformationPanel.updateContents();

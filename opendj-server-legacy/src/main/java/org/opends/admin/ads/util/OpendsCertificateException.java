@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.admin.ads.util;
 
-//
-// J2SE
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate ;
 
@@ -40,15 +39,11 @@ import java.security.cert.X509Certificate ;
 public class OpendsCertificateException extends CertificateException
 {
 
-  /**
-   * The serial version UUID.
-   */
+  /** The serial version UUID. */
   private static final long serialVersionUID = 1151044344529478436L;
 
 
-  // ------------------
-  // Private certificate chain
-  // ------------------
+  /** Private certificate chain. */
   private X509Certificate[] chain;
 
   // ------------------

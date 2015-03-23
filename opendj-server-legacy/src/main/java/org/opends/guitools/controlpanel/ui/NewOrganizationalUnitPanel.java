@@ -87,9 +87,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -103,33 +101,25 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_OU_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_OU_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
@@ -220,25 +210,19 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -270,9 +254,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();

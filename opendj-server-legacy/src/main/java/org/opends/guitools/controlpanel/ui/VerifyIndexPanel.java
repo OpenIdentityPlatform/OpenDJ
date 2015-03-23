@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -109,9 +109,7 @@ implements IndexModifiedListener
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -122,17 +120,13 @@ implements IndexModifiedListener
     info.addIndexModifiedListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
@@ -257,9 +251,7 @@ implements IndexModifiedListener
     verifyIndexContents.setSelected(true);
     listener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         addRemove.setEnabled(verifyIndexContents.isSelected());
@@ -271,25 +263,19 @@ implements IndexModifiedListener
     listener.itemStateChanged(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VERIFY_INDEXES_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     refreshContents(ev.getNewDescriptor());
@@ -301,9 +287,7 @@ implements IndexModifiedListener
     updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         ViewPositions pos;
@@ -344,9 +328,7 @@ implements IndexModifiedListener
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -355,9 +337,7 @@ implements IndexModifiedListener
     super.cancelClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -439,9 +419,7 @@ implements IndexModifiedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean displayBackend(BackendDescriptor backend)
   {
     return !backend.isConfigBackend() &&
@@ -563,25 +541,19 @@ implements IndexModifiedListener
       this.baseDN = getSelectedBaseDN();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.VERIFY_INDEXES;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_VERIFY_INDEX_TASK_DESCRIPTION.get(baseDN);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -608,9 +580,7 @@ implements IndexModifiedListener
       return canLaunch;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -640,9 +610,7 @@ implements IndexModifiedListener
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -689,12 +657,10 @@ implements IndexModifiedListener
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return getCommandLinePath("verify-index");
     }
-  };
+  }
 }

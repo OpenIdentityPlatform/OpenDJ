@@ -755,10 +755,12 @@ public class NodeRefresher extends AbstractNodeTask {
   }
 
 
-  // NUMSUBORDINATE HACK
-  // numsubordinates is not usable if the displayed entry
-  // is listed in in the hacker.
-  // Note: *usable* means *usable for detecting children presence*.
+  /**
+   * NUMSUBORDINATE HACK
+   * numsubordinates is not usable if the displayed entry
+   * is listed in in the hacker.
+   * Note: *usable* means *usable for detecting children presence*.
+   */
   private boolean isNumSubOrdinatesUsable() throws NamingException {
     SearchResult entry = getDisplayedEntry();
     boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);

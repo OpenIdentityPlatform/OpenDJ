@@ -62,17 +62,13 @@ public abstract class StartStopTask extends Task
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -86,9 +82,7 @@ public abstract class StartStopTask extends Task
     return canLaunch;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     state = State.RUNNING;
@@ -116,9 +110,7 @@ public abstract class StartStopTask extends Task
     getInfo().startPooling();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();

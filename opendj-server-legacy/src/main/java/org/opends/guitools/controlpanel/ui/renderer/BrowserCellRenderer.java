@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -61,9 +62,7 @@ public class BrowserCellRenderer extends TreeCellRenderer {
     inspectedNode = node;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getTreeCellRendererComponent(
       JTree tree,
       Object value,

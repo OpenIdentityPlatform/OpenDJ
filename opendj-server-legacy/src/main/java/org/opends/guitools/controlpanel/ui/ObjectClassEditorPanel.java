@@ -126,17 +126,13 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
         availableListModel, 0, availableListModel.getSize());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return structural;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     valueChanged = false;
@@ -152,9 +148,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     String struct = (String)  structural.getSelectedItem();
@@ -166,17 +160,13 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     Utilities.getParentDialog(this).setVisible(false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_OBJECTCLASS_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final Schema schema = ev.getNewDescriptor().getSchema();
@@ -201,9 +191,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
 
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           String currentStruct = (String)structural.getSelectedItem();
@@ -267,9 +255,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
           ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           setEnabledOK(false);
@@ -289,9 +275,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     return valueChanged;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;

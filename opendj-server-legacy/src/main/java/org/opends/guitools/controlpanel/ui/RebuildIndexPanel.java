@@ -93,17 +93,13 @@ implements IndexModifiedListener
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
@@ -136,9 +132,7 @@ implements IndexModifiedListener
     baseDNs.addItemListener(listener);
     baseDNs.addItemListener(new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         comboBoxSelected(hmIndexes,
@@ -188,9 +182,7 @@ implements IndexModifiedListener
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -201,25 +193,19 @@ implements IndexModifiedListener
     info.addIndexModifiedListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_REBUILD_INDEXES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -256,9 +242,7 @@ implements IndexModifiedListener
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         ViewPositions pos;
@@ -295,9 +279,7 @@ implements IndexModifiedListener
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -305,9 +287,7 @@ implements IndexModifiedListener
     super.cancelClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -380,9 +360,7 @@ implements IndexModifiedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean displayBackend(BackendDescriptor backend)
   {
     return !backend.isConfigBackend() &&

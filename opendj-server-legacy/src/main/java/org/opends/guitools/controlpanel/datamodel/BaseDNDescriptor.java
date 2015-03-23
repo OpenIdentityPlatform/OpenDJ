@@ -100,9 +100,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     return baseDn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object v)
   {
@@ -132,18 +130,14 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
         && getBackend().getBackendID().equals(desc.getBackend().getBackendID());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compareTo(BaseDNDescriptor desc)
   {
     int returnValue = desc.getDn().compareTo(getDn());

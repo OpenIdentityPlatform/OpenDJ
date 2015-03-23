@@ -126,25 +126,19 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VLV_INDEX_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return baseDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -156,22 +150,17 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           checkSaveButton();
-          deleteIndex.setEnabled(
-              !authenticationRequired(desc));
+          deleteIndex.setEnabled(!authenticationRequired(desc));
         }
       });
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
@@ -230,9 +219,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -241,7 +228,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   /**
    * Creates the layout of the panel (but the contents are not populated here).
-   *
    */
   private void createLayout()
   {
@@ -292,9 +278,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     buttonPanel.add(deleteIndex, gbc);
     deleteIndex.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         deleteIndex();
@@ -310,9 +294,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     buttonPanel.add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         saveIndex(false);
@@ -321,25 +303,19 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
     DocumentListener documentListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         checkSaveButton();
@@ -348,9 +324,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
     ActionListener actionListener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         checkSaveButton();
@@ -366,25 +340,19 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     attributes.addActionListener(actionListener);
     sortOrder.getModel().addListDataListener(new ListDataListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void contentsChanged(ListDataEvent e)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalAdded(ListDataEvent e)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalRemoved(ListDataEvent e)
       {
         checkSaveButton();
@@ -640,34 +608,26 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       indexToModify = index;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.MODIFY_INDEX;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_MODIFY_VLV_INDEX_TASK_DESCRIPTION.get(
           indexName, backendID);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -745,9 +705,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -838,17 +796,13 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       index.commit();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -860,15 +814,10 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         return getCommandLinePath("dsconfig");
       }
-      else
-      {
-        return null;
-      }
+      return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -890,9 +839,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void postOperation()
     {

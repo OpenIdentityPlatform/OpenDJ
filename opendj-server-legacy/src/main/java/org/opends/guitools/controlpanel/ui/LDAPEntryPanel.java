@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -172,9 +172,7 @@ implements EntryReadListener
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         saveChanges(true);
@@ -203,9 +201,7 @@ implements EntryReadListener
 
     LDAPEntryChangedListener listener = new LDAPEntryChangedListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void entryChanged(LDAPEntryChangedEvent ev)
       {
         boolean enable = saveChanges.isVisible() &&
@@ -260,17 +256,13 @@ implements EntryReadListener
     cardLayout.show(mainPanel, NOTHING_SELECTED);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void entryRead(EntryReadEvent ev)
   {
     searchResult = ev.getSearchResult();
@@ -398,41 +390,31 @@ implements EntryReadListener
     displayedEntryPanel = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return saveChanges;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         boolean isReadOnly = true;
@@ -450,9 +432,7 @@ implements EntryReadListener
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);

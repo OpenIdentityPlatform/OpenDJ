@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -142,9 +142,7 @@ public class MainMenuBar extends GenericMenuBar
       menuItem = Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
       menuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           quitClicked();

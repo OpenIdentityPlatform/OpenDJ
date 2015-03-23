@@ -153,21 +153,13 @@ public interface BrowserNodeInfo {
   /**
    * Error types
    */
-  /**
-   * No error happened.
-   */
+  /** No error happened. */
   int ERROR_NONE          = 0;
-  /**
-   * And error reading the entry occurred.
-   */
+  /** And error reading the entry occurred. */
   int ERROR_READING_ENTRY     = 1;
-  /**
-   * An error following referrals occurred.
-   */
+  /** An error following referrals occurred. */
   int ERROR_SOLVING_REFERRAL    = 2;
-  /**
-   * An error occurred searching the children of the entry.
-   */
+  /** An error occurred searching the children of the entry. */
   int ERROR_SEARCHING_CHILDREN  = 3;
 
 }

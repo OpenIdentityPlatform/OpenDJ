@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -156,9 +156,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return parentDirectory;
@@ -298,9 +296,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     refreshList.setOpaque(false);
     refreshList.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         refreshList();
@@ -316,9 +312,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     verifyBackup.setOpaque(false);
     verifyBackup.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         verifyBackupClicked();
@@ -326,9 +320,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     });
     ListSelectionListener listener = new ListSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(ListSelectionEvent ev)
       {
         BackupDescriptor backup = getSelectedBackup();
@@ -360,9 +352,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     BackgroundTask<Set<BackupInfo>> worker =
       new BackgroundTask<Set<BackupInfo>>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public Set<BackupInfo> processBackgroundTask() throws Throwable
       {
         // Open the backup directory and make sure it is valid.
@@ -416,9 +406,8 @@ public abstract class BackupListPanel extends StatusGenericPanel
         }
         return backups;
       }
-      /**
-       * {@inheritDoc}
-       */
+
+      /** {@inheritDoc} */
       public void backgroundTaskCompleted(Set<BackupInfo> returnValue,
           Throwable t)
       {
@@ -527,9 +516,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     return list;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -584,9 +571,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible && backupDirectoryInitialized)

@@ -24,8 +24,9 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS
  */
-
 package javax.jnlp;
+
+import java.net.URL;
 
 /**
  * This is the interface definition of DownloadServiceListener.
@@ -43,8 +44,6 @@ package javax.jnlp;
  * we are not providing the javaws-stub.jar during runtime: it is used only
  * for compilation.
  */
-import java.net.URL;
-
 public interface DownloadServiceListener {
   void downloadFailed(URL url, String version);
   void progress(URL url, String version, long readSoFar, long total, int overallPercent);

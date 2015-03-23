@@ -79,10 +79,10 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   /** The reference to the configuration root entry. */
   private ConfigEntry configRootEntry;
 
-  /** The server root */
+  /** The server root. */
   private String serverRoot;
 
-  /** The instance root */
+  /** The instance root. */
   private String instanceRoot;
 
   private DN[] baseDNs;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -78,18 +78,14 @@ public class RebuildIndexTask extends IndexTask
     this.indexes.addAll(indexes);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.REBUILD_INDEXES;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {
@@ -106,9 +102,7 @@ public class RebuildIndexTask extends IndexTask
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
@@ -131,9 +125,7 @@ public class RebuildIndexTask extends IndexTask
     return canLaunch;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -204,9 +196,7 @@ public class RebuildIndexTask extends IndexTask
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected ArrayList<String> getCommandLineArguments()
   {
@@ -258,9 +248,7 @@ public class RebuildIndexTask extends IndexTask
     return args;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {

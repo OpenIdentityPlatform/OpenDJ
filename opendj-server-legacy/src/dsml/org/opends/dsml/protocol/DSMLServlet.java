@@ -139,9 +139,11 @@ public class DSMLServlet extends HttpServlet {
   private MessageFactory messageFactorySOAP_1_2;
   private String contentType;
 
-  // this extends the default handler of SAX parser. It helps to retrieve the
-  // requestID value when the xml request is malformed and thus unparsable
-  // using SOAP or JAXB.
+  /**
+   * This extends the default handler of SAX parser. It helps to retrieve the
+   * requestID value when the xml request is malformed and thus unparsable
+   * using SOAP or JAXB.
+   */
   private DSMLContentHandler contentHandler;
 
   private String hostName;
@@ -814,7 +816,7 @@ public class DSMLServlet extends HttpServlet {
    */
   private static class DSMLContentHandler extends DefaultHandler {
     private String requestID;
-    /*
+    /**
      * This function fetches the requestID value of the batchRequest xml
      * element and call the default implementation (super).
      */

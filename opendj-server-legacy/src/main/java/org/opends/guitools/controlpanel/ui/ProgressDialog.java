@@ -110,9 +110,7 @@ public class ProgressDialog extends GenericDialog
       {
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             progressPanel.appendErrorLine(msg);
@@ -124,9 +122,7 @@ public class ProgressDialog extends GenericDialog
     {
       public void newLine(final String msg)
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         SwingUtilities.invokeLater(new Runnable()
         {
           public void run()
@@ -175,9 +171,7 @@ public class ProgressDialog extends GenericDialog
     progressPanel.setSummary(text);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setEnabledClose(boolean enable)
   {
     progressPanel.closeButton.setEnabled(enable);
@@ -235,33 +229,25 @@ public class ProgressDialog extends GenericDialog
       createLayout();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTitle()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean requiresScroll()
     {
       return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean requiresBorder()
     {
       return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isDisposeOnClose()
     {
       return true;
@@ -413,9 +399,7 @@ public class ProgressDialog extends GenericDialog
       updateVisibility(lastShowDetails);
       details.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           lastShowDetails = details.isSelected();
@@ -423,7 +407,7 @@ public class ProgressDialog extends GenericDialog
         }
       });
 
-//    The button panel
+      // The button panel
       gbc.gridy ++;
       gbc.weighty = 0.0;
       gbc.insets = new Insets(0, 0, 0, 0);
@@ -445,9 +429,7 @@ public class ProgressDialog extends GenericDialog
       closeWhenOver.setOpaque(false);
       closeWhenOver.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           closeWhenOverClicked();
@@ -474,9 +456,7 @@ public class ProgressDialog extends GenericDialog
       buttonsPanel.add(closeButton, gbc);
       closeButton.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           closeClicked();
@@ -538,32 +518,24 @@ public class ProgressDialog extends GenericDialog
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public GenericDialog.ButtonType getButtonType()
     {
       return GenericDialog.ButtonType.NO_BUTTON;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void configurationChanged(ConfigurationChangeEvent ev)
     {
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Component getPreferredFocusComponent()
     {
       return details;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void okClicked()
     {
       Utilities.getParentDialog(this).setVisible(false);
@@ -591,9 +563,7 @@ public class ProgressDialog extends GenericDialog
       {
         Thread t = new Thread(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             try

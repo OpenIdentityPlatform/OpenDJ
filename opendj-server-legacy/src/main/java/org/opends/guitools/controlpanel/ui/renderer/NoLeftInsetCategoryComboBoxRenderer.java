@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -50,9 +51,7 @@ public class NoLeftInsetCategoryComboBoxRenderer extends CustomListCellRenderer
     super(combo);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

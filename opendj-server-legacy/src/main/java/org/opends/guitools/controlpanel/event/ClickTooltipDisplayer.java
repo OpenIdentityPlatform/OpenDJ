@@ -51,17 +51,13 @@ public class ClickTooltipDisplayer extends MouseAdapter
   private boolean isTooltipVisible;
   private Popup tipWindow;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void mouseExited(MouseEvent event)
   {
     hideToolTip(event);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void mousePressed(MouseEvent event)
   {
     if (isTooltipVisible)

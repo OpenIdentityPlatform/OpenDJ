@@ -153,50 +153,38 @@ public class ModifyEntryTask extends Task
     return hasModifications;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Type getType()
   {
     return Type.MODIFY_ENTRY;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getDN());
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -220,17 +208,13 @@ public class ModifyEntryTask extends Task
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     state = State.RUNNING;
@@ -291,9 +275,7 @@ public class ModifyEntryTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void postOperation()
   {
     if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&

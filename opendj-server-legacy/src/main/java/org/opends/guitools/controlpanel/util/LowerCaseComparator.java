@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -29,18 +30,15 @@ package org.opends.guitools.controlpanel.util;
 import java.util.Comparator;
 
 /**
- * Class used to compare Strings without take into account the case.  It can
- * be used to sort Strings in TreeSets for instance.
- *
+ * Class used to compare Strings without taking into account the case.
+ * It can be used to sort Strings in TreeSets for instance.
  */
 public class LowerCaseComparator implements Comparator<String>
 {
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compare(String s1, String s2)
   {
-    if ((s1 != null) && (s2 != null))
+    if (s1 != null && s2 != null)
     {
       return s1.toLowerCase().compareTo(s2.toLowerCase());
     }

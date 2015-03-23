@@ -75,26 +75,18 @@ import org.opends.server.util.StaticUtils;
  */
 public class DeleteSchemaElementsTask extends Task
 {
-  // The list of object classes that the user asked to delete.
-  private LinkedHashSet<ObjectClass> providedOcsToDelete =
-    new LinkedHashSet<ObjectClass>();
-  // The list of attributes that the user asked to delete.
-  private LinkedHashSet<AttributeType> providedAttrsToDelete =
-    new LinkedHashSet<AttributeType>();
-  // The list of object classes that will be actually deleted (some might be
-  // recreated).
-  private LinkedHashSet<ObjectClass> ocsToDelete =
-      new LinkedHashSet<ObjectClass>();
-  // The list of attributes that will be actually deleted (some might be
-  // recreated).
-  private LinkedHashSet<AttributeType> attrsToDelete =
-    new LinkedHashSet<AttributeType>();
-  // The list of object classes that will be recreated.
-  private LinkedHashSet<ObjectClass> ocsToAdd =
-      new LinkedHashSet<ObjectClass>();
-  // The list of attributes that will be recreated.
-  private LinkedHashSet<AttributeType> attrsToAdd =
-      new LinkedHashSet<AttributeType>();
+  /** The list of object classes that the user asked to delete. */
+  private LinkedHashSet<ObjectClass> providedOcsToDelete = new LinkedHashSet<ObjectClass>();
+  /** The list of attributes that the user asked to delete. */
+  private LinkedHashSet<AttributeType> providedAttrsToDelete = new LinkedHashSet<AttributeType>();
+  /** The list of object classes that will be actually deleted (some might be recreated). */
+  private LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<ObjectClass>();
+  /** The list of attributes that will be actually deleted (some might be recreated). */
+  private LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<AttributeType>();
+  /** The list of object classes that will be recreated. */
+  private LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+  /** The list of attributes that will be recreated. */
+  private LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<AttributeType>();
 
   /**
    * Constructor of the task.
@@ -169,18 +161,14 @@ public class DeleteSchemaElementsTask extends Task
     this.attrsToDelete.addAll(allAttrsToDelete);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
@@ -198,18 +186,14 @@ public class DeleteSchemaElementsTask extends Task
     return canLaunch;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -228,27 +212,21 @@ public class DeleteSchemaElementsTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {

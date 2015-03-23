@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -81,26 +81,20 @@ public class ModifyObjectClassTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Type getType()
   {
     return Type.MODIFY_SCHEMA_ELEMENT;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_OBJECTCLASS_TASK_DESCRIPTION.get(
         oldObjectClass.getNameOrOID());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -117,33 +111,25 @@ public class ModifyObjectClassTask extends Task
     return canLaunch;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     try

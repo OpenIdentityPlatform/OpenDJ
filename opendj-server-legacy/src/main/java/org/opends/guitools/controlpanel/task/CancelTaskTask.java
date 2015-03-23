@@ -72,50 +72,38 @@ public class CancelTaskTask extends Task
     this.tasks = new ArrayList<TaskEntry>(tasks);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Type getType()
   {
     // TODO: change this
     return Type.MODIFY_ENTRY;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_CANCEL_TASK_DESCRIPTION.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean regenerateDescriptor()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();
@@ -136,9 +124,7 @@ public class CancelTaskTask extends Task
     return args;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -158,9 +144,7 @@ public class CancelTaskTask extends Task
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     state = State.RUNNING;

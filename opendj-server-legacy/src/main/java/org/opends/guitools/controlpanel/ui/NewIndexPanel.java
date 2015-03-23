@@ -106,17 +106,13 @@ public class NewIndexPanel extends AbstractIndexPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_INDEX_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return attributes;
@@ -131,9 +127,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     backendName.setText(backend.getBackendID());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -273,9 +267,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lAttribute);
@@ -408,34 +400,26 @@ public class NewIndexPanel extends AbstractIndexPanel
       indexTypes = getTypes();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.NEW_INDEX;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_INDEX_TASK_DESCRIPTION.get(
           attributeName, backendName.getText());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -480,9 +464,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               List<String> args = getObfuscatedCommandLineArguments(
@@ -495,9 +477,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -519,9 +499,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -659,17 +637,13 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -687,9 +661,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -720,9 +692,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void postOperation()
     {
       if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&

@@ -62,9 +62,7 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
     super(list);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

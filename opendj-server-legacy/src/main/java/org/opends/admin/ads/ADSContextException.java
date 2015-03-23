@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -177,9 +177,7 @@ public class ADSContextException extends OpenDsException {
     return embeddedException;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void printStackTrace()
   {
     super.printStackTrace();
@@ -191,9 +189,7 @@ public class ADSContextException extends OpenDsException {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String toString()
   {
     return toString;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -98,9 +98,7 @@ public class MainActionsPane extends StatusGenericPanel
         actions.add(b);
         b.addActionListener(new ActionListener()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void actionPerformed(ActionEvent ev)
           {
             // Constructs the panels using reflection.
@@ -165,9 +163,7 @@ public class MainActionsPane extends StatusGenericPanel
     createActionButtonListeners(actions);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return null;
@@ -310,9 +306,7 @@ public class MainActionsPane extends StatusGenericPanel
   {
     ActionListener actionListener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         for (ActionButton button : actions)
@@ -328,9 +322,7 @@ public class MainActionsPane extends StatusGenericPanel
 
     MouseAdapter mouseListener = new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mousePressed(MouseEvent ev)
       {
         for (ActionButton button : actions)
@@ -343,9 +335,7 @@ public class MainActionsPane extends StatusGenericPanel
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseReleased(MouseEvent ev)
       {
         for (ActionButton button : actions)
@@ -358,9 +348,7 @@ public class MainActionsPane extends StatusGenericPanel
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseExited(MouseEvent ev)
       {
         for (ActionButton button : actions)
@@ -373,9 +361,7 @@ public class MainActionsPane extends StatusGenericPanel
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseEntered(MouseEvent ev)
       {
         for (ActionButton button : actions)
@@ -399,25 +385,19 @@ public class MainActionsPane extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return null;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -154,9 +154,7 @@ public class ControlPanel
 
     ComponentListener listener = new ComponentAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void componentHidden(ComponentEvent e)
       {
         handleWindowClosed(localOrRemote, info);

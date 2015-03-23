@@ -69,8 +69,10 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
 
  private boolean isCanceled = true;
 
- // Note: the order of the checkboxes and the elements in the Attributes
- // enumeration will be the same.
+ /**
+  * Note: the order of the checkboxes and the elements in the Attributes
+  * enumeration will be the same.
+  */
  private JCheckBox[] checkboxes = {};
 
  private JButton selectAll;
@@ -113,9 +115,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    return new MonitoringAttributesViewPanel<LocalizableMessage>(attributes);
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public boolean requiresScroll()
  {
@@ -260,32 +260,24 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
            preferredViewHeight));
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public LocalizableMessage getTitle()
  {
    return INFO_CTRL_PANEL_ATTRIBUTE_VIEW_OPTIONS_TITLE.get();
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public void configurationChanged(ConfigurationChangeEvent ev)
  {
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public Component getPreferredFocusComponent()
  {
    return checkboxes[0];
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public void toBeDisplayed(boolean visible)
  {
    if (visible)
@@ -294,9 +286,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public void okClicked()
  {
    // Check that at least one checkbox is selected.
@@ -323,9 +313,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  public GenericDialog.ButtonType getButtonType()
  {
    return GenericDialog.ButtonType.OK_CANCEL;

@@ -55,9 +55,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
 {
   private static final long serialVersionUID = 8744925738292396658L;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DELETE_BACKEND_TITLE.get();
@@ -81,9 +79,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     return INFO_CTRL_PANEL_SELECT_BACKENDS_TO_DELETE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -102,9 +98,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();

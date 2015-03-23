@@ -54,9 +54,7 @@ public class VLVSortOrderRenderer implements ListCellRenderer
     this.defaultRenderer = list.getCellRenderer();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

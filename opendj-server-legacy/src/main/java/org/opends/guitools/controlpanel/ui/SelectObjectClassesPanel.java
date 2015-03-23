@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -93,9 +93,7 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
 
     Comparator<ObjectClass> comparator = new Comparator<ObjectClass>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public int compare(ObjectClass oc1, ObjectClass oc2)
       {
         return oc1.getNameOrOID().toLowerCase().compareTo(
@@ -114,25 +112,19 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
     add(addRemove, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return addRemove;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_SUPERIOR_OBJECTCLASSES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     isCanceled = true;
@@ -159,9 +151,7 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
     return isCanceled;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -170,9 +160,7 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }

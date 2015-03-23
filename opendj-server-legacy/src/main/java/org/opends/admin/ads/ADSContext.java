@@ -400,7 +400,7 @@ public class ADSContext
     return nameToAdminUserProperty.get(name);
   }
 
-  // The context used to retrieve information
+  /** The context used to retrieve information. */
   private final InitialLdapContext dirContext;
 
 
@@ -1176,7 +1176,7 @@ public class ADSContext
     createAdminDataContainers();
   }
 
-  // Create container entries.
+  /** Create container entries. */
   private void createAdminDataContainers() throws ADSContextException
   {
     // Create the DIT below the administration suffix
@@ -2226,14 +2226,11 @@ public class ADSContext
    */
   private static String getRdn(String rdnName) throws ADSContextException
   {
-    CompositeName nameObj;
-    String rdn;
-    //
     // Transform the JNDI name into a RDN string
-    //
     try {
-      nameObj = new CompositeName(rdnName);
-      rdn = nameObj.get(0);
+      CompositeName nameObj = new CompositeName(rdnName);
+      String rdn = nameObj.get(0);
+      return rdn;
     }
     catch (InvalidNameException x)
     {
@@ -2241,7 +2238,6 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
-    return rdn;
   }
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -78,17 +78,13 @@ implements BackupCreatedListener
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_RESTORE_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void backupCreated(BackupCreatedEvent ev)
   {
     boolean refreshList = false;
@@ -120,18 +116,14 @@ implements BackupCreatedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
     info.addBackupCreatedListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -140,17 +132,13 @@ implements BackupCreatedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         lBackupID.setVisible(!desc.isLocal());
@@ -163,13 +151,11 @@ implements BackupCreatedListener
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void verifyBackupClicked()
   {
     LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-//  Launch the task in another progress dialog.
+    // Launch the task in another progress dialog.
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -243,17 +229,13 @@ implements BackupCreatedListener
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkOKButtonEnable()
   {
     listener.valueChanged(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lPath);
@@ -337,9 +319,7 @@ implements BackupCreatedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lPath);
@@ -348,10 +328,7 @@ implements BackupCreatedListener
     super.cancelClicked();
   }
 
-  /**
-   * The task in charge of restoring or verifying the backup.
-   *
-   */
+  /** The task in charge of restoring or verifying the backup. */
   protected class RestoreTask extends Task
   {
     private Set<String> backendSet;
@@ -392,17 +369,13 @@ implements BackupCreatedListener
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.RESTORE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       if (verify)
@@ -415,9 +388,7 @@ implements BackupCreatedListener
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -439,9 +410,7 @@ implements BackupCreatedListener
       return canLaunch;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -502,17 +471,13 @@ implements BackupCreatedListener
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -539,9 +504,7 @@ implements BackupCreatedListener
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return getCommandLinePath("restore");

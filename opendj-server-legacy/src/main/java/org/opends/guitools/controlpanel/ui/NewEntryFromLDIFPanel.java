@@ -71,25 +71,19 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return ldif;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -105,17 +99,13 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     ldif.setCaretPosition(emptyDn.length());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
@@ -155,25 +145,19 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     ldif = Utilities.createTextArea(LocalizableMessage.EMPTY, 20, 50);
     ldif.getDocument().addDocumentListener(new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         lSyntaxCorrect.setVisible(false);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         removeUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
        removeUpdate(ev);
@@ -194,9 +178,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     checkSyntax.setOpaque(false);
     checkSyntax.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
@@ -229,17 +211,13 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     add(checkSyntax, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     lSyntaxCorrect.setVisible(false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     try
@@ -256,9 +234,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getLDIF()
   {
     return ldif.getText();

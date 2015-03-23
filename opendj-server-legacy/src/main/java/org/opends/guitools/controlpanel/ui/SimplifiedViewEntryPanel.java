@@ -138,12 +138,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private final String CONFIRM_PASSWORD = "confirm password";
 
-  // Map containing as key the attribute name and as value a localizable
-  // message.
+  /** Map containing as key the attribute name and as value a localizable message. */
   static Map<String, LocalizableMessage> hmFriendlyAttrNames =
     new HashMap<String, LocalizableMessage>();
-  // Map containing as key an object class and as value the preferred naming
-  // attribute for the objectclass.
+  /**
+   * Map containing as key an object class and as value the preferred naming
+   * attribute for the objectclass.
+   */
   static Map<String, String> hmNameAttrNames = new HashMap<String, String>();
   static Map<String, String[]> hmOrdereredAttrNames =
     new HashMap<String, String[]>();
@@ -261,17 +262,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresBorder()
   {
     return false;
@@ -284,37 +281,27 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     dropTargetListener = new DropTargetListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragEnter(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragExit(DropTargetEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragOver(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dropActionChanged(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -392,9 +379,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     showOnlyAttrsWithValues.setSelected(displayOnlyWithAttrs);
     showOnlyAttrsWithValues.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+       /** {@inheritDoc} */
        public void actionPerformed(ActionEvent ev)
        {
          updateAttributeVisibility(!showOnlyAttrsWithValues.isSelected());
@@ -430,9 +415,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     add(scrollAttributes, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
@@ -631,9 +614,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         if ((p != null) && (scrollAttributes.getViewport().contains(p)))
@@ -954,9 +935,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         pane.setValue(binaryValue, isImage);
         pane.addEditActionListener(new ActionListener()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void actionPerformed(ActionEvent ev)
           {
             if (binaryDlg == null)
@@ -1025,9 +1004,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         ocCellPanel.addEditActionListener(new ActionListener()
         {
           private ObjectClassValue newValue;
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void actionPerformed(ActionEvent ev)
           {
             if (editOcDlg == null)
@@ -1145,9 +1122,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         pane.addEditActionListener(new ActionListener()
         {
           private BinaryValue newValue;
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void actionPerformed(ActionEvent ev)
           {
             if (editBinaryDlg == null)
@@ -1190,9 +1165,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         });
         pane.addDeleteActionListener(new ActionListener()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void actionPerformed(ActionEvent ev)
           {
             pane.setValue((byte[])null, false);
@@ -1258,17 +1231,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return isRequired;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Entry getEntry() throws OpenDsException
   {
     Entry entry = null;
@@ -1508,9 +1477,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return mustAddBrowseButton;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected List<Object> getValues(String attrName)
   {
     List<Object> values = new ArrayList<Object>();
@@ -1546,9 +1513,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getDisplayedDN()
   {
     StringBuilder sb = new StringBuilder();
@@ -1928,25 +1893,19 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       comp = tf;
       tf.getDocument().addDocumentListener(new DocumentListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void insertUpdate(DocumentEvent ev)
         {
           notifyListeners();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void changedUpdate(DocumentEvent ev)
         {
           notifyListeners();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeUpdate(DocumentEvent ev)
         {
           notifyListeners();
@@ -1955,7 +1914,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
 
     /**
-     * Creats an EditorComponent using a BinaryCellPanel.
+     * Creates an EditorComponent using a BinaryCellPanel.
      * @param binaryPanel the BinaryCellPanel.
      */
     public EditorComponent(BinaryCellPanel binaryPanel)
@@ -1964,7 +1923,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
 
     /**
-     * Creats an EditorComponent using a ObjectClassCellPanel.
+     * Creates an EditorComponent using a ObjectClassCellPanel.
      * @param ocPanel the ObjectClassCellPanel.
      */
     public EditorComponent(ObjectClassCellPanel ocPanel)

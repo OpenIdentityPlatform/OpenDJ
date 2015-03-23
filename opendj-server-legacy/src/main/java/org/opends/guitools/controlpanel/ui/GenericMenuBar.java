@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -129,27 +129,22 @@ public abstract class GenericMenuBar extends JMenuBar
   {
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public Void processBackgroundTask() throws WebBrowserException
       {
         try
         {
           WebBrowserLauncher.openURL(url);
+          return null;
         } catch (Throwable t)
         {
           throw new WebBrowserException(url,
               ERR_CTRL_PANEL_UNEXPECTED_DETAILS.get(t), t);
         }
-        return null;
       }
 
-      /**
-       * {@inheritDoc}
-       */
-      public void backgroundTaskCompleted(Void returnValue,
-        Throwable throwable)
+      /** {@inheritDoc} */
+      public void backgroundTaskCompleted(Void returnValue, Throwable throwable)
       {
         WebBrowserException ex = (WebBrowserException) throwable;
         if (ex != null)

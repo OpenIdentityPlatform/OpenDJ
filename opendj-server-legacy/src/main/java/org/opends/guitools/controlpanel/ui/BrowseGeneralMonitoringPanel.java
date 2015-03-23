@@ -135,36 +135,28 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -204,36 +196,28 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     add(createSplitPane(), gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_GENERAL_MONITORING_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return treePane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -271,9 +255,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -307,9 +289,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     return pane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -318,9 +298,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     entryPane.setInfo(info);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor server = ev.getNewDescriptor();
@@ -404,9 +382,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         errorPane.setVisible(fDisplayErrorPane);
@@ -649,9 +625,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   {
     private static final long serialVersionUID = -3390566664259441766L;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -91,32 +91,24 @@ public class StandardAttributePanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_ATTRIBUTE_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return requiredBy;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
@@ -220,9 +212,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void mouseClicked(MouseEvent ev)
         {
           if (ev.getClickCount() == 1)
@@ -235,9 +225,7 @@ public class StandardAttributePanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void keyTyped(KeyEvent ev)
         {
           if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||

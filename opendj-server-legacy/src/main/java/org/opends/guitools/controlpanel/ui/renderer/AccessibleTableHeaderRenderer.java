@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -38,6 +39,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 public class AccessibleTableHeaderRenderer implements TableCellRenderer
 {
   private TableCellRenderer renderer;
+
   /**
    * Constructor of the renderer.
    * @param renderer the renderer to be used as base.
@@ -46,9 +48,8 @@ public class AccessibleTableHeaderRenderer implements TableCellRenderer
   {
     this.renderer = renderer;
   }
-  /**
-   * {@inheritDoc}
-   */
+
+  /** {@inheritDoc} */
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column)
   {
@@ -58,5 +59,4 @@ public class AccessibleTableHeaderRenderer implements TableCellRenderer
         Utilities.stripHtmlToSingleLine(String.valueOf(value)));
     return comp;
   }
-
 }

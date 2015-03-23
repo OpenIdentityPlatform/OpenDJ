@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.admin.ads.util;
@@ -197,16 +198,12 @@ public class TrustedSocketFactory extends SSLSocketFactory
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Socket createSocket(InetAddress address, int port) throws IOException {
     return getInnerFactory().createSocket(address, port);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Socket createSocket(InetAddress address, int port,
       InetAddress clientAddress, int clientPort) throws IOException
   {
@@ -214,35 +211,27 @@ public class TrustedSocketFactory extends SSLSocketFactory
         clientPort);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Socket createSocket(String host, int port) throws IOException
   {
     return getInnerFactory().createSocket(host, port);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Socket createSocket(String host, int port, InetAddress clientHost,
       int clientPort) throws IOException
   {
     return getInnerFactory().createSocket(host, port, clientHost, clientPort);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Socket createSocket(Socket s, String host, int port, boolean autoClose)
   throws IOException
   {
     return getInnerFactory().createSocket(s, host, port, autoClose);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String[] getDefaultCipherSuites()
   {
     try
@@ -255,9 +244,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String[] getSupportedCipherSuites()
   {
     try
@@ -269,11 +256,6 @@ public class TrustedSocketFactory extends SSLSocketFactory
       return new String[0];
     }
   }
-
-
-  //
-  // Private
-  //
 
   private SSLSocketFactory getInnerFactory() throws IOException {
     if (innerFactory == null)

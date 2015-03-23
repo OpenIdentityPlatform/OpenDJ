@@ -84,9 +84,7 @@ public class CategorizedComboBoxElement
     return type;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
     if (o instanceof CategorizedComboBoxElement)
@@ -98,9 +96,7 @@ public class CategorizedComboBoxElement
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;

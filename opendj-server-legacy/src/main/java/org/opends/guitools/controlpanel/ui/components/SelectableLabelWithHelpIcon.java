@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -185,9 +185,7 @@ public class SelectableLabelWithHelpIcon extends JPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getToolTipText(MouseEvent ev)
   {
     int x = ev.getPoint().x;

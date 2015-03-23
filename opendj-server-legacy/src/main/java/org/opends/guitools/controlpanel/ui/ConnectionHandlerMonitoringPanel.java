@@ -254,18 +254,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     updateTableSizes();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public JMenuBar getMenuBar()
   {
@@ -277,9 +273,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     return menuBar;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor server = ev.getNewDescriptor();
@@ -378,9 +372,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         ViewPositions pos = Utilities.getViewPositions(
@@ -404,27 +396,21 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return connectionHandlers;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -432,18 +418,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
@@ -614,9 +596,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       super(info);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void addMenus()
     {

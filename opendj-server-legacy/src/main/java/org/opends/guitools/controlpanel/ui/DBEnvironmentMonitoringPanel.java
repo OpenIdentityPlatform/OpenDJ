@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -81,9 +82,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return table;

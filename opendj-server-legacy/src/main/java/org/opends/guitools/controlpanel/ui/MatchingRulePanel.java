@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -76,35 +76,27 @@ public class MatchingRulePanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MATCHING_RULE_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -170,9 +162,7 @@ public class MatchingRulePanel extends SchemaElementPanel
 
     MouseAdapter clickListener = new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void mouseClicked(MouseEvent ev)
       {
@@ -186,9 +176,7 @@ public class MatchingRulePanel extends SchemaElementPanel
 
     KeyAdapter keyListener = new KeyAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void keyTyped(KeyEvent ev)
       {

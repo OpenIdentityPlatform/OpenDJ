@@ -44,25 +44,19 @@ public class NewDomainPanel extends NewOrganizationPanel
 {
   private static final long serialVersionUID = -595396547491445219L;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
@@ -82,9 +76,7 @@ public class NewDomainPanel extends NewOrganizationPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void updateDNValue()
   {
     String value = name.getText().trim();
@@ -99,9 +91,7 @@ public class NewDomainPanel extends NewOrganizationPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();

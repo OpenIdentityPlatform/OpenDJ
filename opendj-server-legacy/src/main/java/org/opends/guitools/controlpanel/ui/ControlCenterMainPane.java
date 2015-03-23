@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -97,9 +97,7 @@ public class ControlCenterMainPane extends JPanel
     info.addConfigChangeListener(new ConfigChangeListener()
     {
       private boolean lastStatusStopped;
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void configurationChanged(final ConfigurationChangeEvent ev)
       {
         final boolean displayLogin;
@@ -120,9 +118,7 @@ public class ControlCenterMainPane extends JPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             updateAuthenticationLabel(ev.getNewDescriptor());
