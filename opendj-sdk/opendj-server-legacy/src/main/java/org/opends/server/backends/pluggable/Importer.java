@@ -2313,7 +2313,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       public void writeToDN2ID(ImportIDSet idSet) throws DirectoryException
       {
-        txn.create(dn2id, idSet.getKey(), entryID.toByteString());
+        txn.put(dn2id, idSet.getKey(), entryID.toByteString());
         indexMgr.addTotDNCount(1);
         if (parentDN != null)
         {

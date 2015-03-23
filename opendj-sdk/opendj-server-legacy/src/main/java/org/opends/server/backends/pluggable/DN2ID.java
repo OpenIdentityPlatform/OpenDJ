@@ -70,7 +70,7 @@ class DN2ID extends DatabaseContainer
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = id.toByteString();
-    txn.create(getName(), key, value);
+    txn.put(getName(), key, value);
   }
 
   /**

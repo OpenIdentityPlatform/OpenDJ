@@ -154,9 +154,9 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public void create(final TreeName name, final ByteSequence key, final ByteSequence value)
+    public void put(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
-      txn.create(name, key, value);
+      txn.put(name, key, value);
       logger.trace("Storage@%s.WriteableStorage@%s.create(%s, %s, %s, %s)",
           storageId(), id(), backendId, name, hex(key), hex(value));
     }

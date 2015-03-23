@@ -59,8 +59,8 @@ public interface WriteableStorage extends ReadableStorage
   void deleteTree(TreeName name);
 
   /**
-   * Creates a new record with the provided key and value, in the tree whose name is provided.
-   * If a previous record is associated to the provided key, then it will be replaced by the new record.
+   * Adds a record with the provided key and value, replacing any existing record having the same
+   * key.
    *
    * @param treeName
    *          the tree name
@@ -69,10 +69,11 @@ public interface WriteableStorage extends ReadableStorage
    * @param value
    *          the value of the new record
    */
-  void create(TreeName treeName, ByteSequence key, ByteSequence value);
+  void put(TreeName treeName, ByteSequence key, ByteSequence value);
 
   /**
-   * Updates a record with the provided key according to the new value computed by the update function.
+   * Atomically adds, deletes, or replaces a record with the provided key according to the new value
+   * computed by the update function.
    *
    * @param treeName
    *          the tree name

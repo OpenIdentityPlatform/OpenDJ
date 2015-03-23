@@ -274,7 +274,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     private final Map<TreeName, Exchange> exchanges = new HashMap<TreeName, Exchange>();
 
     @Override
-    public void create(final TreeName treeName, final ByteSequence key,
+    public void put(final TreeName treeName, final ByteSequence key,
         final ByteSequence value)
     {
       try

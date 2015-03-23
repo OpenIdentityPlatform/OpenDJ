@@ -591,8 +591,8 @@ class VLVIndex extends DatabaseContainer
          * the key.
          */
         SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-        txn.create(getName(), splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
-        txn.create(getName(), sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after
+        txn.put(getName(), splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
+        txn.put(getName(), sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after
 
         if(logger.isTraceEnabled())
         {
@@ -610,7 +610,7 @@ class VLVIndex extends DatabaseContainer
       else
       {
         ByteString after = sortValuesSet.toByteString();
-        txn.create(getName(), key, after);
+        txn.put(getName(), key, after);
       }
 
       count.getAndAdd(newSize - oldSize);

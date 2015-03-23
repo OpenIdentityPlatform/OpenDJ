@@ -163,7 +163,7 @@ class Index extends DatabaseContainer
       else
       {
         value = importIDSet.valueToByteString();
-        txn.create(getName(), key, value);
+        txn.put(getName(), key, value);
       }
     } else {
       // Should never happen -- the keys should always be there.
@@ -194,7 +194,7 @@ class Index extends DatabaseContainer
       }
       value = importIdSet.valueToByteString();
     }
-    txn.create(getName(), key, value);
+    txn.put(getName(), key, value);
   }
 
   void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
