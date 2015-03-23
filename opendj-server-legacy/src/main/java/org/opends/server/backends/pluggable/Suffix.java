@@ -37,6 +37,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.pluggable.Importer.DNCache;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -253,50 +254,48 @@ class Suffix
    * Sets the trusted status of all of the indexes, vlvIndexes, id2children
    * and id2subtree indexes.
    *
-   * @param trusted True if the indexes should be trusted or false
-   *                otherwise.
-   *
-   * @throws StorageRuntimeException If an error occurred setting the indexes to
-   *                           trusted.
+   * @param txn a non null database transaction
+   * @param trusted True if the indexes should be trusted or false otherwise.
+   * @throws StorageRuntimeException If an error occurred setting the indexes to trusted.
    */
-  public void setIndexesTrusted(boolean trusted) throws StorageRuntimeException
+  public void setIndexesTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
   {
-    entryContainer.getID2Children().setTrusted(null,trusted);
-    entryContainer.getID2Subtree().setTrusted(null, trusted);
+    entryContainer.getID2Children().setTrusted(txn, trusted);
+    entryContainer.getID2Subtree().setTrusted(txn, trusted);
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      setTrusted(attributeIndex.getEqualityIndex(), trusted);
-      setTrusted(attributeIndex.getPresenceIndex(), trusted);
-      setTrusted(attributeIndex.getSubstringIndex(), trusted);
-      setTrusted(attributeIndex.getOrderingIndex(), trusted);
-      setTrusted(attributeIndex.getApproximateIndex(), trusted);
+      setTrusted(txn, attributeIndex.getEqualityIndex(), trusted);
+      setTrusted(txn, attributeIndex.getPresenceIndex(), trusted);
+      setTrusted(txn, attributeIndex.getSubstringIndex(), trusted);
+      setTrusted(txn, attributeIndex.getOrderingIndex(), trusted);
+      setTrusted(txn, attributeIndex.getApproximateIndex(), trusted);
       Map<String, Collection<Index>> exIndexes = attributeIndex.getExtensibleIndexes();
       if(!exIndexes.isEmpty())
       {
-        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
-        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SHARED), trusted);
+        setTrusted(txn, exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
+        setTrusted(txn, exIndexes.get(EXTENSIBLE_INDEXER_ID_SHARED), trusted);
       }
     }
     for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
-      vlvIdx.setTrusted(null, trusted);
+      vlvIdx.setTrusted(txn, trusted);
     }
   }
 
-  private void setTrusted(Index index, boolean trusted)
+  private void setTrusted(WriteableStorage txn, Index index, boolean trusted)
   {
     if (index != null)
     {
-      index.setTrusted(null, trusted);
+      index.setTrusted(txn, trusted);
     }
   }
 
-  private void setTrusted(Collection<Index> subIndexes, boolean trusted)
+  private void setTrusted(WriteableStorage txn, Collection<Index> indexes, boolean trusted)
   {
-    if (subIndexes != null)
+    if (indexes != null)
     {
-      for (Index subIndex : subIndexes)
+      for (Index subIndex : indexes)
       {
-        subIndex.setTrusted(null, trusted);
+        subIndex.setTrusted(txn, trusted);
       }
     }
   }
@@ -311,7 +310,6 @@ class Suffix
     return this.srcEntryContainer;
   }
 
-
   /**
    * Return include branches.
    *
@@ -322,7 +320,6 @@ class Suffix
     return this.includeBranches;
   }
 
-
   /**
    * Return exclude branches.
    *
@@ -332,7 +329,6 @@ class Suffix
   {
     return this.excludeBranches;
   }
-
 
   /**
    * Return base DN.
