@@ -24,22 +24,27 @@
  *       Copyright 2010 Sun Microsystems, Inc.
  *       Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.extensions;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.api.DiskSpaceMonitorHandler;
-import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import static org.opends.messages.CoreMessages.
-    ERR_DISK_SPACE_MONITOR_UPDATE_FAILED;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class provides an application-wide disk space monitoring service.
@@ -55,6 +60,10 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
     implements Runnable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final int NORMAL = 0;
+  private static final int LOW = 1;
+  private static final int FULL = 2;
 
   private volatile File directory;
   private volatile long lowThreshold;
@@ -163,7 +172,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isFullThresholdReached()
   {
-    return lastState >= 2;
+    return lastState >= FULL;
   }
 
   /**
@@ -174,64 +183,55 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isLowThresholdReached()
   {
-    return lastState >= 1;
+    return lastState >= LOW;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
       throws ConfigException, InitializationException {
     scheduleUpdate(this, 0, interval, unit);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName() {
     return instanceName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData() {
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-
-    AttributeType attrType =
-        DirectoryServer.getDefaultAttributeType("disk-dir",
-            DirectoryServer.getDefaultStringSyntax());
-    monitorAttrs.add(Attributes.create(attrType, directory.getPath()));
-
-    attrType =
-        DirectoryServer.getDefaultAttributeType("disk-free",
-            DirectoryServer.getDefaultIntegerSyntax());
-    monitorAttrs.add(Attributes.create(attrType,
-        String.valueOf(getFreeSpace())));
-
-    attrType =
-        DirectoryServer.getDefaultAttributeType("disk-state",
-            DirectoryServer.getDefaultStringSyntax());
-    switch(lastState)
-    {
-      case 0 : monitorAttrs.add(Attributes.create(attrType, "normal"));
-        break;
-      case 1 : monitorAttrs.add(Attributes.create(attrType, "low"));
-        break;
-      case 2 : monitorAttrs.add(Attributes.create(attrType, "full"));
-        break;
-    }
-
-
+    final ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
+    monitorAttrs.add(attr("disk-dir", getDefaultStringSyntax(), directory.getPath()));
+    monitorAttrs.add(attr("disk-free", getDefaultIntegerSyntax(), getFreeSpace()));
+    monitorAttrs.add(attr("disk-state", getDefaultStringSyntax(), getState()));
     return monitorAttrs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private Attribute attr(String name, AttributeSyntax<?> syntax, Object value)
+  {
+    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name, syntax);
+    return Attributes.create(attrType, String.valueOf(value));
+  }
+
+  private String getState()
+  {
+    switch(lastState)
+    {
+    case NORMAL:
+      return "normal";
+    case LOW:
+      return "low";
+    case FULL:
+      return "full";
+    default:
+      return null;
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public void run() {
     try
     {
@@ -247,14 +247,14 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
 
       if(lastFreeSpace < fullThreshold)
       {
-        if(lastState < 2)
+        if (lastState < FULL)
         {
           if(logger.isTraceEnabled())
           {
-            logger.trace("State change: %d -> %d", lastState, 2);
+            logger.trace("State change: %d -> %d", lastState, FULL);
           }
 
-          lastState = 2;
+          lastState = FULL;
           if(handler != null)
           {
             handler.diskFullThresholdReached(this);
@@ -263,26 +263,26 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
       }
       else if(lastFreeSpace < lowThreshold)
       {
-        if(lastState < 1)
+        if (lastState < LOW)
         {
           if(logger.isTraceEnabled())
           {
-            logger.trace("State change: %d -> %d", lastState, 1);
+            logger.trace("State change: %d -> %d", lastState, LOW);
           }
-          lastState = 1;
+          lastState = LOW;
           if(handler != null)
           {
             handler.diskLowThresholdReached(this);
           }
         }
       }
-      else if(lastState != 0)
+      else if (lastState != NORMAL)
       {
         if(logger.isTraceEnabled())
         {
-          logger.trace("State change: %d -> %d", lastState, 0);
+          logger.trace("State change: %d -> %d", lastState, NORMAL);
         }
-        lastState = 0;
+        lastState = NORMAL;
         if(handler != null)
         {
           handler.diskSpaceRestored(this);
