@@ -42,6 +42,7 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
 import javax.management.remote.rmi.RMIConnectorServer;
+import javax.rmi.ssl.SslRMIClientSocketFactory;
 
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.JMXMBean;
@@ -279,7 +280,7 @@ public class RmiConnector
       // ---------------------
       // init an ssl context
       // ---------------------
-      DirectoryRMIClientSocketFactory rmiClientSockeyFactory = null;
+      SslRMIClientSocketFactory rmiClientSockeyFactory = null;
       DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
       if (jmxConnectionHandler.isUseSSL())
       {
@@ -335,7 +336,7 @@ public class RmiConnector
         // registry
         // ---------------------
         // Set the Client socket factory in the JMX map
-        rmiClientSockeyFactory = new DirectoryRMIClientSocketFactory(false);
+        rmiClientSockeyFactory = new SslRMIClientSocketFactory();
         env.put(
             "jmx.remote.rmi.client.socket.factory",
             rmiClientSockeyFactory);
