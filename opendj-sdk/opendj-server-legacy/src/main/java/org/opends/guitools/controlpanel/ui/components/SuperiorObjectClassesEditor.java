@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -145,9 +146,7 @@ public class SuperiorObjectClassesEditor extends JPanel
     singleSuperior.setRenderer(renderer);
     ItemListener itemListener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         notifyListeners();

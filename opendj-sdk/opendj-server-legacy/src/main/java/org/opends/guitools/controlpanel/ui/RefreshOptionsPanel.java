@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -65,9 +65,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_REFRESH_PANEL_TITLE.get();
@@ -115,32 +113,24 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return period;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     isCanceled = true;
@@ -180,9 +170,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     return isCanceled;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -194,8 +182,8 @@ public class RefreshOptionsPanel extends StatusGenericPanel
   }
 
   /**
-   * Returns the time specified by the user in miliseconds.
-   * @return the time specified by the user in miliseconds.
+   * Returns the time specified by the user in milliseconds.
+   * @return the time specified by the user in milliseconds.
    */
   public long getPoolingPeriod()
   {

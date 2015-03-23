@@ -76,17 +76,13 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     return attr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compareTo(AbstractIndexDescriptor o)
   {
     return getName().toLowerCase().compareTo(o.getName().toLowerCase());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;
@@ -125,9 +121,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     name.equalsIgnoreCase("id2subtree");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
     if (o == this)
@@ -162,9 +156,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     return entryLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void recalculateHashCode()
   {
     StringBuilder sb = new StringBuilder();

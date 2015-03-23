@@ -69,9 +69,7 @@ public class CustomTree extends JTree
     MOUSE_PRESSED, MOUSE_CLICKED, MOUSE_RELEASED
   };
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void paintComponent(Graphics g)
   {
     int[] selectedRows = getSelectionRows();
@@ -88,16 +86,7 @@ public class CustomTree extends JTree
     for ( int i = 0; i < nRows; i++)
     {
       int rowHeight = getRowBounds( i ).height;
-      boolean isSelected = false;
-      for (int j=0; j<selectedRows.length; j++)
-      {
-        if (selectedRows[j] == i)
-        {
-          isSelected = true;
-          break;
-        }
-      }
-      if (isSelected)
+      if (isRowSelected(selectedRows, i))
       {
         g.setColor(TreeCellRenderer.selectionBackground);
       }
@@ -121,6 +110,18 @@ public class CustomTree extends JTree
     setOpaque(isOpaque);
   }
 
+  private boolean isRowSelected(int[] selectedRows, int i)
+  {
+    for (int j=0; j<selectedRows.length; j++)
+    {
+      if (selectedRows[j] == i)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Sets a popup menu that will be displayed when the user clicks on the tree.
    * @param popMenu the popup menu.
@@ -130,10 +131,7 @@ public class CustomTree extends JTree
     this.popupMenu = popMenu;
   }
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public CustomTree()
   {
     putClientProperty("JTree.lineStyle", "Angled");
@@ -143,9 +141,7 @@ public class CustomTree extends JTree
     MouseListener mouseListener = new MouseAdapter()
     {
       private boolean ignoreEvents;
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mousePressed(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -194,9 +190,7 @@ public class CustomTree extends JTree
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseReleased(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -219,9 +213,7 @@ public class CustomTree extends JTree
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseClicked(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -300,9 +292,7 @@ public class CustomTree extends JTree
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void addMouseListener(MouseListener mouseListener)
   {
     super.addMouseListener(mouseListener);
@@ -313,9 +303,7 @@ public class CustomTree extends JTree
     mouseListeners.add(mouseListener);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void removeMouseListener(MouseListener mouseListener)
   {
     super.removeMouseListener(mouseListener);

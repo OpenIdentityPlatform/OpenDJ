@@ -116,25 +116,19 @@ public class BackupPanel extends BackupListPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_BACKUP_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return backupID;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void verifyBackupClicked()
   {
     // Nothing to do: the button is not visible.
@@ -292,9 +286,7 @@ public class BackupPanel extends BackupListPanel
 
     changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent ev)
       {
         backends.setEnabled(!allBackends.isSelected());
@@ -318,18 +310,14 @@ public class BackupPanel extends BackupListPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     updateSimpleBackendComboBoxModel(backends, lNoBackendsFound, desc);
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         allBackends.setVisible(backends.getModel().getSize() > 0);
@@ -352,9 +340,7 @@ public class BackupPanel extends BackupListPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lBackend);
@@ -464,9 +450,7 @@ public class BackupPanel extends BackupListPanel
     final String path = parentDirectory.getText();
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public Void processBackgroundTask() throws Throwable
       {
         // Open the backup directory and make sure it is valid.
@@ -515,9 +499,7 @@ public class BackupPanel extends BackupListPanel
             errors.add(ERR_CTRL_PANEL_BACKUP_ID_ALREADY_EXIST.get(id, path));
             SwingUtilities.invokeLater(new Runnable()
             {
-              /**
-               * {@inheritDoc}
-               */
+              /** {@inheritDoc} */
               public void run()
               {
                 setPrimaryInvalid(lBackupID);
@@ -528,9 +510,7 @@ public class BackupPanel extends BackupListPanel
         }
         return null;
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void backgroundTaskCompleted(Void returnValue,
           Throwable t)
       {
@@ -597,9 +577,7 @@ public class BackupPanel extends BackupListPanel
     return schedulePanel.getSchedule();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lBackend);
@@ -610,9 +588,7 @@ public class BackupPanel extends BackupListPanel
     super.cancelClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -688,26 +664,20 @@ public class BackupPanel extends BackupListPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.BACKUP;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_BACKUP_TASK_DESCRIPTION.get(
       Utilities.getStringFromCollection(backendSet, ", "), dir);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -729,9 +699,7 @@ public class BackupPanel extends BackupListPanel
       return canLaunch;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -775,17 +743,13 @@ public class BackupPanel extends BackupListPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -856,9 +820,7 @@ public class BackupPanel extends BackupListPanel
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return getCommandLinePath("backup");

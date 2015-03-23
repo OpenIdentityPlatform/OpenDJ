@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -66,9 +67,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     this.notifyListeners = true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
@@ -106,9 +105,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void backgroundTaskCompleted(CustomSearchResult sr,
       Throwable throwable)

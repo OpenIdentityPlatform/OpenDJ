@@ -196,9 +196,7 @@ public class LabelWithHelpIcon extends JPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getToolTipText(MouseEvent ev)
   {
     int x = ev.getPoint().x;

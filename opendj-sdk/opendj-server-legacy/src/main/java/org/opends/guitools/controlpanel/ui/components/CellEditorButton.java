@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -37,7 +37,6 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * This is a simple extension of the JButton class used to be able to invoke
  * the method processKeyBinding.
- *
  */
 public class CellEditorButton extends JButton
 {
@@ -52,9 +51,7 @@ public class CellEditorButton extends JButton
     super(label.toString());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean processKeyBinding(KeyStroke ks, KeyEvent e,
       int condition, boolean pressed)
   {

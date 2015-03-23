@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -81,9 +81,7 @@ public class BinaryValuePanel extends StatusGenericPanel
     lastBytes = bytes;
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public Void processBackgroundTask() throws Throwable
       {
         try
@@ -113,11 +111,9 @@ public class BinaryValuePanel extends StatusGenericPanel
         }
         return null;
       }
-      /**
-       * {@inheritDoc}
-       */
-      public void backgroundTaskCompleted(Void returnValue,
-          Throwable t)
+
+      /** {@inheritDoc} */
+      public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         displayMainPanel();
         packParentDialog();
@@ -129,9 +125,6 @@ public class BinaryValuePanel extends StatusGenericPanel
     };
     if (launchBackground)
     {
-      /**
-       * {@inheritDoc}
-       */
       displayMessage(INFO_CTRL_PANEL_READING_SUMMARY.get());
       worker.startBackgroundTask();
     }
@@ -141,56 +134,43 @@ public class BinaryValuePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return base64;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No OK Button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VIEW_BINARY_ATTRIBUTE_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
   /**
    * Creates the layout of the panel (but the contents are not populated here).
-   *
    */
   private void createLayout()
   {

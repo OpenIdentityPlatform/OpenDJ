@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -58,9 +59,7 @@ public class BackupTableModel extends AbstractTableModel
     backups.add(backup);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getValueAt(int row, int column)
   {
     switch (column)

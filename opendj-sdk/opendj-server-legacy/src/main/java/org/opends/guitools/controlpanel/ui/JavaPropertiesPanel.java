@@ -176,36 +176,28 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return javaHome;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -444,9 +436,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     };
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -456,9 +446,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       previousLocal = isLocal;
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -478,9 +466,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -614,9 +600,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public Void processBackgroundTask() throws Throwable
       {
@@ -672,12 +656,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
         return null;
       }
-      /**
-       * {@inheritDoc}
-       */
+
+      /** {@inheritDoc} */
       @Override
-      public void backgroundTaskCompleted(Void returnValue,
-          Throwable t)
+      public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         if (t == null)
         {
@@ -743,9 +725,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     setEnabledOK(true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -753,9 +733,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     super.cancelClicked();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -886,9 +864,8 @@ public class JavaPropertiesPanel extends StatusGenericPanel
             return confirmationMessages;
           }
         }
-        /**
-         * {@inheritDoc}
-         */
+
+        /** {@inheritDoc} */
         @Override
         public void backgroundTaskCompleted(List<LocalizableMessage> returnValue,
             Throwable t)
@@ -1093,27 +1070,21 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       return javaArguments;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return hashCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return toString;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(Object o)
     {
@@ -1214,36 +1185,28 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int getColumnCount()
     {
       return COLUMN_NAMES.length;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int getRowCount()
     {
       return dataArray.size();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Object getValueAt(int row, int col)
     {
       return dataArray.get(row)[col];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getColumnName(int col) {
       return COLUMN_NAMES[col];
@@ -1301,17 +1264,13 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       this.sortColumn = sortColumn;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isCellEditable(int row, int col) {
       return col != 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void setValueAt(Object value, int row, int col)
     {
@@ -1400,36 +1359,28 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       arguments = getCurrentJavaArguments();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Type getType()
     {
       return Type.JAVA_SETTINGS_UPDATE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_UPDATE_JAVA_SETTINGS_TASK_DESCRIPTION.get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
@@ -1454,27 +1405,21 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -1568,9 +1513,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       }
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void run()
         {

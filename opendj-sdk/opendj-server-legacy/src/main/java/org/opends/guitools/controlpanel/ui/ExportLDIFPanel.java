@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -103,25 +103,19 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EXPORT_LDIF_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -175,25 +169,19 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     file = Utilities.createTextField();
     documentListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
         setEnabledOK((text != null) && (text.length() > 0) &&
             !errorPane.isVisible());
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -272,9 +260,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
     encryptData.addChangeListener(new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent ev)
       {
         generateSignedHash.setEnabled(encryptData.isSelected());
@@ -305,9 +291,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
     wrapText.addChangeListener(new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent ev)
       {
         wrapColumn.setEnabled(wrapText.isSelected());
@@ -333,9 +317,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -356,17 +338,13 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lBackend);
@@ -455,9 +433,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lBackend);
@@ -492,26 +468,20 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       fileName = file.getText();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.EXPORT_LDIF;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_EXPORT_TASK_DESCRIPTION.get(
           backendSet.iterator().next(), fileName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -533,9 +503,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       return canLaunch;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -572,17 +540,13 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -623,9 +587,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return getCommandLinePath("export-ldif");

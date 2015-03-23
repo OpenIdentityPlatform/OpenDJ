@@ -114,9 +114,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
    */
   protected JLabel lExclusionFilter;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lDnsToInclude);
@@ -224,9 +222,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent e)
       {
         lDnsToInclude.setVisible(expander.isSelected());
@@ -344,9 +340,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent e)
       {
         lDnsToExclude.setVisible(expander.isSelected());

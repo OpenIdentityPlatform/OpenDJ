@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -45,25 +46,19 @@ public class BlindApplicationTrustManager extends ApplicationTrustManager
     super(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];

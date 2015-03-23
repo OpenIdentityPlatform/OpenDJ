@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -105,9 +105,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
     pack();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setVisible(boolean visible)
   {
     if (visible)
@@ -179,17 +177,13 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       add(createButtonsPanel(), gbc);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean requiresBorder()
     {
       return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean requiresScroll()
     {
       return false;
@@ -238,9 +232,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       buttonsPanel.add(importOnlyButton, gbc);
       importOnlyButton.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.IMPORT_ONLY;
@@ -256,9 +248,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       buttonsPanel.add(cancelButton, gbc);
       cancelButton.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.CANCEL;
@@ -272,44 +262,32 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       return buttonsPanel;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Component getPreferredFocusComponent()
     {
       return initializeAllButton;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void okClicked()
     {
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTitle()
     {
       return INFO_CTRL_PANEL_CONFIRM_INITIALIZE_TITLE.get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void configurationChanged(ConfigurationChangeEvent ev)
     {
-
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public GenericDialog.ButtonType getButtonType()
     {
       return GenericDialog.ButtonType.NO_BUTTON;
     }
   }
 }
-

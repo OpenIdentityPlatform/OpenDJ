@@ -95,9 +95,7 @@ class CategoryButton extends JCheckBox
     setFont(ColorAndFontConstants.categoryFont);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void updateUI()
   {
     super.updateUI();
@@ -105,9 +103,7 @@ class CategoryButton extends JCheckBox
     setBorder(isSelected() ? buttonSelectedBorder : buttonUnselectedBorder);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void paintComponent(Graphics g) {
     setBackground(backgroundColor);
     g.setColor(backgroundColor);

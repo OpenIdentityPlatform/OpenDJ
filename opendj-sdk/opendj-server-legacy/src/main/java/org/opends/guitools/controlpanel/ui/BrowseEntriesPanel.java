@@ -158,9 +158,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private boolean forceRefreshWhenOpening;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public JMenuBar getMenuBar()
   {
     if (menuBar == null)
@@ -171,41 +169,31 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     return menuBar;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_ENTRIES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getBrowseButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void createBrowserController(ControlPanelInfo info)
   {
     super.createBrowserController(info);
     entryPane.setController(controller);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -225,9 +213,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createMainPanel()
   {
     JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -271,9 +257,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   {
     TreeSelectionListener treeSelectionListener = new TreeSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (ignoreTreeSelectionEvents)
@@ -382,16 +366,12 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     final DragSource dragSource = DragSource.getDefaultDragSource();
     final DragSourceListener dragSourceListener = new DragSourceListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragDropEnd(DragSourceDropEvent dsde)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragEnter(DragSourceDragEvent dsde)
       {
         DragSourceContext context = dsde.getDragSourceContext();
@@ -410,32 +390,24 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragOver(DragSourceDragEvent dsde)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dropActionChanged(DragSourceDragEvent dsde)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragExit(DragSourceEvent dsde)
       {
       }
     };
     final DragGestureListener dragGestureListener = new DragGestureListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragGestureRecognized(DragGestureEvent e)
       {
         //Get the selected node
@@ -465,18 +437,14 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     );
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
     entryPane.setInfo(info);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -687,9 +655,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_USER_MENU.get());
     popupNewUserMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newUser();
@@ -702,9 +668,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_GROUP_MENU.get());
     popupNewGroupMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newGroup();
@@ -717,9 +681,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_ORGANIZATIONAL_UNIT_MENU.get());
     popupNewOUMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newOrganizationalUnit();
@@ -732,9 +694,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_ORGANIZATION_MENU.get());
     popupNewOrganizationMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newOrganization();
@@ -747,9 +707,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_DOMAIN_MENU.get());
     popupNewDomainMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newDomain();
@@ -762,9 +720,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_NEW_FROM_LDIF_MENU.get());
     popupNewEntryFromLDIFMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         newEntryFromLDIF();
@@ -777,9 +733,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_RESET_USER_PASSWORD_MENU.get());
     popupResetUserPasswordMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         resetUserPassword();
@@ -793,9 +747,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_ADD_TO_GROUP_MENU.get());
     popupAddToGroupMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         addToGroup();
@@ -810,9 +762,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_DUPLICATE_ENTRY_MENU.get());
     popupDuplicateEntryMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         duplicateEntry();
@@ -824,9 +774,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_COPY_DN_MENU.get());
     popupCopyDNMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         copyDN();
@@ -841,9 +789,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         INFO_CTRL_PANEL_DELETE_ENTRY_MENU.get());
     popupDeleteMenuItem.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         deleteClicked();
@@ -1103,9 +1049,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   {
     ClipboardOwner owner = new ClipboardOwner()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void lostOwnership( Clipboard aClipboard,
           Transferable aContents) {
         //do nothing
@@ -1223,9 +1167,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_BROWSER_WINDOW_MENU.get());
       newWindow.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newWindow();
@@ -1237,9 +1179,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_CLOSE_MENU.get());
       close.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           closeClicked();
@@ -1282,9 +1222,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         private boolean ignoreEvents;
         private JRadioButtonMenuItem lastSelected = menus[0];
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           if (ignoreEvents)
@@ -1399,9 +1337,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_USER_MENU.get());
       newUserMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newUser();
@@ -1414,9 +1350,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_GROUP_MENU.get());
       newGroupMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newGroup();
@@ -1429,9 +1363,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_ORGANIZATIONAL_UNIT_MENU.get());
       newOUMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newOrganizationalUnit();
@@ -1444,9 +1376,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_ORGANIZATION_MENU.get());
       newOrganizationMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newOrganization();
@@ -1459,9 +1389,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_DOMAIN_MENU.get());
       newDomainMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newDomain();
@@ -1474,9 +1402,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_NEW_FROM_LDIF_MENU.get());
       newEntryFromLDIFMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           newEntryFromLDIF();
@@ -1488,9 +1414,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_RESET_USER_PASSWORD_MENU.get());
       resetPasswordMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           resetUserPassword();
@@ -1503,9 +1427,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_ADD_TO_GROUP_MENU.get());
       addToGroupMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           addToGroup();
@@ -1520,9 +1442,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_DUPLICATE_ENTRY_MENU.get());
       duplicateEntryMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           duplicateEntry();
@@ -1535,9 +1455,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_COPY_DN_MENU.get());
       copyDNMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           copyDN();
@@ -1550,9 +1468,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_DELETE_ENTRY_MENU.get());
       deleteMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           deleteClicked();
@@ -1565,9 +1481,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_DELETE_BASE_DN_MENU.get());
       deleteBaseDNMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           deleteBaseDN();
@@ -1580,9 +1494,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_DELETE_BACKEND_MENU.get());
       deleteBackendMenuItem.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           deleteBackend();

@@ -79,13 +79,10 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     super(application);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Object getFieldValue(FieldName fieldName)
   {
-    Object value;
     switch (fieldName)
     {
     case EXTERNAL_DB_DIRECTORIES:
@@ -95,8 +92,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
       {
         s1.addAll(outsideDbs);
       }
-      value = s1;
-      break;
+      return s1;
 
     case EXTERNAL_LOG_FILES:
       Set<String> s2 = new HashSet<String>();
@@ -105,28 +101,21 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
       {
         s2.addAll(outsideLogs);
       }
-      value = s2;
-      break;
+      return s2;
     default:
       JCheckBox cb = getCheckBox(fieldName);
-      value = cb.isSelected();
-      break;
+      return cb.isSelected();
     }
-    return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected Component createInputPanel()
   {
@@ -249,9 +238,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getInstructions()
   {

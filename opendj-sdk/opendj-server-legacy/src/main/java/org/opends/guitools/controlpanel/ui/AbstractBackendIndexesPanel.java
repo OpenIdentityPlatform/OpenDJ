@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -87,17 +88,13 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return table;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     update(backendName);
@@ -112,16 +109,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
   {
     this.backendName = backendName;
 
-    BackendDescriptor backend = null;
-    for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
-    {
-      if (b.getBackendID().equals(backendName))
-      {
-        backend = b;
-        break;
-      }
-    }
-
+    BackendDescriptor backend = getBackend(backendName);
     if (backend != null)
     {
       final BackendDescriptor b = backend;
@@ -145,6 +133,18 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
     }
   }
 
+  private BackendDescriptor getBackend(String backendID)
+  {
+    for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
+    {
+      if (b.getBackendID().equals(backendID))
+      {
+        return b;
+      }
+    }
+    return null;
+  }
+
   /**
    * The method that is called to update the table model with the contents of
    * the specified backend.
@@ -152,17 +152,13 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
    */
   protected abstract void updateTableModel(BackendDescriptor backend);
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No OK button
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -223,7 +219,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
           final IndexSelectionEvent ise = new IndexSelectionEvent(table, index);
           SwingUtilities.invokeLater(new Runnable()
           {
-            // Call it this way to let the painting events to happen.
+            /** Call it this way to let the painting events happen. */
             public void run()
             {
               for (IndexSelectionListener listener : indexListeners)

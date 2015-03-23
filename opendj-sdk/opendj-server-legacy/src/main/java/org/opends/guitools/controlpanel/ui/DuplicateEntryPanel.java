@@ -94,25 +94,19 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     throw new IllegalArgumentException("this method must not be called");
@@ -166,17 +160,13 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     readEntry(node);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
@@ -238,9 +228,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     add(browse, gbc);
     browse.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         browseClicked();
@@ -300,25 +288,19 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -330,9 +312,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     int origSize = errors.size();
@@ -382,9 +362,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getLDIF()
   {
     String dn = this.dn.getText();

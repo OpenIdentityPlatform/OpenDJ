@@ -95,9 +95,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return table;
@@ -126,9 +124,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     showOnlyAttrsWithValues.setSelected(displayOnlyWithAttrs);
     showOnlyAttrsWithValues.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+       /** {@inheritDoc} */
        public void actionPerformed(ActionEvent ev)
        {
          updateAttributeVisibility();
@@ -166,9 +162,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     add(scroll, gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
@@ -203,17 +197,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Entry getEntry() throws OpenDsException
   {
     if (SwingUtilities.isEventDispatchThread())
@@ -283,9 +273,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     return sb.toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getDisplayedDN()
   {
     StringBuilder sb = new StringBuilder();
@@ -423,18 +411,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
     tableModel.updateAttributeVisibility();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected List<Object> getValues(String attrName)
   {
     return tableModel.getValues(attrName);
   }
 
-  /**
-   * The table model used by the tree in the panel.
-   *
-   */
+  /** The table model used by the tree in the panel. */
   protected class LDAPEntryTableModel extends SortableTableModel
   implements Comparator<AttributeValuePair>
   {
@@ -443,7 +426,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
       new ArrayList<AttributeValuePair>();
     private SortedSet<AttributeValuePair> allSortedValues =
       new TreeSet<AttributeValuePair>(this);
-    Set<String> requiredAttrs = new HashSet<String>();
+    private Set<String> requiredAttrs = new HashSet<String>();
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(LocalizableMessage.raw("Attribute"), 40),
         getHeader(LocalizableMessage.raw("Value", 40))};
@@ -470,9 +453,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
       fireTableDataChanged();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compare(AttributeValuePair desc1, AttributeValuePair desc2)
     {
       int result;
@@ -564,25 +545,19 @@ public class TableViewEntryPanel extends ViewEntryPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int getColumnCount()
     {
       return COLUMN_NAMES.length;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int getRowCount()
     {
       return dataArray.size();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Object getValueAt(int row, int col)
     {
       if (col == 0)
@@ -595,9 +570,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getColumnName(int col) {
       return COLUMN_NAMES[col];
     }
@@ -640,18 +613,14 @@ public class TableViewEntryPanel extends ViewEntryPanel
       this.sortColumn = sortColumn;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCellEditable(int row, int col) {
       return col != 0
           && !isReadOnly
           && !schemaReadOnlyAttributesLowerCase.contains(dataArray.get(row).attrName.toLowerCase());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void setValueAt(Object value, int row, int col)
     {
       dataArray.get(row).value = value;

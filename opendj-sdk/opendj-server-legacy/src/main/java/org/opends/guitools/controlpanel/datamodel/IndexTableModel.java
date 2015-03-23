@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -44,9 +44,7 @@ public class IndexTableModel extends AbstractIndexTableModel
 
   private static final long serialVersionUID = 6979651281772979301L;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String[] getColumnNames()
   {
     return new String[] {
@@ -94,9 +92,7 @@ public class IndexTableModel extends AbstractIndexTableModel
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String[] getLine(AbstractIndexDescriptor index)
   {
     IndexDescriptor i = (IndexDescriptor)index;

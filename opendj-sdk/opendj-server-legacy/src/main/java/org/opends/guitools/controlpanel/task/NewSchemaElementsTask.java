@@ -97,18 +97,14 @@ public class NewSchemaElementsTask extends Task
     this.attrsToAdd.addAll(attrsToAdd);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
@@ -126,9 +122,7 @@ public class NewSchemaElementsTask extends Task
     return canLaunch;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -147,18 +141,14 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {
@@ -217,18 +207,14 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected List<String> getCommandLineArguments()
   {
@@ -337,9 +323,7 @@ public class NewSchemaElementsTask extends Task
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -383,9 +367,7 @@ public class NewSchemaElementsTask extends Task
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void run()
       {

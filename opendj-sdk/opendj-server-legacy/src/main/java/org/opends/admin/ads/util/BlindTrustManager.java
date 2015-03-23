@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.security.cert.CertificateException;
@@ -35,28 +35,21 @@ import javax.net.ssl.X509TrustManager;
  */
 public class BlindTrustManager implements X509TrustManager {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];
   }
 }
-

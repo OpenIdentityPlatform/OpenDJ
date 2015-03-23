@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -31,7 +31,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
  * Abstract class with some common methods for all the nodes in the
  * 'Manage Index' tree.
- *
  */
 public abstract class AbstractIndexTreeNode extends DefaultMutableTreeNode
 {
@@ -48,24 +47,24 @@ public abstract class AbstractIndexTreeNode extends DefaultMutableTreeNode
   }
 
   /**
-   * {@inheritDoc}
+   * Returns the name.
+   *
+   * @return the name
    */
   public String getName()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isRoot()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isLeaf()
   {
     return true;

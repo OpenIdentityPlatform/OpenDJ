@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -47,9 +48,7 @@ public class TimeDocumentFilter extends DocumentFilter
     this.tf = tf;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void insertString(DocumentFilter.FilterBypass fb, int offset,
       String text, AttributeSet attr)
   throws BadLocationException
@@ -59,9 +58,7 @@ public class TimeDocumentFilter extends DocumentFilter
     trimPosition(fb, text, offset, previousLength);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void remove(DocumentFilter.FilterBypass fb, int offset,
       int length)
   throws BadLocationException
@@ -87,9 +84,7 @@ public class TimeDocumentFilter extends DocumentFilter
     updateCaretPosition(fb);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void replace(DocumentFilter.FilterBypass fb, int offset,
       int length, String text, AttributeSet attr)
   throws BadLocationException

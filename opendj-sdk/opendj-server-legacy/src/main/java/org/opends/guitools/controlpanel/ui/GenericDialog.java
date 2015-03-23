@@ -67,7 +67,6 @@ import org.opends.server.util.DynamicConstants;
 
 /**
  * The generic dialog of the Control Panel.  It contains a StatusGenericPanel.
- *
  */
 public class GenericDialog extends JDialog
 {
@@ -76,41 +75,23 @@ public class GenericDialog extends JDialog
     ColorAndFontConstants.greyBackground;
   private JButton okButton;
 
-  /**
-   * The close button.
-   */
+  /** The close button. */
   protected JButton closeButton;
   private JButton cancelButton;
-  //private JPanel contentPanel;
-  /**
-   * The panel contained in the dialog.
-   */
+  /** The panel contained in the dialog. */
   protected StatusGenericPanel panel;
-  //private ProgressPanel progressPanel;
-  //private boolean displayInputInNextVisible;
   private Component lastComponentWithFocus;
 
-  /**
-   * The different combinations of buttons that the dialog can have.
-   *
-   */
+  /** The different combinations of buttons that the dialog can have. */
   public enum ButtonType
   {
-    /**
-     * The dialog contains OK and CANCEL buttons.
-     */
+    /** The dialog contains OK and CANCEL buttons. */
     OK_CANCEL,
-    /**
-     * The dialog contains a OK button.
-     */
+    /** The dialog contains a OK button. */
     OK,
-    /**
-     * The dialog contains a CLOSE button.
-     */
+    /** The dialog contains a CLOSE button. */
     CLOSE,
-    /**
-     * The dialog has no buttons.
-     */
+    /** The dialog has no buttons. */
     NO_BUTTON
   };
 
@@ -160,9 +141,7 @@ public class GenericDialog extends JDialog
     KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     ActionListener actionListener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         setVisible(false);
@@ -173,9 +152,7 @@ public class GenericDialog extends JDialog
 
     FocusListener focusListener = new FocusAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void focusGained(FocusEvent ev)
       {
         lastComponentWithFocus = ev.getComponent();
@@ -184,9 +161,7 @@ public class GenericDialog extends JDialog
     addFocusListener(focusListener, panel);
 
     addWindowListener(new WindowAdapter() {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void windowClosing(WindowEvent e) {
         GenericDialog.this.panel.closeClicked();
       }
@@ -228,9 +203,7 @@ public class GenericDialog extends JDialog
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setVisible(boolean visible)
   {
     if (visible && lastComponentWithFocus == null)
@@ -279,10 +252,7 @@ public class GenericDialog extends JDialog
     closeButton.setEnabled(enable);
   }
 
-  /**
-   * Updates the title of the dialog using the title of the panel.
-   *
-   */
+  /** Updates the title of the dialog using the title of the panel. */
   public void updateTitle()
   {
     if (panel.getTitle() != null)
@@ -296,7 +266,6 @@ public class GenericDialog extends JDialog
   {
     Utilities.setBorder(comp, new EmptyBorder(20, 20, 20, 20));
   }
-
 
   private JPanel createButtonsPanel(final StatusGenericPanel panel)
   {
@@ -413,4 +382,3 @@ public class GenericDialog extends JDialog
     }
   }
 }
-

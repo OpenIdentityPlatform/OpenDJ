@@ -125,9 +125,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -140,48 +138,36 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     filter.setText("ldap:///"+parentNode.getDN()+"??sub?(<your filter>)");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean checkSyntaxBackground()
   {
     return staticGroup.isSelected();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     Runnable runnable = new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         for (JLabel label : labels)
@@ -371,9 +357,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     staticGroup.setSelected(true);
     ActionListener actionListener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         checkEnabling();
@@ -439,9 +423,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
     addMembers.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         addMembersClicked();
@@ -515,9 +497,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     browseReferenceGroup.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         browseReferenceGroupClicked();
@@ -528,25 +508,19 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -560,37 +534,27 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
     DropTargetListener dropTargetlistener = new DropTargetListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragEnter(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragExit(DropTargetEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dragOver(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void dropActionChanged(DropTargetDragEvent e)
       {
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -648,10 +612,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     checkEnabling();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  protected void updateDNValue()
+  private void updateDNValue()
   {
     String value = name.getText().trim();
     if (value.length() > 0)
@@ -723,9 +684,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();

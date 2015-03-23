@@ -165,24 +165,18 @@ implements Comparator<TaskEntry>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Class<?> getColumnClass(int column)
   {
     return LocalizableMessage.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getColumnName(int col) {
     return columnNames[col];
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getValueAt(int row, int column)
   {
     LocalizableMessage value;
@@ -191,65 +185,50 @@ implements Comparator<TaskEntry>
     switch (column)
     {
     case 0:
-      value = LocalizableMessage.raw(taskEntry.getId());
-      break;
+      return LocalizableMessage.raw(taskEntry.getId());
     case 1:
-      value = taskEntry.getType();
-      break;
+      return taskEntry.getType();
     case 2:
-      value = taskEntry.getState();
-      break;
+      return taskEntry.getState();
     case 3:
-      if (taskEntry.isCancelable())
-      {
-        value = INFO_CTRL_PANEL_TASK_IS_CANCELABLE.get();
-      }
-      else
-      {
-        value = INFO_CTRL_PANEL_TASK_IS_NOT_CANCELABLE.get();
-      }
-      break;
+      return taskEntry.isCancelable()
+          ? INFO_CTRL_PANEL_TASK_IS_CANCELABLE.get()
+          : INFO_CTRL_PANEL_TASK_IS_NOT_CANCELABLE.get();
     case 4:
       if (TaskState.isRecurring(get(row).getTaskState()))
       {
-        value = taskEntry.getScheduleTab();
-      } else {
-        value = taskEntry.getScheduledStartTime();
-        if (value == null || value.equals(LocalizableMessage.EMPTY))
-        {
-          value = INFO_TASKINFO_IMMEDIATE_EXECUTION.get();
-        }
+        return taskEntry.getScheduleTab();
       }
-      break;
+
+      value = taskEntry.getScheduledStartTime();
+      if (value == null || value.equals(LocalizableMessage.EMPTY))
+      {
+        return INFO_TASKINFO_IMMEDIATE_EXECUTION.get();
+      }
+      return value;
     case 5:
-      value = taskEntry.getActualStartTime();
-      break;
+      return taskEntry.getActualStartTime();
     case 6:
-      value = taskEntry.getCompletionTime();
-      break;
+      return taskEntry.getCompletionTime();
     case 7:
-      value = getValue(taskEntry.getDependencyIds(),
+      return getValue(taskEntry.getDependencyIds(),
           INFO_TASKINFO_NONE_SPECIFIED.get());
-      break;
     case 8:
       value = taskEntry.getFailedDependencyAction();
-      if (value == null)
+      if (value != null)
       {
-        value = INFO_TASKINFO_NONE.get();
+        return value;
       }
-      break;
+      return INFO_TASKINFO_NONE.get();
     case 9:
-      value = getValue(taskEntry.getCompletionNotificationEmailAddresses(),
+      return getValue(taskEntry.getCompletionNotificationEmailAddresses(),
           INFO_TASKINFO_NONE_SPECIFIED.get());
-      break;
     case 10:
-      value = getValue(taskEntry.getErrorNotificationEmailAddresses(),
+      return getValue(taskEntry.getErrorNotificationEmailAddresses(),
           INFO_TASKINFO_NONE_SPECIFIED.get());
-      break;
     default:
       throw new IllegalArgumentException("Invalid column: "+column);
     }
-    return value;
   }
 
   /**
@@ -298,9 +277,7 @@ implements Comparator<TaskEntry>
     return allAttributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compare(TaskEntry desc1, TaskEntry desc2)
   {
     int result;

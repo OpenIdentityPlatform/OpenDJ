@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -42,9 +42,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
 {
   private static final long serialVersionUID = 897379916278218775L;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String[] getColumnNames()
   {
     return new String[] {
@@ -95,9 +93,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String[] getLine(AbstractIndexDescriptor index)
   {
     VLVIndexDescriptor i = (VLVIndexDescriptor)index;

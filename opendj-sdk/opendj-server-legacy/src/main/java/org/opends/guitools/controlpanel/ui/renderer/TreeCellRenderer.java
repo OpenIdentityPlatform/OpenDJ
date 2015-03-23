@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -79,9 +80,7 @@ public class TreeCellRenderer extends DefaultTreeCellRenderer
     setFont(ColorAndFontConstants.treeFont);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getTreeCellRendererComponent(JTree tree, Object value,
       boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
       boolean hasFocus)

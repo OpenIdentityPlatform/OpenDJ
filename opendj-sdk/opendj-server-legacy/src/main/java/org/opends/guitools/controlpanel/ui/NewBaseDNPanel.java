@@ -151,25 +151,19 @@ public class NewBaseDNPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_BASE_DN_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return baseDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -213,9 +207,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     add(newBackend, gbc);
     ItemListener comboListener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         Object o = backends.getSelectedItem();
@@ -240,9 +232,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     baseDN = Utilities.createTextField();
     documentListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         String text = baseDN.getText().trim();
@@ -250,17 +240,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
             !errorPane.isVisible());
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -341,9 +327,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     ChangeListener listener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent ev)
       {
         browseImportPath.setEnabled(importDataFromLDIF.isSelected());
@@ -364,9 +348,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -462,9 +444,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void cancelClicked()
   {
     setPrimaryValid(lBackend);
@@ -476,17 +456,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     setPrimaryValid(lBackend);
@@ -712,26 +688,20 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.NEW_BASEDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_BASE_DN_TASK_DESCRIPTION.get(newBaseDN,
       backendSet.iterator().next());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -869,9 +839,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               List<String> args =
@@ -887,9 +855,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(
@@ -914,9 +880,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(
@@ -937,9 +901,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -959,9 +921,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -1519,17 +1479,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
       backend.commit();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -1587,9 +1543,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -1607,9 +1561,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;

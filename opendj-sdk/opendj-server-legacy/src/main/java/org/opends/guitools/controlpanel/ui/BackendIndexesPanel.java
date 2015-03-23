@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -44,33 +44,25 @@ public class BackendIndexesPanel extends AbstractBackendIndexesPanel
 {
   private static final long serialVersionUID = 7214847636854721907L;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BackendIndexesPanel()
   {
     super();
   }
-  /**
-   * {@inheritDoc}
-   */
+
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return AdminToolMessages.INFO_CTRL_PANEL_BACKEND_INDEXES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected AbstractIndexTableModel getIndexTableModel()
   {
     return new IndexTableModel();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void updateTableModel(BackendDescriptor backend)
   {
     tableModel.setData(

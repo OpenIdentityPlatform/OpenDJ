@@ -79,9 +79,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_WINDOWS_SERVICE_TITLE.get();
@@ -142,9 +140,7 @@ public class WindowsServicePanel extends StatusGenericPanel
 
     ActionListener listener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         updateWindowsService();
@@ -166,17 +162,13 @@ public class WindowsServicePanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     if (!isWindowsServiceEnabled)
@@ -189,9 +181,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     boolean previousValue = isWindowsServiceEnabled;
@@ -204,9 +194,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       previousLocal = isLocal;
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           lState.setText(isWindowsServiceEnabled ?
@@ -230,9 +218,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // NO ok button
@@ -305,9 +291,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       backendSet = new HashSet<String>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       if (enableService)
@@ -320,9 +304,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       if (enableService)
@@ -335,9 +317,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -353,9 +333,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -399,17 +377,13 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -426,12 +400,10 @@ public class WindowsServicePanel extends StatusGenericPanel
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return getCommandLinePath("windows-service");
     }
-  };
+  }
 }

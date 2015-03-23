@@ -57,9 +57,7 @@ public class IndexCellRenderer extends CustomListCellRenderer
     this.info = info;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

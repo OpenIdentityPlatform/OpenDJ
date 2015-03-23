@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -44,34 +44,25 @@ public class BackendVLVIndexesPanel extends AbstractBackendIndexesPanel
 {
   private static final long serialVersionUID = -5864660402543106492L;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BackendVLVIndexesPanel()
   {
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return AdminToolMessages.INFO_CTRL_PANEL_BACKEND_VLV_INDEXES_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected AbstractIndexTableModel getIndexTableModel()
   {
     return new VLVIndexTableModel();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void updateTableModel(BackendDescriptor backend)
   {
     tableModel.setData(

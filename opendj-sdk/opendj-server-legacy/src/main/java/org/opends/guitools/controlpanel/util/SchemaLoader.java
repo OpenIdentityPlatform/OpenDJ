@@ -146,9 +146,7 @@ public class SchemaLoader
       }
       FileFilter ldifFiles = new FileFilter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean accept(File f)
         {
           boolean accept = false;

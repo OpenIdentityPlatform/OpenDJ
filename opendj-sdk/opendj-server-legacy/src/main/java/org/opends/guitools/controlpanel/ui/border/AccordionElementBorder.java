@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.border;
@@ -34,38 +35,26 @@ import javax.swing.border.Border;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 
-/**
- * The border specific to the accordion element.
- *
- */
+/** The border specific to the accordion element. */
 public class AccordionElementBorder implements Border
 {
   private Insets insets = new Insets(1, 1, 1, 1);
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public AccordionElementBorder() {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Insets getBorderInsets(Component c) {
     return insets;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBorderOpaque() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void paintBorder(Component c, Graphics g, int x, int y, int width,
       int height) {
     g.setColor(ColorAndFontConstants.topAccordionBorderColor);

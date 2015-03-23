@@ -145,25 +145,19 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
     ListDataListener listDataListener = new ListDataListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalRemoved(ListDataEvent ev)
       {
         listSelectionChanged();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalAdded(ListDataEvent ev)
       {
         listSelectionChanged();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void contentsChanged(ListDataEvent ev)
       {
         listSelectionChanged();
@@ -171,9 +165,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     };
     MouseAdapter doubleClickListener = new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseClicked(MouseEvent e) {
         if (isEnabled() && (e.getClickCount() == 2))
         {
@@ -252,9 +244,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     add1.setOpaque(false);
     add1.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         add1Clicked();
@@ -302,9 +292,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       removeAll1.setOpaque(false);
       removeAll1.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(selectedListModel1, availableListModel);
@@ -333,9 +321,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     add2.setOpaque(false);
     add2.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         add2Clicked();
@@ -352,9 +338,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       addAll2.setOpaque(false);
       addAll2.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(availableListModel, selectedListModel2);
@@ -369,9 +353,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     remove2.setOpaque(false);
     remove2.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         remove2Clicked();
@@ -389,9 +371,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       removeAll2.setOpaque(false);
       removeAll2.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(selectedListModel2, availableListModel);

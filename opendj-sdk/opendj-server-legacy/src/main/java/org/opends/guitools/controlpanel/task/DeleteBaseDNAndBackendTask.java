@@ -130,9 +130,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     this.backendsToDelete.addAll(backendsToDelete);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Type getType()
   {
     if (baseDNsToDelete.size() > 0)
@@ -145,17 +143,13 @@ public class DeleteBaseDNAndBackendTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTaskDescription()
   {
     StringBuilder sb = new StringBuilder();
@@ -212,9 +206,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     return LocalizableMessage.raw(sb.toString());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -530,17 +522,13 @@ public class DeleteBaseDNAndBackendTask extends Task
     root.commit();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();
@@ -584,9 +572,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void runTask()
   {
     state = State.RUNNING;

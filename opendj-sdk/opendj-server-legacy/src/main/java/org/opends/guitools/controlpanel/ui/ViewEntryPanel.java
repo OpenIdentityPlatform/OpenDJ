@@ -104,9 +104,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected static boolean displayOnlyWithAttrs = true;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // No ok button
@@ -167,9 +165,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     listeners.remove(listener);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresBorder()
   {
     return true;
@@ -182,10 +178,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected abstract String getDisplayedDN();
 
-  /**
-   * Notifies the entry changed listeners that the entry changed.
-   *
-   */
+  /** Notifies the entry changed listeners that the entry changed. */
   protected void notifyListeners()
   {
     if (ignoreEntryChangeEvents)
@@ -379,17 +372,13 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     Schema schema = ev.getNewDescriptor().getSchema();

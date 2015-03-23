@@ -147,25 +147,19 @@ public class NewObjectClassPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_OBJECTCLASS_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -237,9 +231,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
@@ -476,9 +468,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     SuperiorObjectClassesChangedListener listener =
       new SuperiorObjectClassesChangedListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void parentObjectClassesChanged(
           SuperiorObjectClassesChangedEvent ev)
       {
@@ -555,9 +545,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       new DoubleAddRemovePanel<AttributeType>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public int compare(AttributeType attr1, AttributeType attr2)
       {
         return attr1.getNameOrOID().toLowerCase().compareTo(
@@ -638,9 +626,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     add(labels, comps, inlineHelps, p, gbc1);
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void stateChanged(ChangeEvent e)
       {
         p.setVisible(expander.isSelected());
@@ -773,9 +759,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       defaultRenderer = attributes.getAvailableList().getCellRenderer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
     {

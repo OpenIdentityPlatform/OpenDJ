@@ -275,9 +275,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     add(Box.createVerticalGlue(), gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void toBeDisplayed(boolean visible)
   {
     // Reset the schedule and the labels
@@ -300,17 +298,13 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TITLE.get(taskName);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     schedule = null;
@@ -731,16 +725,12 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     return schedule == null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return scheduleType;

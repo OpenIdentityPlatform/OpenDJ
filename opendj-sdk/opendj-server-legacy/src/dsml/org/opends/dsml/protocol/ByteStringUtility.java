@@ -21,14 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2014 ForgeRock AS.
+ *      Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -40,9 +39,6 @@ import org.w3c.dom.Element;
  */
 public class ByteStringUtility
 {
-  // Non-lossy UTF-8 converter object.
-  private static final Charset UTF8 = Charset.forName("UTF-8");
-
   /**
    * Returns a ByteString from a DsmlValue Object.
    *
@@ -52,8 +48,7 @@ public class ByteStringUtility
    *         or if it could not be converted.
    * @throws IOException if any problems occurred retrieving an anyURI value.
    */
-  public static ByteString convertValue(Object obj)
-      throws IOException
+  public static ByteString convertValue(Object obj) throws IOException
   {
     ByteString bs = null;
     if (obj != null)

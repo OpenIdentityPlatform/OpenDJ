@@ -24,7 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import java.awt.Component;
@@ -38,13 +37,9 @@ import java.io.IOException;
  * drag and drop.  Currently drag and drop is used for instance to drag a
  * number of entries from a browser and drop them in the list of members of
  * a group.
- *
  */
-
 public class DndBrowserNodes implements Transferable {
-  /**
-   * The data flavor managed by this transferable.
-   */
+  /** The data flavor managed by this transferable. */
   public static final DataFlavor INFO_FLAVOR =
     new DataFlavor(BrowserNodeInfo.class, "Browse Node Information");
 
@@ -52,34 +47,32 @@ public class DndBrowserNodes implements Transferable {
 
   private BrowserNodeInfo[] nodes;
 
-  private Component parent; // The component that contains the nodes
+  /** The component that contains the nodes. */
+  private Component parent;
 
   /**
    * Transferable implementation
    * ============================================
    */
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isDataFlavorSupported(DataFlavor df) {
     return df.equals(INFO_FLAVOR);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Object getTransferData(DataFlavor df)
   throws UnsupportedFlavorException, IOException {
-    if (df.equals(INFO_FLAVOR)) {
-      return this;
+    if (!isDataFlavorSupported(df)) {
+      throw new UnsupportedFlavorException(df);
     }
-    else throw new UnsupportedFlavorException(df);
+    return this;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public DataFlavor[] getTransferDataFlavors() {
     return FLAVORS;
   }
@@ -123,4 +116,3 @@ public class DndBrowserNodes implements Transferable {
     this.parent = parent;
   }
 }
-

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
@@ -42,59 +41,43 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A basic panel that contains a browser.  It is used in general in panels that
  * require to provide some DNs of existing entries: we allow the user to launch
  * a browser to select entries.
- *
  */
 public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
 {
   private LocalizableMessage title;
   private Filter f;
-
   private String[] dns;
 
   /**
    * The values of the filters that will be used when opening the dialog where
    * this panel is contained.  For instance if the filter is set to Filter.USERS
    * the panel will display only users when the dialog appears.
-   *
    */
   public enum Filter
   {
-    /**
-     * Display users.
-     */
+    /** Display users. */
     USERS,
-    /**
-     * Display groups.
-     */
+    /** Display groups. */
     GROUPS,
-    /**
-     * Display Dynamic Groups.
-     */
+    /** Display Dynamic Groups. */
     DYNAMIC_GROUPS,
-    /**
-     * Display Static Groups.
-     */
+    /** Display Static Groups. */
     STATIC_GROUPS,
-    /**
-     * Default filter (all entries).
-     */
+    /** Default filter (all entries). */
     DEFAULT
   }
 
   private static final long serialVersionUID = -8140540064410029902L;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public LDAPEntrySelectionPanel()
   {
     super();
@@ -111,29 +94,26 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
           TreeSelectionModel.SINGLE_TREE_SELECTION);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
     if (visible)
     {
-      dns = new String[]{};
+      dns = new String[0];
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return title;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     dns = retrieveDNs();
@@ -164,22 +144,20 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
     }
     else
     {
-      dns = new String[]{};
+      dns = new String[0];
     }
     return dns;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getBrowseButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected Component createMainPanel()
   {
     JComponent p = createTreePane();
@@ -188,9 +166,8 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
     tree.getSelectionModel().addTreeSelectionListener(
     new TreeSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void valueChanged(TreeSelectionEvent ev)
       {
         TreePath[] paths = tree.getSelectionPaths();
@@ -198,9 +175,8 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       }
     });
     MouseListener mouseListener = new MouseAdapter() {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void mousePressed(MouseEvent e) {
         int selRow = tree.getRowForLocation(e.getX(), e.getY());
         if ((selRow != -1) && (e.getClickCount() == 2))

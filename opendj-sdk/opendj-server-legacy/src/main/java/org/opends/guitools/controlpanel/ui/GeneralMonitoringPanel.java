@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -37,41 +37,30 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * Abstract class used to refactor some code among the panels that display the
  * contents of the global monitoring.
- *
  */
 public abstract class GeneralMonitoringPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2840755228290832143L;
 
-  /**
-   * The empty border shared by all the panels.
-   */
+  /** The empty border shared by all the panels. */
   protected Border PANEL_BORDER = new EmptyBorder(10, 10, 10, 10);
 
-  /**
-   * The message to express that the value was not found.
-   */
+  /** The message to express that the value was not found. */
   protected static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return LocalizableMessage.EMPTY;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }

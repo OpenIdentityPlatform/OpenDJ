@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -127,9 +128,7 @@ public class CategoryPanel extends JPanel {
     return expanded;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setForeground(Color foreground)
   {
     super.setForeground(foreground);
@@ -139,16 +138,10 @@ public class CategoryPanel extends JPanel {
     }
   }
 
-
-  /**
-   * The custom listener used to display the child component.
-   *
-   */
+  /** The custom listener used to display the child component. */
   private class CollapseListener implements ChangeListener
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void stateChanged(ChangeEvent event) {
       setExpanded(expandButton.isSelected());
     }

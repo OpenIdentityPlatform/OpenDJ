@@ -173,9 +173,7 @@ public class ObjectClassCellPanel extends JPanel
     editButton.setVisible(visible);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
       int condition, boolean pressed)
   {

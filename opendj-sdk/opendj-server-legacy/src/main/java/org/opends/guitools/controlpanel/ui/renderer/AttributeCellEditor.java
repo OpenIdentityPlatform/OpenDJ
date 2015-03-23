@@ -97,9 +97,7 @@ implements TableCellEditor
     textField = Utilities.createTextField();
     textField.getDocument().addDocumentListener(new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         if (!textField.hasFocus())
@@ -108,17 +106,13 @@ implements TableCellEditor
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -127,9 +121,7 @@ implements TableCellEditor
     passwordField = Utilities.createPasswordField();
     passwordField.getDocument().addDocumentListener(new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         if (!passwordField.hasFocus())
@@ -138,17 +130,13 @@ implements TableCellEditor
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -159,9 +147,7 @@ implements TableCellEditor
     binaryPanel = new BinaryCellPanel();
     binaryPanel.addEditActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent e)
       {
         if (editBinaryDlg == null)
@@ -208,9 +194,7 @@ implements TableCellEditor
     ocPanel = new ObjectClassCellPanel();
     ocPanel.addEditActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         if (editOcDlg == null)
@@ -240,9 +224,7 @@ implements TableCellEditor
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getTableCellEditorComponent(JTable table, Object value,
                    boolean isSelected, int row, int column)
   {
@@ -305,9 +287,7 @@ implements TableCellEditor
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getCellEditorValue()
   {
     if (binaryValue != null)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -120,7 +120,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private JPanel detailsPanel;
   private JLabel noDetailsLabel;
-  // The panel containing all the labels and values of the details.
+  /** The panel containing all the labels and values of the details. */
   private JPanel detailsSubpanel;
   private JLabel logsLabel;
   private JScrollPane logsScroll;
@@ -129,51 +129,38 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ManageTasksPanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_LIST_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
     // Nothing to do, it only contains a close button.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public JMenuBar getMenuBar()
   {
@@ -184,9 +171,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     return menuBar;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return taskTable;
@@ -296,9 +281,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     add(Box.createVerticalGlue(), gbc);
     cancelTask.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         cancelTaskClicked();
@@ -351,9 +334,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
     ListSelectionListener listener = new ListSelectionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void valueChanged(ListSelectionEvent ev)
       {
         tableSelected();
@@ -898,9 +879,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     updateErrorPaneIfServerRunningAndAuthRequired(ev.getNewDescriptor(),
@@ -908,25 +887,11 @@ public class ManageTasksPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_SCHEDULED_TASK_LIST_AUTHENTICATION.get());
     ServerDescriptor server = ev.getNewDescriptor();
     final Set<TaskEntry> tasks = server.getTaskEntries();
-    boolean changed = tableModel.getRowCount() != tasks.size();
-    if (!changed)
-    {
-      for (int i=0; i<tableModel.getRowCount(); i++)
-      {
-        if (!tasks.contains(tableModel.get(i)))
-        {
-          changed = true;
-          break;
-        }
-      }
-    }
-    if (changed)
+    if (haveChanged(tasks))
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void run()
         {
           Set<String> selectedIds = getSelectedIds();
@@ -951,6 +916,22 @@ public class ManageTasksPanel extends StatusGenericPanel
         }
       });
     }
+  }
+
+  private boolean haveChanged(final Set<TaskEntry> tasks)
+  {
+    if (tableModel.getRowCount() != tasks.size())
+    {
+      return true;
+    }
+    for (int i=0; i<tableModel.getRowCount(); i++)
+    {
+      if (!tasks.contains(tableModel.get(i)))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void updateTableSizes()
@@ -984,9 +965,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       super(info);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void addMenus()
     {

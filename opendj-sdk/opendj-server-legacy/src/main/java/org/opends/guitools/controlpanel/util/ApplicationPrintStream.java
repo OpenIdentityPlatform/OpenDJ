@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -57,9 +57,7 @@ public class ApplicationPrintStream extends PrintStream
     super(new ByteArrayOutputStream(), true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void println(String msg)
   {
@@ -67,9 +65,7 @@ public class ApplicationPrintStream extends PrintStream
     logger.info(LocalizableMessage.raw(msg));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void write(byte[] b, int off, int len)
   {

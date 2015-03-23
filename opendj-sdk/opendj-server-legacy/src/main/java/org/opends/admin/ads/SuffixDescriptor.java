@@ -94,9 +94,7 @@ public class SuffixDescriptor
     return replicationServers;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return getId().hashCode();

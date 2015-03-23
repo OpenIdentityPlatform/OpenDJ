@@ -99,17 +99,13 @@ public class FilterTextField extends JTextField
     constructorBorderSet = true;
     getDocument().addDocumentListener(new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent e)
       {
         insertUpdate(e);
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent e)
       {
         boolean displayIcon = getText().length() > 0;
@@ -127,9 +123,7 @@ public class FilterTextField extends JTextField
 
     addMouseListener(new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mousePressed(MouseEvent ev)
       {
         boolean p = getClearIconRectangle().contains(ev.getPoint());
@@ -140,9 +134,7 @@ public class FilterTextField extends JTextField
         }
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseReleased(MouseEvent ev)
       {
         if (mousePressed && getClearIconRectangle().contains(ev.getPoint()))
@@ -174,9 +166,7 @@ public class FilterTextField extends JTextField
     listeners.remove(listener);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setBorder(Border border)
   {
     if (constructorBorderSet && border != null)
@@ -276,9 +266,7 @@ public class FilterTextField extends JTextField
    */
   private class IconBorder implements Border
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Insets getBorderInsets(Component c)
     {
       ImageIcon icon = getClearIcon();
@@ -294,9 +282,7 @@ public class FilterTextField extends JTextField
       return new Insets(0, 0, 0, rightInsets);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void paintBorder(Component c, Graphics g, int x, int y,
         int width, int height)
     {
@@ -323,9 +309,7 @@ public class FilterTextField extends JTextField
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isBorderOpaque()
     {
       return false;

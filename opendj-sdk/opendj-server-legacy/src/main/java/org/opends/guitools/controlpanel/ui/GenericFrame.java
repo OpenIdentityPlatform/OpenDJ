@@ -67,7 +67,6 @@ import org.opends.server.util.DynamicConstants;
 
 /**
  * The generic frame of the Control Panel.  It contains a StatusGenericPanel.
- *
  */
 public class GenericFrame extends JFrame
 {
@@ -76,18 +75,11 @@ public class GenericFrame extends JFrame
     ColorAndFontConstants.greyBackground;
   private JButton okButton;
 
-  /**
-   * The close button.
-   */
+  /** The close button. */
   protected JButton closeButton;
   private JButton cancelButton;
-  //private JPanel contentPanel;
-  /**
-   * The panel contained in the frame.
-   */
+  /** The panel contained in the frame. */
   protected StatusGenericPanel panel;
-  //private ProgressPanel progressPanel;
-  //private boolean displayInputInNextVisible;
   private Component lastComponentWithFocus;
 
   /**
@@ -135,9 +127,7 @@ public class GenericFrame extends JFrame
     KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     ActionListener actionListener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         setVisible(false);
@@ -148,9 +138,7 @@ public class GenericFrame extends JFrame
 
     FocusListener focusListener = new FocusAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void focusGained(FocusEvent ev)
       {
         lastComponentWithFocus = ev.getComponent();
@@ -159,9 +147,7 @@ public class GenericFrame extends JFrame
     addFocusListener(focusListener, panel);
 
     addWindowListener(new WindowAdapter() {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void windowClosing(WindowEvent e) {
         GenericFrame.this.panel.closeClicked();
       }
@@ -204,9 +190,7 @@ public class GenericFrame extends JFrame
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setVisible(boolean visible)
   {
     if (visible && lastComponentWithFocus == null)

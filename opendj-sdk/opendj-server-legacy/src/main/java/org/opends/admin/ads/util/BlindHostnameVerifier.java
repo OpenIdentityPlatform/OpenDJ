@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.admin.ads.util;
@@ -34,9 +35,7 @@ import javax.net.ssl.SSLSession;
  */
 class BlindHostnameVerifier implements HostnameVerifier
 {
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean verify(String hostname, SSLSession session)
   {
     return true;

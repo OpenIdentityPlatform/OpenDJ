@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -133,25 +134,19 @@ public class AddRemovePanel<T> extends JPanel
 
     ListDataListener listDataListener = new ListDataListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalRemoved(ListDataEvent ev)
       {
         updateButtonEnabling();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void intervalAdded(ListDataEvent ev)
       {
         updateButtonEnabling();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void contentsChanged(ListDataEvent ev)
       {
         updateButtonEnabling();
@@ -159,9 +154,7 @@ public class AddRemovePanel<T> extends JPanel
     };
     MouseAdapter doubleClickListener = new MouseAdapter()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void mouseClicked(MouseEvent e) {
         if (isEnabled() && (e.getClickCount() == 2))
         {
@@ -226,9 +219,7 @@ public class AddRemovePanel<T> extends JPanel
     add.setOpaque(false);
     add.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         addClicked();
@@ -244,9 +235,7 @@ public class AddRemovePanel<T> extends JPanel
       addAll.setOpaque(false);
       addAll.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           selectedListModel.addAll(availableListModel.getData());
@@ -266,9 +255,7 @@ public class AddRemovePanel<T> extends JPanel
     remove.setOpaque(false);
     remove.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         removeClicked();
@@ -285,9 +272,7 @@ public class AddRemovePanel<T> extends JPanel
       removeAll.setOpaque(false);
       removeAll.addActionListener(new ActionListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void actionPerformed(ActionEvent ev)
         {
           availableListModel.addAll(selectedListModel.getData());

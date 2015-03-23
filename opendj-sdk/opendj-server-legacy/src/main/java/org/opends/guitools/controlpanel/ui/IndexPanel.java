@@ -163,9 +163,7 @@ public class IndexPanel extends AbstractIndexPanel
     buttonPanel.add(deleteIndex, gbc);
     deleteIndex.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         deleteIndex();
@@ -181,9 +179,7 @@ public class IndexPanel extends AbstractIndexPanel
     buttonPanel.add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         saveIndex(false);
@@ -192,25 +188,19 @@ public class IndexPanel extends AbstractIndexPanel
 
     entryLimit.getDocument().addDocumentListener(new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         checkSaveButton();
@@ -219,9 +209,7 @@ public class IndexPanel extends AbstractIndexPanel
 
     ActionListener listener = new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         checkSaveButton();
@@ -233,25 +221,19 @@ public class IndexPanel extends AbstractIndexPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_INDEX_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Component getPreferredFocusComponent()
   {
     return entryLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -261,9 +243,7 @@ public class IndexPanel extends AbstractIndexPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public void run()
       {
         checkSaveButton();
@@ -272,9 +252,7 @@ public class IndexPanel extends AbstractIndexPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void okClicked()
   {
   }
@@ -557,34 +535,26 @@ public class IndexPanel extends AbstractIndexPanel
       indexToModify = index;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Type getType()
     {
       return Type.MODIFY_INDEX;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_MODIFY_INDEX_TASK_DESCRIPTION.get(attributeName,
           backendName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -633,9 +603,7 @@ public class IndexPanel extends AbstractIndexPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public void run()
             {
               StringBuilder sb = new StringBuilder();
@@ -652,9 +620,7 @@ public class IndexPanel extends AbstractIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -675,9 +641,7 @@ public class IndexPanel extends AbstractIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /**
-           * {@inheritDoc}
-           */
+          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -792,17 +756,13 @@ public class IndexPanel extends AbstractIndexPanel
       index.commit();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -826,9 +786,7 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void runTask()
     {
       state = State.RUNNING;
@@ -852,9 +810,7 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void postOperation()
     {
       if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY))
