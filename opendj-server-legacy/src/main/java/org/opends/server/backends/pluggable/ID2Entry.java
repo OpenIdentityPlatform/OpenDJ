@@ -327,7 +327,7 @@ class ID2Entry extends DatabaseContainer
     try
     {
       ByteString value = codec.encodeInternal(entry, dataConfig);
-      txn.create(getName(), key, value);
+      txn.put(getName(), key, value);
     }
     finally
     {

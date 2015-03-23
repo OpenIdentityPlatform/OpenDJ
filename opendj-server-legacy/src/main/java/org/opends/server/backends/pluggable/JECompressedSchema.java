@@ -238,7 +238,7 @@ final class JECompressedSchema extends CompressedSchema
         @Override
         public void run(WriteableStorage txn) throws Exception
         {
-          txn.create(treeName, keyEntry, value);
+          txn.put(treeName, keyEntry, value);
         }
       });
       return true;
