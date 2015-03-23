@@ -641,17 +641,13 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-      throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
-    /*
-     * If the rootContainer is open, the backend is initialized by something
-     * else. We can't do import while the backend is online.
-     */
+    // If the rootContainer is open, the backend is initialized by something else.
+    // We can't do import while the backend is online.
     if (rootContainer != null)
     {
-      throw new DirectoryException(getServerErrorResultCode(),
-          ERR_JEB_IMPORT_BACKEND_ONLINE.get());
+      throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_IMPORT_BACKEND_ONLINE.get());
     }
     return new RootContainer(this, cfg).importLDIF(importConfig);
   }

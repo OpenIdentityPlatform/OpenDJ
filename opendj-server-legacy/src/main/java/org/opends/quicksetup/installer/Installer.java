@@ -152,7 +152,7 @@ public abstract class Installer extends GuiApplication {
   public static final int MAX_PORT_VALUE = 65535;
 
   /** The name of the backend created on setup. */
-  public static final String BACKEND_NAME = "userRoot";
+  public static final String ROOT_BACKEND_NAME = "userRoot";
 
   /** Constants used to do checks. */
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
@@ -923,7 +923,7 @@ public abstract class Installer extends GuiApplication {
           }
           else if (getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
           {
-            helper.deleteBackend(BACKEND_NAME);
+            helper.deleteBackend(ROOT_BACKEND_NAME);
           }
         } catch (ApplicationException aex)
         {
@@ -1141,7 +1141,7 @@ public abstract class Installer extends GuiApplication {
 
     List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(BACKEND_NAME);
+    argList.add(ROOT_BACKEND_NAME);
     for (File f : ldifFiles)
     {
       argList.add("-l");
@@ -1236,7 +1236,7 @@ public abstract class Installer extends GuiApplication {
 
     List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(BACKEND_NAME);
+    argList.add(ROOT_BACKEND_NAME);
     for (String ldifPath : ldifPaths)
     {
       argList.add("-l");
@@ -1359,7 +1359,7 @@ public abstract class Installer extends GuiApplication {
     }
     final List<String> argList = new ArrayList<String>();
     argList.add("-n");
-    argList.add(BACKEND_NAME);
+    argList.add(ROOT_BACKEND_NAME);
     argList.add("-A");
     argList.add(templatePath.getAbsolutePath());
     argList.add("-s"); // seed
@@ -1543,7 +1543,7 @@ public abstract class Installer extends GuiApplication {
     {
       Set<String> baseDns = new HashSet<String>(
         getUserData().getNewSuffixOptions().getBaseDns());
-      hmBackendSuffix.put(BACKEND_NAME, baseDns);
+      hmBackendSuffix.put(ROOT_BACKEND_NAME, baseDns);
     }
     else
     {
@@ -1601,7 +1601,7 @@ public abstract class Installer extends GuiApplication {
       deleteUserRoot = true;
       for (String backendName : hmBackendSuffix.keySet())
       {
-        if (backendName.equalsIgnoreCase(BACKEND_NAME))
+        if (backendName.equalsIgnoreCase(ROOT_BACKEND_NAME))
         {
           deleteUserRoot = false;
           break;
@@ -1618,12 +1618,12 @@ public abstract class Installer extends GuiApplication {
       if (deleteUserRoot)
       {
         // Delete the userRoot backend.
-        helper.deleteBackend(ctx, BACKEND_NAME,
+        helper.deleteBackend(ctx, ROOT_BACKEND_NAME,
             ConnectionUtils.getHostPort(ctx));
       }
       for (String backendName : hmBackendSuffix.keySet())
       {
-        if (backendName.equalsIgnoreCase(BACKEND_NAME))
+        if (backendName.equalsIgnoreCase(ROOT_BACKEND_NAME))
         {
           helper.setBaseDns(
               ctx, backendName, hmBackendSuffix.get(backendName),
