@@ -48,6 +48,7 @@ import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -114,13 +115,12 @@ class DN2URI extends DatabaseContainer
 
   private ByteSequence encode(DN dn, Collection<String> col)
   {
-    if (col != null)
+    if (col != null && !col.isEmpty())
     {
       ByteStringBuilder b = new ByteStringBuilder();
       byte[] dnBytes = StaticUtils.getBytes(dn.toString());
       b.append(dnBytes.length);
       b.append(dnBytes);
-
       b.append(col.size());
       for (String s : col)
       {
@@ -130,7 +130,7 @@ class DN2URI extends DatabaseContainer
       }
       return b;
     }
-    return ByteString.empty();
+    return null;
   }
 
   private Pair<DN, List<String>> decode(ByteSequence bs) throws StorageRuntimeException
@@ -161,7 +161,7 @@ class DN2URI extends DatabaseContainer
   }
 
   /**
-   * Insert a URI value in the referral database.
+   * Puts a URI value in the referral database.
    *
    * @param txn A database transaction used for the update, or null if none is
    * required.
@@ -169,24 +169,31 @@ class DN2URI extends DatabaseContainer
    * @param labeledURIs The labeled URI value of the ref attribute.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void insert(WriteableStorage txn, DN dn, Collection<String> labeledURIs) throws StorageRuntimeException
+  private void put(final WriteableStorage txn, final DN dn, final Collection<String> labeledURIs)
+      throws StorageRuntimeException
   {
-    ByteString key = toKey(dn);
-
-    ByteString oldValue = txn.getRMW(getName(), key);
-    if (oldValue != null)
+    final ByteString key = toKey(dn);
+    txn.update(getName(), key, new UpdateFunction()
     {
-      final Pair<DN, List<String>> dnAndUris = decode(oldValue);
-      final Collection<String> newUris = dnAndUris.getSecond();
-      if (newUris.addAll(labeledURIs))
+      @Override
+      public ByteSequence computeNewValue(ByteSequence oldValue)
       {
-        txn.create(getName(), key, encode(dn, newUris));
+        if (oldValue != null)
+        {
+          final Pair<DN, List<String>> dnAndUris = decode(oldValue);
+          final Collection<String> newUris = dnAndUris.getSecond();
+          if (newUris.addAll(labeledURIs))
+          {
+            return encode(dn, newUris);
+          }
+          return oldValue;
+        }
+        else
+        {
+          return encode(dn, labeledURIs);
+        }
       }
-    }
-    else
-    {
-      txn.putIfAbsent(getName(), key, encode(dn, labeledURIs));
-    }
+    });
     containsReferrals = ConditionResult.TRUE;
   }
 
@@ -218,27 +225,30 @@ class DN2URI extends DatabaseContainer
    * required.
    * @param dn The DN of the referral entry.
    * @param labeledURIs The URI value to be deleted.
-   * @return true if the value was deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private boolean delete(WriteableStorage txn, DN dn, Collection<String> labeledURIs)
+  private void delete(final WriteableStorage txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
-
-    ByteString oldValue = txn.getRMW(getName(), key);
-    if (oldValue != null)
+    txn.update(getName(), key, new UpdateFunction()
     {
-      final Pair<DN, List<String>> dnAndUris = decode(oldValue);
-      final Collection<String> oldUris = dnAndUris.getSecond();
-      if (oldUris.removeAll(labeledURIs))
+      @Override
+      public ByteSequence computeNewValue(ByteSequence oldValue)
       {
-        txn.create(getName(), key, encode(dn, oldUris));
-        containsReferrals = containsReferrals(txn);
-        return true;
+        if (oldValue != null)
+        {
+          final Pair<DN, List<String>> dnAndUris = decode(oldValue);
+          final Collection<String> oldUris = dnAndUris.getSecond();
+          if (oldUris.removeAll(labeledURIs))
+          {
+            return encode(dn, oldUris);
+          }
+        }
+        return oldValue;
       }
-    }
-    return false;
+    });
+    containsReferrals = containsReferrals(txn);
   }
 
   /**
@@ -296,7 +306,7 @@ class DN2URI extends DatabaseContainer
           case ADD:
             if (a != null)
             {
-              insert(txn, entryDN, toStrings(a));
+              put(txn, entryDN, toStrings(a));
             }
             break;
 
@@ -319,7 +329,7 @@ class DN2URI extends DatabaseContainer
             delete(txn, entryDN);
             if (a != null)
             {
-              insert(txn, entryDN, toStrings(a));
+              put(txn, entryDN, toStrings(a));
             }
             break;
         }
@@ -365,18 +375,16 @@ class DN2URI extends DatabaseContainer
    * @param txn A database transaction used for the update, or null if none is
    * required.
    * @param entry The entry to be added.
-   * @return True if the entry was added successfully or False otherwise.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean addEntry(WriteableStorage txn, Entry entry)
+  void addEntry(WriteableStorage txn, Entry entry)
        throws StorageRuntimeException
   {
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
     {
-      insert(txn, entry.getName(), labeledURIs);
+      put(txn, entry.getName(), labeledURIs);
     }
-    return true;
   }
 
   /**

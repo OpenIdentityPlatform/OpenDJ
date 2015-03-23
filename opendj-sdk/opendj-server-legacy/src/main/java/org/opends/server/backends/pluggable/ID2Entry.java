@@ -309,35 +309,6 @@ class ID2Entry extends DatabaseContainer
     }
   }
 
-
-
-  /**
-   * Insert a record into the entry database.
-   *
-   * @param txn The database transaction or null if none.
-   * @param id The entry ID which forms the key.
-   * @param entry The LDAP entry.
-   * @return true if the entry was inserted, false if a record with that
-   *         ID already existed.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws  DirectoryException  If a problem occurs while attempting to encode
-   *                              the entry.
-   */
-  boolean insert(WriteableStorage txn, EntryID id, Entry entry) throws StorageRuntimeException, DirectoryException
-  {
-    ByteString key = id.toByteString();
-    EntryCodec codec = acquireEntryCodec();
-    try
-    {
-      ByteString value = codec.encodeInternal(entry, dataConfig);
-      return txn.putIfAbsent(getName(), key, value);
-    }
-    finally
-    {
-      codec.release();
-    }
-  }
-
   /**
    * Write a record in the entry database.
    *
@@ -390,11 +361,6 @@ class ID2Entry extends DatabaseContainer
        throws DirectoryException, StorageRuntimeException
   {
     return get0(id, txn.read(getName(), id.toByteString()));
-  }
-
-  public Entry getRMW(ReadableStorage txn, EntryID id) throws DirectoryException, StorageRuntimeException
-  {
-    return get0(id, txn.getRMW(getName(), id.toByteString()));
   }
 
   private Entry get0(EntryID id, ByteString value) throws DirectoryException

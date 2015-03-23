@@ -308,6 +308,12 @@ public class LocalBackendModifyDNOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
+    /*
+     * FIXME: we lock the target DN and the renamed target DN, but not the parent of the target DN,
+     * which seems inconsistent with the add operation implementation. Specifically, this
+     * implementation does not defend against concurrent deletes of the parent of the renamed entry.
+     */
+
     // Acquire write locks for the current and new DN.
     final Lock currentLock = LockManager.lockWrite(entryDN);
     Lock newLock = null;

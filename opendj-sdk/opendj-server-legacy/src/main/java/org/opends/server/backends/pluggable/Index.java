@@ -46,6 +46,7 @@ import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -243,16 +244,11 @@ class Index extends DatabaseContainer
       }
       else if (trusted)
       {
-        if (deletedIDs != null)
-        {
-          logIndexCorruptError(txn, key);
-        }
-
-        if (isNotNullOrEmpty(addedIDs)
-            && !txn.putIfAbsent(getName(), key, addedIDs.toByteString()))
-        {
-          updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
-        }
+        /*
+         * The key was not present, but we cannot simply add it because another thread may have
+         * added since.
+         */
+        updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
       }
     }
   }
@@ -262,43 +258,44 @@ class Index extends DatabaseContainer
     return entryIDSet == null || entryIDSet.size() == 0;
   }
 
-  private boolean isNotNullOrEmpty(EntryIDSet entryIDSet)
+  private boolean isNotEmpty(EntryIDSet entryIDSet)
   {
     return entryIDSet != null && entryIDSet.size() > 0;
   }
 
-  private void updateKeyWithRMW(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
-      throws StorageRuntimeException
+  private void updateKeyWithRMW(final WriteableStorage txn, final ByteString key, final EntryIDSet deletedIDs,
+      final EntryIDSet addedIDs) throws StorageRuntimeException
   {
-    final ByteString value = txn.getRMW(getName(), key);
-    if (value != null)
+    txn.update(getName(), key, new UpdateFunction()
     {
-      EntryIDSet entryIDSet = computeEntryIDSet(key, value, deletedIDs, addedIDs);
-      ByteString after = entryIDSet.toByteString();
-      if (!after.isEmpty())
+      @Override
+      public ByteSequence computeNewValue(final ByteSequence oldValue)
       {
-        txn.create(getName(), key, after);
+        if (oldValue != null)
+        {
+          EntryIDSet entryIDSet = computeEntryIDSet(key, oldValue.toByteString(), deletedIDs, addedIDs);
+          ByteString after = entryIDSet.toByteString();
+          /*
+           * If there are no more IDs then return null indicating that the record should be removed.
+           * If index is not trusted then this will cause all subsequent reads for this key to
+           * return undefined set.
+           */
+          return after.isEmpty() ? null : after;
+        }
+        else if (trusted)
+        {
+          if (deletedIDs != null)
+          {
+            logIndexCorruptError(txn, key);
+          }
+          if (isNotEmpty(addedIDs))
+          {
+            return addedIDs.toByteString();
+          }
+        }
+        return null; // no change.
       }
-      else
-      {
-        // No more IDs, so remove the key. If index is not
-        // trusted then this will cause all subsequent reads
-        // for this key to return undefined set.
-        txn.delete(getName(), key);
-      }
-    }
-    else if (trusted)
-    {
-      if (deletedIDs != null)
-      {
-        logIndexCorruptError(txn, key);
-      }
-
-      if (isNotNullOrEmpty(addedIDs))
-      {
-        txn.putIfAbsent(getName(), key, addedIDs.toByteString());
-      }
-    }
+    });
   }
 
   private EntryIDSet computeEntryIDSet(ByteString key, ByteString value, EntryIDSet deletedIDs, EntryIDSet addedIDs)

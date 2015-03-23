@@ -47,20 +47,6 @@ public interface ReadableStorage extends Closeable
   ByteString read(TreeName treeName, ByteSequence key);
 
   /**
-   * Reads the record's value associated to the provided key in a Read-Modify-Write fashion, in the
-   * tree whose name is provided.
-   *
-   * @param treeName
-   *          the tree name
-   * @param key
-   *          the record's key
-   * @return the record's value, or {@code null} if none exists
-   * @deprecated use {@link WriteableStorage#update(TreeName, ByteSequence, UpdateFunction)} instead
-   */
-  @Deprecated
-  ByteString getRMW(TreeName treeName, ByteSequence key);
-
-  /**
    * Opens a cursor on the tree whose name is provided.
    *
    * @param treeName

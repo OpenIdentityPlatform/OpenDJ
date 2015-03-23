@@ -227,21 +227,10 @@ final class JECompressedSchema extends CompressedSchema
     }
   }
 
-  private void store(final TreeName treeName, final byte[] key, final ByteStringBuilder value)
-      throws DirectoryException
-  {
-    if (!putNoOverwrite(treeName, key, value))
-    {
-      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
-    }
-  }
-
-  private boolean putNoOverwrite(final TreeName treeName, final byte[] key, final ByteStringBuilder value)
+  private boolean store(final TreeName treeName, final byte[] key, final ByteStringBuilder value)
       throws DirectoryException
   {
     final ByteString keyEntry = ByteString.wrap(key);
-    final ByteString valueEntry = ByteString.wrap(value.getBackingArray(), 0, value.length());
     try
     {
       storage.write(new WriteOperation()
@@ -249,11 +238,7 @@ final class JECompressedSchema extends CompressedSchema
         @Override
         public void run(WriteableStorage txn) throws Exception
         {
-          if (!txn.putIfAbsent(treeName, keyEntry, valueEntry))
-          {
-            final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(false);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
-          }
+          txn.create(treeName, keyEntry, value);
         }
       });
       return true;

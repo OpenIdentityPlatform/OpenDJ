@@ -58,21 +58,19 @@ class DN2ID extends DatabaseContainer
   }
 
   /**
-   * Insert a new record into the DN database.
+   * Adds a new record into the DN database replacing any existing record having the same DN.
    * @param txn A JE database transaction to be used for the database operation,
    * or null if none.
    * @param dn The entry DN, which is the key to the record.
    * @param id The entry ID, which is the value of the record.
-   * @return true if the record was inserted, false if a record with that key
-   * already exists.
    * @throws StorageRuntimeException If an error occurred while attempting to insert
    * the new record.
    */
-  boolean insert(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
+  void put(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = id.toByteString();
-    return txn.putIfAbsent(getName(), key, value);
+    txn.create(getName(), key, value);
   }
 
   /**
@@ -103,17 +101,6 @@ class DN2ID extends DatabaseContainer
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = txn.read(getName(), key);
-    if (value != null)
-    {
-      return new EntryID(value);
-    }
-    return null;
-  }
-
-  EntryID getRMW(ReadableStorage txn, DN dn) throws StorageRuntimeException
-  {
-    ByteString key = dnToDNKey(dn, prefixRDNComponents);
-    ByteString value = txn.getRMW(getName(), key);
     if (value != null)
     {
       return new EntryID(value);
