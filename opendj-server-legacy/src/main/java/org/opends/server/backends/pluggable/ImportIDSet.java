@@ -31,6 +31,7 @@ import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Reject;
 
 /**
  * This class manages the set of ID that are to be eventually added to an index
@@ -97,7 +98,8 @@ final class ImportIDSet {
    */
   void addEntryID(long entryID)
   {
-    if ((entryID < 0)|| (isDefined() && size() + 1 > indexEntryLimitSize)) {
+    Reject.ifTrue(entryID < 0);
+    if (isDefined() && size() + 1 > indexEntryLimitSize) {
       entryIDSet = maintainCount ? newUndefinedSetWithSize(key, size() + 1) : newUndefinedSetWithKey(key);
     } else if (isDefined() || maintainCount) {
       entryIDSet.add(new EntryID(entryID));
