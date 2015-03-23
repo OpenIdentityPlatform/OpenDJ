@@ -967,7 +967,8 @@ public class RootDSEBackend
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(RootDSEBackendCfg config,
-                                           List<LocalizableMessage> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons,
+                                           ServerContext serverContext)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }

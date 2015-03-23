@@ -33,6 +33,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.core.ServerContext;
 
 /**
  * Class defined in the configuration for this backend type.
@@ -40,13 +41,14 @@ import org.opends.server.backends.pluggable.spi.Storage;
 public final class PitBackend extends BackendImpl<PersistitBackendCfg>
 {
   @Override
-  public boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
+      ServerContext serverContext)
   {
     return PersistItStorage.isConfigurationAcceptable(cfg, unacceptableReasons, serverContext);
   }
 
   @Override
-  protected Storage configureStorage(PersistitBackendCfg cfg) throws ConfigException
+  protected Storage configureStorage(PersistitBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     return new PersistItStorage(cfg, serverContext);
   }

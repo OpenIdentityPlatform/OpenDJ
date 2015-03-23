@@ -113,16 +113,6 @@ public abstract class Backend<C extends Configuration>
       new ConcurrentLinkedQueue<PersistentSearch>();
 
   /**
-   * Temporarily sets up the server context for the first phase of add of a new configuration entry.
-   * Needed for checking storage parameters before committing the change in configuration.
-   *
-   * @param context the server context for this instance
-   */
-  public void setServerContext(ServerContext context)
-  {
-  }
-
-  /**
    * Configure this backend based on the information in the provided
    * configuration.
    *
@@ -149,13 +139,14 @@ public abstract class Backend<C extends Configuration>
    * @param  unacceptableReasons  A list that may be used to hold the
    *                              reasons that the provided
    *                              configuration is not acceptable.
-   *
+   * @param serverContext         this Directory Server instance's server context
+   * 
    * @return  {@code true} if the provided configuration is acceptable
    *          for this backend, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(
                       C configuration,
-                      List<LocalizableMessage> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons, ServerContext serverContext)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by backend implementations

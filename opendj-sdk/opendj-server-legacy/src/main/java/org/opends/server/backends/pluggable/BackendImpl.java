@@ -95,9 +95,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL));
 
-  /** The server context for this directory server. */
-  protected ServerContext serverContext;
-
   /**
    * Begin a Backend API method that accesses the database and returns the <code>EntryContainer</code> for
    * <code>entryDN</code>.
@@ -152,9 +149,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     Reject.ifNull(cfg);
 
     this.cfg = cfg;
-    this.serverContext = serverContext;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
-    storage = new TracedStorage(configureStorage(cfg), cfg.getBackendId());
+    storage = new TracedStorage(configureStorage(cfg, serverContext), cfg.getBackendId());
   }
 
   /** {@inheritDoc} */
@@ -796,22 +792,18 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
    *
    * @param cfg
    *          the configuration object
+   * @param serverContext
+   *          this Directory Server intsance's server context
    * @return The storage engine to be used by this pluggable backend.
    * @throws ConfigException
    *           If there is an error in the configuration.
    */
-  protected abstract Storage configureStorage(C cfg) throws ConfigException;
+  protected abstract Storage configureStorage(C cfg, ServerContext serverContext) throws ConfigException;
 
   /** {@inheritDoc} */
   @Override
-  public void setServerContext(ServerContext context)
-  {
-    this.serverContext = context;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isConfigurationAcceptable(C config, List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(C config, List<LocalizableMessage> unacceptableReasons,
+      ServerContext serverContext)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }

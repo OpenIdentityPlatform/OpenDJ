@@ -954,7 +954,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(LocalDBBackendCfg config,
-                                           List<LocalizableMessage> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons,
+                                           ServerContext serverContext)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
