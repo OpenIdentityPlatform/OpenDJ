@@ -31,6 +31,7 @@ import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -739,21 +740,14 @@ class VLVIndex extends DatabaseContainer
           {
             // We don't have enough entries in the set to meet the requested
             // page size, so we'll need to shorten the array.
-            long[] newIDArray = new long[selectedPos];
-            System.arraycopy(selectedIDs, 0, newIDArray, 0, selectedPos);
-            selectedIDs = newIDArray;
+            selectedIDs = Arrays.copyOf(selectedIDs, selectedPos);
           }
 
           searchOperation.addResponseControl(
               new VLVResponseControl(targetOffset, currentCount,
                                      LDAPResultCode.SUCCESS));
 
-          if(debugBuilder != null)
-          {
-            debugBuilder.append("[COUNT:");
-            debugBuilder.append(cursorCount);
-            debugBuilder.append("]");
-          }
+          appendCount(debugBuilder, cursorCount);
         }
         finally
         {
@@ -852,23 +846,13 @@ class VLVIndex extends DatabaseContainer
               afterIDCount += lastIDs.length;
             }
 
-            selectedIDs = new long[idList.size()];
-            Iterator<EntryID> idIterator = idList.iterator();
-            for (int i=0; i < selectedIDs.length; i++)
-            {
-              selectedIDs[i] = idIterator.next().longValue();
-            }
+            selectedIDs = toLongArray(idList);
 
             searchOperation.addResponseControl(
                 new VLVResponseControl(targetOffset + 1, currentCount,
                                        LDAPResultCode.SUCCESS));
 
-            if(debugBuilder != null)
-            {
-              debugBuilder.append("[COUNT:");
-              debugBuilder.append(targetOffset + afterIDCount + 1);
-              debugBuilder.append("]");
-            }
+            appendCount(debugBuilder, targetOffset + afterIDCount + 1);
           }
         }
         finally
@@ -901,25 +885,46 @@ class VLVIndex extends DatabaseContainer
         cursor.close();
       }
 
-      selectedIDs = new long[currentCount];
-      int pos = 0;
-      for(long[] id : idSets)
-      {
-        System.arraycopy(id, 0, selectedIDs, pos, id.length);
-        pos += id.length;
-      }
-
-      if(debugBuilder != null)
-      {
-        debugBuilder.append("[COUNT:");
-        debugBuilder.append(currentCount);
-        debugBuilder.append("]");
-      }
+      selectedIDs = concat(idSets, currentCount);
+      appendCount(debugBuilder, currentCount);
     }
     return newDefinedSet(selectedIDs);
   }
 
-    /**
+  private void appendCount(StringBuilder debugBuilder, int currentCount)
+  {
+    if (debugBuilder != null)
+    {
+      debugBuilder.append("[COUNT:");
+      debugBuilder.append(currentCount);
+      debugBuilder.append("]");
+    }
+  }
+
+  private long[] toLongArray(LinkedList<EntryID> idList)
+  {
+    final long[] results = new long[idList.size()];
+    final Iterator<EntryID> idIterator = idList.iterator();
+    for (int i = 0; i < results.length; i++)
+    {
+      results[i] = idIterator.next().longValue();
+    }
+    return results;
+  }
+
+  private long[] concat(List<long[]> idSets, int totalLength)
+  {
+    long[] results = new long[totalLength];
+    int pos = 0;
+    for(long[] id : idSets)
+    {
+      System.arraycopy(id, 0, results, pos, id.length);
+      pos += id.length;
+    }
+    return results;
+  }
+
+  /**
    * Set the vlvIndex trust state.
    * @param txn A database transaction, or null if none is required.
    * @param trusted True if this vlvIndex should be trusted or false
