@@ -140,7 +140,7 @@ public abstract class Backend<C extends Configuration>
    *                              reasons that the provided
    *                              configuration is not acceptable.
    * @param serverContext         this Directory Server instance's server context
-   * 
+   *
    * @return  {@code true} if the provided configuration is acceptable
    *          for this backend, or {@code false} if not.
    */
