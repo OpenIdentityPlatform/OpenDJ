@@ -159,18 +159,6 @@ public class OpendsJmxConnector implements JMXConnector
    */
   public void connect(Map<String,?> env) throws IOException, SecurityException
   {
-    // set the real target hostname
-    DirectoryRMIClientSocketFactory.setServerHostname(serverHostname);
-
-    // configure the thread-local connection environment
-    if (env != null)
-    {
-      // encode credentials if necessary
-      updateCredentials(env);
-    }
-    DirectoryRMIClientSocketFactory.setConnectionEnv(environment);
-
-
     jmxc.connect(env);
   }
 
