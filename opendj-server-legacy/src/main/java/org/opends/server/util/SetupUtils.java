@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -399,28 +399,30 @@ public class SetupUtils
     return pwd;
   }
 
-
   /**
-   * Export a certificate in a file.  It will export the first certificate
-   * defined.  This method is required because of the way.
+   * Export a certificate in a file. If the certificate alias to export is null,
+   * It will export the first certificate defined.
    *
-   * @param certManager Certificate manager to use.
-   * @param path Path of the output file.
-   *
-   * @throws CertificateEncodingException If the certificate manager cannot
-   * encode the certificate.
-   * @throws IOException If a problem occurs while creating or writing in the
-   * output file.
-   * @throws KeyStoreException If the certificate manager cannot retrieve the
-   * certificate to be exported.
+   * @param certManager
+   *          Certificate manager to use.
+   * @param alias
+   *          Certificate alias to export. If {@code null} the first certificate
+   *          defined will be exported.
+   * @param path
+   *          Path of the output file.
+   * @throws CertificateEncodingException
+   *           If the certificate manager cannot encode the certificate.
+   * @throws IOException
+   *           If a problem occurs while creating or writing in the output file.
+   * @throws KeyStoreException
+   *           If the certificate manager cannot retrieve the certificate to be
+   *           exported.
    */
-  public static void exportCertificate(
-    CertificateManager certManager, String path)
-    throws CertificateEncodingException, IOException, KeyStoreException
+  public static void exportCertificate(CertificateManager certManager, String alias, String path)
+      throws CertificateEncodingException, IOException, KeyStoreException
   {
-    String[] aliases = certManager.getCertificateAliases();
-    Certificate certificate = certManager.getCertificate(aliases[0]);
-
+    final Certificate certificate =
+        certManager.getCertificate(alias != null ? alias : certManager.getCertificateAliases()[0]);
     byte[] certificateBytes = certificate.getEncoded();
 
     FileOutputStream outputStream = new FileOutputStream(path, false);
@@ -434,38 +436,6 @@ public class SetupUtils
     }
   }
 
-  /**
-   * Export a certificate in a file.
-   *
-   * @param certManager Certificate manager to use.
-   * @param alias Certificate alias to export.
-   * @param path Path of the output file.
-   *
-   * @throws CertificateEncodingException If the certificate manager cannot
-   * encode the certificate.
-   * @throws IOException If a problem occurs while creating or writing in the
-   * output file.
-   * @throws KeyStoreException If the certificate manager cannot retrieve the
-   * certificate to be exported.
-   */
-  public static void exportCertificate(
-    CertificateManager certManager, String alias, String path)
-    throws CertificateEncodingException, IOException, KeyStoreException
-  {
-    Certificate certificate = certManager.getCertificate(alias);
-
-    byte[] certificateBytes = certificate.getEncoded();
-
-    FileOutputStream outputStream = new FileOutputStream(path, false);
-    try
-    {
-      outputStream.write(certificateBytes);
-    }
-    finally
-    {
-      closeSilently(outputStream);
-    }
-  }
 
   /**
    * The next two methods are used to generate the random password for the
