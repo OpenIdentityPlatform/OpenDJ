@@ -1528,30 +1528,9 @@ public class EntryContainer
             }
 
             EntryID entryID = rootContainer.getNextEntryID();
-
-            // Insert into dn2id.
-            if (!dn2id.insert(txn, entry.getName(), entryID))
-            {
-              // Do not ever expect to come through here.
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry
-                  .getName()));
-            }
-
-            // Update the referral database for referral entries.
-            if (!dn2uri.addEntry(txn, entry))
-            {
-              // Do not ever expect to come through here.
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry
-                  .getName()));
-            }
-
-            // Insert into id2entry.
-            if (!id2entry.insert(txn, entryID, entry))
-            {
-              // Do not ever expect to come through here.
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry
-                  .getName()));
-            }
+            dn2id.put(txn, entry.getName(), entryID);
+            dn2uri.addEntry(txn, entry);
+            id2entry.put(txn, entryID, entry);
 
             // Insert into the indexes, in index configuration order.
             final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
@@ -1811,7 +1790,8 @@ public class EntryContainer
       {
         leafDNKey = dnToDNKey(targetDN, baseDN.size());
       }
-      ByteString value = txn.getRMW(dn2id.getName(), leafDNKey);
+      // FIXME: previously this used a RMW lock - see OPENDJ-1878.
+      ByteString value = txn.read(dn2id.getName(), leafDNKey);
       if (value == null)
       {
         LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(targetDN);
@@ -1831,7 +1811,8 @@ public class EntryContainer
     }
 
     // Check that the entry exists in id2entry and read its contents.
-    Entry entry = id2entry.getRMW(txn, leafID);
+    // FIXME: previously this used a RMW lock - see OPENDJ-1878.
+    Entry entry = id2entry.get(txn, leafID);
     if (entry == null)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -2023,7 +2004,7 @@ public class EntryContainer
         {
           try
           {
-            EntryID entryID = dn2id.getRMW(txn, newEntry.getName());
+            EntryID entryID = dn2id.get(txn, newEntry.getName());
             if (entryID == null)
             {
               LocalizableMessage message = ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName());
@@ -2138,6 +2119,7 @@ public class EntryContainer
   void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
+    // FIXME: consistency + isolation cannot be maintained lock free - see OPENDJ-1878.
     try
     {
       storage.write(new WriteOperation()
@@ -2374,11 +2356,8 @@ public class EntryContainer
                            ModifyDNOperation modifyDNOperation)
       throws DirectoryException, StorageRuntimeException
   {
-    if (!dn2id.insert(txn, newEntry.getName(), newID))
-    {
-      LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newEntry.getName());
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
-    }
+    // FIXME: the core server should validate that the new subtree location is empty.
+    dn2id.put(txn, newEntry.getName(), newID);
     id2entry.put(txn, newID, newEntry);
     dn2uri.addEntry(txn, newEntry);
 

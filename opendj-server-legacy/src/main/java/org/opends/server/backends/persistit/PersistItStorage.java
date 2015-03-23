@@ -346,12 +346,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
-    public ByteString getRMW(final TreeName treeName, final ByteSequence key)
-    {
-      return read(treeName, key);
-    }
-
-    @Override
     public Cursor openCursor(final TreeName treeName)
     {
       try
@@ -384,34 +378,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       finally
       {
         db.releaseExchange(ex);
-      }
-    }
-
-    @Override
-    public boolean putIfAbsent(final TreeName treeName, final ByteSequence key,
-        final ByteSequence value)
-    {
-      try
-      {
-        // There is no CAS (Compare And Swap) operation to do here :)
-        // Following code is fine because Persistit provides snapshot isolation.
-        // If another thread tries to update the same key, we'll get a RollbackException
-        // And the write operation will be retried (see write() method in this class)
-        final Exchange ex = getExchangeFromCache(treeName);
-        bytesToKey(ex.getKey(), key);
-        ex.fetch();
-        final Value exValue = ex.getValue();
-        if (exValue.isDefined())
-        {
-          return false;
-        }
-        bytesToValue(exValue, value);
-        ex.store();
-        return true;
-      }
-      catch (final Exception e)
-      {
-        throw new StorageRuntimeException(e);
       }
     }
 
@@ -449,8 +415,15 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         final ByteSequence newValue = f.computeNewValue(oldValue);
         if (!equals(newValue, oldValue))
         {
-          ex.getValue().clear().putByteArray(newValue.toByteArray());
-          ex.store();
+          if (newValue == null)
+          {
+            ex.remove();
+          }
+          else
+          {
+            ex.getValue().clear().putByteArray(newValue.toByteArray());
+            ex.store();
+          }
           return true;
         }
         return false;

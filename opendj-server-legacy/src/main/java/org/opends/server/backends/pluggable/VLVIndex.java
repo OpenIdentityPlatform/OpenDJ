@@ -227,7 +227,7 @@ class VLVIndex extends DatabaseContainer
 
   /** {@inheritDoc} */
   @Override
-  public void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableStorage txn) throws StorageRuntimeException
   {
     super.open(txn);
 
@@ -402,12 +402,12 @@ class VLVIndex extends DatabaseContainer
       DirectoryException
   {
     ByteString key = encodeKey(entryID, values, types);
-    return getSortValuesSet(txn, key, false);
+    ByteString value = txn.read(getName(), key);
+    return decodeSortValuesSet(key, value);
   }
 
-  private SortValuesSet getSortValuesSet(ReadableStorage txn, ByteString key, boolean isRMW)
+  private SortValuesSet decodeSortValuesSet(ByteString key, ByteString value)
   {
-    ByteString value = isRMW ? txn.getRMW(getName(), key) : txn.read(getName(), key);
     if (value == null)
     {
       // There are no records in the database
@@ -544,7 +544,12 @@ class VLVIndex extends DatabaseContainer
         break;
       }
 
-      final SortValuesSet sortValuesSet = getSortValuesSet(txn, key, true);
+      /*
+       * FIXME: replace getRMW+updates with single call to update()
+       */
+      ByteString value = txn.read(getName(), key);
+      final SortValuesSet sortValuesSet = decodeSortValuesSet(key, value);
+
       int oldSize = sortValuesSet.size();
       if(key.length() == 0)
       {
@@ -581,6 +586,10 @@ class VLVIndex extends DatabaseContainer
       int newSize = sortValuesSet.size();
       if(newSize >= sortedSetCapacity)
       {
+        /*
+         * FIXME: is one record becoming two or three? The call to split() looks like it is changing
+         * the key.
+         */
         SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
         txn.create(getName(), splitSortValuesSet.getKeyBytes(), splitSortValuesSet.toByteString()); // splitAfter
         txn.create(getName(), sortValuesSet.getKeyBytes(), sortValuesSet.toByteString()); // after

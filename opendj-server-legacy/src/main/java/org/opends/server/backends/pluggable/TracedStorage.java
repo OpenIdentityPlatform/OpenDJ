@@ -112,15 +112,6 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public ByteString getRMW(final TreeName name, final ByteSequence key)
-    {
-      final ByteString value = txn.getRMW(name, key);
-      logger.trace("Storage@%s.ReadableStorage@%s.getRMW(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value));
-      return value;
-    }
-
-    @Override
     public Cursor openCursor(final TreeName name)
     {
       final Cursor cursor = txn.openCursor(name);
@@ -197,15 +188,6 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public ByteString getRMW(final TreeName name, final ByteSequence key)
-    {
-      final ByteString value = txn.getRMW(name, key);
-      logger.trace("Storage@%s.WriteableStorage@%s.getRMW(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value));
-      return value;
-    }
-
-    @Override
     public Cursor openCursor(final TreeName name)
     {
       final Cursor cursor = txn.openCursor(name);
@@ -220,15 +202,6 @@ final class TracedStorage implements Storage
       txn.openTree(name);
       logger.trace("Storage@%s.WriteableStorage@%s.openTree(%s, %s)",
           storageId(), id(), backendId, name);
-    }
-
-    @Override
-    public boolean putIfAbsent(final TreeName name, final ByteSequence key, final ByteSequence value)
-    {
-      final boolean isCreated = txn.putIfAbsent(name, key, value);
-      logger.trace("Storage@%s.WriteableStorage@%s.putIfAbsent(%s, %s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value), isCreated);
-      return isCreated;
     }
 
     @Override

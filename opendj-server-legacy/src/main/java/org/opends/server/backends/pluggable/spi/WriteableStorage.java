@@ -72,22 +72,6 @@ public interface WriteableStorage extends ReadableStorage
   void create(TreeName treeName, ByteSequence key, ByteSequence value);
 
   /**
-   * Creates a new record with the provided key and value, in the tree whose name is provided, if
-   * the key was not previously associated to any record.
-   *
-   * @param treeName
-   *          the tree name
-   * @param key
-   *          the key of the new record
-   * @param value
-   *          the value of the new record
-   * @return {@code true} if the new record could be created, {@code false} otherwise
-   * @deprecated use {@link #update(TreeName, ByteSequence, UpdateFunction)} instead
-   */
-  @Deprecated
-  boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
-
-  /**
    * Updates a record with the provided key according to the new value computed by the update function.
    *
    * @param treeName
