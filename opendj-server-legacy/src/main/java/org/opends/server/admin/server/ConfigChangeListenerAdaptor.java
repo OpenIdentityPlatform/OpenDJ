@@ -106,21 +106,19 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       db.accept(v, path);
     }
 
-    // The names of entries that this change listener depends on.
+    /** The names of entries that this change listener depends on. */
     private final Collection<DN> dependencies;
 
 
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Visitor(Collection<DN> dependencies) {
       this.dependencies = dependencies;
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Void visitAbsoluteInherited(
         AbsoluteInheritedDefaultBehaviorProvider<T> d,
         ManagedObjectPath<?, ?> p) {
@@ -140,9 +138,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Void visitAlias(AliasDefaultBehaviorProvider<T> d,
         ManagedObjectPath<?, ?> p) {
       return null;
@@ -150,9 +146,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Void visitDefined(DefinedDefaultBehaviorProvider<T> d,
         ManagedObjectPath<?, ?> p) {
       return null;
@@ -160,9 +154,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Void visitRelativeInherited(
         RelativeInheritedDefaultBehaviorProvider<T> d,
         ManagedObjectPath<?, ?> p) {
@@ -182,9 +174,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Void visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
         ManagedObjectPath<?, ?> p) {
       return null;
@@ -192,27 +182,31 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   }
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Cached managed object between accept/apply call-backs.
+  /** Cached managed object between accept/apply call-backs. */
   private ServerManagedObject<? extends S> cachedManagedObject;
 
-  // The delete listener which is used to remove this listener and any
-  // dependencies.
+  /**
+   * The delete listener which is used to remove this listener and any
+   * dependencies.
+   */
   private final ConfigDeleteListener cleanerListener;
 
-  // The names of entries that this change listener depends on.
+  /** The names of entries that this change listener depends on. */
   private final Set<DN> dependencies;
 
-  // The listener used to notify this listener when dependency entries
-  // are modified.
+  /**
+   * The listener used to notify this listener when dependency entries
+   * are modified.
+   */
   private final ConfigChangeListener dependencyListener;
 
-  // The DN associated with this listener.
+  /** The DN associated with this listener. */
   private final DN dn;
 
-  // The underlying change listener.
+  /** The underlying change listener. */
   private final ServerManagedObjectChangeListener<? super S> listener;
 
-  // The managed object path.
+  /** The managed object path. */
   private final ManagedObjectPath<?, S> path;
 
 
@@ -320,9 +314,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry) {
     // Looking at the ConfigFileHandler implementation reveals
     // that this ConfigEntry will actually be a different object to
@@ -355,9 +347,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     return configChangeIsAcceptable(configEntry, unacceptableReason,
@@ -453,8 +443,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
 
-  // Returns the named configuration entry or null if it could not be
-  // retrieved.
+  /**
+   * Returns the named configuration entry or null if it could not be retrieved.
+   */
   private ConfigEntry getConfigEntry(DN dn) {
     try {
       ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);

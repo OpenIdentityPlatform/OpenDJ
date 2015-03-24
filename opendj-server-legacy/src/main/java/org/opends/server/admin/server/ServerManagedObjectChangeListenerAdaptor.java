@@ -44,7 +44,7 @@ import org.opends.server.admin.Configuration;
 final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration>
     implements ServerManagedObjectChangeListener<T> {
 
-  // The underlying change listener.
+  /** The underlying change listener. */
   private final ConfigurationChangeListener<? super T> listener;
 
 
@@ -80,9 +80,7 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {

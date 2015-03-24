@@ -113,16 +113,14 @@ final class LDAPDriver extends Driver {
 
 
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ValueDecoder() {
       // No implementation required.
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
     Object visitAggregation(AggregationPropertyDefinition<C, S> d, String p) {
@@ -139,9 +137,7 @@ final class LDAPDriver extends Driver {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> Object visitUnknown(PropertyDefinition<T> d, String p)
         throws PropertyException {
@@ -152,14 +148,16 @@ final class LDAPDriver extends Driver {
 
 
 
-  // The LDAP connection.
+  /** The LDAP connection. */
   private final LDAPConnection connection;
 
-  // The LDAP management context.
+  /** The LDAP management context. */
   private final LDAPManagementContext context;
 
-  // The LDAP profile which should be used to construct LDAP
-  // requests and decode LDAP responses.
+  /**
+   * The LDAP profile which should be used to construct LDAP
+   * requests and decode LDAP responses.
+   */
   private final LDAPProfile profile;
 
 
@@ -184,9 +182,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close() {
     connection.unbind();
@@ -194,9 +190,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getManagedObject(
@@ -256,9 +250,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public <C extends ConfigurationClient, S extends Configuration, PD>
@@ -335,9 +327,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
     return new LDAPManagedObject<RootCfgClient>(this,
@@ -347,9 +337,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <C extends ConfigurationClient, S extends Configuration>
   String[] listManagedObjects(
@@ -392,9 +380,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <C extends ConfigurationClient, S extends Configuration>
   String[] listManagedObjects(
@@ -437,9 +423,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean managedObjectExists(ManagedObjectPath<?, ?> path)
       throws ManagedObjectNotFoundException, AuthorizationException,
@@ -460,9 +444,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected <C extends ConfigurationClient, S extends Configuration>
   void deleteManagedObject(
@@ -491,9 +473,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected LDAPManagementContext getManagementContext() {
     return context;
@@ -583,7 +563,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  // Create a managed object which already exists on the server.
+  /** Create a managed object which already exists on the server. */
   private <M extends ConfigurationClient, N extends Configuration>
   ManagedObject<M> createExistingManagedObject(
       ManagedObjectDefinition<M, N> d,
@@ -595,13 +575,12 @@ final class LDAPDriver extends Driver {
         (InstantiableRelationDefinition<?, ?>) rd;
       pd = ird.getNamingPropertyDefinition();
     }
-    return new LDAPManagedObject<M>(this, d, p.asSubType(d), properties, true,
-        pd);
+    return new LDAPManagedObject<M>(this, d, p.asSubType(d), properties, true, pd);
   }
 
 
 
-  // Create a property using the provided string values.
+  /** Create a property using the provided string values. */
   private <PD> void decodeProperty(PropertySet newProperties,
       ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd,
       Attribute attribute) throws PropertyException,
@@ -655,8 +634,7 @@ final class LDAPDriver extends Driver {
 
 
 
-  // Determine the type of managed object associated with the named
-  // entry.
+  /** Determine the type of managed object associated with the named entry. */
   private <C extends ConfigurationClient, S extends Configuration>
   ManagedObjectDefinition<? extends C, ? extends S> getEntryDefinition(
       AbstractManagedObjectDefinition<C, S> d, LdapName dn)

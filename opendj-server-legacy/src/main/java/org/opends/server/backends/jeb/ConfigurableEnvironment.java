@@ -226,7 +226,7 @@ public class ConfigurableEnvironment
        new HashMap<String, PropertyDefinition>();
 
 
-  // Pulled from resource/admin/ABBREVIATIONS.xsl.  db is mose common.
+  /** Pulled from resource/admin/ABBREVIATIONS.xsl.  db is mose common. */
   private static final List<String> ABBREVIATIONS = Arrays.asList(new String[]
           {"aci", "ip", "ssl", "dn", "rdn", "jmx", "smtp", "http",
            "https", "ldap", "ldaps", "ldif", "jdbc", "tcp", "tls",
@@ -234,9 +234,7 @@ public class ConfigurableEnvironment
            "vlv", "uuid", "md5", "sha1", "sha256", "sha384", "sha512",
            "tls", "db"});
 
-  /*
-   * e.g. db-cache-percent -> DBCachePercent
-   */
+  /** E.g. db-cache-percent -> DBCachePercent */
   private static String propNametoCamlCase(String hyphenated)
   {
     String[] components = hyphenated.split("\\-");

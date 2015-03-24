@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -64,9 +63,7 @@ public class URLWorker extends BackgroundTask<Object>
     this.url = url;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object processBackgroundTask() throws WebBrowserException
   {
     try
@@ -80,9 +77,7 @@ public class URLWorker extends BackgroundTask<Object>
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void backgroundTaskCompleted(Object returnValue,
       Throwable throwable)
   {

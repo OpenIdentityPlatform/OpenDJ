@@ -47,34 +47,28 @@ import org.opends.server.types.DirectoryException;
  */
 public class ParentInheritance {
 
-    /*
-     * The maximum number of parent inheritance levels supported.
-     */
+    /** The maximum number of parent inheritance levels supported. */
     private static final int MAX_LEVELS=10;
 
-    /*
-     * Pattern to match for parent inheritance.
-     */
+    /** Pattern to match for parent inheritance. */
     private final String parentPat="parent[";
 
-    /*
+    /**
      * Array used to hold the level information. Each slot corresponds to a
      * level parsed from the rule.
      */
     private final int[] levels=new int[MAX_LEVELS];
 
-    /*
-     * The number of levels parsed.
-     */
+    /** The number of levels parsed. */
     private int numLevels;
 
-    /*
+    /**
      * The attribute type string parsed from the rule. Only used in
      * inheritance search.
      */
     private String attrTypeStr;
 
-    /*
+    /**
      * The base DN of a URL parsed from the rule. Used to make sure groupdn
      * are under this suffix. Originally a way to search all nested groups
      * under this suffix, so the behavior is slightly different.
@@ -126,14 +120,12 @@ public class ParentInheritance {
      */
     private void parse (String pattern) throws AciException {
         pattern=pattern.trim();
-        /**
-         * Check if we have a "parent[" string.
-         */
+        // Check if we have a "parent[" string.
         if(pattern.startsWith(parentPat)) {
             numLevels=0;
             levels[0]=0;
             String p=pattern.substring(parentPat.length());
-            /**
+            /*
              * Format needs to be parent[XX].attribute -- everything after the
              * '.' is the attribute type.
              */
@@ -156,7 +148,7 @@ public class ParentInheritance {
             StringTokenizer tok=new StringTokenizer(toks[0],"],",false);
             while(tok.hasMoreTokens()) {
                 String v=tok.nextToken();
-                /**
+                /*
                  * Everything between the brackets must be an integer or it's
                  * an error.
                  */

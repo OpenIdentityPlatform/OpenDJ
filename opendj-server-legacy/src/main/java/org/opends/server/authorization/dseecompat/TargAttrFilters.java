@@ -165,7 +165,7 @@ public class TargAttrFilters {
                 firstOp + ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN +
                 ZERO_OR_MORE_WHITESPACE;
         String[] temp=subExpression.split(opPattern);
-        /**
+        /*
          * Check that the initial list operation is not equal to the second.
          * For example:  Matcher find
          *
@@ -178,7 +178,7 @@ public class TargAttrFilters {
                 get(expression);
             throw new AciException(message);
         }
-        /**
+        /*
          * Check that there are not too many filter lists. There can only
          * be either one or two.
          */

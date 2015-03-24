@@ -70,14 +70,16 @@ public final class InstantiableRelationDefinition
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
 
-    // The optional naming property definition.
+    /** The optional naming property definition. */
     private PropertyDefinition<?> namingPropertyDefinition;
 
-    // The plural name of the relation.
+    /** The plural name of the relation. */
     private final String pluralName;
 
-    // The optional default managed objects associated with this
-    // instantiable relation definition.
+    /**
+     * The optional default managed objects associated with this
+     * instantiable relation definition.
+     */
     private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
       defaultManagedObjects = new HashMap<String,
         DefaultManagedObject<? extends C, ? extends S>>();
@@ -137,9 +139,7 @@ public final class InstantiableRelationDefinition
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected InstantiableRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
@@ -149,20 +149,22 @@ public final class InstantiableRelationDefinition
 
   }
 
-  // The optional naming property definition.
+  /** The optional naming property definition. */
   private final PropertyDefinition<?> namingPropertyDefinition;
 
-  // The plural name of the relation.
+  /** The plural name of the relation. */
   private final String pluralName;
 
-  // The optional default managed objects associated with this
-  // instantiable relation definition.
+  /**
+   * The optional default managed objects associated with this
+   * instantiable relation definition.
+   */
   private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
     defaultManagedObjects;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private InstantiableRelationDefinition(Common<C, S> common,
       String pluralName,
       PropertyDefinition<?> namingPropertyDefinition,
@@ -176,9 +178,7 @@ public final class InstantiableRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
     return v.visitInstantiable(this, p);
@@ -277,9 +277,7 @@ public final class InstantiableRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder builder) {
     builder.append("name=");
@@ -292,9 +290,7 @@ public final class InstantiableRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void initialize() throws Exception {
     for (DefaultManagedObject<?, ?> dmo : defaultManagedObjects.values()) {

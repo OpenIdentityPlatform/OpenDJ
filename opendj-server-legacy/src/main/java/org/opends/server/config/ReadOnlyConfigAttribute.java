@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -54,7 +54,7 @@ import static org.opends.messages.ConfigMessages.*;
 public final class ReadOnlyConfigAttribute
        extends ConfigAttribute
 {
-  // The set of values for this attribute.
+  /** The set of values for this attribute. */
   private List<String> values;
 
 

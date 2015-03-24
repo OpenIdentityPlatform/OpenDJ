@@ -3240,7 +3240,7 @@ public class EntryContainer
     return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortMap);
   }
 
-  // FIXME: Might be moved into a util.Longs class
+  /** FIXME: Might be moved into a util.Longs class */
   private static final long[] toArray(Collection<? extends Number> collection)
   {
     checkNotNull(collection, "collection must not be null");

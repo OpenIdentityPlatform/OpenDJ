@@ -40,14 +40,16 @@ package org.opends.server.admin;
 public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
-  // The absolute path to the managed object containing the property.
+  /** The absolute path to the managed object containing the property. */
   private ManagedObjectPath<?, ?> path;
 
-  // The string representation of the managed object path specifying
-  // the absolute location of the managed object.
+  /**
+   * The string representation of the managed object path specifying
+   * the absolute location of the managed object.
+   */
   private final String pathString;
 
-  // The name of the property containing the inherited default values.
+  /** The name of the property containing the inherited default values. */
   private final String propertyName;
 
 
@@ -71,9 +73,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
     return v.visitAbsoluteInherited(this, p);
   }
@@ -119,9 +119,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void initialize() throws Exception {
     // Decode the path.

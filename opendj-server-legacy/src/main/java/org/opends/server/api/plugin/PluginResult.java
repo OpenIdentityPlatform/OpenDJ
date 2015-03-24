@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api.plugin;
 
@@ -50,13 +50,13 @@ public final class PluginResult
    */
   public static final class Startup
   {
-    // Whether to continue startup.
+    /** Whether to continue startup. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why startup should stop.
+    /** An message explaining why startup should stop. */
     private final LocalizableMessage errorMessage;
 
     private static Startup DEFAULT_RESULT =
@@ -158,22 +158,22 @@ public final class PluginResult
    */
   public static final class PreParse
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static PreParse DEFAULT_RESULT =
@@ -344,22 +344,22 @@ public final class PluginResult
    */
   public static final class PreOperation
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static PreOperation DEFAULT_RESULT =
@@ -529,19 +529,19 @@ public final class PluginResult
    */
   public static final class PostOperation
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static PostOperation DEFAULT_RESULT =
@@ -682,7 +682,7 @@ public final class PluginResult
    */
   public static final class PostResponse
   {
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
     private static PostResponse DEFAULT_RESULT =
@@ -741,13 +741,13 @@ public final class PluginResult
    */
   public static final class ImportLDIF
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
     private static ImportLDIF DEFAULT_RESULT =
@@ -850,22 +850,22 @@ public final class PluginResult
    */
   public static final class SubordinateModifyDN
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static SubordinateModifyDN DEFAULT_RESULT =
@@ -1042,22 +1042,22 @@ public final class PluginResult
    */
   public static final class SubordinateDelete
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static SubordinateDelete DEFAULT_RESULT =
@@ -1234,25 +1234,25 @@ public final class PluginResult
    */
   public static final class IntermediateResponse
   {
-    // Whether to continue operation processing.
+    /** Whether to continue operation processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // Whether to send the intermediate response to the client.
+    /** Whether to send the intermediate response to the client. */
     private final boolean sendResponse;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private static IntermediateResponse DEFAULT_RESULT =
@@ -1464,20 +1464,19 @@ public final class PluginResult
    */
   public static final class PostConnect
   {
-    // Whether to continue connection processing.
+    /** Whether to continue connection processing. */
     private final boolean continueProcessing;
 
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    // An message explaining why processing should stop.
+    /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    // The disconnect reason that provides the generic cause for the
-    // disconnect.
+    /** The disconnect reason that provides the generic cause for the disconnect. */
     private final DisconnectReason disconnectReason;
 
-    // Whether to send a disconnect notification to the client.
+    /** Whether to send a disconnect notification to the client. */
     private final boolean sendDisconnectNotification;
 
     private static PostConnect DEFAULT_RESULT =
@@ -1615,7 +1614,7 @@ public final class PluginResult
    */
   public static final class PostDisconnect
   {
-    // Whether to invoke the rest of the plugins.
+    /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
     private static PostDisconnect DEFAULT_RESULT =

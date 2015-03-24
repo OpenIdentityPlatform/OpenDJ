@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +48,7 @@ import org.forgerock.util.Reject;
  */
 public final class Tag implements Comparable<Tag> {
 
-  // All the tags.
+  /** All the tags. */
   private static final Map<String, Tag> tags = new HashMap<String, Tag>();
 
 
@@ -109,30 +108,26 @@ public final class Tag implements Comparable<Tag> {
     return Collections.unmodifiableCollection(tags.values());
   }
 
-  // The name of the tag.
+  /** The name of the tag. */
   private final String name;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private Tag(String name) {
     this.name = name;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final int compareTo(Tag o) {
     return name.compareTo(o.name);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object obj) {
     if (this == obj) {
@@ -191,9 +186,7 @@ public final class Tag implements Comparable<Tag> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int hashCode() {
     return name.hashCode();
@@ -201,9 +194,7 @@ public final class Tag implements Comparable<Tag> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String toString() {
     return name;

@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer;
 
 import org.opends.quicksetup.ProgressStep;
@@ -126,18 +126,14 @@ public enum InstallProgressStep implements ProgressStep {
    */
   FINISHED_WITH_ERROR;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isLast() {
     return this == FINISHED_SUCCESSFULLY ||
             this == FINISHED_CANCELED ||
     this == FINISHED_WITH_ERROR;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isError() {
     return this.equals(FINISHED_WITH_ERROR);
   }

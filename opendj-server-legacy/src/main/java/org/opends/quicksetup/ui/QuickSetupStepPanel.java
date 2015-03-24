@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import java.awt.CardLayout;
@@ -77,8 +76,9 @@ implements HyperlinkListener
 
   private boolean isCheckingVisible;
 
-  /* We can use a HashMap (not multi-thread safe) because all
-  the calls to this object are done in the event-thread.
+  /**
+   * We can use a HashMap (not multi-thread safe) because all
+   * the calls to this object are done in the event-thread.
   */
   private HashMap<String, URLWorker> hmURLWorkers =
       new HashMap<String, URLWorker>();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -51,7 +51,7 @@ public final class AttributeTypePropertyDefinition extends
   public static class Builder extends
       AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(AbstractManagedObjectDefinition<?, ?> d,
         String propertyName) {
       super(d, propertyName);
@@ -59,9 +59,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected AttributeTypePropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -73,8 +71,10 @@ public final class AttributeTypePropertyDefinition extends
     }
   }
 
-  // Flag indicating whether or not attribute type names should be
-  // validated against the schema.
+  /**
+   * Flag indicating whether or not attribute type names should be
+   * validated against the schema.
+   */
   private static boolean isCheckSchema = true;
 
 
@@ -126,7 +126,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private AttributeTypePropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -138,9 +138,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitAttributeType(this, p);
@@ -148,9 +146,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v,
       AttributeType value, P p) {
@@ -159,9 +155,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(AttributeType o1, AttributeType o2) {
     return o1.getNameOrOID().compareToIgnoreCase(o2.getNameOrOID());
@@ -169,9 +163,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType decodeValue(String value)
       throws PropertyException {
@@ -195,9 +187,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String encodeValue(AttributeType value)
       throws PropertyException {
@@ -206,9 +196,7 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(AttributeType value)
       throws PropertyException {

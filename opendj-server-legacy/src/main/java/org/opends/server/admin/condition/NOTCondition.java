@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -46,7 +46,7 @@ import org.forgerock.util.Reject;
  */
 public final class NOTCondition implements Condition {
 
-  // The single sub-condition.
+  /** The single sub-condition. */
   private final Condition condition;
 
 
@@ -65,9 +65,7 @@ public final class NOTCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ManagementContext context,
       ManagedObject<?> managedObject) throws AuthorizationException,
       CommunicationException {
@@ -76,9 +74,7 @@ public final class NOTCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ServerManagedObject<?> managedObject)
       throws ConfigException {
     return !condition.evaluate(managedObject);
@@ -86,9 +82,7 @@ public final class NOTCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initialize(AbstractManagedObjectDefinition<?, ?> d)
       throws Exception {
     condition.initialize(d);

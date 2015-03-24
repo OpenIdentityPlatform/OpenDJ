@@ -53,32 +53,40 @@ import static org.opends.messages.ConfigMessages.*;
      mayInvoke=true)
 public abstract class ConfigAttribute
 {
-  // Indicates whether this configuration attribute has pending changes that
-  // will be applied after appropriate administrative action has been performed.
+  /**
+   * Indicates whether this configuration attribute has pending changes that
+   * will be applied after appropriate administrative action has been performed.
+   */
   private boolean hasPendingValues;
 
-  // Indicates whether this configuration attribute may have multiple values.
+  /** Indicates whether this configuration attribute may have multiple values. */
   private boolean isMultiValued;
 
-  // Indicates whether this configuration attribute is required to have a value.
+  /** Indicates whether this configuration attribute is required to have a value. */
   private boolean isRequired;
 
-  // Indicates whether changes to this attribute require administrative action
-  // before they will take effect.
+  /**
+   * Indicates whether changes to this attribute require administrative action
+   * before they will take effect.
+   */
   private boolean requiresAdminAction;
 
-  // The value or set of values that are currently in effect for this
-  // configuration attribute.
+  /**
+   * The value or set of values that are currently in effect for this
+   * configuration attribute.
+   */
   private LinkedHashSet<ByteString> activeValues;
 
-  // The value or set of values that will be in effect once the appropriate
-  // administrative action has been taken.
+  /**
+   * The value or set of values that will be in effect once the appropriate
+   * administrative action has been taken.
+   */
   private LinkedHashSet<ByteString> pendingValues;
 
-  // The description for this configuration attribute.
+  /** The description for this configuration attribute. */
   private LocalizableMessage description;
 
-  // The name for this configuration attribute.
+  /** The name for this configuration attribute. */
   private String name;
 
 

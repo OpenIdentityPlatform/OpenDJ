@@ -1773,9 +1773,7 @@ class ProgressJEditorPane extends JEditorPane
     setBorder(new EmptyBorder(3, 3, 3, 3));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setText(String text)
   {
@@ -1797,9 +1795,7 @@ class ProgressJEditorPane extends JEditorPane
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void scrollRectToVisible(Rectangle rect)
   {
@@ -1827,9 +1823,7 @@ class TextFieldFocusListener implements FocusListener
   {
     this.tf = tf;
   }
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void focusGained(FocusEvent e)
   {
     if ((tf.getText() == null) || "".equals(tf.getText()))
@@ -1844,9 +1838,7 @@ class TextFieldFocusListener implements FocusListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void focusLost(FocusEvent e)
   {
   }

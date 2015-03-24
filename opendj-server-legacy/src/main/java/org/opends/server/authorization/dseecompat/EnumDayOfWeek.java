@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import java.util.Calendar;
@@ -69,9 +69,7 @@ public enum EnumDayOfWeek {
      */
     DAY_SUNDAY      ("sun");
 
-    /*
-    * The bind rule dayofweek type name.
-     */
+    /** The bind rule dayofweek type name. */
     private String day = null;
 
     /**

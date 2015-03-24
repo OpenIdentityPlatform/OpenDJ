@@ -79,13 +79,17 @@ public abstract class EntryCache
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of filters that define the entries that should be
-  // excluded from the cache.
+  /**
+   * The set of filters that define the entries that should be
+   * excluded from the cache.
+   */
   private Set<SearchFilter> excludeFilters =
        new HashSet<SearchFilter>(0);
 
-  // The set of filters that define the entries that should be
-  // included in the cache.
+  /**
+   * The set of filters that define the entries that should be
+   * included in the cache.
+   */
   private Set<SearchFilter> includeFilters =
        new HashSet<SearchFilter>(0);
 
@@ -99,7 +103,7 @@ public abstract class EntryCache
    */
   protected AtomicLong cacheMisses = new AtomicLong(0);
 
-  // The monitor associated with this entry cache.
+  /** The monitor associated with this entry cache. */
   private EntryCacheMonitorProvider entryCacheMonitor;
 
 

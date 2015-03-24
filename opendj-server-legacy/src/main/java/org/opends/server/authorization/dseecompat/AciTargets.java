@@ -592,7 +592,7 @@ public class AciTargets {
                 return false;
             break;
         case SINGLE_LEVEL:
-            /**
+            /*
              * We use the standard definition of single level to mean the
              * immediate children only -- not the target entry itself.
              * Sun CR 6535035 has been raised on DSEE:

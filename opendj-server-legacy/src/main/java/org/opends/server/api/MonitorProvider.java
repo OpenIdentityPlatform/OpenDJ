@@ -22,26 +22,23 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
-import org.forgerock.i18n.LocalizableMessage;
-
 
 
 import java.util.List;
 import java.util.concurrent.*;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -59,7 +56,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=false)
 public abstract class MonitorProvider<T extends MonitorProviderCfg>
 {
-  // The scheduler.
+  /** The scheduler. */
   private static final ScheduledExecutorService SCHEDULER =
       Executors.newSingleThreadScheduledExecutor(
           new MonitorThreadFactory());
@@ -71,9 +68,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
       ThreadFactory
   {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Thread newThread(Runnable r)
     {
       Thread t =

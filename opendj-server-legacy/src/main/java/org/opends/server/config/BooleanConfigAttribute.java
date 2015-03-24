@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -60,10 +60,10 @@ import static org.opends.server.util.ServerConstants.*;
 public final class BooleanConfigAttribute
        extends ConfigAttribute
 {
-  // The active value for this attribute.
+  /** The active value for this attribute. */
   private boolean activeValue;
 
-  // The pending value for this attribute.
+  /** The pending value for this attribute. */
   private boolean pendingValue;
 
 

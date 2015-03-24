@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -65,7 +65,7 @@ public final class BooleanPropertyDefinition extends
   public static class Builder extends
       AbstractBuilder<Boolean, BooleanPropertyDefinition> {
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -73,9 +73,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected BooleanPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -107,7 +105,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private BooleanPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -119,9 +117,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(Boolean value)
       throws PropertyException {
@@ -132,9 +128,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Boolean decodeValue(String value)
       throws PropertyException {
@@ -152,9 +146,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitBoolean(this, p);
@@ -162,9 +154,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
     return v.visitBoolean(this, value, p);
@@ -172,9 +162,7 @@ public final class BooleanPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(Boolean o1, Boolean o2) {
     return o1.compareTo(o2);

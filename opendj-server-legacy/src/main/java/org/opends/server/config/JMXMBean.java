@@ -463,7 +463,6 @@ public final class JMXMBean
   public Attribute getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
-    //
     // Get the jmx Client connection
     ClientConnection clientConnection = getClientConnection();
     if (clientConnection == null)
@@ -471,12 +470,10 @@ public final class JMXMBean
       return null;
     }
 
-    //
     // prepare the ldap search
 
     try
     {
-      //
       // Perform the Ldap operation for
       //  - ACI Check
       //  - Loggin purpose
@@ -543,7 +540,6 @@ public final class JMXMBean
   @Override
   public AttributeList getAttributes(String[] attributes)
   {
-    //
     // Get the jmx Client connection
     ClientConnection clientConnection = getClientConnection();
     if (clientConnection == null)
@@ -551,7 +547,6 @@ public final class JMXMBean
       return null;
     }
 
-    //
     // Perform the Ldap operation for
     //  - ACI Check
     //  - Loggin purpose

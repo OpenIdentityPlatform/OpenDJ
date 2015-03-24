@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer.offline;
 
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
 
 import java.io.PrintStream;
 import java.io.File;
@@ -72,11 +70,11 @@ import org.opends.server.util.CertificateManager;
  */
 public class OfflineInstaller extends Installer
 {
-  /* This map contains the ratio associated with each step */
+  /** This map contains the ratio associated with each step. */
   private final Map<ProgressStep, Integer> hmRatio =
       new HashMap<ProgressStep, Integer>();
 
-  /* This map contains the summary associated with each step */
+  /** This map contains the summary associated with each step. */
   private final Map<ProgressStep, LocalizableMessage> hmSummary =
       new HashMap<ProgressStep, LocalizableMessage>();
 
@@ -86,7 +84,6 @@ public class OfflineInstaller extends Installer
 
   /**
    * Actually performs the install in this thread.  The thread is blocked.
-   *
    */
   @Override
   public void run()
@@ -304,18 +301,14 @@ public class OfflineInstaller extends Installer
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getSummary(ProgressStep status)
   {
@@ -546,18 +539,14 @@ public class OfflineInstaller extends Installer
     hmRatio.put(InstallProgressStep.FINISHED_CANCELED, 100);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstallationPath()
   {
     return Utils.getInstallPathFromClasspath();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstancePath()
   {

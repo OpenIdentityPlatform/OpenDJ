@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -57,7 +57,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
 
 
 
-  // Create the message.
+  /** Create the message. */
   private static LocalizableMessage createMessage(Collection<PropertyException> causes)
   {
     Reject.ifNull(causes);
@@ -83,15 +83,13 @@ public class MissingMandatoryPropertiesException extends OperationsException {
     }
   }
 
-  // The causes of this exception.
+  /** The causes of this exception. */
   private final Collection<PropertyException> causes;
 
-  // Indicates whether the exception occurred during managed object
-  // creation.
+  /** Indicates whether the exception occurred during managed object creation. */
   private final boolean isCreate;
 
-  // The user friendly name of the component that caused this
-  // exception.
+  /** The user friendly name of the component that caused this exception. */
   private final LocalizableMessage ufn;
 
 

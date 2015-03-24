@@ -62,22 +62,22 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigAddListener {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Cached managed object between accept/apply callbacks.
+  /** Cached managed object between accept/apply callbacks. */
   private ServerManagedObject<? extends S> cachedManagedObject;
 
-  // The instantiable relation.
+  /** The instantiable relation. */
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
-  // The set relation.
+  /** The set relation. */
   private final SetRelationDefinition<?, S> setRelation;
 
-  // The underlying add listener.
+  /** The underlying add listener. */
   private final ServerManagedObjectAddListener<S> listener;
 
-  // The optional relation.
+  /** The optional relation. */
   private final OptionalRelationDefinition<?, S> optionalRelation;
 
-  // The managed object path of the parent.
+  /** The managed object path of the parent. */
   private final ManagedObjectPath<?, ?> path;
 
 
@@ -154,9 +154,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (optionalRelation != null) {
@@ -196,9 +194,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client.ldap;
@@ -85,16 +85,14 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
   private static final class ValueEncoder extends
       PropertyValueVisitor<Object, Void> {
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ValueEncoder() {
       // No implementation required.
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
     Object visitAggregation(
@@ -108,9 +106,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <PD> Object visitUnknown(PropertyDefinition<PD> pd, PD v, Void p)
         throws PropertyException {
@@ -120,7 +116,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  // The LDAP management driver associated with this managed object.
+  /** The LDAP management driver associated with this managed object. */
   private final LDAPDriver driver;
 
 
@@ -154,9 +150,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void addNewManagedObject() throws AuthorizationException,
       CommunicationException, OperationRejectedException,
@@ -279,9 +273,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected Driver getDriver() {
     return driver;
@@ -289,9 +281,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void modifyExistingManagedObject()
       throws ConcurrentModificationException, OperationRejectedException,
@@ -336,9 +326,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected <M extends ConfigurationClient> ManagedObject<M> newInstance(
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> path,
@@ -350,7 +338,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
 
 
 
-  // Encode a property into LDAP string values.
+  /** Encode a property into LDAP string values. */
   private <PD> void encodeProperty(Attribute attribute,
       PropertyDefinition<PD> pd) {
     PropertyValueVisitor<Object, Void> visitor = new ValueEncoder();
@@ -369,9 +357,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isModified() {
     ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {

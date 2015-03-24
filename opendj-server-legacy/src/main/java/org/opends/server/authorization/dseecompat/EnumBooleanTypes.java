@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
- * This class provides an enumeration of the allowed bind rule booelan types.
+ * This class provides an enumeration of the allowed bind rule boolean types.
  */
 public enum EnumBooleanTypes {
 
@@ -47,9 +47,7 @@ public enum EnumBooleanTypes {
      */
     NOT_BOOLEAN_TYPE                ("not");
 
-    /*
-    * The bind rule boolean type name.
-     */
+    /** The bind rule boolean type name. */
     private final String booleanType;
 
     /**

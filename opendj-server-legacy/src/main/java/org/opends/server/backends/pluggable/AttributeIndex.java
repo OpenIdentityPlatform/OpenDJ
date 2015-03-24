@@ -1033,7 +1033,7 @@ class AttributeIndex
   {
     //Get the Matching Rule OID of the filter.
     String matchRuleOID  = filter.getMatchingRuleID();
-    /**
+    /*
      * Use the default equality index in two conditions:
      * 1. There is no matching rule provided
      * 2. The matching rule specified is actually the default equality.

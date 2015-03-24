@@ -74,8 +74,10 @@ implements Comparator<SuffixDescriptor>
     new TreeSet<SuffixDescriptor>(this);
   private HashMap<String, JCheckBox> hmCheckBoxes =
     new HashMap<String, JCheckBox>();
-  // The display of the server the user provided in the replication options
-  // panel
+  /**
+   * The display of the server the user provided in the replication options
+   * panel.
+   */
   private String serverToConnectDisplay;
 
   private JLabel noSuffixLabel;
@@ -94,9 +96,7 @@ implements Comparator<SuffixDescriptor>
     createComponents();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -121,9 +121,7 @@ implements Comparator<SuffixDescriptor>
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compare(SuffixDescriptor desc1, SuffixDescriptor desc2)
   {
     int result = compareSuffixDN(desc1, desc2);
@@ -134,9 +132,7 @@ implements Comparator<SuffixDescriptor>
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -179,33 +175,25 @@ implements Comparator<SuffixDescriptor>
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void beginDisplay(UserData data)
   {
     TreeSet<SuffixDescriptor> array = orderSuffixes(

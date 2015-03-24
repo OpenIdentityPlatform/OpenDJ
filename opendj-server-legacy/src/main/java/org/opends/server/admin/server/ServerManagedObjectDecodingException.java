@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -57,7 +57,7 @@ public class ServerManagedObjectDecodingException extends DecodingException {
 
 
 
-  // Create the message.
+  /** Create the message. */
   private static LocalizableMessage createMessage(
       ServerManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
@@ -86,10 +86,10 @@ public class ServerManagedObjectDecodingException extends DecodingException {
     }
   }
 
-  // The exception(s) that caused this decoding exception.
+  /** The exception(s) that caused this decoding exception. */
   private final Collection<PropertyException> causes;
 
-  // The partially created server managed object.
+  /** The partially created server managed object. */
   private final ServerManagedObject<?> partialManagedObject;
 
 

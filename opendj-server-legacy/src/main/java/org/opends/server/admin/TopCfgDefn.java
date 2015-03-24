@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -47,7 +48,7 @@ package org.opends.server.admin;
 public final class TopCfgDefn extends
     AbstractManagedObjectDefinition<ConfigurationClient, Configuration> {
 
-  // The singleton configuration definition instance.
+  /** The singleton configuration definition instance. */
   private static final TopCfgDefn INSTANCE = new TopCfgDefn();
 
 

@@ -93,9 +93,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     addActionListeners();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -132,9 +130,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     JLabel label = getLabel(fieldName);
@@ -154,9 +150,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -267,25 +261,19 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_DATA_REPLICATION_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_DATA_REPLICATION_OPTIONS_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -294,9 +282,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTextForIcon(UIFactory.IconType iconType)
   {
     LocalizableMessage text;

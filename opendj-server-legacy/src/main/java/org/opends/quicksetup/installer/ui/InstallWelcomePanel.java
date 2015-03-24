@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,7 +39,6 @@ import org.opends.quicksetup.util.Utils;
 
 /**
  * This panel is used to show a welcome message.
- *
  */
 public class InstallWelcomePanel extends QuickSetupStepPanel
 {
@@ -55,17 +53,13 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
     super(app);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_WELCOME_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     /*
@@ -82,9 +76,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
           LocalizableMessage.class);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     // No input in this panel

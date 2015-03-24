@@ -93,9 +93,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationAddOperation addOperation)
@@ -109,9 +107,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationDeleteOperation deleteOperation)
@@ -125,9 +121,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationModifyDNOperation modifyDNOperation)
@@ -141,9 +135,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationModifyOperation modifyOperation)
@@ -158,9 +150,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationAddOperation addOperation)
@@ -178,9 +168,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationDeleteOperation deleteOperation)
@@ -198,9 +186,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationModifyDNOperation modifyDNOperation)
@@ -219,9 +205,7 @@ public class AciListenerManager implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationModifyOperation modifyOperation)
@@ -314,33 +298,25 @@ public class AciListenerManager implements
 
 
 
-  /*
-   * The configuration DN.
-   */
+  /** The configuration DN. */
   private DN configurationDN;
 
-  /*
-   * True if the server is in lockdown mode.
-   */
+  /** True if the server is in lockdown mode. */
   private boolean inLockDownMode;
 
-  /*
-   * The AciList caches the ACIs.
-   */
+  /** The AciList caches the ACIs. */
   private AciList aciList;
 
-  /*
-   * Search filter used in context search for "aci" attribute types.
-   */
+  /** Search filter used in context search for "aci" attribute types. */
   private static SearchFilter aciFilter;
 
-  /*
+  /**
    * Internal plugin used for updating the cache before a response is
    * sent to the client.
    */
   private final AciChangeListenerPlugin plugin;
 
-  /*
+  /**
    * The aci attribute type is operational so we need to specify it to
    * be returned.
    */

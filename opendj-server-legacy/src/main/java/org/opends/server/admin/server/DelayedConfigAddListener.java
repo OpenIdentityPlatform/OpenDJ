@@ -46,20 +46,25 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 final class DelayedConfigAddListener implements ConfigAddListener {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The name of the parent entry.
+  /** The name of the parent entry. */
   private final DN parent;
 
-  // The name of the subordinate entry which should have an add or
-  // delete listener registered with it when it is created.
+  /**
+   * The name of the subordinate entry which should have an add or
+   * delete listener registered with it when it is created.
+   */
   private final DN child;
 
-  // The add listener to be registered with the subordinate entry when
-  // it is added (or null if a delete listener should be registered).
+  /**
+   * The add listener to be registered with the subordinate entry when
+   * it is added (or null if a delete listener should be registered).
+   */
   private final ConfigAddListener delayedAddListener;
 
-  // The delete listener to be registered with the subordinate entry
-  // when it is added (or null if an add listener should be
-  // registered).
+  /**
+   * The delete listener to be registered with the subordinate entry
+   * when it is added (or null if an add listener should be registered).
+   */
   private final ConfigDeleteListener delayedDeleteListener;
 
 
@@ -105,9 +110,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (configEntry.getDN().equals(child)) {
       // The subordinate entry matched our criteria so register the
@@ -139,9 +142,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     // Always acceptable.

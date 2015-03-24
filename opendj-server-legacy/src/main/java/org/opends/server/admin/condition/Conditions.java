@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -49,9 +49,7 @@ public final class Conditions {
    */
   public static final Condition FALSE = new Condition() {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context,
         ManagedObject<?> managedObject) throws AuthorizationException,
         CommunicationException {
@@ -60,9 +58,7 @@ public final class Conditions {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject)
         throws ConfigException {
       return false;
@@ -70,9 +66,7 @@ public final class Conditions {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d)
         throws Exception {
       // No implementation required.
@@ -85,9 +79,7 @@ public final class Conditions {
    */
   public static final Condition TRUE = new Condition() {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context,
         ManagedObject<?> managedObject) throws AuthorizationException,
         CommunicationException {
@@ -96,9 +88,7 @@ public final class Conditions {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject)
         throws ConfigException {
       return true;
@@ -106,9 +96,7 @@ public final class Conditions {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d)
         throws Exception {
       // No implementation required.
@@ -229,7 +217,7 @@ public final class Conditions {
 
 
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private Conditions() {
     // No implementation required.
   }

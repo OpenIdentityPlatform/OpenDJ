@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -73,22 +73,23 @@ public final class ServerManagedObject<S extends Configuration> implements
     PropertyProvider {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The configuration entry associated with this server managed
-  // object (null if root).
+  /**
+   * The configuration entry associated with this server managed
+   * object (null if root).
+   */
   private ConfigEntry configEntry;
 
-  // The management context.
+  /** The management context. */
   private final ServerManagementContext context = ServerManagementContext
       .getInstance();
 
-  // The managed object's definition.
+  /** The managed object's definition. */
   private final ManagedObjectDefinition<?, S> definition;
 
-  // The managed object path identifying this managed object's
-  // location.
+  /** The managed object path identifying this managed object's location. */
   private final ManagedObjectPath<?, S> path;
 
-  // The managed object's properties.
+  /** The managed object's properties. */
   private final Map<PropertyDefinition<?>, SortedSet<?>> properties;
 
 
@@ -1129,9 +1130,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -1205,7 +1204,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Deregister an add listener.
+  /** Deregister an add listener. */
   private <M extends Configuration> void deregisterAddListener(DN baseDN,
       ConfigurationAddListener<M> listener) {
     try {
@@ -1241,7 +1240,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Deregister an add listener.
+  /** Deregister an add listener. */
   private <M extends Configuration> void deregisterAddListener(DN baseDN,
       ServerManagedObjectAddListener<M> listener) {
     try {
@@ -1271,7 +1270,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Deregister a delete listener.
+  /** Deregister a delete listener. */
   private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
       ConfigurationDeleteListener<M> listener) {
     try {
@@ -1307,7 +1306,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Deregister a delete listener.
+  /** Deregister a delete listener. */
   private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
       ServerManagedObjectDeleteListener<M> listener) {
     try {
@@ -1337,8 +1336,10 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Gets a config entry required for a listener and throws a config
-  // exception on failure or returns null if the entry does not exist.
+  /**
+   * Gets a config entry required for a listener and throws a config
+   * exception on failure or returns null if the entry does not exist.
+   */
   private ConfigEntry getListenerConfigEntry(DN dn) throws ConfigException {
     // Attempt to retrieve the listener base entry.
     ConfigEntry configEntry;
@@ -1357,7 +1358,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Register an instantiable or optional relation add listener.
+  /** Register an instantiable or optional relation add listener. */
   private void registerAddListener(DN baseDN, ConfigAddListener adaptor)
       throws IllegalArgumentException, ConfigException {
     ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
@@ -1375,8 +1376,10 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Register a delayed listener with the nearest existing parent
-  // entry to the provided base DN.
+  /**
+   * Register a delayed listener with the nearest existing parent
+   * entry to the provided base DN.
+   */
   private void registerDelayedListener(DN baseDN,
       ConfigAddListener delayedListener) throws ConfigException {
     DN parentDN = baseDN.parent();
@@ -1397,8 +1400,10 @@ public final class ServerManagedObject<S extends Configuration> implements
     throw new ConfigException(message);
   }
 
-  // Deregister a delayed listener with the nearest existing parent
-  // entry to the provided base DN.
+  /**
+   * Deregister a delayed listener with the nearest existing parent
+   * entry to the provided base DN.
+   */
   private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
       ConfigurationAddListener<M> listener) throws ConfigException {
     DN parentDN = baseDN.parent();
@@ -1463,8 +1468,10 @@ public final class ServerManagedObject<S extends Configuration> implements
   }
 
 
-  // Deregister a delayed listener with the nearest existing parent
-  // entry to the provided base DN.
+  /**
+   * Deregister a delayed listener with the nearest existing parent
+   * entry to the provided base DN.
+   */
   private <M extends Configuration> void deregisterDelayedDeleteListener(
       DN baseDN, ConfigurationDeleteListener<M> listener)
       throws ConfigException {
@@ -1529,8 +1536,10 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
   }
 
-  // Deregister a delayed listener with the nearest existing parent
-  // entry to the provided base DN.
+  /**
+   * Deregister a delayed listener with the nearest existing parent
+   * entry to the provided base DN.
+   */
   private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
       ServerManagedObjectAddListener<M> listener) throws ConfigException {
     DN parentDN = baseDN.parent();
@@ -1589,8 +1598,10 @@ public final class ServerManagedObject<S extends Configuration> implements
   }
 
 
-  // Deregister a delayed listener with the nearest existing parent
-  // entry to the provided base DN.
+  /**
+   * Deregister a delayed listener with the nearest existing parent
+   * entry to the provided base DN.
+   */
   private <M extends Configuration> void deregisterDelayedDeleteListener(
       DN baseDN, ServerManagedObjectDeleteListener<M> listener)
       throws ConfigException {
@@ -1650,7 +1661,7 @@ public final class ServerManagedObject<S extends Configuration> implements
   }
 
 
-  // Register an instantiable or optional relation delete listener.
+  /** Register an instantiable or optional relation delete listener. */
   private void registerDeleteListener(DN baseDN, ConfigDeleteListener adaptor)
       throws ConfigException {
     ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
@@ -1668,8 +1679,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
 
-  // Validate that a relation definition belongs to this managed
-  // object.
+  /** Validate that a relation definition belongs to this managed object. */
   private void validateRelationDefinition(RelationDefinition<?, ?> rd)
       throws IllegalArgumentException {
     RelationDefinition<?, ?> tmp = definition.getRelationDefinition(rd

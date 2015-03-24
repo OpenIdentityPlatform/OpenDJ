@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -48,15 +48,13 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   public static class Builder extends
       AbstractBuilder<Aci, ACIPropertyDefinition> {
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ACIPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d,
@@ -85,7 +83,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   }
 
 
-  // Private constructor.
+  /** Private constructor. */
   private ACIPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -96,9 +94,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(Aci value)
       throws PropertyException {
@@ -107,9 +103,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
     // No additional validation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Aci decodeValue(String value)
       throws PropertyException {
@@ -124,26 +118,20 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitACI(this, p);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, Aci value, P p) {
     return v.visitACI(this, value, p);
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(Aci o1, Aci o2) {
     return o1.toString().compareTo(o2.toString());

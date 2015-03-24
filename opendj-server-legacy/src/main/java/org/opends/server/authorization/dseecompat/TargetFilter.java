@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -35,21 +34,16 @@ import org.opends.server.types.SearchFilter;
 
 /**
  * This class represents a targetfilter keyword of an aci.
- *
  */
 public class TargetFilter {
 
-    /*
-     * Enumeration representing the targetfilter operation.
-     */
+    /** Enumeration representing the targetfilter operation. */
     private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
 
-    /*
-     * Filter parsed from the ACI used to match the resource entry.
-     */
+    /** Filter parsed from the ACI used to match the resource entry. */
     private SearchFilter filter;
 
-    /*
+    /**
      * Class representing a targetfilter keyword.
      * @param op The operation of the targetfilter expression (=, !=)
      * @param filter The filter itself.

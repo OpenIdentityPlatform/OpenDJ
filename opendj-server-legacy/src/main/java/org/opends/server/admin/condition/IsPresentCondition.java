@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -48,10 +48,10 @@ import org.forgerock.util.Reject;
  */
 public final class IsPresentCondition implements Condition {
 
-  // The property name.
+  /** The property name. */
   private final String propertyName;
 
-  // The property definition.
+  /** The property definition. */
   private PropertyDefinition<?> pd;
 
 
@@ -69,9 +69,7 @@ public final class IsPresentCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ManagementContext context,
       ManagedObject<?> managedObject) throws AuthorizationException,
       CommunicationException {
@@ -81,9 +79,7 @@ public final class IsPresentCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ServerManagedObject<?> managedObject)
       throws ConfigException {
     SortedSet<?> values = managedObject.getPropertyValues(pd);
@@ -92,9 +88,7 @@ public final class IsPresentCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initialize(AbstractManagedObjectDefinition<?, ?> d)
       throws Exception {
     // Decode the property.

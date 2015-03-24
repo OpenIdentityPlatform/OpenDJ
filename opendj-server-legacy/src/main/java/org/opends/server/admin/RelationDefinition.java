@@ -105,7 +105,7 @@ public abstract class RelationDefinition
       <C extends ConfigurationClient, S extends Configuration,
        D extends RelationDefinition<C, S>> {
 
-    // Common fields.
+    /** Common fields. */
     private final Common<C, S> common;
 
 
@@ -179,21 +179,21 @@ public abstract class RelationDefinition
   protected static final class Common
     <C extends ConfigurationClient, S extends Configuration> {
 
-    // The definition of the child managed object.
+    /** The definition of the child managed object. */
     private final AbstractManagedObjectDefinition<C, S> cd;
 
-    // The name of the relation.
+    /** The name of the relation. */
     private final String name;
 
-    // Options applicable to this definition.
+    /** Options applicable to this definition. */
     private final Set<RelationOption> options;
 
-    // The definition of the parent managed object.
+    /** The definition of the parent managed object. */
     private final AbstractManagedObjectDefinition<?, ?> pd;
 
 
 
-    // Private constructor.
+    /** Private constructor. */
     private Common(AbstractManagedObjectDefinition<?, ?> pd, String name,
         AbstractManagedObjectDefinition<C, S> cd) {
       this.name = name;
@@ -203,7 +203,7 @@ public abstract class RelationDefinition
     }
   }
 
-  // Common fields.
+  /** Common fields. */
   private final Common<C, S> common;
 
 
@@ -383,9 +383,7 @@ public abstract class RelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String toString() {
     StringBuilder builder = new StringBuilder();

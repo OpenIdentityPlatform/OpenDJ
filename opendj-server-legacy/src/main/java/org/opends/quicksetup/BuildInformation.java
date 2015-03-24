@@ -318,9 +318,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return Integer.valueOf(values.get(REVISION_NUMBER));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -336,9 +334,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return sb.toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compareTo(BuildInformation bi) {
     if (getMajorVersion().equals(bi.getMajorVersion())) {
@@ -361,9 +357,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return 1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -374,9 +368,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
         && compareTo((BuildInformation)o) == 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode() {
     int hc = 11;

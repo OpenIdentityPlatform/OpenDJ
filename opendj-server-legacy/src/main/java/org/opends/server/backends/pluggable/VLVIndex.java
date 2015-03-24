@@ -245,7 +245,7 @@ class VLVIndex extends DatabaseContainer
     }
   }
 
-  // Matches encoding from SortValuesSet.
+  /** Matches encoding from SortValuesSet. */
   private int getEncodedSize(ByteString bytes)
   {
     return bytes.toInt();

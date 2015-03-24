@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -46,11 +47,11 @@ import java.util.Properties;
  */
 public final class ManagedObjectDefinitionResource {
 
-  // Mapping from definition to property tables.
+  /** Mapping from definition to property tables. */
   private final Map<AbstractManagedObjectDefinition<?, ?>,
       Properties> properties;
 
-  // The resource name prefix.
+  /** The resource name prefix. */
   private final String prefix;
 
 
@@ -70,7 +71,7 @@ public final class ManagedObjectDefinitionResource {
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private ManagedObjectDefinitionResource(String prefix) {
     this.properties =
       new HashMap<AbstractManagedObjectDefinition<?, ?>, Properties>();
@@ -118,8 +119,10 @@ public final class ManagedObjectDefinitionResource {
 
 
 
-  // Retrieve the properties table associated with a managed object,
-  // lazily loading it if necessary.
+  /**
+   * Retrieve the properties table associated with a managed object,
+   * lazily loading it if necessary.
+   */
   private synchronized Properties getProperties(
       AbstractManagedObjectDefinition<?, ?> d)
       throws MissingResourceException {

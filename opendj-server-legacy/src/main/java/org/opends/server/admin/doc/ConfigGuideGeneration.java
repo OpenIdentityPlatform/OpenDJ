@@ -1367,7 +1367,7 @@ public class ConfigGuideGeneration {
       "</head>\n");
   }
 
-  // Add a Tab Menu, the active tab is the one given as parameter
+  /** Add a Tab Menu, the active tab is the one given as parameter. */
   private void tabMenu(String activeTab) {
     htmlBuff.append(
       "<div class=\"tabmenu\"> " +
@@ -1506,7 +1506,7 @@ public class ConfigGuideGeneration {
     htmlBuff.append("<tbody>\n");
   }
 
-  /*
+  /**
    * Generate a "friendly" name from a string :
    * '-' and '_' replaced by space
    * first letter of a word in uppercase
@@ -1596,14 +1596,14 @@ public class ConfigGuideGeneration {
     htmlBuff = new StringBuffer();
   }
 
-  // Relation List from RootConfiguration
+  /** Relation List from RootConfiguration. */
   private final TreeMap<String, RelationDefinition> topRelList =
     new TreeMap<String, RelationDefinition>();
   private final TreeMap<String, RelationDefinition> relList =
     new TreeMap<String, RelationDefinition>();
   private final TreeMap<String, TreeMap<String, RelationDefinition>>
     catTopRelList = new TreeMap<String, TreeMap<String, RelationDefinition>>();
-  // managed object list
+  /** Managed object list. */
   private final TreeMap<String, AbstractManagedObjectDefinition> moList =
     new TreeMap<String, AbstractManagedObjectDefinition>();
   private final TreeMap<String, AbstractManagedObjectDefinition> topMoList =

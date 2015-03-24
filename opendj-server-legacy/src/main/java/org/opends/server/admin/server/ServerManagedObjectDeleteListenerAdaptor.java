@@ -44,7 +44,7 @@ import org.opends.server.admin.Configuration;
 final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration>
     implements ServerManagedObjectDeleteListener<T> {
 
-  // The underlying delete listener.
+  /** The underlying delete listener. */
   private final ConfigurationDeleteListener<T> listener;
 
 
@@ -62,9 +62,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ServerManagedObject<? extends T> mo) {
@@ -86,9 +84,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {

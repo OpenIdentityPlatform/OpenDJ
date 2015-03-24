@@ -79,52 +79,52 @@ public class TaskScheduler
 
 
 
-  // Indicates whether the scheduler is currently running.
+  /** Indicates whether the scheduler is currently running. */
   private boolean isRunning;
 
-  // Indicates whether a request has been received to stop the scheduler.
+  /** Indicates whether a request has been received to stop the scheduler. */
   private boolean stopRequested;
 
-  // The entry that serves as the immediate parent for recurring tasks.
+  /** The entry that serves as the immediate parent for recurring tasks. */
   private Entry recurringTaskParentEntry;
 
-  // The entry that serves as the immediate parent for scheduled tasks.
+  /** The entry that serves as the immediate parent for scheduled tasks. */
   private Entry scheduledTaskParentEntry;
 
-  // The top-level entry at the root of the task tree.
+  /** The top-level entry at the root of the task tree. */
   private Entry taskRootEntry;
 
-  // The set of recurring tasks defined in the server.
+  /** The set of recurring tasks defined in the server. */
   private HashMap<String,RecurringTask> recurringTasks;
 
-  // The set of tasks associated with this scheduler.
+  /** The set of tasks associated with this scheduler. */
   private HashMap<String,Task> tasks;
 
-  // The set of worker threads that are actively busy processing tasks.
+  /** The set of worker threads that are actively busy processing tasks. */
   private HashMap<String,TaskThread> activeThreads;
 
-  // The thread ID for the next task thread to be created;
+  /** The thread ID for the next task thread to be created;. */
   private int nextThreadID;
 
-  // The set of worker threads that may be used to process tasks.
+  /** The set of worker threads that may be used to process tasks. */
   private LinkedList<TaskThread> idleThreads;
 
-  // The lock used to provide threadsafe access to the scheduler.
+  /** The lock used to provide threadsafe access to the scheduler. */
   private final ReentrantLock schedulerLock;
 
-  // The task backend with which this scheduler is associated.
+  /** The task backend with which this scheduler is associated. */
   private TaskBackend taskBackend;
 
-  // The thread being used to actually run the scheduler.
+  /** The thread being used to actually run the scheduler. */
   private Thread schedulerThread;
 
-  // The set of recently-completed tasks that need to be retained.
+  /** The set of recently-completed tasks that need to be retained. */
   private TreeSet<Task> completedTasks;
 
-  // The set of tasks that have been scheduled but not yet arrived.
+  /** The set of tasks that have been scheduled but not yet arrived. */
   private TreeSet<Task> pendingTasks;
 
-  // The set of tasks that are currently running.
+  /** The set of tasks that are currently running. */
   private TreeSet<Task> runningTasks;
 
 

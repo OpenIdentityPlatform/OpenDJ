@@ -44,7 +44,7 @@ import org.opends.server.admin.Configuration;
 final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
     implements ServerManagedObjectAddListener<T> {
 
-  // The underlying add listener.
+  /** The underlying add listener. */
   private final ConfigurationAddListener<T> listener;
 
 
@@ -62,9 +62,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       ServerManagedObject<? extends T> mo) {
@@ -85,9 +83,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {

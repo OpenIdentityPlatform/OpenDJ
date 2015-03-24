@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -172,7 +172,7 @@ public final class PropertyException extends RuntimeException
 
 
 
-  // Create the message.
+  /** Create the message. */
   private static LocalizableMessage createMessage(PropertyDefinition<?> pd, Object value)
   {
     PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
@@ -181,10 +181,10 @@ public final class PropertyException extends RuntimeException
 
 
 
-  // LocalizableMessage that explains the problem.
+  /** LocalizableMessage that explains the problem. */
   private final LocalizableMessage message;
 
-  /*
+  /**
    * The property definition associated with the property that caused the
    * exception.
    */
