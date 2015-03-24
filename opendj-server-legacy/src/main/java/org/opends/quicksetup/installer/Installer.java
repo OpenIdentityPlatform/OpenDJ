@@ -26,6 +26,8 @@
  */
 package org.opends.quicksetup.installer;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
@@ -33,8 +35,6 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
-
-import static com.forgerock.opendj.cli.Utils.*;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -1051,62 +1051,45 @@ public abstract class Installer extends GuiApplication {
       argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
       break;
     case JKS:
-      argList.add("-k");
-      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
+      addCertificateArguments(argList, sec, aliasInKeyStore, "cn=JKS,cn=Key Manager Providers,cn=config",
+          "cn=JKS,cn=Trust Manager Providers,cn=config");
       break;
     case JCEKS:
-      argList.add("-k");
-      argList.add("cn=JCEKS,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      argList.add("cn=JCEKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
+      addCertificateArguments(argList, sec, aliasInKeyStore, "cn=JCEKS,cn=Key Manager Providers,cn=config",
+          "cn=JCEKS,cn=Trust Manager Providers,cn=config");
       break;
     case PKCS12:
-      argList.add("-k");
-      argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      // We are going to import the PCKS12 certificate in a JKS trust store
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-m");
-      argList.add(sec.getKeystorePath());
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
+      addCertificateArguments(argList, sec, aliasInKeyStore, "cn=PKCS12,cn=Key Manager Providers,cn=config",
+          "cn=JKS,cn=Trust Manager Providers,cn=config");
       break;
     case PKCS11:
-      argList.add("-k");
-      argList.add("cn=PKCS11,cn=Key Manager Providers,cn=config");
-      argList.add("-t");
-      // We are going to import the PCKS11 certificate in a JKS trust store
-      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      if (aliasInKeyStore != null)
-      {
-        argList.add("-a");
-        argList.add(aliasInKeyStore);
-      }
+      addCertificateArguments(argList, null, aliasInKeyStore, "cn=PKCS11,cn=Key Manager Providers,cn=config",
+          "cn=JKS,cn=Trust Manager Providers,cn=config");
       break;
     case NO_CERTIFICATE:
       // Nothing to do.
       break;
     default:
       throw new IllegalStateException("Unknown certificate type: " + sec.getCertificateType());
+    }
+  }
+
+  private void addCertificateArguments(List<String> argList, SecurityOptions sec, String aliasInKeyStore,
+      String keyStoreDN, String trustStoreDN)
+  {
+    argList.add("-k");
+    argList.add(keyStoreDN);
+    argList.add("-t");
+    argList.add(trustStoreDN);
+    if (sec != null)
+    {
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+    }
+    if (aliasInKeyStore != null)
+    {
+      argList.add("-a");
+      argList.add(aliasInKeyStore);
     }
   }
 
