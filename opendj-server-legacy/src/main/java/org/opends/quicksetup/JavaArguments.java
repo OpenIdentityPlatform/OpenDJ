@@ -28,6 +28,7 @@ package org.opends.quicksetup;
 
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
@@ -38,7 +39,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * A class used to describe the java arguments for a given command-line.
- *
  */
 public class JavaArguments
 {
@@ -109,48 +109,25 @@ public class JavaArguments
     this.additionalArguments = additionalArguments;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
-    boolean equals = o == this;
-    if (!equals)
+    if (o == this)
     {
-      equals = o instanceof JavaArguments;
-      if (equals)
-      {
-        equals = initialMemory == ((JavaArguments)o).initialMemory;
-      }
-      if (equals)
-      {
-        equals = maxMemory == ((JavaArguments)o).maxMemory;
-      }
-      if (equals)
-      {
-        equals = additionalArguments.length ==
-          ((JavaArguments)o).additionalArguments.length;
-      }
-      if (equals)
-      {
-        String[] args = ((JavaArguments)o).additionalArguments;
-        for (int i=0 ; i<args.length ; i++)
-        {
-          if (!args[i].equals(additionalArguments[i]))
-          {
-            equals = false;
-            break;
-          }
-        }
-      }
+      return true;
     }
-    return equals;
+    if (o instanceof JavaArguments)
+    {
+      final JavaArguments that = (JavaArguments) o;
+      return initialMemory == that.initialMemory
+          && maxMemory == that.maxMemory
+          && Arrays.equals(additionalArguments, that.additionalArguments);
+    }
+    return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -162,9 +139,7 @@ public class JavaArguments
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
