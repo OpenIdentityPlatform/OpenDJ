@@ -405,6 +405,9 @@ public final class ArgumentConstants {
     /** Value for the restart option long form. */
     public static final String OPTION_LONG_RESTART = "restart";
 
+    /** The value for the hidden testonly argument. */
+    public static final String OPTION_LONG_TESTONLY_ARGUMENT = "testOnly";
+
     /** Prevent instantiation. */
     private ArgumentConstants() {
     }

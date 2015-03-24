@@ -125,7 +125,12 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    testOnlyArg = CommonArguments.getTestOnly();
+    testOnlyArg = new BooleanArgument(
+            OPTION_LONG_TESTONLY_ARGUMENT.toLowerCase(), null,
+            OPTION_LONG_TESTONLY_ARGUMENT,
+            INFO_ARGUMENT_DESCRIPTION_TESTONLY.get());
+    testOnlyArg.setHidden(true);
+    testOnlyArg.setPropertyName(OPTION_LONG_TESTONLY_ARGUMENT);
     addArgument(testOnlyArg);
 
     cliArg = CommonArguments.getCLI();

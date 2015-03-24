@@ -304,23 +304,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "testonly" boolean argument.
-     * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * trustmanagerproviderdn, stoptime, start(dateTime)</i>
-     *
-     * @return The "testonly" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getTestOnly() throws ArgumentException {
-        final BooleanArgument testOnly = new BooleanArgument("testOnly".toLowerCase(), 't', "testOnly",
-                INFO_ARGUMENT_DESCRIPTION_TESTONLY.get());
-        testOnly.setHidden(true);
-        testOnly.setPropertyName("testOnly");
-        return testOnly;
-    }
-
-    /**
      * Returns the "trustAll" boolean argument.
      *
      * @return The "trustAll" argument.

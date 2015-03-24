@@ -23,7 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2009 Sun Microsystems, Inc.
-rem      Portions copyright 2013 ForgeRock AS.
+rem      Portions copyright 2013-2015 ForgeRock AS.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -159,7 +159,7 @@ exit /B 1
 :notSupportedJavaHome
 rem We get here when the java version is 5 (or up) but not supported.  We run
 rem InstallDS again to see a localized message.
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opendj.server.tools.InstallDS -t
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opendj.server.tools.InstallDS --testonly
 pause
 exit /B 1
 
