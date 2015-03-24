@@ -1243,6 +1243,11 @@ public class InstallDS extends ConsoleApplication
       return NewSuffixOptions.createEmpty(new LinkedList<String>());
     }
 
+    // Add default value for base DN on first prompt
+    if (argParser.baseDNArg.getDefaultValue() == null)
+    {
+      argParser.baseDNArg.setDefaultValue(Installation.DEFAULT_INTERACTIVE_BASE_DN);
+    }
     // Check the validity of the base DNs
     final List<String> baseDNs = promptIfRequiredForDNs(argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
     return promptIfRequiredForDataOptions(baseDNs);
