@@ -39,11 +39,14 @@ package org.opends.server.replication.protocol;
  */
 public class NotSupportedOldVersionPDUException extends Exception
 {
-  // Suppress compile warning
+  /** Suppress compile warning. */
   static final long serialVersionUID = 1739875L;
-  private String msg; // Explicit message
-  private short protocolVersion = -1; // protocol version of the pdu
-  private byte pduType = -1; // type of the pdu
+  /** Explicit message. */
+  private String msg;
+  /** Protocol version of the pdu. */
+  private short protocolVersion = -1;
+  /** Type of the pdu. */
+  private byte pduType = -1;
 
   /**
    * Exception constructor.
@@ -70,18 +73,14 @@ public class NotSupportedOldVersionPDUException extends Exception
     return msg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getLocalizedMessage()
   {
     return getMessage();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

@@ -47,9 +47,7 @@ public class SizeBasedRotationPolicy implements
 
   SizeLimitLogRotationPolicyCfg currentConfig;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeLogRotationPolicy(SizeLimitLogRotationPolicyCfg config)
       throws ConfigException, InitializationException
   {
@@ -59,9 +57,7 @@ public class SizeBasedRotationPolicy implements
     currentConfig = config;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -69,9 +65,7 @@ public class SizeBasedRotationPolicy implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
   {

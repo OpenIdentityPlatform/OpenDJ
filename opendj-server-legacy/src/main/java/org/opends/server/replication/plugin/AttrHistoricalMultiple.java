@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -244,9 +244,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     return valuesHist;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean replayOperation(Iterator<Modification> modsIterator, CSN csn,
       Entry modifiedEntry, Modification m)
@@ -638,9 +636,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
   {

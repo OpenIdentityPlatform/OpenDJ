@@ -131,9 +131,7 @@ public class LightweightServerHandler
         + replServerHandler.getMonitorInstanceName() + " " + message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
                           throws ConfigException,InitializationException

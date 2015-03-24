@@ -85,24 +85,28 @@ public class EntryCacheCommon
    */
   public class ConfigErrorHandler
   {
-    // Configuration phase.
+    /** Configuration phase. */
     private EntryCacheCommon.ConfigPhase _configPhase;
 
-    // Unacceptable reasons. Used when _configPhase is PHASE_ACCEPTABLE.
+    /** Unacceptable reasons. Used when _configPhase is PHASE_ACCEPTABLE. */
     private List<LocalizableMessage> _unacceptableReasons;
 
-    // Error messages. Used when _configPhase is PHASE_APPLY.
+    /** Error messages. Used when _configPhase is PHASE_APPLY. */
     private ArrayList<LocalizableMessage> _errorMessages;
 
-    // Result code. Used when _configPhase is PHASE_APPLY.
+    /** Result code. Used when _configPhase is PHASE_APPLY. */
     private ResultCode _resultCode;
 
-    // Acceptable Configuration ? Used when _configPhase is PHASE_ACCEPTABLE
-    // or PHASE_APPLY.
+    /**
+     * Acceptable Configuration ? Used when _configPhase is PHASE_ACCEPTABLE
+     * or PHASE_APPLY.
+     */
     private boolean _isAcceptable;
 
-    // Indicates whether administrative action is required or not. Used when
-    // _configPhase is PHASE_APPLY.
+    /**
+     * Indicates whether administrative action is required or not. Used when
+     * _configPhase is PHASE_APPLY.
+     */
     private boolean _isAdminActionRequired;
 
     /**

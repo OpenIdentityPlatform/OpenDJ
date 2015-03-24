@@ -47,13 +47,13 @@ public class CompareRequestProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The assertion value for this compare request.
+  /** The assertion value for this compare request. */
   private ByteString assertionValue;
 
-  // The DN for this compare request.
+  /** The DN for this compare request. */
   private ByteString dn;
 
-  // The attribute type for this compare request.
+  /** The attribute type for this compare request. */
   private String attributeType;
 
 

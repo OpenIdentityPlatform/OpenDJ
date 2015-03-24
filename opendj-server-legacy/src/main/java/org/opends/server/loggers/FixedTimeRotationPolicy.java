@@ -45,12 +45,10 @@ public class FixedTimeRotationPolicy implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The scheduled rotation times as ms offsets from the beginning of the day.
+  /** The scheduled rotation times as ms offsets from the beginning of the day. */
   private int[] rotationTimes;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeLogRotationPolicy(FixedTimeLogRotationPolicyCfg config)
   {
     rotationTimes = new int[config.getTimeOfDay().size()];
@@ -66,9 +64,7 @@ public class FixedTimeRotationPolicy implements
     config.addFixedTimeChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       FixedTimeLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -76,9 +72,7 @@ public class FixedTimeRotationPolicy implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
       FixedTimeLogRotationPolicyCfg config)
   {
@@ -97,9 +91,7 @@ public class FixedTimeRotationPolicy implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean rotateFile(RotatableLogFile writer)
   {
     Calendar lastRotationTime = writer.getLastRotationTime();

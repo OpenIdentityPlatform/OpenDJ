@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -35,10 +35,10 @@ import java.io.OutputStream;
  */
 class ReplOutputStream extends OutputStream
 {
-  /** The synchronization domain on which the export is done */
+  /** The synchronization domain on which the export is done. */
   private final ReplicationDomain domain;
 
-  /** The current number of entries exported */
+  /** The current number of entries exported. */
   private final long numExportedEntries = 0;
 
   /**

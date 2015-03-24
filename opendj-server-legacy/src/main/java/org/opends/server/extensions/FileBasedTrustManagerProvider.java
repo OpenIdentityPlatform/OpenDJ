@@ -68,19 +68,19 @@ public class FileBasedTrustManagerProvider
 
 
 
-  // The DN of the configuration entry for this trust manager provider.
+  /** The DN of the configuration entry for this trust manager provider. */
   private DN configEntryDN;
 
-  // The PIN needed to access the trust store.
+  /** The PIN needed to access the trust store. */
   private char[] trustStorePIN;
 
-  // The handle to the configuration for this trust manager.
+  /** The handle to the configuration for this trust manager. */
   private FileBasedTrustManagerProviderCfg currentConfig;
 
-  // The path to the trust store backing file.
+  /** The path to the trust store backing file. */
   private String trustStoreFile;
 
-  // The trust store type to use.
+  /** The trust store type to use. */
   private String trustStoreType;
 
 
@@ -97,9 +97,7 @@ public class FileBasedTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTrustManagerProvider(
                    FileBasedTrustManagerProviderCfg configuration)
@@ -245,9 +243,7 @@ public class FileBasedTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeTrustManagerProvider()
   {
@@ -256,9 +252,7 @@ public class FileBasedTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
@@ -312,9 +306,7 @@ public class FileBasedTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                          TrustManagerProviderCfg configuration,
@@ -327,9 +319,7 @@ public class FileBasedTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       FileBasedTrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -442,9 +432,7 @@ public class FileBasedTrustManagerProvider
     return configAcceptable;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedTrustManagerProviderCfg configuration)
   {

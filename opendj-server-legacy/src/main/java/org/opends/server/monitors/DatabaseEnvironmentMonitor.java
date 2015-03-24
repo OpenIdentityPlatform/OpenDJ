@@ -127,9 +127,7 @@ public class DatabaseEnvironmentMonitor
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
        throws ConfigException, InitializationException
   {

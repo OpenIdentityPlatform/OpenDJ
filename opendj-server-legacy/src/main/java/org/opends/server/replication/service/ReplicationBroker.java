@@ -511,7 +511,7 @@ public class ReplicationBroker
     }
 
     /**
-     * get the group id.
+     * Get the group id.
      * @return The group id
      */
     public byte getGroupId()
@@ -2135,7 +2135,7 @@ public class ReplicationBroker
   }
 
   /**
-   * restart the ReplicationBroker.
+   * Restart the ReplicationBroker.
    * @param infiniteTry the socket which failed
    */
   public void reStart(boolean infiniteTry)
@@ -2666,9 +2666,7 @@ public class ReplicationBroker
     }
   }
 
-  /**
-   * stop the server.
-   */
+  /** Stop the server. */
   public void stop()
   {
     if (logger.isTraceEnabled())

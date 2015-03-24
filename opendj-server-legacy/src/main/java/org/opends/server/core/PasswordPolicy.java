@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
-
-
 
 import java.util.Collection;
 import java.util.List;
@@ -40,8 +38,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
-
-
 /**
  * This class defines a data structure that holds information about a Directory
  * Server password policy.
@@ -49,9 +45,7 @@ import org.opends.server.types.Entry;
 public abstract class PasswordPolicy extends AuthenticationPolicy
 {
 
-  /**
-   * Creates a new password policy.
-   */
+  /** Creates a new password policy. */
   protected PasswordPolicy()
   {
     // Nothing to do.
@@ -59,9 +53,7 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public abstract DN getDN();
 
 
@@ -618,9 +610,7 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isPasswordPolicy()
   {
     return true;
@@ -628,9 +618,7 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public PasswordPolicyState createAuthenticationPolicyState(Entry userEntry,
       long time) throws DirectoryException
   {

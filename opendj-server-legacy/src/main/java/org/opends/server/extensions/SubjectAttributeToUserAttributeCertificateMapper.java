@@ -84,16 +84,16 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The DN of the configuration entry for this certificate mapper.
+  /** The DN of the configuration entry for this certificate mapper. */
   private DN configEntryDN;
 
-  // The mappings between certificate attribute names and user attribute types.
+  /** The mappings between certificate attribute names and user attribute types. */
   private LinkedHashMap<String,AttributeType> attributeMap;
 
-  // The current configuration for this certificate mapper.
+  /** The current configuration for this certificate mapper. */
   private SubjectAttributeToUserAttributeCertificateMapperCfg currentConfig;
 
-  // The set of attributes to return in search result entries.
+  /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
 
@@ -109,9 +109,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
                    SubjectAttributeToUserAttributeCertificateMapperCfg
@@ -203,9 +201,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
@@ -215,9 +211,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
@@ -368,9 +362,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -382,9 +374,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
               SubjectAttributeToUserAttributeCertificateMapperCfg
@@ -455,9 +445,7 @@ mapLoop:
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SubjectAttributeToUserAttributeCertificateMapperCfg

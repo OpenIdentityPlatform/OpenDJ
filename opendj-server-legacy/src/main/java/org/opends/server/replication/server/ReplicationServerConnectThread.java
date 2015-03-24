@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -35,9 +35,7 @@ import org.opends.server.api.DirectoryThread;
  */
 public class ReplicationServerConnectThread extends DirectoryThread
 {
-  /**
-   * The Replication Server that created this thread.
-   */
+  /** The Replication Server that created this thread. */
   private final ReplicationServer server;
 
   /**
@@ -54,9 +52,7 @@ public class ReplicationServerConnectThread extends DirectoryThread
     this.server = server;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run()
   {

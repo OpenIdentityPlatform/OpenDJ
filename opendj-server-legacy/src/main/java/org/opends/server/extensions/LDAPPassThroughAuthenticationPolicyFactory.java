@@ -153,9 +153,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void close()
       {
@@ -164,9 +162,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public ByteString search(final DN baseDN, final SearchScope scope,
           final SearchFilter filter) throws DirectoryException
@@ -187,9 +183,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void simpleBind(final ByteString username,
           final ByteString password) throws DirectoryException
@@ -274,7 +268,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       private final ConnectionFactory factory;
 
-      // isAvailable acts as memory barrier for lastException.
+      /** IsAvailable acts as memory barrier for lastException. */
       private volatile boolean isAvailable = true;
       private DirectoryException lastException;
 
@@ -287,9 +281,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void close()
       {
@@ -298,9 +290,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public Connection getConnection() throws DirectoryException
       {
@@ -369,9 +359,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Connection getConnection() throws DirectoryException
     {
@@ -453,9 +441,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close()
     {
@@ -464,9 +450,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws DirectoryException
     {
@@ -604,9 +588,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void close()
       {
@@ -631,9 +613,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public ByteString search(final DN baseDN, final SearchScope scope,
           final SearchFilter filter) throws DirectoryException
@@ -666,9 +646,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void simpleBind(final ByteString username,
           final ByteString password) throws DirectoryException
@@ -743,7 +721,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    // Guarded by PolicyImpl.lock.
+    /** Guarded by PolicyImpl.lock. */
     private boolean poolIsClosed;
 
     private final ConnectionFactory factory;
@@ -797,9 +775,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws DirectoryException
     {
@@ -861,9 +837,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     int getStartIndex()
     {
@@ -908,9 +882,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void close()
       {
@@ -945,9 +917,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public ByteString search(final DN baseDN, final SearchScope scope,
           final SearchFilter filter) throws DirectoryException
@@ -1049,9 +1019,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void simpleBind(final ByteString username,
           final ByteString password) throws DirectoryException
@@ -1096,9 +1064,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       protected void finalize()
       {
@@ -1151,7 +1117,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      // Reads a response message and adapts errors to directory exceptions.
+      /** Reads a response message and adapts errors to directory exceptions. */
       private LDAPMessage readResponse() throws DirectoryException
       {
         final LDAPMessage responseMessage;
@@ -1205,7 +1171,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      // Sends a request message and adapts errors to directory exceptions.
+      /** Sends a request message and adapts errors to directory exceptions. */
       private void sendRequest(final ProtocolOp request)
           throws DirectoryException
       {
@@ -1258,9 +1224,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close()
     {
@@ -1269,9 +1233,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws DirectoryException
     {
@@ -1495,9 +1457,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     int getStartIndex()
     {
@@ -1565,9 +1525,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void finalizeStateAfterBind() throws DirectoryException
       {
@@ -1621,9 +1579,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public AuthenticationPolicy getAuthenticationPolicy()
       {
@@ -1632,9 +1588,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public boolean passwordMatches(final ByteString password)
           throws DirectoryException
@@ -1941,7 +1895,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final ReadLock sharedLock = lock.readLock();
     private final WriteLock exclusiveLock = lock.writeLock();
 
-    // Current configuration.
+    /** Current configuration. */
     private LDAPPassThroughAuthenticationPolicyCfg cfg;
 
     private ConnectionFactory searchFactory;
@@ -1959,9 +1913,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(
         final LDAPPassThroughAuthenticationPolicyCfg cfg)
@@ -1981,9 +1933,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AuthenticationPolicyState createAuthenticationPolicyState(
         final Entry userEntry, final long time) throws DirectoryException
@@ -1994,9 +1944,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void finalizeAuthenticationPolicy()
     {
@@ -2014,9 +1962,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getDN()
     {
@@ -2025,9 +1971,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(
         final LDAPPassThroughAuthenticationPolicyCfg cfg,
@@ -2165,32 +2109,29 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-  // Debug tracer for this class.
+  /** Debug tracer for this class. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Attribute list for searches requesting no attributes.
-   */
-  static final LinkedHashSet<String> NO_ATTRIBUTES = new LinkedHashSet<String>(
-      1);
+  /** Attribute list for searches requesting no attributes. */
+  static final LinkedHashSet<String> NO_ATTRIBUTES = new LinkedHashSet<String>(1);
   static
   {
     NO_ATTRIBUTES.add(SchemaConstants.NO_ATTRIBUTES);
   }
 
-  // The provider which should be used by policies to create LDAP connections.
+  /** The provider which should be used by policies to create LDAP connections. */
   private final Provider provider;
 
   private ServerContext serverContext;
 
-  /**
-   * The default LDAP connection factory provider.
-   */
+  /** The default LDAP connection factory provider. */
   private static final Provider DEFAULT_PROVIDER = new Provider()
   {
 
-    // Global scheduler used for periodically monitoring connection factories in
-    // order to detect when they are online.
+    /**
+     * Global scheduler used for periodically monitoring connection factories in
+     * order to detect when they are online.
+     */
     private final ScheduledExecutorService scheduler = Executors
         .newScheduledThreadPool(2, new ThreadFactory()
         {
@@ -2275,17 +2216,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-//Get the search bind password performing mapped searches.
-  //
-  // We will offer several places to look for the password, and we will
-  // do so in the following order:
-  //
-  // - In a specified Java property
-  // - In a specified environment variable
-  // - In a specified file on the server filesystem.
-  // - As the value of a configuration attribute.
-  //
-  // In any case, the password must be in the clear.
+  /**
+   * Get the search bind password performing mapped searches.
+   * We will offer several places to look for the password, and we will
+   * do so in the following order:
+   * - In a specified Java property
+   * - In a specified environment variable
+   * - In a specified file on the server filesystem.
+   * - As the value of a configuration attribute.
+   * In any case, the password must be in the clear.
+   */
   private static String getMappedSearchBindPassword(
       final LDAPPassThroughAuthenticationPolicyCfg cfg,
       final List<LocalizableMessage> unacceptableReasons)
@@ -2437,9 +2377,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AuthenticationPolicy createAuthenticationPolicy(
       final LDAPPassThroughAuthenticationPolicyCfg configuration)
@@ -2452,9 +2390,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final LDAPPassThroughAuthenticationPolicyCfg cfg,

@@ -62,9 +62,7 @@ public class ProxiedAuthV1Control
   private static final class Decoder
       implements ControlDecoder<ProxiedAuthV1Control>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ProxiedAuthV1Control decode(boolean isCritical, ByteString value)
         throws DirectoryException
@@ -119,10 +117,10 @@ public class ProxiedAuthV1Control
 
 
 
-  // The raw, unprocessed authorization DN from the control value.
+  /** The raw, unprocessed authorization DN from the control value. */
   private ByteString rawAuthorizationDN;
 
-  // The processed authorization DN from the control value.
+  /** The processed authorization DN from the control value. */
   private DN authorizationDN;
 
 

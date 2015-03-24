@@ -61,8 +61,10 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  // The reference to the Directory Server crypto manager that we will use to
-  // handle the encryption/decryption.
+  /**
+   * The reference to the Directory Server crypto manager that we will use to
+   * handle the encryption/decryption.
+   */
   private CryptoManager cryptoManager;
 
 
@@ -79,9 +81,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    TripleDESPasswordStorageSchemeCfg configuration)
@@ -92,9 +92,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
@@ -103,9 +101,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -138,9 +134,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -180,9 +174,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -204,9 +196,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
@@ -215,9 +205,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -241,9 +229,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -253,9 +239,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -267,9 +251,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -280,9 +262,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -295,9 +275,7 @@ public class TripleDESPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {

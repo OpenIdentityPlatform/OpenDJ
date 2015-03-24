@@ -79,9 +79,7 @@ public class ServerSideSortRequestControl
   private static final class Decoder
       implements ControlDecoder<ServerSideSortRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ServerSideSortRequestControl decode(boolean isCritical,
                                                ByteString value)
         throws DirectoryException
@@ -185,10 +183,10 @@ public class ServerSideSortRequestControl
   public static final ControlDecoder<ServerSideSortRequestControl> DECODER =
       new Decoder();
 
-  // The sort order associated with this control represented by strings.
+  /** The sort order associated with this control represented by strings. */
   private ArrayList<String[]> decodedKeyList;
 
-  // The sort order associated with this control.
+  /** The sort order associated with this control. */
   private SortOrder sortOrder;
 
   /**

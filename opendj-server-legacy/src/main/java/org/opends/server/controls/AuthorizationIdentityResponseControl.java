@@ -54,9 +54,7 @@ public class AuthorizationIdentityResponseControl
   private static final class Decoder
       implements ControlDecoder<AuthorizationIdentityResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public AuthorizationIdentityResponseControl decode(boolean isCritical,
                                                        ByteString value)
         throws DirectoryException
@@ -94,7 +92,7 @@ public class AuthorizationIdentityResponseControl
       DECODER = new Decoder();
 
 
-  // The authorization ID for this control.
+  /** The authorization ID for this control. */
   private String authorizationID;
 
 

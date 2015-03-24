@@ -78,7 +78,6 @@ public class DirectoryRMIServerSocketFactory implements
   public DirectoryRMIServerSocketFactory(SSLSocketFactory sslSocketFactory,
       boolean needClientCertificate)
   {
-    //
     // Initialize the configuration parameters.
     this.needClientCertificate = needClientCertificate;
     this.sslSocketFactory = sslSocketFactory;

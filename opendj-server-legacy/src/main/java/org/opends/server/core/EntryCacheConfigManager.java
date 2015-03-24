@@ -69,10 +69,10 @@ public class EntryCacheConfigManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default entry cache.
+  /** The default entry cache. */
   private DefaultEntryCache _defaultEntryCache;
 
-  // The entry cache order map sorted by the cache level.
+  /** The entry cache order map sorted by the cache level. */
   @SuppressWarnings("rawtypes")
   private SortedMap<Integer, EntryCache> cacheOrderMap =
       new TreeMap<Integer, EntryCache>();
@@ -80,7 +80,7 @@ public class EntryCacheConfigManager
   /** The entry cache to level map. */
   private Map<DN,Integer> cacheNameToLevelMap = new HashMap<DN, Integer>();
 
-  // Global entry cache monitor provider name.
+  /** Global entry cache monitor provider name. */
   private static final String
     DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER = "Entry Caches";
 
@@ -232,9 +232,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
@@ -276,9 +274,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       EntryCacheCfg configuration
@@ -363,9 +359,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       EntryCacheCfg configuration,
@@ -403,9 +397,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(EntryCacheCfg configuration)
   {
@@ -435,9 +427,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       EntryCacheCfg configuration,
@@ -451,9 +441,7 @@ public class EntryCacheConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       EntryCacheCfg configuration

@@ -120,9 +120,7 @@ public class WorkQueueConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(WorkQueueCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -134,9 +132,7 @@ public class WorkQueueConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(WorkQueueCfg configuration)
   {

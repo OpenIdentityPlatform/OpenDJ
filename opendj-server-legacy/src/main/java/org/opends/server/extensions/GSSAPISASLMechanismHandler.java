@@ -79,23 +79,25 @@ public class GSSAPISASLMechanismHandler extends
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The DN of the configuration entry for this SASL mechanism handler.
+  /** The DN of the configuration entry for this SASL mechanism handler. */
   private DN configEntryDN;
 
-  // The current configuration for this SASL mechanism handler.
+  /** The current configuration for this SASL mechanism handler. */
   private GSSAPISASLMechanismHandlerCfg configuration;
 
-  // The identity mapper that will be used to map identities.
+  /** The identity mapper that will be used to map identities. */
   private IdentityMapper<?> identityMapper;
 
-  // The properties to use when creating a SASL server to process the
-  // GSSAPI authentication.
+  /**
+   * The properties to use when creating a SASL server to process the
+   * GSSAPI authentication.
+   */
   private HashMap<String, String> saslProps;
 
-  // The fully qualified domain name used when creating the SASL server.
+  /** The fully qualified domain name used when creating the SASL server. */
   private String serverFQDN;
 
-  // The login context used to perform server-side authentication.
+  /** The login context used to perform server-side authentication. */
   private volatile LoginContext loginContext;
   private final Object loginContextLock = new Object();
 
@@ -114,9 +116,7 @@ public class GSSAPISASLMechanismHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
       GSSAPISASLMechanismHandlerCfg configuration) throws ConfigException,
@@ -332,9 +332,7 @@ public class GSSAPISASLMechanismHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler() {
     logout();
@@ -355,9 +353,7 @@ private void clearProperties() {
   System.clearProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY);
 }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOp)
   {
@@ -430,9 +426,7 @@ private void clearProperties() {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -441,9 +435,7 @@ private void clearProperties() {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -453,9 +445,7 @@ private void clearProperties() {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       SASLMechanismHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -467,9 +457,7 @@ private void clearProperties() {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       GSSAPISASLMechanismHandlerCfg newConfiguration,
@@ -518,9 +506,7 @@ private void clearProperties() {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(GSSAPISASLMechanismHandlerCfg newConfiguration)
   {

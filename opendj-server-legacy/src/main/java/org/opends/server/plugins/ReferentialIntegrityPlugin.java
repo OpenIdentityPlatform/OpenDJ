@@ -102,37 +102,43 @@ public class ReferentialIntegrityPlugin
 
 
 
-  //Current plugin configuration.
+  /** Current plugin configuration. */
   private ReferentialIntegrityPluginCfg currentConfiguration;
 
-  //List of attribute types that will be checked during referential integrity
-  //processing.
+  /**
+   * List of attribute types that will be checked during referential integrity
+   * processing.
+   */
   private LinkedHashSet<AttributeType>
           attributeTypes = new LinkedHashSet<AttributeType>();
 
-  //List of base DNs that limit the scope of the referential integrity checking.
+  /** List of base DNs that limit the scope of the referential integrity checking. */
   private Set<DN> baseDNs = new LinkedHashSet<DN>();
 
-  //The update interval the background thread uses. If it is 0, then
-  //the changes are processed in foreground.
+  /**
+   * The update interval the background thread uses. If it is 0, then
+   * the changes are processed in foreground.
+   */
   private long interval;
 
-  //The flag used by the background thread to check if it should exit.
+  /** The flag used by the background thread to check if it should exit. */
   private boolean stopRequested;
 
-  //The thread name.
+  /** The thread name. */
   private static final String name =
       "Referential Integrity Background Update Thread";
 
-  //The name of the logfile that the update thread uses to process change
-  //records. Defaults to "logs/referint", but can be changed in the
-  //configuration.
+  /**
+   * The name of the logfile that the update thread uses to process change
+   * records. Defaults to "logs/referint", but can be changed in the
+   * configuration.
+   */
   private String logFileName;
 
-  //The File class that logfile corresponds to.
+  /** The File class that logfile corresponds to. */
   private File logFile;
 
-  //The Thread class that the background thread corresponds to.
+  /** The Thread class that the background thread corresponds to. */
   private Thread backGroundThread;
 
   /**
@@ -148,15 +154,20 @@ public class ReferentialIntegrityPlugin
    */
   public static final String DELETE_DNS="deleteDNs";
 
-  //The buffered reader that is used to read the log file by the background
-  //thread.
+  /**
+   * The buffered reader that is used to read the log file by the background
+   * thread.
+   */
   private BufferedReader reader;
 
-  //The buffered writer that is used to write update records in the log
-  //when the plugin is in background processing mode.
+  /**
+   * The buffered writer that is used to write update records in the log
+   * when the plugin is in background processing mode.
+   */
   private BufferedWriter writer;
 
-  /* Specifies the mapping between the attribute type (specified in the
+  /**
+   * Specifies the mapping between the attribute type (specified in the
    * attributeTypes list) and the filter which the plugin should use
    * to verify the integrity of the value of the given attribute.
    */
@@ -164,9 +175,7 @@ public class ReferentialIntegrityPlugin
     new LinkedHashMap<AttributeType, SearchFilter>();
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ReferentialIntegrityPluginCfg pluginCfg)
@@ -196,9 +205,7 @@ public class ReferentialIntegrityPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
           ReferentialIntegrityPluginCfg newConfiguration)
@@ -270,9 +277,7 @@ public class ReferentialIntegrityPlugin
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -380,9 +385,7 @@ public class ReferentialIntegrityPlugin
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
           ReferentialIntegrityPluginCfg configuration,
@@ -392,9 +395,7 @@ public class ReferentialIntegrityPlugin
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.PostOperation
@@ -426,9 +427,7 @@ public class ReferentialIntegrityPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.PostOperation doPostOperation(
@@ -454,9 +453,7 @@ public class ReferentialIntegrityPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
@@ -478,9 +475,7 @@ public class ReferentialIntegrityPlugin
     return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.SubordinateDelete processSubordinateDelete(
@@ -966,9 +961,7 @@ public class ReferentialIntegrityPlugin
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin() {
     currentConfiguration.removeReferentialIntegrityChangeListener(this);
@@ -1074,11 +1067,9 @@ public class ReferentialIntegrityPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-    public PluginResult.PreOperation doPreOperation(
+  public PluginResult.PreOperation doPreOperation(
     PreOperationModifyOperation modifyOperation)
   {
     /* Skip the integrity checks if the enforcing is not enabled
@@ -1134,9 +1125,7 @@ public class ReferentialIntegrityPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation doPreOperation(
     PreOperationAddOperation addOperation)

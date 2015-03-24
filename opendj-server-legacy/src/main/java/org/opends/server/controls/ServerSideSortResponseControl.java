@@ -81,9 +81,7 @@ public class ServerSideSortResponseControl
   private static final class Decoder
       implements ControlDecoder<ServerSideSortResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ServerSideSortResponseControl decode(boolean isCritical,
                                                 ByteString value)
         throws DirectoryException
@@ -139,10 +137,10 @@ public class ServerSideSortResponseControl
 
 
 
-  // The result code for the sort result.
+  /** The result code for the sort result. */
   private int resultCode;
 
-  // The attribute type for the sort result.
+  /** The attribute type for the sort result. */
   private String attributeType;
 
 

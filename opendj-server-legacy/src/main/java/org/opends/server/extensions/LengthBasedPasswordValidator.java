@@ -49,7 +49,7 @@ public class LengthBasedPasswordValidator extends
     PasswordValidator<LengthBasedPasswordValidatorCfg> implements
     ConfigurationChangeListener<LengthBasedPasswordValidatorCfg>
 {
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private LengthBasedPasswordValidatorCfg currentConfig;
 
 
@@ -67,9 +67,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    LengthBasedPasswordValidatorCfg configuration)
@@ -93,9 +91,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -104,9 +100,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -136,9 +130,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -150,9 +142,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       LengthBasedPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -174,9 +164,7 @@ public class LengthBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
               LengthBasedPasswordValidatorCfg configuration)
   {

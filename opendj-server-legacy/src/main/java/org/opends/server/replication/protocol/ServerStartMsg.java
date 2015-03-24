@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,7 +38,7 @@ import org.opends.server.types.DN;
  */
 public class ServerStartMsg extends StartMsg
 {
-  /** Id of the LDAP server that sent this message */
+  /** Id of the LDAP server that sent this message. */
   private final int serverId;
   private final String serverURL;
   private final DN baseDN;
@@ -135,7 +135,7 @@ public class ServerStartMsg extends StartMsg
   }
 
   /**
-   * get the Server URL from the message.
+   * Get the Server URL from the message.
    * @return the server URL
    */
   public String getServerURL()

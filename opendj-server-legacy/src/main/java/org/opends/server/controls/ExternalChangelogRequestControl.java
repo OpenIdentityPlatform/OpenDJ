@@ -56,9 +56,7 @@ public class ExternalChangelogRequestControl
   private static final class Decoder
       implements ControlDecoder<ExternalChangelogRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ExternalChangelogRequestControl decode(boolean isCritical,
         ByteString value)
     throws DirectoryException

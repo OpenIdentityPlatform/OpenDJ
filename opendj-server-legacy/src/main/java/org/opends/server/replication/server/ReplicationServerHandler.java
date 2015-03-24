@@ -57,7 +57,7 @@ public class ReplicationServerHandler extends ServerHandler
   /** Properties filled only if remote server is a RS. */
   private String serverAddressURL;
   /**
-   * this collection will contain as many elements as there are
+   * This collection will contain as many elements as there are
    * LDAP servers connected to the remote replication server.
    */
   private final Map<Integer, LightweightServerHandler> remoteDirectoryServers =
@@ -516,9 +516,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isDataServer()
   {
@@ -642,9 +640,7 @@ public class ReplicationServerHandler extends ServerHandler
     return remoteDirectoryServers.keySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -684,9 +680,7 @@ public class ReplicationServerHandler extends ServerHandler
     return attributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

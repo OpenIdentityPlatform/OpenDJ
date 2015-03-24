@@ -128,41 +128,25 @@ public abstract class ServerHandler extends MessageHandler
    */
   private ServerReader reader;
 
-  // window
+  /** Window. */
   private int rcvWindow;
   private final int rcvWindowSizeHalf;
 
-  /**
-   * The size of the receiving window.
-   */
+  /** The size of the receiving window. */
   protected final int maxRcvWindow;
-  /**
-   * Semaphore that the writer uses to control the flow to the remote server.
-   */
+  /** Semaphore that the writer uses to control the flow to the remote server. */
   private Semaphore sendWindow;
-  /**
-   * The initial size of the sending window.
-   */
+  /** The initial size of the sending window. */
   private int sendWindowSize;
-  /**
-   * remote generation id.
-   */
+  /** Remote generation id. */
   protected long generationId = -1;
-  /**
-   * The generation id of the hosting RS.
-   */
+  /** The generation id of the hosting RS. */
   protected long localGenerationId = -1;
-  /**
-   * The generation id before processing a new start handshake.
-   */
+  /** The generation id before processing a new start handshake. */
   protected long oldGenerationId = -1;
-  /**
-   * Group id of this remote server.
-   */
+  /** Group id of this remote server. */
   protected byte groupId = -1;
-  /**
-   * The SSL encryption after the negotiation with the peer.
-   */
+  /** The SSL encryption after the negotiation with the peer. */
   protected boolean sslEncryption;
   /**
    * The time in milliseconds between heartbeats from the replication
@@ -170,19 +154,13 @@ public abstract class ServerHandler extends MessageHandler
    */
   protected long heartbeatInterval;
 
-  /**
-   * The thread that will send heartbeats.
-   */
+  /** The thread that will send heartbeats. */
   private HeartbeatThread heartbeatThread;
 
-  /**
-   * Set when ServerWriter is stopping.
-   */
+  /** Set when ServerWriter is stopping. */
   private volatile boolean shutdownWriter;
 
-  /**
-   * Weight of this remote server.
-   */
+  /** Weight of this remote server. */
   protected int weight = 1;
 
   /**
@@ -579,7 +557,7 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * get the Server Id.
+   * Get the Server Id.
    *
    * @return the ID of the server to which this object is linked
    */

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -38,14 +39,14 @@ import org.opends.server.util.ServerConstants;
 public class ReplLDIFOutputStream
        extends OutputStream
 {
-  // The number of entries to be exported
+  /** The number of entries to be exported. */
   long numEntries;
 
-  // The current number of entries exported
+  /** The current number of entries exported. */
   private long numExportedEntries;
   String entryBuffer = "";
 
-  // The checksum for computing the generation id
+  /** The checksum for computing the generation id. */
   private GenerationIdChecksum checkSum = new GenerationIdChecksum();
 
   /**
@@ -59,9 +60,7 @@ public class ReplLDIFOutputStream
     this.numEntries = numEntries;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void write(int i) throws IOException
   {
     throw new IOException("Invalid call");
@@ -76,9 +75,7 @@ public class ReplLDIFOutputStream
     return checkSum.getValue();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void write(byte b[], int off, int len) throws IOException
   {
     int endOfEntryIndex;

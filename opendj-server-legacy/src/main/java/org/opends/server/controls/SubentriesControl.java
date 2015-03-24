@@ -52,9 +52,7 @@ public class SubentriesControl
   private static final class Decoder
       implements ControlDecoder<SubentriesControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SubentriesControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -96,7 +94,7 @@ public class SubentriesControl
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The visibility from the control value.
+  /** The visibility from the control value. */
   private boolean visibility;
 
   /**

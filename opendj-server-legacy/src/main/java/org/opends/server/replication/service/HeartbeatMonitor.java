@@ -55,15 +55,12 @@ final class HeartbeatMonitor extends DirectoryThread
    */
   private final long heartbeatInterval;
 
-  // Info required for logging.
+  /** Info required for logging. */
   private final int serverID;
   private final int replicationServerID;
   private final String baseDN;
 
-
-  /**
-   * Thread life-cycle state.
-   */
+  /** Thread life-cycle state. */
   private volatile boolean shutdown;
   private final Object shutdownLock = new Object();
 
@@ -110,9 +107,7 @@ final class HeartbeatMonitor extends DirectoryThread
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run()
   {

@@ -8409,7 +8409,7 @@ public final class DirectoryServer
    * Print messages for start-ds "-F" option (full version information).
    */
   private static void printFullVersionInformation() {
-    /**
+    /*
      * This option is used by the upgrade to identify the server build and it
      * can eventually also be used to be sent to the support in case of an
      * issue.  Since this is not a public interface and since it is better

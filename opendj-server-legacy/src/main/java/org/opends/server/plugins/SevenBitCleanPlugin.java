@@ -79,9 +79,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      SevenBitCleanPluginCfg configuration)
@@ -110,9 +108,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -121,9 +117,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
@@ -186,9 +180,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                doPreParse(PreParseAddOperation addOperation)
@@ -252,9 +244,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyOperation modifyOperation)
@@ -330,9 +320,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyDNOperation modifyDNOperation)
@@ -451,9 +439,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -464,9 +450,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SevenBitCleanPluginCfg configuration,
@@ -498,9 +482,7 @@ public final class SevenBitCleanPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  SevenBitCleanPluginCfg configuration)

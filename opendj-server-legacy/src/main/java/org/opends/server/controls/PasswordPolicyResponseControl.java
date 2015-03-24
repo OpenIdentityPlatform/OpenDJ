@@ -56,9 +56,7 @@ public class PasswordPolicyResponseControl
   private static final class Decoder
       implements ControlDecoder<PasswordPolicyResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PasswordPolicyResponseControl decode(boolean isCritical,
                                                 ByteString value)
         throws DirectoryException
@@ -163,13 +161,13 @@ public class PasswordPolicyResponseControl
 
 
 
-  // The warning value for this password policy response control.
+  /** The warning value for this password policy response control. */
   private int warningValue;
 
-  // The error type for this password policy response control.
+  /** The error type for this password policy response control. */
   private PasswordPolicyErrorType errorType;
 
-  // The warning type for the password policy response control.
+  /** The warning type for the password policy response control. */
   private PasswordPolicyWarningType warningType;
 
 

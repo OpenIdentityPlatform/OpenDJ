@@ -105,9 +105,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      UniqueAttributePluginCfg configuration)
@@ -162,9 +160,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -174,9 +170,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
@@ -218,9 +212,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -351,9 +343,7 @@ public class UniqueAttributePlugin
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation doPreOperation(
                     PreOperationModifyDNOperation modifyDNOperation)
@@ -394,9 +384,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void doPostSynchronization(
                          PostSynchronizationAddOperation addOperation)
@@ -431,9 +419,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void doPostSynchronization(
                          PostSynchronizationModifyOperation modifyOperation)
@@ -503,9 +489,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void doPostSynchronization(
                          PostSynchronizationModifyDNOperation modifyDNOperation)
@@ -691,9 +675,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -704,9 +686,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       UniqueAttributePluginCfg configuration,
@@ -761,9 +741,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UniqueAttributePluginCfg newConfiguration)
@@ -774,9 +752,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -785,9 +761,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
@@ -796,9 +770,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String,String> getAlerts()
   {
@@ -814,9 +786,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
@@ -853,9 +823,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
@@ -925,9 +893,7 @@ public class UniqueAttributePlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)

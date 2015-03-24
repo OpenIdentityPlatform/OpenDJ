@@ -47,7 +47,7 @@ import org.opends.server.types.Entry;
 public class UserAttributeNotificationMessageTemplateElement
        extends NotificationMessageTemplateElement
 {
-  // The attribute type for which to obtain the value.
+  /** The attribute type for which to obtain the value. */
   private AttributeType attributeType;
 
 
@@ -65,9 +65,7 @@ public class UserAttributeNotificationMessageTemplateElement
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {

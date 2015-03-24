@@ -300,9 +300,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LDAPConnectionHandlerCfg config)
@@ -374,9 +372,7 @@ public final class LDAPConnectionHandler extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
@@ -500,9 +496,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName()
   {
@@ -511,9 +505,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
@@ -527,9 +519,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLProtocols()
   {
@@ -543,9 +533,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners()
   {
@@ -610,9 +598,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
@@ -621,9 +607,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
@@ -656,9 +640,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
@@ -782,9 +764,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -865,9 +845,7 @@ public final class LDAPConnectionHandler extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -890,9 +868,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
@@ -918,9 +894,7 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void start()
   {

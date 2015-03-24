@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,7 +38,8 @@ public class EntryMsg extends RoutableMsg
 {
   /** The byte array containing the bytes of the entry transported. */
   private final byte[] entryByteArray;
-  private int msgId = -1; // from V4
+  /** From V4. */
+  private int msgId = -1;
 
   /**
    * Creates a new EntryMsg.

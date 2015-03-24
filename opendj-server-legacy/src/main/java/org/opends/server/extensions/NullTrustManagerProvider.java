@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import javax.net.ssl.TrustManager;
 
@@ -35,9 +33,6 @@ import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
-
-
 
 /**
  * This class provides an implementation of a trust manager provider that does
@@ -60,9 +55,7 @@ public class NullTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeTrustManagerProvider(
                      TrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException

@@ -156,9 +156,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeWorkQueue(TraditionalWorkQueueCfg configuration)
       throws ConfigException, InitializationException
@@ -224,9 +222,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
@@ -642,9 +638,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       TraditionalWorkQueueCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -654,9 +648,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       TraditionalWorkQueueCfg configuration)
@@ -778,9 +770,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isIdle()
   {

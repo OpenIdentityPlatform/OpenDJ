@@ -127,27 +127,33 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] intermediateResponsePlugins;
 
 
-  // The mapping between the DN of a plugin entry and the plugin instance loaded
-  // from that entry.
+  /**
+   * The mapping between the DN of a plugin entry and the plugin instance loaded
+   * from that entry.
+   */
   private ConcurrentHashMap<DN,
                DirectoryServerPlugin<? extends PluginCfg>>
                     registeredPlugins;
 
-  // The mapping between an operation and a set of post operation plugins
-  // it should skip. This pairs up pre and post operation plugin processing
-  // such that only plugins that successfully execute its pre op plugin will
-  // have its post op plugin executed on a per operation basis. If an
-  // operation is not registered on this list then all all pre op plugins
-  // executed successfully for this operation so all post op plugins should
-  // execute.
+  /**
+   * The mapping between an operation and a set of post operation plugins
+   * it should skip. This pairs up pre and post operation plugin processing
+   * such that only plugins that successfully execute its pre op plugin will
+   * have its post op plugin executed on a per operation basis. If an
+   * operation is not registered on this list then all all pre op plugins
+   * executed successfully for this operation so all post op plugins should
+   * execute.
+   */
   private ConcurrentHashMap<PluginOperation, ArrayList<DirectoryServerPlugin>>
       skippedPreOperationPlugins;
 
-  // The plugin root configuration read at server startup.
+  /** The plugin root configuration read at server startup. */
   private PluginRootCfg pluginRootConfig;
 
-  // The lock that will provide threadsafe access to the sets of registered
-  // plugins.
+  /**
+   * The lock that will provide threadsafe access to the sets of registered
+   * plugins.
+   */
   private ReentrantLock pluginLock;
 
   private final ServerContext serverContext;
@@ -4708,9 +4714,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(PluginCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -4745,9 +4749,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PluginCfg configuration)
@@ -4793,9 +4795,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       PluginCfg configuration,
@@ -4807,9 +4807,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  PluginCfg configuration)
@@ -4823,9 +4821,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PluginCfg configuration,
@@ -4861,9 +4857,7 @@ public class PluginConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PluginCfg configuration)

@@ -40,34 +40,25 @@ import javax.security.auth.Subject;
 
 /**
  * Wrapper class for the JMX's RMI connector. This class has the exact same
- * functionnalities but maintain inner variables which are used during the
+ * functionalities but maintain inner variables which are used during the
  * connection phase.
  * <p>
  * Note that the javadoc has been copied from the
  * javax.management.remote.JMXConnector interface.
  */
 public class OpendsJmxConnector implements JMXConnector
-
 {
 
-  /**
-   * the wrapped JMX RMI connector.
-   */
+  /** The wrapped JMX RMI connector. */
   private JMXConnector jmxc;
 
-  /**
-   * the connection environment set at creation.
-   */
+  /** The connection environment set at creation. */
   private Map<String,Object> environment;
 
-  /**
-   * the JMX Service URL.
-   */
+  /** The JMX Service URL. */
   private JMXServiceURL serviceURL;
 
-  /**
-   * the host to connect to.
-   */
+  /** The host to connect to. */
   private String serverHostname;
 
 

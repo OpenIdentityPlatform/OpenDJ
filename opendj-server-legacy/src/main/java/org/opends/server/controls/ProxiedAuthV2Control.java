@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -63,9 +63,7 @@ public class ProxiedAuthV2Control
   private static final class Decoder
       implements ControlDecoder<ProxiedAuthV2Control>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ProxiedAuthV2Control decode(boolean isCritical, ByteString value)
         throws DirectoryException
@@ -128,7 +126,7 @@ public class ProxiedAuthV2Control
 
 
 
-  // The authorization ID from the control value.
+  /** The authorization ID from the control value. */
   private ByteString authorizationID;
 
 

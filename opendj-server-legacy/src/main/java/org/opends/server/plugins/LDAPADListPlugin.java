@@ -143,7 +143,7 @@ public final class LDAPADListPlugin
 
 
 
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private LDAPAttributeDescriptionListPluginCfg currentConfig;
 
 
@@ -161,9 +161,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                          LDAPAttributeDescriptionListPluginCfg configuration)
@@ -195,9 +193,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -206,9 +202,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse doPreParse(
       PreParseSearchOperation searchOperation)
@@ -220,9 +214,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -234,9 +226,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       LDAPAttributeDescriptionListPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -264,9 +254,7 @@ public final class LDAPADListPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  LDAPAttributeDescriptionListPluginCfg
                                       configuration)

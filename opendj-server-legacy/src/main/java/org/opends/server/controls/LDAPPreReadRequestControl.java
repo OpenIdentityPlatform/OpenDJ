@@ -62,9 +62,7 @@ public class LDAPPreReadRequestControl extends Control
   private static final class Decoder implements
       ControlDecoder<LDAPPreReadRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LDAPPreReadRequestControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -115,10 +113,10 @@ public class LDAPPreReadRequestControl extends Control
       new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of raw attributes to return in the entry.
+  /** The set of raw attributes to return in the entry. */
   private Set<String> rawAttributes;
 
-  // The set of processed attributes to return in the entry.
+  /** The set of processed attributes to return in the entry. */
   private Set<String> requestedAttributes;
 
 

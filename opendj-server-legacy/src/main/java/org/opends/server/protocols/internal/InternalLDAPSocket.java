@@ -66,44 +66,46 @@ import org.opends.server.types.DN;
 public final class InternalLDAPSocket
        extends Socket
 {
-  // Indicates whether this socket is closed.
+  /** Indicates whether this socket is closed. */
   private boolean closed;
 
-  // The value that the client has requested for SO_KEEPALIVE.
+  /** The value that the client has requested for SO_KEEPALIVE. */
   private boolean keepAlive;
 
-  // The value that the client has requested for OOBINLINE.
+  /** The value that the client has requested for OOBINLINE. */
   private boolean oobInline;
 
-  // The value that the client has requested for SO_REUSEADDR.
+  /** The value that the client has requested for SO_REUSEADDR. */
   private boolean reuseAddress;
 
-  // The value that the client has requested for TCP_NODELAY.
+  /** The value that the client has requested for TCP_NODELAY. */
   private boolean tcpNoDelay;
 
-  // The value that the client has requested for SO_LINGER.
+  /** The value that the client has requested for SO_LINGER. */
   private int lingerDuration;
 
-  // The value that the client has requested for SO_RCVBUF.
+  /** The value that the client has requested for SO_RCVBUF. */
   private int receiveBufferSize;
 
-  // The value that the client has requested for SO_SNDBUF.
+  /** The value that the client has requested for SO_SNDBUF. */
   private int sendBufferSize;
 
-  // The value that the client has requested for SO_TIMEOUT.
+  /** The value that the client has requested for SO_TIMEOUT. */
   private int timeout;
 
-  // The value that the client has requested for the traffic class.
+  /** The value that the client has requested for the traffic class. */
   private int trafficClass;
 
-  // The internal client connection used to perform the internal
-  // operations.  It will be null until it is first used.
+  /**
+   * The internal client connection used to perform the internal
+   * operations.  It will be null until it is first used.
+   */
   private InternalClientConnection conn;
 
-  // The input stream associated with this internal LDAP socket.
+  /** The input stream associated with this internal LDAP socket. */
   private InternalLDAPInputStream inputStream;
 
-  // The output stream associated with this internal LDAP socket.
+  /** The output stream associated with this internal LDAP socket. */
   private InternalLDAPOutputStream outputStream;
 
 

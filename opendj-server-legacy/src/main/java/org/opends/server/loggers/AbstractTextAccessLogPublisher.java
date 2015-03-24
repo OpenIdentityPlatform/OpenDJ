@@ -216,9 +216,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -227,9 +225,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -240,9 +236,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -260,9 +254,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -702,9 +694,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -721,9 +711,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -740,9 +728,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -759,9 +745,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -817,9 +801,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -843,9 +825,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -869,9 +849,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -895,9 +873,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -950,9 +926,7 @@ abstract class AbstractTextAccessLogPublisher
   private final class ChangeListener implements
       ConfigurationChangeListener<AccessLogPublisherCfg>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final ConfigChangeResult applyConfigurationChange(
         final AccessLogPublisherCfg configuration)
@@ -968,9 +942,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean isConfigurationChangeAcceptable(
         final AccessLogPublisherCfg configuration,
@@ -991,9 +963,7 @@ abstract class AbstractTextAccessLogPublisher
       ConfigurationDeleteListener<AccessLogFilteringCriteriaCfg>
   {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -1006,9 +976,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -1020,9 +988,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -1034,9 +1000,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1047,9 +1011,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1060,9 +1022,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1104,9 +1064,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void close()
   {
@@ -1139,9 +1097,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getDN()
   {
@@ -1303,7 +1259,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  // Build an appropriate set of filters based on the configuration.
+  /** Build an appropriate set of filters based on the configuration. */
   private void buildFilters()
   {
     buildFilters(cfg.isSuppressInternalOperations(),

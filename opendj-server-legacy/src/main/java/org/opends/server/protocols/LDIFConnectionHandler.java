@@ -82,26 +82,25 @@ public final class LDIFConnectionHandler
 
 
 
-  // Indicates whether this connection handler is currently stopped.
+  /** Indicates whether this connection handler is currently stopped. */
   private volatile boolean isStopped;
 
-  // Indicates whether we should stop this connection handler.
+  /** Indicates whether we should stop this connection handler. */
   private volatile boolean stopRequested;
 
-  // The path to the directory to watch for new LDIF files.
+  /** The path to the directory to watch for new LDIF files. */
   private File ldifDirectory;
 
-  // The internal client connection that will be used for all processing.
+  /** The internal client connection that will be used for all processing. */
   private InternalClientConnection conn;
 
-  // The current configuration for this LDIF connection handler.
+  /** The current configuration for this LDIF connection handler. */
   private LDIFConnectionHandlerCfg currentConfig;
 
-  // The thread used to run the connection handler.
+  /** The thread used to run the connection handler. */
   private Thread connectionHandlerThread;
 
-  // Help to not warn permanently and fullfill the log file
-  // in debug mode.
+  /** Help to not warn permanently and fullfill the log file in debug mode. */
   private boolean alreadyWarn;
 
 
@@ -121,9 +120,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(LDIFConnectionHandlerCfg
                                                configuration)
@@ -164,9 +161,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
@@ -199,9 +194,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName()
   {
@@ -210,9 +203,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
@@ -221,9 +212,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners()
   {
@@ -233,9 +222,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<ClientConnection> getClientConnections()
   {
@@ -245,9 +232,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run()
   {
@@ -564,9 +549,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -579,9 +562,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -592,9 +573,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       LDIFConnectionHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -605,9 +584,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  LDIFConnectionHandlerCfg configuration)
   {
@@ -621,9 +598,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -632,9 +607,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getClassName()
   {
     return LDIFConnectionHandler.class.getName();
@@ -642,9 +615,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();

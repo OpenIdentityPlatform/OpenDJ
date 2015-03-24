@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -64,18 +64,14 @@ public class ConsoleDebugLogPublisher extends
     this.err = err;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(DebugLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException {
     // This publisher is not configurable.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void trace(TraceSettings settings,
                            String signature,
@@ -91,9 +87,7 @@ public class ConsoleDebugLogPublisher extends
     publish(msg, stack);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void traceException(TraceSettings settings,
                           String signature,
@@ -114,9 +108,7 @@ public class ConsoleDebugLogPublisher extends
     publish(message, stack);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -124,8 +116,10 @@ public class ConsoleDebugLogPublisher extends
   }
 
 
-  // Publishes a record, optionally performing some "special" work:
-  // - injecting a stack trace into the message
+  /**
+   * Publishes a record, optionally performing some "special" work:
+   * - injecting a stack trace into the message
+   */
   private void publish(String msg, String stack)
   {
     StringBuilder buf = new StringBuilder();
@@ -150,9 +144,7 @@ public class ConsoleDebugLogPublisher extends
     err.print(buf);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

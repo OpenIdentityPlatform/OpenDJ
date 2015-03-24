@@ -69,9 +69,7 @@ public class RedirectingByteChannel implements ByteChannel
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void close() throws IOException
   {
     final ByteChannel tmp = redirect;
@@ -97,9 +95,7 @@ public class RedirectingByteChannel implements ByteChannel
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isOpen()
   {
     final ByteChannel tmp = redirect;
@@ -115,9 +111,7 @@ public class RedirectingByteChannel implements ByteChannel
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int read(final ByteBuffer buffer) throws IOException
   {
     final ByteChannel tmp = redirect;
@@ -147,9 +141,7 @@ public class RedirectingByteChannel implements ByteChannel
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int write(final ByteBuffer buffer) throws IOException
   {
     final ByteChannel tmp = redirect;

@@ -71,39 +71,44 @@ public final class PasswordPolicyFactory implements
   {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    // Current configuration.
+    /** Current configuration. */
     private PasswordPolicyCfg configuration;
 
-    // Indicates whether the attribute type uses the authPassword syntax.
+    /** Indicates whether the attribute type uses the authPassword syntax. */
     private boolean authPasswordSyntax;
 
-    // The set of account status notification handlers for this password policy.
+    /** The set of account status notification handlers for this password policy. */
     private Map<DN, AccountStatusNotificationHandler<?>> notificationHandlers;
 
-    // The set of password validators that will be used with this
-    // password policy.
+    /**
+     * The set of password validators that will be used with this
+     * password policy.
+     */
     private Map<DN, PasswordValidator<?>> passwordValidators;
 
-    // The set of default password storage schemes for this password
-    // policy.
+    /**
+     * The set of default password storage schemes for this password policy.
+     */
     private List<PasswordStorageScheme<?>> defaultStorageSchemes;
 
-    // The names of the deprecated password storage schemes for this password
-    // policy.
+    /**
+     * The names of the deprecated password storage schemes for this password
+     * policy.
+     */
     private Set<String> deprecatedStorageSchemes;
 
-    // The password generator for use with this password policy.
+    /** The password generator for use with this password policy. */
     private PasswordGenerator<?> passwordGenerator;
 
-    // The the time by which all users will be required to change their
-    // passwords.
+    /**
+     * The the time by which all users will be required to change their
+     * passwords.
+     */
     private long requireChangeByTime;
 
     private final ServerContext serverContext;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void finalizeAuthenticationPolicy()
     {
@@ -139,11 +144,7 @@ public final class PasswordPolicyFactory implements
       return ccr;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(
         PasswordPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -420,55 +421,35 @@ public final class PasswordPolicyFactory implements
       }
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAuthPasswordSyntax()
     {
       return authPasswordSyntax;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<PasswordStorageScheme<?>> getDefaultPasswordStorageSchemes()
     {
       return defaultStorageSchemes;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<String> getDeprecatedPasswordStorageSchemes()
     {
       return deprecatedStorageSchemes;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getDN()
     {
       return configuration.dn();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDefaultPasswordStorageScheme(String name)
     {
@@ -493,33 +474,21 @@ public final class PasswordPolicyFactory implements
       return false;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDeprecatedPasswordStorageScheme(String name)
     {
       return deprecatedStorageSchemes.contains(toLowerCase(name));
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Collection<PasswordValidator<?>> getPasswordValidators()
     {
       return passwordValidators.values();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Collection<AccountStatusNotificationHandler<?>>
       getAccountStatusNotificationHandlers()
@@ -527,22 +496,14 @@ public final class PasswordPolicyFactory implements
       return notificationHandlers.values();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public PasswordGenerator<?> getPasswordGenerator()
     {
       return passwordGenerator;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getRequireChangeByTime()
     {
@@ -831,297 +792,189 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAllowExpiredPasswordChanges()
     {
       return configuration.isAllowExpiredPasswordChanges();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAllowMultiplePasswordValues()
     {
       return configuration.isAllowMultiplePasswordValues();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAllowPreEncodedPasswords()
     {
       return configuration.isAllowPreEncodedPasswords();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAllowUserPasswordChanges()
     {
       return configuration.isAllowUserPasswordChanges();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isExpirePasswordsWithoutWarning()
     {
       return configuration.isExpirePasswordsWithoutWarning();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isForceChangeOnAdd()
     {
       return configuration.isForceChangeOnAdd();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isForceChangeOnReset()
     {
       return configuration.isForceChangeOnReset();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int getGraceLoginCount()
     {
       return configuration.getGraceLoginCount();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getIdleLockoutInterval()
     {
       return configuration.getIdleLockoutInterval();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AttributeType getLastLoginTimeAttribute()
     {
       return configuration.getLastLoginTimeAttribute();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getLastLoginTimeFormat()
     {
       return configuration.getLastLoginTimeFormat();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getLockoutDuration()
     {
       return configuration.getLockoutDuration();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int getLockoutFailureCount()
     {
       return configuration.getLockoutFailureCount();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getLockoutFailureExpirationInterval()
     {
       return configuration.getLockoutFailureExpirationInterval();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getMaxPasswordAge()
     {
       return configuration.getMaxPasswordAge();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getMaxPasswordResetAge()
     {
       return configuration.getMaxPasswordResetAge();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getMinPasswordAge()
     {
       return configuration.getMinPasswordAge();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AttributeType getPasswordAttribute()
     {
       return configuration.getPasswordAttribute();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isPasswordChangeRequiresCurrentPassword()
     {
       return configuration.isPasswordChangeRequiresCurrentPassword();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getPasswordExpirationWarningInterval()
     {
       return configuration.getPasswordExpirationWarningInterval();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int getPasswordHistoryCount()
     {
       return configuration.getPasswordHistoryCount();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getPasswordHistoryDuration()
     {
       return configuration.getPasswordHistoryDuration();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public SortedSet<String> getPreviousLastLoginTimeFormats()
     {
       return configuration.getPreviousLastLoginTimeFormat();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isRequireSecureAuthentication()
     {
       return configuration.isRequireSecureAuthentication();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isRequireSecurePasswordChanges()
     {
       return configuration.isRequireSecurePasswordChanges();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isSkipValidationForAdministrators()
     {
       return configuration.isSkipValidationForAdministrators();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StateUpdateFailurePolicy getStateUpdateFailurePolicy()
     {
@@ -1151,9 +1004,7 @@ public final class PasswordPolicyFactory implements
     this.serverContext = serverContext;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PasswordPolicy createAuthenticationPolicy(
       final PasswordPolicyCfg configuration) throws ConfigException,
@@ -1164,11 +1015,7 @@ public final class PasswordPolicyFactory implements
     return policy;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final PasswordPolicyCfg configuration,

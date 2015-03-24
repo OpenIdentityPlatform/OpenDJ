@@ -145,9 +145,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       PasswordValidatorCfg configuration,
@@ -175,9 +173,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PasswordValidatorCfg configuration)
@@ -218,9 +214,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       PasswordValidatorCfg configuration,
@@ -233,9 +227,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  PasswordValidatorCfg configuration)
@@ -256,9 +248,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordValidatorCfg configuration,
@@ -286,9 +276,7 @@ public class PasswordValidatorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordValidatorCfg configuration)

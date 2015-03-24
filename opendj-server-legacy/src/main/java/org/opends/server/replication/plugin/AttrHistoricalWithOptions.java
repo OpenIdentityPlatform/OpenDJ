@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -35,11 +36,9 @@ import java.util.Set;
  */
 public class AttrHistoricalWithOptions
 {
-  private HashMap<Set<String> ,AttrHistorical> attributesInfo;
+  private HashMap<Set<String>, AttrHistorical> attributesInfo;
 
-  /**
-   * creates a new AttrInfoWithOptions.
-   */
+  /** Creates a new AttrInfoWithOptions. */
   public AttrHistoricalWithOptions()
   {
     attributesInfo = new HashMap<Set<String> ,AttrHistorical>();
@@ -69,7 +68,7 @@ public class AttrHistoricalWithOptions
   }
 
   /**
-   * get the Attributes information associated to this object.
+   * Get the Attributes information associated to this object.
    * @return the set of informations
    */
   public HashMap<Set<String>, AttrHistorical> getAttributesInfo()

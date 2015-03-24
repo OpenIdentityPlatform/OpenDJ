@@ -51,27 +51,29 @@ import org.forgerock.opendj.ldap.SearchScope;
 public class DynamicGroupMemberList
        extends MemberList
 {
-  // Indicates whether the search thread has completed its processing.
+  /** Indicates whether the search thread has completed its processing. */
   private boolean searchesCompleted;
 
-  // The base DN to use when filtering the set of group members.
+  /** The base DN to use when filtering the set of group members. */
   private final DN baseDN;
 
-  // The DN of the entry containing the group definition.
+  /** The DN of the entry containing the group definition. */
   private final DN groupDN;
 
-  // The queue into which results will be placed while they are waiting to be
-  // returned.  The types of objects that may be placed in this queue are Entry
-  // objects to return or MembershipException objects to throw.
+  /**
+   * The queue into which results will be placed while they are waiting to be
+   * returned.  The types of objects that may be placed in this queue are Entry
+   * objects to return or MembershipException objects to throw.
+   */
   private final LinkedBlockingQueue<Object> resultQueue;
 
-  // The search filter to use when filtering the set of group members.
+  /** The search filter to use when filtering the set of group members. */
   private final SearchFilter filter;
 
-  // The search scope to use when filtering the set of group members.
+  /** The search scope to use when filtering the set of group members. */
   private final SearchScope scope;
 
-  // The set of LDAP URLs that define the membership criteria.
+  /** The set of LDAP URLs that define the membership criteria. */
   private final Set<LDAPURL> memberURLs;
 
 
@@ -399,9 +401,7 @@ public class DynamicGroupMemberList
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasMoreMembers()
   {
@@ -423,9 +423,7 @@ public class DynamicGroupMemberList
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry nextMemberEntry()
          throws MembershipException
@@ -463,9 +461,7 @@ public class DynamicGroupMemberList
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {

@@ -107,9 +107,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       JMXConnectionHandlerCfg config) {
@@ -182,9 +180,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
     // Make sure that we don't get notified of any more changes.
@@ -279,9 +275,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName() {
     return connectionHandlerName;
@@ -302,9 +296,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
@@ -345,9 +337,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName() {
     return connectionHandlerName;
@@ -355,9 +345,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getProtocol() {
     return protocol;
@@ -365,18 +353,14 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners() {
     return listeners;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -426,9 +410,7 @@ public final class JmxConnectionHandler extends
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
@@ -452,9 +434,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason) {
     // We should also close the RMI registry.
@@ -485,9 +465,7 @@ public final class JmxConnectionHandler extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run() {
     try
@@ -502,9 +480,7 @@ public final class JmxConnectionHandler extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer) {
     buffer.append(connectionHandlerName);

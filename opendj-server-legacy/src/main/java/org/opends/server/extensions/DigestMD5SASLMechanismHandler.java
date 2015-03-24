@@ -65,24 +65,23 @@ public class DigestMD5SASLMechanismHandler
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The current configuration for this SASL mechanism handler.
+  /** The current configuration for this SASL mechanism handler. */
   private DigestMD5SASLMechanismHandlerCfg configuration;
 
-  // The identity mapper that will be used to map ID strings to user entries.
+  /** The identity mapper that will be used to map ID strings to user entries. */
   private IdentityMapper<?> identityMapper;
 
-  //Properties to use when creating a SASL server to process the authentication.
+  /** Properties to use when creating a SASL server to process the authentication. */
   private HashMap<String,String> saslProps;
 
-//The fully qualified domain name used when creating the SASL server.
+  /** The fully qualified domain name used when creating the SASL server. */
   private String serverFQDN;
 
-  // The DN of the configuration entry for this SASL mechanism handler.
+  /** The DN of the configuration entry for this SASL mechanism handler. */
   private DN configEntryDN;
 
-  //Property used to set the realm in the environment.
-  private static final String REALM_PROPERTY =
-                                          "com.sun.security.sasl.digest.realm";
+  /** Property used to set the realm in the environment. */
+  private static final String REALM_PROPERTY = "com.sun.security.sasl.digest.realm";
 
 
   /**
@@ -96,9 +95,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
           DigestMD5SASLMechanismHandlerCfg configuration)
@@ -131,9 +128,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler() {
     configuration.removeDigestMD5ChangeListener(this);
@@ -141,9 +136,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOp) {
       ClientConnection clientConnection = bindOp.getClientConnection();
@@ -177,9 +170,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -189,9 +180,7 @@ public class DigestMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -200,9 +189,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -214,9 +201,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
@@ -226,9 +211,7 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
           DigestMD5SASLMechanismHandlerCfg configuration)

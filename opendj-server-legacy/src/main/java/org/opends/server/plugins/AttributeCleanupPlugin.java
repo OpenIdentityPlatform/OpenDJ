@@ -99,9 +99,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final AttributeCleanupPluginCfg config)
@@ -138,9 +136,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(
       final PreParseAddOperation addOperation)
@@ -164,9 +160,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(
       final PreParseModifyOperation modifyOperation)
@@ -204,9 +198,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePlugin()
   {
@@ -228,9 +220,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(final Set<PluginType> pluginTypes,
       final AttributeCleanupPluginCfg configuration) throws ConfigException,
@@ -269,9 +259,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(final PluginCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
@@ -283,9 +271,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final AttributeCleanupPluginCfg config, final List<LocalizableMessage> messages)

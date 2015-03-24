@@ -22,19 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
-
-
 
 /**
  * This class implements a notification message template element that will
@@ -43,7 +39,7 @@ import org.opends.server.types.AccountStatusNotificationProperty;
 public class NotificationPropertyNotificationMessageTemplateElement
        extends NotificationMessageTemplateElement
 {
-  // The account status notification property for which to obtain the value.
+  /** The account status notification property for which to obtain the value. */
   private AccountStatusNotificationProperty property;
 
 
@@ -61,9 +57,7 @@ public class NotificationPropertyNotificationMessageTemplateElement
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {

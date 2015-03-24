@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.core;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -37,10 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DisconnectReason;
 
 import static org.opends.messages.CoreMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a thread that will be used to terminate client
@@ -50,14 +46,12 @@ public class IdleTimeLimitThread
        extends DirectoryThread
        implements ServerShutdownListener
 {
-  /**
-   * The debug log tracer for this object.
-   */
+  /** The debug log tracer for this object. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
-  // Shutdown monitor state.
+  /** Shutdown monitor state. */
   private volatile boolean shutdownRequested;
   private final Object shutdownLock = new Object();
 
@@ -167,9 +161,7 @@ public class IdleTimeLimitThread
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getShutdownListenerName()
   {
     return "Idle Time Limit Thread";
@@ -177,9 +169,7 @@ public class IdleTimeLimitThread
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processServerShutdown(LocalizableMessage reason)
   {
     synchronized (shutdownLock)

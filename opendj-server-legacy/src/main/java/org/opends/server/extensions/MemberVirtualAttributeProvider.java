@@ -62,7 +62,7 @@ public class MemberVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The current configuration for this member virtual attribute.
+  /** The current configuration for this member virtual attribute. */
   private MemberVirtualAttributeCfg currentConfig;
 
 
@@ -80,9 +80,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeVirtualAttributeProvider(
                             MemberVirtualAttributeCfg configuration)
@@ -94,9 +92,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
@@ -105,9 +101,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -156,9 +150,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -202,9 +194,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
@@ -229,9 +219,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -245,9 +233,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -259,9 +245,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -273,9 +257,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -287,9 +269,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -300,9 +280,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -313,9 +291,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       MemberVirtualAttributeCfg configuration,
@@ -327,9 +303,7 @@ public class MemberVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MemberVirtualAttributeCfg configuration)

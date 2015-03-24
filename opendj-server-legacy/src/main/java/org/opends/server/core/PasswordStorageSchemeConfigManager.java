@@ -133,9 +133,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -167,9 +165,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       PasswordStorageSchemeCfg configuration
@@ -228,9 +224,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -271,9 +265,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       PasswordStorageSchemeCfg configuration
@@ -307,9 +299,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -322,9 +312,7 @@ public class PasswordStorageSchemeConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordStorageSchemeCfg configuration

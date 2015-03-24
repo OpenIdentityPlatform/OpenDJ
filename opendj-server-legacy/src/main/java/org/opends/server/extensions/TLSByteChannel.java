@@ -59,9 +59,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   private final class ByteChannelImpl implements ByteChannel
   {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException
     {
@@ -112,9 +110,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isOpen()
     {
@@ -123,9 +119,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read(final ByteBuffer unwrappedData) throws IOException
     {
@@ -165,9 +159,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int write(final ByteBuffer unwrappedData) throws IOException
     {
@@ -196,8 +188,10 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    // It seems that the SSL engine does not remember if an error has already
-    // occurred so we must cache it here and rethrow. See OPENDJ-652.
+    /**
+     * It seems that the SSL engine does not remember if an error has already
+     * occurred so we must cache it here and rethrow. See OPENDJ-652.
+     */
     private void abortOnSSLException() throws IOException
     {
       if (sslException != null)
@@ -252,7 +246,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    // Attempt to read and unwrap the next SSL packet.
+    /** Attempt to read and unwrap the next SSL packet. */
     private int doRecvAndUnwrap() throws IOException
     {
       // Synchronize SSL unwrap with channel reads.
@@ -341,7 +335,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-    // Attempt to wrap and send the next SSL packet.
+    /** Attempt to wrap and send the next SSL packet. */
     private int doWrapAndSend(final ByteBuffer unwrappedData)
         throws IOException
     {
@@ -494,9 +488,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteChannel getChannel()
   {
@@ -505,9 +497,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Certificate[] getClientCertificateChain()
   {
@@ -524,9 +514,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getName()
   {
@@ -535,9 +523,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
@@ -572,9 +558,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {

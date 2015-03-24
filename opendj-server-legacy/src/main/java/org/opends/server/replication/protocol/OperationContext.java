@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS
+ *      Portions copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -36,14 +36,10 @@ import org.opends.server.types.operation.PluginOperation;
  */
 public abstract class OperationContext
 {
-  /**
-   * The identifier used to attach the context to operations.
-   */
+  /** The identifier used to attach the context to operations. */
   public static final String SYNCHROCONTEXT = "replicationContext";
 
-  /**
-   * The CSN of the Operation.
-   */
+  /** The CSN of the Operation. */
   private CSN csn;
 
   /**
@@ -119,9 +115,7 @@ public abstract class OperationContext
     return ctx.csn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object obj)
   {
@@ -134,9 +128,7 @@ public abstract class OperationContext
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {

@@ -89,9 +89,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    PlainSASLMechanismHandlerCfg configuration)
@@ -111,9 +109,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -124,9 +120,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -499,9 +493,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -511,9 +503,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -523,9 +513,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -538,9 +526,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
@@ -551,9 +537,7 @@ public class PlainSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               PlainSASLMechanismHandlerCfg configuration)

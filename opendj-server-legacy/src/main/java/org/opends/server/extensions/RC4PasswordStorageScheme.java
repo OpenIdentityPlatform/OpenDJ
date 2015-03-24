@@ -60,8 +60,10 @@ public class RC4PasswordStorageScheme
 
 
 
-  // The reference to the Directory Server crypto manager that we will use to
-  // handle the encryption/decryption.
+  /**
+   * The reference to the Directory Server crypto manager that we will use to
+   * handle the encryption/decryption.
+   */
   private CryptoManager cryptoManager;
 
 
@@ -78,9 +80,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    RC4PasswordStorageSchemeCfg configuration)
@@ -91,9 +91,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
@@ -102,9 +100,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -137,9 +133,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -179,9 +173,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -203,9 +195,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
@@ -214,9 +204,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -240,9 +228,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -252,9 +238,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -266,9 +250,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -279,9 +261,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -294,9 +274,7 @@ public class RC4PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {

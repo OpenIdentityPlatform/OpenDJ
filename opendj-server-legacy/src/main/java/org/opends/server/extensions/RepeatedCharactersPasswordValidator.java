@@ -52,7 +52,7 @@ public class RepeatedCharactersPasswordValidator
        implements ConfigurationChangeListener<
                        RepeatedCharactersPasswordValidatorCfg>
 {
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private RepeatedCharactersPasswordValidatorCfg currentConfig;
 
 
@@ -70,9 +70,7 @@ public class RepeatedCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    RepeatedCharactersPasswordValidatorCfg configuration)
@@ -83,9 +81,7 @@ public class RepeatedCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -94,9 +90,7 @@ public class RepeatedCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -158,9 +152,7 @@ public class RepeatedCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       RepeatedCharactersPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -172,9 +164,7 @@ public class RepeatedCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                       RepeatedCharactersPasswordValidatorCfg configuration)
   {

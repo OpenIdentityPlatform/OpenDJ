@@ -114,7 +114,7 @@ public final class ReplicationServer
   private static final Set<Integer> localPorts =
       new CopyOnWriteArraySet<Integer>();
 
-  // Monitors for synchronizing domain creation with the connect thread.
+  /** Monitors for synchronizing domain creation with the connect thread. */
   private final Object domainTicketLock = new Object();
   private final Object connectThreadLock = new Object();
   private long domainTicket;
@@ -412,9 +412,7 @@ public final class ReplicationServer
     }
   }
 
-  /**
-   * initialization function for the replicationServer.
-   */
+  /** Initialization function for the replicationServer. */
   private void initialize()
   {
     shutdown.set(false);

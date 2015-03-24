@@ -67,21 +67,22 @@ public final class InternalLDAPOutputStream
        extends OutputStream
        implements InternalSearchListener
 {
-  // Indicates whether this stream has been closed.
+  /** Indicates whether this stream has been closed. */
   private boolean closed;
 
   private final ASN1Reader reader;
 
-  // The internal LDAP socket with which this output stream is
-  // associated.
+  /** The internal LDAP socket with which this output stream is associated. */
   private final InternalLDAPSocket socket;
 
-  // The immediate data being written.
+  /** The immediate data being written. */
   private ByteSequenceReader byteBuffer;
 
-  // The save buffer used to store any unprocessed data waiting
-  // to be read as ASN.1 elements. (Usually due to writing incomplete
-  // ASN.1 elements.)
+  /**
+   * The save buffer used to store any unprocessed data waiting
+   * to be read as ASN.1 elements. (Usually due to writing incomplete
+   * ASN.1 elements.)
+   */
   private final ByteStringBuilder saveBuffer;
 
   private final ByteSequenceReader saveBufferReader;
@@ -98,9 +99,7 @@ public final class InternalLDAPOutputStream
    */
   private class CombinedBufferInputStream extends InputStream
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int available()
     {
@@ -109,9 +108,7 @@ public final class InternalLDAPOutputStream
       return saveBufferReader.remaining() + byteBuffer.remaining();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read()
     {
@@ -129,18 +126,14 @@ public final class InternalLDAPOutputStream
       return -1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read(byte[] bytes)
     {
       return read(bytes, 0, bytes.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read(byte[] value, int off, int length)
     {
@@ -164,9 +157,7 @@ public final class InternalLDAPOutputStream
       return bytesCopied;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long skip(long length)
     {

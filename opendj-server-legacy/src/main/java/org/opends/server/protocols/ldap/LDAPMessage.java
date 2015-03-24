@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -49,13 +49,13 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPMessage
        implements ProtocolElement
 {
-  // The set of controls for this LDAP message.
+  /** The set of controls for this LDAP message. */
   private List<Control> controls;
 
-  // The message ID for this LDAP message.
+  /** The message ID for this LDAP message. */
   private final int messageID;
 
-  // The protocol op for this LDAP message.
+  /** The protocol op for this LDAP message. */
   private final ProtocolOp protocolOp;
 
 

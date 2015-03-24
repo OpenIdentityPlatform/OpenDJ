@@ -59,16 +59,16 @@ import org.opends.server.util.Base64;
 public class SearchResultEntryProtocolOp
        extends ProtocolOp
 {
-  // The set of attributes for this search entry.
+  /** The set of attributes for this search entry. */
   private LinkedList<LDAPAttribute> attributes;
 
-  // The DN for this search entry.
+  /** The DN for this search entry. */
   private final DN dn;
 
-  // The underlying search result entry.
+  /** The underlying search result entry. */
   private SearchResultEntry entry;
 
-  // The LDAP version (determines how attribute options are handled).
+  /** The LDAP version (determines how attribute options are handled). */
   private final int ldapVersion;
 
 
@@ -131,7 +131,7 @@ public class SearchResultEntryProtocolOp
 
 
 
-  // Generic constructor.
+  /** Generic constructor. */
   private SearchResultEntryProtocolOp(DN dn,
       LinkedList<LDAPAttribute> attributes, SearchResultEntry searchEntry,
       int ldapVersion)
@@ -624,7 +624,7 @@ public class SearchResultEntryProtocolOp
 
 
 
-  // Write an attribute without converting to an LDAPAttribute.
+  /** Write an attribute without converting to an LDAPAttribute. */
   private void writeAttribute(ASN1Writer stream, Attribute a)
       throws IOException
   {

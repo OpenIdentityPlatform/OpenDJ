@@ -694,7 +694,7 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * get the number of updates replayed by the replication.
+   * Get the number of updates replayed by the replication.
    *
    * @return The number of updates replayed by the replication
    */
@@ -708,7 +708,7 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * get the number of updates received by the replication plugin.
+   * Get the number of updates received by the replication plugin.
    *
    * @return the number of updates received
    */

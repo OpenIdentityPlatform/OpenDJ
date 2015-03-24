@@ -52,9 +52,7 @@ public class ReplicationRepairRequestControl extends Control
   private static final class Decoder
       implements ControlDecoder<ReplicationRepairRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ReplicationRepairRequestControl decode(boolean isCritical,
                                                   ByteString value)
            throws DirectoryException
@@ -62,9 +60,7 @@ public class ReplicationRepairRequestControl extends Control
       return new ReplicationRepairRequestControl(isCritical);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID()
     {
       return OID_REPLICATION_REPAIR_CONTROL;

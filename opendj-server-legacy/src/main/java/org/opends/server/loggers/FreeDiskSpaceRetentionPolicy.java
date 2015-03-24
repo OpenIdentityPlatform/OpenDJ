@@ -55,9 +55,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   private long freeDiskSpace;
   private FreeDiskSpaceLogRetentionPolicyCfg config;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogRetentionPolicy(
       FreeDiskSpaceLogRetentionPolicyCfg config)
@@ -68,9 +66,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     config.addFreeDiskSpaceChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FreeDiskSpaceLogRetentionPolicyCfg config,
@@ -80,9 +76,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       FreeDiskSpaceLogRetentionPolicyCfg config)
@@ -93,9 +87,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     return new ConfigChangeResult();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException
@@ -155,9 +147,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     return filesToDelete.toArray(new File[filesToDelete.size()]);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

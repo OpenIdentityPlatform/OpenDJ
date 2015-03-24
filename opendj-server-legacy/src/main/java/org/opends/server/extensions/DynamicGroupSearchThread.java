@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -62,19 +62,19 @@ public class DynamicGroupSearchThread
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of base DNs for the search requests.
+  /** The set of base DNs for the search requests. */
   private final DN[] baseDNs;
 
-  // The member list with which this search thread is associated.
+  /** The member list with which this search thread is associated. */
   private final DynamicGroupMemberList memberList;
 
-  // A counter used to keep track of which search is currently in progress.
+  /** A counter used to keep track of which search is currently in progress. */
   private int searchCounter;
 
-  // The set of member URLs for determining whether entries match the criteria.
+  /** The set of member URLs for determining whether entries match the criteria. */
   private final LDAPURL[][] memberURLs;
 
-  // The set of search filters for the search requests.
+  /** The set of search filters for the search requests. */
   private final SearchFilter[] searchFilters;
 
 
@@ -158,9 +158,7 @@ public class DynamicGroupSearchThread
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                                         SearchResultEntry searchEntry)
@@ -184,9 +182,7 @@ public class DynamicGroupSearchThread
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,

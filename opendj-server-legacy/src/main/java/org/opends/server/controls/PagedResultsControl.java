@@ -62,9 +62,7 @@ public class PagedResultsControl extends Control
   private static final class Decoder
       implements ControlDecoder<PagedResultsControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PagedResultsControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {

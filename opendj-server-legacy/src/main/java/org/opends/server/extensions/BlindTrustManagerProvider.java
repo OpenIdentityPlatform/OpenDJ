@@ -64,9 +64,7 @@ public class BlindTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTrustManagerProvider(
                   BlindTrustManagerProviderCfg configuration)
@@ -89,9 +87,7 @@ public class BlindTrustManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException

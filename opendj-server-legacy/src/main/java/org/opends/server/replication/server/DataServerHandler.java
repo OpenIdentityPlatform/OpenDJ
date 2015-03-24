@@ -273,9 +273,7 @@ public class DataServerHandler extends ServerHandler
     return attributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -293,9 +291,7 @@ public class DataServerHandler extends ServerHandler
     return status;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isDataServer()
   {
@@ -525,9 +521,7 @@ public class DataServerHandler extends ServerHandler
         refUrls, eclIncludes, eclIncludesForDeletes, getProtocolVersion());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

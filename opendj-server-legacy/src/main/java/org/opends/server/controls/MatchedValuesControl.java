@@ -58,9 +58,7 @@ public class MatchedValuesControl
   private static final class Decoder
       implements ControlDecoder<MatchedValuesControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MatchedValuesControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -122,7 +120,7 @@ public class MatchedValuesControl
 
 
 
-  // The set of matched values filters for this control.
+  /** The set of matched values filters for this control. */
   private final ArrayList<MatchedValuesFilter> filters;
 
 

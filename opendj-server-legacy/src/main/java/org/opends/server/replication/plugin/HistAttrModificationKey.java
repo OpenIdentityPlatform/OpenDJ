@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -34,7 +35,6 @@ package org.opends.server.replication.plugin;
  * ds-sync-hist: attrName1:changeNumber2:del:deletedValue
  * ds-sync-hist: attrName3:changeNumber3:add:newAddedvalue
  * ds-sync-hist: attrName3:changeNumber4:attrDel
- *
  */
 public enum HistAttrModificationKey
 {
@@ -58,7 +58,7 @@ public enum HistAttrModificationKey
    */
   ADD("add");
 
-  // The string representation of this key.
+  /** The string representation of this key. */
   private String key;
 
   /**

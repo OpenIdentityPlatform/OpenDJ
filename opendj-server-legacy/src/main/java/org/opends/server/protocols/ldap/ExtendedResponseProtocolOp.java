@@ -52,22 +52,22 @@ public class ExtendedResponseProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The value for this extended response.
+  /** The value for this extended response. */
   private ByteString value;
 
-  // The matched DN for this response.
+  /** The matched DN for this response. */
   private DN matchedDN;
 
-  // The result code for this response.
+  /** The result code for this response. */
   private int resultCode;
 
-  // The set of referral URLs for this response.
+  /** The set of referral URLs for this response. */
   private List<String> referralURLs;
 
-  // The error message for this response.
+  /** The error message for this response. */
   private LocalizableMessage errorMessage;
 
-  // The OID for this extended response.
+  /** The OID for this extended response. */
   private String oid;
 
 

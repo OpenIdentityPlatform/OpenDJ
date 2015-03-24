@@ -22,10 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
-
 package org.opends.server.replication.plugin;
 
 import java.util.Collection;
@@ -47,12 +45,10 @@ public final class HistoricalCsnOrderingMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
 
-  //Associated Matching Rule.
+  /** Associated Matching Rule. */
   private MatchingRule matchingRule;
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -65,9 +61,7 @@ public final class HistoricalCsnOrderingMatchingRuleFactory
        .addToSchema().toSchema().getMatchingRule(oid);
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {

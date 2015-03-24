@@ -73,10 +73,10 @@ public class DynamicGroup
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The DN of the entry that holds the definition for this group.
+  /** The DN of the entry that holds the definition for this group. */
   private DN groupEntryDN;
 
-  // The set of the LDAP URLs that define the membership criteria.
+  /** The set of the LDAP URLs that define the membership criteria. */
   private LinkedHashSet<LDAPURL> memberURLs;
 
 
@@ -115,9 +115,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeGroupImplementation(
                    DynamicGroupImplementationCfg configuration)
@@ -129,9 +127,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DynamicGroup newInstance(ServerContext serverContext, Entry groupEntry)
          throws DirectoryException
@@ -170,9 +166,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
@@ -185,9 +179,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isGroupDefinition(Entry entry)
   {
@@ -202,9 +194,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getGroupDN()
   {
@@ -213,9 +203,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setGroupDN(DN groupDN)
   {
@@ -237,9 +225,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsNestedGroups()
   {
@@ -249,9 +235,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<DN> getNestedGroupDNs()
   {
@@ -261,9 +245,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -275,9 +257,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -289,9 +269,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
@@ -307,9 +285,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
@@ -332,9 +308,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MemberList getMembers()
          throws DirectoryException
@@ -344,9 +318,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MemberList getMembers(DN baseDN, SearchScope scope,
                                SearchFilter filter)
@@ -365,9 +337,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean mayAlterMemberList()
   {
@@ -376,9 +346,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
@@ -390,9 +358,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
@@ -404,9 +370,7 @@ public class DynamicGroup
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {

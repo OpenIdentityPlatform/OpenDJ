@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
 
 import org.opends.server.types.*;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-
 
 /**
  * This abstract class wraps/decorates a given bind operation.
@@ -50,117 +48,91 @@ public abstract class BindOperationWrapper extends
     super(bind);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AuthenticationInfo getAuthenticationInfo()
   {
     return getOperation().getAuthenticationInfo();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AuthenticationType getAuthenticationType()
   {
     return getOperation().getAuthenticationType();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getAuthFailureReason()
   {
     return getOperation().getAuthFailureReason();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getBindDN()
   {
     return getOperation().getBindDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawBindDN()
   {
     return getOperation().getRawBindDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getSASLAuthUserEntry()
   {
     return getOperation().getSASLAuthUserEntry();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getSASLCredentials()
   {
     return getOperation().getSASLCredentials();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getSASLMechanism()
   {
     return getOperation().getSASLMechanism();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getServerSASLCredentials()
   {
     return getOperation().getServerSASLCredentials();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getSimplePassword()
   {
     return getOperation().getSimplePassword();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getUserEntryDN()
   {
     return getOperation().getUserEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
     getOperation().setAuthenticationInfo(authInfo);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAuthFailureReason(LocalizableMessage reason)
   {
@@ -174,27 +146,21 @@ public abstract class BindOperationWrapper extends
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawBindDN(ByteString rawBindDN)
   {
     getOperation().setRawBindDN(rawBindDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     getOperation().setSASLAuthUserEntry(saslAuthUserEntry);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSASLCredentials(String saslMechanism,
       ByteString saslCredentials)
@@ -202,53 +168,41 @@ public abstract class BindOperationWrapper extends
     getOperation().setSASLCredentials(saslMechanism, saslCredentials);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
     getOperation().setServerSASLCredentials(serverSASLCredentials);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSimplePassword(ByteString simplePassword)
   {
     getOperation().setSimplePassword(simplePassword);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setUserEntryDN(DN userEntryDN){
     getOperation().setUserEntryDN(userEntryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProtocolVersion(String protocolVersion)
   {
     getOperation().setProtocolVersion(protocolVersion);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getProtocolVersion()
   {

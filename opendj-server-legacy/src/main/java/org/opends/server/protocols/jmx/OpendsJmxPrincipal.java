@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -32,9 +33,7 @@ import java.security.Principal;
  */
 public class OpendsJmxPrincipal implements Principal
 {
-  /**
-   * The authentication ID.
-   */
+  /** The authentication ID. */
   private String authID;
 
 
@@ -50,36 +49,28 @@ public class OpendsJmxPrincipal implements Principal
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object another)
   {
     return authID.equals(another);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return authID.hashCode() ;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return authID;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getName()
   {
     return authID;

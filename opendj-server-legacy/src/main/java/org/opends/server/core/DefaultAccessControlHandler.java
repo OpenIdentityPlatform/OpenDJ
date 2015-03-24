@@ -55,9 +55,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeAccessControlHandler(AccessControlHandlerCfg
                                                   configuration)
@@ -68,9 +66,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeAccessControlHandler()
   {
@@ -79,9 +75,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendAddOperation addOperation)
   {
@@ -89,9 +83,7 @@ class DefaultAccessControlHandler
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(BindOperation bindOperation)
   {
@@ -100,9 +92,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendCompareOperation compareOperation)
   {
@@ -111,9 +101,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendDeleteOperation deleteOperation)
   {
@@ -122,9 +110,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ExtendedOperation extendedOperation)
   {
@@ -133,9 +119,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendModifyOperation modifyOperation)
   {
@@ -144,9 +128,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
    public  boolean isAllowed(DN dn, Operation  op, Control control)
    {
@@ -155,9 +137,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ModifyDNOperation modifyDNOperation)
   {
@@ -166,9 +146,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(SearchOperation searchOperation)
   {
@@ -177,9 +155,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(Operation operation, Entry entry,
     SearchFilter filter) throws DirectoryException
@@ -189,9 +165,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean maySend(Operation operation, SearchResultEntry unfilteredEntry)
   {
@@ -200,9 +174,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void filterEntry(Operation operation,
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
@@ -212,9 +184,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean maySend(DN dn, Operation operation,
                          SearchResultReference searchReference)
@@ -224,9 +194,7 @@ class DefaultAccessControlHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public  boolean mayProxy(Entry proxyUser, Entry proxiedUser,
                            Operation operation) {

@@ -68,8 +68,10 @@ public class TrustManagerProviderConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated trust
-  // manager providers.
+  /**
+   * A mapping between the DNs of the config entries and the associated trust
+   * manager providers.
+   */
   private final ConcurrentHashMap<DN,TrustManagerProvider> providers;
 
   private final ServerContext serverContext;
@@ -144,9 +146,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationAddAcceptable(
           TrustManagerProviderCfg configuration,
           List<LocalizableMessage> unacceptableReasons)
@@ -173,9 +173,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationAdd(
                                   TrustManagerProviderCfg configuration)
   {
@@ -215,9 +213,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationDeleteAcceptable(
                       TrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -229,9 +225,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationDelete(
                                  TrustManagerProviderCfg configuration)
   {
@@ -250,9 +244,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       TrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -279,9 +271,7 @@ public class TrustManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  TrustManagerProviderCfg configuration)
   {

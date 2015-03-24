@@ -68,9 +68,7 @@ public class VLVRequestControl
   private static final class Decoder
       implements ControlDecoder<VLVRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public VLVRequestControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -165,25 +163,25 @@ public class VLVRequestControl
 
 
 
-  // The target type for this VLV request control.
+  /** The target type for this VLV request control. */
   private byte targetType;
 
-  // The context ID for this VLV request control.
+  /** The context ID for this VLV request control. */
   private ByteString contextID;
 
-  // The greaterThanOrEqual target assertion value for this VLV request control.
+  /** The greaterThanOrEqual target assertion value for this VLV request control. */
   private ByteString greaterThanOrEqual;
 
-  // The after count for this VLV request control.
+  /** The after count for this VLV request control. */
   private int afterCount;
 
-  // The before count for this VLV request control.
+  /** The before count for this VLV request control. */
   private int beforeCount;
 
-  // The content count for the byOffset target of this VLV request control.
+  /** The content count for the byOffset target of this VLV request control. */
   private int contentCount;
 
-  // The offset for the byOffset target of this VLV request control.
+  /** The offset for the byOffset target of this VLV request control. */
   private int offset;
 
 

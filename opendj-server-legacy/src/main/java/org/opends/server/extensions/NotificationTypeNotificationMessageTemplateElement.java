@@ -22,16 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AccountStatusNotification;
-
-
 
 /**
  * This class implements a notification message template element that will
@@ -50,9 +46,7 @@ public class NotificationTypeNotificationMessageTemplateElement
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {

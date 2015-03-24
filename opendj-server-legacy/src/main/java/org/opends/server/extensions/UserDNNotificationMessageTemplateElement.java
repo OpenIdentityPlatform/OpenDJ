@@ -50,9 +50,7 @@ public class UserDNNotificationMessageTemplateElement
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {

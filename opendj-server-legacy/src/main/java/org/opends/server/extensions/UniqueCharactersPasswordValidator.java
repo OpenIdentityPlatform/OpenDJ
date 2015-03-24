@@ -51,7 +51,7 @@ public class UniqueCharactersPasswordValidator
        implements ConfigurationChangeListener<
                        UniqueCharactersPasswordValidatorCfg>
 {
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private UniqueCharactersPasswordValidatorCfg currentConfig;
 
 
@@ -69,9 +69,7 @@ public class UniqueCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    UniqueCharactersPasswordValidatorCfg configuration)
@@ -82,9 +80,7 @@ public class UniqueCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -93,9 +89,7 @@ public class UniqueCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -147,9 +141,7 @@ public class UniqueCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       UniqueCharactersPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -161,9 +153,7 @@ public class UniqueCharactersPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                       UniqueCharactersPasswordValidatorCfg configuration)
   {

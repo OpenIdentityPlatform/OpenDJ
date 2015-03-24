@@ -68,13 +68,13 @@ public final class AccessControlConfigManager
   private static final String CLASS_NAME =
     "org.opends.server.core.AccessControlConfigManager";
 
-  // The single application-wide instance.
+  /** The single application-wide instance. */
   private static AccessControlConfigManager instance;
 
-  // The active access control implementation.
+  /** The active access control implementation. */
   private AtomicReference<AccessControlHandler> accessControlHandler;
 
-  // The current configuration.
+  /** The current configuration. */
   private AccessControlHandlerCfg currentConfiguration;
 
   private ServerContext serverContext;
@@ -308,9 +308,7 @@ public final class AccessControlConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
@@ -337,9 +335,7 @@ public final class AccessControlConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AccessControlHandlerCfg configuration)
@@ -367,9 +363,7 @@ public final class AccessControlConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -378,9 +372,7 @@ public final class AccessControlConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
@@ -389,9 +381,7 @@ public final class AccessControlConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LinkedHashMap<String,String> getAlerts()
   {

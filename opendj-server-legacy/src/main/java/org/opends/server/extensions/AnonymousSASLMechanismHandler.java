@@ -66,11 +66,7 @@ public class AnonymousSASLMechanismHandler
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(AnonymousSASLMechanismHandlerCfg
                                                   configuration)
@@ -82,23 +78,14 @@ public class AnonymousSASLMechanismHandler
                                                  this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
   }
 
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -126,11 +113,7 @@ public class AnonymousSASLMechanismHandler
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -138,11 +121,7 @@ public class AnonymousSASLMechanismHandler
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {

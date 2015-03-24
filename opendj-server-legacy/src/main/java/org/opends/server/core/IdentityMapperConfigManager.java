@@ -155,9 +155,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       IdentityMapperCfg configuration,
@@ -185,9 +183,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  IdentityMapperCfg configuration)
@@ -227,9 +223,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       IdentityMapperCfg configuration,
@@ -242,9 +236,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  IdentityMapperCfg configuration)
@@ -264,9 +256,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       IdentityMapperCfg configuration,
@@ -294,9 +284,7 @@ public class IdentityMapperConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  IdentityMapperCfg configuration)

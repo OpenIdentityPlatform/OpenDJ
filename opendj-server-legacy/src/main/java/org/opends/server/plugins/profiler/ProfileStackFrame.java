@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 
@@ -49,19 +49,23 @@ public class ProfileStackFrame
 
 
 
-  // The mapping between the line numbers for this stack frame and the
-  // number of times that they were encountered.
+  /**
+   * The mapping between the line numbers for this stack frame and the
+   * number of times that they were encountered.
+   */
   private HashMap<Integer,Long> lineNumbers;
 
-  // The mapping for subordinate frames.  It is mapped to itself because we
-  // use a fuzzy equality comparison and sets do not have a get method that
-  // can be used to retrieve a specified object.
+  /**
+   * The mapping for subordinate frames.  It is mapped to itself because we
+   * use a fuzzy equality comparison and sets do not have a get method that
+   * can be used to retrieve a specified object.
+   */
   private HashMap<ProfileStackFrame,ProfileStackFrame> subordinateFrames;
 
-  // The class name for this stack frame.
+  /** The class name for this stack frame. */
   private String className;
 
-  // The method name for this stack frame.
+  /** The method name for this stack frame. */
   private String methodName;
 
 

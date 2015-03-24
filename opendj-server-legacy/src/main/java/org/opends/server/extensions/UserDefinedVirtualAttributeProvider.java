@@ -50,7 +50,7 @@ public class UserDefinedVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  // The current configuration for this virtual attribute provider.
+  /** The current configuration for this virtual attribute provider. */
   private UserDefinedVirtualAttributeCfg currentConfig;
 
 
@@ -68,9 +68,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeVirtualAttributeProvider(
                             UserDefinedVirtualAttributeCfg configuration)
@@ -82,9 +80,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeVirtualAttributeProvider()
   {
@@ -93,9 +89,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
@@ -104,9 +98,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -130,9 +122,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -144,9 +134,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -157,9 +145,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
@@ -171,9 +157,7 @@ public class UserDefinedVirtualAttributeProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)

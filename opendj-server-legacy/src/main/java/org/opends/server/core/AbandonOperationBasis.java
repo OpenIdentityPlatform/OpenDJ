@@ -95,9 +95,7 @@ public class AbandonOperationBasis extends AbstractOperation
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -109,9 +107,7 @@ public class AbandonOperationBasis extends AbstractOperation
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
@@ -122,9 +118,7 @@ public class AbandonOperationBasis extends AbstractOperation
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
@@ -133,9 +127,7 @@ public class AbandonOperationBasis extends AbstractOperation
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
@@ -227,9 +219,7 @@ abandonProcessing:
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {

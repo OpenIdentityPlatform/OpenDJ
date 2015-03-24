@@ -56,15 +56,19 @@ public class CharacterSetPasswordValidator
        extends PasswordValidator<CharacterSetPasswordValidatorCfg>
        implements ConfigurationChangeListener<CharacterSetPasswordValidatorCfg>
 {
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private CharacterSetPasswordValidatorCfg currentConfig;
 
-  // A mapping between the character sets and the minimum number of characters
-  // required for each.
+  /**
+   * A mapping between the character sets and the minimum number of characters
+   * required for each.
+   */
   private HashMap<String,Integer> characterSets;
 
-  // A mapping between the character ranges and the minimum number of characters
-  // required for each.
+  /**
+   * A mapping between the character ranges and the minimum number of characters
+   * required for each.
+   */
   private HashMap<String,Integer> characterRanges;
 
 
@@ -82,9 +86,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    CharacterSetPasswordValidatorCfg configuration)
@@ -100,9 +102,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -111,9 +111,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -483,9 +481,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -497,9 +493,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CharacterSetPasswordValidatorCfg configuration,
@@ -522,9 +516,7 @@ public class CharacterSetPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       CharacterSetPasswordValidatorCfg configuration)

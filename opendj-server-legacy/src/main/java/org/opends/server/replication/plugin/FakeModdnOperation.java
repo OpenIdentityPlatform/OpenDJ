@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -55,9 +55,7 @@ public class FakeModdnOperation extends FakeOperation
     this.entry = entry;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ReplicationMsg generateMessage()
   {

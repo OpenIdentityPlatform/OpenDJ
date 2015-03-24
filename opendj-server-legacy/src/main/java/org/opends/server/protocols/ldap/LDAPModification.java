@@ -42,10 +42,10 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPModification
        extends RawModification
 {
-  // The modification type for this modification.
+  /** The modification type for this modification. */
   private ModificationType modificationType;
 
-  // The attribute for this modification.
+  /** The attribute for this modification. */
   private RawAttribute attribute;
 
 

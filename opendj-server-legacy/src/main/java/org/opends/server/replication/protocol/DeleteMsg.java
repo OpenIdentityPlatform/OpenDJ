@@ -45,7 +45,7 @@ public class DeleteMsg extends LDAPUpdateMsg
 {
   private String initiatorsName;
 
-  /** whether the DEL operation is a subtree DEL. */
+  /** Whether the DEL operation is a subtree DEL. */
   private boolean isSubtreeDelete;
 
   /**

@@ -83,9 +83,7 @@ public class HeartbeatThread extends DirectoryThread
     this.heartbeatInterval = heartbeatInterval;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run()
   {

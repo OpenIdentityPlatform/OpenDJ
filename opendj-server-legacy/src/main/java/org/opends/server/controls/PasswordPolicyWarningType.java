@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
-
-
 
 import static org.opends.messages.ProtocolMessages.*;
 
@@ -34,8 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 /**
  * This enumeration defines the set of password policy warnings that may be
@@ -64,7 +60,7 @@ public enum PasswordPolicyWarningType
 
 
 
-  // A lookup table for resolving a warning type from its BER type.
+  /** A lookup table for resolving a warning type from its BER type. */
   private static final Map<Byte, PasswordPolicyWarningType> TABLE;
   static
   {
@@ -80,11 +76,13 @@ public enum PasswordPolicyWarningType
 
 
 
-  // The BER type to use for the associated element in the password policy
-  // control.
+  /**
+   * The BER type to use for the associated element in the password policy
+   * control.
+   */
   private final byte type;
 
-  // The message ID for the description of this password policy error type.
+  /** The message ID for the description of this password policy error type. */
   private final LocalizableMessage description;
 
 

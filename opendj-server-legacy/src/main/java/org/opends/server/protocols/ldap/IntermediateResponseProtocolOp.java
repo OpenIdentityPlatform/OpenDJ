@@ -47,10 +47,10 @@ public class IntermediateResponseProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The value for this intermediate response.
+  /** The value for this intermediate response. */
   private ByteString value;
 
-  // The OID for this intermediate response.
+  /** The OID for this intermediate response. */
   private String oid;
 
 

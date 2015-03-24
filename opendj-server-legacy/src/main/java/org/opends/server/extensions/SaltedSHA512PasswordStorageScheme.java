@@ -81,17 +81,19 @@ public class SaltedSHA512PasswordStorageScheme
   private static final int NUM_SALT_BYTES = 8;
 
 
-  // The size of the digest in bytes.
+  /** The size of the digest in bytes. */
   private static final int SHA512_LENGTH = 512 / 8;
 
-  // The message digest that will actually be used to generate the 512-bit SHA-2
-  // hashes.
+  /**
+   * The message digest that will actually be used to generate the 512-bit SHA-2
+   * hashes.
+   */
   private MessageDigest messageDigest;
 
-  // The lock used to provide threadsafe access to the message digest.
+  /** The lock used to provide threadsafe access to the message digest. */
   private Object digestLock;
 
-  // The secure random number generator to use to generate the salt values.
+  /** The secure random number generator to use to generate the salt values. */
   private Random random;
 
 
@@ -108,9 +110,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    SaltedSHA512PasswordStorageSchemeCfg configuration)
@@ -136,9 +136,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
@@ -147,9 +145,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -201,9 +197,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -261,9 +255,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -329,9 +321,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -341,9 +331,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
@@ -352,9 +340,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -408,9 +394,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -452,9 +436,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
@@ -463,9 +445,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -477,9 +457,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -492,9 +470,7 @@ public class SaltedSHA512PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {

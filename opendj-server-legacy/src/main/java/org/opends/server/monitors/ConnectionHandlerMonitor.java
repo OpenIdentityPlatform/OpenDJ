@@ -46,26 +46,28 @@ import org.opends.server.types.*;
 public class ConnectionHandlerMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
-  // The attribute type that will be used to report the established connections.
+  /** The attribute type that will be used to report the established connections. */
   private AttributeType connectionsType;
 
-  // The attribute type that will be used to report the listeners.
+  /** The attribute type that will be used to report the listeners. */
   private AttributeType listenerType;
 
-  // The attribute type that will be used to report the number of established
-  // client connections.
+  /**
+   * The attribute type that will be used to report the number of established
+   * client connections.
+   */
   private AttributeType numConnectionsType;
 
-  // The attribute type that will be used to report the protocol.
+  /** The attribute type that will be used to report the protocol. */
   private AttributeType protocolType;
 
-  // The attribute type that will be used to report the config dn .
+  /** The attribute type that will be used to report the config dn . */
   private AttributeType configDnType;
 
-  // The connection handler with which this monitor is associated.
+  /** The connection handler with which this monitor is associated. */
   private ConnectionHandler<?> connectionHandler;
 
-  // The name for this monitor.
+  /** The name for this monitor. */
   private String monitorName;
 
 
@@ -86,9 +88,7 @@ public class ConnectionHandlerMonitor
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
@@ -117,9 +117,7 @@ public class ConnectionHandlerMonitor
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -143,9 +141,7 @@ public class ConnectionHandlerMonitor
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {

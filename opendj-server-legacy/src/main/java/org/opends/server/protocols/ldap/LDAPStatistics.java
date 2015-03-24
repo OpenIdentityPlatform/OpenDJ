@@ -22,12 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
- *
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-
-
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -43,7 +40,6 @@ import org.opends.server.api.MonitorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
 
 /**
  * This class defines a data structure that will be used to keep track
@@ -105,7 +101,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   private AtomicLong unbindRequests = new AtomicLong(0);
 
 
-  // The instance name for this monitor provider instance.
+  /** The instance name for this monitor provider instance. */
   private final String instanceName;
 
   // Monitor Objects : for Operations (count and time)
@@ -144,9 +140,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
       throws ConfigException
@@ -176,10 +170,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   }
 
 
-  /**
-   *
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ObjectClass getMonitorObjectClass()
   {

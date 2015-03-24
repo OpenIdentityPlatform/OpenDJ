@@ -69,7 +69,7 @@ public class ReplicationDbEnv
    * @GuardedBy("stateLock")
    */
   private final ChangelogState changelogState;
-  /** Exclusive lock to synchronize updates to in-memory and on-disk changelogState */
+  /** Exclusive lock to synchronize updates to in-memory and on-disk changelogState. */
   private final Object stateLock = new Object();
   private final List<Database> allDbs = new CopyOnWriteArrayList<Database>();
   private ReplicationServer replicationServer;

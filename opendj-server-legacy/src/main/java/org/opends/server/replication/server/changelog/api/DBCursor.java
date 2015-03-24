@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -96,11 +96,11 @@ public interface DBCursor<T> extends Closeable
    * the exact key must be found or if any key equal or lower/higher should match.
    */
   public enum KeyMatchingStrategy {
-    /** matches if the key or a lower key is found. */
+    /** Matches if the key or a lower key is found. */
     LESS_THAN_OR_EQUAL_TO_KEY,
-    /** matches only if the exact key is found. */
+    /** Matches only if the exact key is found. */
     EQUAL_TO_KEY,
-    /** matches if the key or a greater key is found. */
+    /** Matches if the key or a greater key is found. */
     GREATER_THAN_OR_EQUAL_TO_KEY
   }
 
@@ -110,9 +110,9 @@ public interface DBCursor<T> extends Closeable
    * key.
    */
   public enum PositionStrategy {
-    /** start point is on the matching key. */
+    /** Start point is on the matching key. */
     ON_MATCHING_KEY,
-    /** start point is after the matching key. */
+    /** Start point is after the matching key. */
     AFTER_MATCHING_KEY
   }
 

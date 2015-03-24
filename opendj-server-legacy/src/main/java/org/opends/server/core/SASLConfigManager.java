@@ -145,9 +145,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -175,9 +173,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
               SASLMechanismHandlerCfg configuration)
@@ -216,9 +212,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -231,9 +225,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
               SASLMechanismHandlerCfg configuration)
@@ -251,9 +243,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -281,9 +271,7 @@ public class SASLConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SASLMechanismHandlerCfg configuration)

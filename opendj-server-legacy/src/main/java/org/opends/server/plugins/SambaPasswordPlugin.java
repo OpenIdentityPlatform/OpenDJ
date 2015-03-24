@@ -105,35 +105,30 @@ public final class SambaPasswordPlugin extends
    */
   static final class MD4MessageDigest extends MessageDigest
   {
-    // Class is package private for testing.
+    /** Class is package private for testing. */
     private final byte[] xBuf = new byte[4];
     private int xBufOff;
     private long byteCount;
 
     private static final int DIGEST_LENGTH = 16;
-    private int H1, H2, H3, H4; // IV's
+    /** IV's. */
+    private int H1, H2, H3, H4;
     private final int[] X = new int[16];
     private int xOff;
 
-    //
-    // round 1 left rotates
-    //
+    /** Round 1 left rotates. */
     private static final int S11 = 3;
     private static final int S12 = 7;
     private static final int S13 = 11;
     private static final int S14 = 19;
 
-    //
-    // round 2 left rotates
-    //
+    /** Round 2 left rotates. */
     private static final int S21 = 3;
     private static final int S22 = 5;
     private static final int S23 = 9;
     private static final int S24 = 13;
 
-    //
-    // round 3 left rotates
-    //
+    /** Round 3 left rotates. */
     private static final int S31 = 3;
     private static final int S32 = 9;
     private static final int S33 = 11;
@@ -152,9 +147,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public byte[] engineDigest()
     {
@@ -170,9 +163,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void engineReset()
     {
@@ -196,9 +187,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void engineUpdate(final byte input)
     {
@@ -213,9 +202,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void engineUpdate(final byte[] in, int inOff, int len)
     {
@@ -256,7 +243,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /*
+    /**
      * F, G, H and I are the basic MD4 functions.
      */
     private int F(final int u, final int v, final int w)
@@ -434,36 +421,30 @@ public final class SambaPasswordPlugin extends
    */
   private SambaPasswordPluginCfg config;
 
-  // The name of the Samba LanMan password attribute.
+  /** The name of the Samba LanMan password attribute. */
   private static final String SAMBA_LM_PASSWORD_ATTRIBUTE_NAME =
     "sambaLMPassword";
 
-  // The name of the Samba NT password attribute.
+  /** The name of the Samba NT password attribute. */
   private static final String SAMBA_NT_PASSWORD_ATTRIBUTE_NAME =
     "sambaNTPassword";
 
-  // The name of the Samba account object class.
+  /** The name of the Samba account object class. */
   private static final String SAMBA_SAM_ACCOUNT_OC_NAME = "sambaSAMAccount";
 
-  // The name of the Samba last password change attribute.
+  /** The name of the Samba last password change attribute. */
   private static final String SAMBA_PWD_LAST_SET_NAME = "sambaPwdLastSet";
 
-  /**
-   * Debug tracer object to log debugging information.
-   */
+  /** Debug tracer object to log debugging information. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Password Modify Extended Operation OID.
-   */
+  /** Password Modify Extended Operation OID. */
   private static final String PWMOD_EXTOP_OID = "1.3.6.1.4.1.4203.1.11.1";
 
-  /**
-   * Magic string to be used as salt.
-   */
+  /** Magic string to be used as salt. */
   private static final String MAGIC_STR = "KGS!@#$%";
 
-  // Default timestamp provider implementation.
+  /** Default timestamp provider implementation. */
   private static final TimeStampProvider DEFAULT_TIMESTAMP_PROVIDER =
   new TimeStampProvider()
   {
@@ -474,7 +455,7 @@ public final class SambaPasswordPlugin extends
     }
   };
 
-  // Use the default implementation of the timestamp provider... by default.
+  /** Use the default implementation of the timestamp provider... by default. */
   private TimeStampProvider timeStampProvider = DEFAULT_TIMESTAMP_PROVIDER;
 
 
@@ -645,9 +626,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final SambaPasswordPluginCfg newConfig)
@@ -661,9 +640,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation doPostOperation(
       final PostOperationExtendedOperation extendedOperation)
@@ -796,9 +773,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation doPreOperation(
       final PreOperationModifyOperation modifyOperation)
@@ -875,9 +850,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(final Set<PluginType> pluginTypes,
       final SambaPasswordPluginCfg configuration) throws ConfigException,
@@ -923,9 +896,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final SambaPasswordPluginCfg newConfig, final List<LocalizableMessage> messages)

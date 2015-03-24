@@ -2550,7 +2550,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * find the current DN of an entry from its entry UUID.
+   * Find the current DN of an entry from its entry UUID.
    *
    * @param uuid the Entry Unique ID.
    * @return The current DN of the entry or null if there is no entry with

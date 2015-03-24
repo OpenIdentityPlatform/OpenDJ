@@ -56,9 +56,7 @@ public class SubtreeDeleteControl extends Control
   private static final class Decoder implements
       ControlDecoder<SubtreeDeleteControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SubtreeDeleteControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -105,9 +103,7 @@ public class SubtreeDeleteControl extends Control
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void writeValue(ASN1Writer writer) throws IOException
   {
@@ -116,9 +112,7 @@ public class SubtreeDeleteControl extends Control
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -55,24 +55,20 @@ public class AttrHistoricalSingle extends AttrHistorical
   /** Last added value. */
   private ByteString value;
 
-/**
- * last operation applied. This is only used for multiple mods on the same
- * single valued attribute in the same modification.
- */
+  /**
+   * Last operation applied. This is only used for multiple mods on the same
+   * single valued attribute in the same modification.
+   */
   private HistAttrModificationKey lastMod;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CSN getDeleteTime()
   {
     return this.deleteTime;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
   {
@@ -87,9 +83,7 @@ public class AttrHistoricalSingle extends AttrHistorical
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processLocalOrNonConflictModification(CSN csn, Modification mod)
   {
@@ -138,9 +132,7 @@ public class AttrHistoricalSingle extends AttrHistorical
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean replayOperation(Iterator<Modification> modsIterator, CSN csn,
       Entry modifiedEntry, Modification mod)
@@ -287,9 +279,7 @@ public class AttrHistoricalSingle extends AttrHistorical
     return conflict;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
   {

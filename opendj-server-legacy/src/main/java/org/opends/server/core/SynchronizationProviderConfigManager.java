@@ -141,9 +141,7 @@ public class SynchronizationProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       SynchronizationProviderCfg configuration)
@@ -226,9 +224,7 @@ public class SynchronizationProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SynchronizationProviderCfg configuration,
@@ -240,9 +236,7 @@ public class SynchronizationProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
     SynchronizationProviderCfg configuration)
@@ -294,9 +288,7 @@ public class SynchronizationProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       SynchronizationProviderCfg configuration,
@@ -410,9 +402,7 @@ public class SynchronizationProviderConfigManager
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       SynchronizationProviderCfg configuration)
@@ -433,9 +423,7 @@ public class SynchronizationProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       SynchronizationProviderCfg configuration,

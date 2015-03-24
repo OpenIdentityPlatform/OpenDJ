@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -57,7 +58,7 @@ public enum StatusMachineEvent
    * Event used when one wants the DS to enter the BAD_GEN_ID_STATUS.
    */
   TO_BAD_GEN_ID_STATUS_EVENT((byte) 4);
-  // The status value
+  /** The status value. */
   private byte value = -1;
 
   private StatusMachineEvent(byte value)
