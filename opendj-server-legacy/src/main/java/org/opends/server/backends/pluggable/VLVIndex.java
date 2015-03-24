@@ -452,7 +452,7 @@ class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  boolean containsValues(ReadableStorage txn, long entryID, ByteString[] values, AttributeType[] types)
+  private boolean containsValues(ReadableStorage txn, long entryID, ByteString[] values, AttributeType[] types)
       throws StorageRuntimeException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
@@ -465,7 +465,7 @@ class VLVIndex extends DatabaseContainer
    *
    * @return The types of the attribute values to sort on.
    */
-  AttributeType[] getSortTypes()
+  private AttributeType[] getSortTypes()
   {
     SortKey[] sortKeys = sortOrder.getSortKeys();
     AttributeType[] types = new AttributeType[sortKeys.length];
@@ -962,7 +962,7 @@ class VLVIndex extends DatabaseContainer
    * @param entry The entry to get the values from.
    * @return The attribute values to sort on.
    */
-  ByteString[] getSortValues(Entry entry)
+  private ByteString[] getSortValues(Entry entry)
   {
     SortKey[] sortKeys = sortOrder.getSortKeys();
     ByteString[] values = new ByteString[sortKeys.length];
@@ -1106,7 +1106,7 @@ class VLVIndex extends DatabaseContainer
    *         otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  boolean shouldInclude(Entry entry) throws DirectoryException
+  private boolean shouldInclude(Entry entry) throws DirectoryException
   {
     DN entryDN = entry.getName();
     return entryDN.matchesBaseAndScope(baseDN, scope)
@@ -1371,5 +1371,10 @@ class VLVIndex extends DatabaseContainer
   SortOrder getSortOrder()
   {
     return sortOrder;
+  }
+
+  boolean verifyEntry(ReadableStorage txn, EntryID entryID, Entry entry) throws DirectoryException
+  {
+    return shouldInclude(entry) && !containsValues(txn, entryID.longValue(), getSortValues(entry), getSortTypes());
   }
 }
