@@ -22,10 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
-
 package org.opends.guitools.controlpanel.ui.components;
 
 import java.awt.Color;
@@ -43,27 +41,26 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.Action;
 import org.opends.guitools.controlpanel.datamodel.Category;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A basic extension of a button that changes its rendering so that the looks
  * are more similar to a row in a list.  It is used in the actions on the left
  * of the main Control Center dialog (in actions like 'Manage Entries...',
  * 'Import from LDIF...' etc.
- *
  */
 public class ActionButton extends JButton
 {
   private static final long serialVersionUID = -1898192406268037714L;
 
-  private Action action;
+  private static final Border buttonBorder;
+  private static final Border focusBorder;
+  private final Action action;
   private boolean isBeingPressed;
   private boolean hasMouseOver;
-  private static Border buttonBorder;
-  private static Border focusBorder;
   static
   {
     //Calculate border based on category settings
@@ -99,7 +96,7 @@ public class ActionButton extends JButton
     }
     focusBorder = BorderFactory.createCompoundBorder(
         highlightBorder, buttonBorder);
-  };
+  }
 
   private static final Color defaultBackground =
     ColorAndFontConstants.background;
@@ -152,7 +149,10 @@ public class ActionButton extends JButton
   }
 
   /**
-   * {@inheritDoc}
+   * Callback when an action has been performed.
+   *
+   * @param ev
+   *          the action event
    */
   public void actionPerformed(ActionEvent ev)
   {
@@ -162,6 +162,7 @@ public class ActionButton extends JButton
     repaint();
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         isBeingPressed = false;
@@ -172,7 +173,10 @@ public class ActionButton extends JButton
   }
 
   /**
-   * {@inheritDoc}
+   * Callback when a mouse button has been pressed.
+   *
+   * @param e
+   *          the mouse event
    */
   public void mousePressed(MouseEvent e)
   {
@@ -180,7 +184,10 @@ public class ActionButton extends JButton
   }
 
   /**
-   * {@inheritDoc}
+   * Callback when a mouse button has been released.
+   *
+   * @param e
+   *          the mouse event
    */
   public void mouseReleased(MouseEvent e)
   {
@@ -188,7 +195,10 @@ public class ActionButton extends JButton
   }
 
   /**
-   * {@inheritDoc}
+   * Callback when mouse exited a component.
+   *
+   * @param e
+   *          the mouse event
    */
   public void mouseExited(MouseEvent e)
   {
@@ -197,7 +207,10 @@ public class ActionButton extends JButton
   }
 
   /**
-   * {@inheritDoc}
+   * Callback when mouse entered a component.
+   *
+   * @param e
+   *          the mouse event
    */
   public void mouseEntered(MouseEvent e)
   {
@@ -205,44 +218,39 @@ public class ActionButton extends JButton
     repaint();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void updateUI() {
       super.updateUI();
       // some look and feels replace our border, so take it back
       setBorder(buttonBorder);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected void paintComponent(Graphics g) {
     setBorder(hasFocus() ? focusBorder : buttonBorder);
     if (isBeingPressed && hasMouseOver)
     {
-      setBackground(pressedBackground);
-      g.setColor(pressedBackground);
-      Dimension size = getSize();
-      g.fillRect(0, 0, size.width, size.height);
-      setForeground(pressedForeground);
+      setColors(g, pressedBackground, pressedForeground);
     }
     else if (hasMouseOver)
     {
-      setBackground(mouseOverBackground);
-      g.setColor(mouseOverBackground);
-      Dimension size = getSize();
-      g.fillRect(0, 0, size.width, size.height);
-      setForeground(mouseOverForeground);
+      setColors(g, mouseOverBackground, mouseOverForeground);
     }
     else {
-      setBackground(defaultBackground);
-      g.setColor(defaultBackground);
-      Dimension size = getSize();
-      g.fillRect(0, 0, size.width, size.height);
-      setForeground(defaultForeground);
+      setColors(g, defaultBackground, defaultForeground);
     }
     super.paintComponent(g);
+  }
+
+  private void setColors(Graphics g, Color backgroundColor, Color foregroundColor)
+  {
+    setBackground(backgroundColor);
+    g.setColor(backgroundColor);
+    Dimension size = getSize();
+    g.fillRect(0, 0, size.width, size.height);
+    setForeground(foregroundColor);
   }
 
   /**
