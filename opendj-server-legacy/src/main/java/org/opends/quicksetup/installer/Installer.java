@@ -2155,8 +2155,8 @@ public abstract class Installer extends GuiApplication {
    */
   protected void createData() throws ApplicationException
   {
-    if (createNotReplicatedSuffix() &&
-        getUserData().getNewSuffixOptions().getType() != NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY)
+    if (createNotReplicatedSuffix()
+        && NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY != getUserData().getNewSuffixOptions().getType())
     {
       currentProgressStep = getUserData().getNewSuffixOptions().getInstallProgressStep();
       if (isVerbose())

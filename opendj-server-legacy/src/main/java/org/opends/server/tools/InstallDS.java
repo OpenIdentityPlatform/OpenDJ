@@ -567,10 +567,10 @@ public class InstallDS extends ConsoleApplication
   private void printStatusCommand()
   {
     // Use this instead a call to Installation to avoid to launch a new JVM just to retrieve a path.
-    final String binariesRelativePath = isWindows() ? Installation.WINDOWS_BINARIES_PATH_RELATIVE :
-                                                      Installation.UNIX_BINARIES_PATH_RELATIVE;
-    final String statusCliFileName = isWindows() ? Installation.WINDOWS_STATUSCLI_FILE_NAME :
-                                                   Installation.UNIX_STATUSCLI_FILE_NAME;
+    final String binariesRelativePath = isWindows() ? Installation.WINDOWS_BINARIES_PATH_RELATIVE
+                                                    : Installation.UNIX_BINARIES_PATH_RELATIVE;
+    final String statusCliFileName = isWindows() ? Installation.WINDOWS_STATUSCLI_FILE_NAME
+                                                 : Installation.UNIX_STATUSCLI_FILE_NAME;
     final String binDir = Utils.getPath(Utils.getInstallPathFromClasspath(), binariesRelativePath);
     final String cmd = Utils.getPath(binDir, statusCliFileName);
     println();
