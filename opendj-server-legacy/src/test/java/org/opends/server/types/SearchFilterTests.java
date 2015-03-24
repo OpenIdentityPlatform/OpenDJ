@@ -114,7 +114,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     Assert.assertEquals(regenerated, expectedToStringFilter, "original=" + originalFilter + ", expected=" + expectedToStringFilter);
   }
 
-  // These are valid filters.
+  /** These are valid filters. */
   @DataProvider(name = "escapeSequenceFilters")
   public Object[][] escapeSequenceFilters() {
     final char[] CHAR_NIBBLES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -172,7 +172,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  // These are filters with invalid escape sequences.
+  /** These are filters with invalid escape sequences. */
   @DataProvider(name = "invalidEscapeSequenceFilters")
   public Object[][] invalidEscapeSequenceFilters() {
     final char[] VALID_NIBBLES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -267,10 +267,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   //
   // -------------------------------------------------------------------------
 
-  //
-  // Invalid filters that are detected.
-  //
-
+  /** Invalid filters that are detected. */
   @DataProvider(name = "invalidFilters")
   public Object[][] invalidFilters() {
     return new Object[][]{
@@ -300,14 +297,13 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     SearchFilter.createFilterFromString(invalidFilter).toString();
   }
 
-  //
-  // This is more or less the same as what's above, but it's for invalid
-  // filters that are not currently detected by the parser.  To turn these
-  // on, remove them from the broken group.  As the code is modified to handle
-  // these cases, please add these test cases to the
-  // paramsCreateFilterFromStringInvalidFilters DataProvider.
-  //
-
+  /**
+   * This is more or less the same as what's above, but it's for invalid
+   * filters that are not currently detected by the parser.  To turn these
+   * on, remove them from the broken group.  As the code is modified to handle
+   * these cases, please add these test cases to the
+   * paramsCreateFilterFromStringInvalidFilters DataProvider.
+   */
   @DataProvider(name = "uncaughtInvalidFilters")
   public Object[][] paramsCreateFilterFromStringUncaughtInvalidFilters() {
     return new Object[][]{
@@ -1045,7 +1041,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   /**
-   * Dataprovider for testing different normalization for value and assertion
+   * Dataprovider for testing different normalization for value and assertion.
    */
   @DataProvider(name = "differentNormalization")
   public Object[][] differentNormalizationData() throws ParseException

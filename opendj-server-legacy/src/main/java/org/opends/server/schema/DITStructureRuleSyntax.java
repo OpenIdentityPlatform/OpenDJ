@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,8 +47,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class implements the DIT structure rule description syntax, which is
  * used to hold DIT structure rule definitions in the server schema.  The format
@@ -62,18 +58,14 @@ public class DITStructureRuleSyntax
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -86,11 +78,7 @@ public class DITStructureRuleSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -122,82 +110,50 @@ public class DITStructureRuleSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getName()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getOID()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_OID;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getDescription()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -216,8 +172,6 @@ public class DITStructureRuleSyntax
       return false;
     }
   }
-
-
 
   /**
    * Decodes the contents of the provided ASN.1 octet string as a DIT structure
@@ -674,8 +628,6 @@ public class DITStructureRuleSyntax
                                 extraProperties);
   }
 
-
-
   /**
    * Reads the next token name from the DIT content rule definition, skipping
    * over any leading or trailing spaces, and appends it to the provided buffer.
@@ -729,8 +681,6 @@ public class DITStructureRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -809,8 +759,6 @@ public class DITStructureRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -895,8 +843,6 @@ public class DITStructureRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads an attributeType/objectclass description or numeric OID from the
@@ -1039,8 +985,6 @@ public class DITStructureRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value for an "extra" parameter.  It will handle a single unquoted
@@ -1196,21 +1140,13 @@ public class DITStructureRuleSyntax
     return startPos;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

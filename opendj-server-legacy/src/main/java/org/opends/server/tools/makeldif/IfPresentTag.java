@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -48,10 +48,10 @@ import static org.opends.server.util.StaticUtils.*;
 public class IfPresentTag
        extends Tag
 {
-  // The attribute type for which to make the determination.
+  /** The attribute type for which to make the determination. */
   private AttributeType attributeType;
 
-  // The value for which to make the determination.
+  /** The value for which to make the determination. */
   private String assertionValue;
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -39,13 +40,13 @@ package org.opends.server.types;
      mayInvoke=true)
 public final class LDIFImportResult
 {
-  // The total number of entries read during the import.
+  /** The total number of entries read during the import. */
   private final long entriesRead;
 
-  // The total number of entries rejected during the import.
+  /** The total number of entries rejected during the import. */
   private final long entriesRejected;
 
-  // The total number of entries skipped during the import.
+  /** The total number of entries skipped during the import. */
   private final long entriesSkipped;
 
 

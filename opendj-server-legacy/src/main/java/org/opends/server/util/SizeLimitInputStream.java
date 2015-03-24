@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -52,9 +53,7 @@ public class SizeLimitInputStream extends InputStream
     this.readLimit = readLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int available() throws IOException
   {
     int streamAvail = parentStream.available();
@@ -62,18 +61,14 @@ public class SizeLimitInputStream extends InputStream
     return limitedAvail < streamAvail ? limitedAvail : streamAvail;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public synchronized void mark(int readlimit)
   {
     parentStream.mark(readlimit);
     markBytesRead = bytesRead;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int read() throws IOException
   {
     if(bytesRead >= readLimit)
@@ -89,9 +84,7 @@ public class SizeLimitInputStream extends InputStream
     return b;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int read(byte b[], int off, int len) throws IOException
   {
     if(off < 0 || len < 0 || off+len > b.length)
@@ -122,18 +115,14 @@ public class SizeLimitInputStream extends InputStream
     return readLen;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public synchronized void reset() throws IOException
   {
     parentStream.reset();
     bytesRead = markBytesRead;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public long skip(long n) throws IOException
   {
     if(bytesRead + n > readLimit)
@@ -145,16 +134,12 @@ public class SizeLimitInputStream extends InputStream
     return parentStream.skip(n);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean markSupported() {
     return parentStream.markSupported();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void close() throws IOException {
     parentStream.close();
   }

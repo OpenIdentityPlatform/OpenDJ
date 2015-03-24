@@ -66,9 +66,7 @@ public final class AggregationServerTest extends AdminTestCase {
   private static final class DummyChangeListener implements
       ConfigurationChangeListener<TestChildCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(
         TestChildCfg configuration) {
@@ -77,9 +75,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
@@ -96,9 +92,7 @@ public final class AggregationServerTest extends AdminTestCase {
   private static final class DummyDeleteListener implements
       ConfigurationDeleteListener<TestChildCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(
         TestChildCfg configuration) {
@@ -107,9 +101,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {

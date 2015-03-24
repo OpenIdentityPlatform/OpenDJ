@@ -58,19 +58,17 @@ public class JPEGSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
-  // The current configuration for this JPEG syntax.
+  /** The current configuration for this JPEG syntax. */
   private volatile JPEGAttributeSyntaxCfg config;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -83,11 +81,7 @@ public class JPEGSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(JPEGAttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -116,8 +110,6 @@ public class JPEGSyntax
     config.addJPEGChangeListener(this);
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -127,8 +119,6 @@ public class JPEGSyntax
   {
     return SYNTAX_JPEG_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -140,8 +130,6 @@ public class JPEGSyntax
     return SYNTAX_JPEG_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -151,8 +139,6 @@ public class JPEGSyntax
   {
     return SYNTAX_JPEG_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -167,8 +153,6 @@ public class JPEGSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -181,8 +165,6 @@ public class JPEGSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -197,8 +179,6 @@ public class JPEGSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -212,8 +192,6 @@ public class JPEGSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -265,9 +243,7 @@ public class JPEGSyntax
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       JPEGAttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -276,11 +252,7 @@ public class JPEGSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
               JPEGAttributeSyntaxCfg configuration)
   {
@@ -289,21 +261,13 @@ public class JPEGSyntax
   }
 
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return false;

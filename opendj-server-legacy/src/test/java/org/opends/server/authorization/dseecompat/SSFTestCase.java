@@ -24,11 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
-/**
- * Unit test to test the ssf ACI bind rule keyword.
- */
-
 package org.opends.server.authorization.dseecompat;
 
 import java.util.Hashtable;
@@ -40,6 +35,9 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.testng.annotations.*;
 import static org.opends.server.config.ConfigConstants.*;
 
+/**
+ * Unit test to test the ssf ACI bind rule keyword.
+ */
 public class SSFTestCase extends AciTestCase {
 
     private static final String newUser="uid=new.user,ou=People,o=test";
@@ -137,7 +135,7 @@ public class SSFTestCase extends AciTestCase {
 
      }
 
-    //Valid ssf statements. Not the complete ACI.
+    /** Valid ssf statements. Not the complete ACI. */
     @DataProvider(name = "validStatements")
     public Object[][] valids() {
       return new Object[][] {
@@ -150,7 +148,7 @@ public class SSFTestCase extends AciTestCase {
       };
     }
 
-     //Invalid ssf statements. Not the complete ACI.
+     /** Invalid ssf statements. Not the complete ACI. */
     @DataProvider(name = "invalidStatements")
     public Object[][] invalids() {
       return new Object[][] {

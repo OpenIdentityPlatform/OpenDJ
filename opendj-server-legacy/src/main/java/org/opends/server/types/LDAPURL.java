@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -95,34 +95,34 @@ public final class LDAPURL
 
 
 
-  // The base DN for this LDAP URL.
+  /** The base DN for this LDAP URL. */
   private DN baseDN;
 
-  // The port number for this LDAP URL.
+  /** The port number for this LDAP URL. */
   private int port;
 
-  // The set of attributes for this LDAP URL.
+  /** The set of attributes for this LDAP URL. */
   private LinkedHashSet<String> attributes;
 
-  // The set of extensions for this LDAP URL.
+  /** The set of extensions for this LDAP URL. */
   private LinkedList<String> extensions;
 
-  // The search scope for this LDAP URL.
+  /** The search scope for this LDAP URL. */
   private SearchScope scope;
 
-  // The search filter for this LDAP URL.
+  /** The search filter for this LDAP URL. */
   private SearchFilter filter;
 
-  // The host for this LDAP URL.
+  /** The host for this LDAP URL. */
   private String host;
 
-  // The raw base DN for this LDAP URL.
+  /** The raw base DN for this LDAP URL. */
   private String rawBaseDN;
 
-  // The raw filter for this LDAP URL.
+  /** The raw filter for this LDAP URL. */
   private String rawFilter;
 
-  // The scheme (i.e., protocol) for this LDAP URL.
+  /** The scheme (i.e., protocol) for this LDAP URL. */
   private String scheme;
 
 

@@ -478,28 +478,28 @@ public class ManageAccount
 
 
 
-  // The LDAP reader used to read responses from the server.
+  /** The LDAP reader used to read responses from the server. */
   private static LDAPReader ldapReader;
 
-  // The LDAP writer used to send requests to the server.
+  /** The LDAP writer used to send requests to the server. */
   private static LDAPWriter ldapWriter;
 
-  // The counter that will be used for LDAP message IDs.
+  /** The counter that will be used for LDAP message IDs. */
   private static AtomicInteger nextMessageID;
 
-  // The connection to the server.
+  /** The connection to the server. */
   private static LDAPConnection connection;
 
-  // The print stream to use when writing messages to standard error.
+  /** The print stream to use when writing messages to standard error. */
   private static PrintStream err;
 
-  // The print stream to use when writing messages to standard output.
+  /** The print stream to use when writing messages to standard output. */
   private static PrintStream out;
 
-  // The DN of the user to target with the operation.
+  /** The DN of the user to target with the operation. */
   private static String targetDNString;
 
-  // The argument parser for this tool.
+  /** The argument parser for this tool. */
   private static SubCommandArgumentParser argParser;
 
 

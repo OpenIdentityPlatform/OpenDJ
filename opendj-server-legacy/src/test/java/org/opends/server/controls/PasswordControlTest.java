@@ -44,14 +44,14 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test password control
+ * Test password control.
  */
 public class PasswordControlTest
     extends ControlsTestCase
 {
 
   /**
-   * Create values for PasswordPolicyErrorType
+   * Create values for PasswordPolicyErrorType.
    */
   @DataProvider(name = "passwordPolicyErrorTypeData")
   public Object[][] createPasswordPolicyErrorTypeData()
@@ -73,7 +73,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test if int value are ok
+   * Test if int value are ok.
    */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkIntValuePasswordPolicyErrorTypeTest(
@@ -89,7 +89,7 @@ public class PasswordControlTest
 
 
   /**
-   * Test If we have only the required values
+   * Test If we have only the required values.
    */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkRequiredValuesPasswordPolicyErrorTypeTest(
@@ -109,7 +109,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test invalid int values
+   * Test invalid int values.
    */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkInvalidIntPasswordPolicyErrorTypeTest(
@@ -124,7 +124,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Create correct values
+   * Create correct values.
    */
   @DataProvider(name = "passwordPolicyWarningTypeData")
   public Object[][] createPasswordPolicyWarningTypeData()
@@ -139,7 +139,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test if byte values are ok
+   * Test if byte values are ok.
    */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkIntValuePasswordPolicyWarningTypeTest(
@@ -157,7 +157,7 @@ public class PasswordControlTest
 
 
   /**
-   * Test If we have only the required values
+   * Test If we have only the required values.
    */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkRequiredValuesPasswordPolicyWarningTypeTest(
@@ -177,7 +177,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test invalid int values
+   * Test invalid int values.
    */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkInvalidIntPasswordPolicyWarningTypeTest(
@@ -202,7 +202,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Create values for PasswordExpiredControl
+   * Create values for PasswordExpiredControl.
    */
   @DataProvider(name = "passwordExpiredControlData")
   public Object[][] createPasswordExpiredControlData()
@@ -215,7 +215,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test OID
+   * Test OID.
    */
   @Test
   public void checkPasswordOID() throws Exception
@@ -226,7 +226,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test "Netscape password expired control" implementation
+   * Test "Netscape password expired control" implementation.
    */
   @Test(dataProvider = "passwordExpiredControlData")
   public void passwordExpiredControlTest(
@@ -283,7 +283,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Create values for PasswordControl
+   * Create values for PasswordControl.
    */
   @DataProvider(name = "passwordExpiringControlData")
   public Object[][] createPasswordExpiringControlData()
@@ -296,7 +296,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test "Netscape password expired control" implementation
+   * Test "Netscape password expired control" implementation.
    */
   @Test(dataProvider = "passwordExpiringControlData")
   public void passwordExpiringControlTest(
@@ -361,7 +361,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Create values for PasswordControl
+   * Create values for PasswordControl.
    */
   @DataProvider(name = "passwordPolicyRequestControlData")
   public Object[][] createPasswordPolicyRequestControlData()
@@ -374,7 +374,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test PasswordPolicyRequestControl
+   * Test PasswordPolicyRequestControl.
    */
   @Test(dataProvider = "passwordPolicyRequestControlData")
   public void passwordPolicyRequestControlTest(
@@ -425,7 +425,7 @@ public class PasswordControlTest
 
 
   /**
-   * Create values for PasswordControl
+   * Create values for PasswordControl.
    */
   @DataProvider(name = "passwordPolicyResponseControl")
   public Object[][] createPasswordPolicyResponseControlData()
@@ -440,7 +440,7 @@ public class PasswordControlTest
   }
 
   /**
-   * Test PasswordPolicyResponseControl
+   * Test PasswordPolicyResponseControl.
    */
    @Test(dataProvider = "passwordPolicyResponseControl")
   public void passwordPolicyResponseControlTest(

@@ -55,7 +55,7 @@ import static org.testng.Assert.*;
 public class EntryUUIDVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the entryUUID attribute.
+  /** The attribute type for the entryUUID attribute. */
   private AttributeType entryUUIDType;
 
 

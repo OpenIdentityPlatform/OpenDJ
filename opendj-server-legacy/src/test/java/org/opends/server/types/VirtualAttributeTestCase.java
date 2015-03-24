@@ -46,13 +46,13 @@ import static org.testng.Assert.*;
 public class VirtualAttributeTestCase
        extends TypesTestCase
 {
-  // The attribute type for the entryDN attribute.
+  /** The attribute type for the entryDN attribute. */
   private AttributeType entryDNType;
 
-  // The virtual attribute instance that will be used for all the testing.
+  /** The virtual attribute instance that will be used for all the testing. */
   private VirtualAttribute virtualAttribute;
 
-  // The virtual attribute rule that will be used for the testing.
+  /** The virtual attribute rule that will be used for the testing. */
   private VirtualAttributeRule virtualAttributeRule;
 
 

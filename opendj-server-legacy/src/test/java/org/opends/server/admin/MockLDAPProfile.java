@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -39,9 +40,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
     // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) {
@@ -90,9 +89,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
@@ -107,9 +104,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
     if (d == TestParentCfgDefn.getInstance()) {
@@ -124,9 +119,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
     if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {

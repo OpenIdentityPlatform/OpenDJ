@@ -55,7 +55,7 @@ public final class TestCfg {
    */
   private static final OptionalRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
 
-  // Create a one-to-many relation for test-parent components.
+  /** Create a one-to-many relation for test-parent components. */
   static {
     InstantiableRelationDefinition.Builder<TestParentCfgClient, TestParentCfg> builder = new InstantiableRelationDefinition.Builder<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-one-to-many-parent",
@@ -63,7 +63,7 @@ public final class TestCfg {
     RD_TEST_ONE_TO_MANY_PARENT = builder.getInstance();
   }
 
-  // Create a one-to-many relation for test-parent components.
+  /** Create a one-to-many relation for test-parent components. */
   static {
     OptionalRelationDefinition.Builder<TestParentCfgClient, TestParentCfg> builder = new OptionalRelationDefinition.Builder<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-one-to-zero-or-one-parent",
@@ -71,10 +71,10 @@ public final class TestCfg {
     RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT = builder.getInstance();
   }
 
-  // Test parent object class definition.
+  /** Test parent object class definition. */
   private static ObjectClass TEST_PARENT_OCD;
 
-  // Test child object class definition.
+  /** Test child object class definition. */
   private static ObjectClass TEST_CHILD_OCD;
 
 
@@ -270,7 +270,7 @@ public final class TestCfg {
 
 
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private TestCfg() {
     // No implementation required.
   }

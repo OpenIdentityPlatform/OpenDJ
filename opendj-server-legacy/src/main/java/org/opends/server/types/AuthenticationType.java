@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -63,8 +64,7 @@ public enum AuthenticationType
 
 
 
-  // The BER type tag that is associated with this authentication
-  // type.
+  /** The BER type tag that is associated with this authentication type. */
   private byte berType;
 
 

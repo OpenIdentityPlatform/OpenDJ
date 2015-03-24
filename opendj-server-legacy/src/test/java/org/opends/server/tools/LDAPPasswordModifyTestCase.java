@@ -51,10 +51,10 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPPasswordModifyTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing the current bind password.
+  /** The path to a file containing the current bind password. */
   private String currentPasswordFile;
 
-  // The path to a file containing the new password.
+  /** The path to a file containing the new password. */
   private String newPasswordFile;
 
 

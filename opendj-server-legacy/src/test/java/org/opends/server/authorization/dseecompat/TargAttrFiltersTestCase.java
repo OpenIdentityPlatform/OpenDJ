@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.DataProvider;
@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
  */
 public class TargAttrFiltersTestCase  extends AciTestCase {
 
-  //Valid targattrfilters statements. Not the complete ACI.
+  /** Valid targattrfilters statements. Not the complete ACI. */
   @DataProvider(name = "validStatements")
   public Object[][] valids() {
     return new Object[][] {
@@ -46,7 +46,7 @@ public class TargAttrFiltersTestCase  extends AciTestCase {
     };
   }
 
-  //Invalid targattrfilters statements.
+  /** Invalid targattrfilters statements. */
   @DataProvider(name = "invalidStatements")
   public Object[][] invalids() {
     return new Object[][] {

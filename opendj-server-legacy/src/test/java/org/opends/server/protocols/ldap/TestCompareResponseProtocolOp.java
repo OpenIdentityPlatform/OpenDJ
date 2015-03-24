@@ -66,7 +66,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
 /**
-   * The DN to use for compare result operations
+   * The DN to use for compare result operations.
    */
   private DN dn;
 

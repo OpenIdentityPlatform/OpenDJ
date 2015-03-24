@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -99,47 +99,49 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPAuthenticationHandler
        implements PrivilegedExceptionAction<Object>, CallbackHandler
 {
-  // The bind DN for GSSAPI authentication.
+  /** The bind DN for GSSAPI authentication. */
   private ByteSequence gssapiBindDN;
 
-  // The LDAP reader that will be used to read data from the server.
+  /** The LDAP reader that will be used to read data from the server. */
   private final LDAPReader reader;
 
-  // The LDAP writer that will be used to send data to the server.
+  /** The LDAP writer that will be used to send data to the server. */
   private final LDAPWriter writer;
 
-  // The atomic integer that will be used to obtain message IDs for request
-  // messages.
+  /**
+   * The atomic integer that will be used to obtain message IDs for request
+   * messages.
+   */
   private final AtomicInteger nextMessageID;
 
-  // An array filled with the inner pad byte.
+  /** An array filled with the inner pad byte. */
   private byte[] iPad;
 
-  // An array filled with the outer pad byte.
+  /** An array filled with the outer pad byte. */
   private byte[] oPad;
 
-  // The authentication password for GSSAPI authentication.
+  /** The authentication password for GSSAPI authentication. */
   private char[] gssapiAuthPW;
 
-  // The message digest that will be used to create MD5 hashes.
+  /** The message digest that will be used to create MD5 hashes. */
   private MessageDigest md5Digest;
 
-  // The secure random number generator for use by this authentication handler.
+  /** The secure random number generator for use by this authentication handler. */
   private SecureRandom secureRandom;
 
-  // The authentication ID for GSSAPI authentication.
+  /** The authentication ID for GSSAPI authentication. */
   private String gssapiAuthID;
 
-  // The authorization ID for GSSAPI authentication.
+  /** The authorization ID for GSSAPI authentication. */
   private String gssapiAuthzID;
 
-  // The quality of protection for GSSAPI authentication.
+  /** The quality of protection for GSSAPI authentication. */
   private String gssapiQoP;
 
-  // The host name used to connect to the remote system.
+  /** The host name used to connect to the remote system. */
   private final String hostName;
 
-  // The SASL mechanism that will be used for callback authentication.
+  /** The SASL mechanism that will be used for callback authentication. */
   private String saslMechanism;
 
 

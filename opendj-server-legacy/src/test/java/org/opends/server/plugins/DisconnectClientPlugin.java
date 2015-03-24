@@ -90,9 +90,7 @@ public class DisconnectClientPlugin
     private static final class Decoder
         implements ControlDecoder<DisconnectClientControl>
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public DisconnectClientControl decode(boolean isCritical, ByteString value) throws DirectoryException
       {
@@ -168,9 +166,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
@@ -229,9 +225,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(
       PreParseAbandonOperation abandonOperation)
@@ -242,9 +236,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
       throws CanceledOperationException {
@@ -257,9 +249,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
@@ -269,9 +259,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
@@ -285,9 +273,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
@@ -301,9 +287,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
@@ -317,9 +301,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
@@ -333,9 +315,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
@@ -349,9 +329,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
@@ -365,9 +343,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
@@ -378,9 +354,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
@@ -394,9 +368,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
@@ -407,9 +379,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
@@ -423,9 +393,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
@@ -439,9 +407,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
@@ -455,9 +421,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -471,9 +435,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
@@ -487,9 +449,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
@@ -503,9 +463,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
@@ -516,9 +474,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
@@ -529,9 +485,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
@@ -542,9 +496,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
@@ -555,9 +507,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
@@ -568,9 +518,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationExtendedOperation extendedOperation)
@@ -581,9 +529,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
@@ -594,9 +540,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
@@ -607,9 +551,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
@@ -620,9 +562,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
@@ -633,9 +573,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
@@ -646,9 +584,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
@@ -659,9 +595,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
@@ -672,9 +606,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
@@ -685,9 +617,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
@@ -698,9 +628,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
@@ -711,9 +639,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
@@ -724,9 +650,7 @@ public class DisconnectClientPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)

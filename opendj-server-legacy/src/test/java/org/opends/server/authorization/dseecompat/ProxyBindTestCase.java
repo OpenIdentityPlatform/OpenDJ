@@ -24,12 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS.
  */
-
-/**
- * Unit test to test the proxy bind functionality.
- */
-
-
 package org.opends.server.authorization.dseecompat;
 
 import java.util.Hashtable;
@@ -41,11 +35,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-/*
- * This test tests the proxy bind access control support added to allow
- * authzid's in Sasl Binds.
+/**
+ * Tests the proxy bind functionality, via the proxy bind access control support
+ * added to allow authzid's in Sasl Binds.
  */
-
 public class ProxyBindTestCase extends AciTestCase {
     private static final String factory = "com.sun.jndi.ldap.LdapCtxFactory";
     private static final String aciEntry = "o=test";

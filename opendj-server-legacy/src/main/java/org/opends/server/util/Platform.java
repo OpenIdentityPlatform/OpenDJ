@@ -56,10 +56,10 @@ import static org.opends.messages.UtilityMessages.*;
 public final class Platform
 {
 
-  // Prefix that determines which security package to use.
+  /** Prefix that determines which security package to use. */
   private static final String pkgPrefix;
 
-  // The two security package prefixes (IBM and SUN).
+  /** The two security package prefixes (IBM and SUN). */
   private static final String IBM_SEC = "com.ibm.security";
   private static final String SUN_SEC = "sun.security";
 
@@ -88,24 +88,24 @@ public final class Platform
   private static abstract class PlatformIMPL
   {
 
-    // Key size, key algorithm and signature algorithms used.
+    /** Key size, key algorithm and signature algorithms used. */
     private static final int KEY_SIZE = 1024;
     private static final String KEY_ALGORITHM = "rsa";
     private static final String SIG_ALGORITHM = "SHA1WithRSA";
 
-    // Time values used in validity calculations.
+    /** Time values used in validity calculations. */
     private static final int SEC_IN_DAY = 24 * 60 * 60;
 
-    // Methods pulled from the classes.
+    /** Methods pulled from the classes. */
     private static final String GENERATE_METHOD = "generate";
     private static final String GET_PRIVATE_KEY_METHOD = "getPrivateKey";
     private static final String GET_SELFSIGNED_CERT_METHOD =
       "getSelfCertificate";
 
-    // Classes needed to manage certificates.
+    /** Classes needed to manage certificates. */
     private static final Class<?> certKeyGenClass, X500NameClass;
 
-    // Constructors for each of the above classes.
+    /** Constructors for each of the above classes. */
     private static Constructor<?> certKeyGenCons, X500NameCons;
 
     static
@@ -458,7 +458,7 @@ public final class Platform
 
 
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private Platform()
   {
   }
@@ -551,9 +551,9 @@ public final class Platform
    */
   private static class DefaultPlatformIMPL extends PlatformIMPL
   {
-    // normalize method.
+    /** Normalize method. */
     private static final Method NORMALIZE;
-    // Normalized form method.
+    /** Normalized form method. */
     private static final Object FORM_NFKC;
 
     static

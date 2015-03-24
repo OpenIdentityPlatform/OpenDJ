@@ -48,7 +48,7 @@ import static org.testng.Assert.*;
 
 
 /**
- * A set of test cases for the rebuild-index tool (see issue #1897)
+ * A set of test cases for the rebuild-index tool (see issue #1897).
  */
 public class RebuildIndexTestCase
        extends ToolsTestCase

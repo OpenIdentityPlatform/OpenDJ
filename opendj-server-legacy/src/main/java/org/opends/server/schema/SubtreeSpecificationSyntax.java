@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -51,13 +51,13 @@ public final class SubtreeSpecificationSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
   /**
@@ -70,9 +70,7 @@ public final class SubtreeSpecificationSyntax
     // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
       throws ConfigException {
@@ -219,20 +217,14 @@ public final class SubtreeSpecificationSyntax
     }
   }
 
- /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

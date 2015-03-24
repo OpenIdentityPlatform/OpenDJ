@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -79,7 +79,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   }
 
   /**
-   * Test the normalization and the comparison in the warning mode
+   * Test the normalization and the comparison in the warning mode.
    */
   @Test(dataProvider= "warnmodeEqualityMatchingRule")
   public void warnmodeEqualityMatchingRules(

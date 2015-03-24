@@ -22,10 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
-
 package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.Test;
@@ -35,6 +33,7 @@ import java.net.InetAddress;
 /**
  * Test of IP bind rule address decoding and address matching.
  */
+@SuppressWarnings("javadoc")
 public class IPTestCase extends AciTestCase {
 
     //Various patterns and addresses that can be put in IP bind rule
@@ -59,8 +58,10 @@ public class IPTestCase extends AciTestCase {
             mixed="::ffff:72.56.78.9,45.*.33.*,[12ab:0:0:cd30::]/60," +
                  "56.56.78.0+255.255.255.0";
 
-    //Providers that test the above expressions.
-    //Mix of Ipv6 and Ipv4 addresses.
+    /**
+     * Providers that test the above expressions.
+     * Mix of Ipv6 and Ipv4 addresses.
+     */
     @DataProvider(name = "mixedMatches")
     public Object[][] mixedData() {
         return new Object[][] {
@@ -72,7 +73,7 @@ public class IPTestCase extends AciTestCase {
 
         };
     }
-    //Ipv6 addresses in long and various compressed forms.
+    /** Ipv6 addresses in long and various compressed forms. */
     @DataProvider(name = "v6Matches")
     public Object[][] v6MatchData() {
         return new Object[][] {
@@ -82,7 +83,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Ipv6 addresses used in cidr tests.
+    /** Ipv6 addresses used in cidr tests. */
     @DataProvider(name = "v6Matches1")
     public Object[][] v6MatchData1() {
         return new Object[][] {
@@ -91,7 +92,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Ipv4 addresses.
+    /** Ipv4 addresses. */
     @DataProvider(name = "v4Matches")
     public Object[][] v4MatchData() {
         return new Object[][] {
@@ -100,7 +101,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Valid IPv4 expressions.
+    /** Valid IPv4 expressions. */
     @DataProvider(name = "validRules")
     public Object[][] validData() {
         return new Object[][] {
@@ -115,7 +116,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Valid IPv6 expressions.
+    /** Valid IPv6 expressions. */
     @DataProvider(name = "valid6Rules")
     public Object[][] valid6Data() {
         return new Object[][] {
@@ -132,7 +133,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Invalid Ipv4 expressions.
+    /** Invalid Ipv4 expressions. */
     @DataProvider(name = "invalidRules")
     public Object[][] inValidData() {
         return new Object[][] {
@@ -152,7 +153,7 @@ public class IPTestCase extends AciTestCase {
         };
     }
 
-    //Invalid IPv6 expressions.
+    /** Invalid IPv6 expressions. */
     @DataProvider(name = "invalid6Rules")
     public Object[][] inValid6Data() {
         return new Object[][] {

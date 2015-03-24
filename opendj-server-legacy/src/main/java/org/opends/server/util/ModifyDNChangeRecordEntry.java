@@ -45,13 +45,13 @@ import org.opends.server.types.RDN;
      mayInvoke=true)
 public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 {
-  // The new RDN.
+  /** The new RDN. */
   private final RDN newRDN;
 
-  // The new superior DN.
+  /** The new superior DN. */
   private final DN newSuperiorDN;
 
-  // Delete the old RDN?
+  /** Delete the old RDN? */
   private final boolean deleteOldRDN;
 
 
@@ -130,9 +130,7 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

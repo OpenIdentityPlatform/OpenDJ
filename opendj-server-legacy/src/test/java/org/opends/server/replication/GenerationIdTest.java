@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -82,7 +82,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class GenerationIdTest extends ReplicationTestCase
 {
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String baseDnStr = TEST_ROOT_DN_STRING;
@@ -910,8 +910,7 @@ public class GenerationIdTest extends ReplicationTestCase
   }
 
   /**
-   * testMultiRS tests basic features of generationID
-   * with more than one Replication Server.
+   * Tests basic features of generationID with more than one Replication Server.
    * The following test focus on:
    * - genId checking across multiple starting RS (replication servers)
    * - genId setting propagation from one RS to the others
@@ -1034,7 +1033,7 @@ public class GenerationIdTest extends ReplicationTestCase
   }
 
   /**
-   * Disconnect broker and remove entries from the local DB
+   * Disconnect broker and remove entries from the local DB.
    */
   private void postTest() throws Exception
   {

@@ -43,7 +43,7 @@ public class ExternalChangelogControlTest extends ControlsTestCase
 {
 
   /**
-   * Create values for External Changelog Request Control
+   * Create values for External Changelog Request Control.
    */
   @DataProvider(name = "eclRequestControl")
   public Object[][] createECLRequestControlTest()
@@ -59,7 +59,7 @@ public class ExternalChangelogControlTest extends ControlsTestCase
   }
 
   /**
-   * Test ExternalChangelogRequestControl
+   * Test ExternalChangelogRequestControl.
    */
   @Test(dataProvider = "eclRequestControl")
   public void checkECLRequestControlTest(boolean critical, String value)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.dsreplication;
 
@@ -65,9 +65,7 @@ implements TaskScheduleInformation
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
     ArrayList<ByteString> baseDNs = new ArrayList<ByteString>();
@@ -83,73 +81,55 @@ implements TaskScheduleInformation
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public List<String> getDependencyIds()
   {
     return taskSchedule.getDependencyIds();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public FailedDependencyAction getFailedDependencyAction()
   {
     return taskSchedule.getFailedDependencyAction();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public List<String> getNotifyUponCompletionEmailAddresses()
   {
     return taskSchedule.getNotifyUponCompletionEmailAddresses();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public List<String> getNotifyUponErrorEmailAddresses()
   {
     return taskSchedule.getNotifyUponErrorEmailAddresses();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getRecurringDateTime()
   {
     return taskSchedule.getRecurringDateTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Date getStartDateTime()
   {
     return taskSchedule.getStartDate();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Class<?> getTaskClass()
   {
     return org.opends.server.tasks.PurgeConflictsHistoricalTask.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getTaskId()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getTaskObjectclass()
   {
     return "ds-task-purge-conflicts-historical";

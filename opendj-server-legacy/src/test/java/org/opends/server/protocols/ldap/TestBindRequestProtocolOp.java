@@ -36,7 +36,6 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
-//import org.testng.Reporter;
 
 public class TestBindRequestProtocolOp extends LdapTestCase {
   private static String dn="cn=some dn, dc=example, dc=com";

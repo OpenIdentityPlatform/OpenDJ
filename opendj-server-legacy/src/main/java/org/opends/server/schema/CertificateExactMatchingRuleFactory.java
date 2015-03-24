@@ -23,6 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 
@@ -43,15 +44,11 @@ import org.opends.server.types.InitializationException;
 public final class CertificateExactMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
-  //Associated Matching Rule.
+  /** Associated Matching Rule. */
   private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -59,11 +56,7 @@ public final class CertificateExactMatchingRuleFactory
    matchingRule = CoreSchema.getCertificateExactMatchingRule();
  }
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {

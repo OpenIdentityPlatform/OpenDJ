@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -58,16 +59,16 @@ public class TagResult
 
 
 
-  // Indicates whether to keep processing the associated line.
+  /** Indicates whether to keep processing the associated line. */
   private boolean keepProcessingLine;
 
-  // Indicates whether to keep processing the associated entry.
+  /** Indicates whether to keep processing the associated entry. */
   private boolean keepProcessingEntry;
 
-  // Indicates whether to keep processing entries below the associated parent.
+  /** Indicates whether to keep processing entries below the associated parent. */
   private boolean keepProcessingParent;
 
-  // Indicates whether to keep processing entries for the template file.
+  /** Indicates whether to keep processing entries for the template file. */
   private boolean keepProcessingTemplateFile;
 
 

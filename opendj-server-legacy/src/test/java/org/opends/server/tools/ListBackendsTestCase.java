@@ -47,7 +47,7 @@ import static org.testng.Assert.*;
 public class ListBackendsTestCase
        extends ToolsTestCase
 {
-  // The path to the Directory Server configuration file.
+  /** The path to the Directory Server configuration file. */
   private String configFilePath;
 
 
@@ -336,7 +336,7 @@ public class ListBackendsTestCase
 
   /**
    * Tests the ListBackends tool with one instance of the --baseDN argument
-   * and a valid DN that is not associated with any backend in the server
+   * and a valid DN that is not associated with any backend in the server.
    */
   @Test
   public void testSingleBaseDNNotBelowAnyBaseDN()

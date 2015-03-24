@@ -60,7 +60,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests validateValue() with valid data
+   * Tests validateValue() with valid data.
    */
   @Test
   public void testValidateValue1() {
@@ -69,7 +69,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests validateValue() with illegal data
+   * Tests validateValue() with illegal data.
    */
   @Test(expectedExceptions = NullPointerException.class)
   public void testValidateValue2() {
@@ -89,7 +89,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    * @param value to decode
    * @param expected value
    */
@@ -110,7 +110,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue() with illegal data
+   * Tests decodeValue() with illegal data.
    * @param value to decode
    */
   @Test(dataProvider = "testDecodeValueData2",

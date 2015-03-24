@@ -118,10 +118,10 @@ public final class AttributeBuilder
   {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    // The attribute type for this attribute.
+    /** The attribute type for this attribute. */
     private final AttributeType attributeType;
 
-    // The name of this attribute as provided by the end user.
+    /** The name of this attribute as provided by the end user. */
     private final String name;
 
     /**
@@ -154,9 +154,7 @@ public final class AttributeBuilder
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final ConditionResult approximatelyEqualTo(ByteString assertionValue)
     {
@@ -199,9 +197,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean contains(ByteString value)
     {
@@ -231,9 +227,7 @@ public final class AttributeBuilder
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final AttributeType getAttributeType()
     {
@@ -242,9 +236,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final String getName()
     {
@@ -253,9 +245,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
     {
@@ -300,9 +290,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean isVirtual()
     {
@@ -311,9 +299,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Iterator<ByteString> iterator()
     {
@@ -322,9 +308,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final ConditionResult lessThanOrEqualTo(ByteString assertionValue)
     {
@@ -370,9 +354,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final ConditionResult matchesSubstring(
         ByteString subInitial,
@@ -421,9 +403,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final int size()
     {
@@ -442,9 +422,7 @@ public final class AttributeBuilder
       return hashCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
@@ -466,10 +444,10 @@ public final class AttributeBuilder
     extends RealAttribute
   {
 
-    // The normalized options.
+    /** The normalized options. */
     private final SortedSet<String> normalizedOptions;
 
-    // The options.
+    /** The options. */
     private final Set<String> options;
 
 
@@ -502,9 +480,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
@@ -513,9 +489,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
@@ -525,9 +499,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
@@ -565,9 +537,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getNameWithOptions()
     {
@@ -576,9 +546,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
@@ -587,9 +555,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasAllOptions(Collection<String> options)
     {
@@ -598,9 +564,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
@@ -609,9 +573,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
@@ -620,9 +582,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean optionsEqual(Set<String> options)
     {
@@ -640,10 +600,10 @@ public final class AttributeBuilder
     extends RealAttribute
   {
 
-    // The normalized single option.
+    /** The normalized single option. */
     private final String normalizedOption;
 
-    // A singleton set containing the single option.
+    /** A singleton set containing the single option. */
     private final Set<String> option;
 
 
@@ -673,9 +633,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
@@ -684,9 +642,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
@@ -696,9 +652,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
@@ -724,10 +678,10 @@ public final class AttributeBuilder
     extends AbstractSet<T>
   {
 
-    // The set of elements if there are more than one.
+    /** The set of elements if there are more than one. */
     private LinkedHashSet<T> elements;
 
-    // The first element.
+    /** The first element. */
     private T firstElement;
 
 
@@ -741,9 +695,7 @@ public final class AttributeBuilder
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean add(T e)
     {
@@ -775,9 +727,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean addAll(Collection<? extends T> c)
     {
@@ -811,9 +761,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void clear()
     {
@@ -823,9 +771,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Iterator<T> iterator()
     {
@@ -885,9 +831,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean remove(Object o)
     {
@@ -909,9 +853,7 @@ public final class AttributeBuilder
       return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean contains(Object o)
     {
@@ -953,9 +895,7 @@ public final class AttributeBuilder
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int size()
     {
@@ -1021,16 +961,16 @@ public final class AttributeBuilder
     return type;
   }
 
-  // The attribute type for this attribute.
+  /** The attribute type for this attribute. */
   private AttributeType attributeType;
 
-  // The name of this attribute as provided by the end user.
+  /** The name of this attribute as provided by the end user. */
   private String name;
 
-  // The normalized set of options if there are more than one.
+  /** The normalized set of options if there are more than one. */
   private SortedSet<String> normalizedOptions;
 
-  // The set of options.
+  /** The set of options. */
   private final SmallSet<String> options = new SmallSet<String>();
 
   /** The map of normalized values => values for this attribute. */
@@ -1758,9 +1698,7 @@ public final class AttributeBuilder
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String toString()
   {

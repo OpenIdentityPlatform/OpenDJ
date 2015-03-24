@@ -22,18 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.api.DirectoryThread;
-
-
-
 
 /**
  * This class defines a thread that will be spawned to invoke a Directory Server
@@ -60,7 +56,7 @@ public class RestartTaskThread
 
 
 
-  // The shutdown message that will be used.
+  /** The shutdown message that will be used. */
   private LocalizableMessage shutdownMessage;
 
 

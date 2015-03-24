@@ -71,10 +71,10 @@ public class LDAPConnection
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The hostname to connect to.
+  /** The hostname to connect to. */
   private String hostName;
 
-  // The port number on which the directory server is accepting requests.
+  /** The port number on which the directory server is accepting requests. */
   private int portNumber = 389;
 
   private LDAPConnectionOptions connectionOptions;

@@ -34,19 +34,19 @@ import org.opends.server.types.AttributeType;
  */
 public class TemplateLine
 {
-  // The attribute type for this template line.
+  /** The attribute type for this template line. */
   private AttributeType attributeType;
 
-  // The line number on which this template line appears in the template file.
+  /** The line number on which this template line appears in the template file. */
   private int lineNumber;
 
-  // The set of tags for this template line.
+  /** The set of tags for this template line. */
   private Tag[] tags;
 
-  // Whether this line corresponds to an URL value or not.
+  /** Whether this line corresponds to an URL value or not. */
   private boolean isURL;
 
-  // Whether this line corresponds to a base64 encoded value or not.
+  /** Whether this line corresponds to a base64 encoded value or not. */
   private boolean isBase64;
 
 

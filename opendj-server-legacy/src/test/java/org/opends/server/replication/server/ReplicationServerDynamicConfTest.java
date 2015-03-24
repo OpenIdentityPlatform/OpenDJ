@@ -36,7 +36,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 /**
- * Tests that we can dynamically modify the configuration of replicationServer
+ * Tests that we can dynamically modify the configuration of replicationServer.
  */
 @SuppressWarnings("javadoc")
 public class ReplicationServerDynamicConfTest extends ReplicationTestCase

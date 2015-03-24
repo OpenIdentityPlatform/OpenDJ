@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -41,20 +41,20 @@ public class ExternalChangelogDomainFakeCfg
   implements ExternalChangelogDomainCfg
 {
 
-  // The value of the "ecl-include" property.
+  /** The value of the "ecl-include" property. */
   private SortedSet<String> pECLInclude;
 
-  // The value of the "ecl-include-for-deletes" property.
+  /** The value of the "ecl-include-for-deletes" property. */
   private SortedSet<String> pECLIncludeForDeletes;
 
-  // The value of the "enabled" property.
+  /** The value of the "enabled" property. */
   private boolean pEnabled;
 
   private DN pDN;
 
   /**
    * Creates a new Domain with the provided information
-   * (assured mode disabled, default group id)
+   * (assured mode disabled, default group id).
    */
   public ExternalChangelogDomainFakeCfg(boolean isEnabled,
       SortedSet<String> eclInclude,
@@ -65,9 +65,7 @@ public class ExternalChangelogDomainFakeCfg
     this.pECLIncludeForDeletes = eclIncludeForDeletes != null ? eclIncludeForDeletes : new TreeSet<String>();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Class<? extends ExternalChangelogDomainCfg> configurationClass()
   {
     return null;

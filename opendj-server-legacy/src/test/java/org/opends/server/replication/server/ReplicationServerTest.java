@@ -67,16 +67,14 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ReplicationServerTest extends ReplicationTestCase
 {
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DN TEST_ROOT_DN;
   private DN EXAMPLE_DN;
   /** The replicationServer that will be used in this test. */
   private ReplicationServer replicationServer;
 
-  /**
-   * The port of the replicationServer.
-   */
+  /** The port of the replicationServer. */
   private int replicationServerPort;
 
   private CSN firstCSNServer1;
@@ -383,7 +381,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   /**
    * Test that a client that has already seen the first change now see the
-   * second change
+   * second change.
    */
   private void newClientWithFirstChanges() throws Exception
   {
@@ -411,7 +409,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   /**
    * Test that a client that has already seen the first change from server 1
-   * now see the first change from server 2
+   * now see the first change from server 2.
    */
   private void newClientWithChangefromServer1() throws Exception
   {
@@ -423,7 +421,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   /**
    * Test that a client that has already seen the first chaneg from server 2
-   * now see the first change from server 1
+   * now see the first change from server 1.
    */
   private void newClientWithChangefromServer2() throws Exception
   {
@@ -640,7 +638,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * <li>Create and connect client 2 to replication server 2</li>
    * <li>Make client1 publish changes</li>
    * <li>Check that client 2 receives the changes published by client 1</li>
-   * </ol>
+   * </ol>.
    */
   @Test(enabled = true)
   public void changelogChaining0() throws Exception
@@ -738,7 +736,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * <li>Create replication server 2 connected with replication server 1</li>
    * <li>Create and connect client 2 to replication server 2</li>
    * <li>Check that client 2 receives the changes published by client 1</li>
-   * <ol>
+   * <ol>.
    */
   @Test(enabled = true)
   public void changelogChaining1() throws Exception
@@ -991,7 +989,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     private String errDetails;
 
     /**
-     * Creates a new Stress Test Reader
+     * Creates a new Stress Test Reader.
      */
     public BrokerReader(ReplicationBroker broker, int numMsgExpected)
     {
@@ -999,9 +997,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       this.numMsgExpected = numMsgExpected;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -1063,9 +1059,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       this.gen = gen;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -1105,7 +1099,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Change the config of replication server 1 to no more be connected
     * to server 2
     * - Make client 1 publish a change
-    * - Check that client 2 does not receive the change
+    * - Check that client 2 does not receive the change.
     */
   @Test(enabled = true, groups = "opendj-256")
   public void replicationServerConnected() throws Exception

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -55,9 +55,7 @@ public class RecordingOutputStream extends OutputStream
     this.buffer = new ByteStringBuilder(32);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void write(int i) throws IOException {
     if(enableRecording)
     {
@@ -66,9 +64,7 @@ public class RecordingOutputStream extends OutputStream
     parentStream.write(i);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void write(byte[] bytes) throws IOException {
     if(enableRecording)
@@ -78,9 +74,7 @@ public class RecordingOutputStream extends OutputStream
     parentStream.write(bytes);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void write(byte[] bytes, int i, int i1) throws IOException {
     if(enableRecording)
@@ -90,17 +84,13 @@ public class RecordingOutputStream extends OutputStream
     parentStream.write(bytes, i, i1);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void flush() throws IOException {
     parentStream.flush();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close() throws IOException {
     parentStream.close();

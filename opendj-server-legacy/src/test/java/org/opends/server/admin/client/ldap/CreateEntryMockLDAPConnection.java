@@ -51,14 +51,13 @@ import org.testng.Assert;
  */
 public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
 
-  // Detect multiple calls.
+  /** Detect multiple calls. */
   private boolean alreadyAdded;
 
-  // The expected set of attributes (attribute name -> list of
-  // values).
+  /** The expected set of attributes (attribute name -> list of values). */
   private final Map<String, List<String>> attributes = new HashMap<String, List<String>>();
 
-  // The expected DN.
+  /** The expected DN. */
   private final LdapName expectedDN;
 
 
@@ -106,9 +105,7 @@ public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -42,9 +42,7 @@ import org.testng.annotations.DataProvider;
 public class JPEGSyntaxTest extends BinaryAttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax<?> getRule()
   {
@@ -132,9 +130,7 @@ public class JPEGSyntaxTest extends BinaryAttributeSyntaxTest
     return syntax;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -43,9 +44,7 @@ import org.testng.annotations.Test;
 public class GeneralizedTimeSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {

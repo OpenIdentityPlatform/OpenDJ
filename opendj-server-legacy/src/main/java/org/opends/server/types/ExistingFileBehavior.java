@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -62,7 +63,7 @@ public enum ExistingFileBehavior
 
 
 
-  // The name to use for this existing file behavior.
+  /** The name to use for this existing file behavior. */
   private String name;
 
 

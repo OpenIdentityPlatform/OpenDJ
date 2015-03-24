@@ -59,37 +59,28 @@ import static org.testng.Assert.*;
 public class VLVControlTestCase
     extends ControlsTestCase
 {
-  // The givenName attribute type.
+  /** The givenName attribute type. */
   private AttributeType givenNameType;
-
-  // The sn attribute type.
+  /** The sn attribute type. */
   private AttributeType snType;
 
-  // The DN for "Aaccf Johnson"
+  /** The DN for "Aaccf Johnson". */
   private DN aaccfJohnsonDN;
-
-  // The DN for "Aaron Zimmerman"
+  /** The DN for "Aaron Zimmerman". */
   private DN aaronZimmermanDN;
-
-  // The DN for "Albert Smith"
+  /** The DN for "Albert Smith". */
   private DN albertSmithDN;
-
-  // The DN for "Albert Zimmerman"
+  /** The DN for "Albert Zimmerman". */
   private DN albertZimmermanDN;
-
-  // The DN for "lowercase mcgee"
+  /** The DN for "lowercase mcgee". */
   private DN lowercaseMcGeeDN;
-
-  // The DN for "Mararet Jones"
+  /** The DN for "Mararet Jones". */
   private DN margaretJonesDN;
-
-  // The DN for "Mary Jones"
+  /** The DN for "Mary Jones". */
   private DN maryJonesDN;
-
-  // The DN for "Sam Zweck"
+  /** The DN for "Sam Zweck". */
   private DN samZweckDN;
-
-  // The DN for "Zorro"
+  /** The DN for "Zorro". */
   private DN zorroDN;
 
 

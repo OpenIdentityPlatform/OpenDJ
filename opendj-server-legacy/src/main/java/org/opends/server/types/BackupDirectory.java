@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -76,15 +76,19 @@ public final class BackupDirectory
 
 
 
-  // The DN of the configuration entry for the backend with which this
-  // backup directory is associated.
+  /**
+   * The DN of the configuration entry for the backend with which this
+   * backup directory is associated.
+   */
   private DN configEntryDN;
 
-  // The set of backups in the specified directory.  The iteration
-  // order will be the order in which the backups were created.
+  /**
+   * The set of backups in the specified directory.  The iteration
+   * order will be the order in which the backups were created.
+   */
   private LinkedHashMap<String,BackupInfo> backups;
 
-  // The filesystem path to the backup directory.
+  /** The filesystem path to the backup directory. */
   private String path;
 
 

@@ -62,7 +62,7 @@ import com.forgerock.opendj.cli.ArgumentException;
  */
 public class JavaPropertiesTool extends ConsoleApplication
 {
-  // The argument parser
+  /** The argument parser. */
   private JavaPropertiesToolArgumentParser argParser;
 
   /**
@@ -438,52 +438,40 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInteractive()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;

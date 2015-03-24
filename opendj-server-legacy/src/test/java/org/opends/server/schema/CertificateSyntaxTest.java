@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -42,9 +42,7 @@ import org.opends.server.util.Base64;
 public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax<?> getRule()
   {
@@ -55,8 +53,6 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
       {
         return null;
       }
-
-
 
       public void removeChangeListener(
           ConfigurationChangeListener<AttributeSyntaxCfg> listener)
@@ -133,9 +129,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
     return syntax;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()

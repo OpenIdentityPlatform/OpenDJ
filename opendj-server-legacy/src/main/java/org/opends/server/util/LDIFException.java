@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 import org.forgerock.i18n.LocalizableMessage;
@@ -56,11 +56,13 @@ public final class LDIFException
 
 
 
-  // Indicates whether this exception is severe enough that it is no longer
-  // possible to keep reading.
+  /**
+   * Indicates whether this exception is severe enough that it is no longer
+   * possible to keep reading.
+   */
   private final boolean canContinueReading;
 
-  // The line number of the last line read from the LDIF source.
+  /** The line number of the last line read from the LDIF source. */
   private final long lineNumber;
 
 

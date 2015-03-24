@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * {@link org.opends.server.util.Base64} class.
  */
 public final class TestBase64 extends UtilTestCase {
-  // Look up table for converting hex chars to byte values.
+  /** Look up table for converting hex chars to byte values. */
   private static final byte[] hexToByte = { -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,

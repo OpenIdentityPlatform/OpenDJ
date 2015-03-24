@@ -49,7 +49,7 @@ import static org.testng.Assert.*;
 public class VirtualAttributeRuleTestCase
        extends TypesTestCase
 {
-  // The attribute type for the entryDN attribute.
+  /** The attribute type for the entryDN attribute. */
   private AttributeType entryDNType;
 
 

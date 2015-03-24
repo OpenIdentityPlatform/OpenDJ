@@ -61,19 +61,17 @@ public class TelephoneNumberSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether this matching rule should operate in strict mode.
+  /** Indicates whether this matching rule should operate in strict mode. */
   private boolean strictMode;
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
-  // The current configuration for this telephone number syntax.
+  /** The current configuration for this telephone number syntax. */
   private TelephoneNumberAttributeSyntaxCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -86,11 +84,7 @@ public class TelephoneNumberSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(TelephoneNumberAttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -121,8 +115,6 @@ public class TelephoneNumberSyntax
     }
   }
 
-
-
   /**
    * Performs any finalization that may be necessary for this attribute syntax.
    */
@@ -130,8 +122,6 @@ public class TelephoneNumberSyntax
   {
     currentConfig.removeTelephoneNumberChangeListener(this);
   }
-
-
 
   /**
    * Retrieves the common name for this attribute syntax.
@@ -143,8 +133,6 @@ public class TelephoneNumberSyntax
     return SYNTAX_TELEPHONE_NAME;
   }
 
-
-
   /**
    * Retrieves the OID for this attribute syntax.
    *
@@ -155,8 +143,6 @@ public class TelephoneNumberSyntax
     return SYNTAX_TELEPHONE_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -166,8 +152,6 @@ public class TelephoneNumberSyntax
   {
     return SYNTAX_TELEPHONE_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -181,8 +165,6 @@ public class TelephoneNumberSyntax
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -198,8 +180,6 @@ public class TelephoneNumberSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
@@ -212,8 +192,6 @@ public class TelephoneNumberSyntax
   {
     return defaultSubstringMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default approximate matching rule that will be used for
@@ -228,8 +206,6 @@ public class TelephoneNumberSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -319,8 +295,6 @@ public class TelephoneNumberSyntax
     }
   }
 
-
-
   /**
    * Indicates whether the provided character is a valid separator for telephone
    * number components when operating in strict mode.
@@ -342,11 +316,7 @@ public class TelephoneNumberSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       TelephoneNumberAttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -355,11 +325,7 @@ public class TelephoneNumberSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
               TelephoneNumberAttributeSyntaxCfg configuration)
   {
@@ -369,21 +335,13 @@ public class TelephoneNumberSyntax
     return new ConfigChangeResult();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

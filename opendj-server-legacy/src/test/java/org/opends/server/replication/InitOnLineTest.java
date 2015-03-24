@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -85,9 +85,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class InitOnLineTest extends ReplicationTestCase
 {
-  /**
-   * The tracer object for the debug logger
-   */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final int WINDOW_SIZE = 10;
 
@@ -724,8 +722,8 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
- /**
-   * Tests the import side of the InitializeTarget task
+  /**
+   * Tests the import side of the InitializeTarget task.
    */
   @Test(enabled=true, groups="slow")
   public void initializeTargetImport() throws Exception
@@ -774,7 +772,7 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
-   * Tests the import side of the InitializeTarget task
+   * Tests the import side of the InitializeTarget task.
    */
   @Test(enabled=false)
   public void initializeTargetConfigErrors() throws Exception
@@ -823,7 +821,7 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
-   * Tests the import side of the InitializeTarget task
+   * Tests the import side of the InitializeTarget task.
    */
   @Test(enabled=true)
   public void initializeConfigErrors() throws Exception

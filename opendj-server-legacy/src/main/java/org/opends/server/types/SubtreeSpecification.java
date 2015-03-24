@@ -68,7 +68,7 @@ public final class SubtreeSpecification
    */
   public static final class AndRefinement extends Refinement
   {
-    // The set of refinements which must all be true.
+    /** The set of refinements which must all be true. */
     private final Collection<Refinement> refinementSet;
 
 
@@ -87,9 +87,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -110,9 +108,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -121,9 +117,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -141,9 +135,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -180,7 +172,7 @@ public final class SubtreeSpecification
    */
   public static final class FilterRefinement extends Refinement
   {
-    // The search filter.
+    /** The search filter. */
     private final SearchFilter filter;
 
 
@@ -198,9 +190,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -220,9 +210,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -231,9 +219,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -251,9 +237,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -271,10 +255,10 @@ public final class SubtreeSpecification
    */
   public static final class ItemRefinement extends Refinement
   {
-    // The item's object class.
+    /** The item's object class. */
     private final String objectClass;
 
-    // The item's normalized object class.
+    /** The item's normalized object class. */
     private final String normalizedObjectClass;
 
 
@@ -294,9 +278,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -318,9 +300,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -329,9 +309,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -341,9 +319,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -363,7 +339,7 @@ public final class SubtreeSpecification
    */
   public static final class NotRefinement extends Refinement
   {
-    // The inverted refinement.
+    /** The inverted refinement. */
     private final Refinement refinement;
 
 
@@ -381,9 +357,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -404,9 +378,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -415,9 +387,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -426,9 +396,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -446,7 +414,7 @@ public final class SubtreeSpecification
    */
   public static final class OrRefinement extends Refinement
   {
-    // The set of refinements of which at least one must be true.
+    /** The set of refinements of which at least one must be true. */
     private final Collection<Refinement> refinementSet;
 
 
@@ -465,9 +433,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -488,9 +454,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -499,9 +463,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -519,9 +481,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -568,17 +528,13 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract boolean equals(Object obj);
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract int hashCode();
 
@@ -596,9 +552,7 @@ public final class SubtreeSpecification
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final String toString()
     {
@@ -628,49 +582,36 @@ public final class SubtreeSpecification
    */
   protected static final class Parser
   {
-    // Text scanner used to parse the string value.
+    /** Text scanner used to parse the string value. */
     private final Scanner scanner;
 
-    // Pattern used to detect left braces.
+    /** Pattern used to detect left braces. */
     private static Pattern LBRACE = Pattern.compile("\\{.*");
-
-    // Pattern used to parse left braces.
+    /** Pattern used to parse left braces. */
     private static Pattern LBRACE_TOKEN = Pattern.compile("\\{");
-
-    // Pattern used to detect right braces.
+    /** Pattern used to detect right braces. */
     private static Pattern RBRACE = Pattern.compile("\\}.*");
-
-    // Pattern used to parse right braces.
+    /** Pattern used to parse right braces. */
     private static Pattern RBRACE_TOKEN = Pattern.compile("\\}");
-
-    // Pattern used to detect comma separators.
+    /** Pattern used to detect comma separators. */
     private static Pattern SEP = Pattern.compile(",.*");
-
-    // Pattern used to parse comma separators.
+    /** Pattern used to parse comma separators. */
     private static Pattern SEP_TOKEN = Pattern.compile(",");
-
-    // Pattern used to detect colon separators.
+    /** Pattern used to detect colon separators. */
     private static Pattern COLON = Pattern.compile(":.*");
-
-    // Pattern used to parse colon separators.
+    /** Pattern used to parse colon separators. */
     private static Pattern COLON_TOKEN = Pattern.compile(":");
-
-    // Pattern used to detect integer values.
+    /** Pattern used to detect integer values. */
     private static Pattern INT = Pattern.compile("\\d.*");
-
-    // Pattern used to parse integer values.
+    /** Pattern used to parse integer values. */
     private static Pattern INT_TOKEN = Pattern.compile("\\d+");
-
-    // Pattern used to detect name values.
+    /** Pattern used to detect name values. */
     private static Pattern NAME = Pattern.compile("[\\w_;-].*");
-
-    // Pattern used to parse name values.
+    /** Pattern used to parse name values. */
     private static Pattern NAME_TOKEN = Pattern.compile("[\\w_;-]+");
-
-    // Pattern used to detect RFC3641 string values.
+    /** Pattern used to detect RFC3641 string values. */
     private static Pattern STRING_VALUE = Pattern.compile("\".*");
-
-    // Pattern used to parse RFC3641 string values.
+    /** Pattern used to parse RFC3641 string values. */
     private static Pattern STRING_VALUE_TOKEN = Pattern
         .compile("\"([^\"]|(\"\"))*\"");
 
@@ -1239,30 +1180,27 @@ public final class SubtreeSpecification
 
 
 
-  // The absolute base of the subtree.
+  /** The absolute base of the subtree. */
   private final DN baseDN;
 
-  // Optional minimum depth (<=0 means unlimited).
+  /** Optional minimum depth (<=0 means unlimited). */
   private final int minimumDepth;
-
-  // Optional maximum depth (<0 means unlimited).
+  /** Optional maximum depth (<0 means unlimited). */
   private final int maximumDepth;
 
-  // Optional set of chop before absolute DNs (mapping to their
-  // local-names).
+  /** Optional set of chop before absolute DNs (mapping to their local-names). */
   private final Map<DN, DN> chopBefore;
 
-  // Optional set of chop after absolute DNs (mapping to their
-  // local-names).
+  /** Optional set of chop after absolute DNs (mapping to their local-names). */
   private final Map<DN, DN> chopAfter;
 
-  // The root DN.
+  /** The root DN. */
   private final DN rootDN;
 
-  // The optional relative base DN.
+  /** The optional relative base DN. */
   private final DN relativeBaseDN;
 
-  // The optional specification filter refinements.
+  /** The optional specification filter refinements. */
   private final Refinement refinements;
 
 

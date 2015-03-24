@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -57,10 +55,8 @@ public class AuthPasswordSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -73,11 +69,7 @@ public class AuthPasswordSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -91,8 +83,6 @@ public class AuthPasswordSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -103,8 +93,6 @@ public class AuthPasswordSyntax
   {
     return SYNTAX_AUTH_PASSWORD_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -117,8 +105,6 @@ public class AuthPasswordSyntax
     return SYNTAX_AUTH_PASSWORD_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -129,8 +115,6 @@ public class AuthPasswordSyntax
   {
     return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -145,8 +129,6 @@ public class AuthPasswordSyntax
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -163,8 +145,6 @@ public class AuthPasswordSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
@@ -180,8 +160,6 @@ public class AuthPasswordSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -196,8 +174,6 @@ public class AuthPasswordSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -226,8 +202,6 @@ public class AuthPasswordSyntax
       return false;
     }
   }
-
-
 
   /**
    * Decodes the provided authentication password value into its component
@@ -474,8 +448,6 @@ readAuthInfo:
     };
   }
 
-
-
   /**
    * Indicates whether the provided value is encoded using the auth password
    * syntax.
@@ -502,22 +474,14 @@ readAuthInfo:
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -63,12 +63,12 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
- * Test the JEReplicaDB class
+ * Test the JEReplicaDB class.
  */
 @SuppressWarnings("javadoc")
 public class JEReplicaDBTest extends ReplicationTestCase
 {
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DN TEST_ROOT_DN;
 

@@ -59,7 +59,7 @@ import static org.testng.Assert.*;
 public class StructuralObjectClassVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the structuralobjectclass attribute.
+  /** The attribute type for the structuralobjectclass attribute. */
   private AttributeType structuralObjectClassType;
 
 

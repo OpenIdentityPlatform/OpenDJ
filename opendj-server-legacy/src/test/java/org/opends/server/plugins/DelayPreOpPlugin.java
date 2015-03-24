@@ -77,9 +77,7 @@ public class DelayPreOpPlugin
     private static final class Decoder
         implements ControlDecoder<DelayRequestControl>
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public DelayRequestControl decode(boolean isCritical, ByteString value)
           throws DirectoryException
@@ -172,9 +170,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
@@ -204,9 +200,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
@@ -216,9 +210,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
          doPreOperation(PreOperationBindOperation bindOperation)
@@ -236,9 +228,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
          doPreOperation(PreOperationCompareOperation compareOperation)
@@ -248,9 +238,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
@@ -260,9 +248,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
@@ -272,9 +258,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -284,9 +268,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
@@ -296,9 +278,7 @@ public class DelayPreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)

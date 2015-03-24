@@ -44,9 +44,7 @@ import static org.testng.Assert.*;
 public class UTCTimeSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {

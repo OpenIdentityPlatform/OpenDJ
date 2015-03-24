@@ -46,17 +46,16 @@ import java.util.List;
      mayInvoke=true)
 public final class IntermediateResponse
 {
-  // The value for this intermediate response.
+  /** The value for this intermediate response. */
   private ByteString value;
 
-  // The set of controls for this intermediate response.
+  /** The set of controls for this intermediate response. */
   private List<Control> controls;
 
-  // The operation with which this intermediate response is
-  // associated.
+  /** The operation with which this intermediate response is associated. */
   private Operation operation;
 
-  // The OID for this intermediate response.
+  /** The OID for this intermediate response. */
   private String oid;
 
 

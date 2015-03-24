@@ -1251,7 +1251,7 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
 
-  //Sets a value of the allid threshold.
+  /** Sets a value of the allid threshold. */
   private void setAllIdThreshold(int value) throws Exception
   {
     //Change the allid threshold value.

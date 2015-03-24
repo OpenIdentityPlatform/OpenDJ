@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -50,7 +50,7 @@ import java.util.List;
 public final class SearchResultEntry
        extends Entry
 {
-  // The set of controls associated with this search result entry.
+  /** The set of controls associated with this search result entry. */
   private List<Control> controls;
 
 

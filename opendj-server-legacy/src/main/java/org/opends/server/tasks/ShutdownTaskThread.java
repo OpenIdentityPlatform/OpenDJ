@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
@@ -51,7 +51,7 @@ public class ShutdownTaskThread
 
 
 
-  // The shutdown message that will be used.
+  /** The shutdown message that will be used. */
   private LocalizableMessage shutdownMessage;
 
 

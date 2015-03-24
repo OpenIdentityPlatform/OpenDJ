@@ -53,24 +53,26 @@ public class TestPasswordValidator
 
 
 
-  // The next value to return from the passwordIsAcceptable method.
+  /** The next value to return from the passwordIsAcceptable method. */
   private boolean nextReturnValue;
 
-  // The last new password provided to the passwordIsAcceptable method.
+  /** The last new password provided to the passwordIsAcceptable method. */
   private ByteString lastNewPassword;
 
-  // The last user entry provided to the passwordIsAcceptable method.
+  /** The last user entry provided to the passwordIsAcceptable method. */
   private Entry lastUserEntry;
 
-  // The last operation provided to the passwordIsAcceptable method.
+  /** The last operation provided to the passwordIsAcceptable method. */
   private Operation lastOperation;
 
-  // The last set of current passwords provided to the passwordIsAcceptable
-  // method.
+  /**
+   * The last set of current passwords provided to the passwordIsAcceptable method.
+   */
   private Set<ByteString> lastCurrentPasswords;
 
-  // The next invalid reason that should be used in the passwordIsAcceptable
-  // method.
+  /**
+   * The next invalid reason that should be used in the passwordIsAcceptable method.
+   */
   private String nextInvalidReason;
 
 
@@ -85,9 +87,7 @@ public class TestPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    PasswordValidatorCfg configuration)
@@ -105,9 +105,7 @@ public class TestPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,

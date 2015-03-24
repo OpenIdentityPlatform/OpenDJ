@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -42,11 +42,13 @@ import org.forgerock.opendj.ldap.ResultCode;
      mayInvoke=true)
 public class CancelResult
 {
-  // The result code associated with this cancel result.
+  /** The result code associated with this cancel result. */
   private final ResultCode resultCode;
 
-  // A human-readable response that the server
-  // provided for the result of the cancellation.
+  /**
+   * A human-readable response that the server
+   * provided for the result of the cancellation.
+   */
   private final LocalizableMessage responseMessage;
 
   /**

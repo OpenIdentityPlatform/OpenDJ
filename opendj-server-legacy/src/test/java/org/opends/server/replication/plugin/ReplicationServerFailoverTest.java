@@ -62,7 +62,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   private ReplicationServer rs1;
   private ReplicationServer rs2;
 
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)

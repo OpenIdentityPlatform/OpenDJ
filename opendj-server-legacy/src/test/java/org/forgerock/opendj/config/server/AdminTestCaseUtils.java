@@ -53,14 +53,16 @@ import org.opends.server.types.Entry;
  */
 public final class AdminTestCaseUtils {
 
-  // The relation name which will be used for dummy configurations. A
-  // deliberately obfuscated name is chosen to avoid clashes.
+  /**
+   * The relation name which will be used for dummy configurations. A
+   * deliberately obfuscated name is chosen to avoid clashes.
+   */
   private static final String DUMMY_TEST_RELATION = "*dummy*test*relation*";
 
-  // Indicates if the dummy relation profile has been registered.
+  /** Indicates if the dummy relation profile has been registered. */
   private static boolean isProfileRegistered;
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private AdminTestCaseUtils() {
     // No implementation required.
   }
@@ -103,15 +105,13 @@ public final class AdminTestCaseUtils {
 
 
 
-  // Construct a dummy path.
+  /** Construct a dummy path. */
   private static synchronized <C extends ConfigurationClient, S extends Configuration>
   ManagedObjectPath<C, S> getPath(AbstractManagedObjectDefinition<C, S> d) {
     if (!isProfileRegistered) {
       LDAPProfile.Wrapper profile = new LDAPProfile.Wrapper() {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
           if (r.getName().equals(DUMMY_TEST_RELATION)) {
@@ -120,7 +120,6 @@ public final class AdminTestCaseUtils {
             return null;
           }
         }
-
       };
 
       LDAPProfile.getInstance().pushWrapper(profile);

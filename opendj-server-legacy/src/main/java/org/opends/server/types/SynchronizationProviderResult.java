@@ -95,45 +95,35 @@ public interface SynchronizationProviderResult
   public class ContinueProcessing
       implements SynchronizationProviderResult
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ResultCode getResultCode()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getMatchedDN()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> getReferralURLs()
     {
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean continueProcessing()
     {
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getErrorMessage()
     {
@@ -147,13 +137,13 @@ public interface SynchronizationProviderResult
   public class StopProcessing
       implements SynchronizationProviderResult
   {
-    // The matched DN for this result.
+    /** The matched DN for this result. */
     private final DN matchedDN;
 
-    // The set of referral URLs for this result.
+    /** The set of referral URLs for this result. */
     private final List<String> referralURLs;
 
-    // The result code for this result.
+    /** The result code for this result. */
     private final ResultCode resultCode;
 
     private final LocalizableMessage errorMessage;
@@ -195,45 +185,35 @@ public interface SynchronizationProviderResult
       this.referralURLs = null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean continueProcessing()
     {
       return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getErrorMessage()
     {

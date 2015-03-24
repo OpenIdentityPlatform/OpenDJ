@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.types;
@@ -37,8 +38,10 @@ package org.opends.server.types;
      mayInvoke=true)
 public abstract class OperationConfig {
 
-  // When true indicates that the operation should stop as soon as
-  // possible.
+  /**
+   * When true indicates that the operation should stop as soon as
+   * possible.
+   */
   private boolean cancelled;
 
   /**

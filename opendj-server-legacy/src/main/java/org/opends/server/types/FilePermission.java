@@ -133,41 +133,55 @@ public class FilePermission
 
 
 
-  // Indicates if the Java 7 NIO features can be used, including
-  // enhancements to Java 6 {@link java.io.File}.
+  /**
+   * Indicates if the Java 7 NIO features can be used, including
+   * enhancements to Java 6 {@link java.io.File}.
+   */
   private static boolean useNIO;
 
-  // The {@link java.io.File#toPath} method if it is available.
+  /** The {@link java.io.File#toPath} method if it is available. */
   private static Method toPath;
 
-  // The {@link java.nio.files.Files#setPosixFilePermissions} method if it is
-  // available.
+  /**
+   * The {@link java.nio.files.Files#setPosixFilePermissions} method if it is
+   * available.
+   */
   private static Method setPosixFilePermissions;
 
-  // The {@link java.nio.file.Files#getFileAttributeView} method if it is
-  // available.
+  /**
+   * The {@link java.nio.file.Files#getFileAttributeView} method if it is
+   * available.
+   */
   private static Method getFileAttributeView;
 
-  // The {@link java.nio.file.attribute.PosixFilePermissions#fromString} method
-  // if it is available.
+  /**
+   * The {@link java.nio.file.attribute.PosixFilePermissions#fromString} method
+   * if it is available.
+   */
   private static Method fromString;
 
-  // The {@link java.nio.file.attribute.PosixFilePermissions#asFileAttribute}
-  // method if is available.
+  /**
+   * The {@link java.nio.file.attribute.PosixFilePermissions#asFileAttribute}
+   * method if is available.
+   */
   private static Method asFileAttribute;
 
-  // The {@link java.nio.file.attribute.PosixFileAttributeView} class if it is
-  // available.
+  /**
+   * The {@link java.nio.file.attribute.PosixFileAttributeView} class if it is
+   * available.
+   */
   private static Class<?> posixView;
 
-  // The {@link java.nio.file.attribute.AclFileAttributeView} class if it is
-  // available.
+  /**
+   * The {@link java.nio.file.attribute.AclFileAttributeView} class if it is
+   * available.
+   */
   private static Class<?> aclView;
 
-  // The {@link java.nio.file.LinkOption} class if it is available.
+  /** The {@link java.nio.file.LinkOption} class if it is available. */
   private static Class<?> linkOption;
 
-  // The encoded representation for this file permission.
+  /** The encoded representation for this file permission. */
   private int encodedPermission;
 
 

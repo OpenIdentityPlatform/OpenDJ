@@ -93,16 +93,20 @@ public class AciTests extends AciTestCase {
 // TODO: Test ldap:///parent
 // TODO: Test userattr
 
-  // Tests are disabled this way because a class-level @Test(enabled=false)
-  // doesn't appear to work.
+  /**
+   * Tests are disabled this way because a class-level @Test(enabled=false)
+   * doesn't appear to work.
+   */
   private static final boolean TESTS_ARE_DISABLED = false;
 
 
-  // This is used to lookup the day of the week from the calendar field.
-  // The calendar field is 1 based and starts with sun.  We make [0] point
-  // to 'sat' instead of a bogus value since we need to be able to find the set of days without a
-  // specific day.  It needs to be at the top since it's used by other
-  // static initialization.
+  /**
+   * This is used to lookup the day of the week from the calendar field.
+   * The calendar field is 1 based and starts with sun.  We make [0] point
+   * to 'sat' instead of a bogus value since we need to be able to find the set of days without a
+   * specific day.  It needs to be at the top since it's used by other
+   * static initialization.
+   */
   private static final String[] DAYS_OF_WEEK =
      {"sat", "sun", "mon", "tue", "wed", "thu", "fri", "sat"};
 
@@ -151,7 +155,7 @@ public class AciTests extends AciTestCase {
   private static final String OU_GROUP_1_DN = "cn=group1," + OU_GROUPS_DN;
   private static final String OU_GROUP_2_DN = "cn=group2," + OU_GROUPS_DN;
   //End group entries.
-  //Used by modrdn new superior
+  /** Used by modrdn new superior */
   private static final String MANAGER_NEW_DN =
                                         "cn=new managers," + OU_BASE_DN;
   private static final String MGR_NEW_DN_URL = "ldap:///" + MANAGER_NEW_DN;
@@ -167,7 +171,6 @@ public class AciTests extends AciTestCase {
   private static final String SALES_USER_3 = "cn=sales3 person," + SALES_DN;
   private static final String LEVEL_1_USER_URL =
                                "ldap:///??base?(cn=level1 user)";
-  private static final String LDAP_URL_OU_BASE = "ldap:///" + OU_BASE_DN;
  //End userattr entries.
   private static final String OU_INNER_DN = "ou=inner," + OU_BASE_DN;
   private static final String LDAP_URL_OU_INNER = "ldap:///" + OU_INNER_DN;
@@ -178,11 +181,13 @@ public class AciTests extends AciTestCase {
   private static final String LEVEL_1_USER_DN = "cn=level1 user," + OU_BASE_DN;
   private static final String LEVEL_2_USER_DN = "cn=level2 user," + OU_INNER_DN;
   private static final String LEVEL_3_USER_DN = "cn=level3 user," + OU_LEAF_DN;
-  //The proxy DN.
+  /** The proxy DN. */
   private static final String PROXY_USER_DN = "cn=proxy user," + OU_BASE_DN;
 
-  // We need to delete all of these between each test.  This list needs to be
-  // bottom up so that it can be handed to LDAPDelete.
+  /**
+   * We need to delete all of these between each test.  This list needs to be
+   * bottom up so that it can be handed to LDAPDelete.
+   */
   private static final String[] ALL_TEST_ENTRY_DNS_BOTTOM_UP = {
     SALES_USER_1,
     SALES_USER_2,
@@ -208,7 +213,7 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_USERDN_ALL = "userdn=\"ldap:///all\"";
   private static final String BIND_RULE_USERDN_ADMIN = "userdn=\"ldap:///" + ADMIN_DN + "\"";
   private static final String BIND_RULE_USERDN_LEVEL_1 = "userdn=\"ldap:///" + LEVEL_1_USER_DN + "\"";
-  //The proxy userdn bind rule.
+  /** The proxy userdn bind rule. */
   private static final String BIND_RULE_USERDN_PROXY =
                                      "userdn=\"ldap:///" + PROXY_USER_DN + "\"";
 
@@ -218,7 +223,8 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_USERDN_NOT_UID_RDN = "userdn!=\"ldap:///uid=*,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_UID_OR_CN_RDN = "userdn=\"ldap:///uid=*,dc=example,dc=com || ldap:///cn=*,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_ALL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??sub?(cn=*admin*)\"";
-  private static final String BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??one?(cn=*admin*)\"";  // TODO: this might be invalid?
+  /** TODO: this might be invalid? */
+  private static final String BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??one?(cn=*admin*)\"";
   private static final String BIND_RULE_GROUPDN_GROUP_1 =
                                     "groupdn=\"ldap:///" + OU_GROUP_1_DN + "\"";
   private static final String BIND_RULE_IP_LOCALHOST = "ip=\"127.0.0.1\"";
@@ -239,7 +245,7 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_AUTHMETHOD_SSL = "authmethod=\"ssl\"";
   private static final String BIND_RULE_AUTHMETHOD_SASL_DIGEST_MD5 = "authmethod=\"sasl DIGEST-MD5\"";
 
-  // Admin, but not anonymous
+  /** Admin, but not anonymous. */
   private static final String BIND_RULE_USERDN_NOT_ADMIN = and(not(BIND_RULE_USERDN_ADMIN), BIND_RULE_AUTHMETHOD_SIMPLE);
 
   private static final String BIND_RULE_TODAY = "dayofweek=\"" + getThisDayOfWeek() + "\"";
@@ -306,8 +312,6 @@ public class AciTests extends AciTestCase {
       "targetattr", "cn || sn", "deny(read)", BIND_RULE_USERDN_ALL);
 
   //The ACIs for the proxy tests.
-
-
   private static final String ALLOW_PROXY_CONTROL_TO_LEVEL_1=
              buildAciValue("name", "allow proxy control", "targetcontrol",
                      OID_PROXIED_AUTH_V2, "allow(read)",
@@ -504,7 +508,7 @@ public class AciTests extends AciTestCase {
   private static final String DENY_ALL_NOT_LOCALHOST_OR_ADMIN =
           buildAciValue("name", "deny if not localhost or admin", "targetattr", "*", "deny(all)", BIND_RULE_IP_NOT_LOCALHOST_OR_USERDN_ADMIN);
 
-  // This makes more sense as an allow all.
+  /** This makes more sense as an allow all. */
   private static final String DENY_ALL_TO_ADMIN_AND_LOCALHOST_OR_SSL =
           buildAciValue("name", "deny if admin and localhost or ssl", "targetattr", "*", "deny(all)", BIND_RULE_ADMIN_AND_LOCALHOST_OR_SSL);
 
@@ -571,7 +575,7 @@ public class AciTests extends AciTestCase {
      "userpassword: " + ADMIN_PW,
      "ds-privilege-name: modify-acl" );
 
-  // By default aci admin can do anything!
+  /** By default aci admin can do anything! */
   private static final String OU_LDIF_VALDITY_TESTS = TestCaseUtils.makeLdif(
      "dn: " + OU_BASE_DN,
      "objectclass: organizationalunit",
@@ -746,17 +750,19 @@ public class AciTests extends AciTestCase {
 // </PASSES>
   };
 
-  // This is a little bit confusing.  The first element of each array of two elements contains
-  // the aci that is valid but becomes invalid if any single character is removed.
-  // There has to be a lot of redundancy between the two arrays because of what
-  // it takes for an aci to be minimally valid, and hence we end up doing a lot of
-  // work twice.  This takes time and also reports some identical failures.
-  // Therefore, we also provide a mask in the second element in the array
-  // But since the aci has \" characters that are single characters, taking up
-  // the space of two, we have to use another "two-column" character in the mask.
-  // By convention, a character is removed if the corresponding mask character
-  // is a - or a \" characer.  X and \' imply that it was previously tested and
-  // does not need to be tested again.
+  /**
+   * This is a little bit confusing.  The first element of each array of two elements contains
+   * the aci that is valid but becomes invalid if any single character is removed.
+   * There has to be a lot of redundancy between the two arrays because of what
+   * it takes for an aci to be minimally valid, and hence we end up doing a lot of
+   * work twice.  This takes time and also reports some identical failures.
+   * Therefore, we also provide a mask in the second element in the array
+   * But since the aci has \" characters that are single characters, taking up
+   * the space of two, we have to use another "two-column" character in the mask.
+   * By convention, a character is removed if the corresponding mask character
+   * is a - or a \" character.  X and \' imply that it was previously tested and
+   * does not need to be tested again.
+   */
   private static final String[][] INVALID_ACIS_IF_ANY_CHAR_REMOVED =
          {
            // TODO: this generates some failures.
@@ -813,8 +819,10 @@ public class AciTests extends AciTestCase {
     return buildAciValidationParams(acis, false /*test once per aci*/);
   }
 
-  // This makes sure that all of the acis in the INVALID_ACIS_IF_ANY_CHAR_REMOVED
-  // tests are valid acis.
+  /**
+   * This makes sure that all of the acis in the INVALID_ACIS_IF_ANY_CHAR_REMOVED
+   * tests are valid acis.
+   */
   @Test(dataProvider = "validBasisOfValidityTests")
   public void testBasisOfInvalidityTestsAreValid(String modifierDn, String modifierPw, String aciModLdif) throws Throwable {
     if (TESTS_ARE_DISABLED) {  // This is a hack to make sure we can disable the tests.
@@ -841,9 +849,11 @@ public class AciTests extends AciTestCase {
     return buildAciValidationParams(invalid, false /*test once per aci*/);
   }
 
-  // We use this with acis that are crafted in such a way so that they are
-  // invalid if any character is removed.  By convention, the character
-  // is only removed if the corresponding mask character is a - or \"
+  /**
+   * We use this with acis that are crafted in such a way so that they are
+   * invalid if any character is removed.  By convention, the character
+   * is only removed if the corresponding mask character is a - or \"
+   */
   protected List<String> getAciMissingCharCombos(String aci, String mask) {
     List <String> acisMissingOneChar = new ArrayList<String>();
     for (int i = 0; i < aci.length(); i++) {
@@ -860,7 +870,7 @@ public class AciTests extends AciTestCase {
 
 
 
-  // Common between validAcis and invalidAcis
+  /** Common between validAcis and invalidAcis. */
   private Object[][] buildAciValidationParams(List<String> acis, boolean testMultipleCombos) {
     List<String[]> paramsList = new ArrayList<String[]>();
 
@@ -1114,16 +1124,16 @@ public class AciTests extends AciTestCase {
                                         GLOBAL_DSE_ACI, GLOBAL_USER_OP_ATTRS_ACI,
                                         GLOBAL_CONTROL_ACI, GLOBAL_EXT_OP_ACI);
 
-  // ACI used to test LDAP compare.
+  /** ACI used to test LDAP compare. */
   private static final String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_COMPARE);
 
-  // ACI used to test LDAP search with attributes.
+  /** ACI used to test LDAP search with attributes. */
   private static final String SEARCH_ATTRIBUTES_ALLOW_ACI = makeAddAciLdif(
       OU_LEAF_DN, ALLOW_ALL_TO_ALL);
   private static final String SEARCH_ATTRIBUTES_DENY_ACI = makeAddAciLdif(
       OU_LEAF_DN, DENY_READ_CN_SN_IF_PERSON);
 
-  //ACI used to test selfwrite
+  /** ACI used to test selfwrite. */
   private static final String SELFWRITE_ACI = makeAddAciLdif(
       OU_GROUP_1_DN, ALLOW_ALL_TO_SELFWRITE);
 
@@ -1174,28 +1184,28 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
  private static final String ACI_PROXY_MOVED_ENTRY =
                    makeAddAciLdif(SALES_USER_1, ALLOW_PROXY_TO_MOVED_ENTRY);
 
-//ACI used in testing the groupdn bind rule keywords.
+/** ACI used in testing the groupdn bind rule keywords. */
 
    private static final
  String GROUP1_GROUPDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
                                          ALLOW_SEARCH_TO_GROUP1_GROUPDN);
 
-  //Aci to test dns="*".
+  /** Aci to test dns="*". */
   private static final
  String DNS_ALL_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_DNS_ALL);
 
-  // ou=leaf,ou=inner,ou=acitest,dc=example,dc=com and everything under it
+  /** ou=leaf,ou=inner,ou=acitest,dc=example,dc=com and everything under it */
   private static final String LEAF_OU_FULL_LDIF__SEARCH_TESTS =
     LEAF_OU_LDIF__SEARCH_TESTS +
     LEVEL_3_USER_LDIF__SEARCH_TESTS;
 
-  // ou=inner,ou=acitest,dc=example,dc=com and everything under it
+  /** ou=inner,ou=acitest,dc=example,dc=com and everything under it */
   private static final String INNER_OU_FULL_LDIF__SEARCH_TESTS =
     INNER_OU_LDIF__SEARCH_TESTS +
     LEVEL_2_USER_LDIF__SEARCH_TESTS +
     LEAF_OU_FULL_LDIF__SEARCH_TESTS;
 
-  // ou=acitest,dc=example,dc=com and everything under it
+  /** ou=acitest,dc=example,dc=com and everything under it */
   private static final String BASE_OU_FULL_LDIF__SEARCH_TESTS =
     BASE_OU_LDIF__SEARCH_TESTS  +
     LEVEL_1_USER_LDIF__SEARCH_TESTS +
@@ -1454,7 +1464,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   // Potential dimensions
   //   * Who sets the ACIs to start with
   //   * Whether the entries were created with the ACIs or they were added later.  LDIFModify would work here.
-  //
 
   private static List<SearchTestParams> SEARCH_TEST_PARAMS = new ArrayList<SearchTestParams>();
   private static SearchTestParams registerNewTestParams(String initialDitLdif, String... aciLdif) {
@@ -1467,10 +1476,8 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   static {
     SearchTestParams testParams;
 
-    //
     // ACIs that allow 'cn=Directory Manager' but deny the searches below to everyone else
     // in some way.
-    //
     testParams = registerNewTestParams(BASIC_LDIF__SEARCH_TESTS,
             NO_ACIS_LDIF,
             ALLOW_ALL_BASE_DENY_ALL_BASE_LDIF,
@@ -1494,10 +1501,8 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
     // ------------------------------------------------------------------------
 
-    //
     // ACIs that allow 'cn=Directory Manager' but deny the searches below to everyone else
     // in some way.
-    //
     testParams = registerNewTestParams(BASIC_LDIF__SEARCH_TESTS,
             // These ACIs are all equivalent for the single search test cases below
             // (but most likely not equivalent in general).
@@ -1555,11 +1560,8 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
     // ------------------------------------------------------------------------
 
-    //
     // ACIs that allow cn=admin, but deny the searches below to anonymous
     // in some way.
-    //
-
     testParams = registerNewTestParams(BASIC_LDIF__SEARCH_TESTS,
             ALLOW_ALL_BASE_TO_ADMIN,
             ALLOW_ALL_BASE_TO_LOCALHOST,
@@ -1585,7 +1587,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   }
 
 
-  // TODO: add explicit attribute list support to this.
+  /** TODO: add explicit attribute list support to this. */
   private static class SingleSearchParams {
     private final String _bindDn;
     private final String _bindPw;
@@ -1693,7 +1695,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       return args.toArray(new String[args.size()]);
     }
 
-    // This is primarily used for debug output on a failure.
+    /** This is primarily used for debug output on a failure. */
     public String getCombinedSearchArgs() {
       return "-h 127.0.0.1" +
       " -p " + getServerLdapPort() +
@@ -2439,7 +2441,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return stripAttrs(ldif, "userpassword");
   }
 
-  // This won't catch attrs that wrap to the next line, but that shouldn't happen.
+  /** This won't catch attrs that wrap to the next line, but that shouldn't happen. */
   private static String stripAttrs(String ldif, String... attrs) {
     // Generate "((cn)|(givenname))"
     String anyAttr = "(";
@@ -2455,7 +2457,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return pattern.matcher(ldif).replaceAll("");
   }
 
-  // This won't catch passwords that wrap to the next line, but that shouldn't happen.
+  /** This won't catch passwords that wrap to the next line, but that shouldn't happen. */
   private static final Pattern COMMENTS_REGEX = Pattern.compile("#.*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   private static String stripComments(String ldif) {
     return COMMENTS_REGEX.matcher(ldif).replaceAll("");
@@ -2463,9 +2465,11 @@ private static String _buildAciValue(String attr, String... aciFields) {
 
   private static ThreadLocal<Map<String,File>> _tempLdifFilesByName = new ThreadLocal<Map<String,File>>();
 
-  // To avoid a proliferation of temporary files, use the same ones over and over.
-  // We expect to use a single thread for the tests, but use a threadlocal
-  // just in case.
+  /**
+   * To avoid a proliferation of temporary files, use the same ones over and over.
+   * We expect to use a single thread for the tests, but use a threadlocal
+   * just in case.
+   */
   private File getTemporaryLdifFile(String name) throws IOException {
     Map<String,File> tempFilesForThisThread = _tempLdifFilesByName.get();
     if (tempFilesForThisThread == null) {
@@ -2481,7 +2485,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return tempFile;
   }
 
-  // Convenience for when we only need one at time.
+  /** Convenience for when we only need one at time. */
   private File getTemporaryLdifFile() throws IOException {
     return getTemporaryLdifFile("aci-tests");
   }

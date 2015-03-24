@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -75,7 +75,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   private final ReplicationDBImplementation dbImpl;
 
   /**
-   * Constructor without group id, assured info and weight
+   * Constructor without group id, assured info and weight.
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
@@ -118,7 +118,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   }
 
   /**
-   * Constructor with group id and assured info
+   * Constructor with group id and assured info.
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
@@ -132,7 +132,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   }
 
   /**
-   * Constructor with group id, assured info and weight
+   * Constructor with group id, assured info and weight.
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
@@ -144,9 +144,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     this.weight = weight;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addChangeListener(
       ConfigurationChangeListener<ReplicationServerCfg> listener)
@@ -154,87 +152,67 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     // not supported
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Class<? extends ReplicationServerCfg> configurationClass()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getReplicationDBDirectory()
   {
     return dirName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getReplicationPort()
   {
     return port;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getReplicationPurgeDelay()
   {
     return purgeDelay;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getReplicationServer()
   {
      return servers;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getReplicationServerId()
   {
     return serverId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public InetAddress getSourceAddress() { return null; }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getQueueSize()
   {
     return queueSize;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getWindowSize()
   {
     return windowSize;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeChangeListener(
       ConfigurationChangeListener<ReplicationServerCfg> listener)
@@ -242,18 +220,14 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     // not supported
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN dn()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
   }

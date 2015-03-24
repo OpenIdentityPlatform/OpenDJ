@@ -102,7 +102,7 @@ public class LDAPConnectionConsoleInteraction
   /** Indicate if we need to display the heading. */
   private boolean isHeadingDisplayed;
 
-  /** the Console application. */
+  /** The console application. */
   private ConsoleApplication app;
 
   /** Indicate if the trust store in in memory. */

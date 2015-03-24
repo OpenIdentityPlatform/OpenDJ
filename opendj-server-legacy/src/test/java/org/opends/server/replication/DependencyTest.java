@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -254,10 +254,7 @@ public class DependencyTest extends ReplicationTestCase
 
     try
     {
-      //
       // Create replication server, replication domain and broker.
-      //
-
       String entryldif = "dn:" + TEST_ROOT_DN_STRING + "\n"
       + "objectClass: top\n"
       + "objectClass: organization\n";

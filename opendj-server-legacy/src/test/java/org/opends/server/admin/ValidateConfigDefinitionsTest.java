@@ -54,10 +54,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     TestCaseUtils.startServer();
   }
 
-  /**
-   * Returns all AbstractManagedObjectDefinition objects that are
-   * defined in
-   */
+  /** Returns all AbstractManagedObjectDefinition objects that are defined in. */
   @DataProvider
   public Object[][] enumrateManageObjectDefns() throws Exception {
     TopCfgDefn topCfgDefn = TopCfgDefn.getInstance();
@@ -72,7 +69,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     return params;
   }
 
-  // Exceptions to config objects having a different objectclass
+  /** Exceptions to config objects having a different objectclass. */
   private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS =
           Arrays.asList(
                   "org.opends.server.admin.std.meta.RootCfgDefn",
@@ -110,13 +107,13 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
         "The configuration definition for " + objectDef.getName() + " has the following problems: " + EOL + errors);
   }
 
-  // Exceptions to properties ending in -class being exactly 'java-class'.
+  /** Exceptions to properties ending in -class being exactly 'java-class'. */
   private static final List<String> CLASS_PROPERTY_EXCEPTIONS =
           Arrays.asList(
                   // e.g. "prop-name-ending-with-class"
           );
 
-  // Exceptions to properties ending in -enabled being exactly 'enabled'.
+  /** Exceptions to properties ending in -enabled being exactly 'enabled'. */
   private static final List<String> ENABLED_PROPERTY_EXCEPTIONS =
           Arrays.asList(
                   "index-filter-analyzer-enabled",
@@ -124,7 +121,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
                   // e.g. "prop-name-ending-with-enabled"
           );
 
-  // Exceptions to properties not starting with the name of their config object
+  /** Exceptions to properties not starting with the name of their config object. */
   private static final List<String> OBJECT_PREFIX_PROPERTY_EXCEPTIONS =
           Arrays.asList(
                   "backend-id",

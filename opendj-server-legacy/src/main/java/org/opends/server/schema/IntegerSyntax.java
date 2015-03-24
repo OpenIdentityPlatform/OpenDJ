@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -50,13 +50,13 @@ public class IntegerSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
 
@@ -71,11 +71,7 @@ public class IntegerSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -102,8 +98,6 @@ public class IntegerSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -114,8 +108,6 @@ public class IntegerSyntax
   {
     return SYNTAX_INTEGER_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -128,8 +120,6 @@ public class IntegerSyntax
     return SYNTAX_INTEGER_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -140,8 +130,6 @@ public class IntegerSyntax
   {
     return SYNTAX_INTEGER_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -157,8 +145,6 @@ public class IntegerSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -172,8 +158,6 @@ public class IntegerSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -189,8 +173,6 @@ public class IntegerSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -205,8 +187,6 @@ public class IntegerSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -344,22 +324,14 @@ public class IntegerSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

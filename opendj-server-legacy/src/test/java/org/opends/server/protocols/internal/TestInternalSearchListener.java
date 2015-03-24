@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
 
@@ -42,10 +43,10 @@ import org.opends.server.types.SearchResultReference;
 public class TestInternalSearchListener
        implements InternalSearchListener
 {
-  // The list of search result entries returned.
+  /** The list of search result entries returned. */
   private ArrayList<SearchResultEntry> searchEntries;
 
-  // The list of search result references returned.
+  /** The list of search result references returned. */
   private ArrayList<SearchResultReference> searchReferences;
 
 
@@ -61,9 +62,7 @@ public class TestInternalSearchListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                                         SearchResultEntry searchEntry)
   {
@@ -72,9 +71,7 @@ public class TestInternalSearchListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
                    SearchResultReference searchReference)

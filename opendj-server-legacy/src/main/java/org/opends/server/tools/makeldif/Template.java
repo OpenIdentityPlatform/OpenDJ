@@ -45,26 +45,28 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Template
 {
-  // The attribute types that are used in the RDN for entries generated using
-  // this template.
+  /**
+   * The attribute types that are used in the RDN for entries generated using
+   * this template.
+   */
   private AttributeType[] rdnAttributes;
 
-  // The number of entries to create for each subordinate template.
+  /** The number of entries to create for each subordinate template. */
   private int[] numEntriesPerTemplate;
 
-  // The name for this template.
+  /** The name for this template. */
   private String name;
 
-  // The names of the subordinate templates below this template.
+  /** The names of the subordinate templates below this template. */
   private String[] subordinateTemplateNames;
 
-  // The subordinate templates below this template.
+  /** The subordinate templates below this template. */
   private Template[] subordinateTemplates;
 
-  // The template file that contains this template.
+  /** The template file that contains this template. */
   private TemplateFile templateFile;
 
-  // The set of template lines for this template.
+  /** The set of template lines for this template. */
   private TemplateLine[] templateLines;
 
 

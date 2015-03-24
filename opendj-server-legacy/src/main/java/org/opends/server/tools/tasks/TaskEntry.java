@@ -67,8 +67,10 @@ public class TaskEntry {
 
   private int hashCode;
 
-  // These attributes associated with the ds-task object
-  // class are all handled explicitly below in the constructor
+  /**
+   * These attributes associated with the ds-task object
+   * class are all handled explicitly below in the constructor.
+   */
   private static Set<String> supAttrNames = new HashSet<String>();
   static {
     supAttrNames.add("ds-task-id");
@@ -180,9 +182,7 @@ public class TaskEntry {
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {

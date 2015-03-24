@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -38,20 +38,14 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public enum ReplicationCliReturnCode
 {
-  /**
-   * successful.
-   */
+  /** Successful. */
   SUCCESSFUL(0, INFO_REPLICATION_SUCCESSFUL.get()),
 
-  /**
-   * successful but no operation was performed.
-   */
+  /** Successful but no operation was performed. */
   SUCCESSFUL_NOP(SUCCESSFUL.getReturnCode(),
       INFO_REPLICATION_SUCCESSFUL_NOP.get()),
 
-  /**
-   * Unable to initialize arguments.
-   */
+  /** Unable to initialize arguments. */
   CANNOT_INITIALIZE_ARGS(1, ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
@@ -60,24 +54,16 @@ public enum ReplicationCliReturnCode
    */
   ERROR_USER_DATA(2, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * The user canceled the operation in interactive mode.
-   */
+  /** The user canceled the operation in interactive mode. */
   USER_CANCELLED(3, ERR_REPLICATION_USER_CANCELLED.get()),
 
-  /**
-   * Conflicting arguments.
-   */
+  /** Conflicting arguments. */
   CONFLICTING_ARGS(4, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * The provided base DNs cannot be used to enable replication.
-   */
+  /** The provided base DNs cannot be used to enable replication. */
   REPLICATION_CANNOT_BE_ENABLED_ON_BASEDN(5, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * The provided base DNs cannot be used to disable replication.
-   */
+  /** The provided base DNs cannot be used to disable replication. */
   REPLICATION_CANNOT_BE_DISABLED_ON_BASEDN(6, ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
@@ -104,124 +90,80 @@ public enum ReplicationCliReturnCode
    */
   INITIALIZING_TRIES_COMPLETED(10, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error enabling replication on a base DN.
-   */
+  /** Error enabling replication on a base DN. */
   ERROR_ENABLING_REPLICATION_ON_BASEDN(11, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error initializing base DN.
-   */
+  /** Error initializing base DN. */
   ERROR_INITIALIZING_BASEDN_GENERIC(12, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error reading configuration.
-   */
+  /** Error reading configuration. */
   ERROR_READING_CONFIGURATION(13, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error updating ADS.
-   */
+  /** Error updating ADS. */
   ERROR_UPDATING_ADS(14, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error reading ADS.
-   */
+  /** Error reading ADS. */
   ERROR_READING_ADS(15, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error reading TopologyCache.
-   */
+  /** Error reading TopologyCache. */
   ERROR_READING_TOPOLOGY_CACHE(16, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error configuring replication server.
-   */
+  /** Error configuring replication server. */
   ERROR_CONFIGURING_REPLICATIONSERVER(17, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Unsupported ADS scenario.
-   */
+  /** Unsupported ADS scenario. */
   REPLICATION_ADS_MERGE_NOT_SUPPORTED(18, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error disabling replication on base DN.
-   */
+  /** Error disabling replication on base DN. */
   ERROR_DISABLING_REPLICATION_ON_BASEDN(19, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error removing replication port reference on base DN.
-   */
+  /** Error removing replication port reference on base DN. */
   ERROR_DISABLING_REPLICATION_REMOVE_REFERENCE_ON_BASEDN(20,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error initializing Administration Framework.
-   */
+  /** Error initializing Administration Framework. */
   ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK(21,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error seeding trustore.
-   */
+  /** Error seeding trustore. */
   ERROR_SEEDING_TRUSTORE(22, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error launching pre external initialization.
-   */
+  /** Error launching pre external initialization. */
   ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION(23,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error launching pre external initialization.
-   */
+  /** Error launching pre external initialization. */
   ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION(24,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error disabling replication server.
-   */
+  /** Error disabling replication server. */
   ERROR_DISABLING_REPLICATION_SERVER(25, ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error executing purge historical.
-   */
+  /** Error executing purge historical. */
   ERROR_EXECUTING_PURGE_HISTORICAL(26,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * The provided base DNs cannot be purged.
-   */
+  /** The provided base DNs cannot be purged. */
   HISTORICAL_CANNOT_BE_PURGED_ON_BASEDN(27,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-    * Error launching purge historical.
-    */
+  /** Error launching purge historical. */
   ERROR_LAUNCHING_PURGE_HISTORICAL(28,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-    * Error loading configuration class in local purge historical.
-    */
+  /** Error loading configuration class in local purge historical. */
   ERROR_LOCAL_PURGE_HISTORICAL_CLASS_LOAD(29,
          ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-   * Error starting server in local purge historical.
-   */
+  /** Error starting server in local purge historical. */
    ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START(30,
        ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-    * Timeout error in local purge historical.
-    */
+  /** Timeout error in local purge historical. */
   ERROR_LOCAL_PURGE_HISTORICAL_TIMEOUT(31,
        ERR_REPLICATION_NO_MESSAGE.get()),
 
-  /**
-    * Generic error executing local purge historical.
-    */
+  /** Generic error executing local purge historical. */
   ERROR_LOCAL_PURGE_HISTORICAL_EXECUTING(32,
       ERR_REPLICATION_NO_MESSAGE.get());
 
@@ -229,7 +171,7 @@ public enum ReplicationCliReturnCode
   private LocalizableMessage message;
   private int returnCode;
 
-  // Private constructor.
+  /** Private constructor. */
   private ReplicationCliReturnCode(int returnCode, LocalizableMessage message)
   {
     this.returnCode = returnCode;

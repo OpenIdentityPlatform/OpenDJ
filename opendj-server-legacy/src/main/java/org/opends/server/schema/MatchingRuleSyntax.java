@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,8 +48,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class implements the matching rule description syntax, which is used to
  * hold matching rule definitions in the server schema.  The format of this
@@ -62,18 +58,14 @@ public class MatchingRuleSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -86,11 +78,7 @@ public class MatchingRuleSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -117,8 +105,6 @@ public class MatchingRuleSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -129,8 +115,6 @@ public class MatchingRuleSyntax
   {
     return SYNTAX_MATCHING_RULE_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -143,8 +127,6 @@ public class MatchingRuleSyntax
     return SYNTAX_MATCHING_RULE_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -155,8 +137,6 @@ public class MatchingRuleSyntax
   {
     return SYNTAX_MATCHING_RULE_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -172,8 +152,6 @@ public class MatchingRuleSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -187,8 +165,6 @@ public class MatchingRuleSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -204,8 +180,6 @@ public class MatchingRuleSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -220,8 +194,6 @@ public class MatchingRuleSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -592,8 +564,6 @@ public class MatchingRuleSyntax
     return true;
   }
 
-
-
   /**
    * Reads the next token name from the matching rule definition, skipping over
    * any leading or trailing spaces, and appends it to the provided buffer.
@@ -647,8 +617,6 @@ public class MatchingRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -725,8 +693,6 @@ public class MatchingRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -810,8 +776,6 @@ public class MatchingRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the attribute type/objectclass description or numeric OID from the
@@ -958,8 +922,6 @@ public class MatchingRuleSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value for an "extra" parameter.  It will handle a single unquoted
@@ -1115,22 +1077,14 @@ public class MatchingRuleSyntax
     return startPos;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

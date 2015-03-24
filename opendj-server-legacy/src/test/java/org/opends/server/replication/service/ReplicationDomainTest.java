@@ -537,7 +537,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   }
 
   /**
-   * See comments in senderInitialize() above
+   * See comments in senderInitialize() above.
    */
   @Test(enabled=false)
   public void receiverInitialize() throws Exception

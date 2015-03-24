@@ -54,7 +54,7 @@ import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
-  // The attribute type for the hasSubordinates attribute.
+  /** The attribute type for the hasSubordinates attribute. */
   private AttributeType hasSubordinatesType;
 
   private List<Entry> entries;

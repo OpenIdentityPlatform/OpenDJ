@@ -69,7 +69,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * An entry with a entryUUID
+   * An entry with a entryUUID.
    */
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
@@ -85,7 +85,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private String user1entryUUID;
 
   /**
-   * A "person" entry
+   * A "person" entry.
    */
   private Entry personEntry;
   private int replServerPort;
@@ -272,7 +272,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * Add an entry in the database
+   * Add an entry in the database.
    */
   private CSN addEntry(Entry entry) throws Exception
   {
@@ -283,7 +283,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * Delete an entry in the database
+   * Delete an entry in the database.
    */
   private void delEntry(DN dn) throws Exception
   {
@@ -920,11 +920,9 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertConflictAutomaticallyResolved(alertCount);
 
 
-    //
     // Check that when a delete is conflicting with Add of some entries
     // below the deleted entries, the child entry that have been added
     // before the deleted is replayed gets renamed correctly.
-    //
 
     // add domain1 entry with 2 children : domain2 and domain3
     addEntry(domain1);
@@ -971,10 +969,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     delEntry(conflictDomain3dn);
 
 
-    //
     // Check that when a delete is replayed over an entry which has child
     // those child are also deleted
-    //
+
     // add domain1 entry with 2 children : domain2 and domain3
     addEntry(domain1);
     domain1uid = getEntryUUID(domain1dn);
@@ -1005,11 +1002,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     delEntry(conflictDomain2dn);
     delEntry(conflictDomain3dn);
 
-    //
     // Check that when an entry is added on one master below an entry
     // that is currently deleted on another master, the replay of the
     // add on the second master cause the added entry to be renamed
-    //
       broker.publish(addMsg(gen, domain2, domain2uid, domain1uid));
 
     // check that conflict entry was created

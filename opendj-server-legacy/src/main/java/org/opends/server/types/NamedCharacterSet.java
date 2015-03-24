@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -52,13 +52,13 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class NamedCharacterSet
 {
-  // The characters contained in this character set.
+  /** The characters contained in this character set. */
   private char[] characters;
 
-  // The random number generator to use with this character set.
+  /** The random number generator to use with this character set. */
   private Random random;
 
-  // The name assigned to this character set.
+  /** The name assigned to this character set. */
   private String name;
 
 

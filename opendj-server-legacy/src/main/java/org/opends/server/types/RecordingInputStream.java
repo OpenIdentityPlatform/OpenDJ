@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -56,9 +56,7 @@ public class RecordingInputStream extends InputStream
     this.buffer = new ByteStringBuilder(32);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int read() throws IOException {
     int readByte = parentStream.read();
     if(enableRecording)
@@ -68,9 +66,7 @@ public class RecordingInputStream extends InputStream
     return readByte;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int read(byte[] bytes) throws IOException {
     int bytesRead = parentStream.read(bytes);
@@ -81,9 +77,7 @@ public class RecordingInputStream extends InputStream
     return bytesRead;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int read(byte[] bytes, int i, int i1) throws IOException {
     int bytesRead = parentStream.read(bytes, i, i1);
@@ -94,49 +88,37 @@ public class RecordingInputStream extends InputStream
     return bytesRead;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long skip(long l) throws IOException {
     return parentStream.skip(l);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int available() throws IOException {
     return parentStream.available();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close() throws IOException {
     parentStream.close();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void mark(int i) {
     parentStream.mark(i);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void reset() throws IOException {
     parentStream.reset();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean markSupported() {
     return parentStream.markSupported();

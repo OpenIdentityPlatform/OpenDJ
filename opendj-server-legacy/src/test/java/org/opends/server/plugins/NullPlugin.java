@@ -58,9 +58,7 @@ public class NullPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)

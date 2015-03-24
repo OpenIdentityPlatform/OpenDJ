@@ -23,11 +23,9 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import java.util.Calendar;
 import java.util.Date;
@@ -50,8 +48,6 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
-
-
 /**
  * This class defines the generalized time attribute syntax, which is a way of
  * representing time in a form like "YYYYMMDDhhmmssZ".  The actual form is
@@ -64,22 +60,18 @@ public class GeneralizedTimeSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // UTC TimeZone is assumed to never change over JVM lifetime
+  /** UTC TimeZone is assumed to never change over JVM lifetime. */
   private static final TimeZone TIME_ZONE_UTC_OBJ =
       TimeZone.getTimeZone(TIME_ZONE_UTC);
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -92,11 +84,7 @@ public class GeneralizedTimeSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -126,8 +114,6 @@ public class GeneralizedTimeSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -138,8 +124,6 @@ public class GeneralizedTimeSyntax
   {
     return SYNTAX_GENERALIZED_TIME_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -152,8 +136,6 @@ public class GeneralizedTimeSyntax
     return SYNTAX_GENERALIZED_TIME_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -164,8 +146,6 @@ public class GeneralizedTimeSyntax
   {
     return SYNTAX_GENERALIZED_TIME_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -181,8 +161,6 @@ public class GeneralizedTimeSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -196,8 +174,6 @@ public class GeneralizedTimeSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -213,8 +189,6 @@ public class GeneralizedTimeSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -229,8 +203,6 @@ public class GeneralizedTimeSyntax
     // Approximate matching will not be allowed by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -260,8 +232,6 @@ public class GeneralizedTimeSyntax
     }
   }
 
-
-
   /**
    * Retrieves the generalized time representation of the provided date.
    *
@@ -273,8 +243,6 @@ public class GeneralizedTimeSyntax
   {
     return d == null ? null : format(d.getTime());
   }
-
-
 
   /**
    * Retrieves the generalized time representation of the provided date.
@@ -375,8 +343,6 @@ public class GeneralizedTimeSyntax
     return sb.toString();
   }
 
-
-
   /**
    * Retrieves an attribute value containing a generalized time representation
    * of the provided date.
@@ -389,8 +355,6 @@ public class GeneralizedTimeSyntax
   {
     return ByteString.valueOf(format(time));
   }
-
-
 
   /**
    * Decodes the provided normalized value as a generalized time value and
@@ -1319,8 +1283,6 @@ public class GeneralizedTimeSyntax
     }
   }
 
-
-
   /**
    * Completes decoding the generalized time value containing a fractional
    * component.  It will also decode the trailing 'Z' or offset.
@@ -1445,8 +1407,6 @@ outerLoop:
                                    message, e);
     }
   }
-
-
 
   /**
    * Decodes a time zone offset from the provided value.
@@ -1595,22 +1555,14 @@ outerLoop:
     return TimeZone.getTimeZone("GMT" + offSetStr);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

@@ -76,20 +76,19 @@ public final class CertificateManager {
    */
   public static final String KEY_STORE_PATH_PKCS11 = "NONE";
 
-  //Error message strings.
+  /** Error message strings. */
   private static final String KEYSTORE_PATH_MSG = "key store path";
   private static final String KEYSTORE_TYPE_MSG = "key store type";
   private static final String SUBJECT_DN_MSG = "subject DN";
   private static final String CERT_ALIAS_MSG = "certificate alias";
   private static final String CERT_REQUEST_FILE_MSG =
                                                     "certificate request file";
-  // The parsed key store backing this certificate manager.
+  /** The parsed key store backing this certificate manager. */
   private KeyStore keyStore;
 
-  // The path to the key store that we should be using.
+  /** The path to the key store that we should be using. */
   private final String keyStorePath;
-
-  // The name of the key store type we are using.
+  /** The name of the key store type we are using. */
   private final String keyStoreType;
 
   private final char[] password;

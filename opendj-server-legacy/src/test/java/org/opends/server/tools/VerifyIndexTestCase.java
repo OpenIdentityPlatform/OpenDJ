@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * A set of test cases for the verify-index tool (see issue #1897)
+ * A set of test cases for the verify-index tool (see issue #1897).
  */
 public class VerifyIndexTestCase
        extends ToolsTestCase

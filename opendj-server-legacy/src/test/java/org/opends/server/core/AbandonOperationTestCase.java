@@ -52,14 +52,12 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 /**
- * A set of test cases for abandon operations
+ * A set of test cases for abandon operations.
  */
 public class AbandonOperationTestCase
        extends OperationTestCase
 {
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected Operation[] createTestOperations()
          throws Exception

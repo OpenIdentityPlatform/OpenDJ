@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -63,7 +64,7 @@ public enum LockType
 
 
 
-  // The human-readable name for this lock type.
+  /** The human-readable name for this lock type. */
   private String name;
 
 

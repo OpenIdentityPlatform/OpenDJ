@@ -209,16 +209,16 @@ public class VirtualStaticGroupTestCase
 
 
 
-  // The attribute type for the member attribute.
+  /** The attribute type for the member attribute. */
   private AttributeType memberType;
 
-  // The attribute type for the uniqueMember attribute.
+  /** The attribute type for the uniqueMember attribute. */
   private AttributeType uniqueMemberType;
 
-  // The server group manager.
+  /** The server group manager. */
   private GroupManager groupManager;
 
-  // The DNs of the various entries in the data set.
+  /** The DNs of the various entries in the data set. */
   private DN u1;
   private DN u2;
   private DN u3;

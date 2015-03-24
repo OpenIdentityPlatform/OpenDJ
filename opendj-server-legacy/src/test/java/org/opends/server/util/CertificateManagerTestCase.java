@@ -57,7 +57,7 @@ public class CertificateManagerTestCase
        CertificateManager.mayUseCertificateManager();
 
 
-  // Get the build root and use it to create a test package directory.
+  /** Get the build root and use it to create a test package directory. */
   public static final String BUILD_ROOT =
           System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
 

@@ -63,20 +63,22 @@ public class UpdatePreOpPlugin
 
 
 
-  // The set of attributes to set in the next add operation.
+  /** The set of attributes to set in the next add operation. */
   private ArrayList<Attribute> setAttributes;
 
-  // The set of attribute types for attributes to remove from the next add
-  // operation.
+  /**
+   * The set of attribute types for attributes to remove from the next add
+   * operation.
+   */
   private ArrayList<AttributeType> removeAttributes;
 
-  // The set of objectclasses to add to the next add operation.
+  /** The set of objectclasses to add to the next add operation. */
   private ArrayList<ObjectClass> addObjectClasses;
 
-  // The set of objectclasses to remove from the next add operation.
+  /** The set of objectclasses to remove from the next add operation. */
   private ArrayList<ObjectClass> removeObjectClasses;
 
-  // The set of modifications to add to the next modify operation.
+  /** The set of modifications to add to the next modify operation. */
   private ArrayList<Modification> modifications;
 
 
@@ -95,9 +97,7 @@ public class UpdatePreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
@@ -130,9 +130,7 @@ public class UpdatePreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
@@ -164,9 +162,7 @@ public class UpdatePreOpPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)

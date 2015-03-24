@@ -51,16 +51,14 @@ public class GuideSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -73,11 +71,7 @@ public class GuideSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -103,8 +97,6 @@ public class GuideSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -114,8 +106,6 @@ public class GuideSyntax
   {
     return SYNTAX_GUIDE_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -127,8 +117,6 @@ public class GuideSyntax
     return SYNTAX_GUIDE_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -138,8 +126,6 @@ public class GuideSyntax
   {
     return SYNTAX_GUIDE_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -154,8 +140,6 @@ public class GuideSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -168,8 +152,6 @@ public class GuideSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -184,8 +166,6 @@ public class GuideSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -199,8 +179,6 @@ public class GuideSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -243,8 +221,6 @@ public class GuideSyntax
         // The rest of the value must be the criteria.
         && criteriaIsValid(valueStr.substring(sharpPos+1), valueStr, invalidReason);
   }
-
-
 
   /**
    * Determines whether the provided string represents a valid criteria
@@ -533,21 +509,13 @@ public class GuideSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

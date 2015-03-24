@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -46,9 +46,7 @@ public final class AuthPasswordEqualityMatchingRuleFactory
 {
   private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -60,9 +58,7 @@ public final class AuthPasswordEqualityMatchingRuleFactory
        .addToSchema().toSchema().getMatchingRule(EMR_AUTH_PASSWORD_OID);
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {

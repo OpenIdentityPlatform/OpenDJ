@@ -72,7 +72,7 @@ public class SubEntry {
      */
     VIRTUAL_OVERRIDES_REAL("virtual-overrides-real");
 
-    // String representation of the value.
+    /** String representation of the value. */
     private final String name;
 
     /**
@@ -84,9 +84,7 @@ public class SubEntry {
       this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -136,50 +134,44 @@ public class SubEntry {
   public static final String ATTR_INHERIT_COLLECTIVE_ATTR =
           "inheritattribute";
 
-  // Attribute option to mark attributes collective.
+  /** Attribute option to mark attributes collective. */
   private static final String ATTR_OPTION_COLLECTIVE =
           "collective";
 
-  // Entry object.
+  /** Entry object. */
   private Entry entry;
 
-  // Subtree specification.
+  /** Subtree specification. */
   private SubtreeSpecification subTreeSpec;
 
-  // Collective subentry flag.
+  /** Collective subentry flag. */
   private boolean isCollective;
-
-  // Inherited collective subentry flag.
+  /** Inherited collective subentry flag. */
   private boolean isInheritedCollective;
-
-  // Inherited collective from DN subentry flag.
+  /** Inherited collective from DN subentry flag. */
   private boolean isInheritedFromDNCollective;
-
-  // Inherited collective from RDN subentry flag.
+  /** Inherited collective from RDN subentry flag. */
   private boolean isInheritedFromRDNCollective;
 
-  // Inherited collective DN attribute type.
+  /** Inherited collective DN attribute type. */
   private AttributeType inheritFromDNType;
-
-  // Inherited collective RDN attribute type.
+  /** Inherited collective RDN attribute type. */
   private AttributeType inheritFromRDNAttrType;
-
-  // Inherited collective RDN type attribute type.
+  /** Inherited collective RDN type attribute type. */
   private AttributeType inheritFromRDNType;
 
-  // Inherited collective RDN attribute value.
+  /** Inherited collective RDN attribute value. */
   private ByteString inheritFromRDNAttrValue;
-
-  // Inherited collective from DN value.
+  /** Inherited collective from DN value. */
   private ByteString inheritFromDNAttrValue;
 
-  // Inherited collective from base DN.
+  /** Inherited collective from base DN. */
   private DN inheritFromBaseDN;
 
-  // Collective attributes.
+  /** Collective attributes. */
   private List<Attribute> collectiveAttributes;
 
-  // Conflict behavior.
+  /** Conflict behavior. */
   private CollectiveConflictBehavior conflictBehavior =
           CollectiveConflictBehavior.REAL_OVERRIDES_VIRTUAL;
 
@@ -191,7 +183,6 @@ public class SubEntry {
    */
   public SubEntry(Entry entry) throws DirectoryException
   {
-    // Entry object.
     this.entry = entry;
 
     // Process subtree specification.

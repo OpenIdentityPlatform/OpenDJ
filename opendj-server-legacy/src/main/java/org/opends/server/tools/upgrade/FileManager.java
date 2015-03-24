@@ -319,9 +319,7 @@ class FileManager
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public FileOperation copyForChild(File child)
     {
       return new CopyOperation(child, destination, overwrite);
@@ -342,9 +340,7 @@ class FileManager
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void apply() throws IOException
     {
       final File objectFile = getObjectFile();
@@ -518,9 +514,7 @@ class FileManager
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public FileOperation copyForChild(File child)
     {
       return new DeleteOperation(child, deletionPolicy);
@@ -528,9 +522,7 @@ class FileManager
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void apply() throws IOException
     {
       File file = getObjectFile();

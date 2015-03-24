@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import java.util.HashSet;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -42,8 +40,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
-
 
 /**
  * This class implements the teletex terminal identifier attribute syntax, which
@@ -83,18 +79,14 @@ public class TeletexTerminalIdentifierSyntax
     ALLOWED_TTX_PARAMETERS.add("private");
   }
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -107,11 +99,7 @@ public class TeletexTerminalIdentifierSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -140,8 +128,6 @@ public class TeletexTerminalIdentifierSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -151,8 +137,6 @@ public class TeletexTerminalIdentifierSyntax
   {
     return SYNTAX_TELETEX_TERM_ID_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -164,8 +148,6 @@ public class TeletexTerminalIdentifierSyntax
     return SYNTAX_TELETEX_TERM_ID_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -175,8 +157,6 @@ public class TeletexTerminalIdentifierSyntax
   {
     return SYNTAX_TELETEX_TERM_ID_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -191,8 +171,6 @@ public class TeletexTerminalIdentifierSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -205,8 +183,6 @@ public class TeletexTerminalIdentifierSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -221,8 +197,6 @@ public class TeletexTerminalIdentifierSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -236,8 +210,6 @@ public class TeletexTerminalIdentifierSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -381,21 +353,13 @@ public class TeletexTerminalIdentifierSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

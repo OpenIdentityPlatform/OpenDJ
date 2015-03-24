@@ -51,9 +51,8 @@ import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
-    // The attribute type for the numSubordinates attribute.
+  /** The attribute type for the numSubordinates attribute. */
   private AttributeType numSubordinatesType;
-
   private List<Entry> entries;
 
   /**

@@ -118,9 +118,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public DN getDN()
     {
       return policyDN;
@@ -128,18 +126,14 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public AuthenticationPolicyState createAuthenticationPolicyState(
         Entry userEntry, long time) throws DirectoryException
     {
       return new AuthenticationPolicyState(userEntry)
       {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean passwordMatches(ByteString password)
             throws DirectoryException
         {
@@ -149,9 +143,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean isDisabled()
         {
           return MockPolicy.this.isDisabled;
@@ -159,9 +151,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void finalizeStateAfterBind() throws DirectoryException
         {
           isStateFinalized = true;
@@ -169,9 +159,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public AuthenticationPolicy getAuthenticationPolicy()
         {
           return MockPolicy.this;
@@ -181,9 +169,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void finalizeAuthenticationPolicy()
     {
       isPolicyFinalized = true;

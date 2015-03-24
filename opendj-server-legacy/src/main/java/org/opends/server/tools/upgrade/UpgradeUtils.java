@@ -860,7 +860,7 @@ final class UpgradeUtils
     return modifiedLines;
   }
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private UpgradeUtils()
   {
     throw new AssertionError();

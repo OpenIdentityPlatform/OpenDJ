@@ -92,7 +92,7 @@ public final class LockManager
 
 
 
-  // Initialize the lock table.
+  /** Initialize the lock table. */
   static
   {
     DirectoryEnvironmentConfig environmentConfig =

@@ -86,19 +86,22 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   private static final int RUN_ONLINE = 52;
 
-  // Number of milliseconds this utility will wait before reloading
-  // this task's entry in the directory while it is polling for status
+  /**
+   * Number of milliseconds this utility will wait before reloading
+   * this task's entry in the directory while it is polling for status.
+   */
   private static final int SYNCHRONOUS_TASK_POLL_INTERVAL = 1000;
 
   private LDAPConnectionArgumentParser argParser;
 
   private TaskScheduleArgs taskScheduleArgs;
 
-  // Argument used to know whether we must test if we must run in off-line
-  // mode.
+  /**
+   * Argument used to know whether we must test if we must run in off-line mode.
+   */
   private BooleanArgument testIfOfflineArg;
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
   /**
@@ -187,49 +190,37 @@ public abstract class TaskTool implements TaskScheduleInformation {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Date getStartDateTime() {
     return taskScheduleArgs.getStartDateTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getRecurringDateTime() {
     return taskScheduleArgs.getRecurringDateTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<String> getDependencyIds() {
     return taskScheduleArgs.getDependencyIds();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public FailedDependencyAction getFailedDependencyAction() {
     return taskScheduleArgs.getFailedDependencyAction();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<String> getNotifyUponCompletionEmailAddresses() {
     return taskScheduleArgs.getNotifyUponCompletionEmailAddresses();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<String> getNotifyUponErrorEmailAddresses() {
     return taskScheduleArgs.getNotifyUponErrorEmailAddresses();

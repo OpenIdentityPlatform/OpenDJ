@@ -65,38 +65,46 @@ public final class ObjectClass
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of optional attribute types for this objectclass.
+  /** The set of optional attribute types for this objectclass. */
   private final Set<AttributeType> optionalAttributes;
 
-  // The set of optional attribute types for this objectclass and its
-  // superclasses.
+  /**
+   * The set of optional attribute types for this objectclass and its
+   * superclasses.
+   */
   private final Set<AttributeType> optionalAttributesChain;
 
-  // The set of required attribute types for this objectclass.
+  /** The set of required attribute types for this objectclass. */
   private final Set<AttributeType> requiredAttributes;
 
-  // The set of required attribute types for this objectclass and its
-  // superclasses.
+  /**
+   * The set of required attribute types for this objectclass and its
+   * superclasses.
+   */
   private final Set<AttributeType> requiredAttributesChain;
 
-  // The set of required and optional attributes for this objectclass
-  // and its superclasses.
+  /**
+   * The set of required and optional attributes for this objectclass
+   * and its superclasses.
+   */
   private final Set<AttributeType> requiredAndOptionalChain;
 
-  // The reference to one or more superior objectclasses.
+  /** The reference to one or more superior objectclasses. */
   private final Set<ObjectClass> superiorClasses;
 
-  // The objectclass type for this objectclass.
+  /** The objectclass type for this objectclass. */
   private final ObjectClassType objectClassType;
 
-  // Indicates whether or not this object class is allowed to
-  // contain any attribute.
+  /**
+   * Indicates whether or not this object class is allowed to
+   * contain any attribute.
+   */
   private final boolean isExtensibleObject;
 
-  // The definition string used to create this objectclass.
+  /** The definition string used to create this objectclass. */
   private final String definition;
 
-  // True once this object class has been removed from the schema.
+  /** True once this object class has been removed from the schema. */
   private volatile boolean isDirty;
 
 

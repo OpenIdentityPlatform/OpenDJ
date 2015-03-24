@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -48,15 +49,18 @@ package org.opends.server.types;
      mayInvoke=true)
 public final class RestoreConfig extends OperationConfig
 {
-  // The reference to the directory containing the backup file(s) to
-  // restore.
+  /**
+   * The reference to the directory containing the backup file(s) to restore.
+   */
   private BackupDirectory backupDirectory;
 
-  // Indicates whether the "restore" should be verify-only but not
-  // actually move or restore any files.
+  /**
+   * Indicates whether the "restore" should be verify-only but not
+   * actually move or restore any files.
+   */
   private boolean verifyOnly;
 
-  // The unique ID assigned to the backup that is to be restored.
+  /** The unique ID assigned to the backup that is to be restored. */
   private String backupID;
 
 

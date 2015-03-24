@@ -49,13 +49,13 @@ public final class SortKey
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The attribute type for this sort key.
+  /** The attribute type for this sort key. */
   private AttributeType attributeType;
 
-  // The indication of whether the sort should be ascending.
+  /** The indication of whether the sort should be ascending. */
   private boolean ascending;
 
-  // The ordering matching rule to use with this sort key.
+  /** The ordering matching rule to use with this sort key. */
   private MatchingRule orderingRule;
 
 

@@ -164,7 +164,7 @@ public class ModifyConflictTest extends ReplicationTestCase
   /**
    * Test that replace with null value is correctly seen as a delete
    * by doing first a replace with null, then add at at previous time
-   * then check that the add was ignored
+   * then check that the add was ignored.
    */
   @Test
   public void replaceWithNull() throws Exception
@@ -1266,7 +1266,7 @@ public class ModifyConflictTest extends ReplicationTestCase
   }
 
   /**
-   * helper function.
+   * Helper function.
    */
   private void testHistoricalAndFake(Entry entry)
   {

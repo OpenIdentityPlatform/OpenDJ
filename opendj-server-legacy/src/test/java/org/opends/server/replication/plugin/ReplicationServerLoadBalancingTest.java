@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -50,9 +50,9 @@ import static org.testng.Assert.*;
  */
 public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 {
-  /** Number of DSs */
+  /** Number of DSs. */
   private static final int NDS = 20;
-  /** Number of RSs */
+  /** Number of RSs. */
   private static final int NRS = 4;
   private final LDAPReplicationDomain rd[] = new LDAPReplicationDomain[NDS];
   private final ReplicationServer rs[] = new ReplicationServer[NRS];
@@ -62,7 +62,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private static final int RS2_ID = 502;
   private static final int RS3_ID = 503;
 
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)
@@ -161,7 +161,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   }
 
   /**
-   * Returns a suitable RS configuration with the passed new weight
+   * Returns a suitable RS configuration with the passed new weight.
    */
   private ReplicationServerCfg createReplicationServerConfigWithNewWeight
     (int rsIndex, int weight, String testCase)
@@ -263,7 +263,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
   /**
    * Return the number of DSs currently connected to the RS with the passed
-   * index
+   * index.
    */
   private int getNbDSsConnectedToRS(int rsIndex)
   {
@@ -730,7 +730,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
   }
 
-  /** Translate an int array into a human readable string */
+  /** Translate an int array into a human readable string. */
   private static String toString(int[] ints)
   {
     StringBuilder sb = new StringBuilder("[");
@@ -746,7 +746,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     return sb.toString();
   }
 
-  /** Translate an int[][] array into a human readable string */
+  /** Translate an int[][] array into a human readable string. */
   private static String toString(int[][] ints)
   {
     StringBuilder sb = new StringBuilder("[");

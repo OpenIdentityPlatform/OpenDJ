@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 
 public class TestTextWriter implements TextWriter
 {
-  // The list that will hold the messages logged.
+  /** The list that will hold the messages logged. */
   private final LinkedList<String> messageList;
 
   public TestTextWriter()
@@ -46,28 +47,22 @@ public class TestTextWriter implements TextWriter
     messageList.add(record);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void flush()
   {
     // No implementation is required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void shutdown()
   {
     messageList.clear();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public long getBytesWritten()
   {
-    // No implemention is required. Just return 0;
+    // No implementation is required. Just return 0;
     return 0;
   }
 

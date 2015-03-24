@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -62,17 +62,13 @@ public class AddSchemaFileTask
   /** The list of files to be added to the server schema. */
   private TreeSet<String> filesToAdd;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_ADD_SCHEMA_FILE_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -177,9 +173,7 @@ public class AddSchemaFileTask
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

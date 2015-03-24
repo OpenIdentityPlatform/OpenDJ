@@ -53,33 +53,37 @@ public final class NameForm
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether this name form is declared "obsolete".
+  /** Indicates whether this name form is declared "obsolete". */
   private final boolean isObsolete;
 
-  // The set of additional name-value pairs associated with this name
-  // form definition.
+  /**
+   * The set of additional name-value pairs associated with this name
+   * form definition.
+   */
   private final Map<String,List<String>> extraProperties;
 
-  // The mapping between the lowercase names and the user-provided
-  // names for this name form.
+  /**
+   * The mapping between the lowercase names and the user-provided
+   * names for this name form.
+   */
   private final Map<String,String> names;
 
-  // The reference to the structural objectclass for this name form.
+  /** The reference to the structural objectclass for this name form. */
   private final ObjectClass structuralClass;
 
-  // The set of optional attribute types for this name form.
+  /** The set of optional attribute types for this name form. */
   private final Set<AttributeType> optionalAttributes;
 
-  // The set of required attribute types for this name form.
+  /** The set of required attribute types for this name form. */
   private final Set<AttributeType> requiredAttributes;
 
-  // The definition string used to create this name form.
+  /** The definition string used to create this name form. */
   private final String definition;
 
-  // The description for this name form.
+  /** The description for this name form. */
   private final String description;
 
-  // The OID for this name form.
+  /** The OID for this name form. */
   private final String oid;
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
@@ -47,7 +47,7 @@ import static org.opends.server.extensions.PasswordStorageSchemeTestCase.*;
 public class CryptPasswordStorageSchemeTestCase
        extends ExtensionsTestCase
 {
-  // Names of all the crypt algorithms we want to test.
+  /** Names of all the crypt algorithms we want to test. */
   private static final String[] names = { "unix", "md5", "sha256", "sha512" };
 
   /**

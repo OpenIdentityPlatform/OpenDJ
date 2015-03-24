@@ -114,9 +114,7 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

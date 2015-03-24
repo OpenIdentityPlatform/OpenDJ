@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.admin;
 
 import static org.testng.Assert.*;
@@ -40,7 +40,7 @@ public class LDAPProfileTest extends DirectoryServerTestCase {
 
   /**
    * Tests execution of getObjectClasses() and makes sure the
-   * returned list contains "top"
+   * returned list contains "top".
    */
   @Test
   public void testGetObjectClasses() {

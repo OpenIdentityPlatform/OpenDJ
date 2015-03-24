@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -128,9 +128,7 @@ public final class DNBuilderTest extends AdminTestCase {
     final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = b.getInstance();
     LDAPProfile.Wrapper wrapper = new LDAPProfile.Wrapper() {
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
         if (r == r2) {

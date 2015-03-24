@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -50,44 +50,39 @@ public final class TestAttributeType extends TestCommonSchemaElements {
    */
   private static final class AttributeTypeBuilder extends
       SchemaDefinitionBuilder<AttributeType> {
-    // The superior attribute type from which this attribute type
-    // inherits.
+    /** The superior attribute type from which this attribute type inherits. */
     private AttributeType superiorType;
 
-    // The syntax for this attribute type.
+    /** The syntax for this attribute type. */
     private AttributeSyntax syntax;
 
-    // The approximate matching rule for this attribute type.
+    /** The approximate matching rule for this attribute type. */
     private MatchingRule approximateMatchingRule;
-
-    // The equality matching rule for this attribute type.
+    /** The equality matching rule for this attribute type. */
     private MatchingRule equalityMatchingRule;
-
-    // The ordering matching rule for this attribute type.
+    /** The ordering matching rule for this attribute type. */
     private MatchingRule orderingMatchingRule;
-
-    // The substring matching rule for this attribute type.
+    /** The substring matching rule for this attribute type. */
     private MatchingRule substringMatchingRule;
 
-    // The attribute usage for this attribute type.
+    /** The attribute usage for this attribute type. */
     private AttributeUsage attributeUsage;
 
-    // Indicates whether this attribute type is declared "collective".
+    /** Indicates whether this attribute type is declared "collective". */
     private boolean isCollective;
 
-    // Indicates whether this attribute type is declared
-    // "no-user-modification".
+    /**
+     * Indicates whether this attribute type is declared "no-user-modification".
+     */
     private boolean isNoUserModification;
-
-    // Indicates whether this attribute type is declared
-    // "single-value".
+    /**
+     * Indicates whether this attribute type is declared "single-value".
+     */
     private boolean isSingleValue;
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void resetBuilder() {
       this.superiorType = null;
@@ -127,9 +122,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected AttributeType buildInstance(String primaryName,
         Collection<String> names, String oid, String description,
@@ -769,9 +762,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     Assert.assertEquals(type.isOperational(), result);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected SchemaDefinitionBuilder getBuilder(String name, String oid) {
     return new AttributeTypeBuilder(name, oid);

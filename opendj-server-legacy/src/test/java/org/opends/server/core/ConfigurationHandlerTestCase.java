@@ -179,7 +179,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     configHandler.addEntry(new LinkedHashMapEntry(DN_CORE_SCHEMA));
   }
 
-  // TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN.
+  /** TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN. */
   @Test(enabled=false, expectedExceptions=DirectoryException.class)
   public void testAddEntryParentUnknown() throws Exception
   {
@@ -252,7 +252,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     assertFalse(configHandler.hasEntry(DN_CORE_SCHEMA));
   }
 
-  // TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN.
+  /** TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN. */
   @Test(enabled=false, expectedExceptions=DirectoryException.class)
   public void testDeleteEntryUnexistingEntry() throws Exception
   {
@@ -267,7 +267,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     configHandler.deleteEntry(DN_SCHEMA_PROVIDERS);
   }
 
-  // TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN.
+  /** TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN. */
   @Test(enabled=false, expectedExceptions=DirectoryException.class)
   public void testDeleteEntryUnknownParent() throws Exception
   {

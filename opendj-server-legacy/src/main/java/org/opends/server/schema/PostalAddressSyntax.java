@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -55,13 +53,11 @@ public class PostalAddressSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -74,11 +70,7 @@ public class PostalAddressSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -99,8 +91,6 @@ public class PostalAddressSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -110,8 +100,6 @@ public class PostalAddressSyntax
   {
     return SYNTAX_POSTAL_ADDRESS_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -123,8 +111,6 @@ public class PostalAddressSyntax
     return SYNTAX_POSTAL_ADDRESS_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -134,8 +120,6 @@ public class PostalAddressSyntax
   {
     return SYNTAX_POSTAL_ADDRESS_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -149,8 +133,6 @@ public class PostalAddressSyntax
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -166,8 +148,6 @@ public class PostalAddressSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
@@ -180,8 +160,6 @@ public class PostalAddressSyntax
   {
     return defaultSubstringMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default approximate matching rule that will be used for
@@ -196,8 +174,6 @@ public class PostalAddressSyntax
     // Approximate matching will not be allowed by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -218,21 +194,13 @@ public class PostalAddressSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

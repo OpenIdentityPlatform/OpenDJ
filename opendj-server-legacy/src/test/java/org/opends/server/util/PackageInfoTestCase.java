@@ -49,7 +49,7 @@ import static org.testng.Assert.*;
 public class PackageInfoTestCase
        extends UtilTestCase
 {
-  // The directory that serves as the top-level source root.
+  /** The directory that serves as the top-level source root. */
   private File sourceRoot;
 
 

@@ -164,35 +164,37 @@ public class RandomTag
 
 
 
-  // The character set that should be used to generate the values.
+  /** The character set that should be used to generate the values. */
   private char[] characterSet;
 
-  // The decimal format used to format numeric values.
+  /** The decimal format used to format numeric values. */
   private DecimalFormat decimalFormat;
 
-  // The number of characters between the minimum and maximum length
-  // (inclusive).
+  /**
+   * The number of characters between the minimum and maximum length
+   * (inclusive).
+   */
   private int lengthRange;
 
-  // The maximum number of characters to include in the value.
+  /** The maximum number of characters to include in the value. */
   private int maxLength;
 
-  // The minimum number of characters to include in the value.
+  /** The minimum number of characters to include in the value. */
   private int minLength;
 
-  // The type of random value that should be generated.
+  /** The type of random value that should be generated. */
   private int randomType;
 
-  // The maximum numeric value that should be generated.
+  /** The maximum numeric value that should be generated. */
   private long maxValue;
 
-  // The minimum numeric value that should be generated.
+  /** The minimum numeric value that should be generated. */
   private long minValue;
 
-  // The number of values between the minimum and maximum value (inclusive).
+  /** The number of values between the minimum and maximum value (inclusive). */
   private long valueRange;
 
-  // The random number generator for this tag.
+  /** The random number generator for this tag. */
   private Random random;
 
 

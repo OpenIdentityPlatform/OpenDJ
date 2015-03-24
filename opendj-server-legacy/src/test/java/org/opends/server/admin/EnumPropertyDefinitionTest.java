@@ -57,8 +57,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that exception thrown when no enum class
-   * specified by builder
+   * Tests that exception thrown when no enum class specified by builder.
    */
   @Test
   public void testBuildInstance() {
@@ -67,8 +66,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that exception thrown when no enum class
-   * specified by builder
+   * Tests that exception thrown when no enum class specified by builder.
    */
   @Test(expectedExceptions = {IllegalStateException.class})
   public void testBuildInstance2() {
@@ -79,7 +77,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates data decodeValue test
+   * Creates data decodeValue test.
    * @return data
    */
   @DataProvider(name = "decodeValueData")
@@ -90,7 +88,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    * @param value to decode
    * @param expectedValue enum expected
    */
@@ -101,7 +99,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates illegal data for decode value test
+   * Creates illegal data for decode value test.
    * @return data
    */
   @DataProvider(name = "decodeValueData2")
@@ -113,7 +111,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    * @param value to decode
    */
   @Test(dataProvider = "decodeValueData2",
@@ -125,7 +123,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests normalization
+   * Tests normalization.
    */
   @Test
   public void testNormalizeValue() {
@@ -134,7 +132,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests validation
+   * Tests validation.
    */
   @Test
   public void testValidateValue() {

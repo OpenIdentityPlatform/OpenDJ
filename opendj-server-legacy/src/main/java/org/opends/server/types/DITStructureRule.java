@@ -51,30 +51,34 @@ public final class DITStructureRule
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether this DIT structure rule is declared "obsolete".
+  /** Indicates whether this DIT structure rule is declared "obsolete". */
   private final boolean isObsolete;
 
-  // The rule ID for this DIT structure rule.
+  /** The rule ID for this DIT structure rule. */
   private final int ruleID;
 
-  // The name form for this DIT structure rule.
+  /** The name form for this DIT structure rule. */
   private final NameForm nameForm;
 
-  // The set of additional name-value pairs associated with this DIT
-  // structure rule.
+  /**
+   * The set of additional name-value pairs associated with this DIT
+   * structure rule.
+   */
   private final Map<String,List<String>> extraProperties;
 
-  // The set of names for this DIT structure rule, in a mapping
-  // between the all-lowercase form and the user-defined form.
+  /**
+   * The set of names for this DIT structure rule, in a mapping
+   * between the all-lowercase form and the user-defined form.
+   */
   private final Map<String,String> names;
 
-  // The set of superior DIT structure rules.
+  /** The set of superior DIT structure rules. */
   private final Set<DITStructureRule> superiorRules;
 
-  // The definition string for this DIT structure rule.
+  /** The definition string for this DIT structure rule. */
   private final String definition;
 
-  // The description for this DIT structure rule.
+  /** The description for this DIT structure rule. */
   private final String description;
 
 

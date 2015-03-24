@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -34,9 +35,7 @@ import org.testng.annotations.DataProvider;
 public class DITContentRuleSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {

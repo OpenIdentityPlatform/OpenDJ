@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 public class SchemaTestMatchingRuleImpl implements MatchingRuleImpl
 {
-  // The matching rule impl that will do all the real work behind the scenes.
+  /** The matching rule impl that will do all the real work behind the scenes. */
   private final MatchingRule caseIgnoreMatchingRule;
 
   /**

@@ -51,14 +51,13 @@ import org.testng.Assert;
  */
 public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
 
-  // Detect multiple calls.
+  /** Detect multiple calls. */
   private boolean alreadyModified;
 
-  // The expected DN.
+  /** The expected DN. */
   private final LdapName expectedDN;
 
-  // The expected set of modifications (attribute name -> list of
-  // values).
+  /** The expected set of modifications (attribute name -> list of values). */
   private final Map<String, List<String>> modifications = new HashMap<String, List<String>>();
 
 
@@ -109,9 +108,7 @@ public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(LdapName dn, Attributes mods) throws NamingException {
     Assert.assertFalse(alreadyModified);

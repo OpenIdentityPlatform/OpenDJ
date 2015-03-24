@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 
@@ -43,15 +43,11 @@ import org.opends.server.types.InitializationException;
 public final class TelephoneNumberEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
-  //Associated Matching Rule.
+  /** Associated Matching Rule. */
   private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -59,11 +55,7 @@ public final class TelephoneNumberEqualityMatchingRuleFactory
    matchingRule = CoreSchema.getTelephoneNumberMatchingRule();
  }
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {
