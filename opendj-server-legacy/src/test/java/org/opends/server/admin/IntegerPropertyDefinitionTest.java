@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -39,7 +40,7 @@ import org.testng.annotations.Test;
 public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
-   * Tests creation of builder succeeds
+   * Tests creation of builder succeeds.
    */
   @Test
   public void testCreateBuilder() {
@@ -48,18 +49,18 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests setting/getting of lower limit as long
+   * Tests setting/getting of lower limit as long.
    */
   @Test
   public void testLowerLimit1() {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == 1;
+    assertTrue(spd.getLowerLimit() == 1);
   }
 
   /**
-   * Creates data for testing string-based limit values
+   * Creates data for testing string-based limit values.
    * @return data
    */
   @DataProvider(name = "limitData")
@@ -71,7 +72,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates data for testing limit values
+   * Creates data for testing limit values.
    * @return data
    */
   @DataProvider(name = "illegalLimitData")
@@ -86,7 +87,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
 
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param limit unit limit
    * @param expectedValue to compare
    */
@@ -95,22 +96,22 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(limit);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == expectedValue;
+    assertTrue(spd.getLowerLimit() == expectedValue);
   }
 
   /**
-   * Tests setting/getting of lower limit as long
+   * Tests setting/getting of lower limit as long.
    */
   @Test
   public void testUpperLimit1() {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == 1;
+    assertTrue(spd.getLowerLimit() == 1);
   }
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param limit upper limit
    * @param expectedValue to compare
    */
@@ -119,11 +120,11 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setUpperLimit(limit);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getUpperLimit().equals(expectedValue);
+    assertTrue(spd.getUpperLimit().equals(expectedValue));
   }
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param upper upper limit
    * @param lower lower limit
    * @param lowerFirst when true sets the lower limit property first
@@ -141,7 +142,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test
   public void testIsAllowUnlimited1() {
@@ -152,7 +153,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited2() {
@@ -163,7 +164,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited3() {
@@ -174,7 +175,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates illegal data for validate value
+   * Creates illegal data for validate value.
    * @return data
    */
   @DataProvider(name = "validateValueData")
@@ -187,7 +188,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that validateValue works
+   * Tests that validateValue works.
    * @param value to validate
    * @param allowUnlimited when true allows unlimited
    * @param high upper limit
@@ -204,7 +205,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates illegal data for validate value
+   * Creates illegal data for validate value.
    * @return data
    */
   @DataProvider(name = "illegalValidateValueData")
@@ -220,7 +221,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that validateValue throws exceptions
+   * Tests that validateValue throws exceptions.
    * @param value to validate
    * @param low lower limit
    * @param high upper limit
@@ -238,7 +239,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates encode test data
+   * Creates encode test data.
    * @return data
    */
   @DataProvider(name = "encodeValueData")
@@ -250,7 +251,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests encode value
+   * Tests encode value.
    * @param value to encode
    * @param expectedValue to compare
    */
@@ -263,7 +264,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Test that accept doesn't throw and exception
+   * Test that accept doesn't throw and exception.
    */
   @Test
   public void testAccept() {
@@ -272,11 +273,13 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
     PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
 
+      @Override
       public Boolean visitInteger(IntegerPropertyDefinition d,
           Void o) {
         return true;
       }
 
+      @Override
       public Boolean visitUnknown(PropertyDefinition d, Void o)
           throws PropertyException {
         return false;
@@ -288,7 +291,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Make sure toString doesn't barf
+   * Make sure toString doesn't barf.
    */
   @Test
   public void testToString() {
@@ -311,6 +314,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(true);
     builder.setDefaultBehaviorProvider(new DefaultBehaviorProvider<Integer>() {
+      @Override
       public <R, P> R accept(DefaultBehaviorProviderVisitor<Integer, R, P> v, P p) {
         return null;
       }

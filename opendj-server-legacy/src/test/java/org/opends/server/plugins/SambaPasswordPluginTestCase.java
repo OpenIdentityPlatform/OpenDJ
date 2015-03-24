@@ -26,6 +26,9 @@
  */
 package org.opends.server.plugins;
 
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,9 +49,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.*;
-
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Unit tests for the Samba password synchronization plugin.
@@ -493,7 +493,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assert (extOp.getResultCode() == ResultCode.SUCCESS);
+    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
 
     // Verification of the result
     assertThatPasswordsAreEqualTo(testEntry,
@@ -570,7 +570,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assert (extOp.getResultCode() == ResultCode.SUCCESS);
+    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
 
     // Verification of the result
 
@@ -651,7 +651,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assert (extOp.getResultCode() == ResultCode.SUCCESS);
+    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
 
     // Verification of the result
     assertThatPasswordsAreEqualTo(testEntry,
@@ -822,7 +822,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       ExtendedOperation extOp = conn.processExtendedOperation(
           ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-      assert (extOp.getResultCode() == ResultCode.SUCCESS);
+      assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
 
       // Verification of the result
 

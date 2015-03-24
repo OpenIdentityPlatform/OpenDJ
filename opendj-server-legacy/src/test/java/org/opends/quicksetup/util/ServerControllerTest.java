@@ -22,14 +22,19 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
-
 package org.opends.quicksetup.util;
 
-import org.testng.annotations.*;
-import org.opends.quicksetup.*;
+import static junit.framework.Assert.*;
+
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupTestCase;
+import org.opends.quicksetup.Status;
 import org.opends.quicksetup.TestUtilities;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 /**
  * ServerController Tester.
@@ -56,9 +61,9 @@ public class ServerControllerTest extends QuickSetupTestCase {
     if (!status.isServerRunning()) {
       controller.startServer();
     }
-    assert (status.isServerRunning());
+    assertTrue(status.isServerRunning());
     controller.stopServer();
-    assert (!status.isServerRunning());
+    assertTrue(!status.isServerRunning());
   }
 
   /**
@@ -70,9 +75,9 @@ public class ServerControllerTest extends QuickSetupTestCase {
     if (status.isServerRunning()) {
       controller.stopServer();
     }
-    assert (!status.isServerRunning());
+    assertTrue(!status.isServerRunning());
     controller.startServer();
-    assert (status.isServerRunning());
+    assertTrue(status.isServerRunning());
   }
 
 }

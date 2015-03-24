@@ -60,22 +60,23 @@ import org.testng.annotations.Test;
  */
 public class PropertySetTest extends AdminTestCase {
 
-  /** Default value for boolean property */
+  /** Default value for boolean property. */
   private static final Boolean BOOL_DEFAULT = Boolean.TRUE;
 
-  /** Default value for string properties */
+  /** Default value for string properties. */
   private static final String STR_DEFAULT = "str def";
 
-  /** Test boolean property def */
+  /** Test boolean property def. */
   private BooleanPropertyDefinition testBoolPropertyDefinition;
 
-  /** Test single valued string property def */
+  /** Test single valued string property def. */
   private StringPropertyDefinition testSvStringPropertyDefinition;
 
-  /** Test multi-valued string property def */
+  /** Test multi-valued string property def. */
   private StringPropertyDefinition testMvStringPropertyDefinition;
 
   private PropertyProvider emptyPropertyProvider = new PropertyProvider() {
+    @Override
     public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) throws IllegalArgumentException {
         return Collections.emptySet();
     }
@@ -83,7 +84,7 @@ public class PropertySetTest extends AdminTestCase {
 
 
   /**
-   * Creates property definitions for testing
+   * Creates property definitions for testing.
    */
   @BeforeClass
   public void setUp() {
@@ -111,7 +112,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Creates data for tests requiring property definitions
+   * Creates data for tests requiring property definitions.
    * @return Object[][] or property definitions
    */
   @DataProvider(name = "propertyDefinitionData")
@@ -125,7 +126,7 @@ public class PropertySetTest extends AdminTestCase {
 
   /**
    * Creates data for tests requiring property definitions
-   * and sample data
+   * and sample data.
    * @return Object[][] consisting of property defs and sets
    *         of sample data
    */
@@ -150,7 +151,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Test basic property set creation
+   * Test basic property set creation.
    */
   @Test
   public void testCreate() {
@@ -159,7 +160,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests setting and getting property values
+   * Tests setting and getting property values.
    * @param pd PropertyDefinition for which values are set and gotten
    * @param values property values to test
    */
@@ -172,14 +173,14 @@ public class PropertySetTest extends AdminTestCase {
     p = ps.getProperty(pd);
     assertTrue(p.isModified());
     SortedSet<T> vs = p.getPendingValues();
-    assert(values.size() == vs.size());
+    assertEquals(values.size(), vs.size());
     for (T value : values) {
       assertTrue(vs.contains(value));
     }
   }
 
   /**
-   * Tests toString()
+   * Tests toString().
    * @param pd PropertyDefinition for testing
    */
   @Test(dataProvider = "propertyDefinitionData")
@@ -189,7 +190,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests the active values property
+   * Tests the active values property.
    * @param pd PropertyDefinition for testing
    * @param values for testing
    */
@@ -206,7 +207,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Creates data for default test
+   * Creates data for default test.
    * @return Object[][] data for test
    */
   @DataProvider(name = "defaultData")
@@ -229,7 +230,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests default values property
+   * Tests default values property.
    * @param pd PropertyDefinition to test
    * @param expected default values
    */
@@ -245,7 +246,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Creates data for effective test
+   * Creates data for effective test.
    * @return Object[][] data for test
    */
   @DataProvider(name = "effectiveData")
@@ -278,7 +279,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests effective values property
+   * Tests effective values property.
    * @param pd PropertyDefinition
    * @param newValues to apply
    * @param expectedDefaults for test comparison
@@ -309,7 +310,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests pending values property
+   * Tests pending values property.
    * @param pd PropertyDefinition
    * @param newValues set of new values to apply
    * @param ignore parameter
@@ -332,7 +333,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests getPropertyDefinition()
+   * Tests getPropertyDefinition().
    * @param pd property definition to test
    */
   @Test(dataProvider = "propertyDefinitionData")
@@ -344,7 +345,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests isEmpty property
+   * Tests isEmpty property.
    * @param pd PropertyDefinition
    * @param newValues set of new values to apply
    * @param ignore parameter
@@ -360,7 +361,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests isEmpty property
+   * Tests isEmpty property.
    * @param pd PropertyDefinition
    * @param newValues set of new values to apply
    * @param ignore parameter
@@ -378,7 +379,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests wasEmpty property
+   * Tests wasEmpty property.
    * @param pd property def to test
    */
   @Test(dataProvider = "propertyDefinitionData")
@@ -389,7 +390,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   /**
-   * Tests property toString()
+   * Tests property toString().
    * @param pd definition of property to test
    */
   @Test(dataProvider = "propertyDefinitionData")
@@ -441,25 +442,22 @@ public class PropertySetTest extends AdminTestCase {
       registerPropertyDefinition(testMvStringPropertyDefinition);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public C createClientConfiguration(ManagedObject managedObject) {
       System.out.println("createClientConfiguration mo=" + managedObject);
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public S createServerConfiguration(ServerManagedObject serverManagedObject) {
       System.out.println("createServerConfiguration smo=" + serverManagedObject);
       return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Class<S> getServerConfigurationClass() {
       System.out.println("getServerConfigurationClass");
       return null;
@@ -476,6 +474,7 @@ public class PropertySetTest extends AdminTestCase {
       this.values = values;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <S> Collection<S> getPropertyValues(PropertyDefinition<S> d) throws IllegalArgumentException {
       if (d.equals(pd)) {
