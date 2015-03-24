@@ -27,8 +27,6 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.io.IOException;
 import java.util.List;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -63,19 +61,17 @@ public class CertificateSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
-  // The current configuration.
+  /** The current configuration. */
   private volatile CertificateAttributeSyntaxCfg config;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -88,11 +84,7 @@ public class CertificateSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(CertificateAttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -124,11 +116,7 @@ public class CertificateSyntax
     config.addCertificateChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       CertificateAttributeSyntaxCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -137,19 +125,13 @@ public class CertificateSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
       CertificateAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
     return new ConfigChangeResult();
   }
-
-
 
   /**
    * Retrieves the common name for this attribute syntax.
@@ -161,8 +143,6 @@ public class CertificateSyntax
     return SYNTAX_CERTIFICATE_NAME;
   }
 
-
-
   /**
    * Retrieves the OID for this attribute syntax.
    *
@@ -173,8 +153,6 @@ public class CertificateSyntax
     return SYNTAX_CERTIFICATE_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -184,8 +162,6 @@ public class CertificateSyntax
   {
     return SYNTAX_CERTIFICATE_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -200,8 +176,6 @@ public class CertificateSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -214,8 +188,6 @@ public class CertificateSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -230,8 +202,6 @@ public class CertificateSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -245,8 +215,6 @@ public class CertificateSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -479,21 +447,13 @@ public class CertificateSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return false;

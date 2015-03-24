@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.admin;
-
-
 
 import static org.testng.Assert.*;
 
@@ -38,8 +36,6 @@ import org.opends.server.types.AttributeType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * AttributeTypePropertyDefinition Tester.
@@ -62,7 +58,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
 
 
   /**
-   * Tests validateValue() with valid data
+   * Tests validateValue() with valid data.
    */
   @Test
   public void testValidateValue() {
@@ -84,7 +80,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
 
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    *
    * @param value
    *          to decode
@@ -100,7 +96,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
 
 
   /**
-   * Tests encodeValue()
+   * Tests encodeValue().
    *
    * @param value
    *          to decode/encode
@@ -125,7 +121,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
 
 
   /**
-   * Tests decodeValue() with illegal data
+   * Tests decodeValue() with illegal data.
    *
    * @param value
    *          to decode
@@ -159,7 +155,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
 
 
 
-  // Create a new definition.
+  /** Create a new definition. */
   private AttributeTypePropertyDefinition createPropertyDefinition() {
     AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition
         .createBuilder(RootCfgDefn.getInstance(), "test-property");

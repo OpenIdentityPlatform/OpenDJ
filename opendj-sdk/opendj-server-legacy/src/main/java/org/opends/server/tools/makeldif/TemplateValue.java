@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -36,10 +37,10 @@ import org.opends.server.types.AttributeType;
  */
 public class TemplateValue
 {
-  // The generated template value.
+  /** The generated template value. */
   private StringBuilder templateValue;
 
-  // The template line used to generate this value.
+  /** The template line used to generate this value. */
   private TemplateLine templateLine;
 
 

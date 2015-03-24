@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -44,13 +44,13 @@ import static org.opends.messages.ToolMessages.*;
 public class SequentialTag
        extends Tag
 {
-  // Indicates whether to reset for each parent.
+  /** Indicates whether to reset for each parent. */
   private boolean resetOnNewParents;
 
-  // The initial value in the sequence.
+  /** The initial value in the sequence. */
   private int initialValue;
 
-  // The next value in the sequence.
+  /** The next value in the sequence. */
   private int nextValue;
 
 

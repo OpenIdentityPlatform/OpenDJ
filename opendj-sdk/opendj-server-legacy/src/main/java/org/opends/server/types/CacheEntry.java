@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -42,13 +42,13 @@ import org.opends.server.api.Backend;
      notes="This should only be used within a backend")
 public final class CacheEntry
 {
-  // The backend with which this cache entry is associated.
-  private Backend backend;
+  /** The backend with which this cache entry is associated. */
+  private Backend<?> backend;
 
-  // The entry itself.
+  /** The entry itself. */
   private Entry entry;
 
-  // The entry ID for the entry within the backend.
+  /** The entry ID for the entry within the backend. */
   private long entryID;
 
 
@@ -60,7 +60,7 @@ public final class CacheEntry
    * @param  backend  The backend for this cache entry.
    * @param  entryID  The entry ID for this cache entry.
    */
-  public CacheEntry(Entry entry, Backend backend, long entryID)
+  public CacheEntry(Entry entry, Backend<?> backend, long entryID)
   {
     this.entry   = entry;
     this.backend = backend;

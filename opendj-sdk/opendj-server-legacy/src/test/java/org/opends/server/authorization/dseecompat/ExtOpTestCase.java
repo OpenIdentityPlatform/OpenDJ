@@ -49,8 +49,9 @@ public class ExtOpTestCase extends AciTestCase {
   private static final String peopleBase="ou=People,o=test";
   private static final String adminBase="ou=Admins,o=test";
 
-  //Allow either reportauthzID or passwordpolicy controls. Used in the
-  //bind tests.
+  /**
+   * Allow either reportauthzID or passwordpolicy controls. Used in the bind tests.
+   */
   private static final
   String pwdControls =
           "(targetcontrol=\"" + OID_AUTHZID_REQUEST + "||" +
@@ -59,7 +60,7 @@ public class ExtOpTestCase extends AciTestCase {
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
 
-  //Allow only password modify extended op.
+  /** Allow only password modify extended op. */
   private static final
   String extOp =
           "(extop=\"" + OID_PASSWORD_MODIFY_REQUEST + "\")" +
@@ -67,7 +68,7 @@ public class ExtOpTestCase extends AciTestCase {
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
 
-  //Allow all extended ops based on extop = *.
+  /** Allow all extended ops based on extop = *. */
   private static final
   String extOpWC =
           "(extop=\"" + "*" + "\")" +
@@ -75,7 +76,7 @@ public class ExtOpTestCase extends AciTestCase {
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
 
-  //Dis-allow all extended ops based on extop != *"
+  /** Dis-allow all extended ops based on extop != *" */
   private static final
   String extOpNotWC =
           "(extop!=\"" + "*" + "\")" +
@@ -83,14 +84,14 @@ public class ExtOpTestCase extends AciTestCase {
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
 
- //Allow all attributes to be modified - so the password can be changed.
+ /** Allow all attributes to be modified - so the password can be changed. */
   private static final
   String ALLOW_ALL = "(targetattr=\"*\")" +
           "(version 3.0;acl \"all access\";" +
           "allow (all) " +
           "userdn=\"ldap:///self\";)";
 
- //Allow pwd modify to people branch.
+ /** Allow pwd modify to people branch. */
   private static final
   String extOpPeople = "(extop=\"" +
           OID_PASSWORD_MODIFY_REQUEST + "\")" +
@@ -98,7 +99,7 @@ public class ExtOpTestCase extends AciTestCase {
           "(version 3.0; acl \"extended op\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
-  //Dis-allow pwd modify to admin branch.
+  /** Dis-allow pwd modify to admin branch. */
   private static final
   String extOpAdmin =
           "(extop!=\"" + OID_PASSWORD_MODIFY_REQUEST + "\")" +
@@ -106,8 +107,7 @@ public class ExtOpTestCase extends AciTestCase {
           "(version 3.0; acl \"extended op\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
-  //Test for side effect -- targetattr rule gives access to denied extended
-  //op.
+  /** Test for side effect -- targetattr rule gives access to denied extended op. */
   private static final
   String complicated =
           "(extop = \"1.2.3.4\")" +

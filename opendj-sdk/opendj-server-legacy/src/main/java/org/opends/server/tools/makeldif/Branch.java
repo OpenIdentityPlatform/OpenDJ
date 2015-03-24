@@ -48,23 +48,25 @@ import org.opends.server.types.Entry;
  */
 public class Branch
 {
-  // The DN for this branch entry.
+  /** The DN for this branch entry. */
   private DN branchDN;
 
-  // The number of entries that should be created below this branch for each
-  // subordinate template.
+  /**
+   * The number of entries that should be created below this branch for each
+   * subordinate template.
+   */
   private int[] numEntriesPerTemplate;
 
-  // The names of the subordinate templates for this branch.
+  /** The names of the subordinate templates for this branch. */
   private String[] subordinateTemplateNames;
 
-  // The set of subordinate templates for this branch.
+  /** The set of subordinate templates for this branch. */
   private Template[] subordinateTemplates;
 
-  // The set of template lines that correspond to the RDN components.
+  /** The set of template lines that correspond to the RDN components. */
   private TemplateLine[] rdnLines;
 
-  // The set of extra lines that should be included in this branch entry.
+  /** The set of extra lines that should be included in this branch entry. */
   private TemplateLine[] extraLines;
 
 

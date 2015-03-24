@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.types;
@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
  */
 public class CollectiveVirtualAttribute extends AbstractAttribute
 {
-  // The attribute this collective virtual attribute is based on.
+  /** The attribute this collective virtual attribute is based on. */
   private Attribute attribute;
 
   /**
@@ -54,17 +54,13 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
     this.attribute = attribute;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(ByteString assertionValue) {
     return attribute.approximatelyEqualTo(assertionValue);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean contains(ByteString value) {
     return attribute.contains(value);
@@ -77,66 +73,50 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
     return attribute.matchesEqualityAssertion(assertionValue);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType getAttributeType() {
     return attribute.getAttributeType();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getOptions() {
     return attribute.getOptions();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(ByteString assertionValue) {
     return attribute.greaterThanOrEqualTo(assertionValue);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVirtual() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Iterator<ByteString> iterator() {
     return attribute.iterator();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(ByteString assertionValue) {
     return attribute.lessThanOrEqualTo(assertionValue);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
           List<ByteString> subAny, ByteString subFinal) {
     return attribute.matchesSubstring(subInitial, subAny, subFinal);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size() {
     return attribute.size();
@@ -149,9 +129,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
     return attribute.hashCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer) {
     attribute.toString(buffer);

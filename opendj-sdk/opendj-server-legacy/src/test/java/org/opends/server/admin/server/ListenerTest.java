@@ -54,13 +54,11 @@ import org.testng.annotations.Test;
  */
 public final class ListenerTest extends AdminTestCase {
 
-  // Add listener implementation.
+  /** Add listener implementation. */
   private static final class TestParentAddListener implements
       ConfigurationAddListener<TestParentCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationAdd(TestParentCfg configuration) {
       // No implementation required.
       return null;
@@ -68,9 +66,7 @@ public final class ListenerTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationAddAcceptable(TestParentCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       // No implementation required.
@@ -80,13 +76,11 @@ public final class ListenerTest extends AdminTestCase {
 
 
 
-  // Delete listener implementation.
+  /** Delete listener implementation. */
   private static final class TestParentDeleteListener implements
       ConfigurationDeleteListener<TestParentCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationDelete(
         TestParentCfg configuration) {
       // No implementation required.
@@ -95,9 +89,7 @@ public final class ListenerTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationDeleteAcceptable(TestParentCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       // No implementation required.
@@ -542,7 +534,7 @@ public final class ListenerTest extends AdminTestCase {
 
 
 
-  // Attempt to extract an add listener from the provided adaptor.
+  /** Attempt to extract an add listener from the provided adaptor. */
   private ConfigurationAddListener<?> extractListener(
       ConfigAddListenerAdaptor<?> al) {
     ServerManagedObjectAddListener<?> al2 = al
@@ -557,7 +549,7 @@ public final class ListenerTest extends AdminTestCase {
 
 
 
-  // Attempt to extract a delete listener from the provided adaptor.
+  /** Attempt to extract a delete listener from the provided adaptor. */
   private ConfigurationDeleteListener<?> extractListener(
       ConfigDeleteListenerAdaptor<?> al) {
     ServerManagedObjectDeleteListener<?> al2 = al

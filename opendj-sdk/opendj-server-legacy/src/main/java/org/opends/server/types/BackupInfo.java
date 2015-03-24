@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -135,40 +135,44 @@ public final class BackupInfo
 
 
 
-  // The backup directory with which this backup info structure is
-  // associated.
+  /**
+   * The backup directory with which this backup info structure is
+   * associated.
+   */
   private BackupDirectory backupDirectory;
 
-  // Indicates whether this backup is compressed.
+  /** Indicates whether this backup is compressed. */
   private boolean isCompressed;
 
-  // Indicates whether this backup is encrypted.
+  /** Indicates whether this backup is encrypted. */
   private boolean isEncrypted;
 
-  // Indicates whether this is an incremental backup.
+  /** Indicates whether this is an incremental backup. */
   private boolean isIncremental;
 
-  // The signed hash for this backup, if appropriate.
+  /** The signed hash for this backup, if appropriate. */
   private byte[] signedHash;
 
-  // The unsigned hash for this backup, if appropriate.
+  /** The unsigned hash for this backup, if appropriate. */
   private byte[] unsignedHash;
 
-  // The time that this backup was created.
+  /** The time that this backup was created. */
   private Date backupDate;
 
-  // The set of backup ID(s) on which this backup is dependent.
+  /** The set of backup ID(s) on which this backup is dependent. */
   private HashSet<String> dependencies;
 
-  // The set of additional properties associated with this backup.
-  // This is intended for use by the backend for storing any kind of
-  // state information that it might need to associated with the
-  // backup.  The mapping will be between a name and a value, where
-  // the name must not contain an equal sign and neither the name nor
-  // the value may contain line breaks;
+  /**
+   * The set of additional properties associated with this backup.
+   * This is intended for use by the backend for storing any kind of
+   * state information that it might need to associated with the
+   * backup.  The mapping will be between a name and a value, where
+   * the name must not contain an equal sign and neither the name nor
+   * the value may contain line breaks;
+   */
   private HashMap<String,String> backupProperties;
 
-  // The unique ID for this backup.
+  /** The unique ID for this backup. */
   private String backupID;
 
 

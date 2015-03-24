@@ -230,9 +230,7 @@ public class TestModifyDNOperation extends OperationTestCase
 //    assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
@@ -336,7 +334,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
   /**
    * Test if it's possible to modify an rdn to a value that matches the current value
-   * by changing the case of some characters
+   * by changing the case of some characters.
    */
   @Test
   public void testModifySameDN() throws Exception
@@ -390,7 +388,7 @@ public class TestModifyDNOperation extends OperationTestCase
   }
 
   /**
-   * Add another attribute to the RDN and change case of the existing value
+   * Add another attribute to the RDN and change case of the existing value.
    */
   @Test
   public void testModifyDNchangeCaseAndAddValue() throws Exception
@@ -441,7 +439,7 @@ public class TestModifyDNOperation extends OperationTestCase
   }
 
   /**
-   * Add a value to the RDN which is already part of the entry, but with another string representation
+   * Add a value to the RDN which is already part of the entry, but with another string representation.
    */
   @Test
   public void testModifyDNchangeCaseOfExistingEntryValue() throws Exception

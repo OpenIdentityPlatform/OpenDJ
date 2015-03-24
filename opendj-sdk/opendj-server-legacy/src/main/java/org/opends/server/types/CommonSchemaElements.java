@@ -72,30 +72,34 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public abstract class CommonSchemaElements implements SchemaFileElement {
 
-  // Indicates whether this definition is declared "obsolete".
+  /** Indicates whether this definition is declared "obsolete". */
   private final boolean isObsolete;
 
-  // The hash code for this definition.
+  /** The hash code for this definition. */
   private final int hashCode;
 
-  // The set of additional name-value pairs associated with this
-  // definition.
+  /**
+   * The set of additional name-value pairs associated with this
+   * definition.
+   */
   private final Map<String, List<String>> extraProperties;
 
-  // The set of names for this definition, in a mapping between
-  // the all-lowercase form and the user-defined form.
+  /**
+   * The set of names for this definition, in a mapping between
+   * the all-lowercase form and the user-defined form.
+   */
   private final Map<String, String> names;
 
-  // The description for this definition.
+  /** The description for this definition. */
   private final String description;
 
-  // The OID that may be used to reference this definition.
+  /** The OID that may be used to reference this definition. */
   private final String oid;
 
-  // The primary name to use for this definition.
+  /** The primary name to use for this definition. */
   private final String primaryName;
 
-  // The lower case name for this definition.
+  /** The lower case name for this definition. */
   private final String lowerName;
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -83,7 +83,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker ds2;
   private ReplicationBroker ds3;
   private ReplicationServer rs1;
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private final int initWindow = 100;
 
@@ -193,7 +193,7 @@ public class StateMachineTest extends ReplicationTestCase
 
   /**
    * Creates and starts a new ReplicationDomain configured for the replication
-   * server
+   * server.
    */
   @SuppressWarnings("unchecked")
   private LDAPReplicationDomain createReplicationDomain(int dsId) throws Exception
@@ -218,7 +218,7 @@ public class StateMachineTest extends ReplicationTestCase
 
   /**
    * Create and connect a replication broker to the replication server with the
-   * given state and generation id
+   * given state and generation id.
    */
   private ReplicationBroker createReplicationBroker(int dsId,
       ServerState state, long generationId) throws Exception
@@ -284,7 +284,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
   }
 
-  /** Returns various init values for test testStateMachineStatusAnalyzer */
+  /** Returns various init values for test testStateMachineStatusAnalyzer. */
   @DataProvider(name="stateMachineStatusAnalyzerTestProvider")
   public Object [][] stateMachineStatusAnalyzerTestProvider() throws Exception
   {
@@ -714,7 +714,7 @@ public class StateMachineTest extends ReplicationTestCase
 
   /**
    * Sends a reset genid message through the given replication broker, with the
-   * given new generation id
+   * given new generation id.
    */
   private void resetGenId(ReplicationBroker rb, long newGenId)
   {
@@ -762,7 +762,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Initializes a full update session by sending InitializeTargetMsg
+     * Initializes a full update session by sending InitializeTargetMsg.
      */
     public void initFullUpdate(int destId, long nEntries)
     {
@@ -975,7 +975,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Stops the writer thread
+     * Stops the writer thread.
      */
     public void shutdown()
     {
@@ -1001,7 +1001,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Suspends the writer thread
+     * Suspends the writer thread.
      */
     public void pause()
     {
@@ -1016,7 +1016,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Test if the writer is suspended
+     * Test if the writer is suspended.
      */
     public boolean isPaused()
     {
@@ -1024,7 +1024,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Resumes the writer thread until it is paused
+     * Resumes the writer thread until it is paused.
      */
     public void follow()
     {
@@ -1124,7 +1124,7 @@ public class StateMachineTest extends ReplicationTestCase
       start();
     }
 
-    /** Loop reading and throwing update messages */
+    /** Loop reading and throwing update messages. */
     @Override
     public void run()
     {
@@ -1147,8 +1147,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     /**
-     * Returns last received message from reader When read, last value is
-     * cleared
+     * Returns last received message from reader When read, last value is cleared.
      */
     public ReplicationMsg getLastMsg()
     {
@@ -1157,7 +1156,7 @@ public class StateMachineTest extends ReplicationTestCase
       return toReturn;
     }
 
-    /** Stops reader thread */
+    /** Stops reader thread. */
     public void shutdown()
     {
       shutdown = true;

@@ -52,21 +52,21 @@ public class ReferencesTestCase extends AciTestCase{
           "uid=smart referral admin,uid=proxyuser,ou=admins," + suffix;
   private static final String ctrlString = OID_MANAGE_DSAIT_CONTROL + ":false";
 
-  //Allow based on plus operator.
+  /** Allow based on plus operator. */
   private static final
   String ALLOW_OC_PLUS = "(targetattr=\"objectclass || +\")" +
           "(version 3.0;acl \"plus\";" +
           "allow (search, read) " +
           "userdn=\"ldap:///" + level5User + "\";)";
 
-  //Allow based on ref name.
+  /** Allow based on ref name. */
   private static final
   String ALLOW_OC = "(targetattr=\"objectclass || ref\")" +
           "(version 3.0;acl \"ref name\";" +
           "allow (search, read) " +
           "userdn=\"ldap:///" + level5User + "\";)";
 
-  //Allow based on target keyword.
+  /** Allow based on target keyword. */
   private static final
   String ALLOW_PEOPLE =
           "(target=\"ldap:///" + peopleBase + "\")" +

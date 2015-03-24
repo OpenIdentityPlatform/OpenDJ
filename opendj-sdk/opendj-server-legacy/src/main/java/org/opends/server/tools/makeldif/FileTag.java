@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -48,19 +48,19 @@ import static org.opends.messages.ToolMessages.*;
 public class FileTag
        extends Tag
 {
-  // Indicates whether the values should be selected sequentially or at random.
+  /** Indicates whether the values should be selected sequentially or at random. */
   private boolean sequential;
 
-  // The file containing the data.
+  /** The file containing the data. */
   private File dataFile;
 
-  // The index used for sequential access.
+  /** The index used for sequential access. */
   private int nextIndex;
 
-  // The random number generator for this tag.
+  /** The random number generator for this tag. */
   private Random random;
 
-  // The array of lines read from the file.
+  /** The array of lines read from the file. */
   private String[] fileLines;
 
 

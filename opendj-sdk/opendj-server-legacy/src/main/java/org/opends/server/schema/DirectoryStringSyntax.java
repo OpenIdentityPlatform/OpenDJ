@@ -56,22 +56,22 @@ public class DirectoryStringSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default approximate matching rule for this syntax.
+  /** The default approximate matching rule for this syntax. */
   private MatchingRule defaultApproximateMatchingRule;
 
-  // Indicates whether we will allow zero-length values.
+  /** Indicates whether we will allow zero-length values. */
   private boolean allowZeroLengthValues;
 
-  // The reference to the configuration for this directory string syntax.
+  /** The reference to the configuration for this directory string syntax. */
   private DirectoryStringAttributeSyntaxCfg currentConfig;
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
 
@@ -86,11 +86,7 @@ public class DirectoryStringSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(DirectoryStringAttributeSyntaxCfg configuration)
          throws ConfigException
@@ -142,8 +138,6 @@ public class DirectoryStringSyntax
     allowZeroLengthValues = currentConfig.isAllowZeroLengthValues();
   }
 
-
-
   /**
    * Performs any finalization that may be necessary for this attribute syntax.
    */
@@ -152,8 +146,6 @@ public class DirectoryStringSyntax
   {
     currentConfig.removeDirectoryStringChangeListener(this);
   }
-
-
 
   /**
    * Retrieves the common name for this attribute syntax.
@@ -166,8 +158,6 @@ public class DirectoryStringSyntax
     return SYNTAX_DIRECTORY_STRING_NAME;
   }
 
-
-
   /**
    * Retrieves the OID for this attribute syntax.
    *
@@ -179,8 +169,6 @@ public class DirectoryStringSyntax
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -191,8 +179,6 @@ public class DirectoryStringSyntax
   {
     return SYNTAX_DIRECTORY_STRING_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -208,8 +194,6 @@ public class DirectoryStringSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -223,8 +207,6 @@ public class DirectoryStringSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -240,8 +222,6 @@ public class DirectoryStringSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -255,8 +235,6 @@ public class DirectoryStringSyntax
   {
     return defaultApproximateMatchingRule;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -286,8 +264,6 @@ public class DirectoryStringSyntax
     }
   }
 
-
-
   /**
    * Indicates whether zero-length values will be allowed.  This is technically
    * forbidden by the LDAP specification, but it was allowed in earlier versions
@@ -303,11 +279,7 @@ public class DirectoryStringSyntax
     return allowZeroLengthValues;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       DirectoryStringAttributeSyntaxCfg configuration,
@@ -317,11 +289,7 @@ public class DirectoryStringSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               DirectoryStringAttributeSyntaxCfg configuration)
@@ -332,22 +300,14 @@ public class DirectoryStringSyntax
     return new ConfigChangeResult();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

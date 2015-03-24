@@ -49,8 +49,10 @@ import static org.testng.Assert.*;
 public class LDIFDiffTestCase
        extends ToolsTestCase
 {
-  // The path to the file that will be used if there are no differences between
-  // the source and target LDIF data sets.
+  /**
+   * The path to the file that will be used if there are no differences between
+   * the source and target LDIF data sets.
+   */
   private String noDiffsFile =
        System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
        "tests" + File.separator + "unit-tests-testng" + File.separator +
@@ -73,9 +75,7 @@ public class LDIFDiffTestCase
   }
 
 
-  /**
-   * Calculates the checksum of a file
-   */
+  /** Calculates the checksum of a file. */
   private long calcChecksum(String filename) throws Exception
   {
     return calcChecksum(new File(filename));

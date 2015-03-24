@@ -22,12 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
-
 package org.opends.server.schema;
-
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,14 +42,10 @@ public final class AuthPasswordExactEqualityMatchingRuleFactory
                 extends MatchingRuleFactory<MatchingRuleCfg>
 {
 
-  //Associated Matching Rule.
+  /** Associated Matching Rule. */
   private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -60,11 +53,7 @@ public final class AuthPasswordExactEqualityMatchingRuleFactory
    matchingRule = CoreSchema.getAuthPasswordExactMatchingRule();
  }
 
-
-
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {

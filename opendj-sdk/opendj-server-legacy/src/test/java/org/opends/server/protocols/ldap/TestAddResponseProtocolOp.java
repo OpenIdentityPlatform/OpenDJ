@@ -70,9 +70,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
    */
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
-  /**
-   * The DN to use for add result operations
-   */
+  /** The DN to use for add result operations. */
   private DN dn;
 
   @BeforeClass

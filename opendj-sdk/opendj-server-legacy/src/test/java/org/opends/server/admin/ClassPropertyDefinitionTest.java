@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  */
 public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
 
-  // Dummy class for testing.
+  /** Dummy class for testing. */
   public static final class Dummy
   {
     public class X {}
@@ -63,7 +63,7 @@ public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
   ClassPropertyDefinition.Builder builder;
 
   /**
-   * Sets up tests
+   * Sets up tests.
    */
   @BeforeClass
   public void setUp() {

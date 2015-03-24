@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -45,10 +45,10 @@ import static org.opends.messages.ToolMessages.*;
 public class PresenceTag
        extends Tag
 {
-  // The percentage of the entries in which this attribute value should appear.
+  /** The percentage of the entries in which this attribute value should appear. */
   private int percentage;
 
-  // The random number generator for this tag.
+  /** The random number generator for this tag. */
   private Random random;
 
 

@@ -58,7 +58,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class MonitorTest extends ReplicationTestCase
 {
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String baseDnStr = TEST_ROOT_DN_STRING;
@@ -220,7 +220,7 @@ public class MonitorTest extends ReplicationTestCase
   }
 
   /**
-   * Disconnect DS from the replicationServer
+   * Disconnect DS from the replicationServer.
    */
   private void disconnectFromReplServer() throws Exception
   {
@@ -385,7 +385,7 @@ public class MonitorTest extends ReplicationTestCase
   }
 
   /**
-   * Disconnect broker and remove entries from the local DB
+   * Disconnect broker and remove entries from the local DB.
    */
   private void postTest() throws Exception
   {

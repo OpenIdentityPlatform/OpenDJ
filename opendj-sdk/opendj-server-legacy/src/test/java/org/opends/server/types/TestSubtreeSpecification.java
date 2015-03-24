@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 public final class TestSubtreeSpecification extends
     SubtreeSpecificationTestCase {
 
-  // Cached root DN.
+  /** Cached root DN. */
   private DN rootDN = DN.rootDN();
 
   /**

@@ -59,7 +59,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static class AddListener implements
       ConfigurationAddListener<TestChildCfg> {
 
-    // The child configuration that was added.
+    /** The child configuration that was added. */
     private TestChildCfg child;
 
 
@@ -73,9 +73,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
       return new ConfigChangeResult();
     }
@@ -98,9 +96,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
@@ -117,7 +113,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static class ChangeListener implements
       ConfigurationChangeListener<TestChildCfg> {
 
-    // The child configuration that was changed.
+    /** The child configuration that was changed. */
     private TestChildCfg child;
 
 
@@ -131,9 +127,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
       return new ConfigChangeResult();
     }
@@ -156,9 +150,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
@@ -167,7 +159,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
   }
 
-  // Test child 1 LDIF.
+  /** Test child 1 LDIF. */
   private static final String[] TEST_CHILD_1 = new String[] {
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -179,7 +171,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
-  // Test child 2 LDIF.
+  /** Test child 2 LDIF. */
   private static final String[] TEST_CHILD_2 = new String[] {
       "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -193,7 +185,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       "ds-cfg-base-dn: dc=default value c2v2,dc=com"
   };
 
-  // Test child 3 LDIF.
+  /** Test child 3 LDIF. */
   private static final String[] TEST_CHILD_3 = new String[] {
       "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -209,7 +201,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       "ds-cfg-group-dn: dc=default value c3v4,dc=com"
   };
 
-  // Test child 4 LDIF.
+  /** Test child 4 LDIF. */
   private static final String[] TEST_CHILD_4 = new String[] {
       "dn: cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config",
       "objectclass: top",
@@ -221,7 +213,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
-  // Test LDIF.
+  /** Test LDIF. */
   private static final String[] TEST_LDIF = new String[] {
       // Base entries.
       "dn: cn=test parents,cn=config",
@@ -266,7 +258,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       ""
   };
 
-  // JNDI LDAP context.
+  /** JNDI LDAP context. */
   private JNDIDirContextAdaptor adaptor;
 
 
@@ -748,7 +740,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 1 are correct.
+  /** Assert that the values of child 1 are correct. */
   private void assertChild1(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -762,7 +754,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 2 are correct.
+  /** Assert that the values of child 2 are correct. */
   private void assertChild2(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -776,7 +768,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 3 are correct.
+  /** Assert that the values of child 3 are correct. */
   private void assertChild3(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -790,7 +782,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 4 are correct.
+  /** Assert that the values of child 4 are correct. */
   private void assertChild4(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -804,7 +796,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Asserts that the actual set of DNs contains the expected values.
+  /** Asserts that the actual set of DNs contains the expected values. */
   private void assertDNSetEquals(SortedSet<DN> actual, String... expected) {
     String[] actualStrings = new String[actual.size()];
     int i = 0;
@@ -817,14 +809,14 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Deletes the named sub-tree.
+  /** Deletes the named sub-tree. */
   private void deleteSubtree(String dn) throws Exception {
     getAdaptor().deleteSubtree(new LdapName(dn));
   }
 
 
 
-  // Gets the JNDI connection for the test server instance.
+  /** Gets the JNDI connection for the test server instance. */
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
       adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
@@ -835,7 +827,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
 
 
-  // Gets the named parent configuration.
+  /** Gets the named parent configuration. */
   private TestParentCfg getParent(String name) throws IllegalArgumentException,
       ConfigException {
     ServerManagementContext ctx = ServerManagementContext.getInstance();

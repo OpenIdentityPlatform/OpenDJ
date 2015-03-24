@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  *      Portions Copyright 2012 Manuel Gaupp
  */
 package org.opends.server.schema;
@@ -42,9 +42,7 @@ import org.testng.annotations.DataProvider;
 public class CountryStringSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {
@@ -132,9 +130,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
     return syntax;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()

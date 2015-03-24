@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -53,9 +53,7 @@ public final class MockConstraint extends Constraint {
    */
   private class Handler extends ServerConstraintHandler {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
         Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -69,9 +67,7 @@ public final class MockConstraint extends Constraint {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isUsable(ServerManagedObject<?> managedObject,
         Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -84,9 +80,7 @@ public final class MockConstraint extends Constraint {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void performPostAdd(ServerManagedObject<?> managedObject)
         throws ConfigException {
@@ -98,9 +92,7 @@ public final class MockConstraint extends Constraint {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void performPostDelete(ServerManagedObject<?> managedObject)
         throws ConfigException {
@@ -112,9 +104,7 @@ public final class MockConstraint extends Constraint {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void performPostModify(ServerManagedObject<?> managedObject)
         throws ConfigException {
@@ -126,10 +116,10 @@ public final class MockConstraint extends Constraint {
 
   }
 
-  // Determines if delete operations are allowed.
+  /** Determines if delete operations are allowed. */
   private final boolean isDeleteAllowed;
 
-  // Determines if configurations can be decoded.
+  /** Determines if configurations can be decoded. */
   private final boolean isUsable;
 
 
@@ -149,18 +139,14 @@ public final class MockConstraint extends Constraint {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
     return Collections.emptySet();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
     return Collections.<ServerConstraintHandler> singleton(new Handler());
   }

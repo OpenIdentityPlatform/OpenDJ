@@ -41,7 +41,7 @@ public class ManagedObjectDefinitionI18NResourceTest extends DirectoryServerTest
   ManagedObjectDefinitionI18NResource modr;
 
   /**
-   * Creates the resource
+   * Creates the resource.
    */
   @BeforeClass
   public void setUp() {
@@ -49,7 +49,7 @@ public class ManagedObjectDefinitionI18NResourceTest extends DirectoryServerTest
   }
 
   /**
-   * Tests ability to get a message
+   * Tests ability to get a message.
    */
   @Test
   public void testGetMessage() {

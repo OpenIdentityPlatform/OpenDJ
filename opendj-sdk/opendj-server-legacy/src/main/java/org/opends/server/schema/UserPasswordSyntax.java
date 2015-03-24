@@ -28,8 +28,6 @@ package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-
-
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -68,7 +66,7 @@ public class UserPasswordSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
   /**
@@ -82,11 +80,7 @@ public class UserPasswordSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -99,8 +93,6 @@ public class UserPasswordSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -110,8 +102,6 @@ public class UserPasswordSyntax
   {
     return SYNTAX_USER_PASSWORD_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -123,8 +113,6 @@ public class UserPasswordSyntax
     return SYNTAX_USER_PASSWORD_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -134,8 +122,6 @@ public class UserPasswordSyntax
   {
     return SYNTAX_USER_PASSWORD_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -149,8 +135,6 @@ public class UserPasswordSyntax
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -166,8 +150,6 @@ public class UserPasswordSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
@@ -182,8 +164,6 @@ public class UserPasswordSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -197,8 +177,6 @@ public class UserPasswordSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -219,8 +197,6 @@ public class UserPasswordSyntax
     // have been encoded by the time this method is called.
     return true;
   }
-
-
 
   /**
    * Decodes the provided user password value into its component parts.
@@ -280,8 +256,6 @@ public class UserPasswordSyntax
     return new String[] { toLowerCase(schemeName), encodedValue };
   }
 
-
-
   /**
    * Indicates whether the provided value is encoded using the user password
    * syntax.
@@ -325,21 +299,13 @@ public class UserPasswordSyntax
         && closingBracePos != value.length() - 1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

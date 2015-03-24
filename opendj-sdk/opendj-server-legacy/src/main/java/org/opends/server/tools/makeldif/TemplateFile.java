@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -74,56 +74,64 @@ public class TemplateFile
 
 
 
-  // A map of the contents of various text files used during the parsing
-  // process, mapped from absolute path to the array of lines in the file.
+  /**
+   * A map of the contents of various text files used during the parsing
+   * process, mapped from absolute path to the array of lines in the file.
+   */
   private HashMap<String,String[]> fileLines;
 
-  // The index of the next first name value that should be used.
+  /** The index of the next first name value that should be used. */
   private int firstNameIndex;
 
-  // The index of the next last name value that should be used.
+  /** The index of the next last name value that should be used. */
   private int lastNameIndex;
 
-  // A counter used to keep track of the number of times that the larger of the
-  // first/last name list has been completed.
+  /**
+   * A counter used to keep track of the number of times that the larger of the
+   * first/last name list has been completed.
+   */
   private int nameLoopCounter;
 
-  // A counter that will be used in case we have exhausted all possible first
-  // and last name combinations.
+  /**
+   * A counter that will be used in case we have exhausted all possible first
+   * and last name combinations.
+   */
   private int nameUniquenessCounter;
 
-  // The set of branch definitions for this template file.
+  /** The set of branch definitions for this template file. */
   private LinkedHashMap<DN,Branch> branches;
 
-  // The set of constant definitions for this template file.
+  /** The set of constant definitions for this template file. */
   private LinkedHashMap<String,String> constants;
 
-  // The set of registered tags for this template file.
+  /** The set of registered tags for this template file. */
   private LinkedHashMap<String,Tag> registeredTags;
 
-  // The set of template definitions for this template file.
+  /** The set of template definitions for this template file. */
   private LinkedHashMap<String,Template> templates;
 
-  // The random number generator for this template file.
+  /** The random number generator for this template file. */
   private Random random;
 
-  // The next first name that should be used.
+  /** The next first name that should be used. */
   private String firstName;
 
-  // The next last name that should be used.
+  /** The next last name that should be used. */
   private String lastName;
 
-  // The resource path to use for filesystem elements that cannot be found
-  // anywhere else.
+  /**
+   * The resource path to use for filesystem elements that cannot be found
+   * anywhere else.
+   */
   private String resourcePath;
 
-  // The path to the directory containing the template file, if available.
+  /** The path to the directory containing the template file, if available. */
   private String templatePath;
 
-  // The set of first names to use when generating the LDIF.
+  /** The set of first names to use when generating the LDIF. */
   private String[] firstNames;
 
-  // The set of last names to use when generating the LDIF.
+  /** The set of last names to use when generating the LDIF. */
   private String[] lastNames;
 
 

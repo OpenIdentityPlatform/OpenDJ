@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -54,8 +54,10 @@ public final class CanceledOperationException
 
 
 
-  // The cancel result that provides information about the status of
-  // the cancellation.
+  /**
+   * The cancel result that provides information about the status of
+   * the cancellation.
+   */
   private final CancelRequest cancelRequest;
 
 

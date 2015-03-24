@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -53,10 +54,10 @@ import javax.net.ssl.X509KeyManager;
 public final class SelectableCertificateKeyManager
        extends X509ExtendedKeyManager
 {
-  // The alias of the certificate that should be selected from the key manager.
+  /** The alias of the certificate that should be selected from the key manager. */
   private final String alias;
 
-  // The key manager that is wrapped by this key manager.
+  /** The key manager that is wrapped by this key manager. */
   private final X509KeyManager keyManager;
 
 

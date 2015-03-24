@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -110,7 +110,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
   }
 
   /**
-   * null out all test parameters except the ones used in failed tests
+   * Null out all test parameters except the ones used in failed tests
    * since we might need these again.
    */
   @AfterClass(alwaysRun = true)
@@ -174,7 +174,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
     }
   }
 
-  // Accessed by listener on test class completion.
+  /** Accessed by listener on test class completion. */
   long startTime;
   long endTime;
   List<String> threadNamesBeforeClass;

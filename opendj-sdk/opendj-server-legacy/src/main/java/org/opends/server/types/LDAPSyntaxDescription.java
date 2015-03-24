@@ -49,21 +49,22 @@ import static org.opends.server.util.ServerConstants.*;
 public final class LDAPSyntaxDescription
        implements SchemaFileElement
 {
-  // The set of additional name-value pairs associated with this ldap
-  // syntax definition.
+  /**
+   * The set of additional name-value pairs associated with this ldap
+   * syntax definition.
+   */
   private final Map<String,List<String>> extraProperties;
 
-  // The definition string used to create this ldap syntax
-  //description.
+  /** The definition string used to create this ldap syntax description. */
   private final String definition;
 
-  // The description for this ldap syntax description.
+  /** The description for this ldap syntax description. */
   private final String description;
 
-  // The OID of the enclosed ldap syntax description.
+  /** The OID of the enclosed ldap syntax description. */
   private final String oid;
 
-  //The LDAPSyntaxDescritpionSyntax associated with this ldap syntax.
+  /** The LDAPSyntaxDescritpionSyntax associated with this ldap syntax. */
   private LDAPSyntaxDescriptionSyntax descriptionSyntax;
 
 

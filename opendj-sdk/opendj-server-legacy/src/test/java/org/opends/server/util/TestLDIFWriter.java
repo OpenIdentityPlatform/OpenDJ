@@ -58,23 +58,22 @@ import org.testng.annotations.Test;
  */
 public final class TestLDIFWriter extends UtilTestCase {
 
-  // Data used in writeModifyEntry tests.
+  /** Data used in writeModifyEntry tests. */
   private Object[][] MODIFY_ENTRY_DATA_LDIF;
-
-  // Data used in writeModifyDNEntry tests.
+  /** Data used in writeModifyDNEntry tests. */
   private Object[][] MODIFY_DN_ENTRY_DATA_LDIF;
 
   /**
    * Tests will be performed against a byte array output stream.
    */
   private static final class Writer {
-    // The underlying output stream.
+    /** The underlying output stream. */
     private final ByteArrayOutputStream stream;
 
-    // The underlying LDIF config.
+    /** The underlying LDIF config. */
     private final LDIFExportConfig config;
 
-    // The LDIF writer.
+    /** The LDIF writer. */
     private final LDIFWriter writer;
 
     /**

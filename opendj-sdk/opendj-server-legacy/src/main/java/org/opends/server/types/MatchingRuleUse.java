@@ -54,30 +54,36 @@ public final class MatchingRuleUse
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether this matching rule use is declared "obsolete".
+  /** Indicates whether this matching rule use is declared "obsolete". */
   private final boolean isObsolete;
 
-  // The set of additional name-value pairs associated with this
-  // matching rule use definition.
+  /**
+   * The set of additional name-value pairs associated with this
+   * matching rule use definition.
+   */
   private final Map<String,List<String>> extraProperties;
 
-  // The set of names that may be used to refer to this matching rule
-  // use, mapped between their all-lowercase representations and the
-  // user-defined representations.
+  /**
+   * The set of names that may be used to refer to this matching rule
+   * use, mapped between their all-lowercase representations and the
+   * user-defined representations.
+   */
   private final Map<String,String> names;
 
-  // The matching rule with which this matching rule use is
-  // associated.
+  /**
+   * The matching rule with which this matching rule use is associated.
+   */
   private final MatchingRule matchingRule;
 
-  // The set of attribute types with which this matching rule use is
-  // associated.
+  /**
+   * The set of attribute types with which this matching rule use is associated.
+   */
   private final Set<AttributeType> attributes;
 
-  // The definition string used to create this matching rule use.
+  /** The definition string used to create this matching rule use. */
   private final String definition;
 
-  // The description for this matching rule use.
+  /** The description for this matching rule use. */
   private final String description;
 
 

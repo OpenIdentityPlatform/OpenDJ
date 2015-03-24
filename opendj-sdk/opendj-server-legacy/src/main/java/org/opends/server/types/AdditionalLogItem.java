@@ -192,9 +192,7 @@ public final class AdditionalLogItem
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -202,12 +200,9 @@ public final class AdditionalLogItem
     {
       return key;
     }
-    else
-    {
-      final StringBuilder builder = new StringBuilder(key.length() + 16);
-      toString(builder);
-      return builder.toString();
-    }
+    final StringBuilder builder = new StringBuilder(key.length() + 16);
+    toString(builder);
+    return builder.toString();
   }
 
 

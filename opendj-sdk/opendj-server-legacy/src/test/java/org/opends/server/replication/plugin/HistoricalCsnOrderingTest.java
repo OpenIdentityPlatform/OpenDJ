@@ -101,7 +101,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
-   * Check the basic comparator on the HistoricalCsnOrderingMatchingRule
+   * Check the basic comparator on the HistoricalCsnOrderingMatchingRule.
    */
   @Test
   public void basicRuleTest() throws Exception

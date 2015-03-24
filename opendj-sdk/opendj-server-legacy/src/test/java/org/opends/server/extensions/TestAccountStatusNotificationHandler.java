@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,10 +34,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.types.AccountStatusNotification;
 
 import static org.testng.Assert.*;
-
 import static org.opends.server.types.AccountStatusNotificationProperty.*;
-
-
 
 /**
  * This class implements a simple account status notification handler that may
@@ -47,7 +43,7 @@ import static org.opends.server.types.AccountStatusNotificationProperty.*;
 public class TestAccountStatusNotificationHandler
 extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
 {
-  // The number of notifications that this handler has processed.
+  /** The number of notifications that this handler has processed. */
   private static AtomicInteger notificationsProcessed = new AtomicInteger(0);
 
 
@@ -62,9 +58,7 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeStatusNotificationHandler(
                    AccountStatusNotificationHandlerCfg configuration)
   {
@@ -73,9 +67,7 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void handleStatusNotification(AccountStatusNotification notification)
   {
     notificationsProcessed.incrementAndGet();

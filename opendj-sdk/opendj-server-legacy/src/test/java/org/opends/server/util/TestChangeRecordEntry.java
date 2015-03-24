@@ -55,9 +55,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
       super(dn);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ChangeOperationType getChangeOperationType() {
       // Will not use.
@@ -66,9 +64,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {

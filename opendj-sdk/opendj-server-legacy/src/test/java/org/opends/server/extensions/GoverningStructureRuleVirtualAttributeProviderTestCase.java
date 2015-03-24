@@ -62,7 +62,7 @@ import static org.testng.Assert.*;
 public class GoverningStructureRuleVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the governingStructureRule attribute.
+  /** The attribute type for the governingStructureRule attribute. */
   private AttributeType governingStructureRuleType;
 
 

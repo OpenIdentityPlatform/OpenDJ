@@ -65,55 +65,55 @@ public final class AttributeType
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The approximate matching rule for this attribute type.
+  /** The approximate matching rule for this attribute type. */
   private final MatchingRule approximateMatchingRule;
 
-  // The syntax for this attribute type.
+  /** The syntax for this attribute type. */
   private final AttributeSyntax<?> syntax;
 
-  // The superior attribute type from which this attribute type
-  // inherits.
+  /** The superior attribute type from which this attribute type inherits. */
   private final AttributeType superiorType;
 
-  // The attribute usage for this attribute type.
+  /** The attribute usage for this attribute type. */
   private final AttributeUsage attributeUsage;
 
-  // Indicates whether this attribute type is declared "collective".
+  /** Indicates whether this attribute type is declared "collective". */
   private final boolean isCollective;
 
-  // Indicates whether this attribute type is declared
-  // "no-user-modification".
+  /**
+   * Indicates whether this attribute type is declared
+   * "no-user-modification".
+   */
   private final boolean isNoUserModification;
 
-  // Indicates whether this attribute type is the objectclass type.
+  /** Indicates whether this attribute type is the objectclass type. */
   private final boolean isObjectClassType;
 
-  // Indicates whether this attribute type is operational.
+  /** Indicates whether this attribute type is operational. */
   private final boolean isOperational;
 
-  // Indicates whether this attribute type is declared "single-value".
+  /** Indicates whether this attribute type is declared "single-value". */
   private final boolean isSingleValue;
 
-  // Indicates whether there is a possibility that this attribute type
-  // may have one or more subtypes that list this type or one of its
-  // subtypes as a superior.  Note that this variable is intentional
-  // not declared "final", but if it ever gets set to "true", then it
-  // should never be unset back to "false".
+  /**
+   * Indicates whether there is a possibility that this attribute type
+   * may have one or more subtypes that list this type or one of its
+   * subtypes as a superior.  Note that this variable is intentional
+   * not declared "final", but if it ever gets set to "true", then it
+   * should never be unset back to "false".
+   */
   private boolean mayHaveSubordinateTypes;
-
-  // The equality matching rule for this attribute type.
-  private final MatchingRule equalityMatchingRule;
-
-  // The ordering matching rule for this attribute type.
-  private final MatchingRule orderingMatchingRule;
-
-  // The definition string used to create this attribute type.
+  /** The definition string used to create this attribute type. */
   private final String definition;
 
-  // The substring matching rule for this attribute type.
+  /** The equality matching rule for this attribute type. */
+  private final MatchingRule equalityMatchingRule;
+  /** The ordering matching rule for this attribute type. */
+  private final MatchingRule orderingMatchingRule;
+  /** The substring matching rule for this attribute type. */
   private final MatchingRule substringMatchingRule;
 
-  // True once this attribute type has been removed from the schema.
+  /** True once this attribute type has been removed from the schema. */
   private volatile boolean isDirty;
 
 
@@ -582,9 +582,7 @@ public final class AttributeType
     return definition;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compareTo(AttributeType o) {
     return getNormalizedPrimaryNameOrOID().compareTo(

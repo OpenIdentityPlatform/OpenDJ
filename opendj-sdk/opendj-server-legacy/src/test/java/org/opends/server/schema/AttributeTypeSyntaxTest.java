@@ -51,18 +51,14 @@ import static org.testng.Assert.*;
 public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {
     return new AttributeTypeSyntax();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()

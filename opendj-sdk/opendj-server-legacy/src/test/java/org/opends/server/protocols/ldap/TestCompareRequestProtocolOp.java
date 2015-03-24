@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -44,41 +44,20 @@ import java.util.ArrayList;
  */
 public class TestCompareRequestProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for compare requests.
-   */
+  /** The protocol op type for compare requests. */
   public static final byte OP_TYPE_COMPARE_REQUEST = 0x6E;
-
-  /**
-   * The protocol op type for compare responses.
-   */
+  /** The protocol op type for compare responses. */
   public static final byte OP_TYPE_COMPARE_RESPONSE = 0x6F;
 
-  /**
-   * The DN for compare requests in this test case.
-   */
+  /** The DN for compare requests in this test case. */
   private static final ByteString dn =
       ByteString.valueOf("dc=example,dc=com");
 
-  /**
-   * The alternative DN for compare requests in this test case.
-   */
-  private static final ByteString dnAlt =
-      ByteString.valueOf("dc=sun,dc=com");
+  /** The assertion value for this compare request. */
+  private ByteString assertionValue = ByteString.valueOf("=test");
 
-  // The assertion value for this compare request.
-  private ByteString assertionValue =
-      ByteString.valueOf("=test");
-
-  // The assertion value for this compare request.
-  private ByteString assertionValueAlt =
-      ByteString.valueOf("=testAlt");
-
-  // The attribute type for this compare request.
+  /** The attribute type for this compare request. */
   private String attributeType = "testAttribute";
-
-  // The alternate attribute type for this compare request.
-  private String attributeTypeAlt = "testAttributeAlt";
 
   /**
    * Test to make sure the class processes the right LDAP op type.

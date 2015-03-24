@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -58,18 +58,14 @@ public class NameFormSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -82,11 +78,7 @@ public class NameFormSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
@@ -119,77 +111,49 @@ public class NameFormSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getName()
   {
     return SYNTAX_NAME_FORM_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getOID()
   {
     return SYNTAX_NAME_FORM_OID;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getDescription()
   {
     return SYNTAX_NAME_FORM_DESCRIPTION;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getApproximateMatchingRule()
   {
@@ -197,11 +161,7 @@ public class NameFormSyntax
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
@@ -221,8 +181,6 @@ public class NameFormSyntax
       return false;
     }
   }
-
-
 
   /**
    * Decodes the contents of the provided ASN.1 octet string as a name form
@@ -736,8 +694,6 @@ public class NameFormSyntax
                         optionalAttributes, extraProperties);
   }
 
-
-
   /**
    * Reads the next token name from the name form definition, skipping over any
    * leading or trailing spaces, and appends it to the provided buffer.
@@ -790,8 +746,6 @@ public class NameFormSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -870,8 +824,6 @@ public class NameFormSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -956,8 +908,6 @@ public class NameFormSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the attribute type description or numeric OID from the provided
@@ -1108,8 +1058,6 @@ public class NameFormSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value for an "extra" parameter.  It will handle a single unquoted
@@ -1269,19 +1217,13 @@ public class NameFormSyntax
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

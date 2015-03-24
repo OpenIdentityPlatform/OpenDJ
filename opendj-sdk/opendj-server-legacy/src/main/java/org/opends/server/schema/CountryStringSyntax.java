@@ -58,22 +58,20 @@ public class CountryStringSyntax
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default approximate matching rule for this syntax.
+  /** The default approximate matching rule for this syntax. */
   private MatchingRule defaultApproximateMatchingRule;
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
-  // The current configuration
+  /** The current configuration. */
   private volatile CountryStringAttributeSyntaxCfg config;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -86,11 +84,7 @@ public class CountryStringSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(CountryStringAttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -130,11 +124,7 @@ public class CountryStringSyntax
     config.addCountryStringChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       CountryStringAttributeSyntaxCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -143,19 +133,13 @@ public class CountryStringSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
       CountryStringAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
     return new ConfigChangeResult();
   }
-
-
 
 
 
@@ -170,8 +154,6 @@ public class CountryStringSyntax
     return SYNTAX_COUNTRY_STRING_NAME;
   }
 
-
-
   /**
    * Retrieves the OID for this attribute syntax.
    *
@@ -182,8 +164,6 @@ public class CountryStringSyntax
     return SYNTAX_COUNTRY_STRING_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -193,8 +173,6 @@ public class CountryStringSyntax
   {
     return SYNTAX_COUNTRY_STRING_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -209,8 +187,6 @@ public class CountryStringSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -223,8 +199,6 @@ public class CountryStringSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -239,8 +213,6 @@ public class CountryStringSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -253,8 +225,6 @@ public class CountryStringSyntax
   {
     return defaultApproximateMatchingRule;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -303,21 +273,13 @@ public class CountryStringSyntax
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

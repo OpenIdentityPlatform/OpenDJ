@@ -51,34 +51,28 @@ import org.testng.annotations.Test;
  * {@link org.opends.server.util.LDIFReader} class.
  */
 public final class TestLDIFReader extends UtilTestCase {
-  // Top object class.
+  /** Top object class. */
   private ObjectClass OC_TOP;
-
-  // Person object class.
+  /** Person object class. */
   private ObjectClass OC_PERSON;
 
-  // Object class attribute type.
+  /** Object class attribute type. */
   private AttributeType AT_OC;
-
-  // Common name attribute type.
+  /** Common name attribute type. */
   private AttributeType AT_CN;
-
-  // Surname attribute type.
+  /** Surname attribute type. */
   private AttributeType AT_SN;
-
-  // Description attribute type.
+  /** Description attribute type. */
   private AttributeType AT_DESCR;
-
-  // Telephone number attribute type.
+  /** Telephone number attribute type. */
   private AttributeType AT_TELN;
 
-  // Temporary file containing an attribute value.
+  /** Temporary file containing an attribute value. */
   private File TEMP_FILE;
 
-  // Temporary file content.
+  /** Temporary file content. */
   private static final String TEMP_FILE_STRING = "hello world";
-
-  // Temporary file LDIF.
+  /** Temporary file LDIF. */
   private static final String TEMP_FILE_LDIF = "dn: cn=john smith, dc=com\n"
       + "changetype: add\n" + "objectClass: top\n"
       + "objectClass: person\n" + "cn: john\n" + "sn: smith\n"

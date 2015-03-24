@@ -109,13 +109,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   /** The port of the replicationServer. */
   private int replServerPort;
   private final int RS_SERVER_ID = 90;
-  /** Sleep time of the RS, before sending an ack */
+  /** Sleep time of the RS, before sending an ack. */
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
   private final String testName = getClass().getSimpleName();
 
   /**
    * Create two distinct base dns, one for safe data replication, the other one
-   * for safe read replication
+   * for safe read replication.
    */
   private final String SAFE_DATA_DN = "ou=safe-data," + TEST_ROOT_DN_STRING;
   private final String SAFE_READ_DN = "ou=safe-read," + TEST_ROOT_DN_STRING;
@@ -124,10 +124,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private Entry safeReadDomainCfgEntry;
   private Entry notAssuredDomainCfgEntry;
 
-  /** The fake replication server */
+  /** The fake replication server. */
   private FakeReplicationServer replicationServer;
 
-  // Definitions for the scenario the RS supports
+  /** Definitions for the scenario the RS supports. */
   private static final int NOT_ASSURED_SCENARIO = 1;
   private static final int TIMEOUT_SCENARIO = 2;
   private static final int NO_TIMEOUT_SCENARIO = 3;
@@ -135,7 +135,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private static final int SAFE_DATA_MANY_ERRORS = 5;
   private static final int NO_READ = 6;
 
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)
@@ -148,7 +148,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   }
 
   /**
-   * Before starting the tests configure some stuff
+   * Before starting the tests configure some stuff.
    */
   @BeforeClass
   @Override
@@ -171,7 +171,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   }
 
   /**
-   * Add an entry in the database
+   * Add an entry in the database.
    */
   private void addEntry(Entry entry) throws Exception
   {
@@ -281,30 +281,30 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     private boolean shutdown;
     private Session session;
 
-    // Parameters given at constructor time
+    /** Parameters given at constructor time. */
     private final int port;
     private int serverId = -1;
     private boolean isAssured;
     private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
     private byte safeDataLevel = 1;
 
-    // Predefined config parameters
+    /** Predefined config parameters. */
     private final int degradedStatusThreshold = 5000;
 
-    // Parameters set with received server start message
+    /** Parameters set with received server start message. */
     private DN baseDN;
     private long generationId = -1L;
     private ServerState serverState;
     private int windowSize = -1;
     private byte groupId = -1;
     private boolean sslEncryption;
-    /** The scenario this RS is expecting */
+    /** The scenario this RS is expecting. */
     private int scenario = -1;
 
-    /** parameters at handshake are ok */
+    /** Parameters at handshake are ok. */
     private boolean handshakeOk;
     /**
-     * signal that the current scenario the RS must execute reached the point
+     * Signal that the current scenario the RS must execute reached the point
      * where the main code can perform test assertion.
      */
     private boolean scenarioExecuted;
@@ -333,7 +333,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       this.assuredMode = AssuredMode.SAFE_READ_MODE;
     }
 
-    // Constructor for RS receiving updates in SD assured mode
+    /** Constructor for RS receiving updates in SD assured mode. */
     public FakeReplicationServer(byte groupId, int port, int serverId, int safeDataLevel,
         String testcase)
     {
@@ -367,7 +367,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Wait for DS connections
+     * Wait for DS connections.
      */
     @Override
     public void run()
@@ -437,7 +437,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /**
      * Handle the handshake processing with the connecting DS
-     * returns true if handshake was performed without errors
+     * returns true if handshake was performed without errors.
      */
     private boolean performHandshake() throws Exception
     {
@@ -502,7 +502,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /**
      * Tells the main code that the fake RS executed enough of the expected
-     * scenario and can perform test assertion
+     * scenario and can perform test assertion.
      */
     public boolean isScenarioExecuted()
     {
@@ -510,7 +510,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Handle client connection then call code specific to configured test
+     * Handle client connection then call code specific to configured test.
      */
     private void handleClientConnection() throws Exception
     {
@@ -566,7 +566,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /**
      * Make the RS send an add message with the passed entry and return the ack
-     * message it receives from the DS
+     * message it receives from the DS.
      */
     private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws Exception
     {
@@ -589,7 +589,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Read the coming update and check parameters are not assured
+     * Read the coming update and check parameters are not assured.
      */
     private void executeNotAssuredScenario() throws Exception
     {
@@ -600,7 +600,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /**
      * Read the coming update and make the client time out by not sending back
-     * the ack
+     * the ack.
      */
     private void executeTimeoutScenario() throws Exception
     {
@@ -613,7 +613,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Read the coming update, sleep some time then send back an ack
+     * Read the coming update, sleep some time then send back an ack.
      */
     private void executeNoTimeoutScenario() throws Exception
     {
@@ -631,7 +631,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /**
      * Receives an {@link UpdateMsg} and checks that received update assured
-     * parameters are as defined at RS start
+     * parameters are as defined at RS start.
      */
     private UpdateMsg checkAssuredParametersOnReceivedUpdateMsg() throws Exception
     {
@@ -651,7 +651,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Read the coming safe read mode updates and send back acks with errors
+     * Read the coming safe read mode updates and send back acks with errors.
      */
     private void executeSafeReadManyErrorsScenario() throws Exception
     {
@@ -689,7 +689,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Read the coming safe data mode updates and send back acks with errors
+     * Read the coming safe data mode updates and send back acks with errors.
      */
     private void executeSafeDataManyErrorsScenario() throws Exception
     {
@@ -727,7 +727,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   }
 
   /**
-   * Return various group id values
+   * Return various group id values.
    */
   @DataProvider(name = "rsGroupIdProvider")
   private Object[][] rsGroupIdProvider()
@@ -938,7 +938,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Tests parameters sent in session handshake and updates, when not using
-   * assured replication
+   * assured replication.
    */
   @Test
   public void testNotAssuredSession() throws Exception
@@ -975,7 +975,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Wait for connection to the fake replication server or times out with error
-   * after some seconds
+   * after some seconds.
    */
   private void waitForConnectionToRs(String testCase, FakeReplicationServer rs) throws Exception
   {
@@ -991,7 +991,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Wait for the scenario to be executed by the fake replication server or
-   * times out with error after some seconds
+   * times out with error after some seconds.
    */
   private void waitForScenarioExecutedOnRs(String testCase, FakeReplicationServer rs) throws Exception
   {
@@ -1109,7 +1109,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Tests that a DS receiving an update from a RS in safe read mode effectively
-   * sends an ack back (with or without error)
+   * sends an ack back (with or without error).
    */
   @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeReadModeReply(byte rsGroupId) throws Exception
@@ -1196,7 +1196,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Tests that a DS receiving an update from a RS in safe data mode does not
-   * send back and ack (only safe read is taken into account in DS replay)
+   * send back and ack (only safe read is taken into account in DS replay).
    */
   @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
@@ -1438,7 +1438,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   }
 
   /**
-   * Delete an entry from the database
+   * Delete an entry from the database.
    */
   private void deleteEntry(String dn) throws Exception
   {

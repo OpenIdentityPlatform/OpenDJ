@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -74,7 +74,7 @@ import org.testng.annotations.Test;
 @Test(sequential=true)
 public final class LDAPClientTest extends AdminTestCase {
 
-  // Test LDIF.
+  /** Test LDIF. */
   private static final String[] TEST_LDIF = new String[] {
       // Base entries.
       "dn: cn=config",
@@ -332,9 +332,7 @@ public final class LDAPClientTest extends AdminTestCase {
       Class<? extends Exception> expected) {
     MockLDAPConnection c = new MockLDAPConnection() {
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void createEntry(LdapName dn, Attributes attributes)
           throws NamingException {
@@ -454,9 +452,7 @@ public final class LDAPClientTest extends AdminTestCase {
       Class<? extends Exception> expected) {
     MockLDAPConnection c = new MockLDAPConnection() {
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public Attributes readEntry(LdapName dn, Collection<String> attrIds)
           throws NamingException {
@@ -996,7 +992,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
-  // Asserts that the actual set of DNs contains the expected values.
+  /** Asserts that the actual set of DNs contains the expected values. */
   private void assertDNSetEquals(SortedSet<DN> actual, String... expected) {
     String[] actualStrings = new String[actual.size()];
     int i = 0;
@@ -1009,7 +1005,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
-  // Create the named test parent managed object.
+  /** Create the named test parent managed object. */
   private TestParentCfgClient createTestParent(ManagementContext context,
       String name) throws ManagedObjectDecodingException,
       AuthorizationException, ManagedObjectAlreadyExistsException,
@@ -1023,7 +1019,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
-  // Retrieve the named test parent managed object.
+  /** Retrieve the named test parent managed object. */
   private TestParentCfgClient getTestParent(ManagementContext context,
       String name) throws DefinitionDecodingException,
       ManagedObjectDecodingException, AuthorizationException,
@@ -1037,7 +1033,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
-  // List test parent managed objects.
+  /** List test parent managed objects. */
   private String[] listTestParents(ManagementContext context)
       throws AuthorizationException, ConcurrentModificationException,
       CommunicationException {
@@ -1048,7 +1044,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
-  // Remove the named test parent managed object.
+  /** Remove the named test parent managed object. */
   private void removeTestParent(ManagementContext context, String name)
       throws AuthorizationException, ManagedObjectNotFoundException,
       OperationRejectedException, ConcurrentModificationException,

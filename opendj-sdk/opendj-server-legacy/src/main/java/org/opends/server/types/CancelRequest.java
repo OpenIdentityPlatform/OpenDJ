@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -40,12 +40,16 @@ import org.forgerock.i18n.LocalizableMessage;
      mayInvoke=true)
 public final class CancelRequest
 {
-  // Indicates whether to send a response to the original request if
-  // the operation is canceled.
+  /**
+   * Indicates whether to send a response to the original request if
+   * the operation is canceled.
+   */
   private final boolean notifyOriginalRequestor;
 
-  // A message that explains the purpose for this cancellation (may be
-  // included in the response to the original requestor).
+  /**
+   * A message that explains the purpose for this cancellation (may be
+   * included in the response to the original requestor).
+   */
   private final LocalizableMessage cancelReason;
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -108,7 +109,7 @@ public enum OperationType
 
 
 
-  // The string representation of this operation type.
+  /** The string representation of this operation type. */
   private final String operationName;
 
 

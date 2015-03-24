@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -65,13 +65,13 @@ public class MockLDAPConnection extends LDAPConnection {
    */
   private static final class MockEntry {
 
-    // The entry's attributes.
+    /** The entry's attributes. */
     private final Attributes attributes;
 
-    // The entry's children.
+    /** The entry's children. */
     private final List<MockEntry> children;
 
-    // The name of this mock entry.
+    /** The name of this mock entry. */
     private final DN dn;
 
 
@@ -125,9 +125,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
@@ -139,10 +137,10 @@ public class MockLDAPConnection extends LDAPConnection {
     }
   }
 
-  // All the entries.
+  /** All the entries. */
   private final Map<DN, MockEntry> entries;
 
-  // The single root entry.
+  /** The single root entry. */
   private final MockEntry rootEntry;
 
 
@@ -158,9 +156,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {
@@ -169,9 +165,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void deleteSubtree(LdapName dn) throws NamingException {
     throw new UnsupportedOperationException("deleteSubtree");
@@ -179,9 +173,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean entryExists(LdapName dn) throws NamingException {
     return getEntry(dn) != null;
@@ -207,9 +199,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<LdapName> listEntries(LdapName dn, String filter) throws NamingException {
     MockEntry entry = getEntry(dn);
@@ -227,9 +217,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(LdapName dn, Attributes mods) throws NamingException {
     throw new UnsupportedOperationException("modifyEntry");
@@ -237,9 +225,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Attributes readEntry(LdapName dn, Collection<String> attrIds)
       throws NamingException {
@@ -360,9 +346,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void unbind() {
     // nothing to do

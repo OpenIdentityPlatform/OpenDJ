@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test of ValueInfo
+ * Test of ValueInfo.
  */
 @SuppressWarnings("javadoc")
 public class ValueInfoTest extends ReplicationTestCase
@@ -67,7 +67,7 @@ public class ValueInfoTest extends ReplicationTestCase
   }
 
   /**
-   * Create a ValueInfo and check the methods
+   * Create a ValueInfo and check the methods.
    */
   @Test(dataProvider = "valueInfo")
   public void valueInfo(ByteString value, CSN csnUpdate, CSN csnDelete) throws Exception

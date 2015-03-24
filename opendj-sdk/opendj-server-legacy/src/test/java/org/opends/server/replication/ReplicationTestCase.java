@@ -92,7 +92,7 @@ import static org.testng.Assert.*;
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
 
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -109,8 +109,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   public static final long EMPTY_DN_GENID = GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID;
 
   /**
-  * The internal connection used for operation
-  */
+   * The internal connection used for operation.
+   */
   protected InternalClientConnection connection;
 
   /** Created entries that will be deleted on class cleanup. */
@@ -128,7 +128,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.LOG.name()));
 
   /**
-   * Replication monitor stats
+   * Replication monitor stats.
    */
   private DN monitorDN;
   private String monitorAttr;
@@ -160,7 +160,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected boolean callParanoiaCheck = true;
 
   /**
-   * The replication plugin entry
+   * The replication plugin entry.
    */
   protected static final String SYNCHRO_PLUGIN_DN =
     "cn=Multimaster Synchronization, cn=Synchronization Providers,cn=config";
@@ -302,7 +302,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * suppress all the config entries created by the tests in this class
+   * Suppress all the config entries created by the tests in this class.
    */
   protected void cleanConfigEntries() throws Exception
   {
@@ -319,7 +319,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * suppress all the real entries created by the tests in this class
+   * Suppress all the real entries created by the tests in this class.
    */
   protected void cleanRealEntries() throws Exception
   {
@@ -398,7 +398,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   /**
    * Cleanup databases of the currently instantiated replication servers in the
-   * VM
+   * VM.
    */
   protected void cleanUpReplicationServersDB() throws Exception
   {
@@ -799,7 +799,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Add to the current DB the entries necessary to the test
+   * Add to the current DB the entries necessary to the test.
    */
   protected void addTestEntriesToDB(String... ldifEntries) throws Exception
   {

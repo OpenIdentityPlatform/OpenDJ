@@ -58,15 +58,15 @@ public class DomainFakeCfg implements ReplicationDomainCfg
 
   private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
 
-  /** Assured sub mode (used when assured is true) */
+  /** Assured sub mode (used when assured is true). */
   private AssuredType assuredType = AssuredType.NOT_ASSURED;
-  /** Safe Data level (used when assuredType is safe data) */
+  /** Safe Data level (used when assuredType is safe data). */
   private int assuredSdLevel = 1;
-  /** Timeout (in milliseconds) when waiting for acknowledgments */
+  /** Timeout (in milliseconds) when waiting for acknowledgments. */
   private long assuredTimeout = 1000;
-  /** Group id */
+  /** Group id. */
   private final int groupId;
-  /** Referrals urls to be published to other servers of the topology */
+  /** Referrals urls to be published to other servers of the topology. */
   private SortedSet<String> refUrls = new TreeSet<String>();
 
   private final SortedSet<String> fractionalExcludes = new TreeSet<String>();
@@ -78,7 +78,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
 
   /**
    * Creates a new Domain with the provided information
-   * (assured mode disabled, default group id)
+   * (assured mode disabled, default group id).
    */
   public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers)
   {
@@ -87,7 +87,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
 
   /**
    * Creates a new Domain with the provided information
-   * (assured mode disabled, group id provided)
+   * (assured mode disabled, group id provided).
    */
   public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers,
     int groupId)
@@ -100,7 +100,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
 
   /**
    * Creates a new Domain with the provided information
-   * (assured mode info provided as well as group id)
+   * (assured mode info provided as well as group id).
    */
   public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers,
     AssuredType assuredType, int assuredSdLevel, int groupId,
@@ -122,36 +122,28 @@ public class DomainFakeCfg implements ReplicationDomainCfg
       this.refUrls = refUrls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addChangeListener(
       ConfigurationChangeListener<ReplicationDomainCfg> listener)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Class<? extends ReplicationDomainCfg> configurationClass()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getHeartbeatInterval()
   {
     return heartbeatInterval ;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getChangetimeHeartbeatInterval()
   {
@@ -163,42 +155,32 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.changeTimeHeartbeatInterval = changeTimeHeartbeatInterval;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getBaseDN()
   {
     return baseDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getReplicationServer()
   {
     return replicationServers;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public InetAddress getSourceAddress() { return null; }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getServerId()
   {
     return serverId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getWindowSize()
   {
@@ -210,18 +192,14 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.windowSize = windowSize;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeChangeListener(
       ConfigurationChangeListener<ReplicationDomainCfg> listener)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN dn()
   {

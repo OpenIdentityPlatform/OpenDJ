@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -49,16 +49,16 @@ import org.forgerock.i18n.LocalizableMessage;
 public class ListTag
        extends Tag
 {
-  // The ultimate cumulative weight.
+  /** The ultimate cumulative weight. */
   private int cumulativeWeight;
 
-  // The set of cumulative weights for the list items.
+  /** The set of cumulative weights for the list items. */
   private int[] valueWeights;
 
-  // The set of values in the list.
+  /** The set of values in the list. */
   private String[] valueStrings;
 
-  // The random number generator for this tag.
+  /** The random number generator for this tag. */
   private Random random;
 
 

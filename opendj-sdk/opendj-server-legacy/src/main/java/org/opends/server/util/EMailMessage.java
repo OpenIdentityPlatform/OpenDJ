@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -82,22 +82,22 @@ public final class EMailMessage
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  // The addresses of the recipients to whom this message should be sent.
+  /** The addresses of the recipients to whom this message should be sent. */
   private List<String> recipients;
 
-  // The set of attachments to include in this message.
+  /** The set of attachments to include in this message. */
   private LinkedList<MimeBodyPart> attachments;
 
-  // The MIME type for the message body.
+  /** The MIME type for the message body. */
   private String bodyMIMEType;
 
-  // The address of the sender for this message.
+  /** The address of the sender for this message. */
   private String sender;
 
-  // The subject for the mail message.
+  /** The subject for the mail message. */
   private String subject;
 
-  // The body for the mail message.
+  /** The body for the mail message. */
   private LocalizableMessageBuilder body;
 
 

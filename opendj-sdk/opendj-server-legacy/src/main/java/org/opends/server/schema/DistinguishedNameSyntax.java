@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -53,15 +51,11 @@ public class DistinguishedNameSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -74,11 +68,7 @@ public class DistinguishedNameSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -98,8 +88,6 @@ public class DistinguishedNameSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -110,8 +98,6 @@ public class DistinguishedNameSyntax
   {
     return SYNTAX_DN_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -124,8 +110,6 @@ public class DistinguishedNameSyntax
     return SYNTAX_DN_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -136,8 +120,6 @@ public class DistinguishedNameSyntax
   {
     return SYNTAX_DN_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -152,8 +134,6 @@ public class DistinguishedNameSyntax
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -170,8 +150,6 @@ public class DistinguishedNameSyntax
     return null;
   }
 
-
-
   /**
    * Retrieves the default substring matching rule that will be used for
    * attributes with this syntax.
@@ -185,8 +163,6 @@ public class DistinguishedNameSyntax
   {
     return defaultSubstringMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default approximate matching rule that will be used for
@@ -202,8 +178,6 @@ public class DistinguishedNameSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -243,22 +217,14 @@ public class DistinguishedNameSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

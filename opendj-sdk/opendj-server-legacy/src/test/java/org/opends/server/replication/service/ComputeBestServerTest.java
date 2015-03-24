@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -136,7 +136,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
   /**
    * Test with one replication server, only replication server has a non null
-   * CSN for ds server id
+   * CSN for ds server id.
    */
   @Test
   public void testNullCSNDS() throws Exception
@@ -283,7 +283,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     Assertions.assertThat(evaluations).hasSize(entries.length);
   }
 
-  /** Contains ordinal for each message */
+  /** Contains ordinal for each message. */
   private Map<Integer, Integer> getOrdinal(Map<Integer, LocalizableMessage> evaluations)
   {
     final Map<Integer, Integer> result = new LinkedHashMap<Integer, Integer>();
@@ -482,7 +482,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   }
 
   /**
-   * Test with 3 replication servers (see data provider)
+   * Test with 3 replication servers (see data provider).
    */
   @Test(dataProvider =  "create3ServersData")
   public void test3Servers(
@@ -584,7 +584,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   }
 
   /**
-   * Test with 3 replication servers (see data provider)
+   * Test with 3 replication servers (see data provider).
    */
   @Test(dataProvider =  "test3ServersMoreCriteria")
   public void test3ServersMoreCriteria(
@@ -1303,7 +1303,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   }
 
   /**
-   * Test the method that chooses the best RS using the RS weights
+   * Test the method that chooses the best RS using the RS weights.
    */
   @Test(dataProvider =  "testComputeBestServerForWeightProvider")
   public void testComputeBestServerForWeight(

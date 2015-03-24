@@ -92,7 +92,7 @@ public final class HostPort
 
 
 
-  // Time-stamp acts as memory barrier for networkInterfaces.
+  /** Time-stamp acts as memory barrier for networkInterfaces. */
   private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
   private static volatile long localAddressesTimeStamp;
   private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();

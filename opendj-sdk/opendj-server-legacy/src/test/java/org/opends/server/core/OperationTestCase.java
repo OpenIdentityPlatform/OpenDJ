@@ -41,7 +41,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * A set of generic test cases for operations
+ * A set of generic test cases for operations.
  */
 public abstract class OperationTestCase
        extends CoreTestCase

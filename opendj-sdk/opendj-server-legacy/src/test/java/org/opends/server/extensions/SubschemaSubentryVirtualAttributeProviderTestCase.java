@@ -58,7 +58,7 @@ import static org.testng.Assert.*;
 public class SubschemaSubentryVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the subschemaSubentry attribute.
+  /** The attribute type for the subschemaSubentry attribute. */
   private AttributeType subschemaSubentryType;
 
 

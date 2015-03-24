@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,7 +36,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.IllegalBlockingModeException;
 
 /**
- * Test class for ASN1ByteChannelReader
+ * Test class for ASN1ByteChannelReader.
  */
 public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
 {

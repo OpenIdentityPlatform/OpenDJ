@@ -55,7 +55,7 @@ import static org.testng.Assert.*;
 
 /**
  * Test the constructors, encoders and decoders of the replication protocol
- * PDUs classes (message classes)
+ * PDUs classes (message classes).
  */
 @SuppressWarnings("javadoc")
 public class SynchronizationMsgTest extends ReplicationTestCase
@@ -918,7 +918,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Provider for the ChangeStatusMsg test
+   * Provider for the ChangeStatusMsg test.
    */
   @DataProvider(name = "createChangeStatusData")
   public Object[][] createChangeStatusData()
@@ -1084,7 +1084,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Test that InitializeRequestMsg encoding and decoding works
+   * Test that InitializeRequestMsg encoding and decoding works.
    */
   @Test
   public void initializeRequestMsgTest() throws Exception
@@ -1100,7 +1100,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Test that InitializeTargetMsg encoding and decoding works
+   * Test that InitializeTargetMsg encoding and decoding works.
    */
   @Test
   public void initializeTargetMsgTest() throws Exception
@@ -1128,7 +1128,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Test that DoneMsg encoding and decoding works
+   * Test that DoneMsg encoding and decoding works.
    */
   @Test
   public void doneMsgTest() throws Exception
@@ -1140,7 +1140,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Test that ErrorMsg encoding and decoding works
+   * Test that ErrorMsg encoding and decoding works.
    */
   @Test
   public void errorMsgTest() throws Exception
@@ -1154,7 +1154,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Test Generic UpdateMsg
+   * Test Generic UpdateMsg.
    */
   @Test
   public void UpdateMsgTest() throws Exception

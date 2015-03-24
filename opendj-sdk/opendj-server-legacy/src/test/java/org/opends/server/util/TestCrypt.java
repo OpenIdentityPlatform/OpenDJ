@@ -23,7 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2007 Brighton Consulting, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -80,8 +80,10 @@ public final class TestCrypt extends UtilTestCase {
     validateCryptedPassword("password", saltedPassword);
   }
 
-  // Passowrds and their corresponding crypt values for various salts.
-  // These were generated using the crypt() implementation in Perl.
+  /**
+   * Passwords and their corresponding crypt values for various salts.
+   * These were generated using the crypt() implementation in Perl.
+   */
   private static final Object[][] PASSWORDS_AND_CRYPTS = {
        {"", "AEypjPqkpWrm."},
        {"", "DEkEMk50GlpvQ"},

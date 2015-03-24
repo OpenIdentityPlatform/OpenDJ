@@ -51,33 +51,37 @@ public class MakeLDIFInputStream
        extends InputStream
        implements EntryWriter
 {
-  // Indicates whether all of the entries have been generated.
+  /** Indicates whether all of the entries have been generated. */
   private boolean allGenerated;
 
-  // Indicates whether this input stream has been closed.
+  /** Indicates whether this input stream has been closed. */
   private boolean closed;
 
-  // The byte array output stream that will be used to convert entries to byte
-  // arrays with their LDIF representations.
+  /**
+   * The byte array output stream that will be used to convert entries to byte
+   * arrays with their LDIF representations.
+   */
   private ByteArrayOutputStream entryOutputStream;
 
-  // The byte array that will hold the LDIF representation of the next entry to
-  // be read.
+  /**
+   * The byte array that will hold the LDIF representation of the next entry to
+   * be read.
+   */
   private ByteBuffer entryBytes;
 
-  // The IOException that should be thrown the next time a read is requested.
+  /** The IOException that should be thrown the next time a read is requested. */
   private IOException ioException;
 
-  // The LDIF writer that will be used to write the entries to LDIF.
+  /** The LDIF writer that will be used to write the entries to LDIF. */
   private LDIFWriter ldifWriter;
 
-  // The queue used to hold generated entries until they can be read.
+  /** The queue used to hold generated entries until they can be read. */
   private LinkedBlockingQueue<TemplateEntry> entryQueue;
 
-  // The background thread being used to actually generate the entries.
+  /** The background thread being used to actually generate the entries. */
   private MakeLDIFInputStreamThread generatorThread;
 
-  // The template file to use to generate the entries.
+  /** The template file to use to generate the entries. */
   private TemplateFile templateFile;
 
 
@@ -202,9 +206,7 @@ public class MakeLDIFInputStream
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException
   {
@@ -224,9 +226,7 @@ public class MakeLDIFInputStream
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void closeEntryWriter()
   {
     allGenerated = true;

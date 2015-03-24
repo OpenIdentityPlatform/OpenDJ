@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -36,7 +36,7 @@ import static org.testng.Assert.*;
 public class CSNGeneratorTest extends ReplicationTestCase
 {
   /**
-   * Test the adjust method of CSNGenerator
+   * Test the adjust method of CSNGenerator.
    */
   @Test
   public void adjustTest()
@@ -68,7 +68,7 @@ public class CSNGeneratorTest extends ReplicationTestCase
 
   /**
    * Test the correct behavior of the CSNGenerator when
-   * the seqnum is rolling over its limit
+   * the seqnum is rolling over its limit.
    */
   @Test
   public void adjustRollingSeqnum()

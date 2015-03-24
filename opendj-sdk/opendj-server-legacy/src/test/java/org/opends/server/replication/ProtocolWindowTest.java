@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -61,7 +61,7 @@ import static org.testng.Assert.*;
 
 /**
  * Test the constructors, encoders and decoders of the Replication AckMsg,
- * ModifyMsg, ModifyDnMsg, AddMsg and Delete MSG
+ * ModifyMsg, ModifyDnMsg, AddMsg and Delete MSG.
  */
 @SuppressWarnings("javadoc")
 public class ProtocolWindowTest extends ReplicationTestCase
@@ -73,13 +73,13 @@ public class ProtocolWindowTest extends ReplicationTestCase
   private static final int REPLICATION_QUEUE_SIZE = 100;
 
   /**
-   * A "person" entry
+   * A "person" entry.
    */
   private Entry personEntry;
   private int replServerPort;
 
 
-  /** the base DN used for this test */
+  /** The base DN used for this test. */
   private DN baseDN;
   private ReplicationServer replicationServer;
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
@@ -57,7 +57,7 @@ public class PromptTrustManager
 
 
 
-  // The singleton trust manager array for this class.
+  /** The singleton trust manager array for this class. */
   private static TrustManager[] trustManagerArray =
        new TrustManager[] { new PromptTrustManager() };
 

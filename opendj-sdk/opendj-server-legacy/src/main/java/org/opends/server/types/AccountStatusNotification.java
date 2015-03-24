@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -52,19 +52,23 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class AccountStatusNotification
 {
-  // The notification type for this account status notification.
+  /** The notification type for this account status notification. */
   private AccountStatusNotificationType notificationType;
 
-  // The entry for the user to whom this notification applies.
+  /** The entry for the user to whom this notification applies. */
   private Entry userEntry;
 
-  // A set of additional properties that may be useful for this
-  // notification.
+  /**
+   * A set of additional properties that may be useful for this
+   * notification.
+   */
   private Map<AccountStatusNotificationProperty,List<String>>
                notificationProperties;
 
-  // A message that provides additional information for this account
-  // status notification.
+  /**
+   * A message that provides additional information for this account
+   * status notification.
+   */
   private LocalizableMessage message;
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -66,7 +66,7 @@ public enum WritabilityMode
 
 
 
-  // The human-readable name for this writability mode.
+  /** The human-readable name for this writability mode. */
   private String modeName;
 
 

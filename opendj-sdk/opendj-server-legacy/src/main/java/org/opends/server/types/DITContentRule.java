@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -54,38 +54,44 @@ public final class DITContentRule
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether this content rule is declared "obsolete".
+  /** Indicates whether this content rule is declared "obsolete". */
   private final boolean isObsolete;
 
-  // The set of additional name-value pairs associated with this
-  // content rule definition.
+  /**
+   * The set of additional name-value pairs associated with this
+   * content rule definition.
+   */
   private final Map<String,List<String>> extraProperties;
 
-  // The set of names for this DIT content rule, in a mapping between
-  // the all-lowercase form and the user-defined form.
+  /**
+   * The set of names for this DIT content rule, in a mapping between
+   * the all-lowercase form and the user-defined form.
+   */
   private final Map<String,String> names;
 
-  // The structural objectclass for this DIT content rule.
+  /** The structural objectclass for this DIT content rule. */
   private final ObjectClass structuralClass;
 
-  // The set of auxiliary objectclasses that entries with this content
-  // rule may contain, in a mapping between the objectclass and the
-  // user-defined name for that class.
+  /**
+   * The set of auxiliary objectclasses that entries with this content
+   * rule may contain, in a mapping between the objectclass and the
+   * user-defined name for that class.
+   */
   private final Set<ObjectClass> auxiliaryClasses;
 
-  // The set of optional attribute types for this DIT content rule.
+  /** The set of optional attribute types for this DIT content rule. */
   private final Set<AttributeType> optionalAttributes;
 
-  // The set of prohibited attribute types for this DIT content rule.
+  /** The set of prohibited attribute types for this DIT content rule. */
   private final Set<AttributeType> prohibitedAttributes;
 
-  // The set of required attribute types for this DIT content rule.
+  /** The set of required attribute types for this DIT content rule. */
   private final Set<AttributeType> requiredAttributes;
 
-  // The definition string used to create this DIT content rule.
+  /** The definition string used to create this DIT content rule. */
   private final String definition;
 
-  // The description for this DIT content rule.
+  /** The description for this DIT content rule. */
   private final String description;
 
 

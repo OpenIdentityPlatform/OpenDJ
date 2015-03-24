@@ -85,9 +85,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.getConnectionEvent = getConnectionEvent;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -101,9 +99,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -170,9 +166,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.resultCode = resultCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     DirectoryException getResult()
     {
@@ -185,9 +179,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -201,9 +193,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -233,9 +223,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -251,9 +239,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -285,9 +271,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close()
     {
@@ -297,9 +281,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString search(final DN baseDN, final SearchScope scope,
         final SearchFilter filter) throws DirectoryException
@@ -319,9 +301,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void simpleBind(final ByteString username, final ByteString password)
         throws DirectoryException
@@ -357,9 +337,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close()
     {
@@ -368,9 +346,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws DirectoryException
     {
@@ -400,7 +376,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private MappingPolicy mappingPolicy = MappingPolicy.UNMAPPED;
     private final SortedSet<String> primaryServers = new TreeSet<String>();
     private final SortedSet<String> secondaryServers = new TreeSet<String>();
-    private int timeoutMS; // unlimited
+    /** Unlimited. */
+    private int timeoutMS;
     private DN mappedSearchBindDN = searchBindDN;
     private String mappedSearchBindPassword = "searchPassword";
     private String mappedSearchBindPasswordEnvVar;
@@ -700,9 +677,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordEnvironmentVariable()
     {
@@ -711,9 +686,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordFile()
     {
@@ -722,9 +695,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordProperty()
     {
@@ -733,9 +704,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getCachedPasswordTTL()
     {
@@ -744,9 +713,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getCachedPasswordStorageScheme()
     {
@@ -755,9 +722,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getCachedPasswordStorageSchemeDN()
     {
@@ -773,9 +738,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isUsePasswordCaching()
     {
@@ -872,7 +835,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private final List<MockScheduledFuture> monitorRunnables = new LinkedList<MockScheduledFuture>();
     private String currentTime = TimeThread.getGMTTime();
 
-    // All methods unused excepted scheduleWithFixedDelay.
+    /** All methods unused excepted scheduleWithFixedDelay. */
     private final ScheduledExecutorService mockScheduler = new ScheduledExecutorService()
     {
 
@@ -1027,9 +990,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConnectionFactory getLDAPConnectionFactory(final String host,
         final int port, final LDAPPassThroughAuthenticationPolicyCfg options)
@@ -1042,9 +1003,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ScheduledExecutorService getScheduledExecutorService()
     {
@@ -1053,9 +1012,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getCurrentTime()
     {
@@ -1064,9 +1021,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long getCurrentTimeMS()
     {
@@ -1137,7 +1092,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
   final class MockServer
   {
-    // Waits for an incoming client connection.
+    /** Waits for an incoming client connection. */
     class AcceptAction extends Action
     {
       @Override
@@ -1156,7 +1111,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    // Blocks the server until it is released.
+    /** Blocks the server until it is released. */
     class BlockAction extends Action
     {
       private final CountDownLatch latch = new CountDownLatch(1);
@@ -1179,7 +1134,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    // Close the client socket.
+    /** Close the client socket. */
     class CloseAction extends Action
     {
       @Override
@@ -1191,7 +1146,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    // Read the next message and check it matches the expected message.
+    /** Read the next message and check it matches the expected message. */
     class ReceiveAction extends Action
     {
       private final int messageID;
@@ -1231,7 +1186,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    // Sends a message.
+    /** Sends a message. */
     class SendAction extends Action
     {
       private final int messageID;
@@ -1296,9 +1251,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       serverThread = new Thread(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -1459,9 +1412,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     Object getResult()
     {
@@ -1471,9 +1422,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -1490,9 +1439,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -1540,9 +1487,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     DirectoryException getResult()
     {
@@ -1556,9 +1501,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -1574,9 +1517,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {

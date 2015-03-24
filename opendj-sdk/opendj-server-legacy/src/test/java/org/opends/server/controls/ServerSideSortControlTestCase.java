@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -60,37 +60,28 @@ import static org.testng.Assert.*;
 public class ServerSideSortControlTestCase
     extends ControlsTestCase
 {
-  // The givenName attribute type.
+  /** The givenName attribute type. */
   private AttributeType givenNameType;
-
-  // The sn attribute type.
+  /** The sn attribute type. */
   private AttributeType snType;
 
-  // The DN for "Aaccf Johnson"
+  /** The DN for "Aaccf Johnson". */
   DN aaccfJohnsonDN;
-
-  // The DN for "Aaron Zimmerman"
+  /** The DN for "Aaron Zimmerman". */
   DN aaronZimmermanDN;
-
-  // The DN for "Albert Smith"
+  /** The DN for "Albert Smith". */
   DN albertSmithDN;
-
-  // The DN for "Albert Zimmerman"
+  /** The DN for "Albert Zimmerman". */
   DN albertZimmermanDN;
-
-  // The DN for "lowercase mcgee"
+  /** The DN for "lowercase mcgee". */
   DN lowercaseMcGeeDN;
-
-  // The DN for "Mararet Jones"
+  /** The DN for "Mararet Jones". */
   DN margaretJonesDN;
-
-  // The DN for "Mary Jones"
+  /** The DN for "Mary Jones". */
   DN maryJonesDN;
-
-  // The DN for "Sam Zweck"
+  /** The DN for "Sam Zweck". */
   DN samZweckDN;
-
-  // The DN for "Zorro"
+  /** The DN for "Zorro". */
   DN zorroDN;
 
 

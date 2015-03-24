@@ -68,7 +68,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
 /**
-   * The DN to use for delete result operations
+   * The DN to use for delete result operations.
    */
   private DN dn;
 

@@ -153,7 +153,7 @@ public class MakeLDIFTestCase
   }
 
   /**
-   * Test for parsing escaped  character in templates
+   * Test for parsing escaped  character in templates.
    */
   @Test(dataProvider = "validTemplates")
   public void testParsingEscapeCharInTemplate(String testName, String[] lines)
@@ -312,7 +312,7 @@ public class MakeLDIFTestCase
   }
 
   /**
-   * Test for escaped characters in templates, check LDIF output
+   * Test for escaped characters in templates, check LDIF output.
    */
   @Test(dataProvider="templatesToTestLDIFOutput", dependsOnMethods = { "testParsingEscapeCharInTemplate"})
   public void testLDIFOutputFromTemplate(String testName, String[] lines,
@@ -342,7 +342,7 @@ public class MakeLDIFTestCase
 
   /**
    * Test for escaped characters in templates, check LDIF output when
-   * the templates combines escaped characters and variables
+   * the templates combines escaped characters and variables.
    */
   @Test(dependsOnMethods = { "testParsingEscapeCharInTemplate"})
   public void testOutputCombineEscapeCharInTemplate() throws Exception

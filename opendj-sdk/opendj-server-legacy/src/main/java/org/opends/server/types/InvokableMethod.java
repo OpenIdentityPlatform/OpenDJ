@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -54,24 +54,28 @@ public class InvokableMethod
 
 
 
-  // Indicates whether this method retrieves information about the
-  // associated component.
+  /**
+   * Indicates whether this method retrieves information about the
+   * associated component.
+   */
   private boolean retrievesComponentInfo;
 
-  // Indicates whether this method updates information about the
-  // associated component.
+  /**
+   * Indicates whether this method updates information about the
+   * associated component.
+   */
   private boolean updatesComponentInfo;
 
-  // The set of arguments for this method.
+  /** The set of arguments for this method. */
   private ConfigAttribute[] arguments;
 
-  // The description for this method.
+  /** The description for this method. */
   private String description;
 
-  // The name for this method.
+  /** The name for this method. */
   private String name;
 
-  // The return type for this method.
+  /** The return type for this method. */
   private String returnType;
 
 

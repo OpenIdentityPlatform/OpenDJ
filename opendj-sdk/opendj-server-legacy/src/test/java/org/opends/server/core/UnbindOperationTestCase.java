@@ -41,7 +41,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
- * A set of test cases for unbind operations
+ * A set of test cases for unbind operations.
  */
 public class UnbindOperationTestCase extends OperationTestCase
 {

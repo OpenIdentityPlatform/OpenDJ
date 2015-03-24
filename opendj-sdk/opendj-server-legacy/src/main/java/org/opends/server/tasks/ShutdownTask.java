@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -59,17 +59,17 @@ public class ShutdownTask
 
 
 
-  // Indicates whether to use an exit code that indicates the server should be
-  // restarted.
+  /**
+   * Indicates whether to use an exit code that indicates the server should be
+   * restarted.
+   */
   private boolean restart;
 
-  // The shutdown message that will be used.
+  /** The shutdown message that will be used. */
   private LocalizableMessage shutdownMessage;
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_SHUTDOWN_NAME.get();
   }

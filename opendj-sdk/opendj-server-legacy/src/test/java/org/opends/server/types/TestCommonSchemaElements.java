@@ -57,28 +57,30 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
    *          The type of definition that this builder constructs.
    */
   protected static abstract class SchemaDefinitionBuilder<T extends CommonSchemaElements> {
-    // The primary name to use for this attribute type.
+    /** The primary name to use for this attribute type. */
     private String primaryName;
 
-    // The set of names for this attribute type.
+    /** The set of names for this attribute type. */
     private List<String> names;
 
-    // The OID that may be used to reference this attribute type.
+    /** The OID that may be used to reference this attribute type. */
     private String oid;
 
-    // The description for this attribute type.
+    /** The description for this attribute type. */
     private String description;
 
-    // Indicates whether this attribute type is declared "obsolete".
+    /** Indicates whether this attribute type is declared "obsolete". */
     private boolean isObsolete;
 
-    // The set of additional name-value pairs associated with this
-    // attribute type definition.
+    /**
+     * The set of additional name-value pairs associated with this
+     * attribute type definition.
+     */
     private Map<String, List<String>> extraProperties;
 
 
 
-    // Reset the builder to its initial state.
+    /** Reset the builder to its initial state. */
     private void reset() {
       this.primaryName = null;
       this.names = null;

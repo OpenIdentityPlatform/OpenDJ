@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -57,7 +57,7 @@ public final class ExpirationCheckTrustManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The trust manager that is wrapped by this trust manager.
+  /** The trust manager that is wrapped by this trust manager. */
   private X509TrustManager trustManager;
 
 

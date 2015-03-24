@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -84,9 +85,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processBackupBegin(Backend backend, BackupConfig config)
   {
     backupBeginCount.incrementAndGet();
@@ -94,9 +93,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processBackupEnd(Backend backend, BackupConfig config,
                                boolean successful)
   {
@@ -105,9 +102,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processRestoreBegin(Backend backend, RestoreConfig config)
   {
     restoreBeginCount.incrementAndGet();
@@ -115,9 +110,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processRestoreEnd(Backend backend, RestoreConfig config,
                                 boolean successful)
   {
@@ -126,9 +119,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processExportBegin(Backend backend, LDIFExportConfig config)
   {
     exportBeginCount.incrementAndGet();
@@ -136,9 +127,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processExportEnd(Backend backend, LDIFExportConfig config,
                                boolean successful)
   {
@@ -147,9 +136,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processImportBegin(Backend backend, LDIFImportConfig config)
   {
     importBeginCount.incrementAndGet();
@@ -157,9 +144,7 @@ public class TestTaskListener
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processImportEnd(Backend backend, LDIFImportConfig config,
                                boolean successful)
   {

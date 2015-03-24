@@ -63,18 +63,14 @@ public class ObjectClassSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -87,11 +83,7 @@ public class ObjectClassSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
@@ -124,77 +116,49 @@ public class ObjectClassSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getName()
   {
     return SYNTAX_OBJECTCLASS_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getOID()
   {
     return SYNTAX_OBJECTCLASS_OID;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getDescription()
   {
     return SYNTAX_OBJECTCLASS_DESCRIPTION;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getApproximateMatchingRule()
   {
@@ -202,11 +166,7 @@ public class ObjectClassSyntax
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
@@ -226,8 +186,6 @@ public class ObjectClassSyntax
       return false;
     }
   }
-
-
 
   /**
    * Decodes the contents of the provided ASN.1 octet string as an objectclass
@@ -935,8 +893,6 @@ public class ObjectClassSyntax
                            extraProperties);
   }
 
-
-
   /**
    * Reads the next token name from the objectclass definition, skipping over
    * any leading or trailing spaces, and appends it to the provided buffer.
@@ -990,8 +946,6 @@ public class ObjectClassSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -1072,8 +1026,6 @@ public class ObjectClassSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -1160,8 +1112,6 @@ public class ObjectClassSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the attribute type/objectclass description or numeric OID from the
@@ -1317,8 +1267,6 @@ public class ObjectClassSyntax
     return startPos;
   }
 
-
-
   /**
    * Reads the value for an "extra" parameter.  It will handle a single unquoted
    * word (which is technically illegal, but we'll allow it), a single quoted
@@ -1423,8 +1371,6 @@ public class ObjectClassSyntax
       valueList.add(valueBuffer.toString());
     }
 
-
-
     // Skip over any trailing spaces.
     while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
     {
@@ -1442,8 +1388,6 @@ public class ObjectClassSyntax
 
     return startPos;
   }
-
-
 
   /**
    * Indicates whether the provided objectclass or any of its superiors is equal
@@ -1477,21 +1421,13 @@ public class ObjectClassSyntax
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

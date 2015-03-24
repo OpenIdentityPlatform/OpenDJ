@@ -1208,7 +1208,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return new ModifyDNMsg(localOp);
   }
 
-  //TODO : share this code with other classes ?
+  /** TODO : share this code with other classes ? */
   private void waitForSearchOpResult(Operation operation, ResultCode expectedResult) throws Exception
   {
     int i = 0;

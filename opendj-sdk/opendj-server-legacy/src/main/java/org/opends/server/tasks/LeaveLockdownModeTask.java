@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
@@ -48,16 +48,12 @@ public class LeaveLockdownModeTask
        extends Task
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_LEAVE_LOCKDOWN_MODE_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -87,9 +83,7 @@ public class LeaveLockdownModeTask
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected TaskState runTask()
   {
     DirectoryServer.setLockdownMode(false);

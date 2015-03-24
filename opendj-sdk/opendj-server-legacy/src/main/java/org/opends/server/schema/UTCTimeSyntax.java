@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -49,8 +47,6 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
-
-
 /**
  * This class implements the UTC time attribute syntax.  This is very similar to
  * the generalized time syntax (and actually has been deprecated in favor of
@@ -64,15 +60,11 @@ public class UTCTimeSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /**
    * The lock that will be used to provide threadsafe access to the date
    * formatter.
    */
   private static Object dateFormatLock;
-
-
 
   /**
    * The date formatter that will be used to convert dates into UTC time values.
@@ -87,18 +79,16 @@ public class UTCTimeSyntax
   private static Date datum2000;
 
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
 
-
-
-  /*
+  /**
    * Create the date formatter that will be used to construct and parse
    * normalized UTC time values.
    */
@@ -120,8 +110,6 @@ public class UTCTimeSyntax
     dateFormatLock = new Object();
   }
 
-
-
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
@@ -133,11 +121,7 @@ public class UTCTimeSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -163,8 +147,6 @@ public class UTCTimeSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -174,8 +156,6 @@ public class UTCTimeSyntax
   {
     return SYNTAX_UTC_TIME_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -187,8 +167,6 @@ public class UTCTimeSyntax
     return SYNTAX_UTC_TIME_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -198,8 +176,6 @@ public class UTCTimeSyntax
   {
     return SYNTAX_UTC_TIME_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -214,8 +190,6 @@ public class UTCTimeSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -228,8 +202,6 @@ public class UTCTimeSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -244,8 +216,6 @@ public class UTCTimeSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -259,8 +229,6 @@ public class UTCTimeSyntax
     // Approximate matching will not be allowed by default.
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -691,8 +659,6 @@ public class UTCTimeSyntax
     }
   }
 
-
-
   /**
    * Indicates whether the provided string contains a valid set of two or four
    * UTC offset digits.  The provided string must have either two or four
@@ -819,8 +785,6 @@ public class UTCTimeSyntax
     return true;
   }
 
-
-
   /**
    * Retrieves an attribute value containing a UTC time representation of the
    * provided date.
@@ -838,8 +802,6 @@ public class UTCTimeSyntax
     }
     return ByteString.valueOf(valueString);
   }
-
-
 
   /**
    * Decodes the provided normalized value as a UTC time value and
@@ -897,21 +859,13 @@ public class UTCTimeSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

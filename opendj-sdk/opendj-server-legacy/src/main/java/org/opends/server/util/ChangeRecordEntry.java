@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -44,7 +44,7 @@ import org.opends.server.types.DN;
      mayInvoke=true)
 public abstract class ChangeRecordEntry
 {
-  // The DN for this entry.
+  /** The DN for this entry. */
   private DN dn;
 
 

@@ -148,26 +148,21 @@ public class BackupTask extends Task
 
   private ArrayList<Backend<?>> backendsToArchive;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_BACKUP_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getAttributeDisplayName(String attrName) {
     return argDisplayMap.get(attrName);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override public void initializeTask() throws DirectoryException
+  /** {@inheritDoc} */
+  @Override
+  public void initializeTask() throws DirectoryException
   {
     // If the client connection is available, then make sure the associated
     // client has the BACKEND_BACKUP privilege.
@@ -550,9 +545,7 @@ public class BackupTask extends Task
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
@@ -567,18 +560,14 @@ public class BackupTask extends Task
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInterruptable() {
     return true;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

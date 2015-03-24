@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test AttrInfo and AttrInfoWithOptions
+ * Test AttrInfo and AttrInfoWithOptions.
  */
 @SuppressWarnings("javadoc")
 public class AttrInfoTest extends ReplicationTestCase
@@ -75,7 +75,7 @@ public class AttrInfoTest extends ReplicationTestCase
   }
 
   /**
-   * Create a AttrInfo and check the methods
+   * Create a AttrInfo and check the methods.
    */
   @Test(dataProvider = "attrInfo")
   public void attrInfo(ByteString att, CSN deleteTime, CSN updateTime) throws Exception

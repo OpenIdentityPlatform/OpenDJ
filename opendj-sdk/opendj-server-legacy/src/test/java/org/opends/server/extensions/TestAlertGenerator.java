@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -50,13 +50,13 @@ public class TestAlertGenerator
 
 
 
-  // The DN of the "configuration entry" for this alert generator.
+  /** The DN of the "configuration entry" for this alert generator. */
   private DN configEntryDN;
 
-  // The alert description used for testing purposes.
+  /** The alert description used for testing purposes. */
   private String alertDescription;
 
-  // The alert type used for testing purposes.
+  /** The alert type used for testing purposes. */
   private String alertType;
 
 
@@ -88,9 +88,7 @@ public class TestAlertGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public DN getComponentEntryDN()
   {
     return configEntryDN;
@@ -98,9 +96,7 @@ public class TestAlertGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getClassName()
   {
     return CLASS_NAME;
@@ -108,9 +104,7 @@ public class TestAlertGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();

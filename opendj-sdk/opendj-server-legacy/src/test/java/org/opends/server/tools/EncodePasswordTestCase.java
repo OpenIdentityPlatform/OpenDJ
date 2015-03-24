@@ -50,13 +50,13 @@ import static org.testng.Assert.*;
 public class EncodePasswordTestCase
        extends ToolsTestCase
 {
-  // The path to the Directory Server configuration file.
+  /** The path to the Directory Server configuration file. */
   private String configFilePath;
 
-  // The path to the temporary file containing a clear-text password.
+  /** The path to the temporary file containing a clear-text password. */
   private String passwordFilePath;
 
-  // The path to the temporary file containing an encoded password.
+  /** The path to the temporary file containing an encoded password. */
   private String encodedPasswordFilePath;
 
 

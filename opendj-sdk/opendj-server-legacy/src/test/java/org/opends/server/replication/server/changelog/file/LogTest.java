@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
 @Test(sequential=true)
 public class LogTest extends DirectoryServerTestCase
 {
-  // Use a directory dedicated to this test class
+  /** Use a directory dedicated to this test class. */
   private static final File LOG_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
 
   private static final long NO_TIME_BASED_LOG_ROTATION = 0;
@@ -472,7 +472,7 @@ public class LogTest extends DirectoryServerTestCase
     }
   }
 
-  // TODO : Should be re-enabled once the issue with robot functional test replication/totalupdate.txt is solved
+  /** TODO : Should be re-enabled once the issue with robot functional test replication/totalupdate.txt is solved */
   @Test(enabled=false, expectedExceptions=ChangelogException.class)
   public void testClearWhenCursorIsOpened() throws Exception
   {

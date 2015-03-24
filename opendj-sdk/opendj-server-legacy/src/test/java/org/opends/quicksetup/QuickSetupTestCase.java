@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.quicksetup;
 
 import org.testng.annotations.BeforeSuite;
@@ -31,9 +30,6 @@ import org.opends.server.DirectoryServerTestCase;
 
 import java.io.IOException;
 
-/**
- *
- */
 public class QuickSetupTestCase extends DirectoryServerTestCase {
   @BeforeSuite
   public final void initServer()

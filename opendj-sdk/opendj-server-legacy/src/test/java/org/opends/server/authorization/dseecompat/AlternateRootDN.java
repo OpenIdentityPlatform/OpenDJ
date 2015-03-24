@@ -54,7 +54,7 @@ public class AlternateRootDN extends AciTestCase {
        "(version 3.0; acl \"proxy" +  user3 + "\";" +
        "allow (proxy) userdn=\"ldap:///" + user3 + "\";)";
 
-  /** Need an ACI to allow proxy control */
+  /** Need an ACI to allow proxy control. */
   private static final
   String controlACI = "(targetcontrol=\"" + OID_PROXIED_AUTH_V2 + "\")" +
           "(version 3.0; acl \"control\";" +

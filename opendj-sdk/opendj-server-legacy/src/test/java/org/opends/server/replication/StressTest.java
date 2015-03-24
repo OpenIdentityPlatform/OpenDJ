@@ -66,9 +66,7 @@ public class StressTest extends ReplicationTestCase
 
   private BrokerReader reader;
 
-  /**
-   * A "person" entry
-   */
+  /** A "person" entry. */
   private Entry personEntry;
 
   private int replServerPort;
@@ -215,17 +213,13 @@ public class StressTest extends ReplicationTestCase
   {
     int count;
 
-    /**
-     * Creates a new Stress Test Reader
-     */
+    /** Creates a new Stress Test Reader. */
     public BrokerWriter(int count)
     {
       this.count = count;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -254,16 +248,14 @@ public class StressTest extends ReplicationTestCase
     private Boolean finished = false;
 
     /**
-     * Creates a new Stress Test Reader
+     * Creates a new Stress Test Reader.
      */
     public BrokerReader(ReplicationBroker broker)
     {
       this.broker = broker;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -291,7 +283,7 @@ public class StressTest extends ReplicationTestCase
     }
 
     /**
-     * wait until the thread has finished its job then return the number of
+     * Wait until the thread has finished its job then return the number of
      * received messages.
      */
     public int getCount()

@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,8 +47,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class implements the matching rule use description syntax, which is used
  * to hold matching rule use definitions in the server schema.  The format of
@@ -62,18 +58,14 @@ public class MatchingRuleUseSyntax
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-
-
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -86,11 +78,7 @@ public class MatchingRuleUseSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -122,82 +110,50 @@ public class MatchingRuleUseSyntax
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getName()
   {
     return SYNTAX_MATCHING_RULE_USE_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getOID()
   {
     return SYNTAX_MATCHING_RULE_USE_OID;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getDescription()
   {
     return SYNTAX_MATCHING_RULE_USE_DESCRIPTION;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -216,8 +172,6 @@ public class MatchingRuleUseSyntax
       return false;
     }
   }
-
-
 
   /**
    * Decodes the contents of the provided ASN.1 octet string as a matching rule
@@ -611,8 +565,6 @@ public class MatchingRuleUseSyntax
                                extraProperties);
   }
 
-
-
   /**
    * Reads the next token name from the matching rule use definition, skipping
    * over any leading or trailing spaces, and appends it to the provided buffer.
@@ -666,8 +618,6 @@ public class MatchingRuleUseSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -746,8 +696,6 @@ public class MatchingRuleUseSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -831,8 +779,6 @@ public class MatchingRuleUseSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the attribute type description or numeric OID from the provided
@@ -977,8 +923,6 @@ public class MatchingRuleUseSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value for an "extra" parameter.  It will handle a single unquoted
@@ -1134,21 +1078,13 @@ public class MatchingRuleUseSyntax
     return startPos;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isHumanReadable()
   {
     return true;

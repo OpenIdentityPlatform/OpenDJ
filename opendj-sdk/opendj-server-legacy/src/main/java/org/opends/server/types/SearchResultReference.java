@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -44,10 +44,10 @@ import java.util.Iterator;
      mayInvoke=true)
 public final class SearchResultReference
 {
-  // The set of controls associated with this search result reference.
+  /** The set of controls associated with this search result reference. */
   private List<Control> controls;
 
-  // The set of referral URLs for this search result reference.
+  /** The set of referral URLs for this search result reference. */
   private List<String> referralURLs;
 
 

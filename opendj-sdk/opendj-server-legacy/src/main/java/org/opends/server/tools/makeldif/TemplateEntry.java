@@ -46,21 +46,25 @@ import org.opends.server.util.LDIFException;
  */
 public class TemplateEntry
 {
-  // The branch used to generate this entry (if it is associated with a branch).
+  /** The branch used to generate this entry (if it is associated with a branch). */
   private Branch branch;
 
-  // The DN for this template entry, if it is known.
+  /** The DN for this template entry, if it is known. */
   private DN dn;
 
-  // The DN of the parent entry for this template entry, if it is available.
+  /** The DN of the parent entry for this template entry, if it is available. */
   private DN parentDN;
 
-  // The set of attributes associated with this template entry, mapped from the
-  // lowercase name of the attribute to the list of generated values.
+  /**
+   * The set of attributes associated with this template entry, mapped from the
+   * lowercase name of the attribute to the list of generated values.
+   */
   private LinkedHashMap<AttributeType,ArrayList<TemplateValue>> attributes;
 
-  // The template used to generate this entry (if it is associated with a
-  // template).
+  /**
+   * The template used to generate this entry (if it is associated with a
+   * template).
+   */
   private Template template;
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -38,7 +39,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
 {
 
   /**
-   * Basic usage test (reset and single update method)
+   * Basic usage test (reset and single update method).
    */
   @Test
   public void testResetAndSingleUpdate()
@@ -70,7 +71,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
   }
 
   /**
-   * Provider for testArrayUpdate method
+   * Provider for testArrayUpdate method.
    */
   @DataProvider(name = "arrayUpdateProvider")
   protected Object[][] arrayUpdateProvider()
@@ -92,7 +93,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
   }
 
   /**
-   * Test of update method, array version
+   * Test of update method, array version.
    */
   @Test(dataProvider = "arrayUpdateProvider")
   public void testArrayUpdate(byte[] b, int off, int len, long expectedChecksum)

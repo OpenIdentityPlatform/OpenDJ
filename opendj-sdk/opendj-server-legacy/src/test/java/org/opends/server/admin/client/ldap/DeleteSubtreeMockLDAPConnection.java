@@ -42,10 +42,10 @@ import org.testng.Assert;
  */
 public final class DeleteSubtreeMockLDAPConnection extends MockLDAPConnection {
 
-  // Detect multiple calls.
+  /** Detect multiple calls. */
   private boolean alreadyDeleted;
 
-  // The expected DN.
+  /** The expected DN. */
   private final LdapName expectedDN;
 
 
@@ -75,9 +75,7 @@ public final class DeleteSubtreeMockLDAPConnection extends MockLDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void deleteSubtree(LdapName dn) throws NamingException {
     Assert.assertFalse(alreadyDeleted);

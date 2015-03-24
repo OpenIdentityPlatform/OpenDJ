@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -58,7 +58,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
 
   /**
-   * Cipher suite hardcoded from the IANA registry on internet
+   * Cipher suite hardcoded from the IANA registry on internet.
    */
   static final String[][] HARDCODED_CIPHER_SUITE = new String[][] {
         { "TLS_NULL_WITH_NULL_NULL" },

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -66,16 +66,14 @@ public class LDAPSyntaxDescriptionSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -88,11 +86,7 @@ public class LDAPSyntaxDescriptionSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
@@ -119,8 +113,6 @@ public class LDAPSyntaxDescriptionSyntax
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
@@ -131,8 +123,6 @@ public class LDAPSyntaxDescriptionSyntax
   {
     return SYNTAX_LDAP_SYNTAX_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
@@ -145,8 +135,6 @@ public class LDAPSyntaxDescriptionSyntax
     return SYNTAX_LDAP_SYNTAX_OID;
   }
 
-
-
   /**
    * Retrieves a description for this attribute syntax.
    *
@@ -157,8 +145,6 @@ public class LDAPSyntaxDescriptionSyntax
   {
     return SYNTAX_LDAP_SYNTAX_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -174,8 +160,6 @@ public class LDAPSyntaxDescriptionSyntax
     return defaultEqualityMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default ordering matching rule that will be used for
    * attributes with this syntax.
@@ -189,8 +173,6 @@ public class LDAPSyntaxDescriptionSyntax
   {
     return defaultOrderingMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -206,8 +188,6 @@ public class LDAPSyntaxDescriptionSyntax
     return defaultSubstringMatchingRule;
   }
 
-
-
   /**
    * Retrieves the default approximate matching rule that will be used for
    * attributes with this syntax.
@@ -222,8 +202,6 @@ public class LDAPSyntaxDescriptionSyntax
     // There is no approximate matching rule by default.
     return null;
   }
-
-
 
   /**
    * Decodes the contents of the provided byte sequence as an ldap syntax
@@ -568,8 +546,6 @@ public class LDAPSyntaxDescriptionSyntax
                                      description,extraProperties);
   }
 
-
-
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
    * with this syntax.  If it is not, then the reason may be appended to the
@@ -657,8 +633,6 @@ public class LDAPSyntaxDescriptionSyntax
     // Return the position of the first non-space character after the token.
     return startPos;
   }
-
-
 
   /**
    * Reads the value of a string enclosed in single quotes, skipping over the
@@ -897,27 +871,19 @@ public class LDAPSyntaxDescriptionSyntax
     return startPos;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {
     return true;
   }
-
-
 
   /**
    * This class provides a substitution mechanism where one unimplemented
@@ -927,22 +893,20 @@ public class LDAPSyntaxDescriptionSyntax
   private static class SubstitutionSyntax extends
           LDAPSyntaxDescriptionSyntax
   {
-    // The syntax that will substitute the unimplemented syntax.
+    /** The syntax that will substitute the unimplemented syntax. */
     private AttributeSyntax<?> subSyntax;
 
-    // The description of this syntax.
+    /** The description of this syntax. */
     private String description;
 
-    // The definition of this syntax.
+    /** The definition of this syntax. */
     private String definition;
 
 
-    //The oid of this syntax.
+    /** The oid of this syntax. */
     private String oid;
 
-
-
-    //Creates a new instance of this syntax.
+    /** Creates a new instance of this syntax. */
     private SubstitutionSyntax(AttributeSyntax<?> subSyntax,
             String definition,
             String description,
@@ -955,11 +919,7 @@ public class LDAPSyntaxDescriptionSyntax
       this.oid = oid;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getName()
     {
@@ -967,52 +927,34 @@ public class LDAPSyntaxDescriptionSyntax
       return null;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getOID()
     {
       return oid;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getDescription()
     {
       return description;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return definition;
     }
 
-
-
-     /**
-     * {@inheritDoc}
-     */
+     /** {@inheritDoc} */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      LocalizableMessageBuilder invalidReason)
     {
       return  subSyntax.valueIsAcceptable(value, invalidReason);
     }
-
-
 
     /**
      * Retrieves the default equality matching rule that will be used for
@@ -1028,8 +970,6 @@ public class LDAPSyntaxDescriptionSyntax
       return subSyntax.getEqualityMatchingRule();
     }
 
-
-
     /**
      * Retrieves the default ordering matching rule that will be used for
      * attributes with this syntax.
@@ -1044,8 +984,6 @@ public class LDAPSyntaxDescriptionSyntax
       return subSyntax.getOrderingMatchingRule();
     }
 
-
-
     /**
      * Retrieves the default substring matching rule that will be used for
      * attributes with this syntax.
@@ -1059,8 +997,6 @@ public class LDAPSyntaxDescriptionSyntax
     {
       return subSyntax.getSubstringMatchingRule();
     }
-
-
 
     /**
      * Retrieves the default approximate matching rule that will be used for
@@ -1077,8 +1013,6 @@ public class LDAPSyntaxDescriptionSyntax
     }
   }
 
-
-
   /**
    * This class provides a regex mechanism where a new syntax and its
    * corresponding matching rules can be created on-the-fly. A regex
@@ -1087,32 +1021,32 @@ public class LDAPSyntaxDescriptionSyntax
   private static class RegexSyntax extends
           LDAPSyntaxDescriptionSyntax
   {
-    // The Pattern associated with the regex.
+    /** The Pattern associated with the regex. */
     private Pattern pattern;
 
-    // The description of this syntax.
+    /** The description of this syntax. */
     private String description;
 
-    //The oid of this syntax.
+    /** The oid of this syntax. */
     private String oid;
 
-    //The definition of this syntax.
+    /** The definition of this syntax. */
     private String definition;
 
-    //The equality matching rule.
+    /** The equality matching rule. */
     private MatchingRule equalityMatchingRule;
 
-    //The substring matching rule.
+    /** The substring matching rule. */
     private MatchingRule substringMatchingRule;
 
-    //The ordering matching rule.
+    /** The ordering matching rule. */
     private MatchingRule orderingMatchingRule;
 
-    //The approximate matching rule.
+    /** The approximate matching rule. */
     private MatchingRule approximateMatchingRule;
 
 
-    //Creates a new instance of this syntax.
+    /** Creates a new instance of this syntax. */
     private RegexSyntax(Pattern pattern,
             String definition,
             String description,
@@ -1125,11 +1059,7 @@ public class LDAPSyntaxDescriptionSyntax
       this.oid = oid;
     }
 
-
-
-     /**
-     * {@inheritDoc}
-     */
+     /** {@inheritDoc} */
      @Override
     public String getName()
     {
@@ -1137,22 +1067,14 @@ public class LDAPSyntaxDescriptionSyntax
       return null;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getOID()
     {
       return oid;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getDescription()
     {
@@ -1160,20 +1082,14 @@ public class LDAPSyntaxDescriptionSyntax
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return definition;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      LocalizableMessageBuilder invalidReason)
@@ -1188,8 +1104,6 @@ public class LDAPSyntaxDescriptionSyntax
       }
       return matches;
     }
-
-
 
     /**
      * Retrieves the default equality matching rule that will be used for
@@ -1211,8 +1125,6 @@ public class LDAPSyntaxDescriptionSyntax
       return equalityMatchingRule;
     }
 
-
-
     /**
      * Retrieves the default ordering matching rule that will be used for
      * attributes with this syntax.
@@ -1232,8 +1144,6 @@ public class LDAPSyntaxDescriptionSyntax
       return orderingMatchingRule;
     }
 
-
-
     /**
      * Retrieves the default substring matching rule that will be used for
      * attributes with this syntax.
@@ -1252,8 +1162,6 @@ public class LDAPSyntaxDescriptionSyntax
       }
       return substringMatchingRule;
     }
-
-
 
     /**
      * Retrieves the default approximate matching rule that will be used for
@@ -1275,8 +1183,6 @@ public class LDAPSyntaxDescriptionSyntax
     }
   }
 
-
-
   /**
    * This class provides an enumeration-based mechanism where a new syntax
    * and its corresponding matching rules can be created on-the-fly. An enum
@@ -1285,32 +1191,32 @@ public class LDAPSyntaxDescriptionSyntax
   private static class EnumSyntax extends
           LDAPSyntaxDescriptionSyntax
   {
-    //Set of read-only enum entries.
+    /** Set of read-only enum entries. */
     LinkedList<ByteSequence> entries;
 
-    // The description of this syntax.
+    /** The description of this syntax. */
     private String description;
 
-    //The oid of this syntax.
+    /** The oid of this syntax. */
     private String oid;
 
-    //The equality matching rule.
+    /** The equality matching rule. */
     private MatchingRule equalityMatchingRule;
 
-    //The substring matching rule.
+    /** The substring matching rule. */
     private MatchingRule substringMatchingRule;
 
-    //The ordering matching rule.
+    /** The ordering matching rule. */
     private MatchingRule orderingMatchingRule;
 
-    //The approximate matching rule.
+    /** The approximate matching rule. */
     private MatchingRule approximateMatchingRule;
 
-    //The definition of this syntax.
+    /** The definition of this syntax. */
     private String definition;
 
 
-    //Creates a new instance of this syntax.
+    /** Creates a new instance of this syntax. */
     private EnumSyntax(LinkedList<ByteSequence> entries,
             String definition,
             String description,
@@ -1323,11 +1229,7 @@ public class LDAPSyntaxDescriptionSyntax
       this.oid = oid;
     }
 
-
-
-     /**
-     * {@inheritDoc}
-     */
+     /** {@inheritDoc} */
      @Override
     public String getName()
     {
@@ -1335,55 +1237,35 @@ public class LDAPSyntaxDescriptionSyntax
       return null;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getOID()
     {
       return oid;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return definition;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
      @Override
     public String getDescription()
     {
       return description;
     }
 
-
-
-     /**
-      * {@inheritDoc}
-      */
+     /** {@inheritDoc} */
     @Override
     public void finalizeSyntax()
     {
       DirectoryServer.deregisterMatchingRule(orderingMatchingRule);
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
                                      LocalizableMessageBuilder invalidReason)
@@ -1396,8 +1278,6 @@ public class LDAPSyntaxDescriptionSyntax
       }
       return isAllowed;
     }
-
-
 
     /**
      * Retrieves the default equality matching rule that will be used for
@@ -1418,8 +1298,6 @@ public class LDAPSyntaxDescriptionSyntax
       }
       return equalityMatchingRule;
     }
-
-
 
     /**
      * Retrieves the default ordering matching rule that will be used for
@@ -1461,8 +1339,6 @@ public class LDAPSyntaxDescriptionSyntax
       return orderingMatchingRule;
     }
 
-
-
     /**
      * Retrieves the default substring matching rule that will be used for
      * attributes with this syntax.
@@ -1481,8 +1357,6 @@ public class LDAPSyntaxDescriptionSyntax
       }
       return substringMatchingRule;
     }
-
-
 
     /**
      * Retrieves the default approximate matching rule that will be used for

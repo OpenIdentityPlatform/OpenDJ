@@ -46,10 +46,10 @@ import static org.testng.Assert.*;
 public class LDAPDeleteTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing an invalid bind password.
+  /** The path to a file containing an invalid bind password. */
   private String invalidPasswordFile;
 
-  // The path to a file containing a valid bind password.
+  /** The path to a file containing a valid bind password. */
   private String validPasswordFile;
 
 

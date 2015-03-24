@@ -69,7 +69,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       "Cannot decode the provided persistent search control because it does not have a value";
 
   /**
-   * Create correct values
+   * Create correct values.
    */
   @DataProvider(name = "persistentSearchChangeTypeData")
   public Object[][] createPersistentSearchChangeTypeData()
@@ -83,7 +83,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Test if int value are ok
+   * Test if int value are ok.
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
   public void checkIntValueTest(Map<Integer, String> expectedValues)
@@ -99,7 +99,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
 
 
   /**
-   * Test If we have only the required values
+   * Test If we have only the required values.
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
   public void checkRequiredValuesTest(Map<Integer, String> exceptedValues)
@@ -119,7 +119,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Test invalid int values
+   * Test invalid int values.
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
   public void checkInvalidIntTest(Map<Integer, String> exceptedValues)
@@ -144,7 +144,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Test int to type
+   * Test int to type.
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
   public void checkIntToTypeTest(Map<Integer, String> exceptedValues)
@@ -203,7 +203,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Test type to int
+   * Test type to int.
    */
   @Test(dataProvider = "persistentSearchChangeTypeData", dependsOnMethods= {"checkIntToTypeTest"})
   public void checkTypesToIntTest(Map<Integer, String> exceptedValues)
@@ -230,7 +230,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Create values for PersistentSearchControl
+   * Create values for PersistentSearchControl.
    */
   @DataProvider(name = "persistentSearchControl")
   public Object[][] createPasswordPolicyResponseControlData()
@@ -243,7 +243,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   }
 
   /**
-   * Test PersistentSearchControl
+   * Test PersistentSearchControl.
    */
   @Test(dataProvider = "persistentSearchControl")
   public void checkPersistentSearchControlTest(
@@ -342,7 +342,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
 
 
   /**
-   * Create values for EntryChangeNotificationControl
+   * Create values for EntryChangeNotificationControl.
    */
   @DataProvider(name = "entryChangeNotificationControl")
   public Object[][] createEntryChangeNotificationControlData()
@@ -355,7 +355,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     { false, 4, "cn= new test, dc=example,dc=com" } };
   }
   /**
-   * Test EntryChangeNotificationControl
+   * Test EntryChangeNotificationControl.
    */
   @Test(dataProvider = "entryChangeNotificationControl")
   public void checkEntryChangeNotificationControlTest(

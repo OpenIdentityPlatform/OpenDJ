@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -40,17 +41,17 @@ import org.opends.server.api.DirectoryThread;
 class MakeLDIFInputStreamThread
       extends DirectoryThread
 {
-  // The MakeLDIF input stream that this thread is feeding.
+  /** The MakeLDIF input stream that this thread is feeding. */
   private MakeLDIFInputStream inputStream;
 
-  // The template file to use to generate the entries.
+  /** The template file to use to generate the entries. */
   private TemplateFile templateFile;
 
 
 
   /**
    * Creates a new instance of this MakeLDIF input stream thread that will feed
-   * the provided input strema.
+   * the provided input stream.
    *
    * @param  inputStream   The MakeLDIF input stream that this thread will feed.
    * @param  templateFile  The template file to use to generate the entries.

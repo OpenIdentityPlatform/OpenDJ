@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
-
-
 
 import java.util.List;
 
@@ -38,8 +36,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
-
-
 /**
  * This class provides an implementation of a Directory Server task always
  * completes successfully.  It is intended only for testing purposes.
@@ -47,24 +43,22 @@ import org.opends.server.types.Entry;
 public class DummyTask
        extends Task
 {
-  // The length of time that the task should sleep before completing.
+  /** The length of time that the task should sleep before completing. */
   private long sleepTime;
 
-  // The task state to use when interrupting the task.  This will be
-  // null unless the task gets interrupted.
+  /**
+   * The task state to use when interrupting the task.  This will be
+   * null unless the task gets interrupted.
+   */
   private volatile TaskState interruptedState;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return LocalizableMessage.raw("Dummy");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -92,9 +86,7 @@ public class DummyTask
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected TaskState runTask()
   {
     long stopTime = System.currentTimeMillis() + sleepTime;
@@ -119,9 +111,7 @@ public class DummyTask
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInterruptable()
   {
@@ -130,9 +120,7 @@ public class DummyTask
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void interruptTask(TaskState taskState, LocalizableMessage interruptMessage)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -39,14 +39,14 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test {@link CSN} and {@link CSNGenerator}
+ * Test {@link CSN} and {@link CSNGenerator}.
  */
 @SuppressWarnings("javadoc")
 public class CSNTest extends ReplicationTestCase
 {
 
   /**
-   * Create CSN Data
+   * Create CSN Data.
    */
   @DataProvider(name = "csnData")
   public Object[][] createConstructorData() {
@@ -61,7 +61,7 @@ public class CSNTest extends ReplicationTestCase
     };
   }
 
-  /** Test CSN constructor */
+  /** Test CSN constructor. */
   @Test(dataProvider = "csnData")
   public void createCSN(long time, int seq, int id, String str) throws Exception
   {
@@ -75,7 +75,7 @@ public class CSNTest extends ReplicationTestCase
   }
 
   /**
-   * Test toString and constructor from String
+   * Test toString and constructor from String.
    */
  @Test(dataProvider = "csnData")
  public void csnEncodeDecode(long time, int seq, int id, String str) throws Exception
@@ -91,7 +91,7 @@ public class CSNTest extends ReplicationTestCase
  }
 
   /**
-   * Create CSN
+   * Create CSN.
    */
   @DataProvider(name = "createCSN")
   public Object[][] createCSNData()
@@ -112,14 +112,14 @@ public class CSNTest extends ReplicationTestCase
     return obj;
   }
 
-  /** Test {@link CSN#hashCode()} method */
+  /** Test {@link CSN#hashCode()} method. */
   @Test(dataProvider = "createCSN")
   public void csnHashCode(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
     assertEquals(csn1.hashCode(), csn2.hashCode());
   }
 
-  /** Test {@link CSN#equals(Object)} method */
+  /** Test {@link CSN#equals(Object)} method. */
   @Test(dataProvider = "createCSN")
   public void csnEquals(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -131,7 +131,7 @@ public class CSNTest extends ReplicationTestCase
     assertFalse(csn1.equals(csn5));
   }
 
-  /** Test {@link CSN#getTimeSec()} method */
+  /** Test {@link CSN#getTimeSec()} method. */
   @Test(dataProvider = "createCSN")
   public void csnGetTimeSec(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -143,7 +143,7 @@ public class CSNTest extends ReplicationTestCase
     assertEquals(csn5.getTime()/1000, csn5.getTimeSec());
   }
 
-  /** Test {@link CSN#compare(CSN, CSN)} method */
+  /** Test {@link CSN#compare(CSN, CSN)} method. */
   @Test(dataProvider = "createCSN")
   public void csnCompare(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -159,7 +159,7 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(CSN.compare(csn5, csn1) > 0);
   }
 
-  /** Test {@link CSN#isOlderThan(CSN)} method */
+  /** Test {@link CSN#isOlderThan(CSN)} method. */
   @Test(dataProvider = "createCSN")
   public void csnOlder(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -170,7 +170,7 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(csn1.isOlderThan(csn5));
   }
 
-  /** Test {@link CSN#isOlderThanOrEqualTo(CSN)} method */
+  /** Test {@link CSN#isOlderThanOrEqualTo(CSN)} method. */
   @Test(dataProvider = "createCSN")
   public void csnOlderOrEqual(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -181,7 +181,7 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(csn1.isOlderThanOrEqualTo(csn5));
   }
 
-  /** Test {@link CSN#isNewerThan(CSN)} method */
+  /** Test {@link CSN#isNewerThan(CSN)} method. */
   @Test(dataProvider = "createCSN")
   public void csnNewer(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
@@ -192,7 +192,7 @@ public class CSNTest extends ReplicationTestCase
     assertFalse(csn1.isNewerThan(csn5));
   }
 
-  /** Test {@link CSN#isNewerThanOrEqualTo(CSN)} method */
+  /** Test {@link CSN#isNewerThanOrEqualTo(CSN)} method. */
   @Test(dataProvider = "createCSN")
   public void csnNewerOrEquals(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {

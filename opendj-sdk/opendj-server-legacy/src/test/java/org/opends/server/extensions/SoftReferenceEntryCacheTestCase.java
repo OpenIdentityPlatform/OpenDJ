@@ -132,9 +132,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testContainsEntry()
@@ -145,9 +143,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry1()
@@ -158,9 +154,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry2()
@@ -171,9 +165,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry3()
@@ -184,9 +176,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntryID()
@@ -197,9 +187,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testPutEntry()
@@ -210,9 +198,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testPutEntryIfAbsent()
@@ -223,9 +209,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testRemoveEntry()
@@ -236,9 +220,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClear()
@@ -249,9 +231,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClearBackend()
@@ -262,9 +242,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClearSubtree()
@@ -275,9 +253,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testHandleLowMemory()
@@ -309,9 +285,7 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test(groups = { "slow", "testSoftRefCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,

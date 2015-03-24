@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -48,10 +48,10 @@ import static org.opends.server.util.StaticUtils.*;
 public class AttributeValueTag
        extends Tag
 {
-  // The attribute type that specifies which value should be used.
+  /** The attribute type that specifies which value should be used. */
   private AttributeType attributeType;
 
-  // The maximum number of characters to include from the value.
+  /** The maximum number of characters to include from the value. */
   private int numCharacters;
 
 

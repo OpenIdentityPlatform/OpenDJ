@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -54,13 +54,13 @@ public final class LDAPException
 
 
 
-  // The matched DN associated with this LDAP exception.
+  /** The matched DN associated with this LDAP exception. */
   private final DN matchedDN;
 
-  // The LDAP result code associated with this exception.
+  /** The LDAP result code associated with this exception. */
   private final int resultCode;
 
-  // The server-provided error message for this LDAP exception.
+  /** The server-provided error message for this LDAP exception. */
   private final LocalizableMessage errorMessage;
 
 

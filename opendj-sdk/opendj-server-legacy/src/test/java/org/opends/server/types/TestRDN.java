@@ -44,19 +44,14 @@ import org.testng.annotations.Test;
  */
 public final class TestRDN extends TypesTestCase {
 
-  // Domain component attribute type.
+  /** Domain component attribute type. */
   private AttributeType AT_DC;
-
-  // Common name attribute type.
+  /** Common name attribute type. */
   private AttributeType AT_CN;
 
-  // Test attribute value.
+  /** Test attribute value. */
   private ByteString AV_DC_ORG;
-
-  // Test attribute value.
-  private ByteString AV_DC_OPENDS;
-
-  // Test attribute value.
+  /** Test attribute value. */
   private ByteString AV_CN;
 
 
@@ -82,7 +77,6 @@ public final class TestRDN extends TypesTestCase {
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
     AV_DC_ORG = ByteString.valueOf("org");
-    AV_DC_OPENDS = ByteString.valueOf("opends");
     AV_CN = ByteString.valueOf("hello world");
   }
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -40,9 +40,7 @@ abstract class AbstractUpgradeTask implements UpgradeTask
     // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void interact(UpgradeContext context)
       throws ClientException
@@ -50,18 +48,14 @@ abstract class AbstractUpgradeTask implements UpgradeTask
     // Nothing to do.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void perform(UpgradeContext context) throws ClientException
   {
     // Must be implemented.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void verify(UpgradeContext context)
       throws ClientException
@@ -69,9 +63,7 @@ abstract class AbstractUpgradeTask implements UpgradeTask
     // Nothing to do.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void postUpgrade(UpgradeContext context)
       throws ClientException
@@ -79,9 +71,7 @@ abstract class AbstractUpgradeTask implements UpgradeTask
     // Nothing to do.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void postponePostUpgrade(UpgradeContext context)
       throws ClientException

@@ -80,19 +80,19 @@ public final class EntryEncodeConfig
 
 
 
-  // Indicates whether to compress the attribute descriptions.
+  /** Indicates whether to compress the attribute descriptions. */
   private final boolean compressAttrDescriptions;
 
-  // Indicates whether to compress the object class sets.
+  /** Indicates whether to compress the object class sets. */
   private final boolean compressObjectClassSets;
 
-  // Indicates whether to exclude the DN.
+  /** Indicates whether to exclude the DN. */
   private final boolean excludeDN;
 
-  // The encoded representation of this encode configuration.
+  /** The encoded representation of this encode configuration. */
   private final byte encodedRepresentation;
 
-  // The compressed schema handler for this encode configuration.
+  /** The compressed schema handler for this encode configuration. */
   private final CompressedSchema compressedSchema;
 
 

@@ -80,9 +80,7 @@ public class ShortCircuitPlugin
     private static final class Decoder
         implements ControlDecoder<ShortCircuitRequestControl>
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public ShortCircuitRequestControl decode(boolean isCritical, ByteString value)
           throws DirectoryException
@@ -197,9 +195,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
@@ -239,9 +235,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
          doPreParse(PreParseAbandonOperation abandonOperation)
@@ -261,9 +255,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
   {
@@ -282,9 +274,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
@@ -303,9 +293,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
@@ -325,9 +313,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
@@ -347,9 +333,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
@@ -369,9 +353,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
@@ -391,9 +373,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
@@ -413,9 +393,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
@@ -435,9 +413,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
@@ -457,9 +433,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
@@ -479,9 +453,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
@@ -501,9 +473,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
@@ -523,9 +493,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
@@ -545,9 +513,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
@@ -567,9 +533,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -589,9 +553,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
@@ -611,9 +573,7 @@ public class ShortCircuitPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -61,7 +61,7 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
- * Test the FileReplicaDB class
+ * Test the FileReplicaDB class.
  */
 @SuppressWarnings("javadoc")
 public class FileReplicaDBTest extends ReplicationTestCase
@@ -263,10 +263,12 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  // TODO : this works only if we ensure that there is a rotation of ahead log file
-  // at right place. Each record takes 54 bytes, so it means : 108 < max file size < 162 to have
-  // the last record alone in the ahead log file
-  // Re-enable this test when max file size is customizable for log
+  /**
+   * TODO : this works only if we ensure that there is a rotation of ahead log file
+   * at right place. Each record takes 54 bytes, so it means : 108 < max file size < 162 to have
+   * the last record alone in the ahead log file
+   * Re-enable this test when max file size is customizable for log
+   */
   @Test(enabled=false)
   public void testPurge() throws Exception
   {

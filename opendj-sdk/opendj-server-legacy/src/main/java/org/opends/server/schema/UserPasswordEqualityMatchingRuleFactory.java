@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -46,9 +46,7 @@ public final class UserPasswordEqualityMatchingRuleFactory extends MatchingRuleF
 {
   private MatchingRule matchingRule;
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
@@ -62,9 +60,7 @@ public final class UserPasswordEqualityMatchingRuleFactory extends MatchingRuleF
        .toSchema().getMatchingRule(EMR_USER_PASSWORD_OID);
  }
 
- /**
-  * {@inheritDoc}
-  */
+ /** {@inheritDoc} */
  @Override
  public final Collection<MatchingRule> getMatchingRules()
  {

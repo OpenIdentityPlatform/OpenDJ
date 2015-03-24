@@ -54,24 +54,20 @@ public final class TestObjectClass extends TestCommonSchemaElements {
    */
   private static final class ObjectClassBuilder extends
       SchemaDefinitionBuilder<ObjectClass> {
-    // The superior object class from which this object class
-    // inherits.
+    /** The superior object class from which this object class inherits. */
     private Set<ObjectClass> superior;
 
-    // The type of object class.
+    /** The type of object class. */
     private ObjectClassType objectClassType;
 
-    // The set of required attribute types.
+    /** The set of required attribute types. */
     private Set<AttributeType> requiredAttributeTypes;
-
-    // The set of optional attribute types.
+    /** The set of optional attribute types. */
     private Set<AttributeType> optionalAttributeTypes;
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void resetBuilder() {
       this.superior = null;
@@ -105,9 +101,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ObjectClass buildInstance(String primaryName,
         Collection<String> names, String oid, String description,
@@ -331,7 +325,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
 
-  // Array of attribute types to use in tests.
+  /** Array of attribute types to use in tests. */
   private AttributeType[] types;
 
 
@@ -1618,9 +1612,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected SchemaDefinitionBuilder getBuilder(String name, String oid) {
     return new ObjectClassBuilder(name, oid);

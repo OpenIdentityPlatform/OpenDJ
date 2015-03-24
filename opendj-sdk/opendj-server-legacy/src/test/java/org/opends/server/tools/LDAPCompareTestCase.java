@@ -52,7 +52,7 @@ import static org.testng.Assert.*;
 public class LDAPCompareTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing a valid bind password.
+  /** The path to a file containing a valid bind password. */
   private String validPasswordFile;
 
 

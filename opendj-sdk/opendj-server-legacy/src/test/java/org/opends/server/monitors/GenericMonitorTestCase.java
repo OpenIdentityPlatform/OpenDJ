@@ -48,7 +48,7 @@ import static org.testng.Assert.*;
 public abstract class GenericMonitorTestCase
        extends MonitorTestCase
 {
-  // The configuration entry for this test case.
+  /** The configuration entry for this test case. */
   protected ConfigEntry configEntry;
 
 

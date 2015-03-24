@@ -44,10 +44,10 @@ import static org.testng.Assert.*;
  * A set of test cases for the DS service tool.
  */
 public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
-  // The path to a file containing an invalid bind password.
+  /** The path to a file containing an invalid bind password. */
   private String invalidPasswordFile;
 
-  // The path to a file containing a valid bind password.
+  /** The path to a file containing a valid bind password. */
   private String validPasswordFile;
 
 

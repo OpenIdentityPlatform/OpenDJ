@@ -350,50 +350,38 @@ public class ManageTasks extends ConsoleApplication {
     return 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return !noPrompt.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return !task.isPresent() && !cancel.isPresent() && !summary.isPresent() &&
            !noPrompt.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return false;
@@ -523,9 +511,7 @@ public class ManageTasks extends ConsoleApplication {
   private static abstract class TopMenuCallback
           implements MenuCallback<Void> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Void> invoke(ConsoleApplication app) throws ClientException {
       return invoke((ManageTasks)app);
@@ -561,9 +547,7 @@ public class ManageTasks extends ConsoleApplication {
       this.taskId = taskId;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<TaskEntry> invoke(ConsoleApplication app)
             throws ClientException
@@ -617,9 +601,7 @@ public class ManageTasks extends ConsoleApplication {
       this.taskId = taskId;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Void> invoke(ManageTasks app) throws ClientException {
       MenuResult<TaskEntry> res = new PrintTaskInfo(taskId).invoke(app);
@@ -684,9 +666,7 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException
@@ -876,9 +856,7 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException
@@ -937,9 +915,7 @@ public class ManageTasks extends ConsoleApplication {
       this.cancelableIndices = cancelableIndices;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Void> invoke(ManageTasks app)
             throws ClientException
@@ -1010,9 +986,7 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException

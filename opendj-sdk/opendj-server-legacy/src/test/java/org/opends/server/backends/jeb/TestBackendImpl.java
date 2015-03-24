@@ -565,8 +565,10 @@ public class TestBackendImpl extends JebTestCase {
     TestCaseUtils.disableBackend("importRoot");
   }
 
-  // Note: this test has been rewritten to avoid expectedException in the test annotation because
-  // it was skipping all tests that depends on this method
+  /**
+   * Note: this test has been rewritten to avoid expectedException in the test annotation because
+   * it was skipping all tests that depends on this method
+   */
   @Test
   public void testAddNoParent() throws Exception {
 

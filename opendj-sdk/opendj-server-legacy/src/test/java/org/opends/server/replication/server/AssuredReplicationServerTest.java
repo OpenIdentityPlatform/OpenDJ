@@ -71,7 +71,7 @@ public class AssuredReplicationServerTest
 {
 
   private String testName = this.getClass().getSimpleName();
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private int[] rsPorts;
   private static final int FDS1_ID = 1;
@@ -109,67 +109,67 @@ public class AssuredReplicationServerTest
 
   /**
    * Small assured timeout value (timeout to be used in first RS receiving an
-   * assured update from a DS)
+   * assured update from a DS).
    */
   private static final int SMALL_TIMEOUT = 3000;
   /**
    * Long assured timeout value (timeout to use in DS when sending an assured
-   * update)
+   * update).
    */
   private static final int LONG_TIMEOUT = 5000;
   /**
    * Expected max time for sending an assured update and receive its ack
-   * (without errors)
+   * (without errors).
    */
   private static final int MAX_SEND_UPDATE_TIME = 2000;
 
-  /** Default group id */
+  /** Default group id. */
   private static final int DEFAULT_GID = 1;
-  /** Other group ids */
+  /** Other group ids. */
   private static final int OTHER_GID = 2;
   private static final int OTHER_GID_BIS = 3;
 
-  /** Default generation id */
+  /** Default generation id. */
   private static final long DEFAULT_GENID = EMPTY_DN_GENID;
-  /** Other generation id */
+  /** Other generation id. */
   private static final long OTHER_GENID = 500L;
 
   /*
    * Definitions for the scenario of the fake DS
    */
-  /** DS receives updates and replies acks with no errors to every updates */
+  /** DS receives updates and replies acks with no errors to every updates. */
   private static final int REPLY_OK_DS_SCENARIO = 1;
-  /** DS receives updates but does not respond (makes timeouts) */
+  /** DS receives updates but does not respond (makes timeouts). */
   private static final int TIMEOUT_DS_SCENARIO = 2;
-  /** DS receives updates and replies ack with replay error flags */
+  /** DS receives updates and replies ack with replay error flags. */
   private static final int REPLAY_ERROR_DS_SCENARIO = 3;
 
   /*
    * Definitions for the scenario of the fake RS
    */
-  /** RS receives updates and replies acks with no errors to every updates */
+  /** RS receives updates and replies acks with no errors to every updates. */
   private static final int REPLY_OK_RS_SCENARIO = 11;
-  /** RS receives updates but does not respond (makes timeouts) */
+  /** RS receives updates but does not respond (makes timeouts). */
   private static final int TIMEOUT_RS_SCENARIO = 12;
   /**
    * RS is used for sending updates (with sendNewFakeUpdate()) and receive acks,
-   * synchronously
+   * synchronously.
    */
   private static final int SENDER_RS_SCENARIO = 13;
   //   Scenarios only used in safe read tests:
   /**
    * RS receives updates and replies ack error as if a DS was connected to it
-   * and timed out
+   * and timed out.
    */
   private static final int DS_TIMEOUT_RS_SCENARIO_SAFE_READ = 14;
   /**
    * RS receives updates and replies ack error as if a DS was connected to it
-   * and was wrong status
+   * and was wrong status.
    */
   private static final int DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ = 15;
   /**
    * RS receives updates and replies ack error as if a DS was connected to it
-   * and had a replay error
+   * and had a replay error.
    */
   private static final int DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ = 16;
 
@@ -183,7 +183,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Before starting the tests configure some stuff
+   * Before starting the tests configure some stuff.
    */
   @BeforeClass
   @Override
@@ -235,7 +235,7 @@ public class AssuredReplicationServerTest
 
   /**
    * Creates and connects a new fake replication domain, using the passed scenario
-   * (no server state constructor version)
+   * (no server state constructor version).
    */
   private FakeReplicationDomain createFakeReplicationDomain(int serverId,
       int groupId, int rsId, long generationId, AssuredMode assuredMode,
@@ -444,12 +444,12 @@ public class AssuredReplicationServerTest
    */
   private class FakeReplicationDomain extends ReplicationDomain
   {
-    /** The scenario this DS is expecting */
+    /** The scenario this DS is expecting. */
     private final int scenario;
 
     private final CSNGenerator gen;
 
-    /** Number of received updates */
+    /** Number of received updates. */
     private int nReceivedUpdates;
     private int nWrongReceivedUpdates;
 
@@ -534,7 +534,7 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Check that received update assured parameters are as defined at DS start
+     * Check that received update assured parameters are as defined at DS start.
      */
     private void checkUpdateAssuredParameters(UpdateMsg updateMsg)
     {
@@ -566,7 +566,7 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Sends a new update from this DS
+     * Sends a new update from this DS.
      * @throws TimeoutException If timeout waiting for an assured ack
      */
     private void sendNewFakeUpdate() throws TimeoutException
@@ -712,34 +712,37 @@ public class AssuredReplicationServerTest
     private boolean shutdown;
     private Session session;
 
-    /** Parameters given at constructor time */
+    /** Parameters given at constructor time. */
     private int port;
     private int serverId = -1;
-    private boolean isAssured; // Default value for config
-    private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
-    private byte safeDataLevel = 1; // Default value for config
+    /** Default value for config. */
+    private boolean isAssured;
+    /** Default value for config. */
+    private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
+    /** Default value for config. */
+    private byte safeDataLevel = 1;
     private DN baseDN;
     private long generationId = -1L;
     private byte groupId = -1;
     private boolean sslEncryption;
-    /** The scenario this RS is expecting */
+    /** The scenario this RS is expecting. */
     private int scenario = -1;
 
     private CSNGenerator gen;
 
-    /** False if a received update had assured parameters not as expected */
+    /** False if a received update had assured parameters not as expected. */
     private boolean everyUpdatesAreOk = true;
-    /** Number of received updates */
+    /** Number of received updates. */
     private int nReceivedUpdates;
 
     /**
      * True if an ack has been replied to a received assured update (in assured
-     * mode of course) used in reply scenario
+     * mode of course) used in reply scenario.
      */
     private boolean ackReplied;
 
     /**
-     * Creates a fake replication server
+     * Creates a fake replication server.
      * @param port port of the real RS we will connect to
      * @param serverId our server id
      * @param assured do we expect incoming assured updates (also used for outgoing updates)
@@ -767,7 +770,7 @@ public class AssuredReplicationServerTest
 
     /**
      * Make the RS send an assured message and return the ack message it
-     * receives from the RS
+     * receives from the RS.
      */
     public AckMsg sendNewFakeUpdate() throws Exception
     {
@@ -793,7 +796,7 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Connect to RS
+     * Connect to RS.
      */
     public void connect(ServerState serverState) throws Exception
     {
@@ -856,7 +859,7 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Wait for DS connections
+     * Wait for DS connections.
      */
     @Override
     public void run()
@@ -976,7 +979,7 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Check that received update assured parameters are as defined at RS start
+     * Check that received update assured parameters are as defined at RS start.
      */
     private void checkUpdateAssuredParameters(UpdateMsg updateMsg)
     {
@@ -1052,7 +1055,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataLevelOne test
+   * Returns possible combinations of parameters for testSafeDataLevelOne test.
    */
   @DataProvider(name = "testSafeDataLevelOneProvider")
   private Object[][] testSafeDataLevelOneProvider()
@@ -1210,7 +1213,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataLevelHighPrecommit test
+   * Returns possible combinations of parameters for testSafeDataLevelHighPrecommit test.
    */
   @DataProvider(name = "testSafeDataLevelHighPrecommitProvider")
   private Object[][] testSafeDataLevelHighPrecommitProvider()
@@ -1244,7 +1247,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataLevelHighNightly test
+   * Returns possible combinations of parameters for testSafeDataLevelHighNightly test.
    */
   @DataProvider(name = "testSafeDataLevelHighNightlyProvider")
   private Object[][] testSafeDataLevelHighNightlyProvider()
@@ -1297,7 +1300,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataLevelHigh test
+   * Returns possible combinations of parameters for testSafeDataLevelHigh test.
    */
   @DataProvider(name = "testSafeDataLevelHighProvider")
   private Object[][] testSafeDataLevelHighProvider()
@@ -1645,7 +1648,7 @@ public class AssuredReplicationServerTest
 
   /**
    * Check the time the sending of the safe data assured update took and the monitoring
-   * values according to the test configuration
+   * values according to the test configuration.
    */
   private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates, Map<Integer,Integer> prevNServerErrors, long sendUpdateTime,
     int nWishedServers, List<Integer> eligibleServers, List<Integer> expectedServers)
@@ -1853,7 +1856,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataFromRS test
+   * Returns possible combinations of parameters for testSafeDataFromRS test.
    */
   @DataProvider(name = "testSafeDataFromRSProvider")
   private Object[][] testSafeDataFromRSProvider()
@@ -1886,7 +1889,7 @@ public class AssuredReplicationServerTest
 
   /**
    * Test that the RS is acking or not acking a safe data update sent from another
-   * (fake) RS according to passed parameters
+   * (fake) RS according to passed parameters.
    */
   @Test(dataProvider = "testSafeDataFromRSProvider", groups = "slow", enabled = true)
   public void testSafeDataFromRS(int sdLevel, int fakeRsGid, long fakeRsGenId, boolean sendInAssured) throws Exception
@@ -1968,7 +1971,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeDataManyRealRSs test
+   * Returns possible combinations of parameters for testSafeDataManyRealRSs test.
    */
   @DataProvider(name = "testSafeDataManyRealRSsProvider")
   private Object[][] testSafeDataManyRealRSsProvider()
@@ -2218,7 +2221,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeReadOneRSComplexPrecommit test
+   * Returns possible combinations of parameters for testSafeReadOneRSComplexPrecommit test.
    */
   @DataProvider(name = "testSafeReadOneRSComplexPrecommitProvider")
   private Object[][] testSafeReadOneRSComplexPrecommitProvider()
@@ -2249,7 +2252,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeReadOneRSComplex test
+   * Returns possible combinations of parameters for testSafeReadOneRSComplex test.
    */
   @DataProvider(name = "testSafeReadOneRSComplexProvider")
   private Object[][] testSafeReadOneRSComplexProvider()
@@ -2722,7 +2725,7 @@ public class AssuredReplicationServerTest
     }
   }
 
-  /** Helper method for some safe read test methods */
+  /** Helper method for some safe read test methods. */
   private void checkDSReceivedAndAcked(FakeReplicationDomain fakeRd, int nPacket)
   {
     fakeRd.newSafeReadAssertions()
@@ -2731,7 +2734,7 @@ public class AssuredReplicationServerTest
         .runAsserts();
   }
 
-  /** Helper method for some safe read test methods */
+  /** Helper method for some safe read test methods. */
   private void checkDSSentAndAcked(FakeReplicationDomain fakeRd, int nPacket)
   {
     fakeRd.newSafeReadAssertions()
@@ -2832,7 +2835,7 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Returns possible combinations of parameters for testSafeReadTwoRSsProvider test
+   * Returns possible combinations of parameters for testSafeReadTwoRSsProvider test.
    */
   @DataProvider(name = "testSafeReadTwoRSsProvider")
   private Object[][] testSafeReadTwoRSsProvider()

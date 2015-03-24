@@ -58,7 +58,7 @@ import static org.testng.Assert.*;
 public final class TimeBasedMatchingRuleTest
         extends SchemaTestCase
 {
-  //User DNs to be used in tests.
+  /** User DNs to be used in tests. */
   private DN user1;
   private DN user2;
   private DN user3;
@@ -91,7 +91,7 @@ public final class TimeBasedMatchingRuleTest
     user5 = DN.valueOf("cn=user5,dc=example,dc=com");
     user6 = DN.valueOf("cn=user6,dc=example,dc=com");
 
-    /**
+    /*
     Extend the schema and add an attribute which is based on
     generalizedTimeSyntax. Since all the existing attributes based
     on that syntax are read-only, let us create a new attribute and
@@ -407,7 +407,7 @@ public final class TimeBasedMatchingRuleTest
     };
   }
 
-  // validate if the args are found in the entries list.
+  /** Validate if the args are found in the entries list. */
   private boolean dnFoundInEntryList(List<SearchResultEntry> entries, DN... dns)
   {
     for (DN dn : dns)
@@ -429,7 +429,7 @@ public final class TimeBasedMatchingRuleTest
     return false;
   }
 
-  //Creates the entries.
+  /** Creates the entries. */
   private void populateEntries() throws Exception
   {
     //Get the current time from the TimeThread. Using the current time from new

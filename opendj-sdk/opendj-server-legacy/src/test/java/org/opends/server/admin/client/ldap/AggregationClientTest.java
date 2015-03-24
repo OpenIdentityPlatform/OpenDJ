@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -63,7 +64,7 @@ import org.testng.annotations.Test;
 @Test(sequential = true)
 public class AggregationClientTest extends AdminTestCase {
 
-  // Test LDIF.
+  /** Test LDIF. */
   private static final String[] TEST_LDIF = new String[] {
       // Base entries.
       "dn: cn=config",
@@ -363,7 +364,7 @@ public class AggregationClientTest extends AdminTestCase {
 
 
 
-  // Retrieve the named test parent managed object.
+  /** Retrieve the named test parent managed object. */
   private TestParentCfgClient getTestParent(ManagementContext context,
       String name) throws DefinitionDecodingException,
       ManagedObjectDecodingException, AuthorizationException,
@@ -377,7 +378,7 @@ public class AggregationClientTest extends AdminTestCase {
 
 
 
-  // Asserts that the actual set of DNs contains the expected values.
+  /** Asserts that the actual set of DNs contains the expected values. */
   private void assertSetEquals(SortedSet<String> actual, String... expected) {
     SortedSet<String> values = new TreeSet<String>(TestChildCfgDefn
         .getInstance().getAggregationPropertyPropertyDefinition());

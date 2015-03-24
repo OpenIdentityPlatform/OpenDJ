@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -36,14 +36,14 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test the ServerState
+ * Test the ServerState.
  */
 @SuppressWarnings("javadoc")
 public class ServerStateTest extends ReplicationTestCase
 {
 
   /**
-   * Create CSN Data
+   * Create CSN Data.
    */
   @DataProvider(name = "csnData")
   public Object[][] createCSNData()
@@ -55,7 +55,7 @@ public class ServerStateTest extends ReplicationTestCase
   }
 
   /**
-   * Create a new ServerState object
+   * Create a new ServerState object.
    */
   @Test(dataProvider = "csnData")
   public void serverStateTest(CSN csn) throws Exception
@@ -96,7 +96,7 @@ public class ServerStateTest extends ReplicationTestCase
   }
 
   /**
-   * Create a new ServerState object
+   * Create a new ServerState object.
    */
   @Test(dataProvider = "csnData")
   public void serverStateReloadTest(CSN csn) throws Exception

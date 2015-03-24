@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -55,7 +55,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests creation of builder succeeds
+   * Tests creation of builder succeeds.
    */
   @Test
   public void testCreateBuilder() {
@@ -64,7 +64,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests setting/getting of lower limit as long
+   * Tests setting/getting of lower limit as long.
    */
   @Test
   public void testLowerLimit1() {
@@ -75,7 +75,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates data for testing string-based limit values
+   * Creates data for testing string-based limit values.
    * @return data
    */
   @DataProvider(name = "longLimitData")
@@ -87,7 +87,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates data for testing limit values
+   * Creates data for testing limit values.
    * @return data
    */
   @DataProvider(name = "illegalLimitData")
@@ -102,7 +102,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
 
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param limit unit limit
    * @param expectedValue to compare
    */
@@ -115,7 +115,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates data for testing string-based limit values
+   * Creates data for testing string-based limit values.
    *
    * @return data
    */
@@ -151,7 +151,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests setting/getting of lower limit as long
+   * Tests setting/getting of lower limit as long.
    */
   @Test
   public void testUpperLimit1() {
@@ -162,7 +162,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param limit upper limit
    * @param expectedValue to compare
    */
@@ -175,7 +175,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests setting/getting of lower limit as String
+   * Tests setting/getting of lower limit as String.
    * @param upper upper limit
    * @param lower lower limit
    * @param lowerFirst when true sets the lower limit property first
@@ -193,7 +193,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test
   public void testIsAllowUnlimited1() {
@@ -204,7 +204,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited2() {
@@ -215,7 +215,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests the allowUnlimited property
+   * Tests the allowUnlimited property.
    */
   @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited3() {
@@ -226,7 +226,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates illegal data for validate value
+   * Creates illegal data for validate value.
    * @return data
    */
   @DataProvider(name = "validateValueData")
@@ -241,7 +241,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that validateValue works
+   * Tests that validateValue works.
    * @param allowUnlimited when true allows unlimited
    * @param high upper limit
    * @param low lower limit
@@ -258,7 +258,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates illegal data for validate value
+   * Creates illegal data for validate value.
    * @return data
    */
   @DataProvider(name = "illegalValidateValueData")
@@ -272,7 +272,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests that validateValue throws exceptions
+   * Tests that validateValue throws exceptions.
    * @param low lower limit
    * @param high upper limit
    * @param allowUnlimited when true allows unlimited
@@ -290,7 +290,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates encode test data
+   * Creates encode test data.
    * @return data
    */
   @DataProvider(name = "encodeValueData")
@@ -311,7 +311,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests encode value
+   * Tests encode value.
    * @param value to encode
    * @param expectedValue to compare
    */
@@ -324,7 +324,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Test that accept doesn't throw and exception
+   * Test that accept doesn't throw and exception.
    */
   @Test
   public void testAccept() {
@@ -352,7 +352,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Make sure toString doesn't barf
+   * Make sure toString doesn't barf.
    */
   @Test
   public void testToString() {
@@ -363,7 +363,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Make sure toString doesn't barf
+   * Make sure toString doesn't barf.
    */
   @Test
   public void testToString2() {
@@ -409,7 +409,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates encode test data
+   * Creates encode test data.
    * @return data
    */
   @DataProvider(name = "decodeValueData")
@@ -437,7 +437,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    * @param value to decode
    * @param expectedValue for comparison
    */
@@ -455,7 +455,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Creates encode test data
+   * Creates encode test data.
    * @return data
    */
   @DataProvider(name = "decodeValueData2")
@@ -483,7 +483,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   /**
-   * Tests decodeValue()
+   * Tests decodeValue().
    * @param value to decode
    */
   @Test(dataProvider = "decodeValueData2",

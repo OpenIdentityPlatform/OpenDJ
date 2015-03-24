@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -50,10 +50,10 @@ import org.testng.annotations.Test;
  * been overridden.
  */
 public final class TestAddChangeRecordEntry extends UtilTestCase {
-  // Set of attributes.
+  /** Set of attributes. */
   private Map<AttributeType, List<Attribute>> attributes;
 
-  // The attribute being added.
+  /** The attribute being added. */
   private Attribute attribute;
 
   /**

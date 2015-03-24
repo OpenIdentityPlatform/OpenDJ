@@ -286,7 +286,6 @@ public class JmxConnectTest extends JmxTestCase {
 
     // Create a new JMX connector for this test.
     // This will allow to use the old one if this test fails.
-    //
     ServerSocket serverJmxSocket = new ServerSocket();
     serverJmxSocket.setReuseAddress(true);
     serverJmxSocket.bind(new InetSocketAddress("127.0.0.1", 0));
@@ -350,7 +349,7 @@ public class JmxConnectTest extends JmxTestCase {
 
 
   /**
-   * Test changing JMX port through LDAP
+   * Test changing JMX port through LDAP.
    */
   @Test(enabled = false)
   public void changePort() throws Exception {
@@ -476,10 +475,6 @@ public class JmxConnectTest extends JmxTestCase {
 
 
 
-  /**
-   * @param config
-   * @throws Exception
-   */
   private void configureJmx(Entry entry) throws Exception {
     ArrayList<LocalizableMessage> reasons = new ArrayList<LocalizableMessage>();
 
@@ -511,7 +506,6 @@ public class JmxConnectTest extends JmxTestCase {
 
     // Provide the credentials required by the server to successfully
     // perform user authentication
-    //
     String[] credentials;
     if ((user == null) && (password == null)) {
       credentials = null;
@@ -523,7 +517,6 @@ public class JmxConnectTest extends JmxTestCase {
 
     // Create an RMI connector client and
     // connect it to the RMI connector server
-    //
     OpendsJmxConnector opendsConnector;
     try {
       opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);

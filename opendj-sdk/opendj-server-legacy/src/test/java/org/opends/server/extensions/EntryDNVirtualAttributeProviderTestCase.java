@@ -57,7 +57,7 @@ import static org.testng.Assert.*;
 public class EntryDNVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the entryDN attribute.
+  /** The attribute type for the entryDN attribute. */
   private AttributeType entryDNType;
 
 

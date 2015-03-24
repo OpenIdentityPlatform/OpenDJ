@@ -66,7 +66,7 @@ public class DefaultEntryCacheTestCase
   Entry cacheSoftReferenceConfigEntry;
   Entry cacheFIFOConfigEntry;
 
-  // The entry cache order map sorted by the cache level.
+  /** The entry cache order map sorted by the cache level. */
   private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
     cacheOrderMap = new TreeMap<Integer,
     EntryCache<? extends EntryCacheCfg>>();
@@ -228,9 +228,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testContainsEntry()
@@ -241,9 +239,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry1()
@@ -254,9 +250,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry2()
@@ -267,9 +261,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntry3()
@@ -280,9 +272,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testGetEntryID()
@@ -293,9 +283,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testPutEntry()
@@ -306,9 +294,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testPutEntryIfAbsent()
@@ -319,9 +305,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testRemoveEntry()
@@ -332,9 +316,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClear()
@@ -345,9 +327,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClearBackend()
@@ -358,9 +338,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testClearSubtree()
@@ -371,9 +349,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test
   @Override
   public void testHandleLowMemory()
@@ -467,9 +443,7 @@ public class DefaultEntryCacheTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Test(groups = { "slow", "testDefaultCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,

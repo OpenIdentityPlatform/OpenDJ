@@ -64,14 +64,14 @@ public final class CollationMatchingRuleFactory extends
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Stores the list of available locales on this JVM.
+  /** Stores the list of available locales on this JVM. */
   private static final Set<Locale> supportedLocales = new HashSet<Locale>(
       Arrays.asList(Locale.getAvailableLocales()));
 
-  // Current Configuration.
+  /** Current Configuration. */
   private CollationMatchingRuleCfg currentConfig;
 
-  // Map of OID and the Matching Rule.
+  /** Map of OID and the Matching Rule. */
   private final Map<String, MatchingRule> matchingRules =
       new HashMap<String, MatchingRule>();
 
@@ -84,9 +84,7 @@ public final class CollationMatchingRuleFactory extends
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
   {
@@ -114,9 +112,7 @@ public final class CollationMatchingRuleFactory extends
     matchingRules.clear();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMatchingRule(CollationMatchingRuleCfg configuration)
       throws ConfigException, InitializationException
@@ -169,11 +165,7 @@ public final class CollationMatchingRuleFactory extends
     currentConfig.addCollationChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeMatchingRule()
   {
@@ -181,11 +173,7 @@ public final class CollationMatchingRuleFactory extends
     currentConfig.removeCollationChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       CollationMatchingRuleCfg configuration)
@@ -242,9 +230,7 @@ public final class CollationMatchingRuleFactory extends
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       CollationMatchingRuleCfg configuration,
@@ -336,21 +322,17 @@ public final class CollationMatchingRuleFactory extends
     return locale;
   }
 
-
-
   /**
    * A utility class for extracting the OID and Language Tag from the
    * configuration entry.
    */
   private final class CollationMapper
   {
-    // OID of the collation rule.
+    /** OID of the collation rule. */
     private String oid;
 
-    // Language Tag.
+    /** Language Tag. */
     private String lTag;
-
-
 
     /**
      * Creates a new instance of CollationMapper.
@@ -368,8 +350,6 @@ public final class CollationMatchingRuleFactory extends
       }
     }
 
-
-
     /**
      * Returns the OID part of the collation text.
      *
@@ -379,8 +359,6 @@ public final class CollationMatchingRuleFactory extends
     {
       return oid;
     }
-
-
 
     /**
      * Returns the language Tag of collation text.

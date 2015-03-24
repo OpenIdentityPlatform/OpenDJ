@@ -22,19 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.admin;
-
-
 
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
-
-
 
 /**
  * StringPropertyDefinition Tester.
@@ -96,7 +92,7 @@ public class StringPropertyDefinitionTest extends DirectoryServerTestCase {
 
 
 
-  // Create a string property definition.
+  /** Create a string property definition. */
   private StringPropertyDefinition getDefinition(
       boolean isCaseInsensitive, String pattern) {
     StringPropertyDefinition.Builder builder = StringPropertyDefinition

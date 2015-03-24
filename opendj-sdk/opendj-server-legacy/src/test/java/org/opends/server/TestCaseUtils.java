@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server;
@@ -481,7 +481,7 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-      /** Initialize the configuration framework for DSConfig. */
+      // Initialize the configuration framework for DSConfig.
       ConfigurationFramework.getInstance()
           .initialize(testInstallRoot.getAbsolutePath(),
               testInstanceRoot.getAbsolutePath());
@@ -1158,9 +1158,7 @@ public final class TestCaseUtils {
 
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
-  //
   // Various methods for converting LDIF Strings to Entries
-  //
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
 

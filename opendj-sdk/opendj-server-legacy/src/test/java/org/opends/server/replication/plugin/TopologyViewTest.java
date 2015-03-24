@@ -57,7 +57,7 @@ import static org.testng.Assert.*;
  */
 public class TopologyViewTest extends ReplicationTestCase
 {
-  /** Server id definitions */
+  /** Server id definitions. */
   private static final int DS1_ID = 1;
   private static final int DS2_ID = 2;
   private static final int DS3_ID = 3;
@@ -68,7 +68,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private static final int RS2_ID = 52;
   private static final int RS3_ID = 53;
 
-  /** Group id definitions */
+  /** Group id definitions. */
   private static final int DS1_GID = 1;
   private static final int DS2_GID = 1;
   private static final int DS3_GID = 2;
@@ -79,7 +79,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private static final int RS2_GID = 2;
   private static final int RS3_GID = 3;
 
-  /** Assured conf definitions */
+  /** Assured conf definitions. */
   private static final AssuredType DS1_AT = AssuredType.NOT_ASSURED;
   private static final int DS1_SDL = -1;
   private static SortedSet<String> DS1_RU = new TreeSet<String>();
@@ -136,7 +136,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private ReplicationServer rs2;
   private ReplicationServer rs3;
 
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)
@@ -372,7 +372,7 @@ public class TopologyViewTest extends ReplicationTestCase
 
   /**
    * Creates and starts a new ReplicationDomain with the correct list of
-   * know RSs according to DS id
+   * know RSs according to DS id.
    */
   private LDAPReplicationDomain createReplicationDomain(int dsId)
       throws Exception
@@ -456,7 +456,7 @@ public class TopologyViewTest extends ReplicationTestCase
     return replicationDomain;
   }
 
-  /** Definitions of steps for the test case */
+  /** Definitions of steps for the test case. */
   private static final int STEP_1 = 1;
   private static final int STEP_2 = 2;
   private static final int STEP_3 = 3;
@@ -736,7 +736,7 @@ public class TopologyViewTest extends ReplicationTestCase
   }
 
   /**
-   * Creates RSInfo for the passed RS
+   * Creates RSInfo for the passed RS.
    */
   private RSInfo createRSInfo(int rsId)
   {
@@ -764,7 +764,7 @@ public class TopologyViewTest extends ReplicationTestCase
   }
 
   /**
-   * Creates DSInfo for the passed DS, connected to the passed RS
+   * Creates DSInfo for the passed DS, connected to the passed RS.
    */
   private DSInfo createDSInfo(int dsId, int rsId)
   {
@@ -831,7 +831,7 @@ public class TopologyViewTest extends ReplicationTestCase
 
   /**
    * Creates the topo view to be checked at each step of the test (view that
-   * every concerned DS should have)
+   * every concerned DS should have).
    */
   private TopoView createTheoreticalTopoViewForStep(int step)
   {

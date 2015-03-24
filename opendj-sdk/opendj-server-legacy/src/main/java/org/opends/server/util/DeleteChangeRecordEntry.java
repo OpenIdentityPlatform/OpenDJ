@@ -68,9 +68,7 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

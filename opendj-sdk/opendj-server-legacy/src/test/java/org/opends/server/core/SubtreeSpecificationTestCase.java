@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.core;
 
 import java.util.HashMap;
@@ -40,7 +40,7 @@ import org.testng.annotations.BeforeClass;
  * An abstract base class for all subtree specification tests.
  */
 public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
-  // Cached set of entry object classes.
+  /** Cached set of entry object classes. */
   private Set<ObjectClass> objectClasses;
 
   /**
