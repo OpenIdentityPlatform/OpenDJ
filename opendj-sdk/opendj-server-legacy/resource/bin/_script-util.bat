@@ -22,7 +22,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2014 ForgeRock AS
+rem      Portions Copyright 2011-2015 ForgeRock AS
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -182,7 +182,7 @@ goto scriptBegin
 :testJava
 if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
 :continueTestJava
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS -t > NUL 2>&1
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS --testonly > NUL 2>&1
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
@@ -215,7 +215,7 @@ exit /B 1
 :notSupportedJavaHome
 rem We get here when the java version is 6 (or up) but not supported.  We run
 rem InstallDS again to see a localized message.
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS -t
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS --testonly
 pause
 exit /B 1
 
