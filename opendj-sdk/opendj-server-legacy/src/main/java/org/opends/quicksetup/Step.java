@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -33,71 +32,45 @@ import static org.opends.messages.QuickSetupMessages.*;
 /**
  * This enumeration just represents the different steps that we can have in
  * the installation and uninstallation wizards.
- *
  */
 public enum Step implements WizardStep
-
 {
-  /**
-   * Welcome step for the installation.
-   */
+  /** Welcome step for the installation. */
   WELCOME(INFO_WELCOME_STEP.get()),
 
-  /**
-   * License approval step for the installation.
-   */
+  /** License approval step for the installation. */
   LICENSE(INFO_LICENSE_STEP.get()),
 
-  /**
-   * Confirmation panel for the uninstallation.
-   */
+  /** Confirmation panel for the uninstallation. */
   CONFIRM_UNINSTALL(INFO_CONFIRM_UNINSTALL_STEP.get()),
 
-  /**
-   * Server Settings step (path, port, etc.).
-   */
+  /** Server Settings step (path, port, etc.). */
   SERVER_SETTINGS(INFO_SERVER_SETTINGS_STEP.get()),
 
-  /**
-   * Data Replication panel (standalone or replicated).
-   */
+  /** Data Replication panel (standalone or replicated). */
   REPLICATION_OPTIONS(INFO_DATA_REPLICATION_STEP.get()),
-  /**
-   * Global Administrator creation panel.
-   */
+  /** Global Administrator creation panel. */
   CREATE_GLOBAL_ADMINISTRATOR(INFO_CREATE_GLOBAL_ADMINISTRATOR_STEP.get()),
-  /**
-   * Suffixes to Replicate.
-   */
+  /** Suffixes to Replicate. */
   SUFFIXES_OPTIONS(INFO_SUFFIXES_STEP.get()),
   /**
    * Panel when the user specifies the replication ports of the remote servers
    * that have not defined it.
    */
   REMOTE_REPLICATION_PORTS(INFO_REMOTE_REPLICATION_PORTS_STEP.get()),
-  /**
-   * Data Options panel (suffix dn, LDIF path, etc.).
-   */
+  /** Data Options panel (suffix dn, LDIF path, etc.). */
   NEW_SUFFIX_OPTIONS(INFO_DATA_OPTIONS_STEP.get()),
 
-  /**
-   * Runtime options panel for the install.
-   */
+  /** Runtime options panel for the install. */
   RUNTIME_OPTIONS(INFO_JAVA_RUNTIME_OPTIONS_PANEL_STEP.get()),
 
-  /**
-   * Review panel for the install.
-   */
+  /** Review panel for the install. */
   REVIEW(INFO_REVIEW_STEP.get()),
 
-  /**
-   * Progress panel.
-   */
+  /** Progress panel. */
   PROGRESS(INFO_PROGRESS_STEP.get()),
 
-  /**
-   * Finished panel.
-   */
+  /** Finished panel. */
   FINISHED(INFO_FINISHED_STEP.get());
 
   private LocalizableMessage msg;
@@ -105,7 +78,7 @@ public enum Step implements WizardStep
   /**
    * Creates a step.
    * @param msg the message key used to access a message catalog to
-   * retreive this step's display name
+   * retrieve this step's display name
    */
   Step(LocalizableMessage msg) {
     this.msg = msg;
@@ -114,29 +87,23 @@ public enum Step implements WizardStep
   /**
    * Gets this steps message key.
    * @return String message key used to access a message catalog to
-   * retreive this step's display name
+   * retrieve this step's display name
    */
   public LocalizableMessage getDisplayMessage() {
     return msg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isProgressStep() {
     return this == PROGRESS;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isFinishedStep() {
     return this == FINISHED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isLicenseStep() {
     return this == LICENSE;
   }

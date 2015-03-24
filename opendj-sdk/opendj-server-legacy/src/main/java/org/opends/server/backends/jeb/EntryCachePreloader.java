@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -173,7 +173,7 @@ class EntryCachePreloader
     // Progress report timer task.
     Timer timer = new Timer();
     TimerTask progressTask = new TimerTask() {
-      // Persistent state restore progress report.
+      /** Persistent state restore progress report. */
       @Override
       public void run() {
         if (processedEntries.get() > 0) {
@@ -360,10 +360,10 @@ class EntryCachePreloader
    */
   private class PreloadEntry {
 
-    // Encoded Entry.
+    /** Encoded Entry. */
     public byte[] entryBytes;
 
-    // Encoded EntryID.
+    /** Encoded EntryID. */
     public byte[] entryIDBytes;
 
     /**

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -43,7 +44,7 @@ public class PropertyNotFoundException extends OperationsException {
    */
   private static final long serialVersionUID = -895548482881819610L;
 
-  // The name of the property that could not be found.
+  /** The name of the property that could not be found. */
   private final String propertyName;
 
 

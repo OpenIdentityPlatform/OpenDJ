@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.admin.client.ldap;
@@ -120,10 +121,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
     return builder.getInstance();
   }
 
-  // The list of RDNs in big-endian order.
+  /** The list of RDNs in big-endian order. */
   private final LinkedList<Rdn> rdns;
 
-  // The LDAP profile.
+  /** The LDAP profile. */
   private final LDAPProfile profile;
 
 
@@ -142,9 +143,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <C extends ConfigurationClient, S extends Configuration>
       void appendManagedObjectPathElement(
           InstantiableRelationDefinition<? super C, ? super S> r,
@@ -184,9 +183,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <C extends ConfigurationClient, S extends Configuration>
       void appendManagedObjectPathElement(
           OptionalRelationDefinition<? super C, ? super S> r,
@@ -197,9 +194,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <C extends ConfigurationClient, S extends Configuration>
       void appendManagedObjectPathElement(
           SingletonRelationDefinition<? super C, ? super S> r,
@@ -210,9 +205,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <C extends ConfigurationClient, S extends Configuration>
       void appendManagedObjectPathElement(
           SetRelationDefinition<? super C, ? super S> r,

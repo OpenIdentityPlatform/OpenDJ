@@ -43,8 +43,10 @@ import org.opends.server.types.DirectoryException;
  */
 public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
-  // Optional base DN which all valid values must be immediately
-  // subordinate to.
+  /**
+   * Optional base DN which all valid values must be immediately
+   * subordinate to.
+   */
   private final DN baseDN;
 
 
@@ -56,13 +58,15 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
   public static class Builder extends
       AbstractBuilder<DN, DNPropertyDefinition> {
 
-    // Optional base DN which all valid values must be immediately
-    // subordinate to.
+    /**
+     * Optional base DN which all valid values must be immediately
+     * subordinate to.
+     */
     private DN baseDN;
 
 
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -108,9 +112,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected DNPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -141,7 +143,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private DNPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -166,9 +168,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(DN value)
       throws PropertyException {
@@ -189,9 +189,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN decodeValue(String value)
       throws PropertyException {
@@ -210,9 +208,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitDN(this, p);
@@ -220,9 +216,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, DN value, P p) {
     return v.visitDN(this, value, p);
@@ -230,9 +224,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(DN o1, DN o2) {
     return o1.compareTo(o2);

@@ -883,7 +883,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   }
 
   /**
-   * Sets files permissions on the backend directory
+   * Sets files permissions on the backend directory.
    *
    * @param backendDir the directory to setup
    * @param curCfg a backend configuration

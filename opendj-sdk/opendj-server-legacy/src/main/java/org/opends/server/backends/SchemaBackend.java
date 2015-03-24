@@ -2942,7 +2942,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Start with an empty schema entry.
     Entry schemaEntry = createEmptySchemaEntry();
 
-     /**
+     /*
      * Add all of the ldap syntax descriptions to the schema entry. We do
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client.ldap;
@@ -54,12 +54,12 @@ public final class LDAPManagementContext extends ManagementContext {
     return new LDAPManagementContext(connection, LDAPProfile.getInstance());
   }
 
-  // The LDAP management context driver.
+  /** The LDAP management context driver. */
   private final LDAPDriver driver;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private LDAPManagementContext(LDAPConnection connection,
       LDAPProfile profile) {
     this.driver = new LDAPDriver(this, connection, profile);
@@ -67,9 +67,7 @@ public final class LDAPManagementContext extends ManagementContext {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected Driver getDriver() {
     return driver;

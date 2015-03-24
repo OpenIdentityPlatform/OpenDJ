@@ -672,8 +672,10 @@ public class UserData
       final CountDownLatch latch = new CountDownLatch(1);
       Thread t = new Thread(new Runnable()
       {
-        // Search for a host name of the form host.example.com on each
-        // interface, except the loop back. Prefer interfaces of the form ethX.
+        /**
+         * Search for a host name of the form host.example.com on each
+         * interface, except the loop back. Prefer interfaces of the form ethX.
+         */
         public void run()
         {
           try

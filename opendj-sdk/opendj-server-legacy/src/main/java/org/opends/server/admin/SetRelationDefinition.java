@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -72,11 +72,13 @@ public final class SetRelationDefinition
       extends AbstractBuilder<C, S, SetRelationDefinition<C, S>>
   {
 
-    // The plural name of the relation.
+    /** The plural name of the relation. */
     private final String pluralName;
 
-    // The optional default managed objects associated with this
-    // set relation definition.
+    /**
+     * The optional default managed objects associated with this
+     * set relation definition.
+     */
     private final Map<String,
                       DefaultManagedObject<? extends C, ? extends S>>
       defaultManagedObjects =
@@ -123,9 +125,7 @@ public final class SetRelationDefinition
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected SetRelationDefinition<C, S> buildInstance(
         Common<C, S> common)
@@ -138,18 +138,20 @@ public final class SetRelationDefinition
 
 
 
-  // The plural name of the relation.
+  /** The plural name of the relation. */
   private final String pluralName;
 
-  // The optional default managed objects associated with this
-  // set relation definition.
+  /**
+   * The optional default managed objects associated with this
+   * set relation definition.
+   */
   private final Map<String,
                     DefaultManagedObject<? extends C, ? extends S>>
     defaultManagedObjects;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private SetRelationDefinition(
       Common<C, S> common,
       String pluralName,
@@ -163,9 +165,7 @@ public final class SetRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p)
   {
@@ -258,9 +258,7 @@ public final class SetRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder builder)
   {
@@ -274,9 +272,7 @@ public final class SetRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void initialize() throws Exception
   {

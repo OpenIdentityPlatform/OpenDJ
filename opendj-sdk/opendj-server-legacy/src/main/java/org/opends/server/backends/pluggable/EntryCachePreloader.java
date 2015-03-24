@@ -128,7 +128,7 @@ class EntryCachePreloader
     // Progress report timer task.
     Timer timer = new Timer();
     TimerTask progressTask = new TimerTask() {
-      // Persistent state restore progress report.
+      /** Persistent state restore progress report. */
       @Override
       public void run() {
         if (processedEntries.get() > 0) {

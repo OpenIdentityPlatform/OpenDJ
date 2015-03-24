@@ -51,24 +51,18 @@ public class PatternIP {
         IPv4, IPv6
     }
 
-    /*
-      The IP address type (v6 or v4).
-     */
+    /** The IP address type (v6 or v4). */
     private IPType ipType;
 
-    /*
-      IPv4 sizes of addresses and prefixes.
-     */
+    /** IPv4 sizes of addresses and prefixes. */
     private static int IN4ADDRSZ = 4;
     private static int IPV4MAXPREFIX = 32;
 
-    /*
-      IPv6 sizes of addresses and prefixes.
-     */
+    /** IPv6 sizes of addresses and prefixes. */
     private static int IN6ADDRSZ = 16;
     private static int IPV6MAXPREFIX = 128;
 
-    /*
+    /**
       Byte arrays used to match the remote IP address. The ruleAddrByte array
       contains the bytes of the address from the ACI IP bind rule. The
       rulePrefixBytes array contains the bytes of the cidr prefix or netmask
@@ -76,20 +70,18 @@ public class PatternIP {
      */
     private byte[] ruleAddrBytes, rulePrefixBytes;
 
-    /*
+    /**
       Bit set that holds the wild-card information of processed IPv4 addresses.
      */
     private BitSet wildCardBitSet;
 
-    /*
+    /**
       Hash map of valid netmask strings. Used in parsing netmask values.
      */
     private static HashMap<String,String> validNetMasks =
                                                new HashMap<String, String>();
 
-    /*
-     Initialize valid netmask hash map.
-     */
+    /** Initialize valid netmask hash map. */
     static {
         initNetMask(
                 "255.255.255.255",

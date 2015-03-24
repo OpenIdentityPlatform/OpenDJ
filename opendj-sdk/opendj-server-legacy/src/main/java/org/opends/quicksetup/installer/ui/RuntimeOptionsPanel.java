@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -80,9 +80,10 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
   private JavaArguments defaultServerJavaArgs;
   private JavaArguments defaultImportJavaArgs;
 
-  // The size of the LDIF file to be imported used as threshold to display
-  // a warning message, telling the user to update the import runtime
-  // settings.
+  /**
+   * The size of the LDIF file to be imported used as threshold to display
+   * a warning message, telling the user to update the import runtime settings.
+   */
   private static final long WARNING_THRESOLD_FOR_IMPORT = 200 * 1024 * 1024;
   private static final int WARNING_THRESOLD_AUTOMATICALLY_GENERATED_IMPORT
       = 100000;
@@ -100,9 +101,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     addFocusListeners();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -182,25 +181,19 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Object getFieldValue(FieldName fieldName)
   {
@@ -216,9 +209,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void beginDisplay(UserData uData)
   {
@@ -256,9 +247,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     updateWarningMessage(uData);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -267,9 +256,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean requiresScroll()
   {
     return false;

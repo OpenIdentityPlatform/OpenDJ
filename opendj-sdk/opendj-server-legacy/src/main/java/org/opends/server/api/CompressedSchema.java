@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -65,16 +65,16 @@ import org.opends.server.types.ObjectClass;
     mayInvoke = false)
 public class CompressedSchema
 {
-  // Maps attribute description to ID.
+  /** Maps attribute description to ID. */
   private final List<Entry<AttributeType, Set<String>>> adDecodeMap;
 
-  // Maps ID to attribute description.
+  /** Maps ID to attribute description. */
   private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap;
 
-  // The map between encoded representations and object class sets.
+  /** The map between encoded representations and object class sets. */
   private final List<Map<ObjectClass, String>> ocDecodeMap;
 
-  // The map between object class sets and encoded representations.
+  /** The map between object class sets and encoded representations. */
   private final Map<Map<ObjectClass, String>, Integer> ocEncodeMap;
 
 

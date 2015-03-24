@@ -53,20 +53,24 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
   public static class Builder extends
       AbstractBuilder<String, StringPropertyDefinition> {
 
-    // Flag indicating whether values of this property are
-    // case-insensitive.
+    /**
+     * Flag indicating whether values of this property are
+     * case-insensitive.
+     */
     private boolean isCaseInsensitive = true;
 
-    // Optional pattern which values of this property must match.
+    /** Optional pattern which values of this property must match. */
     private Pattern pattern;
 
-    // Pattern usage which provides a user-friendly summary of the
-    // pattern if present.
+    /**
+     * Pattern usage which provides a user-friendly summary of the
+     * pattern if present.
+     */
     private String patternUsage;
 
 
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(AbstractManagedObjectDefinition<?, ?> d,
         String propertyName) {
       super(d, propertyName);
@@ -117,9 +121,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected StringPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -150,20 +152,24 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     return new Builder(d, propertyName);
   }
 
-  // Flag indicating whether values of this property are
-  // case-insensitive.
+  /**
+   * Flag indicating whether values of this property are
+   * case-insensitive.
+   */
   private final boolean isCaseInsensitive;
 
-  // Optional pattern which values of this property must match.
+  /** Optional pattern which values of this property must match. */
   private final Pattern pattern;
 
-  // Pattern usage which provides a user-friendly summary of the
-  // pattern if present.
+  /**
+   * Pattern usage which provides a user-friendly summary of the
+   * pattern if present.
+   */
   private final String patternUsage;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
       String propertyName, EnumSet<PropertyOption> options,
       AdministratorAction adminAction,
@@ -178,9 +184,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitString(this, p);
@@ -188,9 +192,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
     return v.visitString(this, value, p);
@@ -198,9 +200,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String decodeValue(String value)
       throws PropertyException {
@@ -301,9 +301,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String normalizeValue(String value)
       throws PropertyException {
@@ -318,9 +316,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(String value) throws PropertyException {
     ifNull(value);

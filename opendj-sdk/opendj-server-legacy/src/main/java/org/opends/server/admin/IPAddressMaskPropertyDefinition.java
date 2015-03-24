@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -51,7 +51,7 @@ public final class IPAddressMaskPropertyDefinition extends
   public static class Builder extends
       AbstractBuilder<AddressMask, IPAddressMaskPropertyDefinition> {
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -59,9 +59,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected IPAddressMaskPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d,
@@ -93,7 +91,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private IPAddressMaskPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -105,9 +103,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(AddressMask value)
       throws PropertyException {
@@ -118,9 +114,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AddressMask decodeValue(String value)
       throws PropertyException {
@@ -136,9 +130,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitIPAddressMask(this, p);
@@ -146,9 +138,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, AddressMask value, P p) {
     return v.visitIPAddressMask(this, value, p);
@@ -156,9 +146,7 @@ public final class IPAddressMaskPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(AddressMask o1, AddressMask o2) {
     return o1.toString().compareTo(o2.toString());

@@ -59,10 +59,10 @@ public final class StringConfigAttribute
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of active values for this attribute.
+  /** The set of active values for this attribute. */
   private List<String> activeValues;
 
-  // The set of pending values for this attribute.
+  /** The set of pending values for this attribute. */
   private List<String> pendingValues;
 
 

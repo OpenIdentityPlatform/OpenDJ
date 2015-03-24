@@ -55,9 +55,7 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ViewFactory getViewFactory()
   {
     return new MyHTMLFactory();
@@ -86,9 +84,7 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
    */
   class MyHTMLFactory extends HTMLFactory
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public View create(Element elem)
     {
       View v = super.create(elem);
@@ -115,9 +111,7 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
       super(elem);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void actionPerformed(ActionEvent ev)
     {
       if (ev != null && ev.getWhen() != lastActionWhen) {
@@ -129,9 +123,7 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     protected Component createComponent()
     {
       Component comp = super.createComponent();

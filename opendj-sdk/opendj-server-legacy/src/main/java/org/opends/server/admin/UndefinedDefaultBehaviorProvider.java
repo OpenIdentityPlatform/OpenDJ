@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -48,9 +49,7 @@ public final class UndefinedDefaultBehaviorProvider<T> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
     return v.visitUndefined(this, p);
   }

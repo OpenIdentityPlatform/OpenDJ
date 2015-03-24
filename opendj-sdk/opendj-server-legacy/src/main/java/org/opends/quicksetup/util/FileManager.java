@@ -447,9 +447,7 @@ public class FileManager {
       this.overwrite = overwrite;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new CopyOperation(child, destination, overwrite);
@@ -464,9 +462,7 @@ public class FileManager {
       return this.destination;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
@@ -568,17 +564,13 @@ public class FileManager {
       this.deletionPolicy = deletionPolicy;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new DeleteOperation(child, deletionPolicy);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File file = getObjectFile();
@@ -663,17 +655,13 @@ public class FileManager {
       this.destination = new File(newParent, objectFile.getName());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new MoveOperation(child, destination);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();

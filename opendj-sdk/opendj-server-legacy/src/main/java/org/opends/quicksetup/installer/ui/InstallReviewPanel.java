@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -101,9 +100,7 @@ public class InstallReviewPanel extends ReviewPanel {
     populateLabelAndFieldsMap();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void beginDisplay(UserData userData)
   {
     if (displayServerLocation)
@@ -201,17 +198,13 @@ public class InstallReviewPanel extends ReviewPanel {
     return instructionsPanel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = UIFactory.makeJPanel();
@@ -237,9 +230,7 @@ public class InstallReviewPanel extends ReviewPanel {
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -254,17 +245,13 @@ public class InstallReviewPanel extends ReviewPanel {
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_REVIEW_PANEL_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_REVIEW_PANEL_TITLE.get();
@@ -644,9 +631,7 @@ public class InstallReviewPanel extends ReviewPanel {
     return equivalentCommandPane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected JComponent getBottomComponent()
   {
     if (bottomComponent == null)

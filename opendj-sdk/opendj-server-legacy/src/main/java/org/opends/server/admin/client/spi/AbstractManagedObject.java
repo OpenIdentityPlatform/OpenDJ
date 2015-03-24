@@ -88,7 +88,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   private final class DefaultManagedObjectFactory implements
       RelationDefinitionVisitor<Void, Void> {
 
-    // Possible exceptions.
+    /** Possible exceptions. */
     private AuthorizationException ae;
     private ManagedObjectAlreadyExistsException moaee;
     private MissingMandatoryPropertiesException mmpe;
@@ -96,9 +96,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     private OperationRejectedException ore;
     private CommunicationException ce;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitInstantiable(
         InstantiableRelationDefinition<C, S> rd, Void p) {
@@ -121,9 +119,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitOptional(
         OptionalRelationDefinition<C, S> rd, Void p) {
@@ -140,9 +136,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitSingleton(
         SingletonRelationDefinition<C, S> rd, Void p) {
@@ -153,9 +147,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitSet(
         SetRelationDefinition<C, S> rd, Void p) {
@@ -172,7 +164,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-    // Create the child managed object.
+    /** Create the child managed object. */
     private void createDefaultManagedObject(ManagedObjectDefinition<?, ?> d,
         ManagedObject<?> child, DefaultManagedObject<?, ?> dmo) {
       for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
@@ -228,7 +220,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-    // Set property values.
+    /** Set property values. */
     private <PD> void setPropertyValues(ManagedObject<?> mo,
         PropertyDefinition<PD> pd, DefaultManagedObject<?, ?> dmo) {
       mo.setPropertyValues(pd, dmo.getPropertyValues(pd));
@@ -237,22 +229,22 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  // The managed object definition associated with this managed
-  // object.
+  /** The managed object definition associated with this managed object. */
   private final ManagedObjectDefinition<T, ? extends Configuration> definition;
 
-  // Indicates whether or not this managed object exists on the server
-  // (false means the managed object is new and has not been
-  // committed).
+  /**
+   * Indicates whether or not this managed object exists on the server
+   * (false means the managed object is new and has not been committed).
+   */
   private boolean existsOnServer;
 
-  // Optional naming property definition.
+  /** Optional naming property definition. */
   private final PropertyDefinition<?> namingPropertyDefinition;
 
-  // The path associated with this managed object.
+  /** The path associated with this managed object. */
   private ManagedObjectPath<T, ? extends Configuration> path;
 
-  // The managed object's properties.
+  /** The managed object's properties. */
   private final PropertySet properties;
 
 
@@ -287,9 +279,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final void commit() throws ManagedObjectAlreadyExistsException,
       MissingMandatoryPropertiesException, ConcurrentModificationException,
       OperationRejectedException, AuthorizationException,
@@ -368,9 +358,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration,
                 CC extends C>
   ManagedObject<CC> createChild(
@@ -402,9 +390,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient,
                 S extends Configuration, CC extends C>
   ManagedObject<CC> createChild(
@@ -419,9 +405,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration,
                 CC extends C>
   ManagedObject<CC> createChild(
@@ -437,9 +421,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(
       InstantiableRelationDefinition<C, S> r, String name)
@@ -455,9 +437,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(
       OptionalRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -472,9 +452,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(
       SingletonRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -489,9 +467,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(
       SetRelationDefinition<C, S> r, String name)
@@ -523,18 +499,14 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final T getConfiguration() {
     return definition.createClientConfiguration(this);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final ManagedObjectDefinition<T, ? extends Configuration>
   getManagedObjectDefinition() {
     return definition;
@@ -542,9 +514,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final ManagedObjectPath<T, ? extends Configuration>
   getManagedObjectPath() {
     return path;
@@ -552,9 +522,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <PD> SortedSet<PD> getPropertyDefaultValues(
       PropertyDefinition<PD> pd) throws IllegalArgumentException {
     return new TreeSet<PD>(getProperty(pd).getDefaultValues());
@@ -562,9 +530,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <PD> PD getPropertyValue(PropertyDefinition<PD> pd)
       throws IllegalArgumentException {
     Set<PD> values = getProperty(pd).getEffectiveValues();
@@ -577,9 +543,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <PD> SortedSet<PD> getPropertyValues(PropertyDefinition<PD> pd)
       throws IllegalArgumentException {
     return new TreeSet<PD>(getProperty(pd).getEffectiveValues());
@@ -587,9 +551,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   boolean hasChild(
       OptionalRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -606,9 +568,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final boolean isPropertyPresent(PropertyDefinition<?> pd)
       throws IllegalArgumentException {
     return !getProperty(pd).isEmpty();
@@ -616,9 +576,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   String[] listChildren(
       InstantiableRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -629,9 +587,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   String[] listChildren(
       InstantiableRelationDefinition<C, S> r,
@@ -649,9 +605,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   String[] listChildren(
       SetRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -662,9 +616,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   String[] listChildren(
       SetRelationDefinition<C, S> r,
@@ -682,9 +634,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   void removeChild(
       InstantiableRelationDefinition<C, S> r, String name)
@@ -708,9 +658,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   void removeChild(
       OptionalRelationDefinition<C, S> r) throws IllegalArgumentException,
@@ -734,9 +682,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <C extends ConfigurationClient, S extends Configuration>
   void removeChild(
       SetRelationDefinition<C, S> r, String name)
@@ -760,9 +706,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <PD> void setPropertyValue(PropertyDefinition<PD> pd, PD value)
       throws PropertyException, PropertyException,
       PropertyException, IllegalArgumentException {
@@ -775,9 +719,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final <PD> void setPropertyValues(PropertyDefinition<PD> pd,
       Collection<PD> values) throws PropertyException,
       PropertyException, PropertyException,
@@ -802,9 +744,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -952,8 +892,10 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  // Creates a new managed object with no active values, just default
-  // values.
+  /**
+   * Creates a new managed object with no active values, just default
+   * values.
+   */
   private <M extends ConfigurationClient, PD> ManagedObject<M>
   createNewManagedObject(
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> p,
@@ -983,7 +925,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  // Create an empty property.
+  /** Create an empty property. */
   private <PD> void createProperty(PropertySet properties,
       ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd)
       throws PropertyException {
@@ -1001,7 +943,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  // Makes sure that this managed object exists.
+  /** Makes sure that this managed object exists. */
   private void ensureThisManagedObjectExists()
       throws ConcurrentModificationException, CommunicationException,
       AuthorizationException {
@@ -1020,8 +962,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
 
-  // Validate that a relation definition belongs to this managed
-  // object.
+  /** Validate that a relation definition belongs to this managed object. */
   private void validateRelationDefinition(RelationDefinition<?, ?> rd)
       throws IllegalArgumentException {
     ManagedObjectDefinition<T, ?> d = getManagedObjectDefinition();

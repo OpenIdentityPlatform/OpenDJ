@@ -22,23 +22,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
 import javax.swing.SwingUtilities;
 
-
-
 /**
  * This class defines a thread that will be used to actually perform the
  * processing for a background task.
- * @param <T> type of object returned by the background task fed to this
- * object
+ * @param <T> type of object returned by the background task fed to this object
  */
 class BackgroundTaskThread<T>
       extends Thread
 {
-  // The background task that is to be processed.
+  /** The background task that is to be processed. */
   private final BackgroundTask<T> backgroundTask;
 
 

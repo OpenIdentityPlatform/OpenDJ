@@ -336,17 +336,13 @@ implements AciTargetMatchContext, AciEvalContext {
      this.seenEntry=val;
     }
 
-  /**
-   * {@inheritDoc}
-   */
+    /** {@inheritDoc} */
     @Override
     public boolean isProxiedAuthorization() {
          return this.proxiedAuthorization;
     }
 
-  /**
-   * {@inheritDoc}
-   */
+    /** {@inheritDoc} */
     @Override
     public boolean isGetEffectiveRightsEval() {
         return this.isGetEffectiveRightsEval;
@@ -392,25 +388,19 @@ implements AciTargetMatchContext, AciEvalContext {
        return this.specificAttrs;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void addTargAttrFiltersMatchAci(Aci aci) {
       this.targAttrFilterAcis.put(aci, aci);
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean hasTargAttrFiltersMatchAci(Aci aci) {
       return this.targAttrFilterAcis.containsKey(aci);
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean isTargAttrFilterMatchAciEmpty() {
        return this.targAttrFilterAcis.isEmpty();
@@ -431,41 +421,31 @@ implements AciTargetMatchContext, AciEvalContext {
       this.targAttrMatch=0;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersAciName(String name) {
       this.targAttrFiltersAciName=name;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public String getTargAttrFiltersAciName() {
       return this.targAttrFiltersAciName;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersMatchOp(int flag) {
       this.targAttrMatch |= flag;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean hasTargAttrFiltersMatchOp(int flag) {
        return (this.targAttrMatch & flag) != 0;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public String getDecidingAciName() {
       if(this.decidingAci != null)
@@ -481,26 +461,20 @@ implements AciTargetMatchContext, AciEvalContext {
     this.decidingAci = decidingAci;
   }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public EnumEvalReason getEvalReason() {
       return this.evalReason;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setEvalSummary(String summary) {
       this.summaryString=summary;
     }
 
-   /**
-    * {@inheritDoc}
-    */
-     @Override
+    /** {@inheritDoc} */
+    @Override
     public String getEvalSummary() {
       return this.summaryString;
     }
@@ -530,138 +504,104 @@ implements AciTargetMatchContext, AciEvalContext {
         authorizationEntry=saveAuthorizationEntry;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setDenyList(List<Aci> denys) {
         denyList=denys;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setAllowList(List<Aci> allows) {
         allowList=allows;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public AttributeType getCurrentAttributeType() {
         return attributeType;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public ByteString getCurrentAttributeValue() {
         return attributeValue;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setCurrentAttributeType(AttributeType type) {
         attributeType=type;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setCurrentAttributeValue(ByteString value) {
         attributeValue=value;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean isFirstAttribute() {
         return isFirst;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setIsFirstAttribute(boolean val) {
         isFirst=val;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean hasEntryTestRule() {
         return isEntryTestRule;
     }
 
-   /**
-    * {@inheritDoc}
-    */
-   @Override
-   public void setEntryTestRule(boolean val) {
+    /** {@inheritDoc} */
+    @Override
+    public void setEntryTestRule(boolean val) {
         isEntryTestRule=val;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public Entry getResourceEntry() {
         return resourceEntry;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public Entry getClientEntry() {
       return this.authorizationEntry;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public List<Aci> getDenyList() {
         return denyList;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public List<Aci> getAllowList() {
        return allowList;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean isDenyEval() {
         return EnumEvalReason.NO_ALLOW_ACIS.equals(evalReason)
             || EnumEvalReason.EVALUATED_DENY_ACI.equals(evalReason);
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean isAnonymousUser() {
         return !authInfo.isAuthenticated();
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public DN getClientDN() {
       if(this.useAuthzid)
@@ -671,9 +611,7 @@ implements AciTargetMatchContext, AciEvalContext {
       return DN.rootDN();
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public DN getResourceDN() {
         return resourceEntry.getName();
@@ -691,73 +629,55 @@ implements AciTargetMatchContext, AciEvalContext {
        return (this.rightsMask & rights) != 0;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public int getRights() {
         return this.rightsMask;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setRights(int rights) {
          this.rightsMask=rights;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public String getHostName() {
         return clientConnection.getRemoteAddress().getCanonicalHostName();
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public InetAddress getRemoteAddress() {
         return clientConnection.getRemoteAddress();
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean isAddOperation() {
         return operation instanceof AddOperation;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersMatch(boolean v) {
         this.targAttrFiltersMatch=v;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public boolean getTargAttrFiltersMatch() {
         return targAttrFiltersMatch;
     }
 
-    /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public String getControlOID() {
       return controlOID;
     }
 
-   /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public String getExtOpOID() {
       return extOpOID;
@@ -782,24 +702,20 @@ implements AciTargetMatchContext, AciEvalContext {
       this.extOpOID=oid;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
                                                   String saslMech) {
       EnumEvalResult matched=EnumEvalResult.FALSE;
 
       if(authMethod==EnumAuthMethod.AUTHMETHOD_NONE) {
-        /**
+        /*
          * None actually means any, in that we don't care what method was used.
          * This doesn't seem very intuitive or useful, but that's the way it is.
          */
         matched = EnumEvalResult.TRUE;
       } else {
-        /*
-         * Some kind of authentication is required.
-         */
+        // Some kind of authentication is required.
         if(authInfo.isAuthenticated()) {
           if(authMethod==EnumAuthMethod.AUTHMETHOD_SIMPLE) {
             if(authInfo.hasAuthenticationType(AuthenticationType.SIMPLE)) {
@@ -835,9 +751,7 @@ implements AciTargetMatchContext, AciEvalContext {
       return matched;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isMemberOf(Group<?> group) {
         try {
@@ -887,9 +801,7 @@ implements AciTargetMatchContext, AciEvalContext {
       return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public  void setEvalUserAttributes(int v) {
     if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
@@ -901,9 +813,7 @@ implements AciTargetMatchContext, AciEvalContext {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public  void setEvalOpAttributes(int v) {
     if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
@@ -915,17 +825,13 @@ implements AciTargetMatchContext, AciEvalContext {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasEvalUserAttributes() {
     return hasAttribute(ACI_FOUND_USER_ATTR_RULE);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasEvalOpAttributes() {
     return hasAttribute(ACI_FOUND_OP_ATTR_RULE);
@@ -956,9 +862,7 @@ implements AciTargetMatchContext, AciEvalContext {
     return (evalAllAttributes & aciAttribute) == aciAttribute;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clearEvalAttributes(int v) {
     if(v == 0)
@@ -967,9 +871,7 @@ implements AciTargetMatchContext, AciEvalContext {
       evalAllAttributes &= ~v;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getCurrentSSF() {
       return clientConnection.getSSF();

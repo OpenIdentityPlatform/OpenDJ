@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -48,7 +48,7 @@ import org.forgerock.util.Reject;
  */
 public final class ORCondition implements Condition {
 
-  // The list of sub-conditions.
+  /** The list of sub-conditions. */
   private final List<Condition> conditions;
 
 
@@ -68,9 +68,7 @@ public final class ORCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ManagementContext context,
       ManagedObject<?> managedObject) throws AuthorizationException,
       CommunicationException {
@@ -84,9 +82,7 @@ public final class ORCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean evaluate(ServerManagedObject<?> managedObject)
       throws ConfigException {
     for (Condition condition : conditions) {
@@ -99,9 +95,7 @@ public final class ORCondition implements Condition {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initialize(AbstractManagedObjectDefinition<?, ?> d)
       throws Exception {
     for (Condition condition : conditions) {

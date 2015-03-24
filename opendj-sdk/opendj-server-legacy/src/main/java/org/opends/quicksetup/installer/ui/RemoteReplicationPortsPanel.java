@@ -77,8 +77,10 @@ implements Comparator<ServerDescriptor>
   private JPanel fieldsPanel;
   private TreeSet<ServerDescriptor> orderedServers =
     new TreeSet<ServerDescriptor>(this);
-  //The display of the server the user provided in the replication options
-  // panel
+  /**
+   *The display of the server the user provided in the replication options
+   * panel.
+   */
   private String serverToConnectDisplay;
 
   /**
@@ -91,9 +93,7 @@ implements Comparator<ServerDescriptor>
     super(application);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -119,9 +119,7 @@ implements Comparator<ServerDescriptor>
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     if (fieldName == FieldName.REMOTE_REPLICATION_PORT)
@@ -159,25 +157,19 @@ implements Comparator<ServerDescriptor>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compare(ServerDescriptor desc1, ServerDescriptor desc2)
   {
     return desc1.getHostPort(true).compareTo(desc2.getHostPort(true));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -200,25 +192,19 @@ implements Comparator<ServerDescriptor>
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_REMOTE_REPLICATION_PORT_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_REMOTE_REPLICATION_PORT_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void beginDisplay(UserData data)
   {
     TreeSet<ServerDescriptor> array = orderServers(
@@ -238,9 +224,7 @@ implements Comparator<ServerDescriptor>
         !newServerDisplay.equals(serverToConnectDisplay))
     {
       serverToConnectDisplay = newServerDisplay;
-      /**
-       * Adds the required focus listeners to the fields.
-       */
+      // Adds the required focus listeners to the fields.
       final FocusListener l = new FocusListener()
       {
         public void focusGained(FocusEvent e)
@@ -324,9 +308,7 @@ implements Comparator<ServerDescriptor>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void endDisplay()
   {
     if (lastFocusComponent != null)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -167,7 +168,7 @@ public final class LDAPProfile {
     }
   }
 
-  // The singleton instance.
+  /** The singleton instance. */
   private static final LDAPProfile INSTANCE = new LDAPProfile();
 
 
@@ -181,16 +182,16 @@ public final class LDAPProfile {
     return INSTANCE;
   }
 
-  // The list of profile wrappers.
+  /** The list of profile wrappers. */
   private final LinkedList<Wrapper> profiles = new LinkedList<Wrapper>();;
 
-  // The LDAP profile property table.
+  /** The LDAP profile property table. */
   private final ManagedObjectDefinitionResource resource =
     ManagedObjectDefinitionResource.createForProfile("ldap");
 
 
 
-  // Prevent construction.
+  /** Prevent construction. */
   private LDAPProfile() {
     // No implementation required.
   }

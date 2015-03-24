@@ -22,12 +22,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.api.plugin;
-
-
 
 import java.util.List;
 import java.util.Set;
@@ -37,8 +34,6 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-
 
 /**
  * An internal directory server plugin which can be registered with
@@ -71,9 +66,7 @@ public abstract class InternalDirectoryServerPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final void initializePlugin(Set<PluginType> pluginTypes,
       PluginCfg configuration) throws ConfigException,
       InitializationException
@@ -83,9 +76,7 @@ public abstract class InternalDirectoryServerPlugin extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final boolean isConfigurationAcceptable(
       PluginCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {

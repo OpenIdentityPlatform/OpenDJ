@@ -129,28 +129,34 @@ public final class ClassLoaderProvider {
 
   }
 
-  // The name of the manifest file listing the core configuration
-  // definition classes.
+  /**
+   * The name of the manifest file listing the core configuration
+   * definition classes.
+   */
   private static final String CORE_MANIFEST = "core.manifest";
 
-  // The name of the manifest file listing a extension's configuration
-  // definition classes.
+  /**
+   * The name of the manifest file listing a extension's configuration
+   * definition classes.
+   */
   private static final String EXTENSION_MANIFEST = "extension.manifest";
 
-  // The name of the lib directory.
+  /** The name of the lib directory. */
   private static final String LIB_DIR = "lib";
 
-  // The name of the extensions directory.
+  /** The name of the extensions directory. */
   private static final String EXTENSIONS_DIR = "extensions";
 
-  // The singleton instance.
+  /** The singleton instance. */
   private static final ClassLoaderProvider INSTANCE = new ClassLoaderProvider();
 
-  // Attribute name in jar's MANIFEST corresponding to the revision number.
+  /** Attribute name in jar's MANIFEST corresponding to the revision number. */
   private static final String REVISION_NUMBER = "Revision-Number";
 
-  // The attribute names for build information is name, version and revision
-  // number
+  /**
+   * The attribute names for build information is name, version and revision
+   * number.
+   */
   private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES =
                  new String[]{Attributes.Name.EXTENSION_NAME.toString(),
                               Attributes.Name.IMPLEMENTATION_VERSION.toString(),
@@ -167,22 +173,22 @@ public final class ClassLoaderProvider {
     return INSTANCE;
   }
 
-  // Set of registered Jar files.
+  /** Set of registered Jar files. */
   private Set<File> jarFiles = new HashSet<File>();
 
-  // Underlying class loader used to load classes and resources (null
-  // if disabled).
-  //
-  // We contain a reference to the URLClassLoader rather than
-  // sub-class it so that it is possible to replace the loader at
-  // run-time. For example, when removing or replacing extension Jar
-  // files (the URLClassLoader only supports adding new
-  // URLs, not removal).
+  /**
+   * Underlying class loader used to load classes and resources (null
+   * if disabled).<br>
+   * We contain a reference to the URLClassLoader rather than
+   * sub-class it so that it is possible to replace the loader at run-time.
+   * For example, when removing or replacing extension Jar files
+   * (the URLClassLoader only supports adding new URLs, not removal).
+   */
   private MyURLClassLoader loader;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private ClassLoaderProvider() {
     // No implementation required.
   }

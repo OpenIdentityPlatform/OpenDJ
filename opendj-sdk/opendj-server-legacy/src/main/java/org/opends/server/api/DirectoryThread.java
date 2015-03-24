@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -146,9 +146,7 @@ public class DirectoryThread extends Thread
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Thread newThread(Runnable r)
     {
@@ -199,25 +197,19 @@ public class DirectoryThread extends Thread
           ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN getComponentEntryDN() {
       return DN.NULL_DN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getClassName() {
       return DirectoryThread.class.getName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Map<String, String> getAlerts() {
       return alerts;
@@ -282,7 +274,7 @@ public class DirectoryThread extends Thread
 
 
   /**
-   * private method used to factorize constructor initialization.
+   * Private method used to factorize constructor initialization.
    */
   private void init()
   {

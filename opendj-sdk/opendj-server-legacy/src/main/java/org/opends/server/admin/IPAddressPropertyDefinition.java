@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -50,7 +50,7 @@ public final class IPAddressPropertyDefinition extends
   public static class Builder extends
       AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -58,9 +58,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected IPAddressPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -92,7 +90,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private IPAddressPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -104,9 +102,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(InetAddress value)
       throws PropertyException {
@@ -117,9 +113,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public InetAddress decodeValue(String value)
       throws PropertyException {
@@ -135,9 +129,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String encodeValue(InetAddress value)
       throws PropertyException {
@@ -158,9 +150,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitIPAddress(this, p);
@@ -168,9 +158,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
     return v.visitIPAddress(this, value, p);
@@ -178,9 +166,7 @@ public final class IPAddressPropertyDefinition extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(InetAddress o1, InetAddress o2) {
     return o1.getHostAddress().compareTo(o2.getHostAddress());

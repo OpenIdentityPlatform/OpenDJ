@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -32,7 +31,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This panel is used to show the application is finished.
- *
  */
 public class FinishedPanel extends ProgressPanel
 {
@@ -47,9 +45,7 @@ public class FinishedPanel extends ProgressPanel
     super(application);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_FINISHED_PANEL_TITLE.get();

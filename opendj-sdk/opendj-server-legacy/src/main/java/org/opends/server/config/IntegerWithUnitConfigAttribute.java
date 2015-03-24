@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
 import org.forgerock.i18n.LocalizableMessage;
@@ -72,39 +72,43 @@ public final class IntegerWithUnitConfigAttribute
 
 
 
-  // Indicates whether this configuration attribute should impose a lower bound
-  // for the calculated value.
+  /**
+   * Indicates whether this configuration attribute should impose a lower bound
+   * for the calculated value.
+   */
   private boolean hasLowerBound;
 
-  // Indicates whether this configuration attribute should impose an upper bound
-  // for the calculated value.
+  /**
+   * Indicates whether this configuration attribute should impose an upper bound
+   * for the calculated value.
+   */
   private boolean hasUpperBound;
 
-  // The set of unit names and associated multipliers.
+  /** The set of unit names and associated multipliers. */
   private HashMap<String,Double> units;
 
-  // The active calculated value for this attribute.
+  /** The active calculated value for this attribute. */
   private long activeCalculatedValue;
 
-  // The active value for this attribute.
+  /** The active value for this attribute. */
   private long activeIntValue;
 
-  // The lower bound for the calculated value.
+  /** The lower bound for the calculated value. */
   private long lowerBound;
 
-  // The pending calculated value for this attribute.
+  /** The pending calculated value for this attribute. */
   private long pendingCalculatedValue;
 
-  // The the pending value for this attribute.
+  /** The the pending value for this attribute. */
   private long pendingIntValue;
 
-  // The upper bound for the calculated value.
+  /** The upper bound for the calculated value. */
   private long upperBound;
 
-  // The active unit for this attribute.
+  /** The active unit for this attribute. */
   private String activeUnit;
 
-  // The pending unit for this attribute.
+  /** The pending unit for this attribute. */
   private String pendingUnit;
 
 

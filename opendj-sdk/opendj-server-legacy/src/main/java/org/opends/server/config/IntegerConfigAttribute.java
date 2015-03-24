@@ -61,22 +61,22 @@ public final class IntegerConfigAttribute
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The set of active values for this attribute.
+  /** The set of active values for this attribute. */
   private List<Long> activeValues;
 
-  // The set of pending values for this attribute.
+  /** The set of pending values for this attribute. */
   private List<Long> pendingValues;
 
-  // Indicates whether this attribute will impose a lower bound for its values.
+  /** Indicates whether this attribute will impose a lower bound for its values. */
   private boolean hasLowerBound;
 
-  // Indicates whether this attribute will impose an upper bound for its values.
+  /** Indicates whether this attribute will impose an upper bound for its values. */
   private boolean hasUpperBound;
 
-  // The lower bound for values of this attribute.
+  /** The lower bound for values of this attribute. */
   private long lowerBound;
 
-  // The upper bound for values of this attribute.
+  /** The upper bound for values of this attribute. */
   private long upperBound;
 
 

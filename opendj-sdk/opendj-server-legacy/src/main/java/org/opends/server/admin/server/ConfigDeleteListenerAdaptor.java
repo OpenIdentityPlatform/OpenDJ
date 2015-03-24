@@ -67,22 +67,22 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigDeleteListener {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Cached managed object between accept/apply callbacks.
+  /** Cached managed object between accept/apply callbacks. */
   private ServerManagedObject<? extends S> cachedManagedObject;
 
-  // The instantiable relation.
+  /** The instantiable relation. */
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
-  // The set relation.
+  /** The set relation. */
   private final SetRelationDefinition<?, S> setRelation;
 
-  // The underlying delete listener.
+  /** The underlying delete listener. */
   private final ServerManagedObjectDeleteListener<S> listener;
 
-  // The optional relation.
+  /** The optional relation. */
   private final OptionalRelationDefinition<?, S> optionalRelation;
 
-  // The managed object path of the parent.
+  /** The managed object path of the parent. */
   private final ManagedObjectPath<?, ?> path;
 
 
@@ -159,9 +159,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry) {
     if (optionalRelation != null) {
       // Optional managed objects are located directly beneath the
@@ -201,9 +199,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();

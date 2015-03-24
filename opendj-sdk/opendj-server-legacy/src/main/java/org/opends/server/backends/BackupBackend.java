@@ -100,7 +100,7 @@ public class BackupBackend
     /** The 'backup.info' file. */
     private final File backupInfo;
 
-    /** The last modify time of the backupInfo file */
+    /** The last modify time of the backupInfo file. */
     private long lastModified;
 
     /** The BackupDirectory parsed at lastModified time. */

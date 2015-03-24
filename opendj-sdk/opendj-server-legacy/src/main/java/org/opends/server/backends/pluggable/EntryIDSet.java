@@ -52,9 +52,7 @@ final class EntryIDSet implements Iterable<EntryID>
   private static final long[] EMPTY_LONG_ARRAY = new long[0];
   private static final long[] NO_ENTRY_IDS_RANGE = new long[] { 0, 0 };
 
-  /**
-   * Interface for EntryIDSet concrete implementations
-   */
+  /** Interface for EntryIDSet concrete implementations. */
   private interface EntryIDSetImplementor extends Iterable<EntryID>
   {
     long size();

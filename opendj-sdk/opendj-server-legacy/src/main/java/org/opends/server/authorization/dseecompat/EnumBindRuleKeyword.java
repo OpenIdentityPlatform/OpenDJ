@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -77,15 +78,10 @@ public enum EnumBindRuleKeyword {
      * authmethod.
      */
     AUTHMETHOD ("authmethod"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * ssf.
-     */
+    /** The enumeration type when the bind rule has specified keyword of ssf. */
     SSF("ssf");
 
-    /*
-     * The keyword name.
-     */
+    /** The keyword name. */
     private final String keyword;
 
     /**

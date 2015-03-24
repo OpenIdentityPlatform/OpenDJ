@@ -61,7 +61,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   private long offset;
   private final ByteBuffer cache;
 
-  // Next fields are the fetched record data
+  /** Next fields are the fetched record data. */
   private Integer indexID;
   private final ByteStringBuilder keyBuffer = new ByteStringBuilder(128);
   private RecordState recordState = RecordState.START;

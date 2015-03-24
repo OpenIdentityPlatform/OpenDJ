@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api.plugin;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 import java.util.Set;
@@ -59,14 +58,13 @@ import static org.opends.messages.PluginMessages.*;
 public abstract class DirectoryServerPlugin
        <T extends PluginCfg>
 {
-  // Indicates whether this plugin should be invoked for internal
-  // operations.
+  /** Indicates whether this plugin should be invoked for internal operations. */
   private boolean invokeForInternalOps;
 
-  // The DN of the configuration entry for this plugin.
+  /** The DN of the configuration entry for this plugin. */
   private DN pluginDN;
 
-  // The plugin types for which this plugin is registered.
+  /** The plugin types for which this plugin is registered. */
   private Set<PluginType> pluginTypes;
 
 

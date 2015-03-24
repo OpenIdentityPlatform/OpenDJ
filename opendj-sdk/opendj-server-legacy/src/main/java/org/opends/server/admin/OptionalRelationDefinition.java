@@ -60,8 +60,10 @@ public final class OptionalRelationDefinition
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<C, S, OptionalRelationDefinition<C, S>> {
 
-    // The optional default managed object associated with this
-    // optional relation.
+    /**
+     * The optional default managed object associated with this
+     * optional relation.
+     */
     private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
 
@@ -100,9 +102,7 @@ public final class OptionalRelationDefinition
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected OptionalRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
@@ -113,14 +113,16 @@ public final class OptionalRelationDefinition
 
 
 
-  // The optional default managed object associated with this
-  // optional relation.
+  /**
+   * The optional default managed object associated with this
+   * optional relation.
+   */
   private final DefaultManagedObject<? extends C, ? extends S>
     defaultManagedObject;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private OptionalRelationDefinition(Common<C, S> common,
       DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
     super(common);
@@ -129,9 +131,7 @@ public final class OptionalRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
     return v.visitOptional(this, p);
@@ -154,9 +154,7 @@ public final class OptionalRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder builder) {
     builder.append("name=");
@@ -169,9 +167,7 @@ public final class OptionalRelationDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void initialize() throws Exception {
     if (defaultManagedObject != null) {

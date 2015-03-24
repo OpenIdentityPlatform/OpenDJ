@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup;
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -37,7 +36,6 @@ import org.opends.server.types.OpenDsException;
  * @see org.opends.quicksetup.installer.Installer
  * @see org.opends.quicksetup.installer.webstart.WebStartInstaller
  * @see org.opends.quicksetup.installer.offline.OfflineInstaller
- *
  */
 public class ApplicationException extends OpenDsException {
 
@@ -84,9 +82,7 @@ public class ApplicationException extends OpenDsException {
     return type;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String toString()
   {
     return getMessage();

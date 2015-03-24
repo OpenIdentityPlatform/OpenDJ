@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -62,12 +62,12 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   public static class Builder extends
       AbstractBuilder<String, ClassPropertyDefinition> {
 
-    // List of interfaces which property values must implement.
+    /** List of interfaces which property values must implement. */
     private List<String> instanceOfInterfaces;
 
 
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -118,9 +118,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ClassPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d,
@@ -133,11 +131,11 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
   }
 
-  // Regular expression for validating class names.
+  /** Regular expression for validating class names. */
   private static final String CLASS_RE =
     "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(\\$[A-Za-z0-9_]+)*$";
 
-  /*
+  /**
    * Flag indicating whether class property values should be validated.
    */
   private static boolean allowClassValidation = true;
@@ -193,19 +191,19 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  // Load a named class.
+  /** Load a named class. */
   private static Class<?> loadClass(String className, boolean initialize)
       throws ClassNotFoundException, LinkageError {
     return Class.forName(className, initialize, ClassLoaderProvider
         .getInstance().getClassLoader());
   }
 
-  // List of interfaces which property values must implement.
+  /** List of interfaces which property values must implement. */
   private final List<String> instanceOfInterfaces;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private ClassPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
@@ -220,9 +218,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitClass(this, p);
@@ -230,9 +226,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
     return v.visitClass(this, value, p);
@@ -240,9 +234,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String decodeValue(String value)
       throws PropertyException {
@@ -306,9 +298,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String normalizeValue(String value)
       throws PropertyException {
@@ -319,9 +309,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(String value)
       throws PropertyException {
@@ -341,7 +329,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /*
+  /**
    * Make sure that named class implements the interfaces named by this
    * definition.
    */
@@ -376,7 +364,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  /*
+  /**
    * Do some basic checks to make sure the string representation is valid.
    */
   private void validateClassName(String className)

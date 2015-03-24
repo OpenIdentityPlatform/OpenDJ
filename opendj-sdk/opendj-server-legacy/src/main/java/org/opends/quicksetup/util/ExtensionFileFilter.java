@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
 
 import java.io.File;
@@ -35,7 +34,6 @@ import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 /**
  * This is a class used to be able to filter on certain type of files
  * in the File Browser dialog.
- *
  */
 public class ExtensionFileFilter extends FileFilter
 {
@@ -54,9 +52,7 @@ public class ExtensionFileFilter extends FileFilter
     this.description = description;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean accept(File f)
   {
     boolean accept = false;
@@ -77,9 +73,7 @@ public class ExtensionFileFilter extends FileFilter
     return accept;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getDescription()
   {
     return description;

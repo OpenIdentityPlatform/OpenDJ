@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -80,9 +79,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
     addFocusListeners();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -91,13 +88,10 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
     {
       value = field.getText();
     }
-
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     JLabel label = getLabel(fieldName);
@@ -115,9 +109,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -180,25 +172,19 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     return INFO_GLOBAL_ADMINISTRATOR_PANEL_INSTRUCTIONS.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_GLOBAL_ADMINISTRATOR_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void endDisplay()
   {
     if (lastFocusComponent != null)

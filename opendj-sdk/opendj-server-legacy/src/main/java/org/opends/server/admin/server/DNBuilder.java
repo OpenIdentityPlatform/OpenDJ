@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -83,7 +83,7 @@ final class DNBuilder {
 
 
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private DNBuilder() {
     // No implementation required.
   }

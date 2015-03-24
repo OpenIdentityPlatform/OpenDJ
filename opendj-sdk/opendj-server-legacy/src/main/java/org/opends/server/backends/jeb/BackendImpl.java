@@ -1019,9 +1019,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     return ccr;
   }
 
-  /**
-   * @param newCfg
-   */
   private void updateDiskMonitor(DiskSpaceMonitor dm, LocalDBBackendCfg newCfg)
   {
     dm.setFullThreshold(newCfg.getDiskFullThreshold());

@@ -70,17 +70,13 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     recalculateHashCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compareTo(AbstractIndexDescriptor o)
   {
     return getName().toLowerCase().compareTo(o.getName().toLowerCase());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return hashCode;
@@ -122,9 +118,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     return sortOrder;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(Object o)
   {
     if (o == this)
@@ -155,9 +149,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
         && getBackend().getBackendID().equals(index.getBackend().getBackendID());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void recalculateHashCode()
   {
     StringBuilder sb = new StringBuilder();

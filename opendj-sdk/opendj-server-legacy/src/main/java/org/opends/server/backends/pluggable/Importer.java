@@ -1373,7 +1373,7 @@ final class Importer implements DiskSpaceMonitorHandler
                 // in the import so we don't want to copy the branch to the
                 //  new entry container.
 
-                /**
+                /*
                  * Advance the cursor to next entry at the same level in the DIT
                  * skipping all the entries in this branch. Set the next
                  * starting value to a value of equal length but slightly

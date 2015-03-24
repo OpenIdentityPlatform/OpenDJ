@@ -22,16 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.api.plugin;
-
-
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-
 
 /**
  * This class defines an enumeration containing the types of plugins
@@ -473,8 +470,10 @@ public enum PluginType
 
 
 
-  // A hash map that relates the plugin type names to the
-  // corresponding plugin type.
+  /**
+   * A hash map that relates the plugin type names to the
+   * corresponding plugin type.
+   */
   private static final Map<String, PluginType> PLUGIN_TYPE_MAP;
   static
   {
@@ -488,7 +487,7 @@ public enum PluginType
 
 
 
-  // The name for this plugin type.
+  /** The name for this plugin type. */
   private String name;
 
 

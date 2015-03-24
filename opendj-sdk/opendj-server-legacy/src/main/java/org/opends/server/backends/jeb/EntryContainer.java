@@ -744,7 +744,7 @@ public class EntryContainer
     if(sortRequest != null && !sortRequest.containsSortKeys()
             && sortRequest.isCritical())
     {
-      /**
+      /*
          If the control's criticality field is true then the server SHOULD do
          the following: return unavailableCriticalExtension as a return code
          in the searchResultDone message; include the sortKeyResponseControl in

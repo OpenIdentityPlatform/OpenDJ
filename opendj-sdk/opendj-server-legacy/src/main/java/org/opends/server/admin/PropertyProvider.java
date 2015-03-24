@@ -47,9 +47,7 @@ public interface PropertyProvider {
   PropertyProvider DEFAULT_PROVIDER =
     new PropertyProvider() {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d)
         throws IllegalArgumentException {
       return Collections.<T> emptySet();

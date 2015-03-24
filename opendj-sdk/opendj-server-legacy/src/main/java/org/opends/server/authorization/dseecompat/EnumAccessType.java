@@ -22,28 +22,21 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
- * This class provides an enumeration of the two access
- * types (allow, deny).
+ * This class provides an enumeration of the two access types (allow, deny).
  */
 public enum EnumAccessType {
 
-    /**
-     * Allow access type.
-     */
+    /** Allow access type. */
     ALLOW   ("allow"),
-    /**
-     *  Deny access type.
-     */
+    /** Deny access type. */
     DENY    ("deny");
 
-    /*
-     * The access type string.
-     */
+    /** The access type string. */
     private final String accessType;
 
     /**

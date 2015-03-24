@@ -51,16 +51,16 @@ public final class PropertySet {
    */
   private static final class MyProperty<T> implements Property<T> {
 
-    // The active set of values.
+    /** The active set of values. */
     private final SortedSet<T> activeValues;
 
-    // The definition associated with this property.
+    /** The definition associated with this property. */
     private final PropertyDefinition<T> d;
 
-    // The default set of values (read-only).
+    /** The default set of values (read-only). */
     private final SortedSet<T> defaultValues;
 
-    // The pending set of values.
+    /** The pending set of values. */
     private final SortedSet<T> pendingValues;
 
 
@@ -105,27 +105,21 @@ public final class PropertySet {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SortedSet<T> getActiveValues() {
       return Collections.unmodifiableSortedSet(activeValues);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SortedSet<T> getDefaultValues() {
       return defaultValues;
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SortedSet<T> getEffectiveValues() {
       SortedSet<T> values = getPendingValues();
 
@@ -138,36 +132,28 @@ public final class PropertySet {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public SortedSet<T> getPendingValues() {
       return Collections.unmodifiableSortedSet(pendingValues);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PropertyDefinition<T> getPropertyDefinition() {
       return d;
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isEmpty() {
       return pendingValues.isEmpty();
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isModified() {
       return activeValues.size() != pendingValues.size()
           || !activeValues.containsAll(pendingValues);
@@ -189,9 +175,7 @@ public final class PropertySet {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
       return getEffectiveValues().toString();
@@ -199,15 +183,13 @@ public final class PropertySet {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean wasEmpty() {
       return activeValues.isEmpty();
     }
   }
 
-  // The properties.
+  /** The properties. */
   private final Map<PropertyDefinition<?>, MyProperty<?>> properties;
 
 
@@ -268,9 +250,7 @@ public final class PropertySet {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();

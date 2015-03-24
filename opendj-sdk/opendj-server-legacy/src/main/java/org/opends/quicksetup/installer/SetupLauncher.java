@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer;
 
 import static org.opends.messages.QuickSetupMessages.*;
@@ -115,9 +114,7 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void launch() {
     try
     {
@@ -176,16 +173,12 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ArgumentParser getArgumentParser() {
     return this.argParser;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void guiLaunchFailed(String logFileName) {
     if (logFileName != null)
     {
@@ -198,34 +191,26 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected void willLaunchGui() {
     System.out.println(INFO_SETUP_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             OfflineInstaller.class.getName());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
         INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
         LocalizableMessage.class);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected CliApplication createCliApplication() {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected boolean isCli() {
     return argParser.isCli();
   }

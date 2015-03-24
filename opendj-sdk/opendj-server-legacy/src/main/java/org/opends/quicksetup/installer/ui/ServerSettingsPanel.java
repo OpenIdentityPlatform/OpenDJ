@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import java.awt.Component;
@@ -113,9 +112,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     addFocusListeners();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -156,9 +153,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     JLabel label = getLabel(fieldName);
@@ -176,9 +171,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -344,9 +337,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
     if (Utils.isWebStart())
@@ -359,17 +350,13 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected LocalizableMessage getTitle()
   {
     return INFO_SERVER_SETTINGS_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void endDisplay()
   {
     if (lastFocusComponent != null)

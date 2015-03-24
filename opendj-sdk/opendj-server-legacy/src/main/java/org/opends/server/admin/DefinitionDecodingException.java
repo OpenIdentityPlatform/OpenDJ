@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -74,7 +74,7 @@ public class DefinitionDecodingException extends DecodingException {
 
 
 
-  // Create the message.
+  /** Create the message. */
   private static LocalizableMessage createMessage(AbstractManagedObjectDefinition<?, ?> d,
       Reason reason) {
     LocalizableMessage ufn = d.getUserFriendlyName();
@@ -88,10 +88,10 @@ public class DefinitionDecodingException extends DecodingException {
     }
   }
 
-  // The expected type of managed object.
+  /** The expected type of managed object. */
   private final AbstractManagedObjectDefinition<?, ?> d;
 
-  // The reason why the definition could not be determined.
+  /** The reason why the definition could not be determined. */
   private final Reason reason;
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -57,7 +57,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
 
 
 
-  // Create the message
+  /** Create the message. */
   private static LocalizableMessage createMessage(String illegalName,
       PropertyDefinition<?> namingPropertyDefinition) {
     if (illegalName.length() == 0) {
@@ -79,10 +79,10 @@ public class IllegalManagedObjectNameException extends OperationsException {
     return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_OTHER.get(illegalName);
   }
 
-  // The illegal name.
+  /** The illegal name. */
   private final String illegalName;
 
-  // The naming property definition if applicable.
+  /** The naming property definition if applicable. */
   private final PropertyDefinition<?> namingPropertyDefinition;
 
 

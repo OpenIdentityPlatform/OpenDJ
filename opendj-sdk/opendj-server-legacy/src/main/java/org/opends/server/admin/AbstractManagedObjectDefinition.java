@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -65,58 +65,76 @@ import org.opends.server.admin.DefinitionDecodingException.Reason;
 public abstract class AbstractManagedObjectDefinition
     <C extends ConfigurationClient, S extends Configuration> {
 
-  // The name of the definition.
+  /** The name of the definition. */
   private final String name;
 
-  // The parent managed object definition if applicable.
+  /** The parent managed object definition if applicable. */
   private final AbstractManagedObjectDefinition<? super C, ? super S> parent;
 
-  // The set of constraints associated with this managed object
-  // definition.
+  /**
+   * The set of constraints associated with this managed object
+   * definition.
+   */
   private final Collection<Constraint> constraints;
 
-  // The set of property definitions applicable to this managed object
-  // definition.
+  /**
+   * The set of property definitions applicable to this managed object
+   * definition.
+   */
   private final Map<String, PropertyDefinition<?>> propertyDefinitions;
 
-  // The set of relation definitions applicable to this managed object
-  // definition.
+  /**
+   * The set of relation definitions applicable to this managed object
+   * definition.
+   */
   private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
 
-  // The set of relation definitions directly referencing this managed
-  // object definition.
+  /**
+   * The set of relation definitions directly referencing this managed
+   * object definition.
+   */
   private final Set<RelationDefinition<C, S>> reverseRelationDefinitions;
 
-  // The set of all property definitions associated with this managed
-  // object definition including inherited property definitions.
+  /**
+   * The set of all property definitions associated with this managed
+   * object definition including inherited property definitions.
+   */
   private final Map<String, PropertyDefinition<?>> allPropertyDefinitions;
 
-  // The set of all relation definitions associated with this managed
-  // object definition including inherited relation definitions.
+  /**
+   * The set of all relation definitions associated with this managed
+   * object definition including inherited relation definitions.
+   */
   private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions;
 
-  // The set of aggregation property definitions applicable to this
-  // managed object definition.
+  /**
+   * The set of aggregation property definitions applicable to this
+   * managed object definition.
+   */
   private final Map<String, AggregationPropertyDefinition<?, ?>>
     aggregationPropertyDefinitions;
 
-  // The set of aggregation property definitions directly referencing this
-  // managed object definition.
+  /**
+   * The set of aggregation property definitions directly referencing this
+   * managed object definition.
+   */
   private final Vector<AggregationPropertyDefinition<?, ?>>
     reverseAggregationPropertyDefinitions;
 
-  // The set of all aggregation property definitions associated with this
-  // managed object definition including inherited relation definitions.
+  /**
+   * The set of all aggregation property definitions associated with this
+   * managed object definition including inherited relation definitions.
+   */
   private final Map<String, AggregationPropertyDefinition<?, ?>>
     allAggregationPropertyDefinitions;
 
-  // The set of tags associated with this managed object.
+  /** The set of tags associated with this managed object. */
   private final Set<Tag> allTags;
 
-  // Options applicable to this definition.
+  /** Options applicable to this definition. */
   private final Set<ManagedObjectOption> options;
 
-  // The set of managed object definitions which inherit from this definition.
+  /** The set of managed object definitions which inherit from this definition. */
   private final Map<String,
     AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
 
@@ -907,9 +925,7 @@ public abstract class AbstractManagedObjectDefinition
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String toString() {
     StringBuilder builder = new StringBuilder();
@@ -1115,8 +1131,10 @@ public abstract class AbstractManagedObjectDefinition
 
 
 
-  // Register a relation definition in the referenced managed object
-  // definition's reverse lookup table.
+  /**
+   * Register a relation definition in the referenced managed object
+   * definition's reverse lookup table.
+   */
   private <CC extends ConfigurationClient, SS extends Configuration>
   void registerReverseRelationDefinition(RelationDefinition<CC, SS> rd) {
     rd.getChildDefinition().reverseRelationDefinitions.add(rd);
@@ -1124,8 +1142,10 @@ public abstract class AbstractManagedObjectDefinition
 
 
 
-  // Register a aggregation property definition in the referenced managed object
-  // definition's reverse lookup table.
+  /**
+   * Register a aggregation property definition in the referenced managed object
+   * definition's reverse lookup table.
+   */
   private void registerReverseAggregationPropertyDefinition(
     AggregationPropertyDefinition<?, ?> apd) {
 
@@ -1135,7 +1155,7 @@ public abstract class AbstractManagedObjectDefinition
 
 
 
-  // Recursively descend definition hierarchy to find the best match definition.
+  /** Recursively descend definition hierarchy to find the best match definition. */
   private AbstractManagedObjectDefinition<? extends C, ? extends S>
       resolveManagedObjectDefinitionAux(
       AbstractManagedObjectDefinition<? extends C, ? extends S> d,

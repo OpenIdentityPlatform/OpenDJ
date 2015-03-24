@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer.webstart;
 
 import java.io.File;
@@ -335,18 +334,14 @@ public class WebStartInstaller extends Installer {
     System.setOut(origOut);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getSummary(ProgressStep status)
   {
@@ -619,23 +614,17 @@ public class WebStartInstaller extends Installer {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstallationPath()
   {
     return getUserData().getServerLocation();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstancePath()
   {
-    // TODO
     return getUserData().getServerLocation();
-
   }
 }

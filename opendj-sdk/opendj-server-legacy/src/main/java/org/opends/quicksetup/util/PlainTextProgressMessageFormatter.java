@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 import org.opends.quicksetup.Constants;
 
@@ -37,7 +36,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 /**
  * This is an implementation of the ProgressMessageFormatter class that
  * provides format in plain text.
- *
  */
 public class PlainTextProgressMessageFormatter
 implements ProgressMessageFormatter
@@ -285,9 +283,7 @@ implements ProgressMessageFormatter
         Constants.LINE_SEPARATOR+Constants.LINE_SEPARATOR);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public LocalizableMessage getFormattedAfterUrlClick(String url, LocalizableMessage lastText)
   {
     throw new IllegalStateException(

@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import static org.opends.messages.QuickSetupMessages.*;
@@ -64,7 +64,7 @@ public class SplashScreen extends Window
 
   private Class<?> quickSetupClass;
 
-  // Constant for the display of the splash screen
+  /** Constant for the display of the splash screen. */
   private static final int MIN_SPLASH_DISPLAY = 3000;
 
   /**
@@ -78,26 +78,19 @@ public class SplashScreen extends Window
     screen.display(args);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(Graphics g)
   {
     paint(g);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void paint(Graphics g)
   {
     g.drawImage(image, 0, 0, this);
   }
 
-  /**
-   * Protected constructor to force to use the main method.
-   *
-   */
+  /** Protected constructor to force to use the main method. */
   protected SplashScreen()
   {
     super(new Frame());
@@ -113,7 +106,6 @@ public class SplashScreen extends Window
       setPreferredSize(new Dimension(width, height));
       setSize(width, height);
       Utilities.centerOnScreen(this);
-
     } catch (Exception ex)
     {
       ex.printStackTrace(); // Bug

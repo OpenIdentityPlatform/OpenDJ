@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import javax.swing.*;
@@ -51,9 +51,7 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
    */
   protected abstract JPanel createFieldsPanel();
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   protected Component createInputPanel()
   {
     JPanel panel = UIFactory.makeJPanel();

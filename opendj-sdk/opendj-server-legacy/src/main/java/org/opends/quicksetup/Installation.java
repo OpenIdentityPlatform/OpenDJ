@@ -281,12 +281,12 @@ public final class Installation
       "set-java-home.bat";
 
   /**
-   * script utils file for UNIX systems.
+   * Script utils file for UNIX systems.
    */
   public static final String SCRIPT_UTIL_FILE_UNIX = "_script-util.sh";
 
   /**
-   * script utils file for Windows.
+   * Script utils file for Windows.
    */
   public static final String SCRIPT_UTIL_FILE_WINDOWS = "_script-util.bat";
 

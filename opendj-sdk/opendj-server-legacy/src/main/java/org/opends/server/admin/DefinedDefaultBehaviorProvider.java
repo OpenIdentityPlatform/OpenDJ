@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -44,7 +45,7 @@ import java.util.Collection;
 public final class DefinedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
-  // The collection of default values.
+  /** The collection of default values. */
   private final Collection<String> values;
 
 
@@ -70,9 +71,7 @@ public final class DefinedDefaultBehaviorProvider<T> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
     return v.visitDefined(this, p);
   }

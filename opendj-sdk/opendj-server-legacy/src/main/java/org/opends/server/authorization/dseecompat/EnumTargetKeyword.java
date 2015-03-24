@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -67,9 +68,7 @@ public enum EnumTargetKeyword {
      */
     KEYWORD_EXTOP ("extop");
 
-    /*
-     * The target keyword name.
-     */
+    /** The target keyword name. */
     private final String keyword;
 
     /**

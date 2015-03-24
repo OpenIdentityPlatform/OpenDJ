@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
@@ -55,17 +55,11 @@ public enum EnumAuthMethod {
      */
     AUTHMETHOD_SASL          ("sasl");
 
-    /*
-     * The name of the authmethod.
-     */
-    private String authmethod = null;
-
     /**
      * Creates a new enumeration type for this authmethod.
      * @param authmethod The authemethod name.
      */
     EnumAuthMethod (String authmethod){
-        this.authmethod = authmethod;
     }
 
 }

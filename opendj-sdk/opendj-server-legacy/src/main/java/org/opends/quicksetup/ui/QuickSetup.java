@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -95,10 +94,10 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private ProgressDescriptor descriptorToDisplay;
 
-  // Update period of the dialogs.
+  /** Update period of the dialogs. */
   private static final int UPDATE_PERIOD = 500;
 
-  // The full pathname of the MacOS X LaunchServices OPEN(1) helper.
+  /** The full pathname of the MacOS X LaunchServices OPEN(1) helper. */
   private static final String MAC_APPLICATIONS_OPENER = "/usr/bin/open";
 
   /**
@@ -378,10 +377,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     setCurrentStep(Step.WELCOME);
   }
 
-  /**
-   * Method called when user clicks 'Close' button of the wizard.
-   *
-   */
+  /** Method called when user clicks 'Close' button of the wizard. */
   private void closeClicked()
   {
     WizardStep cStep = getCurrentStep();
@@ -418,7 +414,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           Map<String, String> env = pb.environment();
           env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
           Process process = pb.start();
-          /**
+          /*
            * Wait for 3 seconds.  Assume that if the process has not exited
            * everything went fine.
            */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -61,12 +61,12 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
   public static class Builder<E extends Enum<E>> extends
       AbstractBuilder<E, EnumPropertyDefinition<E>> {
 
-    // The enumeration class.
+    /** The enumeration class. */
     private Class<E> enumClass;
 
 
 
-    // Private constructor
+    /** Private constructor. */
     private Builder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
@@ -89,9 +89,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected EnumPropertyDefinition<E> buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
@@ -128,15 +126,15 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
     return new Builder<E>(d, propertyName);
   }
 
-  // The enumeration class.
+  /** The enumeration class. */
   private final Class<E> enumClass;
 
-  // Map used for decoding values.
+  /** Map used for decoding values. */
   private final Map<String, E> decodeMap;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private EnumPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
       String propertyName, EnumSet<PropertyOption> options,
       AdministratorAction adminAction,
@@ -154,9 +152,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitEnum(this, p);
@@ -164,9 +160,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyValueVisitor<R, P> v, E value, P p) {
     return v.visitEnum(this, value, p);
@@ -174,9 +168,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public E decodeValue(String value)
       throws PropertyException {
@@ -249,9 +241,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String normalizeValue(E value)
       throws PropertyException {
@@ -262,9 +252,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateValue(E value)
       throws PropertyException {

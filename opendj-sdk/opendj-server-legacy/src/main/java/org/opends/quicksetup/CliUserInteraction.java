@@ -64,18 +64,14 @@ public class CliUserInteraction extends ConsoleApplication
     isForceOnError = ud != null && ud.isForceOnError();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object confirm(LocalizableMessage summary, LocalizableMessage details,
                         LocalizableMessage title, MessageType type, LocalizableMessage[] options,
                         LocalizableMessage def) {
     return confirm(summary, details, null, title, type, options, def, null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public Object confirm(LocalizableMessage summary, LocalizableMessage details, LocalizableMessage fineDetails,
                         LocalizableMessage title, MessageType type, LocalizableMessage[] options,
                         LocalizableMessage def, LocalizableMessage viewDetailsOption) {
@@ -152,9 +148,7 @@ public class CliUserInteraction extends ConsoleApplication
     return returnValue;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String createUnorderedList(List<?> list) {
     StringBuilder sb = new StringBuilder();
     if (list != null) {
@@ -174,70 +168,44 @@ public class CliUserInteraction extends ConsoleApplication
     getErrorStream().println(text);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isAdvancedMode() {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isInteractive() {
     return isInteractive;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isQuiet() {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isScriptFriendly() {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isVerbose() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isCLI()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isForceOnError() {
     return isForceOnError;
   }
