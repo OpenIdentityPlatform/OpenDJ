@@ -27,6 +27,10 @@
  */
 package org.opends.server.types;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,10 +50,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /**
  * This class defines a data structure for storing and interacting
  * with a search filter that may serve as criteria for locating
@@ -66,39 +66,34 @@ public final class SearchFilter
 
   private static SearchFilter objectClassPresent;
 
-  // The attribute type for this filter.
+  /** The attribute type for this filter. */
   private final AttributeType attributeType;
 
-  // The assertion value for this filter.
+  /** The assertion value for this filter. */
   private final ByteString assertionValue;
-  private ByteString normalizedAssertionValue;
 
-  // Indicates whether to match on DN attributes for extensible match
-  // filters.
+  /** Indicates whether to match on DN attributes for extensible match filters. */
   private final boolean dnAttributes;
 
-  // The subFinal element for substring filters.
+  /** The subInitial element for substring filters. */
+  private final ByteString subInitialElement;
+  /** The set of subAny components for substring filters. */
+  private final List<ByteString> subAnyElements;
+  /** The subFinal element for substring filters. */
   private final ByteString subFinalElement;
 
-  // The subInitial element for substring filters.
-  private final ByteString subInitialElement;
-
-  // The search filter type for this filter.
+  /** The search filter type for this filter. */
   private final FilterType filterType;
 
-  // The set of subAny components for substring filters.
-  private final List<ByteString> subAnyElements;
-
-  // The set of filter components for AND and OR filters.
+  /** The set of filter components for AND and OR filters. */
   private final LinkedHashSet<SearchFilter> filterComponents;
-
-  // The not filter component for this search filter.
+  /** The not filter component for this search filter. */
   private final SearchFilter notComponent;
 
-  // The set of options for the attribute type in this filter.
+  /** The set of options for the attribute type in this filter. */
   private final Set<String> attributeOptions;
 
-  // The matching rule ID for this search filter.
+  /** The matching rule ID for this search filter. */
   private final String matchingRuleID;
 
 
