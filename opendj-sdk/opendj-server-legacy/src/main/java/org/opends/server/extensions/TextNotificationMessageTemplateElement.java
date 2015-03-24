@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -40,7 +40,7 @@ import org.opends.server.types.AccountStatusNotification;
 public class TextNotificationMessageTemplateElement
        extends NotificationMessageTemplateElement
 {
-  // The static text associated with this element.
+  /** The static text associated with this element. */
   private final String text;
 
 
@@ -58,9 +58,7 @@ public class TextNotificationMessageTemplateElement
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {

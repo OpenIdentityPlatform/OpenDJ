@@ -74,13 +74,13 @@ public class PKCS11KeyManagerProvider
 
 
 
-  // The DN of the configuration entry for this key manager provider.
+  /** The DN of the configuration entry for this key manager provider. */
   private DN configEntryDN;
 
-  // The PIN needed to access the keystore.
+  /** The PIN needed to access the keystore. */
   private char[] keyStorePIN;
 
-  // The current configuration for this key manager provider.
+  /** The current configuration for this key manager provider. */
   private PKCS11KeyManagerProviderCfg currentConfig;
 
 
@@ -97,9 +97,7 @@ public class PKCS11KeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
                     PKCS11KeyManagerProviderCfg configuration)
@@ -244,9 +242,7 @@ public class PKCS11KeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                         PKCS11KeyManagerProviderCfg configuration,
@@ -257,9 +253,7 @@ public class PKCS11KeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       PKCS11KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -357,9 +351,7 @@ public class PKCS11KeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  PKCS11KeyManagerProviderCfg configuration)
   {

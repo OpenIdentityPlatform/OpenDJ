@@ -55,9 +55,7 @@ public class LDAPAssertionRequestControl
   private static final class Decoder
       implements ControlDecoder<LDAPAssertionRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LDAPAssertionRequestControl decode(boolean isCritical,
                                               ByteString value)
         throws DirectoryException
@@ -98,10 +96,10 @@ public class LDAPAssertionRequestControl
 
 
 
-  // The unparsed LDAP search filter contained in the request from the client.
+  /** The unparsed LDAP search filter contained in the request from the client. */
   private LDAPFilter rawFilter;
 
-  // The processed search filter
+  /** The processed search filter. */
   private SearchFilter filter;
 
 

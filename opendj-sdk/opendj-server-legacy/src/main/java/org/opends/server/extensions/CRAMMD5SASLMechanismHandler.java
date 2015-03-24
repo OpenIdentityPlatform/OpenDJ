@@ -71,27 +71,30 @@ public class CRAMMD5SASLMechanismHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // An array filled with the inner pad byte.
+  /** An array filled with the inner pad byte. */
   private byte[] iPad;
 
-  // An array filled with the outer pad byte.
+  /** An array filled with the outer pad byte. */
   private byte[] oPad;
 
-  // The current configuration for this SASL mechanism handler.
+  /** The current configuration for this SASL mechanism handler. */
   private CramMD5SASLMechanismHandlerCfg currentConfig;
 
-  // The identity mapper that will be used to map ID strings to user entries.
+  /** The identity mapper that will be used to map ID strings to user entries. */
   private IdentityMapper<?> identityMapper;
 
-  // The message digest engine that will be used to create the MD5 digests.
+  /** The message digest engine that will be used to create the MD5 digests. */
   private MessageDigest md5Digest;
 
-  // The lock that will be used to provide threadsafe access to the message
-  // digest.
+  /**
+   * The lock that will be used to provide threadsafe access to the message
+   * digest.
+   */
   private Object digestLock;
 
-  // The random number generator that we will use to create the server
-  // challenge.
+  /**
+   * The random number generator that we will use to create the server challenge.
+   */
   private SecureRandom randomGenerator;
 
 
@@ -108,9 +111,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    CramMD5SASLMechanismHandlerCfg configuration)
@@ -153,9 +154,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -166,9 +165,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -520,9 +517,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -532,9 +527,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -544,9 +537,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -559,9 +550,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CramMD5SASLMechanismHandlerCfg configuration,
@@ -572,9 +561,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               CramMD5SASLMechanismHandlerCfg configuration)

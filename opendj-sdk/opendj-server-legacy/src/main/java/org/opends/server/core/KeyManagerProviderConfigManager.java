@@ -68,8 +68,10 @@ public class  KeyManagerProviderConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated key
-  // manager providers.
+  /**
+   * A mapping between the DNs of the config entries and the associated key
+   * manager providers.
+   */
   private final ConcurrentHashMap<DN,KeyManagerProvider> providers;
 
   private final ServerContext serverContext;
@@ -143,9 +145,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationAddAcceptable(
           KeyManagerProviderCfg configuration,
           List<LocalizableMessage> unacceptableReasons)
@@ -172,9 +172,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationAdd(
           KeyManagerProviderCfg configuration)
   {
@@ -213,9 +211,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationDeleteAcceptable(
                       KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -227,9 +223,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationDelete(
                                  KeyManagerProviderCfg configuration)
   {
@@ -248,9 +242,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -277,9 +269,7 @@ public class  KeyManagerProviderConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  KeyManagerProviderCfg configuration)
   {

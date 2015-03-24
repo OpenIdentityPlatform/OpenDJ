@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 
@@ -59,16 +59,16 @@ public class ProfileStack
 
 
 
-  // The number of frames in this stack.
+  /** The number of frames in this stack. */
   private int numFrames;
 
-  // The source file line numbers for each of the frames in this stack.
+  /** The source file line numbers for each of the frames in this stack. */
   private int[] lineNumbers;
 
-  // The class names for each of the frames in this stack.
+  /** The class names for each of the frames in this stack. */
   private String[] classNames;
 
-  // The method names for each of the frames in this stack.
+  /** The method names for each of the frames in this stack. */
   private String[] methodNames;
 
 

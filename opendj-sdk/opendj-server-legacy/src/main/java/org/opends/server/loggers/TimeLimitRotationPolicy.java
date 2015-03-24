@@ -43,9 +43,7 @@ public class TimeLimitRotationPolicy implements
 {
   private long timeInterval;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeLogRotationPolicy(TimeLimitLogRotationPolicyCfg config)
   {
     timeInterval = config.getRotationInterval();
@@ -53,9 +51,7 @@ public class TimeLimitRotationPolicy implements
     config.addTimeLimitChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       TimeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
 
@@ -45,7 +45,7 @@ import org.opends.server.types.SearchFilter;
  */
 public final class SearchRequest extends AbstractRequestImpl {
     /**
-     * Use a LinkedHashSet to return the attributes in the same order as requested by the user
+     * Use a LinkedHashSet to return the attributes in the same order as requested by the user.
      */
     private final Set<String> attributes = new LinkedHashSet<String>();
     private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;

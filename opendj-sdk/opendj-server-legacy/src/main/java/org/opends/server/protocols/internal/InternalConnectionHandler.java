@@ -54,21 +54,20 @@ import org.opends.server.types.HostPort;
 public final class InternalConnectionHandler
        extends ConnectionHandler
 {
-  // The singleton instance of this internal connection handler.
+  /** The singleton instance of this internal connection handler. */
   private static InternalConnectionHandler handlerInstance =
        new InternalConnectionHandler();
 
-  // The list of "connections" associated with this connection
-  // handler.
+  /** The list of "connections" associated with this connection handler. */
   private LinkedList<ClientConnection> connectionList;
 
-  // The list of listeners associated with this connection handler.
+  /** The list of listeners associated with this connection handler. */
   private LinkedList<HostPort> listeners;
 
-  // The name of the protocol for this connection handler.
+  /** The name of the protocol for this connection handler. */
   private String protocol;
 
-  // Configuration object of the connection hanlder
+  /** Configuration object of the connection handler. */
   private ConnectionHandlerCfg configuration;
 
 
@@ -133,9 +132,7 @@ public final class InternalConnectionHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {

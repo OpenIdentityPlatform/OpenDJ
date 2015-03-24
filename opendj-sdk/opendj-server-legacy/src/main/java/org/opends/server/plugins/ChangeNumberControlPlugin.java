@@ -119,9 +119,7 @@ public final class ChangeNumberControlPlugin
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ChangeNumberControlPluginCfg configuration)
@@ -176,9 +174,7 @@ public final class ChangeNumberControlPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -186,9 +182,7 @@ public final class ChangeNumberControlPlugin
   }
 
 
- /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
@@ -199,9 +193,7 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-   /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
@@ -212,9 +204,7 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-   /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
@@ -225,9 +215,7 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
@@ -240,9 +228,7 @@ public final class ChangeNumberControlPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -254,9 +240,7 @@ public final class ChangeNumberControlPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       ChangeNumberControlPluginCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -286,9 +270,7 @@ public final class ChangeNumberControlPlugin
     return configAcceptable;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  ChangeNumberControlPluginCfg configuration)
   {

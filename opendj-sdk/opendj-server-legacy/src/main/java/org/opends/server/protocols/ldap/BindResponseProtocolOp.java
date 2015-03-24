@@ -52,19 +52,19 @@ public class BindResponseProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The server SASL credentials for this response.
+  /** The server SASL credentials for this response. */
   private ByteString serverSASLCredentials;
 
-  // The matched DN for this response.
+  /** The matched DN for this response. */
   private DN matchedDN;
 
-  // The result code for this response.
+  /** The result code for this response. */
   private int resultCode;
 
-  // The set of referral URLs for this response.
+  /** The set of referral URLs for this response. */
   private List<String> referralURLs;
 
-  // The error message for this response.
+  /** The error message for this response. */
   private LocalizableMessage errorMessage;
 
 

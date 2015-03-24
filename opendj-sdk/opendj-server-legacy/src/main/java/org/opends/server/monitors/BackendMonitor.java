@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -49,29 +49,31 @@ import org.opends.server.types.*;
 public class BackendMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
-  // The attribute type that will be used to report the backend ID.
+  /** The attribute type that will be used to report the backend ID. */
   private AttributeType backendIDType;
 
-  // The attribute type that will be used to report the set of base DNs.
+  /** The attribute type that will be used to report the set of base DNs. */
   private AttributeType baseDNType;
 
-  // The attribute type that will be used to report the number of entries.
+  /** The attribute type that will be used to report the number of entries. */
   private AttributeType entryCountType;
 
-  // The attribute type that will be used to report the number of entries per
-  // base DN.
+  /**
+   * The attribute type that will be used to report the number of entries per
+   * base DN.
+   */
   private AttributeType baseDNEntryCountType;
 
-  // The attribute type that will be used to indicate if a backend is private.
+  /** The attribute type that will be used to indicate if a backend is private. */
   private AttributeType isPrivateType;
 
-  // The attribute type that will be used to report the writability mode.
+  /** The attribute type that will be used to report the writability mode. */
   private AttributeType writabilityModeType;
 
-  // The backend with which this monitor is associated.
-  private Backend backend;
+  /** The backend with which this monitor is associated. */
+  private Backend<?> backend;
 
-  // The name for this monitor.
+  /** The name for this monitor. */
   private String monitorName;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -82,48 +84,33 @@ public class BackendMonitor
    *
    * @param  backend  The backend with which this monitor is associated.
    */
-  public BackendMonitor(Backend backend)
+  public BackendMonitor(Backend<?> backend)
   {
     this.backend = backend;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = backend.getBackendID() + " Backend";
 
-    backendIDType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ID,
-                                                     true);
-
-    baseDNType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_BASE_DN,
-                                                  true);
-
+    backendIDType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ID, true);
+    baseDNType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_BASE_DN, true);
     entryCountType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT,
-                                          true);
-
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT, true);
     baseDNEntryCountType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT,
-                                          true);
-
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT, true);
     isPrivateType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE,
-                                          true);
-
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE, true);
     writabilityModeType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE,
-                                          true);
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE, true);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getMonitorInstanceName()
   {
     return monitorName;
@@ -144,9 +131,7 @@ public class BackendMonitor
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public List<Attribute> getMonitorData()
   {
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();

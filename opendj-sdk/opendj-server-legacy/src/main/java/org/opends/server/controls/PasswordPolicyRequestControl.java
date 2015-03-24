@@ -54,9 +54,7 @@ public class PasswordPolicyRequestControl
   private static final class Decoder
       implements ControlDecoder<PasswordPolicyRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PasswordPolicyRequestControl decode(boolean isCritical,
                                                ByteString value)
         throws DirectoryException

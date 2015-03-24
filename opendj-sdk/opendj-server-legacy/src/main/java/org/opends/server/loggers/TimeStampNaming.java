@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -117,33 +117,25 @@ public class TimeStampNaming implements FileNamingPolicy
     this.filter = new TimeStampNamingFilter();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public File getInitialName()
   {
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public File getNextName()
   {
     return new File(file + "." + TimeThread.getGMTTime());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public FilenameFilter getFilenameFilter()
   {
     return filter;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public File[] listFiles()
   {
     File directory = file.getParentFile();

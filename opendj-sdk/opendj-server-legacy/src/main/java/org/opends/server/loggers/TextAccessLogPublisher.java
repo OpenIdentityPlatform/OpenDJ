@@ -104,9 +104,7 @@ public final class TextAccessLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final FileBasedAccessLogPublisherCfg config)
@@ -226,9 +224,7 @@ public final class TextAccessLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -306,9 +302,7 @@ public final class TextAccessLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final FileBasedAccessLogPublisherCfg configuration,
@@ -320,9 +314,7 @@ public final class TextAccessLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedAccessLogPublisherCfg config,
@@ -1054,9 +1046,7 @@ public final class TextAccessLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void close0()
   {

@@ -139,9 +139,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -173,9 +171,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       AccountStatusNotificationHandlerCfg configuration
@@ -233,9 +229,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -276,9 +270,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       AccountStatusNotificationHandlerCfg configuration
@@ -311,9 +303,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -326,9 +316,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       AccountStatusNotificationHandlerCfg configuration

@@ -55,9 +55,7 @@ public class LDAPPreReadResponseControl
   private static final class Decoder
       implements ControlDecoder<LDAPPreReadResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LDAPPreReadResponseControl decode(boolean isCritical,
                                              ByteString value)
         throws DirectoryException
@@ -107,7 +105,7 @@ public class LDAPPreReadResponseControl
 
 
 
-  // The search result entry to include in the response control.
+  /** The search result entry to include in the response control. */
   private SearchResultEntry searchEntry;
 
 

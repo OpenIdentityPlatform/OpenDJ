@@ -98,9 +98,7 @@ public class CryptPasswordStorageScheme
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    CryptPasswordStorageSchemeCfg configuration)
@@ -111,9 +109,7 @@ public class CryptPasswordStorageScheme
     currentConfig = configuration;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
@@ -238,9 +234,7 @@ public class CryptPasswordStorageScheme
     return ByteString.valueOf(output);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -265,9 +259,7 @@ public class CryptPasswordStorageScheme
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -376,9 +368,7 @@ public class CryptPasswordStorageScheme
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -402,9 +392,7 @@ public class CryptPasswordStorageScheme
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -414,9 +402,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -428,9 +414,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -441,9 +425,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
@@ -452,9 +434,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -466,9 +446,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -481,9 +459,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -503,9 +479,7 @@ public class CryptPasswordStorageScheme
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
           PasswordStorageSchemeCfg configuration,
@@ -518,9 +492,7 @@ public class CryptPasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CryptPasswordStorageSchemeCfg configuration,

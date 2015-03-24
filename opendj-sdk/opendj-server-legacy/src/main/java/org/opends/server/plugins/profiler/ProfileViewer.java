@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 
@@ -72,23 +72,25 @@ import static org.opends.server.util.StaticUtils.*;
 public class ProfileViewer
        implements TreeSelectionListener
 {
-  // The root stack frames for the profile information that has been captured.
+  /** The root stack frames for the profile information that has been captured. */
   private HashMap<ProfileStackFrame,ProfileStackFrame> rootFrames;
 
-  // A set of stack traces indexed by class and method name.
+  /** A set of stack traces indexed by class and method name. */
   private HashMap<String,HashMap<ProfileStack,Long>> stacksByMethod;
 
-  // The editor pane that will provide detailed information about the selected
-  // stack frame.
+  /**
+   * The editor pane that will provide detailed information about the selected
+   * stack frame.
+   */
   private JEditorPane frameInfoPane;
 
-  // The GUI tree that will be used to hold stack frame information;
+  /** The GUI tree that will be used to hold stack frame information;. */
   private JTree profileTree;
 
-  // The total length of time in milliseconds for which data is available.
+  /** The total length of time in milliseconds for which data is available. */
   private long totalDuration;
 
-  // The total number of profile intervals for which data is available.
+  /** The total number of profile intervals for which data is available. */
   private long totalIntervals;
 
 

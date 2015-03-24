@@ -68,9 +68,7 @@ public class AccountUsableResponseControl
   private static final class Decoder
       implements ControlDecoder<AccountUsableResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public AccountUsableResponseControl decode(boolean isCritical,
                                                ByteString value)
         throws DirectoryException
@@ -229,30 +227,34 @@ public class AccountUsableResponseControl
 
 
 
-  // Indicates whether the user's account is usable.
+  /** Indicates whether the user's account is usable. */
   private boolean isUsable;
 
-  // Indicates whether the user's password is expired.
+  /** Indicates whether the user's password is expired. */
   private boolean isExpired;
 
-  // Indicates whether the user's account is inactive.
+  /** Indicates whether the user's account is inactive. */
   private boolean isInactive;
 
-  // Indicates whether the user's account is currently locked.
+  /** Indicates whether the user's account is currently locked. */
   private boolean isLocked;
 
-  // Indicates whether the user's password has been reset and must be changed
-  // before anything else can be done.
+  /**
+   * Indicates whether the user's password has been reset and must be changed
+   * before anything else can be done.
+   */
   private boolean isReset;
 
-  // The number of remaining grace logins, if available.
+  /** The number of remaining grace logins, if available. */
   private int remainingGraceLogins;
 
-  // The length of time in seconds before the user's password expires, if
-  // available.
+  /**
+   * The length of time in seconds before the user's password expires, if
+   * available.
+   */
   private int secondsBeforeExpiration;
 
-  // The length of time before the user's account is unlocked, if available.
+  /** The length of time before the user's account is unlocked, if available. */
   private int secondsBeforeUnlock;
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -85,7 +86,7 @@ public enum ServerStatus
    */
   BAD_GEN_ID_STATUS((byte) 4);
 
-  // The status value
+  /** The status value. */
   private byte value = -1;
 
   private ServerStatus(byte value)

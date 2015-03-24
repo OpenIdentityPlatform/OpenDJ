@@ -112,50 +112,52 @@ public class MatchedValuesFilter
 
 
 
-  // The approximate matching rule for this matched values filter.
+  /** The approximate matching rule for this matched values filter. */
   private MatchingRule approximateMatchingRule;
 
-  // The raw, unprocessed assertion value for this matched values filter.
+  /** The raw, unprocessed assertion value for this matched values filter. */
   private final ByteString rawAssertionValue;
 
-  // The subFinal value for this matched values filter.
+  /** The subFinal value for this matched values filter. */
   private final ByteString subFinal;
 
-  // The subInitial value for this matched values filter.
+  /** The subInitial value for this matched values filter. */
   private final ByteString subInitial;
 
-  // The processed attribute type for this matched values filter.
+  /** The processed attribute type for this matched values filter. */
   private AttributeType attributeType;
 
-  // The processed assertion value for this matched values filter.
+  /** The processed assertion value for this matched values filter. */
   private ByteString assertionValue;
 
-  // Indicates whether the elements of this matched values filter have been
-  // fully decoded.
+  /**
+   * Indicates whether the elements of this matched values filter have been
+   * fully decoded.
+   */
   private boolean decoded;
 
-  // The match type for this matched values filter.
+  /** The match type for this matched values filter. */
   private final byte matchType;
 
-  // The equality matching rule for this matched values filter.
+  /** The equality matching rule for this matched values filter. */
   private MatchingRule equalityMatchingRule;
 
-  // The set of subAny values for this matched values filter.
+  /** The set of subAny values for this matched values filter. */
   private final List<ByteString> subAny;
 
-  // The matching rule for this matched values filter.
+  /** The matching rule for this matched values filter. */
   private MatchingRule matchingRule;
 
-  // The ordering matching rule for this matched values filter.
+  /** The ordering matching rule for this matched values filter. */
   private MatchingRule orderingMatchingRule;
 
-  // The matching rule ID for this matched values filter.
+  /** The matching rule ID for this matched values filter. */
   private final String matchingRuleID;
 
-  // The raw, unprocessed attribute type for this matched values filter.
+  /** The raw, unprocessed attribute type for this matched values filter. */
   private final String rawAttributeType;
 
-  // The substring matching rule for this matched values filter.
+  /** The substring matching rule for this matched values filter. */
   private MatchingRule substringMatchingRule;
 
   /**

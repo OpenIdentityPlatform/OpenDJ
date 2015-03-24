@@ -81,17 +81,15 @@ public class ErrorLogAccountStatusNotificationHandler
   }
 
 
-  // The DN of the configuration entry for this notification handler.
+  /** The DN of the configuration entry for this notification handler. */
   private DN configEntryDN;
 
-  // The set of notification types that should generate log messages.
+  /** The set of notification types that should generate log messages. */
   private HashSet<AccountStatusNotificationType> notificationTypes;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeStatusNotificationHandler(
       ErrorLogAccountStatusNotificationHandlerCfg configuration
       )
@@ -107,9 +105,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
@@ -122,9 +118,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg configuration,
@@ -137,9 +131,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -178,9 +170,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange (
       ErrorLogAccountStatusNotificationHandlerCfg configuration
       )

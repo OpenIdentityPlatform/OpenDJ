@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -99,7 +99,7 @@ class ParallelTextWriter
       super(name);
     }
     /**
-     * the run method of the writerThread. Run until queue is empty
+     * The run method of the writerThread. Run until queue is empty
      * AND we've been asked to terminate
      */
     @Override
@@ -157,17 +157,13 @@ class ParallelTextWriter
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void flush()
   {
     writer.flush();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public long getBytesWritten()
   {
     return writer.getBytesWritten();
@@ -183,17 +179,13 @@ class ParallelTextWriter
     return writer;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String getShutdownListenerName()
   {
     return "ParallelTextWriter Thread " + name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processServerShutdown(LocalizableMessage reason)
   {
     // Don't shutdown the wrapped writer on server shutdown as it
@@ -202,9 +194,7 @@ class ParallelTextWriter
     shutdown(false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void shutdown()
   {
     shutdown(true);

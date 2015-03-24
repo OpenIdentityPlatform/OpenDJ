@@ -139,9 +139,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       MonitorProviderCfg configuration,
@@ -169,9 +167,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  MonitorProviderCfg configuration)
@@ -211,9 +207,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       MonitorProviderCfg configuration,
@@ -225,9 +219,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  MonitorProviderCfg configuration)
@@ -246,9 +238,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       MonitorProviderCfg configuration,
@@ -276,9 +266,7 @@ public class MonitorConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MonitorProviderCfg configuration)

@@ -67,33 +67,25 @@ public interface TextWriter
     private MeteredStream stream = new MeteredStream(System.out, 0);
     private PrintWriter writer = new PrintWriter(stream, true);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void flush()
     {
       writer.flush();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void shutdown()
     {
       // Should never close the system out stream.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public long getBytesWritten()
     {
       return stream.written;
@@ -108,33 +100,25 @@ public interface TextWriter
     private MeteredStream stream = new MeteredStream(System.err, 0);
     private PrintWriter writer = new PrintWriter(stream, true);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void flush()
     {
       writer.flush();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void shutdown()
     {
       // Should never close the system error stream.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public long getBytesWritten()
     {
       return stream.written;
@@ -160,33 +144,25 @@ public interface TextWriter
       writer = new PrintWriter(stream, true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void flush()
     {
       writer.flush();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void shutdown()
     {
       // Should never close the system error stream.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public long getBytesWritten()
     {
       return stream.written;

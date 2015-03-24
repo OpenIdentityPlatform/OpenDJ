@@ -64,9 +64,7 @@ public final class EntityTagVirtualAttributeProvider extends
   private static final Comparator<Attribute> ATTRIBUTE_COMPARATOR =
       new Comparator<Attribute>()
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(final Attribute a1, final Attribute a2)
     {
@@ -74,7 +72,7 @@ public final class EntityTagVirtualAttributeProvider extends
     }
   };
 
-  // Current configuration.
+  /** Current configuration. */
   private volatile EntityTagVirtualAttributeCfg config;
 
 
@@ -89,9 +87,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final EntityTagVirtualAttributeCfg configuration)
@@ -102,9 +98,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -115,9 +109,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeVirtualAttributeProvider()
   {
@@ -126,9 +118,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Attribute getValues(final Entry entry, final VirtualAttributeRule rule)
   {
@@ -153,9 +143,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -166,9 +154,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasValue(final Entry entry, final VirtualAttributeRule rule)
   {
@@ -178,9 +164,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeVirtualAttributeProvider(
       final EntityTagVirtualAttributeCfg configuration) throws ConfigException,
@@ -192,9 +176,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final EntityTagVirtualAttributeCfg configuration,
@@ -206,9 +188,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
@@ -218,9 +198,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(final VirtualAttributeRule rule,
                               final SearchOperation searchOperation,
@@ -233,9 +211,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -246,9 +222,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(final Entry entry,
       final VirtualAttributeRule rule, final ByteString subInitial,
@@ -260,9 +234,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSearch(final VirtualAttributeRule rule,
       final SearchOperation searchOperation)

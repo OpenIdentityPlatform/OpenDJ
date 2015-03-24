@@ -65,29 +65,31 @@ public class LDAPRequestHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Indicates whether the Directory Server is in the process of shutting down.
+  /** Indicates whether the Directory Server is in the process of shutting down. */
   private volatile boolean shutdownRequested;
 
-  // The current set of selection keys.
+  /** The current set of selection keys. */
   private volatile SelectionKey[] keys = new SelectionKey[0];
 
-  // The queue that will be used to hold the set of pending connections that
-  // need to be registered with the selector.
-  // TODO: revisit, see Issue 4202.
+  /**
+   * The queue that will be used to hold the set of pending connections that
+   * need to be registered with the selector.
+   * TODO: revisit, see Issue 4202.
+   */
   private List<LDAPClientConnection> pendingConnections =
     new LinkedList<LDAPClientConnection>();
 
-  // Lock object for synchronizing access to the pending connections queue.
+  /** Lock object for synchronizing access to the pending connections queue. */
   private final Object pendingConnectionsLock = new Object();
 
-  // The list of connections ready for request processing.
+  /** The list of connections ready for request processing. */
   private LinkedList<LDAPClientConnection> readyConnections =
     new LinkedList<LDAPClientConnection>();
 
-  // The selector that will be used to monitor the client connections.
+  /** The selector that will be used to monitor the client connections. */
   private final Selector selector;
 
-  // The name to use for this request handler.
+  /** The name to use for this request handler. */
   private final String handlerName;
 
 

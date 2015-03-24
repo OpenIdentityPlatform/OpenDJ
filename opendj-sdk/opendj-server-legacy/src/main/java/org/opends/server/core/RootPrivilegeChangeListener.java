@@ -44,24 +44,16 @@ import org.opends.server.types.Privilege;
 public class RootPrivilegeChangeListener
        implements ConfigurationChangeListener<RootDNCfg>
 {
-  // The set of privileges that will be given to root users by default.
+  /** The set of privileges that will be given to root users by default. */
   private Set<Privilege> defaultRootPrivileges;
 
-
-
-  /**
-   * Creates a new instance of this root privilege change listener.
-   */
+  /** Creates a new instance of this root privilege change listener. */
   public RootPrivilegeChangeListener()
   {
     defaultRootPrivileges = Privilege.getDefaultRootPrivileges();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(RootDNCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -70,11 +62,7 @@ public class RootPrivilegeChangeListener
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(RootDNCfg configuration)
   {

@@ -141,9 +141,7 @@ public class PasswordGeneratorConfigManager
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordGeneratorCfg configuration,
@@ -170,9 +168,7 @@ public class PasswordGeneratorConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordGeneratorCfg configuration)
@@ -242,9 +238,7 @@ public class PasswordGeneratorConfigManager
 
     return ccr;
   }
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       PasswordGeneratorCfg configuration,
@@ -271,9 +265,7 @@ public class PasswordGeneratorConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PasswordGeneratorCfg configuration)
@@ -313,9 +305,7 @@ public class PasswordGeneratorConfigManager
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordGeneratorCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -325,9 +315,7 @@ public class PasswordGeneratorConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordGeneratorCfg configuration)

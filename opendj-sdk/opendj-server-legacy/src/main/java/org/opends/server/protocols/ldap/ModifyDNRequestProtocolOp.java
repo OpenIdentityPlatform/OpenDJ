@@ -47,16 +47,16 @@ public class ModifyDNRequestProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The current entry DN for this modify DN request.
+  /** The current entry DN for this modify DN request. */
   private ByteString entryDN;
 
-  // The new RDN for this modify DN request.
+  /** The new RDN for this modify DN request. */
   private ByteString newRDN;
 
-  // The new superior DN for this modify DN request.
+  /** The new superior DN for this modify DN request. */
   private ByteString newSuperior;
 
-  // Indicates whether to delete the current RDN value(s).
+  /** Indicates whether to delete the current RDN value(s). */
   private boolean deleteOldRDN;
 
 

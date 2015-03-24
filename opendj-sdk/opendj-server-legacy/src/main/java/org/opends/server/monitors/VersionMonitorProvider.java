@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -134,9 +134,7 @@ public class VersionMonitorProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(VersionMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {

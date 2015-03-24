@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -59,34 +59,34 @@ public class LDAPFilter
 
   private static LDAPFilter objectClassPresent;
 
-  // The set of subAny elements for substring filters.
+  /** The set of subAny elements for substring filters. */
   private ArrayList<ByteString> subAnyElements;
 
-  // The set of filter components for AND and OR filters.
+  /** The set of filter components for AND and OR filters. */
   private ArrayList<RawFilter> filterComponents;
 
-  // Indicates whether to match on DN attributes for extensible match filters.
+  /** Indicates whether to match on DN attributes for extensible match filters. */
   private boolean dnAttributes;
 
-  // The assertion value for several filter types.
+  /** The assertion value for several filter types. */
   private ByteString assertionValue;
 
-  // The subFinal element for substring filters.
+  /** The subFinal element for substring filters. */
   private ByteString subFinalElement;
 
-  // The subInitial element for substring filters.
+  /** The subInitial element for substring filters. */
   private ByteString subInitialElement;
 
-  // The filter type for this filter.
+  /** The filter type for this filter. */
   private FilterType filterType;
 
-  // The filter component for NOT filters.
+  /** The filter component for NOT filters. */
   private RawFilter notComponent;
 
-  // The attribute type for several filter types.
+  /** The attribute type for several filter types. */
   private String attributeType;
 
-  // The matching rule ID for extensible matching filters.
+  /** The matching rule ID for extensible matching filters. */
   private String matchingRuleID;
 
 

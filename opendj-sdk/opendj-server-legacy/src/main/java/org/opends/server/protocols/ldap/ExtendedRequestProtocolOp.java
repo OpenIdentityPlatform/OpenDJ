@@ -47,10 +47,10 @@ public class ExtendedRequestProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The value for this extended request.
+  /** The value for this extended request. */
   private ByteString value;
 
-  // The OID for this extended request.
+  /** The OID for this extended request. */
   private String oid;
 
 

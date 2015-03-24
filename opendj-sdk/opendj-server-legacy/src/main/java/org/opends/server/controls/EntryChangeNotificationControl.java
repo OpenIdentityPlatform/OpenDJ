@@ -55,9 +55,7 @@ public class EntryChangeNotificationControl
   private static final class Decoder
       implements ControlDecoder<EntryChangeNotificationControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public EntryChangeNotificationControl decode(
         boolean isCritical, ByteString value) throws DirectoryException
     {
@@ -131,13 +129,13 @@ public class EntryChangeNotificationControl
 
 
 
-  // The previous DN for this change notification control.
+  /** The previous DN for this change notification control. */
   private DN previousDN;
 
-  // The change number for this change notification control.
+  /** The change number for this change notification control. */
   private long changeNumber;
 
-  // The change type for this change notification control.
+  /** The change type for this change notification control. */
   private PersistentSearchChangeType changeType;
 
 

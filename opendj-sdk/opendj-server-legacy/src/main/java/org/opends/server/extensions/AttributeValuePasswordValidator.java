@@ -51,7 +51,7 @@ public class AttributeValuePasswordValidator
        implements ConfigurationChangeListener<
                        AttributeValuePasswordValidatorCfg>
 {
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private AttributeValuePasswordValidatorCfg currentConfig;
 
 
@@ -69,9 +69,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    AttributeValuePasswordValidatorCfg configuration)
@@ -82,9 +80,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -128,9 +124,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -195,9 +189,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -209,9 +201,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       AttributeValuePasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -222,9 +212,7 @@ public class AttributeValuePasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                       AttributeValuePasswordValidatorCfg configuration)
   {

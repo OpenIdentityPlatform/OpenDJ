@@ -78,7 +78,7 @@ class MultifileTextWriter
   private FileNamingPolicy namingPolicy;
   private FilePermission filePermissions;
   private LogPublisherErrorHandler errorHandler;
-  //TODO: Implement actions.
+  /** TODO: Implement actions. */
   private ArrayList<ActionType> actions;
 
   private String name;
@@ -349,9 +349,7 @@ class MultifileTextWriter
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -360,9 +358,7 @@ class MultifileTextWriter
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
@@ -415,7 +411,7 @@ class MultifileTextWriter
     }
 
     /**
-     * the run method of the rotaterThread. It wakes up periodically and checks
+     * The run method of the rotaterThread. It wakes up periodically and checks
      * whether the file needs to be rotated based on the rotation policy.
      */
     @Override
@@ -603,9 +599,7 @@ class MultifileTextWriter
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void flush()
   {

@@ -60,7 +60,7 @@ public class SMTPAlertHandler
 
 
 
-  // The current configuration for this alert handler.
+  /** The current configuration for this alert handler. */
   private SMTPAlertHandlerCfg currentConfig;
 
 
@@ -77,9 +77,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeAlertHandler(SMTPAlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
@@ -98,9 +96,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public AlertHandlerCfg getAlertHandlerConfiguration()
   {
     return currentConfig;
@@ -108,9 +104,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
@@ -119,9 +113,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void finalizeAlertHandler()
   {
     // No action is required.
@@ -129,9 +121,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     LocalizableMessage alertMessage)
   {
@@ -205,9 +195,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       SMTPAlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -217,9 +205,7 @@ public class SMTPAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  SMTPAlertHandlerCfg configuration)
   {

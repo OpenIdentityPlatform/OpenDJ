@@ -150,9 +150,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     return hasReplayError;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean processReceivedAck(ServerHandler ackingServer, AckMsg ackMsg)
   {
@@ -199,9 +197,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     return (numKnownAckStatus == expectedServersAckStatus.size());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AckMsg createAck(boolean timeout)
   {

@@ -88,72 +88,77 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  // The string representation of the user's DN.
+  /** The string representation of the user's DN. */
   private final String userDNString;
 
-  // The password policy with which the account is associated.
+  /** The password policy with which the account is associated. */
   private final PasswordPolicy passwordPolicy;
 
-  // The current time for use in all password policy calculations.
+  /** The current time for use in all password policy calculations. */
   private final long currentTime;
 
-  // The time that the user's password was last changed.
+  /** The time that the user's password was last changed. */
   private long passwordChangedTime = Long.MIN_VALUE;
 
-  // Indicates whether the user's account is expired.
+  /** Indicates whether the user's account is expired. */
   private ConditionResult isAccountExpired = ConditionResult.UNDEFINED;
 
-  // Indicates whether the user's password is expired.
+  /** Indicates whether the user's password is expired. */
   private ConditionResult isPasswordExpired = ConditionResult.UNDEFINED;
 
-  // Indicates whether the warning to send to the client would be the first
-  // warning for the user.
+  /**
+   * Indicates whether the warning to send to the client would be the first
+   * warning for the user.
+   */
   private ConditionResult isFirstWarning = ConditionResult.UNDEFINED;
 
-  // Indicates whether the user's account is locked by the idle lockout.
+  /** Indicates whether the user's account is locked by the idle lockout. */
   private ConditionResult isIdleLocked = ConditionResult.UNDEFINED;
 
-  // Indicates whether the user may use a grace login if the password is expired
-  // and there are one or more grace logins remaining.
+  /**
+   * Indicates whether the user may use a grace login if the password is expired
+   * and there are one or more grace logins remaining.
+   */
   private ConditionResult mayUseGraceLogin = ConditionResult.UNDEFINED;
 
-  // Indicates whether the user's password must be changed.
+  /** Indicates whether the user's password must be changed. */
   private ConditionResult mustChangePassword = ConditionResult.UNDEFINED;
 
-  // Indicates whether the user should be warned of an upcoming expiration.
+  /** Indicates whether the user should be warned of an upcoming expiration. */
   private ConditionResult shouldWarn = ConditionResult.UNDEFINED;
 
-  // The number of seconds until the user's account is automatically unlocked.
+  /** The number of seconds until the user's account is automatically unlocked. */
   private int secondsUntilUnlock = Integer.MIN_VALUE;
 
-  // The set of authentication failure times for this user.
+  /** The set of authentication failure times for this user. */
   private List<Long> authFailureTimes;
 
-  // The set of grace login times for this user.
+  /** The set of grace login times for this user. */
   private List<Long> graceLoginTimes;
 
-  // The time that the user's account should expire (or did expire).
+  /** The time that the user's account should expire (or did expire). */
   private long accountExpirationTime = Long.MIN_VALUE;
 
-  // The time that the user's entry was locked due to too many authentication
-  // failures.
+  /**
+   * The time that the user's entry was locked due to too many authentication
+   * failures.
+   */
   private long failureLockedTime = Long.MIN_VALUE;
 
-  // The time that the user last authenticated to the Directory Server.
+  /** The time that the user last authenticated to the Directory Server. */
   private long lastLoginTime = Long.MIN_VALUE;
 
-  // The time that the user's password should expire (or did expire).
+  /** The time that the user's password should expire (or did expire). */
   private long passwordExpirationTime = Long.MIN_VALUE;
 
-  // The last required change time with which the user complied.
+  /** The last required change time with which the user complied. */
   private long requiredChangeTime = Long.MIN_VALUE;
 
-  // The time that the user was first warned about an upcoming expiration.
+  /** The time that the user was first warned about an upcoming expiration. */
   private long warnedTime = Long.MIN_VALUE;
 
-  // The set of modifications that should be applied to the user's entry.
-  private LinkedList<Modification> modifications
-       = new LinkedList<Modification>();
+  /** The set of modifications that should be applied to the user's entry. */
+  private LinkedList<Modification> modifications = new LinkedList<Modification>();
 
 
 
@@ -306,9 +311,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PasswordPolicy getAuthenticationPolicy()
   {
@@ -2496,9 +2499,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteString password)
   {
@@ -3528,9 +3529,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeStateAfterBind()
          throws DirectoryException

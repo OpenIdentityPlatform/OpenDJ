@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -70,7 +70,7 @@ public class AttrValueHistorical
   }
 
   /**
-   * calculates the hasCode for this object.
+   * Calculates the hasCode for this object.
    * Only value is used when calculating the hashCode
    * @return the hashcode
    */

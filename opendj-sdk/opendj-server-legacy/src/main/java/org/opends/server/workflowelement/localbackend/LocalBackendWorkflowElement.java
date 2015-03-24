@@ -199,10 +199,10 @@ public class LocalBackendWorkflowElement
   /** The backend's baseDN mapped by this object. */
   private final DN baseDN;
 
-  /** the backend associated with the local workflow element. */
+  /** The backend associated with the local workflow element. */
   private final Backend<?> backend;
 
-  /** the set of local backend workflow elements registered with the server. */
+  /** The set of local backend workflow elements registered with the server. */
   private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends =
       new TreeMap<DN, LocalBackendWorkflowElement>();
 

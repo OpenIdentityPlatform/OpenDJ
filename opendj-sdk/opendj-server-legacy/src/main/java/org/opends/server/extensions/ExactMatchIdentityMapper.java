@@ -69,16 +69,16 @@ public class ExactMatchIdentityMapper
        implements ConfigurationChangeListener<
                        ExactMatchIdentityMapperCfg>
 {
-  // The set of attribute types to use when performing lookups.
+  /** The set of attribute types to use when performing lookups. */
   private AttributeType[] attributeTypes;
 
-  // The DN of the configuration entry for this identity mapper.
+  /** The DN of the configuration entry for this identity mapper. */
   private DN configEntryDN;
 
-  // The current configuration for this identity mapper.
+  /** The current configuration for this identity mapper. */
   private ExactMatchIdentityMapperCfg currentConfig;
 
-  // The set of attributes to return in search result entries.
+  /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
 
@@ -97,9 +97,7 @@ public class ExactMatchIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeIdentityMapper(
                    ExactMatchIdentityMapperCfg configuration)
@@ -277,9 +275,7 @@ public class ExactMatchIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -291,9 +287,7 @@ public class ExactMatchIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ExactMatchIdentityMapperCfg configuration,
@@ -328,9 +322,7 @@ public class ExactMatchIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               ExactMatchIdentityMapperCfg configuration)

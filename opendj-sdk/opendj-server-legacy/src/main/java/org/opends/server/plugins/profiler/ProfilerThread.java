@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 
@@ -51,25 +51,25 @@ public class ProfilerThread
 
 
 
-  // Indicates whether a request has been received to stop profiling.
+  /** Indicates whether a request has been received to stop profiling. */
   private boolean stopProfiling;
 
-  // The time at which the capture started.
+  /** The time at which the capture started. */
   private long captureStartTime;
 
-  // The time at which the capture stopped.
+  /** The time at which the capture stopped. */
   private long captureStopTime;
 
-  // The number of intervals for which we have captured data.
+  /** The number of intervals for which we have captured data. */
   private long numIntervals;
 
-  // The sampling interval that will be used by this thread.
+  /** The sampling interval that will be used by this thread. */
   private long sampleInterval;
 
-  // The set of thread stack traces captured by this profiler thread.
+  /** The set of thread stack traces captured by this profiler thread. */
   private HashMap<ProfileStack,Long> stackTraces;
 
-  // The thread that is actually performing the capture.
+  /** The thread that is actually performing the capture. */
   private Thread captureThread;
 
 

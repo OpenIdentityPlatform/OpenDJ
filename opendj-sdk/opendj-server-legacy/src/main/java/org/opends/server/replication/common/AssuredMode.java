@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -30,16 +31,12 @@ package org.opends.server.replication.common;
  */
 public enum AssuredMode
 {
-  /**
-   * Safe read assured mode.
-   */
+  /** Safe read assured mode. */
   SAFE_READ_MODE((byte) 1),
-  /**
-   * Safe data assured mode.
-   */
+  /** Safe data assured mode. */
   SAFE_DATA_MODE((byte) 2);
 
-  // The mode value
+  /** The mode value. */
   private byte value = -1;
 
   private AssuredMode(byte value)

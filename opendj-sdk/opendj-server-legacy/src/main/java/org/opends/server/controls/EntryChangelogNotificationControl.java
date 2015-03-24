@@ -54,7 +54,7 @@ public class EntryChangelogNotificationControl
        {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The cookie value - payload of this control.
+  /** The cookie value - payload of this control. */
   private String cookie;
 
   /**
@@ -63,9 +63,7 @@ public class EntryChangelogNotificationControl
   private static final class Decoder
   implements ControlDecoder<EntryChangelogNotificationControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public EntryChangelogNotificationControl decode(
         boolean isCritical, ByteString value)
     throws DirectoryException

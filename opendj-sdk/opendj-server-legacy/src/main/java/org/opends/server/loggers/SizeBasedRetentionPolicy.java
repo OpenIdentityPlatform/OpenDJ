@@ -55,9 +55,7 @@ public class SizeBasedRetentionPolicy implements
   private FileComparator comparator;
   private SizeLimitLogRetentionPolicyCfg config;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogRetentionPolicy(
       SizeLimitLogRetentionPolicyCfg config)
@@ -69,9 +67,7 @@ public class SizeBasedRetentionPolicy implements
     config.addSizeLimitChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRetentionPolicyCfg config,
@@ -81,9 +77,7 @@ public class SizeBasedRetentionPolicy implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRetentionPolicyCfg config)
@@ -94,9 +88,7 @@ public class SizeBasedRetentionPolicy implements
     return new ConfigChangeResult();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException
@@ -142,9 +134,7 @@ public class SizeBasedRetentionPolicy implements
     return filesToDelete;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

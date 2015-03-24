@@ -1647,9 +1647,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getDomainNewestCSNs(baseDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -2290,18 +2288,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
   {
     // Nothing to do for now
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -2311,9 +2305,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         + ",cn=Replication";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {

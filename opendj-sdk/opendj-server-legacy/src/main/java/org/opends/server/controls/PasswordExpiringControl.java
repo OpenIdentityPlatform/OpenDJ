@@ -56,9 +56,7 @@ public class PasswordExpiringControl
   private static final class Decoder
       implements ControlDecoder<PasswordExpiringControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PasswordExpiringControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -105,7 +103,7 @@ public class PasswordExpiringControl
 
 
 
-  // The length of time in seconds until the password actually expires.
+  /** The length of time in seconds until the password actually expires. */
   private int secondsUntilExpiration;
 
 

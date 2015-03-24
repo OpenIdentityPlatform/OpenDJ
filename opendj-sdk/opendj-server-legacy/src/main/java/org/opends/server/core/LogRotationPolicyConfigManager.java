@@ -99,9 +99,7 @@ public class LogRotationPolicyConfigManager implements
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       LogRotationPolicyCfg configuration,
@@ -110,9 +108,7 @@ public class LogRotationPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRotationPolicyCfg configuration,
@@ -122,9 +118,7 @@ public class LogRotationPolicyConfigManager implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRotationPolicyCfg config)
   {
@@ -151,9 +145,7 @@ public class LogRotationPolicyConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRotationPolicyCfg config)
@@ -174,9 +166,7 @@ public class LogRotationPolicyConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LogRotationPolicyCfg configuration,
@@ -185,9 +175,7 @@ public class LogRotationPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRotationPolicyCfg configuration)

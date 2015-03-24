@@ -155,19 +155,14 @@ public class RmiConnector
   {
     try
     {
-      //
-      // start the common registry
       startCommonRegistry();
 
-      //
       // start the RMI connector (SSL + server authentication)
       startConnectorNoClientCertificate();
 
-      //
       // start the RMI connector (SSL + server authentication +
       // client authentication + identity given part SASL/PLAIN)
       // TODO startConnectorClientCertificate(clientConnection);
-
     }
     catch (Exception e)
     {
@@ -196,7 +191,6 @@ public class RmiConnector
     final InetAddress listenAddress = jmxConnectionHandler.getListenAddress();
     int registryPort = jmxConnectionHandler.getListenPort();
 
-    //
     // create our local RMI registry if it does not exist already
     if (logger.isTraceEnabled())
     {
@@ -205,7 +199,6 @@ public class RmiConnector
     }
     try
     {
-      //
       // TODO Not yet implemented: If the host has several interfaces
       if (registry == null)
       {
@@ -215,7 +208,6 @@ public class RmiConnector
     }
     catch (RemoteException re)
     {
-      //
       // is the registry already created ?
       if (logger.isTraceEnabled())
       {
@@ -223,11 +215,9 @@ public class RmiConnector
       }
       try
       {
-        //
         // get a 'remote' reference on the registry
         Registry reg = LocateRegistry.getRegistry(registryPort);
 
-        //
         // 'ping' the registry
         reg.list();
         registry = reg;
@@ -236,18 +226,15 @@ public class RmiConnector
       {
         if (logger.isTraceEnabled())
         {
-          //
           // no 'valid' registry found on the specified port
           logger.trace("exception thrown while pinging the RMI registry");
 
-          //
           // throw the original exception
           logger.traceException(re);
         }
         throw re;
       }
 
-      //
       // here the registry is ok even though
       // it was not created by this call
       if (logger.isTraceEnabled())
@@ -273,7 +260,6 @@ public class RmiConnector
   {
     try
     {
-      //
       // Environment map
       HashMap<String, Object> env = new HashMap<String, Object>();
 
@@ -292,7 +278,6 @@ public class RmiConnector
         // ---------------------
         // SERVER SIDE
         // ---------------------
-        //
         // Get a Server socket factory
         KeyManager[] keyManagers;
         KeyManagerProvider provider = DirectoryServer
@@ -323,10 +308,8 @@ public class RmiConnector
             null);
         SSLSocketFactory ssf = ctx.getSocketFactory();
 
-        //
         // set the Server socket factory in the JMX map
-        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(ssf,
-            false);
+        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(ssf, false);
         env.put(
             "jmx.remote.rmi.server.socket.factory",
             rmiServerSockeyFactory);
@@ -349,7 +332,6 @@ public class RmiConnector
         }
       }
 
-      //
       // specify the rmi JMX authenticator to be used
       if (logger.isTraceEnabled())
       {
@@ -359,7 +341,6 @@ public class RmiConnector
 
       env.put(JMXConnectorServer.AUTHENTICATOR, rmiAuthenticator);
 
-      //
       // Create the JMX Service URL
       String uri = "org.opends.server.protocols.jmx.client-unknown";
       String serviceUrl = "service:jmx:rmi:///jndi/rmi://"
@@ -367,7 +348,6 @@ public class RmiConnector
           + "/" + uri;
       JMXServiceURL url = new JMXServiceURL(serviceUrl);
 
-      //
       // Create and start the connector
       if (logger.isTraceEnabled())
       {
@@ -380,7 +360,6 @@ public class RmiConnector
           opendsRmiConnectorServer, mbs);
       jmxRmiConnectorNoClientCertificate.start();
 
-      //
       // Register the connector into the RMI registry
       // TODO Should we do that?
       ObjectName name = new ObjectName(jmxRmiConnectorNoClientCertificateName);
@@ -429,7 +408,6 @@ public class RmiConnector
     jmxRmiConnectorNoClientCertificate = null;
     jmxRmiConnectorClientCertificate = null;
 
-    //
     // Unregister connectors and stop them.
     try
     {
@@ -459,12 +437,13 @@ public class RmiConnector
 
     if (stopRegistry)
     {
-      //
       // Close the socket
       try
       {
         if (rmiSsf != null)
+        {
           rmiSsf.close();
+        }
       }
       catch (IOException e)
       {
@@ -473,7 +452,6 @@ public class RmiConnector
       }
       registry = null;
     }
-
   }
 
 

@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
-
-
 
 import static org.opends.messages.ProtocolMessages.*;
 
@@ -34,8 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 /**
  * This enumeration defines the set of password policy errors that may be
@@ -129,7 +125,7 @@ public enum PasswordPolicyErrorType
 
 
 
-  // A lookup table for resolving an error type from its integer value.
+  /** A lookup table for resolving an error type from its integer value. */
   private static final Map<Integer, PasswordPolicyErrorType> TABLE;
   static
   {
@@ -145,11 +141,13 @@ public enum PasswordPolicyErrorType
 
 
 
-  // The integer value associated with the error type to use in the associated
-  // enumerated element in the password policy response control.
+  /**
+   * The integer value associated with the error type to use in the associated
+   * enumerated element in the password policy response control.
+   */
   private int value;
 
-  // The message ID for the description of this password policy error type.
+  /** The message ID for the description of this password policy error type. */
   private LocalizableMessage description;
 
 

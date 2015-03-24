@@ -80,17 +80,17 @@ public class SaltedMD5PasswordStorageScheme
    */
   private static final int NUM_SALT_BYTES = 8;
 
-  // The number of bytes MD5 algorithm produces
+  /** The number of bytes MD5 algorithm produces. */
   private static final int MD5_LENGTH = 16;
 
 
-  // The message digest that will actually be used to generate the MD5 hashes.
+  /** The message digest that will actually be used to generate the MD5 hashes. */
   private MessageDigest messageDigest;
 
-  // The lock used to provide threadsafe access to the message digest.
+  /** The lock used to provide threadsafe access to the message digest. */
   private Object digestLock;
 
-  // The secure random number generator to use to generate the salt values.
+  /** The secure random number generator to use to generate the salt values. */
   private Random random;
 
 
@@ -107,9 +107,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    SaltedMD5PasswordStorageSchemeCfg configuration)
@@ -134,9 +132,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
@@ -145,9 +141,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -199,9 +193,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -259,9 +251,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -325,9 +315,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -337,9 +325,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
@@ -348,9 +334,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -404,9 +388,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -448,9 +430,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
@@ -459,9 +439,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -473,9 +451,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -488,9 +464,7 @@ public class SaltedMD5PasswordStorageScheme
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -52,9 +52,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
@@ -62,9 +60,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -72,9 +68,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
@@ -82,9 +76,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getRawAttributeType()
   {
@@ -92,9 +84,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawAttributeType(String rawAttributeType)
   {
@@ -102,9 +92,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType getAttributeType()
   {
@@ -112,9 +100,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttributeType(AttributeType attributeType)
   {
@@ -122,9 +108,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getAttributeOptions()
   {
@@ -132,9 +116,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttributeOptions(Set<String> attributeOptions)
   {
@@ -142,9 +124,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getAssertionValue()
   {
@@ -152,9 +132,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAssertionValue(ByteString assertionValue)
   {
@@ -162,9 +140,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
@@ -172,9 +148,7 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {

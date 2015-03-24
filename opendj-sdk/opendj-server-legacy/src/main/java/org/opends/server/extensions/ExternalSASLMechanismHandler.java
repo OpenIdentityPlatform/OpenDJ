@@ -65,15 +65,19 @@ public class ExternalSASLMechanismHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The attribute type that should hold the certificates to use for the
-  // validation.
+  /**
+   * The attribute type that should hold the certificates to use for the
+   * validation.
+   */
   private AttributeType certificateAttributeType;
 
-  // Indicates whether to attempt to validate the certificate presented by the
-  // client with a certificate in the user's entry.
+  /**
+   * Indicates whether to attempt to validate the certificate presented by the
+   * client with a certificate in the user's entry.
+   */
   private CertificateValidationPolicy validationPolicy;
 
-  // The current configuration for this SASL mechanism handler.
+  /** The current configuration for this SASL mechanism handler. */
   private ExternalSASLMechanismHandlerCfg currentConfig;
 
 
@@ -90,9 +94,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    ExternalSASLMechanismHandlerCfg configuration)
@@ -133,9 +135,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -146,9 +146,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -319,9 +317,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -331,9 +327,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -343,9 +337,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -358,9 +350,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       ExternalSASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -370,9 +360,7 @@ public class ExternalSASLMechanismHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
               ExternalSASLMechanismHandlerCfg configuration)
   {

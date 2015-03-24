@@ -1379,7 +1379,7 @@ public class CryptoManagerImpl
       return fValue.hashCode();
     }
 
-    // state
+    /** State. */
     private final UUID fValue;
   }
 
@@ -1532,7 +1532,7 @@ public class CryptoManagerImpl
       return fIsCompromised;
     }
 
-    // state
+    /** State. */
     private final KeyEntryID fKeyID;
     private final SecretKey fSecretKey;
     private final int fKeyLengthBits;
@@ -1982,7 +1982,7 @@ public class CryptoManagerImpl
       return fIVLengthBits;
     }
 
-    // state
+    /** State. */
     private final String fType;
     private int fIVLengthBits = -1;
   }
@@ -2434,7 +2434,7 @@ public class CryptoManagerImpl
       return fType;
     }
 
-    // state
+    /** State. */
     private final String fType;
   }
 

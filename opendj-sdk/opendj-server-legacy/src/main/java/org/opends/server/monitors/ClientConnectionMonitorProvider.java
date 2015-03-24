@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -56,8 +56,10 @@ public class ClientConnectionMonitorProvider extends
     MonitorProvider<ClientConnectionMonitorProviderCfg>
 {
 
-  // The connection handler associated with this monitor, or null if all
-  // connection handlers should be monitored.
+  /**
+   * The connection handler associated with this monitor, or null if all
+   * connection handlers should be monitored.
+   */
   private final ConnectionHandler<?> handler;
 
 
@@ -86,9 +88,7 @@ public class ClientConnectionMonitorProvider extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(
       ClientConnectionMonitorProviderCfg configuration)

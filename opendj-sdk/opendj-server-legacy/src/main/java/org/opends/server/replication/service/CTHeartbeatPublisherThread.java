@@ -80,13 +80,10 @@ class CTHeartbeatPublisherThread extends DirectoryThread
     this.serverId = serverId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void run()
   {
-    long lastHeartbeatTime = 0;
     try
     {
       if (logger.isTraceEnabled())
@@ -102,7 +99,6 @@ class CTHeartbeatPublisherThread extends DirectoryThread
         {
           final CSN csn = new CSN(now, 0, serverId);
           session.publish(new ChangeTimeHeartbeatMsg(csn));
-          lastHeartbeatTime = csn.getTime();
         }
 
         long sleepTime = session.getLastPublishTime() + heartbeatInterval - now;

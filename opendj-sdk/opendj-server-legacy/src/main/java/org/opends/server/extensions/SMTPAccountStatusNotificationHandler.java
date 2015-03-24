@@ -98,14 +98,14 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  // A mapping between the notification types and the message template.
+  /** A mapping between the notification types and the message template. */
   private HashMap<AccountStatusNotificationType,
                   List<NotificationMessageTemplateElement>> templateMap;
 
-  // A mapping between the notification types and the message subject.
+  /** A mapping between the notification types and the message subject. */
   private HashMap<AccountStatusNotificationType,String> subjectMap;
 
-  // The current configuration for this account status notification handler.
+  /** The current configuration for this account status notification handler. */
   private SMTPAccountStatusNotificationHandlerCfg currentConfig;
 
 
@@ -121,9 +121,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeStatusNotificationHandler(
                    SMTPAccountStatusNotificationHandlerCfg configuration)
@@ -477,9 +475,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
@@ -493,9 +489,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleStatusNotification(AccountStatusNotification notification)
   {
@@ -659,9 +653,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SMTPAccountStatusNotificationHandlerCfg configuration,
@@ -720,9 +712,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SMTPAccountStatusNotificationHandlerCfg configuration)

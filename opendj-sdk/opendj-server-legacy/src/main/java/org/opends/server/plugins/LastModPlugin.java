@@ -64,19 +64,19 @@ public final class LastModPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The attribute type for the "createTimestamp" attribute.
+  /** The attribute type for the "createTimestamp" attribute. */
   private final AttributeType createTimestampType;
 
-  // The attribute type for the "creatorsName" attribute.
+  /** The attribute type for the "creatorsName" attribute. */
   private final AttributeType creatorsNameType;
 
-  // The attribute type for the "modifiersName" attribute.
+  /** The attribute type for the "modifiersName" attribute. */
   private final AttributeType modifiersNameType;
 
-  // The attribute type for the "modifyTimestamp" attribute.
+  /** The attribute type for the "modifyTimestamp" attribute. */
   private final AttributeType modifyTimestampType;
 
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private LastModPluginCfg currentConfig;
 
 
@@ -107,9 +107,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      LastModPluginCfg configuration)
@@ -137,9 +135,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -148,9 +144,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
@@ -189,9 +183,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -250,9 +242,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
@@ -289,9 +279,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -302,9 +290,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(LastModPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -335,9 +321,7 @@ public final class LastModPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  LastModPluginCfg configuration)

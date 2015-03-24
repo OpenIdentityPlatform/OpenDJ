@@ -39,20 +39,16 @@ import java.util.zip.Checksum;
  */
 public class GenerationIdChecksum implements Checksum
 {
-  // Checksum to be returned.
+  /** Checksum to be returned. */
   private long checksum;
 
-  /**
-   * This is the generation id for an empty backend.
-   */
+  /** This is the generation id for an empty backend. */
   public static final long EMPTY_BACKEND_GENERATION_ID = 48L;
 
-  /**
-   * Update the checksum with one added byte.
-   */
+  /** Update the checksum with one added byte. */
   private void updateWithOneByte(byte b)
   {
-    /**
+    /*
      * The "end of line" code is CRLF under windows but LF on UNIX. So to get
      * the same checksum value on every platforms, we always exclude the CR and
      * LF characters from the computation.
@@ -63,17 +59,13 @@ public class GenerationIdChecksum implements Checksum
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(int b)
   {
     updateWithOneByte((byte) b);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(byte[] b, int off, int len)
   {
     for (int i = off; i < (off + len); i++)
@@ -82,9 +74,7 @@ public class GenerationIdChecksum implements Checksum
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public long getValue()
   {
     if (checksum != 0L)
@@ -92,18 +82,18 @@ public class GenerationIdChecksum implements Checksum
       return checksum;
     } else
     {
-      // Computing an empty backend writes the number of entries (0) only, which
-      // will not be added to the checksum as no entries will follow. To treat
-      // this special case, and to keep consistency with old versions, in that
-      // case we hardcode and return the generation id value for an empty
-      // backend.
+      /*
+       * Computing an empty backend writes the number of entries (0) only,
+       * will not be added to the checksum as no entries will follow. To treat
+       * this special case, and to keep consistency with old versions, in that
+       * case we hardcode and return the generation id value for an empty
+       * backend.
+       */
       return EMPTY_BACKEND_GENERATION_ID;
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void reset()
   {
     checksum = 0L;

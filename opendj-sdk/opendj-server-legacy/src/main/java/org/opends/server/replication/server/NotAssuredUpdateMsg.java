@@ -47,7 +47,7 @@ import org.opends.server.replication.protocol.*;
  */
 class NotAssuredUpdateMsg extends UpdateMsg
 {
-  /** The real update message this message represents */
+  /** The real update message this message represents. */
   private final UpdateMsg realUpdateMsg;
 
   /**

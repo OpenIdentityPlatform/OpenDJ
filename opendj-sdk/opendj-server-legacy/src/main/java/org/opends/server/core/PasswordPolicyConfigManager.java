@@ -186,9 +186,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
@@ -201,9 +199,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(AuthenticationPolicyCfg configuration)
   {
@@ -235,9 +231,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
@@ -257,9 +251,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(AuthenticationPolicyCfg configuration)
   {
@@ -283,9 +275,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void checkSubentryAddAcceptable(Entry entry) throws DirectoryException
   {
@@ -297,9 +287,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void checkSubentryDeleteAcceptable(Entry entry)
       throws DirectoryException
@@ -311,9 +299,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void checkSubentryModifyAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
@@ -326,9 +312,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void checkSubentryModifyDNAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
@@ -340,9 +324,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleSubentryAdd(Entry entry)
   {
@@ -363,9 +345,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleSubentryDelete(Entry entry)
   {
@@ -377,9 +357,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleSubentryModify(Entry oldEntry, Entry newEntry)
   {
@@ -407,9 +385,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleSubentryModifyDN(Entry oldEntry, Entry newEntry)
   {
@@ -437,8 +413,10 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  // Creates and registers the provided authentication policy
-  // configuration.
+  /**
+   * Creates and registers the provided authentication policy
+   * configuration.
+   */
   private <T extends AuthenticationPolicyCfg> void createAuthenticationPolicy(
       T policyConfiguration) throws ConfigException, InitializationException
   {
@@ -492,8 +470,10 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
 
 
-  // Determines whether or not the new authentication policy configuration's
-  // implementation class is acceptable.
+  /**
+   * Determines whether or not the new authentication policy configuration's
+   * implementation class is acceptable.
+   */
   private <T extends AuthenticationPolicyCfg> boolean isAuthenticationPolicyConfigurationAcceptable(
       T policyConfiguration,
       List<LocalizableMessage> unacceptableReasons)

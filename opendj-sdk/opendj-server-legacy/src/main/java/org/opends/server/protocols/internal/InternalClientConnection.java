@@ -2356,9 +2356,7 @@ public final class InternalClientConnection
     return 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSSF() {
       //Always return strongest value.

@@ -187,7 +187,7 @@ class ReplicationDB
   }
 
   /**
-   * add one change to the underlying db.
+   * Add one change to the underlying db.
    *
    * @param change
    *          The change to add to the underlying db.

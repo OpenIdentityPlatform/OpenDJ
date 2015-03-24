@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -99,7 +99,7 @@ class AsynchronousTextWriter
     }
 
     /**
-     * the run method of the writerThread. Run until queue is empty
+     * The run method of the writerThread. Run until queue is empty
      * AND we've been asked to terminate
      */
     @Override
@@ -179,18 +179,14 @@ class AsynchronousTextWriter
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void flush()
   {
     writer.flush();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getBytesWritten()
   {
@@ -207,18 +203,14 @@ class AsynchronousTextWriter
     return writer;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
     return "AsynchronousTextWriter Thread " + name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
@@ -228,9 +220,7 @@ class AsynchronousTextWriter
     shutdown(false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void shutdown()
   {

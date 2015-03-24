@@ -67,8 +67,10 @@ public class AttributeSyntaxConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated
-  // attribute syntaxes.
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * attribute syntaxes.
+   */
   private ConcurrentHashMap<DN,AttributeSyntax> syntaxes;
 
   private final ServerContext serverContext;
@@ -152,9 +154,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -182,9 +182,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  AttributeSyntaxCfg configuration)
@@ -230,9 +228,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -264,9 +260,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AttributeSyntaxCfg configuration)
@@ -285,9 +279,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -337,9 +329,7 @@ public class AttributeSyntaxConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AttributeSyntaxCfg configuration)

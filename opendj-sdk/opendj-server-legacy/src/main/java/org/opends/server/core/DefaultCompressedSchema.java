@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -56,7 +56,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Synchronizes calls to save.
+  /** Synchronizes calls to save. */
   private final Object saveLock = new Object();
 
 
@@ -71,9 +71,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
       final String attributeName, final Collection<String> attributeOptions)
@@ -84,9 +82,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void storeObjectClasses(final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames) throws DirectoryException

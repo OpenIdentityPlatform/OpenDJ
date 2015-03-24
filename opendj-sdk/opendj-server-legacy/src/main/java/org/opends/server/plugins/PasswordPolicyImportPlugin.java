@@ -75,25 +75,31 @@ public final class PasswordPolicyImportPlugin
 
 
 
-  // The attribute type used to specify the password policy for an entry.
+  /** The attribute type used to specify the password policy for an entry. */
   private AttributeType customPolicyAttribute;
 
-  // The set of attribute types defined in the schema with the auth password
-  // syntax.
+  /**
+   * The set of attribute types defined in the schema with the auth password
+   * syntax.
+   */
   private AttributeType[] authPasswordTypes;
 
-  // The set of attribute types defined in the schema with the user password
-  // syntax.
+  /**
+   * The set of attribute types defined in the schema with the user password
+   * syntax.
+   */
   private AttributeType[] userPasswordTypes;
 
-  // The set of password storage schemes to use for the various password
-  // policies defined in the server.
+  /**
+   * The set of password storage schemes to use for the various password
+   * policies defined in the server.
+   */
   private HashMap<DN,PasswordStorageScheme<?>[]> schemesByPolicy;
 
-  // The default password storage schemes for auth password attributes.
+  /** The default password storage schemes for auth password attributes. */
   private PasswordStorageScheme<?>[] defaultAuthPasswordSchemes;
 
-  // The default password storage schemes for user password attributes.
+  /** The default password storage schemes for user password attributes. */
   private PasswordStorageScheme<?>[] defaultUserPasswordSchemes;
 
 
@@ -111,9 +117,7 @@ public final class PasswordPolicyImportPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                          PasswordPolicyImportPluginCfg configuration)
@@ -241,9 +245,7 @@ public final class PasswordPolicyImportPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processImportBegin(Backend backend, LDIFImportConfig config)
   {
     // Find the set of attribute types with the auth password and user password
@@ -295,9 +297,7 @@ public final class PasswordPolicyImportPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void processImportEnd(Backend backend, LDIFImportConfig config,
                                boolean successful)
   {
@@ -306,9 +306,7 @@ public final class PasswordPolicyImportPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
@@ -558,9 +556,7 @@ policyLoop:
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -572,9 +568,7 @@ policyLoop:
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       PasswordPolicyImportPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -684,9 +678,7 @@ policyLoop:
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordPolicyImportPluginCfg configuration)
   {

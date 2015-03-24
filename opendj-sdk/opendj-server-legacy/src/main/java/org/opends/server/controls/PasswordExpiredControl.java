@@ -55,9 +55,7 @@ public class PasswordExpiredControl
   private static final class Decoder
       implements ControlDecoder<PasswordExpiredControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PasswordExpiredControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {

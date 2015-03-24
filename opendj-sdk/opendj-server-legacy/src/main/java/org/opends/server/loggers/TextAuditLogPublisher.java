@@ -60,9 +60,7 @@ public final class TextAuditLogPublisher extends
   private TextWriter writer;
   private FileBasedAuditLogPublisherCfg cfg;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedAuditLogPublisherCfg config)
@@ -156,9 +154,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void close0()
   {
@@ -168,9 +164,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(FileBasedAuditLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -232,9 +226,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       FileBasedAuditLogPublisherCfg configuration,
@@ -246,9 +238,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedAuditLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -277,9 +267,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void logAddResponse(AddOperation addOperation)
   {
@@ -327,9 +315,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
@@ -353,9 +339,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
@@ -402,9 +386,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
@@ -479,7 +461,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  // Appends the common log header information to the provided buffer.
+  /** Appends the common log header information to the provided buffer. */
   private void appendHeader(Operation operation, StringBuilder buffer)
   {
     buffer.append("# ");
@@ -543,7 +525,7 @@ public final class TextAuditLogPublisher extends
 
 
 
-  // Determines whether the provided operation should be logged.
+  /** Determines whether the provided operation should be logged. */
   private boolean isLoggable(Operation operation)
   {
     return operation.getResultCode() == SUCCESS

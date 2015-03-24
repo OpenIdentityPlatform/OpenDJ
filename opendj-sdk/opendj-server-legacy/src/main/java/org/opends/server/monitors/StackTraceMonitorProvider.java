@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -47,9 +47,7 @@ import org.opends.server.types.*;
 public class StackTraceMonitorProvider
        extends MonitorProvider<StackTraceMonitorProviderCfg>
 {
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(
                    StackTraceMonitorProviderCfg configuration)
          throws ConfigException, InitializationException

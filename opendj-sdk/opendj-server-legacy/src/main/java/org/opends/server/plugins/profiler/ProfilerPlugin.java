@@ -93,13 +93,13 @@ public final class ProfilerPlugin
 
 
 
-  // The DN of the configuration entry for this plugin.
+  /** The DN of the configuration entry for this plugin. */
   private DN configEntryDN;
 
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private ProfilerPluginCfg currentConfig;
 
-  // The thread that is actually capturing the profile information.
+  /** The thread that is actually capturing the profile information. */
   private ProfilerThread profilerThread;
 
 
@@ -118,9 +118,7 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ProfilerPluginCfg configuration)
@@ -161,9 +159,7 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -196,9 +192,7 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.Startup doStartup()
   {
@@ -216,9 +210,7 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -229,9 +221,7 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ProfilerPluginCfg configuration,

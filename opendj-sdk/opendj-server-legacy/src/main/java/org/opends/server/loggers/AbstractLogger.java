@@ -233,9 +233,7 @@ public abstract class AbstractLogger
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(C config,
       List<LocalizableMessage> unacceptableReasons)
@@ -244,9 +242,7 @@ public abstract class AbstractLogger
         isJavaClassAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(C config,
       List<LocalizableMessage> unacceptableReasons)
@@ -255,9 +251,7 @@ public abstract class AbstractLogger
         isJavaClassAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(C config)
   {
@@ -300,9 +294,7 @@ public abstract class AbstractLogger
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(C config)
   {
@@ -342,9 +334,7 @@ public abstract class AbstractLogger
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(C config,
       List<LocalizableMessage> unacceptableReasons)
@@ -352,9 +342,7 @@ public abstract class AbstractLogger
     return findLogPublisher(config.dn()) != null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(C config)
   {

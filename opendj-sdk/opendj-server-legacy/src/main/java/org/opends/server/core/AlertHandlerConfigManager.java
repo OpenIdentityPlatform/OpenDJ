@@ -135,9 +135,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(AlertHandlerCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -164,9 +162,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(AlertHandlerCfg configuration)
   {
@@ -205,9 +201,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       AlertHandlerCfg configuration,
@@ -220,9 +214,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AlertHandlerCfg configuration)
@@ -241,9 +233,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -270,9 +260,7 @@ public class AlertHandlerConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AlertHandlerCfg configuration)

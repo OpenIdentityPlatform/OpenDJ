@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -40,7 +40,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 public class ErrorMsg extends RoutableMsg
 {
-  /** The tracer object for the debug logger */
+  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Specifies the messageID built from the error that was detected. */

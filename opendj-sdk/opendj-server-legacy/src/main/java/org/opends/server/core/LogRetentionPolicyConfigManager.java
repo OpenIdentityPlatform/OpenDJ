@@ -100,9 +100,7 @@ public class LogRetentionPolicyConfigManager implements
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -111,9 +109,7 @@ public class LogRetentionPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -123,9 +119,7 @@ public class LogRetentionPolicyConfigManager implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRetentionPolicyCfg config)
   {
@@ -152,9 +146,7 @@ public class LogRetentionPolicyConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRetentionPolicyCfg config)
@@ -175,9 +167,7 @@ public class LogRetentionPolicyConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -186,9 +176,7 @@ public class LogRetentionPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRetentionPolicyCfg configuration)

@@ -49,13 +49,13 @@ import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
     implements LogPublisher<T>
 {
-  //The default global settings key.
+  /** The default global settings key. */
   private static final String GLOBAL= "_global";
 
-  //The map of class names to their trace settings.
+  /** The map of class names to their trace settings. */
   private Map<String,TraceSettings> classTraceSettings;
 
-  //The map of class names to their method trace settings.
+  /** The map of class names to their method trace settings. */
   private Map<String,Map<String,TraceSettings>> methodTraceSettings;
 
 

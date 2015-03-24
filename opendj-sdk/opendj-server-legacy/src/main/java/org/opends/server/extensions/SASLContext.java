@@ -96,40 +96,40 @@ public class SASLContext implements CallbackHandler,
 
 
 
-  // The SASL server to use in the authentication.
+  /** The SASL server to use in the authentication. */
   private SaslServer saslServer;
 
-  // The identity mapper to use when mapping identities.
+  /** The identity mapper to use when mapping identities. */
   private final IdentityMapper<?> identityMapper;
 
-  // The property set to use when creating the SASL server.
+  /** The property set to use when creating the SASL server. */
   private final HashMap<String, String> saslProps;
 
-  // The fully qualified domain name to use when creating the SASL server.
+  /** The fully qualified domain name to use when creating the SASL server. */
   private final String serverFQDN;
 
-  // The SASL mechanism name.
+  /** The SASL mechanism name. */
   private final String mechanism;
 
-  // The authorization entry used in the authentication.
+  /** The authorization entry used in the authentication. */
   private Entry authEntry;
 
-  // The authorization entry used in the authentication.
+  /** The authorization entry used in the authentication. */
   private Entry authzEntry;
 
-  // The user name used in the authentication taken from the name callback.
+  /** The user name used in the authentication taken from the name callback. */
   private String userName;
 
-  // Error message used by callbacks.
+  /** Error message used by callbacks. */
   private LocalizableMessage cbMsg;
 
-  // Error code used by callbacks.
+  /** Error code used by callbacks. */
   private ResultCode cbResultCode;
 
-  // The current bind operation used by the callbacks.
+  /** The current bind operation used by the callbacks. */
   private BindOperation bindOp;
 
-  // Used to check if negotiated QOP is confidentiality or integrity.
+  /** Used to check if negotiated QOP is confidentiality or integrity. */
   private static final String confidentiality = "auth-conf";
   private static final String integrity = "auth-int";
 

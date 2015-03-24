@@ -71,13 +71,13 @@ public class SubjectDNToUserAttributeCertificateMapper
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The DN of the configuration entry for this certificate mapper.
+  /** The DN of the configuration entry for this certificate mapper. */
   private DN configEntryDN;
 
-  // The current configuration for this certificate mapper.
+  /** The current configuration for this certificate mapper. */
   private SubjectDNToUserAttributeCertificateMapperCfg currentConfig;
 
-  // The set of attributes to return in search result entries.
+  /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
 
@@ -93,9 +93,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
                    SubjectDNToUserAttributeCertificateMapperCfg
@@ -136,9 +134,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
@@ -147,9 +143,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
@@ -264,9 +258,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -278,9 +270,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SubjectDNToUserAttributeCertificateMapperCfg
@@ -292,9 +282,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SubjectDNToUserAttributeCertificateMapperCfg

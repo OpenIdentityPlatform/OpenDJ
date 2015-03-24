@@ -74,9 +74,7 @@ public class VLVResponseControl
   private static final class Decoder
       implements ControlDecoder<VLVResponseControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public VLVResponseControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -112,9 +110,7 @@ public class VLVResponseControl
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID()
     {
       return OID_VLV_RESPONSE_CONTROL;
@@ -127,16 +123,16 @@ public class VLVResponseControl
   public static final ControlDecoder<VLVResponseControl> DECODER =
     new Decoder();
 
-  // The context ID for this VLV response control.
+  /** The context ID for this VLV response control. */
   private ByteString contextID;
 
-  // The content count estimating the total number of entries in the result set.
+  /** The content count estimating the total number of entries in the result set. */
   private int contentCount;
 
-  // The offset of the target entry in the result set.
+  /** The offset of the target entry in the result set. */
   private int targetPosition;
 
-  // The result code for the VLV operation.
+  /** The result code for the VLV operation. */
   private int vlvResultCode;
 
 

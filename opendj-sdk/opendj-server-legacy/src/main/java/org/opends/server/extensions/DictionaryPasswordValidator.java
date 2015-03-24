@@ -59,10 +59,10 @@ public class DictionaryPasswordValidator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private DictionaryPasswordValidatorCfg currentConfig;
 
-  // The current dictionary that we should use when performing the validation.
+  /** The current dictionary that we should use when performing the validation. */
   private HashSet<String> dictionary;
 
 
@@ -80,9 +80,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    DictionaryPasswordValidatorCfg configuration)
@@ -96,9 +94,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -107,9 +103,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -226,9 +220,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -240,9 +232,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       DictionaryPasswordValidatorCfg configuration,
@@ -275,9 +265,7 @@ public class DictionaryPasswordValidator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       DictionaryPasswordValidatorCfg configuration)

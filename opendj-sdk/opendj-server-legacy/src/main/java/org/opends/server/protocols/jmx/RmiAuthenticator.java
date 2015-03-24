@@ -25,26 +25,30 @@
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
-import org.forgerock.i18n.LocalizableMessage;
 
-import java.util.*;
+import static org.opends.messages.ProtocolMessages.*;
+
+import java.util.ArrayList;
 
 import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.CoreMessages;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.messages.CoreMessages;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-
-import static org.opends.messages.ProtocolMessages.*;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Privilege;
 
 /**
  * A <code>RMIAuthenticator</code> manages authentication for the secure
@@ -102,49 +106,29 @@ public class RmiAuthenticator implements JMXAuthenticator
    * @return a <code>Subject</code> holding the principal(s)
    *         authenticated
    */
+  @Override
   public Subject authenticate(Object credentials)
   {
-    //
-    // If we are in the finalized phase, we should not accept
-    // new connection
-    if (finalizedPhase)
+    // If we are in the finalized phase, we should not accept new connection
+    if (finalizedPhase
+        || credentials == null)
     {
-      SecurityException se = new SecurityException();
-      throw se;
-    }
-
-    //
-    // Credentials are null !!!
-    if (credentials == null)
-    {
-      SecurityException se = new SecurityException();
-      throw se;
+      throw new SecurityException();
     }
     Object c[] = (Object[]) credentials;
     String authcID = (String) c[0];
     String password = (String) c[1];
 
-    //
-    // The authcID is used at forwarder level to identify the calling
-    // client
+    // The authcID is used at forwarder level to identify the calling client
     if (authcID == null)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("User name is Null");
-      }
-      SecurityException se = new SecurityException();
-      throw se;
+      logger.trace("User name is Null");
+      throw new SecurityException();
     }
     if (password == null)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("User password is Null ");
-      }
-
-      SecurityException se = new SecurityException();
-      throw se;
+      logger.trace("User password is Null ");
+      throw new SecurityException();
     }
 
     if (logger.isTraceEnabled())
@@ -152,11 +136,9 @@ public class RmiAuthenticator implements JMXAuthenticator
       logger.trace("UserName = %s", authcID);
     }
 
-    //
     // Declare the client connection
     JmxClientConnection jmxClientConnection;
 
-    //
     // Try to see if we have an Ldap Authentication
     // Which should be the case in the current implementation
     try
@@ -170,7 +152,6 @@ public class RmiAuthenticator implements JMXAuthenticator
       throw se;
     }
 
-    //
     // If we've gotten here, then the authentication was
     // successful. We'll take the connection so
     // invoke the post-connect plugins.
@@ -191,16 +172,13 @@ public class RmiAuthenticator implements JMXAuthenticator
             pluginResult.getErrorMessage());
       }
 
-      SecurityException se = new SecurityException();
-      throw se;
+      throw new SecurityException();
     }
 
     // initialize a subject
     Subject s = new Subject();
 
-    //
     // Add the Principal. The current implementation doesn't use it
-
     s.getPrincipals().add(new OpendsJmxPrincipal(authcID));
 
     // add the connection client object
@@ -209,7 +187,6 @@ public class RmiAuthenticator implements JMXAuthenticator
     s.getPrivateCredentials().add(new Credential(jmxClientConnection));
 
     return s;
-
   }
 
   /**
@@ -224,12 +201,9 @@ public class RmiAuthenticator implements JMXAuthenticator
   {
     ArrayList<Control> requestControls = new ArrayList<Control>();
 
-    //
-    // We have a new client connection
-    DN bindDN;
     try
     {
-      bindDN = DN.valueOf(authcID);
+      DN.valueOf(authcID);
     }
     catch (Exception e)
     {
@@ -285,7 +259,6 @@ public class RmiAuthenticator implements JMXAuthenticator
     }
     else
     {
-      //
       // Set the initcause.
       LDAPException ldapEx = new LDAPException(
           LDAPResultCode.INVALID_CREDENTIALS,

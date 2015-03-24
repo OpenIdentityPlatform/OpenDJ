@@ -42,7 +42,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
-
 /**
  * This class defines a monitor provider that reports information about
  * Directory Server memory usage.
@@ -51,26 +50,24 @@ public class MemoryUsageMonitorProvider
        extends MonitorProvider<MemoryUsageMonitorProviderCfg>
        implements Runnable
 {
-  // A map of the last GC counts seen by this monitor for calculating recent
-  // stats.
+  /** A map of the last GC counts seen by this monitor for calculating recent stats. */
   private HashMap<String,Long> lastGCCounts = new HashMap<String,Long>();
 
-  // A map of the last GC times seen by this monitor for calculating recent
-  // stats.
+  /** A map of the last GC times seen by this monitor for calculating recent stats. */
   private HashMap<String,Long> lastGCTimes = new HashMap<String,Long>();
 
-  // A map of the most recent GC durations seen by this monitor.
+  /** A map of the most recent GC durations seen by this monitor. */
   private HashMap<String,Long> recentGCDurations = new HashMap<String,Long>();
 
-  // A map of the memory manager names to names that are safe for use in
-  // attribute names.
+  /**
+   * A map of the memory manager names to names that are safe for use in
+   * attribute names.
+   */
   private HashMap<String,String> gcSafeNames = new HashMap<String,String>();
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(
                    MemoryUsageMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -78,9 +75,7 @@ public class MemoryUsageMonitorProvider
     scheduleUpdate(this, 0, 1, TimeUnit.SECONDS);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -88,9 +83,7 @@ public class MemoryUsageMonitorProvider
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void run()
   {
     for (GarbageCollectorMXBean gc :
@@ -125,9 +118,7 @@ public class MemoryUsageMonitorProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ArrayList<Attribute> getMonitorData()
   {

@@ -22,12 +22,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
-
 package org.opends.server.extensions;
-
-
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,8 +33,6 @@ import java.security.cert.Certificate;
 
 import org.opends.server.api.ClientConnection;
 
-
-
 /**
  * This class implements a SASL byte channel that can be used during
  * confidentiality and integrity.
@@ -45,15 +40,11 @@ import org.opends.server.api.ClientConnection;
 public final class SASLByteChannel implements ConnectionSecurityProvider
 {
 
-  /**
-   * Private implementation.
-   */
+  /** Private implementation. */
   private final class ByteChannelImpl implements ByteChannel
   {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException
     {
@@ -69,9 +60,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isOpen()
     {
@@ -80,9 +69,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read(final ByteBuffer unwrappedData) throws IOException
     {
@@ -122,9 +109,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int write(final ByteBuffer unwrappedData) throws IOException
     {
@@ -181,7 +166,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-    // Attempt to read and unwrap the next SASL packet.
+    /** Attempt to read and unwrap the next SASL packet. */
     private int doRecvAndUnwrap() throws IOException
     {
       // Read SASL packets until some unwrapped data is produced or no more
@@ -335,9 +320,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteChannel getChannel()
   {
@@ -346,9 +329,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Certificate[] getClientCertificateChain()
   {
@@ -357,9 +338,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getName()
   {
@@ -368,9 +347,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
@@ -379,9 +356,7 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {

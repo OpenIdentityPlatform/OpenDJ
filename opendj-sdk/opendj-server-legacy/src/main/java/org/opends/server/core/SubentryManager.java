@@ -83,26 +83,26 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs and applicable subentries.
+  /** A mapping between the DNs and applicable subentries. */
   private HashMap<DN,List<SubEntry>> dn2SubEntry;
 
-  // A mapping between the DNs and applicable collective subentries.
+  /** A mapping between the DNs and applicable collective subentries. */
   private HashMap<DN,List<SubEntry>> dn2CollectiveSubEntry;
 
-  // A mapping between subentry DNs and subentry objects.
+  /** A mapping between subentry DNs and subentry objects. */
   private DITCacheMap<SubEntry> dit2SubEntry;
 
-  // Internal search all operational attributes.
+  /** Internal search all operational attributes. */
   private LinkedHashSet<String> requestAttrs;
 
-  // Lock to protect internal data structures.
+  /** Lock to protect internal data structures. */
   private final ReentrantReadWriteLock lock;
 
-  // The set of change notification listeners.
+  /** The set of change notification listeners. */
   private CopyOnWriteArrayList<SubentryChangeListener>
                changeListeners;
 
-  // Dummy configuration DN for Subentry Manager.
+  /** Dummy configuration DN for Subentry Manager. */
   private static final String CONFIG_DN = "cn=Subentry Manager,cn=config";
 
   /**
@@ -865,9 +865,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationAddOperation addOperation)
@@ -905,9 +903,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationDeleteOperation deleteOperation)
@@ -962,9 +958,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationModifyOperation modifyOperation)
@@ -1005,9 +999,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
@@ -1068,9 +1060,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
@@ -1086,9 +1076,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
@@ -1104,9 +1092,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
@@ -1123,9 +1109,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
@@ -1142,9 +1126,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationAddOperation addOperation)
@@ -1156,9 +1138,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationDeleteOperation deleteOperation)
@@ -1170,9 +1150,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyOperation modifyOperation)
@@ -1185,9 +1163,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyDNOperation modifyDNOperation)

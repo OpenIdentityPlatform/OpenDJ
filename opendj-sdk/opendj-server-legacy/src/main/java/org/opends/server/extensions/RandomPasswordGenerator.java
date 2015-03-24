@@ -60,37 +60,39 @@ public class RandomPasswordGenerator
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private RandomPasswordGeneratorCfg currentConfig;
 
-  // The encoded list of character sets defined for this password generator.
+  /** The encoded list of character sets defined for this password generator. */
   private SortedSet<String> encodedCharacterSets;
 
-  // The DN of the configuration entry for this password generator.
+  /** The DN of the configuration entry for this password generator. */
   private DN configEntryDN;
 
-  // The total length of the password that will be generated.
+  /** The total length of the password that will be generated. */
   private int totalLength;
 
-  // The numbers of characters of each type that should be used to generate the
-  // passwords.
+  /**
+   * The numbers of characters of each type that should be used to generate the
+   * passwords.
+   */
   private int[] characterCounts;
 
-  // The character sets that should be used to generate the passwords.
+  /** The character sets that should be used to generate the passwords. */
   private NamedCharacterSet[] characterSets;
 
-  // The lock to use to ensure that the character sets and counts are not
-  // altered while a password is being generated.
+  /**
+   * The lock to use to ensure that the character sets and counts are not
+   * altered while a password is being generated.
+   */
   private Object generatorLock;
 
-  // The character set format string for this password generator.
+  /** The character set format string for this password generator. */
   private String formatString;
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordGenerator(
       RandomPasswordGeneratorCfg configuration)
@@ -216,9 +218,7 @@ public class RandomPasswordGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordGenerator()
   {
@@ -258,9 +258,7 @@ public class RandomPasswordGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordGeneratorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -272,9 +270,7 @@ public class RandomPasswordGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       RandomPasswordGeneratorCfg configuration,
@@ -374,9 +370,7 @@ public class RandomPasswordGenerator
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       RandomPasswordGeneratorCfg configuration)

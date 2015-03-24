@@ -82,17 +82,19 @@ public class JMXAlertHandler
 
 
 
-  // The current configuration for this alert handler.
+  /** The current configuration for this alert handler. */
   private AlertHandlerCfg currentConfig;
 
-  // The sequence number generator used for this alert handler.
+  /** The sequence number generator used for this alert handler. */
   private AtomicLong sequenceNumber;
 
-  // The DN of the configuration entry with which this alert handler is
-  // associated.
+  /**
+   * The DN of the configuration entry with which this alert handler is
+   * associated.
+   */
   private DN configEntryDN;
 
-  // The JMX object name used for this JMX alert handler.
+  /** The JMX object name used for this JMX alert handler. */
   private ObjectName objectName;
 
 
@@ -109,9 +111,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeAlertHandler(JMXAlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
@@ -158,9 +158,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public AlertHandlerCfg getAlertHandlerConfiguration()
   {
     return currentConfig;
@@ -168,9 +166,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
@@ -180,9 +176,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void finalizeAlertHandler()
   {
     // No action is required.
@@ -202,9 +196,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     LocalizableMessage alertMessage)
   {
@@ -379,9 +371,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       JMXAlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -391,9 +381,7 @@ public class JMXAlertHandler
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                         JMXAlertHandlerCfg configuration)
   {

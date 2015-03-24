@@ -131,9 +131,7 @@ public class ExtendedOperationConfigManager implements
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
        ExtendedOperationHandlerCfg configuration)
@@ -149,9 +147,7 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -161,9 +157,7 @@ public class ExtendedOperationConfigManager implements
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
        ExtendedOperationHandlerCfg configuration)
@@ -222,9 +216,7 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -233,9 +225,7 @@ public class ExtendedOperationConfigManager implements
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
        ExtendedOperationHandlerCfg configuration)
@@ -280,9 +270,7 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -292,7 +280,7 @@ public class ExtendedOperationConfigManager implements
     return true;
   }
 
-  // Load and initialize the handler named in the config.
+  /** Load and initialize the handler named in the config. */
   private ExtendedOperationHandler getHandler(
       ExtendedOperationHandlerCfg config) throws ConfigException
   {
@@ -320,8 +308,10 @@ public class ExtendedOperationConfigManager implements
 
 
 
-  // Determines whether or not the new configuration's implementation
-  // class is acceptable.
+  /**
+   * Determines whether or not the new configuration's implementation
+   * class is acceptable.
+   */
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
                                         List<LocalizableMessage> unacceptableReasons)
   {

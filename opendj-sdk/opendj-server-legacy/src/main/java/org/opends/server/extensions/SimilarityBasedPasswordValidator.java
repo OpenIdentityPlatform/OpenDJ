@@ -51,7 +51,7 @@ public class SimilarityBasedPasswordValidator extends
     ConfigurationChangeListener<SimilarityBasedPasswordValidatorCfg>
 {
 
-  // The current configuration for this password validator.
+  /** The current configuration for this password validator. */
   private SimilarityBasedPasswordValidatorCfg currentConfig;
 
 
@@ -67,9 +67,7 @@ public class SimilarityBasedPasswordValidator extends
     // method.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    SimilarityBasedPasswordValidatorCfg configuration)
@@ -80,9 +78,7 @@ public class SimilarityBasedPasswordValidator extends
     currentConfig = configuration;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
@@ -91,9 +87,7 @@ public class SimilarityBasedPasswordValidator extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -131,9 +125,7 @@ public class SimilarityBasedPasswordValidator extends
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       SimilarityBasedPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -141,9 +133,7 @@ public class SimilarityBasedPasswordValidator extends
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
               SimilarityBasedPasswordValidatorCfg configuration)
   {

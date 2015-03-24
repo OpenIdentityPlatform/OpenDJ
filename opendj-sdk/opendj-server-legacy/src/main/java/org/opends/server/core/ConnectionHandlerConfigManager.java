@@ -86,9 +86,7 @@ public class ConnectionHandlerConfigManager implements
     connectionHandlers = new ConcurrentHashMap<DN, ConnectionHandler<?>>();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       ConnectionHandlerCfg configuration) {
@@ -132,9 +130,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       ConnectionHandlerCfg configuration) {
@@ -202,9 +198,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ConnectionHandlerCfg configuration) {
@@ -313,9 +307,7 @@ public class ConnectionHandlerConfigManager implements
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
@@ -326,9 +318,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
@@ -339,9 +329,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       ConnectionHandlerCfg configuration,
@@ -352,7 +340,7 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  // Load and initialize the connection handler named in the config.
+  /** Load and initialize the connection handler named in the config. */
   private <T extends ConnectionHandlerCfg> ConnectionHandler<T> getConnectionHandler(
       T config) throws ConfigException
   {
@@ -380,8 +368,10 @@ public class ConnectionHandlerConfigManager implements
 
 
 
-  // Determines whether or not the new configuration's implementation
-  // class is acceptable.
+  /**
+   * Determines whether or not the new configuration's implementation
+   * class is acceptable.
+   */
   private boolean isJavaClassAcceptable(
       ConnectionHandlerCfg config,
       List<LocalizableMessage> unacceptableReasons) {

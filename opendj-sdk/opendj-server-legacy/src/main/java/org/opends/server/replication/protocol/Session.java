@@ -91,7 +91,8 @@ public final class Session extends DirectoryThread implements Closeable
    * initial single threaded handshake.
    */
   private short protocolVersion = ProtocolVersion.getCurrentVersion();
-  private boolean isEncrypted = true; // Initially encrypted.
+  /** Initially encrypted. */
+  private boolean isEncrypted = true;
 
   /**
    * Use a buffered input stream to avoid too many system calls.

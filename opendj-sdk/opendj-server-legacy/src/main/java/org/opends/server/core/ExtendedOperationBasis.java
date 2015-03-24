@@ -121,9 +121,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String getRequestOID()
   {
@@ -147,9 +145,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRequestValue()
   {
@@ -173,9 +169,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String getResponseOID()
   {
@@ -184,9 +178,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setResponseOID(String responseOID)
   {
@@ -195,9 +187,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getResponseValue()
   {
@@ -206,9 +196,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setResponseValue(ByteString responseValue)
   {
@@ -216,9 +204,7 @@ public class ExtendedOperationBasis
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -229,9 +215,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
@@ -240,9 +224,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
@@ -251,9 +233,7 @@ public class ExtendedOperationBasis
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
@@ -461,9 +441,7 @@ public class ExtendedOperationBasis
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {

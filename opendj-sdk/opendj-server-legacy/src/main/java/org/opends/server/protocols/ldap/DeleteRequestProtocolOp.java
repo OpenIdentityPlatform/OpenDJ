@@ -47,7 +47,7 @@ public class DeleteRequestProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The DN for this delete request.
+  /** The DN for this delete request. */
   private ByteString dn;
 
 

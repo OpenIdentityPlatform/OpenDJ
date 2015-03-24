@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -42,7 +42,7 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class LDAPControl extends Control
 {
-  // The control value.
+  /** The control value. */
   private ByteString value;
 
 
@@ -114,9 +114,7 @@ public class LDAPControl extends Control
     return (value != null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void writeValue(ASN1Writer stream) throws IOException
   {
     if (value != null)

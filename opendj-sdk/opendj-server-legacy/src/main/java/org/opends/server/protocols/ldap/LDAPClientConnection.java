@@ -103,9 +103,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -334,9 +332,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   private static final ThreadLocal<ASN1WriterHolder> ASN1_WRITER_CACHE =
       new ThreadLocal<ASN1WriterHolder>()
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected ASN1WriterHolder initialValue()
     {
@@ -1472,9 +1468,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Selector getWriteSelector()
   {
@@ -1501,9 +1495,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getMaxBlockedWriteTimeLimit()
   {
@@ -2353,9 +2345,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorSummary()
   {
@@ -2441,9 +2431,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean prepareTLS(LocalizableMessageBuilder unavailableReason)
   {
@@ -2607,9 +2595,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
@@ -2620,9 +2606,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finishBindOrStartTLS()
   {

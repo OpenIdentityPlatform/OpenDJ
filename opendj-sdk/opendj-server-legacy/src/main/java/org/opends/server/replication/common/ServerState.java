@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -181,7 +181,7 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
-   * return a Set of String usable as a textual representation of
+   * Return a Set of String usable as a textual representation of
    * a Server state.
    * format : time seqnum id
    *

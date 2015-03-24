@@ -186,9 +186,7 @@ public class TraceSettings implements
     config.addChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(DebugTargetCfg config,
       List<LocalizableMessage> unacceptableReasons)
   {
@@ -197,9 +195,7 @@ public class TraceSettings implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(DebugTargetCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();

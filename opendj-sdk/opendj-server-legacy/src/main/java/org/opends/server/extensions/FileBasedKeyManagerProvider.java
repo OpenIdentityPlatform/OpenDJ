@@ -70,19 +70,19 @@ public class FileBasedKeyManagerProvider
 
 
 
-  // The DN of the configuration entry for this key manager provider.
+  /** The DN of the configuration entry for this key manager provider. */
   private DN configEntryDN;
 
-  // The PIN needed to access the keystore.
+  /** The PIN needed to access the keystore. */
   private char[] keyStorePIN;
 
-  // The configuration for this key manager provider.
+  /** The configuration for this key manager provider. */
   private FileBasedKeyManagerProviderCfg currentConfig;
 
-  // The path to the key store backing file.
+  /** The path to the key store backing file. */
   private String keyStoreFile;
 
-  // The key store type to use.
+  /** The key store type to use. */
   private String keyStoreType;
 
 
@@ -99,9 +99,7 @@ public class FileBasedKeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
       FileBasedKeyManagerProviderCfg configuration)
@@ -282,9 +280,7 @@ public class FileBasedKeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                         FileBasedKeyManagerProviderCfg configuration,
@@ -295,9 +291,7 @@ public class FileBasedKeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean isConfigurationChangeAcceptable(
                       FileBasedKeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -427,9 +421,7 @@ public class FileBasedKeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedKeyManagerProviderCfg configuration)
   {

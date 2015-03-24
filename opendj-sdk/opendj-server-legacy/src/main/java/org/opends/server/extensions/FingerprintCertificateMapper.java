@@ -71,16 +71,16 @@ public class FingerprintCertificateMapper
 
 
 
-  // The DN of the configuration entry for this certificate mapper.
+  /** The DN of the configuration entry for this certificate mapper. */
   private DN configEntryDN;
 
-  // The current configuration for this certificate mapper.
+  /** The current configuration for this certificate mapper. */
   private FingerprintCertificateMapperCfg currentConfig;
 
-  // The algorithm that will be used to generate the fingerprint.
+  /** The algorithm that will be used to generate the fingerprint. */
   private String fingerprintAlgorithm;
 
-  // The set of attributes to return in search result entries.
+  /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
 
@@ -96,9 +96,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
                    FingerprintCertificateMapperCfg configuration)
@@ -150,9 +148,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
@@ -161,9 +157,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
@@ -301,9 +295,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -315,9 +307,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       FingerprintCertificateMapperCfg configuration,
@@ -328,9 +318,7 @@ public class FingerprintCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               FingerprintCertificateMapperCfg configuration)

@@ -73,22 +73,22 @@ public class RegularExpressionIdentityMapper
        implements ConfigurationChangeListener<
                        RegularExpressionIdentityMapperCfg>
 {
-  // The set of attribute types to use when performing lookups.
+  /** The set of attribute types to use when performing lookups. */
   private AttributeType[] attributeTypes;
 
-  // The DN of the configuration entry for this identity mapper.
+  /** The DN of the configuration entry for this identity mapper. */
   private DN configEntryDN;
 
-  // The set of attributes to return in search result entries.
+  /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
-  // The regular expression pattern matcher for the current configuration.
+  /** The regular expression pattern matcher for the current configuration. */
   private Pattern matchPattern;
 
-  // The current configuration for this identity mapper.
+  /** The current configuration for this identity mapper. */
   private RegularExpressionIdentityMapperCfg currentConfig;
 
-  // The replacement string to use for the pattern.
+  /** The replacement string to use for the pattern. */
   private String replacePattern;
 
 
@@ -107,9 +107,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeIdentityMapper(
                    RegularExpressionIdentityMapperCfg configuration)
@@ -172,9 +170,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeIdentityMapper()
   {
@@ -183,9 +179,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntryForID(String id)
          throws DirectoryException
@@ -298,9 +292,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -312,9 +304,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       RegularExpressionIdentityMapperCfg configuration,
@@ -362,9 +352,7 @@ public class RegularExpressionIdentityMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               RegularExpressionIdentityMapperCfg configuration)

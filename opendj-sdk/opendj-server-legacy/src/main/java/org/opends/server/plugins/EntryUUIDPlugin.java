@@ -69,10 +69,10 @@ public final class EntryUUIDPlugin
 
 
 
-  // The attribute type for the "entryUUID" attribute.
+  /** The attribute type for the "entryUUID" attribute. */
   private final AttributeType entryUUIDType;
 
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private EntryUUIDPluginCfg currentConfig;
 
 
@@ -111,9 +111,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      EntryUUIDPluginCfg configuration)
@@ -140,9 +138,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -151,9 +147,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
@@ -185,9 +179,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
@@ -218,9 +210,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -231,9 +221,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       EntryUUIDPluginCfg configuration,
@@ -264,9 +252,7 @@ public final class EntryUUIDPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  EntryUUIDPluginCfg configuration)

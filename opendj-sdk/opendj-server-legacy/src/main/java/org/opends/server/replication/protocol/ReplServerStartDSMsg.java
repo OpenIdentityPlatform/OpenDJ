@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -195,7 +195,7 @@ public class ReplServerStartDSMsg extends StartMsg
   }
 
   /**
-   * get the window size for the server that created this message.
+   * Get the window size for the server that created this message.
    *
    * @return The window size for the server that created this message.
    */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -67,9 +67,7 @@ public class SubjectEqualsDNCertificateMapper
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(SubjectEqualsDNCertificateMapperCfg
                                                configuration)

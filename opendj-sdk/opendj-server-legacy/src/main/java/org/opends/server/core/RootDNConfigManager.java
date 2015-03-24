@@ -60,11 +60,13 @@ public class RootDNConfigManager
                   ConfigurationDeleteListener<RootDNUserCfg>
 
 {
-  // A mapping between the actual root DNs and their alternate bind DNs.
+  /** A mapping between the actual root DNs and their alternate bind DNs. */
   private ConcurrentHashMap<DN,HashSet<DN>> alternateBindDNs;
 
-  // The root privilege change listener that will handle changes to the
-  // "cn=Root DNs,cn=config" entry itself.
+  /**
+   * The root privilege change listener that will handle changes to the
+   * "cn=Root DNs,cn=config" entry itself.
+   */
   private RootPrivilegeChangeListener rootPrivilegeChangeListener;
 
   private final ServerContext serverContext;
@@ -160,9 +162,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(RootDNUserCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -186,9 +186,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(RootDNUserCfg configuration)
   {
@@ -230,9 +228,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -242,9 +238,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  RootDNUserCfg configuration)
@@ -268,9 +262,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -296,9 +288,7 @@ public class RootDNConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  RootDNUserCfg configuration)

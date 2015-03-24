@@ -56,9 +56,7 @@ public class PersistentSearchControl
   private static final class Decoder
       implements ControlDecoder<PersistentSearchControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PersistentSearchControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -119,15 +117,19 @@ public class PersistentSearchControl
 
 
 
-  // Indicates whether to only return entries that have been updated since the
-  // beginning of the search.
+  /**
+   * Indicates whether to only return entries that have been updated since the
+   * beginning of the search.
+   */
   private boolean changesOnly;
 
-  // Indicates whether entries returned as a result of changes to directory data
-  // should include the entry change notification control.
+  /**
+   * Indicates whether entries returned as a result of changes to directory data
+   * should include the entry change notification control.
+   */
   private boolean returnECs;
 
-  // The set of change types associated with this control.
+  /** The set of change types associated with this control. */
   private Set<PersistentSearchChangeType> changeTypes;
 
 

@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import javax.net.ssl.KeyManager;
 
@@ -35,9 +33,6 @@ import org.opends.server.api.KeyManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
-
-
 
 /**
  * This class provides an implementation of a key manager provider that does not
@@ -61,9 +56,7 @@ public class NullKeyManagerProvider
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
       KeyManagerProviderCfg configuration) throws ConfigException,

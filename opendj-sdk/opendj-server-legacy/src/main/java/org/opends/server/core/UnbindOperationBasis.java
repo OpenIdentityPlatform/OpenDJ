@@ -70,11 +70,7 @@ public class UnbindOperationBasis
         ERR_CANNOT_CANCEL_UNBIND.get());
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -82,11 +78,7 @@ public class UnbindOperationBasis
     // candidate for being called by the logging subsystem.
     return OperationType.UNBIND;
   }
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
@@ -95,22 +87,14 @@ public class UnbindOperationBasis
     return NO_RESPONSE_CONTROLS;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     // An unbind operation can never have a response, so just ignore this.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
@@ -158,11 +142,7 @@ public class UnbindOperationBasis
     setProcessingStopTime();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {

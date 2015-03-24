@@ -120,9 +120,7 @@ public class ParallelWorkQueue
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeWorkQueue(ParallelWorkQueueCfg configuration)
          throws ConfigException, InitializationException
@@ -171,9 +169,7 @@ public class ParallelWorkQueue
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
@@ -465,9 +461,7 @@ public class ParallelWorkQueue
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ParallelWorkQueueCfg configuration,
@@ -478,9 +472,7 @@ public class ParallelWorkQueue
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  ParallelWorkQueueCfg configuration)
@@ -527,9 +519,7 @@ public class ParallelWorkQueue
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isIdle()
   {

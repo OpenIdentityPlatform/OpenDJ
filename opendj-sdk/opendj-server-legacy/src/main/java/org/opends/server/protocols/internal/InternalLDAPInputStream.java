@@ -54,23 +54,25 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 public final class InternalLDAPInputStream
        extends InputStream
 {
-  // The queue of LDAP messages providing the data to be made
-  // available to the client.
+  /**
+   * The queue of LDAP messages providing the data to be made
+   * available to the client.
+   */
   private final ArrayBlockingQueue<LDAPMessage> messageQueue;
 
-  // Indicates whether this stream has been closed.
+  /** Indicates whether this stream has been closed. */
   private boolean closed;
 
-  // The byte buffer with partial data to be written to the client.
+  /** The byte buffer with partial data to be written to the client. */
   private final ByteStringBuilder messageBuffer;
 
-  // The byte buffer reader.
+  /** The byte buffer reader. */
   private final ByteSequenceReader messageReader;
 
-  // The byte buffer writer.
+  /** The byte buffer writer. */
   private final ASN1Writer writer;
 
-  // The internal LDAP socket serviced by this input stream.
+  /** The internal LDAP socket serviced by this input stream. */
   private final InternalLDAPSocket socket;
 
 

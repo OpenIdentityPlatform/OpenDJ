@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -34,9 +34,7 @@ import java.util.Comparator;
  */
 public class FakeOperationComparator implements Comparator<FakeOperation>
 {
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compare(FakeOperation op1, FakeOperation op2)
   {

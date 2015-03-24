@@ -79,9 +79,7 @@ public class GetEffectiveRightsRequestControl extends Control
   private static final class Decoder
       implements ControlDecoder<GetEffectiveRightsRequestControl>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public GetEffectiveRightsRequestControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -153,16 +151,16 @@ public class GetEffectiveRightsRequestControl extends Control
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  //The DN representing the authzId. May be null.
+  /** The DN representing the authzId. May be null. */
   private DN authzDN;
 
-  //The raw DN representing the authzId. May be null.
+  /** The raw DN representing the authzId. May be null. */
   private String rawAuthzDN;
 
-  //The list of additional attribute types to return rights for. May be null.
+  /** The list of additional attribute types to return rights for. May be null. */
   private List<AttributeType> attrs;
 
-  //The raw DN representing the authzId. May be null.
+  /** The raw DN representing the authzId. May be null. */
   private List<String> rawAttrs;
 
   /**

@@ -105,9 +105,7 @@ public class TextDebugLogPublisher
     return startupPublisher;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       FileBasedDebugLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -115,9 +113,7 @@ public class TextDebugLogPublisher
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(FileBasedDebugLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -197,9 +193,7 @@ public class TextDebugLogPublisher
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedDebugLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -226,9 +220,7 @@ public class TextDebugLogPublisher
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedDebugLogPublisherCfg config)
@@ -331,9 +323,7 @@ public class TextDebugLogPublisher
         config.isDefaultIncludeThrowableCause());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(DebugTargetCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -341,9 +331,7 @@ public class TextDebugLogPublisher
     return !hasTraceSettings(config.getDebugScope());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(DebugTargetCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -352,9 +340,7 @@ public class TextDebugLogPublisher
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(DebugTargetCfg config)
   {
@@ -365,9 +351,7 @@ public class TextDebugLogPublisher
     return new ConfigChangeResult();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(DebugTargetCfg config)
   {
@@ -378,9 +362,7 @@ public class TextDebugLogPublisher
     return new ConfigChangeResult();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void trace(TraceSettings settings, String signature,
       String sourceLocation, String msg, StackTraceElement[] stackTrace)
@@ -394,9 +376,7 @@ public class TextDebugLogPublisher
     publish(signature, sourceLocation, msg, stack);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void traceException(TraceSettings settings, String signature,
       String sourceLocation, String msg, Throwable ex,
@@ -413,9 +393,7 @@ public class TextDebugLogPublisher
     publish(signature, sourceLocation, message, stack);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -428,9 +406,11 @@ public class TextDebugLogPublisher
   }
 
 
-  // Publishes a record, optionally performing some "special" work:
-  // - injecting a stack trace into the message
-  // - format the message with argument values
+  /**
+   * Publishes a record, optionally performing some "special" work:
+   * - injecting a stack trace into the message
+   * - format the message with argument values
+   */
   private void publish(String signature, String sourceLocation, String msg,
                        String stack)
   {
@@ -490,9 +470,7 @@ public class TextDebugLogPublisher
     writer.writeRecord(buf.toString());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

@@ -303,9 +303,7 @@ public class CoreConfigManager
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(GlobalCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -350,9 +348,7 @@ public class CoreConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(GlobalCfg configuration)
   {

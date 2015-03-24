@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -61,7 +62,7 @@ public enum CertificateValidationPolicy
 
 
 
-  // The human-readable name for this policy.
+  /** The human-readable name for this policy. */
   private String policyName;
 
 

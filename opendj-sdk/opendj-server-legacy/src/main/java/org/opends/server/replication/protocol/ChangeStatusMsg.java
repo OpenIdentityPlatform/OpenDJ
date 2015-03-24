@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -37,9 +37,9 @@ import org.opends.server.replication.common.ServerStatus;
  */
 public class ChangeStatusMsg extends ReplicationMsg
 {
-  /** The status we want the DS to enter (used when from RS to DS) */
+  /** The status we want the DS to enter (used when from RS to DS). */
   private final ServerStatus requestedStatus;
-  /** The new status the DS just entered (used when from DS to RS) */
+  /** The new status the DS just entered (used when from DS to RS). */
   private ServerStatus newStatus;
 
   /**

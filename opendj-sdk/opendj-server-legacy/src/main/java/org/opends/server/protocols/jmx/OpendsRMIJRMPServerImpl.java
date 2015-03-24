@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -68,9 +69,7 @@ public class OpendsRMIJRMPServerImpl
     super(port, csf, ssf, env);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected RMIConnection makeClient(String connectionId, Subject subject)
       throws IOException

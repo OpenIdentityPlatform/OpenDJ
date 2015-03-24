@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -94,16 +94,16 @@ public class TraditionalWorkQueueMonitor
 
 
 
-  // The maximum backlog observed by polling the queue.
+  /** The maximum backlog observed by polling the queue. */
   private int maxBacklog;
 
-  // The total number of times the backlog has been polled.
+  /** The total number of times the backlog has been polled. */
   private long numPolls;
 
-  // The total backlog observed from periodic polling.
+  /** The total backlog observed from periodic polling. */
   private long totalBacklog;
 
-  // The traditional work queue instance with which this monitor is associated.
+  /** The traditional work queue instance with which this monitor is associated. */
   private TraditionalWorkQueue workQueue;
 
 
@@ -122,9 +122,7 @@ public class TraditionalWorkQueueMonitor
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -148,9 +146,7 @@ public class TraditionalWorkQueueMonitor
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void run()
   {
     int backlog = workQueue.size();

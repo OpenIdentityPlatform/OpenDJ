@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -61,9 +61,7 @@ public class ThreadFilterTextErrorLogPublisher
     this.writer = writer;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(ErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -72,9 +70,7 @@ public class ThreadFilterTextErrorLogPublisher
     // configurable via the admin framework.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {

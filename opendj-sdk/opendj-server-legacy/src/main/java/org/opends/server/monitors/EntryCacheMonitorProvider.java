@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -52,16 +52,16 @@ public class EntryCacheMonitorProvider
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The name for this monitor.
+  /** The name for this monitor. */
   private String monitorName;
 
-  // The entry cache common name.
+  /** The entry cache common name. */
   private String entryCacheName;
 
-  // The entry cache with which this monitor is associated.
+  /** The entry cache with which this monitor is associated. */
   private EntryCache<? extends EntryCacheCfg> entryCache;
 
-  // Entry cache monitor configuration.
+  /** Entry cache monitor configuration. */
   private EntryCacheMonitorProviderCfg monitorConfiguration;
 
   /**
@@ -88,9 +88,7 @@ public class EntryCacheMonitorProvider
     this.entryCache = entryCache;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(
     EntryCacheMonitorProviderCfg configuration)
@@ -117,18 +115,14 @@ public class EntryCacheMonitorProvider
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
     return monitorName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
