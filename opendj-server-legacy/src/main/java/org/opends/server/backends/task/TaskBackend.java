@@ -231,7 +231,7 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
+  public void openBackend()
          throws ConfigException, InitializationException
   {
     // Create the scheduler and initialize it from the backing file.
@@ -262,9 +262,8 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     currentConfig.removeTaskChangeListener(this);
 
     try

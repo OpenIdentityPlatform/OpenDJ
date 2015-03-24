@@ -2101,7 +2101,7 @@ public final class DirectoryServer
 
     rootDSEBackend = new RootDSEBackend();
     rootDSEBackend.configureBackend(rootDSECfg, serverContext);
-    rootDSEBackend.initializeBackend();
+    rootDSEBackend.openBackend();
   }
 
 
@@ -2435,7 +2435,7 @@ public final class DirectoryServer
   }
   rootDSEBackend = new RootDSEBackend();
   rootDSEBackend.configureBackend(rootDSECfg, serverContext);
-  rootDSEBackend.initializeBackend();
+  rootDSEBackend.openBackend();
 }
 
 

@@ -354,7 +354,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
@@ -480,9 +480,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     currentConfig.removeSchemaChangeListener(this);
 
     for (DN baseDN : baseDNs)

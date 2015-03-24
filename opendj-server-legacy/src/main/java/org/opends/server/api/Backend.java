@@ -113,8 +113,9 @@ public abstract class Backend<C extends Configuration>
       new ConcurrentLinkedQueue<PersistentSearch>();
 
   /**
-   * Configure this backend based on the information in the provided
-   * configuration.
+   * Configure this backend based on the information in the provided configuration.
+   * When the method returns, the backend will have been configured (ready to be opened) but still unable
+   * to process operations.
    *
    * @param  cfg          The configuration of this backend.
    * @param  serverContext The server context for this instance
@@ -155,44 +156,51 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Initializes this backend based on the information provided
-   * when the backend was configured.
+   * Opens this backend based on the information provided when the backend was configured.
+   * It also should open any underlying storage and register all suffixes with the server.
    *
    * @see #configureBackend
    *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
+   * @throws  ConfigException  If an unrecoverable problem arises while opening the backend.
    *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   * @throws  InitializationException  If a problem occurs during opening that is not
+   *                                   related to the server configuration.
    */
-  public abstract void initializeBackend() throws ConfigException, InitializationException;
+  public abstract void openBackend() throws ConfigException, InitializationException;
 
   /**
-   * Performs any necessary work to finalize this backend, including
-   * closing any underlying databases or connections and deregistering
-   * any suffixes that it manages with the Directory Server. This may
-   * be called during the Directory Server shutdown process or if a
-   * backend is disabled with the server online.
+   * Performs any necessary work to finalize this backend. The backend must be an opened backend,
+   * so do not use this method on backends where only <code>configureBackend()</code> has been called.
+   * This may be called during the Directory Server shutdown process or if a backend is disabled
+   * with the server online.
    * It must not return until the backend is closed.
    * <p>
    * This method may not throw any exceptions. If any problems are encountered,
    * then they may be logged but the closure should progress as completely as
    * possible.
    * <p>
-   * This method must be called by all overriding methods with
-   * <code>super.finalizeBackend()</code>.
    */
-  public void finalizeBackend()
+  public final void finalizeBackend()
   {
     for (PersistentSearch psearch : persistentSearches)
     {
       psearch.cancel();
     }
     persistentSearches.clear();
+    closeBackend();
+  }
+
+  /**
+   * Performs any necessary work to finally close this backend, particularly
+   * closing any underlying databases or connections and deregistering
+   * any suffixes that it manages with the Directory Server.
+   * <p>
+   * It will be called as final step of <code>finalizeBackend()</code>,
+   * so subclasses might override it.
+   * </p>
+   */
+  public void closeBackend()
+  {
   }
 
   /**

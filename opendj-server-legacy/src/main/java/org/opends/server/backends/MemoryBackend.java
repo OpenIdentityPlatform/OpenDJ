@@ -162,7 +162,7 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void initializeBackend()
+  public synchronized void openBackend()
        throws ConfigException, InitializationException
   {
     // We won't support anything other than exactly one base DN in this
@@ -214,7 +214,7 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void finalizeBackend()
+  public synchronized void closeBackend()
   {
     clearMemoryBackend();
 

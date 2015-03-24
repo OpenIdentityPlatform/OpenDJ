@@ -840,7 +840,7 @@ public final class TestCaseUtils {
       memoryBackend = new MemoryBackend();
       memoryBackend.setBackendID(backendID);
       memoryBackend.setBaseDNs(new DN[] {baseDN});
-      memoryBackend.initializeBackend();
+      memoryBackend.openBackend();
       DirectoryServer.registerBackend(memoryBackend);
     }
 

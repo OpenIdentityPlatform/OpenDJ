@@ -141,7 +141,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     DN configEntryDN = configuration.dn();
 
@@ -344,9 +344,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     configuration.addTrustStoreChangeListener(this);
 
     try

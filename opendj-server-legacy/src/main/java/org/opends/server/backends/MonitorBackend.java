@@ -318,9 +318,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     currentConfig.removeMonitorChangeListener(this);
     try
     {
@@ -415,8 +414,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException,
-      InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     // Register with the Directory Server as a configurable component.
     currentConfig.addMonitorChangeListener(this);

@@ -152,7 +152,7 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     ConfigEntry configEntry =
          DirectoryServer.getConfigEntry(configEntryDN);
@@ -289,9 +289,8 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     currentConfig.removeChangeListener(this);
   }
 

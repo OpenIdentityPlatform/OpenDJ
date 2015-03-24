@@ -163,7 +163,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
+  public void openBackend()
       throws ConfigException, InitializationException
   {
     if (mustOpenRootContainer())
@@ -232,9 +232,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     cfg.removeLocalDBChangeListener(this);
 
     // Deregister our base DNs.

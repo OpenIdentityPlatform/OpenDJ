@@ -115,7 +115,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
 
     testBaseDN = DN.valueOf("dc=test,dc=com");
     backend = createBackend();
-    backend.initializeBackend();
+    backend.openBackend();
 
     topEntries = TestCaseUtils.makeEntries(
                 "dn: " + testBaseDN,
@@ -800,7 +800,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     }
     assertEquals(rejectedEntries.size(), 0, "No entries should be rejected");
 
-    backend.initializeBackend();
+    backend.openBackend();
     assertEquals(backend.getEntryCount(), ldifNumberOfEntries, "Not enough entries in DIT.");
   }
 

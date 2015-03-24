@@ -473,7 +473,7 @@ public final class ReplicationServer
     try
     {
       changelogBackend = new ChangelogBackend(this, domainPredicate);
-      changelogBackend.initializeBackend();
+      changelogBackend.openBackend();
       try
       {
         DirectoryServer.registerBackend(changelogBackend);

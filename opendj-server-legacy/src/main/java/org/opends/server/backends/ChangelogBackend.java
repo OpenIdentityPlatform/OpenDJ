@@ -287,7 +287,7 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws InitializationException
+  public void openBackend() throws InitializationException
   {
     baseDNs = new DN[] { CHANGELOG_BASE_DN };
 
@@ -304,10 +304,8 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
-
     try
     {
       DirectoryServer.deregisterBaseDN(CHANGELOG_BASE_DN);

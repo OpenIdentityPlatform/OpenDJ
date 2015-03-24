@@ -155,7 +155,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     if (mustOpenRootContainer())
     {
@@ -200,9 +200,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     cfg.removePluggableChangeListener(this);
 
     // Deregister our base DNs.
