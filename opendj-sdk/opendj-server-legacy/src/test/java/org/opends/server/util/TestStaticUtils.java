@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.util;
+
+import static org.testng.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,9 +46,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -57,19 +59,18 @@ import org.testng.annotations.Test;
  * {@link org.opends.server.util.StaticUtils} class.
  */
 public final class TestStaticUtils extends UtilTestCase {
-  // Lower case hex digit lookup table.
+  /** Lower case hex digit lookup table. */
   private static final char[] HEX_DIGITS_LOWER = new char[] { '0', '1',
       '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-  // Upper case hex digit lookup table.
+  /** Upper case hex digit lookup table. */
   private static final char[] HEX_DIGITS_UPPER = new char[] { '0', '1',
       '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-  // Lookup table for 8-bit strings.
+  /** Lookup table for 8-bit strings. */
   private static final String[] BIT_STRINGS = new String[256];
   static {
-    final char[] ZEROS = new char[] { '0', '0', '0', '0', '0', '0', '0',
-        '0' };
+    final char[] ZEROS = new char[] { '0', '0', '0', '0', '0', '0', '0', '0' };
 
     for (int i = 0; i < 256; i++) {
       String bits = Integer.toBinaryString(i);
@@ -882,11 +883,11 @@ public final class TestStaticUtils extends UtilTestCase {
     try {
       if (target.exists()) {
         target.delete();
-        assert(!target.exists());
+        assertTrue(!target.exists());
       }
       StaticUtils.renameFile(src, target);
-      assert(!src.exists());
-      assert(target.exists());
+      assertTrue(!src.exists());
+      assertTrue(target.exists());
     } finally {
       src.delete();
       target.delete();
@@ -905,8 +906,8 @@ public final class TestStaticUtils extends UtilTestCase {
     File target = File.createTempFile("target", null);
     try {
       StaticUtils.renameFile(src, target);
-      assert(!src.exists());
-      assert(target.exists());
+      assertTrue(!src.exists());
+      assertTrue(target.exists());
     } finally {
       src.delete();
       target.delete();

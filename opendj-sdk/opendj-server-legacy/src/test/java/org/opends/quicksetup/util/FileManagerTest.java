@@ -24,26 +24,29 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
 
 import static org.testng.Assert.*;
-import org.testng.annotations.*;
-import org.opends.quicksetup.QuickSetupTestCase;
-import org.opends.quicksetup.TestUtilities;
-import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.ApplicationException;
-import org.opends.server.util.StaticUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.FileWriter;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.QuickSetupTestCase;
+import org.opends.quicksetup.TestUtilities;
+import org.opends.server.util.StaticUtils;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * FileManager Tester.
@@ -141,11 +144,11 @@ public class FileManagerTest extends QuickSetupTestCase {
     try {
       if (target.exists()) {
         target.delete();
-        assert(!target.exists());
+        assertTrue(!target.exists());
       }
       fileManager.rename(src, target);
-      assert(!src.exists());
-      assert(target.exists());
+      assertTrue(!src.exists());
+      assertTrue(target.exists());
     } finally {
       src.delete();
       target.delete();
@@ -164,8 +167,8 @@ public class FileManagerTest extends QuickSetupTestCase {
     File target = File.createTempFile("target", null);
     try {
       StaticUtils.renameFile(src, target);
-      assert(!src.exists());
-      assert(target.exists());
+      assertTrue(!src.exists());
+      assertTrue(target.exists());
     } finally {
       src.delete();
       target.delete();
@@ -231,6 +234,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Create a filter that should reject the operation
     FileFilter filter = new FileFilter() {
+      @Override
       public boolean accept(File pathname) {
         return false;
       }
@@ -269,6 +273,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Create a filter that should reject the operation
     FileFilter filter = new FileFilter() {
+      @Override
       public boolean accept(File pathname) {
         return false;
       }
@@ -314,6 +319,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Test that a filter can stop a delete altogether
     FileFilter rejectOpFilter = new FileFilter() {
+      @Override
       public boolean accept(File pathname) {
         return false;
       }
@@ -328,6 +334,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Test that using a filter to delete one file works
     FileFilter killChildFileFilter = new FileFilter() {
+      @Override
       public boolean accept(File f) {
         return f.equals(f2b1);
       }
@@ -422,6 +429,7 @@ public class FileManagerTest extends QuickSetupTestCase {
   public void testCopyRecursively1() throws Exception {
     // Test that a filter can stop a delete altogether
     FileFilter rejectOpFilter = new FileFilter() {
+      @Override
       public boolean accept(File pathname) {
         return false;
       }
@@ -443,6 +451,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Test that using a filter to delete one file works
     FileFilter copyChildFileFilter = new FileFilter() {
+      @Override
       public boolean accept(File f) {
         return f.equals(f2b1);
       }
@@ -485,6 +494,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Test that using a filter to delete one file works
     FileFilter copyChildFileFilter = new FileFilter() {
+      @Override
       public boolean accept(File f) {
         return f.equals(f2b1);
       }
