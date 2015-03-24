@@ -1414,9 +1414,7 @@ class VerifyJob
     {
       try
       {
-        if (vlvIndex.shouldInclude(entry)
-            && !vlvIndex.containsValues(
-                    txn, entryID.longValue(), vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
+        if (vlvIndex.verifyEntry(txn, entryID, entry))
         {
           if(logger.isTraceEnabled())
           {
