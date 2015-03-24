@@ -302,7 +302,10 @@ public final class Installation
   public static final String[] REQUIRED_DIRECTORIES = new String[] {
       CONFIG_PATH_RELATIVE, DATABASES_PATH_RELATIVE, LIBRARIES_PATH_RELATIVE };
 
-
+  /**
+   * The default base DN prompted to user in setup interactive mode.
+   */
+  public static final String DEFAULT_INTERACTIVE_BASE_DN = "dc=example,dc=com";
 
   /**
    * Performs validation on the specified file to make sure that it is an actual
