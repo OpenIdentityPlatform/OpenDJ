@@ -803,7 +803,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
     // No action is required, since all initialization was performed in the
     // initializeConfigHandler method.

@@ -354,8 +354,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
-  throws ConfigException, InitializationException
+  public void openBackend() throws ConfigException, InitializationException
   {
   }
 

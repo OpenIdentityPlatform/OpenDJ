@@ -160,8 +160,7 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void initializeBackend()
-       throws ConfigException, InitializationException
+  public synchronized void openBackend() throws ConfigException, InitializationException
   {
     baseDNSet = new HashSet<DN>();
     for (DN dn : baseDNs)
@@ -218,9 +217,8 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void finalizeBackend()
+  public synchronized void closeBackend()
   {
-    super.finalizeBackend();
     for (DN dn : baseDNs)
     {
       try

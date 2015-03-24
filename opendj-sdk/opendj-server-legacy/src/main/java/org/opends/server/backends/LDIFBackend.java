@@ -114,7 +114,7 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
+  public void openBackend()
          throws ConfigException, InitializationException
   {
     // We won't support anything other than exactly one base DN in this
@@ -330,7 +330,7 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
     backendLock.writeLock().lock();
 

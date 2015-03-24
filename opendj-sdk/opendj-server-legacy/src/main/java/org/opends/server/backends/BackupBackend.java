@@ -173,7 +173,7 @@ public class BackupBackend
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend()
+  public void openBackend()
          throws ConfigException, InitializationException
   {
     // Create the set of base DNs that we will handle.  In this case, it's just
@@ -255,9 +255,8 @@ public class BackupBackend
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeBackend()
+  public void closeBackend()
   {
-    super.finalizeBackend();
     currentConfig.removeBackupChangeListener(this);
 
     try

@@ -1025,7 +1025,7 @@ public class BackendConfigManager implements
        throws ConfigException, InitializationException
   {
     backend.configureBackend(cfg, serverContext);
-    backend.initializeBackend();
+    backend.openBackend();
   }
 
 }
