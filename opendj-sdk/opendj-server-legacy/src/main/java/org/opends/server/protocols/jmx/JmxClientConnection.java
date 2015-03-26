@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -501,6 +501,7 @@ public class JmxClientConnection
     }
     disconnectStarted = true ;
     jmxConnectionHandler.unregisterClientConnection(this);
+    DirectoryServer.connectionClosed(this);
     finalizeConnectionInternal();
 
     // unbind the underlying connection
