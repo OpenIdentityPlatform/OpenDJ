@@ -44,10 +44,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -319,7 +319,7 @@ class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  public void put(WriteableStorage txn, EntryID id, Entry entry)
+  public void put(WriteableTransaction txn, EntryID id, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
     ByteString key = id.toByteString();
@@ -343,7 +343,7 @@ class ID2Entry extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean remove(WriteableStorage txn, EntryID id) throws StorageRuntimeException
+  boolean remove(WriteableTransaction txn, EntryID id) throws StorageRuntimeException
   {
     return txn.delete(getName(), id.toByteString());
   }
@@ -357,7 +357,7 @@ class ID2Entry extends DatabaseContainer
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public Entry get(ReadableStorage txn, EntryID id)
+  public Entry get(ReadableTransaction txn, EntryID id)
        throws DirectoryException, StorageRuntimeException
   {
     return get0(id, txn.read(getName(), id.toByteString()));

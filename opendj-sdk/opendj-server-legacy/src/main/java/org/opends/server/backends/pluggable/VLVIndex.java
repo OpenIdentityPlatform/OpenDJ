@@ -54,12 +54,12 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -133,8 +133,8 @@ class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  VLVIndex(BackendVLVIndexCfg config, State state, Storage storage, EntryContainer entryContainer, WriteableStorage txn)
-      throws StorageRuntimeException, ConfigException
+  VLVIndex(BackendVLVIndexCfg config, State state, Storage storage, EntryContainer entryContainer,
+      WriteableTransaction txn) throws StorageRuntimeException, ConfigException
   {
     super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()));
 
@@ -227,7 +227,7 @@ class VLVIndex extends DatabaseContainer
 
   /** {@inheritDoc} */
   @Override
-  void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableTransaction txn) throws StorageRuntimeException
   {
     super.open(txn);
 
@@ -397,7 +397,7 @@ class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private SortValuesSet getSortValuesSet(ReadableStorage txn, long entryID,
+  private SortValuesSet getSortValuesSet(ReadableTransaction txn, long entryID,
       ByteString[] values, AttributeType[] types) throws StorageRuntimeException,
       DirectoryException
   {
@@ -452,7 +452,7 @@ class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private boolean containsValues(ReadableStorage txn, long entryID, ByteString[] values, AttributeType[] types)
+  private boolean containsValues(ReadableTransaction txn, long entryID, ByteString[] values, AttributeType[] types)
       throws StorageRuntimeException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
@@ -486,7 +486,7 @@ class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
-  void updateIndex(WriteableStorage txn, TreeSet<SortValues> addedValues, TreeSet<SortValues> deletedValues)
+  void updateIndex(WriteableTransaction txn, TreeSet<SortValues> addedValues, TreeSet<SortValues> deletedValues)
       throws DirectoryException, StorageRuntimeException
   {
     // Handle cases where nothing is changed early to avoid
@@ -644,7 +644,7 @@ class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  EntryIDSet evaluate(ReadableStorage txn,
+  EntryIDSet evaluate(ReadableTransaction txn,
                              SearchOperation searchOperation,
                              ServerSideSortRequestControl sortControl,
                              VLVRequestControl vlvRequest,
@@ -940,7 +940,7 @@ class VLVIndex extends DatabaseContainer
    *                otherwise.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  synchronized void setTrusted(WriteableStorage txn, boolean trusted)
+  synchronized void setTrusted(WriteableTransaction txn, boolean trusted)
       throws StorageRuntimeException
   {
     this.trusted = trusted;
@@ -1155,7 +1155,7 @@ class VLVIndex extends DatabaseContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           applyConfigurationChange0(txn, cfg, ccr);
         }
@@ -1168,7 +1168,7 @@ class VLVIndex extends DatabaseContainer
     }
   }
 
-  private synchronized void applyConfigurationChange0(WriteableStorage txn, BackendVLVIndexCfg cfg,
+  private synchronized void applyConfigurationChange0(WriteableTransaction txn, BackendVLVIndexCfg cfg,
       ConfigChangeResult ccr)
   {
     // Update base DN only if changed..
@@ -1373,7 +1373,7 @@ class VLVIndex extends DatabaseContainer
     return sortOrder;
   }
 
-  boolean verifyEntry(ReadableStorage txn, EntryID entryID, Entry entry) throws DirectoryException
+  boolean verifyEntry(ReadableTransaction txn, EntryID entryID, Entry entry) throws DirectoryException
   {
     return shouldInclude(entry) && !containsValues(txn, entryID.longValue(), getSortValues(entry), getSortTypes());
   }

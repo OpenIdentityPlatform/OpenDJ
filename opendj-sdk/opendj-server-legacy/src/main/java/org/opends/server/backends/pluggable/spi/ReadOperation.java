@@ -43,5 +43,5 @@ public interface ReadOperation<T>
    * @throws Exception
    *           if a problem occurs with the underlying storage engine
    */
-  T run(ReadableStorage txn) throws Exception;
+  T run(ReadableTransaction txn) throws Exception;
 }

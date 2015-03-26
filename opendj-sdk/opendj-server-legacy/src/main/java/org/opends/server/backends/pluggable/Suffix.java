@@ -35,9 +35,9 @@ import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.pluggable.Importer.DNCache;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -215,7 +215,7 @@ class Suffix
    * @throws InterruptedException If an error occurred processing the pending
    *                              map.
    */
-  public boolean isParentProcessed(ReadableStorage txn, DN dn, DNCache dnCache, boolean clearedBackend)
+  public boolean isParentProcessed(ReadableTransaction txn, DN dn, DNCache dnCache, boolean clearedBackend)
       throws StorageRuntimeException, InterruptedException {
     synchronized(synchObject) {
       if(parentSet.contains(dn))
@@ -258,7 +258,7 @@ class Suffix
    * @param trusted True if the indexes should be trusted or false otherwise.
    * @throws StorageRuntimeException If an error occurred setting the indexes to trusted.
    */
-  public void setIndexesTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+  public void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     entryContainer.getID2Children().setTrusted(txn, trusted);
     entryContainer.getID2Subtree().setTrusted(txn, trusted);
@@ -281,7 +281,7 @@ class Suffix
     }
   }
 
-  private void setTrusted(WriteableStorage txn, Index index, boolean trusted)
+  private void setTrusted(WriteableTransaction txn, Index index, boolean trusted)
   {
     if (index != null)
     {
@@ -289,7 +289,7 @@ class Suffix
     }
   }
 
-  private void setTrusted(WriteableStorage txn, Collection<Index> indexes, boolean trusted)
+  private void setTrusted(WriteableTransaction txn, Collection<Index> indexes, boolean trusted)
   {
     if (indexes != null)
     {

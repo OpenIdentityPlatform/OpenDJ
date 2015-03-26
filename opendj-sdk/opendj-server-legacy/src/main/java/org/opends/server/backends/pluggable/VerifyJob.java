@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -146,7 +146,7 @@ class VerifyJob
       return rootContainer.getStorage().read(new ReadOperation<Long>()
       {
         @Override
-        public Long run(ReadableStorage txn) throws Exception
+        public Long run(ReadableTransaction txn) throws Exception
         {
           return verifyBackend0(txn, rootContainer);
         }
@@ -162,7 +162,7 @@ class VerifyJob
     }
   }
 
-  private long verifyBackend0(ReadableStorage txn, RootContainer rootContainer)
+  private long verifyBackend0(ReadableTransaction txn, RootContainer rootContainer)
       throws StorageRuntimeException, DirectoryException
   {
     this.rootContainer = rootContainer;
@@ -387,7 +387,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateID2Entry(ReadableStorage txn) throws StorageRuntimeException
+  private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(id2entry.getName());
     try
@@ -461,7 +461,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateIndex(ReadableStorage txn) throws StorageRuntimeException, DirectoryException
+  private void iterateIndex(ReadableTransaction txn) throws StorageRuntimeException, DirectoryException
   {
     if (verifyDN2ID)
     {
@@ -498,7 +498,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateDN2ID(ReadableStorage txn) throws StorageRuntimeException
+  private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(dn2id.getName());
     try
@@ -569,7 +569,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateID2Children(ReadableStorage txn) throws StorageRuntimeException
+  private void iterateID2Children(ReadableTransaction txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(id2c.getName());
     try
@@ -695,7 +695,7 @@ class VerifyJob
    *
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateID2Subtree(ReadableStorage txn) throws StorageRuntimeException
+  private void iterateID2Subtree(ReadableTransaction txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(id2s.getName());
     try
@@ -873,7 +873,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateVLVIndex(ReadableStorage txn, VLVIndex vlvIndex, boolean verifyID)
+  private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
       throws StorageRuntimeException, DirectoryException
   {
     if(vlvIndex == null)
@@ -977,7 +977,7 @@ class VerifyJob
    * @param index The index database to be checked.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateAttrIndex(ReadableStorage txn, Index index, IndexingOptions options)
+  private void iterateAttrIndex(ReadableTransaction txn, Index index, IndexingOptions options)
       throws StorageRuntimeException
   {
     if (index == null)
@@ -1117,7 +1117,7 @@ class VerifyJob
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyEntry(ReadableStorage txn, EntryID entryID, Entry entry)
+  private void verifyEntry(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
     if (verifyDN2ID)
     {
@@ -1140,7 +1140,7 @@ class VerifyJob
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyDN2ID(ReadableStorage txn, EntryID entryID, Entry entry)
+  private void verifyDN2ID(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
     DN dn = entry.getName();
 
@@ -1209,7 +1209,7 @@ class VerifyJob
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyID2Children(ReadableStorage txn, EntryID entryID, Entry entry)
+  private void verifyID2Children(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
     DN dn = entry.getName();
 
@@ -1276,7 +1276,7 @@ class VerifyJob
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyID2Subtree(ReadableStorage txn, EntryID entryID, Entry entry)
+  private void verifyID2Subtree(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
     for (DN dn = getParent(entry.getName()); dn != null; dn = getParent(dn))
     {
@@ -1386,7 +1386,7 @@ class VerifyJob
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyIndex(ReadableStorage txn, EntryID entryID, Entry entry)
+  private void verifyIndex(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
     for (AttributeIndex attrIndex : attrIndexList)
     {
@@ -1454,8 +1454,8 @@ class VerifyJob
    * @param attrList The attribute to be checked.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void verifyAttribute(ReadableStorage txn, AttributeIndex attrIndex, EntryID entryID, List<Attribute> attrList)
-      throws DirectoryException
+  private void verifyAttribute(ReadableTransaction txn, AttributeIndex attrIndex, EntryID entryID,
+      List<Attribute> attrList) throws DirectoryException
   {
     if (attrList == null || attrList.isEmpty())
     {
@@ -1510,7 +1510,7 @@ class VerifyJob
     }
   }
 
-  private void verifyAttributeInIndex(Index index, ReadableStorage txn,
+  private void verifyAttributeInIndex(Index index, ReadableTransaction txn,
       ByteString key, EntryID entryID)
   {
     try
@@ -1597,7 +1597,7 @@ class VerifyJob
      * @throws StorageRuntimeException An error occurred while accessing the JE
      * database.
      */
-    private ProgressTask(boolean indexIterator, ReadableStorage txn) throws StorageRuntimeException
+    private ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
     {
       previousTime = System.currentTimeMillis();
 
@@ -1637,7 +1637,7 @@ class VerifyJob
       }
     }
 
-    private long getRecordCount(ReadableStorage txn, Index index)
+    private long getRecordCount(ReadableTransaction txn, Index index)
     {
       if (index != null)
       {

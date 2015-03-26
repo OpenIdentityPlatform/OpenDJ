@@ -39,5 +39,5 @@ public interface WriteOperation
    * @throws Exception
    *           if a problem occurs with the underlying storage engine
    */
-  void run(WriteableStorage txn) throws Exception;
+  void run(WriteableTransaction txn) throws Exception;
 }

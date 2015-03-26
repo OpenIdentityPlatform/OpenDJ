@@ -45,11 +45,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Pair;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
@@ -169,7 +169,7 @@ class DN2URI extends DatabaseContainer
    * @param labeledURIs The labeled URI value of the ref attribute.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void put(final WriteableStorage txn, final DN dn, final Collection<String> labeledURIs)
+  private void put(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
   {
     final ByteString key = toKey(dn);
@@ -207,7 +207,7 @@ class DN2URI extends DatabaseContainer
    * @return true if the values were deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private boolean delete(WriteableStorage txn, DN dn) throws StorageRuntimeException
+  private boolean delete(WriteableTransaction txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
 
@@ -227,7 +227,7 @@ class DN2URI extends DatabaseContainer
    * @param labeledURIs The URI value to be deleted.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void delete(final WriteableStorage txn, final DN dn, final Collection<String> labeledURIs)
+  private void delete(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
@@ -259,7 +259,7 @@ class DN2URI extends DatabaseContainer
    *          contain at least one referral, or {@code false} if it is certain
    *          that it doesn't.
    */
-  private ConditionResult containsReferrals(ReadableStorage txn)
+  private ConditionResult containsReferrals(ReadableTransaction txn)
   {
     Cursor cursor = txn.openCursor(getName());
     try
@@ -290,7 +290,7 @@ class DN2URI extends DatabaseContainer
    * @param mods The sequence of modifications made to the entry.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  void modifyEntry(WriteableStorage txn, Entry before, Entry after, List<Modification> mods)
+  void modifyEntry(WriteableTransaction txn, Entry before, Entry after, List<Modification> mods)
       throws StorageRuntimeException
   {
     DN entryDN = before.getName();
@@ -362,7 +362,7 @@ class DN2URI extends DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  void replaceEntry(WriteableStorage txn, Entry before, Entry after)
+  void replaceEntry(WriteableTransaction txn, Entry before, Entry after)
        throws StorageRuntimeException
   {
     deleteEntry(txn, before);
@@ -377,7 +377,7 @@ class DN2URI extends DatabaseContainer
    * @param entry The entry to be added.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  void addEntry(WriteableStorage txn, Entry entry)
+  void addEntry(WriteableTransaction txn, Entry entry)
        throws StorageRuntimeException
   {
     Set<String> labeledURIs = entry.getReferralURLs();
@@ -395,7 +395,7 @@ class DN2URI extends DatabaseContainer
    * @param entry The entry to be deleted.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  void deleteEntry(WriteableStorage txn, Entry entry) throws StorageRuntimeException
+  void deleteEntry(WriteableTransaction txn, Entry entry) throws StorageRuntimeException
   {
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
@@ -518,7 +518,7 @@ class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  void targetEntryReferrals(ReadableStorage txn, DN targetDN, SearchScope searchScope) throws DirectoryException
+  void targetEntryReferrals(ReadableTransaction txn, DN targetDN, SearchScope searchScope) throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {
@@ -576,7 +576,7 @@ class DN2URI extends DatabaseContainer
    *          has been reached or the search has been abandoned).
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  boolean returnSearchReferences(ReadableStorage txn, SearchOperation searchOp) throws DirectoryException
+  boolean returnSearchReferences(ReadableTransaction txn, SearchOperation searchOp) throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {

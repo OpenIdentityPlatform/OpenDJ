@@ -36,7 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -135,7 +135,7 @@ class ExportJob
       rootContainer.getStorage().read(new ReadOperation<Void>()
       {
         @Override
-        public Void run(ReadableStorage txn) throws Exception
+        public Void run(ReadableTransaction txn) throws Exception
         {
           for (EntryContainer exportContainer : exportContainers)
           {
@@ -191,7 +191,7 @@ class ExportJob
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.
    */
-  private void exportContainer(ReadableStorage txn, EntryContainer entryContainer)
+  private void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
     Cursor cursor = txn.openCursor(entryContainer.getID2Entry().getName());

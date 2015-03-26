@@ -55,7 +55,7 @@ import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
@@ -888,7 +888,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         rootContainer.getStorage().write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
             DN[] newBaseDNsArray = newBaseDNs.toArray(new DN[newBaseDNs.size()]);
@@ -916,7 +916,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return ccr;
   }
 
-  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs, WriteableStorage txn) throws DirectoryException
+  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs, WriteableTransaction txn) throws DirectoryException
   {
     for (DN baseDN : cfg.getBaseDN())
     {
@@ -931,7 +931,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private boolean createNewBaseDNs(DN[] newBaseDNsArray, ConfigChangeResult ccr, WriteableStorage txn)
+  private boolean createNewBaseDNs(DN[] newBaseDNsArray, ConfigChangeResult ccr, WriteableTransaction txn)
   {
     for (DN baseDN : newBaseDNsArray)
     {

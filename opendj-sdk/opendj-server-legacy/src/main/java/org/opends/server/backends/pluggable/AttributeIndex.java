@@ -52,7 +52,7 @@ import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
@@ -134,7 +134,7 @@ class AttributeIndex
    * @param txn The database transaction
    * @throws ConfigException if a configuration related error occurs.
    */
-  AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn)
+  AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableTransaction txn)
       throws ConfigException
   {
     this.entryContainer = entryContainer;
@@ -151,7 +151,7 @@ class AttributeIndex
     extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
-  private void buildPresenceIndex(WriteableStorage txn)
+  private void buildPresenceIndex(WriteableTransaction txn)
   {
     final IndexType indexType = IndexType.PRESENCE;
     if (indexConfig.getIndexType().contains(indexType))
@@ -161,7 +161,7 @@ class AttributeIndex
     }
   }
 
-  private Index newPresenceIndex(WriteableStorage txn, BackendIndexCfg cfg)
+  private Index newPresenceIndex(WriteableTransaction txn, BackendIndexCfg cfg)
   {
     final AttributeType attrType = cfg.getAttribute();
     final TreeName indexName = getIndexName(attrType, IndexType.PRESENCE.toString());
@@ -169,7 +169,7 @@ class AttributeIndex
     return entryContainer.newIndexForAttribute(txn, indexName, indexer, cfg.getIndexEntryLimit());
   }
 
-  private void buildExtensibleIndexes(WriteableStorage txn) throws ConfigException
+  private void buildExtensibleIndexes(WriteableTransaction txn) throws ConfigException
   {
     final IndexType indexType = IndexType.EXTENSIBLE;
     if (indexConfig.getIndexType().contains(indexType))
@@ -206,7 +206,7 @@ class AttributeIndex
     }
   }
 
-  private void buildIndexes(WriteableStorage txn, IndexType indexType) throws ConfigException
+  private void buildIndexes(WriteableTransaction txn, IndexType indexType) throws ConfigException
   {
     if (indexConfig.getIndexType().contains(indexType))
     {
@@ -242,7 +242,7 @@ class AttributeIndex
     }
   }
 
-  private Index newAttributeIndex(WriteableStorage txn, BackendIndexCfg indexConfig,
+  private Index newAttributeIndex(WriteableTransaction txn, BackendIndexCfg indexConfig,
       org.forgerock.opendj.ldap.spi.Indexer indexer)
   {
     final AttributeType attrType = indexConfig.getAttribute();
@@ -264,7 +264,7 @@ class AttributeIndex
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
-  void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableTransaction txn) throws StorageRuntimeException
   {
     for (Index index : nameToIndexes.values())
     {
@@ -647,7 +647,7 @@ class AttributeIndex
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           applyChangeToPresenceIndex(txn, cfg, ccr);
           applyChangeToIndex(txn, IndexType.EQUALITY, cfg, ccr);
@@ -669,7 +669,7 @@ class AttributeIndex
     return ccr;
   }
 
-  private void applyChangeToExtensibleIndexes(WriteableStorage txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToExtensibleIndexes(WriteableTransaction txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
   {
     final AttributeType attrType = cfg.getAttribute();
     if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
@@ -723,7 +723,7 @@ class AttributeIndex
   }
 
   /** Remove indexes which do not correspond to valid rules. */
-  private void removeIndexesForExtensibleMatchingRules(WriteableStorage txn, Set<MatchingRule> validRules,
+  private void removeIndexesForExtensibleMatchingRules(WriteableTransaction txn, Set<MatchingRule> validRules,
       Set<String> validIndexIds)
   {
     final Set<MatchingRule> rulesToDelete = getCurrentExtensibleMatchingRules();
@@ -777,7 +777,7 @@ class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(final WriteableStorage txn, final IndexType indexType, final BackendIndexCfg cfg,
+  private void applyChangeToIndex(final WriteableTransaction txn, final IndexType indexType, final BackendIndexCfg cfg,
       final ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
@@ -809,7 +809,7 @@ class AttributeIndex
     }
   }
 
-  private void applyChangeToPresenceIndex(WriteableStorage txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToPresenceIndex(WriteableTransaction txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
   {
     final IndexType indexType = IndexType.PRESENCE;
     final String indexID = indexType.toString();
@@ -837,7 +837,7 @@ class AttributeIndex
     }
   }
 
-  private void removeIndex(WriteableStorage txn, Index index, IndexType indexType)
+  private void removeIndex(WriteableTransaction txn, Index index, IndexType indexType)
   {
     if (index != null)
     {
@@ -854,7 +854,7 @@ class AttributeIndex
     }
   }
 
-  private void openIndex(WriteableStorage txn, Index index, ConfigChangeResult ccr)
+  private void openIndex(WriteableTransaction txn, Index index, ConfigChangeResult ccr)
   {
     index.open(txn);
 

@@ -27,10 +27,10 @@
 package org.opends.server.backends.pluggable;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -74,7 +74,7 @@ class State extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean removeIndexTrustState(WriteableStorage txn, DatabaseContainer index) throws StorageRuntimeException
+  boolean removeIndexTrustState(WriteableTransaction txn, DatabaseContainer index) throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
     return txn.delete(getName(), key);
@@ -87,7 +87,7 @@ class State extends DatabaseContainer
    * @return The trusted state of the index in the database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  boolean getIndexTrustState(ReadableStorage txn, DatabaseContainer index)
+  boolean getIndexTrustState(ReadableTransaction txn, DatabaseContainer index)
       throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
@@ -103,7 +103,7 @@ class State extends DatabaseContainer
    * @param trusted The state value to put into the database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  void putIndexTrustState(WriteableStorage txn, DatabaseContainer index, boolean trusted)
+  void putIndexTrustState(WriteableTransaction txn, DatabaseContainer index, boolean trusted)
       throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);

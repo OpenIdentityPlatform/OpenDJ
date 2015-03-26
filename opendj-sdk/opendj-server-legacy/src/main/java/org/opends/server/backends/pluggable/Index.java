@@ -43,11 +43,11 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.pluggable.IndexBuffer.BufferedIndexValues;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
@@ -114,7 +114,7 @@ class Index extends DatabaseContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
   Index(TreeName name, Indexer indexer, State state, int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
-      WriteableStorage txn, EntryContainer entryContainer) throws StorageRuntimeException
+      WriteableTransaction txn, EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(name);
     this.indexer = indexer;
@@ -149,7 +149,7 @@ class Index extends DatabaseContainer
    * @param importIdSet The import ID set to delete.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  final void delete(WriteableStorage txn, ImportIDSet importIdSet) throws StorageRuntimeException
+  final void delete(WriteableTransaction txn, ImportIDSet importIdSet) throws StorageRuntimeException
   {
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
@@ -178,7 +178,7 @@ class Index extends DatabaseContainer
    * @param importIdSet The set of import IDs.
    * @throws StorageRuntimeException If a database error occurs.
    */
-  final void insert(WriteableStorage txn, ImportIDSet importIdSet) throws StorageRuntimeException
+  final void insert(WriteableTransaction txn, ImportIDSet importIdSet) throws StorageRuntimeException
   {
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
@@ -197,7 +197,7 @@ class Index extends DatabaseContainer
     txn.put(getName(), key, value);
   }
 
-  void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
+  void updateKey(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
     /*
@@ -263,7 +263,7 @@ class Index extends DatabaseContainer
     return entryIDSet != null && entryIDSet.size() > 0;
   }
 
-  private void updateKeyWithRMW(final WriteableStorage txn, final ByteString key, final EntryIDSet deletedIDs,
+  private void updateKeyWithRMW(final WriteableTransaction txn, final ByteString key, final EntryIDSet deletedIDs,
       final EntryIDSet addedIDs) throws StorageRuntimeException
   {
     txn.update(getName(), key, new UpdateFunction()
@@ -362,7 +362,7 @@ class Index extends DatabaseContainer
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
   }
 
-  private void logIndexCorruptError(WriteableStorage txn, ByteString key)
+  private void logIndexCorruptError(WriteableTransaction txn, ByteString key)
   {
     if (logger.isTraceEnabled())
     {
@@ -399,7 +399,7 @@ class Index extends DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
+  ConditionResult containsID(ReadableTransaction txn, ByteString key, EntryID entryID)
        throws StorageRuntimeException
   {
     ByteString value = txn.read(getName(), key);
@@ -422,7 +422,7 @@ class Index extends DatabaseContainer
    * @param key The key to read
    * @return The non null set of entry IDs.
    */
-  EntryIDSet read(ReadableStorage txn, ByteSequence key)
+  EntryIDSet read(ReadableTransaction txn, ByteSequence key)
   {
     try
     {
@@ -463,7 +463,7 @@ class Index extends DatabaseContainer
    *                      specified.
    * @return The non null set of entry IDs.
    */
-  EntryIDSet readRange(ReadableStorage txn,
+  EntryIDSet readRange(ReadableTransaction txn,
       ByteSequence lower, ByteSequence upper, boolean lowerIncluded, boolean upperIncluded)
   {
     // If this index is not trusted, then just return an undefined id set.
@@ -615,7 +615,7 @@ class Index extends DatabaseContainer
     return indexEntryLimit;
   }
 
-  synchronized void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+  synchronized void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
     state.putIndexTrustState(txn, this, trusted);

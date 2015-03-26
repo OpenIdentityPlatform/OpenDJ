@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 /**
  * Represents a readable transaction on a storage engine.
  */
-public interface ReadableStorage extends Closeable
+public interface ReadableTransaction extends Closeable
 {
   /**
    * Reads the record's value associated to the provided key, in the tree whose name is provided.
