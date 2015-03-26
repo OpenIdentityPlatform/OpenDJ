@@ -28,9 +28,9 @@ package org.opends.server.backends.persistit;
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
 
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -61,7 +61,7 @@ import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
@@ -268,8 +268,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
   }
 
-  /** PersistIt implementation of the {@link WriteableStorage} interface. */
-  private final class StorageImpl implements WriteableStorage
+  /** PersistIt implementation of the {@link WriteableTransaction} interface. */
+  private final class StorageImpl implements WriteableTransaction
   {
     private final Map<TreeName, Exchange> exchanges = new HashMap<TreeName, Exchange>();
 
@@ -714,7 +714,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   }
 
   @Override
-  public WriteableStorage getWriteableStorage()
+  public WriteableTransaction getWriteableTransaction()
   {
     return new StorageImpl();
   }
