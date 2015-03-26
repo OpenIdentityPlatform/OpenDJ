@@ -1949,7 +1949,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
          throws DirectoryException
   {
     LocalizableMessage message = ERR_CONFIG_FILE_UNWILLING_TO_IMPORT.get();

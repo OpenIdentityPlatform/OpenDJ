@@ -248,7 +248,7 @@ public class RebuildTask extends Task
     // Launch the rebuild process.
     try
     {
-      backend.rebuildBackend(rebuildConfig);
+      backend.rebuildBackend(rebuildConfig, DirectoryServer.getInstance().getServerContext());
     }
     catch (InitializationException e)
     {

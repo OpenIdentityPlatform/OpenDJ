@@ -624,7 +624,7 @@ public class TestImportJob extends JebTestCase
     TaskUtils.disableBackend(backendID);
     try
     {
-      backend.importLDIF(importConfig);
+      backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
     }
     finally
     {

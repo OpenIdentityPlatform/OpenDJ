@@ -26,6 +26,10 @@
  */
 package org.opends.server.replication;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -65,10 +69,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Tests contained here:
@@ -505,7 +505,7 @@ public class GenerationIdTest extends ReplicationTestCase
     LDIFImportConfig importConfig = new LDIFImportConfig(ldifFile.getAbsolutePath());
 
     MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
-    memoryBackend.importLDIF(importConfig);
+    memoryBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 
   private String createEntry(UUID uid)

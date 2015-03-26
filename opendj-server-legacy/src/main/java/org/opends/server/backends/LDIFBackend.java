@@ -1033,13 +1033,11 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-         throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     return importLDIF(importConfig, true);
   }
-
-
 
   /**
    * Processes an LDIF import operation, optionally writing the resulting LDIF

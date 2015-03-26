@@ -346,8 +346,8 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig arg0)
-  throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     return null;
   }

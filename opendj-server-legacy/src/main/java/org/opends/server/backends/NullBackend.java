@@ -387,8 +387,8 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-         throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     LDIFReader reader;
     try

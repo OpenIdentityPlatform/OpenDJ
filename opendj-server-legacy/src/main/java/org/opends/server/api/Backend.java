@@ -637,15 +637,13 @@ public abstract class Backend<C extends Configuration>
    * returns {@code true}.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
-   * @param  importConfig  The configuration to use when performing
-   *                       the import.
-   *
+   * @param  importConfig  The configuration to use when performing the import.
+   * @param  serverContext The server context
    * @return  Information about the result of the import processing.
-   *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF import.
    */
-  public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig)
+  public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
          throws DirectoryException;
 
   /**
@@ -683,8 +681,8 @@ public abstract class Backend<C extends Configuration>
    * @throws DirectoryException
    *           If a Directory Server error occurs.
    */
-  public void rebuildBackend(RebuildConfig rebuildConfig) throws InitializationException, ConfigException,
-      DirectoryException
+  public void rebuildBackend(RebuildConfig rebuildConfig, ServerContext serverContext)
+      throws InitializationException, ConfigException, DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_INDEXES_NOT_SUPPORTED.get(getBackendID()));

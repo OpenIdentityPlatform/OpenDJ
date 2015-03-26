@@ -668,8 +668,8 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-         throws DirectoryException
+  public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     clearMemoryBackend();
 

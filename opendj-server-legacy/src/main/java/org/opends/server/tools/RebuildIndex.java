@@ -587,7 +587,7 @@ public class RebuildIndex extends TaskTool
     int returnCode = 0;
     try
     {
-      backend.rebuildBackend(rebuildConfig);
+      backend.rebuildBackend(rebuildConfig, DirectoryServer.getInstance().getServerContext());
     }
     catch (InitializationException e)
     {

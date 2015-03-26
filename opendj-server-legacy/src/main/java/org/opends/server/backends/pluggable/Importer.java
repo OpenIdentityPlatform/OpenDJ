@@ -110,6 +110,7 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -192,6 +193,7 @@ final class Importer implements DiskSpaceMonitorHandler
   private final LDIFImportConfig importConfiguration;
   /** Backend configuration. */
   private final PersistitBackendCfg backendConfiguration;
+  private final ServerContext serverContext;
 
   /** LDIF reader. */
   private ImportLDIFReader reader;
@@ -286,11 +288,12 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws ConfigException
    *           If a problem occurs during initialization.
    */
-  Importer(RebuildConfig rebuildConfig, PersistitBackendCfg cfg)
+  Importer(RebuildConfig rebuildConfig, PersistitBackendCfg cfg, ServerContext serverContext)
       throws InitializationException, StorageRuntimeException, ConfigException
   {
     this.importConfiguration = null;
     this.backendConfiguration = cfg;
+    this.serverContext = serverContext;
     this.tmpEnv = null;
     this.threadCount = 1;
     this.rebuildManager = new RebuildIndexManager(rebuildConfig, cfg);
@@ -324,12 +327,13 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws StorageRuntimeException
    *           If an error occurred when opening the DB.
    */
-  Importer(LDIFImportConfig importConfiguration, PersistitBackendCfg backendCfg)
+  Importer(LDIFImportConfig importConfiguration, PersistitBackendCfg backendCfg, ServerContext serverContext)
       throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rebuildManager = null;
     this.importConfiguration = importConfiguration;
     this.backendConfiguration = backendCfg;
+    this.serverContext = serverContext;
 
     if (importConfiguration.getThreadCount() == 0)
     {

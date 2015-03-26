@@ -3594,7 +3594,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       // Process import
       preBackendImport(backend);
-      backend.importLDIF(importConfig);
+      backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
 
       stateSavingDisabled = false;
     }
