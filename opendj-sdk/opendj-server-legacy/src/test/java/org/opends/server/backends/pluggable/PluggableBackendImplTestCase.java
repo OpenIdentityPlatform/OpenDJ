@@ -793,7 +793,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     importConf.setClearBackend(true);
     importConf.writeRejectedEntries(rejectedEntries);
     try {
-      backend.importLDIF(importConf);
+      backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }
     finally {
       importConf.close();

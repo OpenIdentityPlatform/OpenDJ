@@ -1188,7 +1188,8 @@ public class ImportLDIF extends TaskTool {
     int retCode = 0;
     try
     {
-      LDIFImportResult importResult = backend.importLDIF(importConfig);
+      LDIFImportResult importResult =
+          backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
       if (countRejects.isPresent())
       {
         if (importResult.getEntriesRejected() > Integer.MAX_VALUE)

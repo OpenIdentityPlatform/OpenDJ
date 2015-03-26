@@ -641,7 +641,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     RuntimeInformation.logInfo();
 
@@ -669,7 +670,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
 
       rootContainer = initializeRootContainer();
-      return rootContainer.importLDIF(importConfig);
+      return rootContainer.importLDIF(importConfig, serverContext);
     }
     catch (StorageRuntimeException e)
     {
@@ -764,7 +765,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** {@inheritDoc} */
   @Override
-  public void rebuildBackend(RebuildConfig rebuildConfig)
+  public void rebuildBackend(RebuildConfig rebuildConfig, ServerContext serverContext)
       throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
@@ -787,7 +788,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = initializeRootContainer();
       }
-      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg); // FIXME JNR remove cast
+      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg, serverContext); // FIXME JNR remove cast
       importer.rebuildIndexes(rootContainer);
     }
     catch (ExecutionException execEx)

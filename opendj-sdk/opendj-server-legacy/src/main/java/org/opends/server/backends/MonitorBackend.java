@@ -405,7 +405,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(final LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(final LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,

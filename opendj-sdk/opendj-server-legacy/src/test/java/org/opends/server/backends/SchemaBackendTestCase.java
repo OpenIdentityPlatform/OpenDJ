@@ -26,6 +26,11 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.util.Map;
 
@@ -46,11 +51,6 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the schema backend.
@@ -5401,8 +5401,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testImportLDIF()
-         throws Exception
+  public void testImportLDIF() throws Exception
   {
     File tempFile = File.createTempFile("schema", "testImportLDIF");
     tempFile.deleteOnExit();
@@ -5413,10 +5412,8 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     schemaBackend.exportLDIF(exportConfig);
 
-    LDIFImportConfig importConfig =
-         new LDIFImportConfig(tempFile.getAbsolutePath());
-
-    schemaBackend.importLDIF(importConfig);
+    LDIFImportConfig importConfig = new LDIFImportConfig(tempFile.getAbsolutePath());
+    schemaBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 
 
@@ -5427,8 +5424,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testGetComponentEntryDN()
-         throws Exception
+  public void testGetComponentEntryDN() throws Exception
   {
     DN configEntryDN =
             DN.valueOf("ds-cfg-backend-id=schema,cn=Backends,cn=config");

@@ -60,6 +60,7 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -175,13 +176,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @param importConfig
    *          The configuration to use when performing the import.
+   * @param serverContext The server context
    * @return information about the result of the import processing.
    * @throws DirectoryException
    *           If a problem occurs while performing the LDIF import.
    */
-  LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
+  LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext) throws DirectoryException
   {//TODO JNR may call importLDIFWithSuccessiveAdds(importConfig) depending on configured import strategy
-    return importLDIFWithOnDiskMerge(importConfig);
+    return importLDIFWithOnDiskMerge(importConfig, serverContext);
   }
 
   private LDIFImportResult importLDIFWithSuccessiveAdds(LDIFImportConfig importConfig) throws DirectoryException
@@ -312,11 +314,11 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     timerService.awaitTermination(20, TimeUnit.SECONDS);
   }
 
-  private LDIFImportResult importLDIFWithOnDiskMerge(final LDIFImportConfig importConfig) throws DirectoryException
+  private LDIFImportResult importLDIFWithOnDiskMerge(final LDIFImportConfig importConfig, ServerContext serverContext) throws DirectoryException
   {
     try
     {
-      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config); // TODO JNR remove cast
+      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config, serverContext); // TODO JNR remove cast
       return importer.processImport(this);
     }
     catch (DirectoryException e)

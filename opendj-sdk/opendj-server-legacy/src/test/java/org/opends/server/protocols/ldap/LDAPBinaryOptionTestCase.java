@@ -26,6 +26,10 @@
  */
 package org.opends.server.protocols.ldap;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -50,10 +54,6 @@ import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of test cases for testing the binary transfer option
@@ -519,6 +519,6 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     importConfig = new LDIFImportConfig(ldif.getAbsolutePath());
     TestCaseUtils.initializeTestBackend(false);
     backend = DirectoryServer.getBackend("test");
-    backend.importLDIF(importConfig);
+    backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 }

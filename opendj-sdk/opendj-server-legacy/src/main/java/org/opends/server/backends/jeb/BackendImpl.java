@@ -682,7 +682,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
     RuntimeInformation.logInfo();
@@ -828,8 +828,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void rebuildBackend(RebuildConfig rebuildConfig)
-          throws InitializationException, ConfigException, DirectoryException
+  public void rebuildBackend(RebuildConfig rebuildConfig, ServerContext serverContext)
+      throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container

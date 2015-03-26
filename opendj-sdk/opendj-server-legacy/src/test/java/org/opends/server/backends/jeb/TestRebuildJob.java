@@ -161,8 +161,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = DirectoryServer.getBackend(backendID);
-    backend.rebuildBackend(rebuildConfig);
+    rebuildBackend(backendID, rebuildConfig);
 
     if(index.contains(".") && !index.startsWith("vlv."))
     {
@@ -188,8 +187,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    backend = DirectoryServer.getBackend(backendID);
-    backend.rebuildBackend(rebuildConfig);
+    rebuildBackend(backendID, rebuildConfig);
 
   }
 
@@ -207,11 +205,10 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
 
     try {
-      backend.rebuildBackend(rebuildConfig);
+      rebuildBackend(backendID, rebuildConfig);
     } finally {
       TaskUtils.enableBackend(backendID);
     }
@@ -224,8 +221,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = DirectoryServer.getBackend(backendID);
-    backend.rebuildBackend(rebuildConfig);
+    rebuildBackend(backendID, rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes",
@@ -236,8 +232,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = DirectoryServer.getBackend(backendID);
-    backend.rebuildBackend(rebuildConfig);
+    rebuildBackend(backendID, rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes")
@@ -248,9 +243,8 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
 
-    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
-    backend.rebuildBackend(rebuildConfig);
+    rebuildBackend(backendID, rebuildConfig);
 
     //TODO: Verify dn2uri database as well.
     if (!"dn2uri".equalsIgnoreCase(index))
@@ -296,17 +290,22 @@ public class TestRebuildJob extends JebTestCase
 
   private void rebuildIndexes(RebuildConfig rebuildConfig) throws Exception
   {
-    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
     try
     {
-      backend.rebuildBackend(rebuildConfig);
+      rebuildBackend(backendID, rebuildConfig);
       assertEquals(verifyBackend(null), 0);
     }
     finally
     {
       TaskUtils.enableBackend(backendID);
     }
+  }
+
+  private void rebuildBackend(String backendID, RebuildConfig rebuildConfig) throws Exception
+  {
+    backend = DirectoryServer.getBackend(backendID);
+    backend.rebuildBackend(rebuildConfig, DirectoryServer.getInstance().getServerContext());
   }
 
   @Test

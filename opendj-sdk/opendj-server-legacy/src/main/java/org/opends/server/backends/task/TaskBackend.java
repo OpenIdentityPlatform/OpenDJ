@@ -1080,8 +1080,7 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-         throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext sContext) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_IMPORT_NOT_SUPPORTED.get(getBackendID()));

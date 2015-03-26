@@ -762,7 +762,7 @@ public class ImportTask extends Task
       // Launch the import.
       try
       {
-        backend.importLDIF(importConfig);
+        backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
       }
       catch (DirectoryException de)
       {
