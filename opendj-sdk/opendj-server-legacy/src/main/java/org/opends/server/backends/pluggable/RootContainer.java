@@ -26,18 +26,11 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.BackendMessages.ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER;
-import static org.opends.messages.BackendMessages.ERR_LDIF_BACKEND_ERROR_READING_LDIF;
-import static org.opends.messages.JebMessages.ERR_JEB_CACHE_PRELOAD;
-import static org.opends.messages.JebMessages.ERR_JEB_REMOVE_FAIL;
-import static org.opends.messages.JebMessages.ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED;
-import static org.opends.messages.JebMessages.ERR_JEB_IMPORT_PARENT_NOT_FOUND;
-import static org.opends.messages.JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS;
-import static org.opends.messages.JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT;
-import static org.opends.messages.JebMessages.WARN_JEB_IMPORT_ENTRY_EXISTS;
-import static org.opends.messages.UtilityMessages.ERR_LDIF_SKIP;
-import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +48,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -77,8 +71,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.RuntimeInformation;
-
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -188,24 +180,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *           If a problem occurs while performing the LDIF import.
    */
   LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
+  {//TODO JNR may call importLDIFWithSuccessiveAdds(importConfig) depending on configured import strategy
+    return importLDIFWithOnDiskMerge(importConfig);
+  }
+
+  private LDIFImportResult importLDIFWithSuccessiveAdds(LDIFImportConfig importConfig) throws DirectoryException
   {
-    RuntimeInformation.logInfo();
-    if (Importer.mustClearBackend(importConfig, config))
-    {
-      try
-      {
-        backend.getStorage().removeStorageFiles();
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage m = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
-      }
-    }
     try
     {
-      open();
-
       ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
       try
       {
@@ -328,6 +310,31 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     timerService.shutdown();
     timerService.awaitTermination(20, TimeUnit.SECONDS);
+  }
+
+  private LDIFImportResult importLDIFWithOnDiskMerge(final LDIFImportConfig importConfig) throws DirectoryException
+  {
+    try
+    {
+      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config); // TODO JNR remove cast
+      return importer.processImport(this);
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
+      throw e;
+    }
+    catch (OpenDsException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(),
+          LocalizableMessage.raw(stackTraceToSingleLineString(e)), e);
+    }
   }
 
   /**

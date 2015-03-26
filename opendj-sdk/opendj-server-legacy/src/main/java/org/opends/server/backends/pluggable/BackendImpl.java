@@ -58,6 +58,7 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.server.util.RuntimeInformation;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries locally in a
@@ -642,13 +643,74 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
+    RuntimeInformation.logInfo();
+
     // If the rootContainer is open, the backend is initialized by something else.
     // We can't do import while the backend is online.
     if (rootContainer != null)
     {
       throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_IMPORT_BACKEND_ONLINE.get());
     }
-    return new RootContainer(this, cfg).importLDIF(importConfig);
+
+    try
+    {
+      if (Importer.mustClearBackend(importConfig, cfg))
+      {
+        try
+        {
+          // clear all files before opening the root container
+          storage.removeStorageFiles();
+        }
+        catch (Exception e)
+        {
+          LocalizableMessage m = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
+          throw new DirectoryException(getServerErrorResultCode(), m, e);
+        }
+      }
+
+      rootContainer = initializeRootContainer();
+      return rootContainer.importLDIF(importConfig);
+    }
+    catch (StorageRuntimeException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+    }
+    catch (DirectoryException e)
+    {
+      throw e;
+    }
+    catch (OpenDsException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+    }
+    catch (ConfigException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+    }
+    finally
+    {
+      try
+      {
+        if (rootContainer != null)
+        {
+          long startTime = System.currentTimeMillis();
+          rootContainer.close();
+          long finishTime = System.currentTimeMillis();
+          long closeTime = (finishTime - startTime) / 1000;
+          logger.info(NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
+          rootContainer = null;
+        }
+
+        logger.info(NOTE_JEB_IMPORT_CLOSING_DATABASE);
+      }
+      catch (StorageRuntimeException de)
+      {
+        logger.traceException(de);
+      }
+    }
   }
 
   /** {@inheritDoc} */
