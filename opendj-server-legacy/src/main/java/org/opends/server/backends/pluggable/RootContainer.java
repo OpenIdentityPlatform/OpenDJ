@@ -314,11 +314,13 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     timerService.awaitTermination(20, TimeUnit.SECONDS);
   }
 
-  private LDIFImportResult importLDIFWithOnDiskMerge(final LDIFImportConfig importConfig, ServerContext serverContext) throws DirectoryException
+  private LDIFImportResult importLDIFWithOnDiskMerge(final LDIFImportConfig importConfig, ServerContext serverContext)
+      throws DirectoryException
   {
     try
     {
-      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config, serverContext); // TODO JNR remove cast
+      // TODO JNR remove cast
+      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config, serverContext);
       return importer.processImport(this);
     }
     catch (DirectoryException e)

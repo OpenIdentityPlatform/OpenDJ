@@ -788,7 +788,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = initializeRootContainer();
       }
-      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg, serverContext); // FIXME JNR remove cast
+      // FIXME JNR remove cast
+      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg, serverContext);
       importer.rebuildIndexes(rootContainer);
     }
     catch (ExecutionException execEx)

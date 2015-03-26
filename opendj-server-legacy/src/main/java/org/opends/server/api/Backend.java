@@ -119,7 +119,6 @@ public abstract class Backend<C extends Configuration>
    *
    * @param  cfg          The configuration of this backend.
    * @param  serverContext The server context for this instance
-   *
    * @throws  ConfigException
    *                      If there is an error in the configuration.
    */
@@ -141,7 +140,6 @@ public abstract class Backend<C extends Configuration>
    *                              reasons that the provided
    *                              configuration is not acceptable.
    * @param serverContext         this Directory Server instance's server context
-   *
    * @return  {@code true} if the provided configuration is acceptable
    *          for this backend, or {@code false} if not.
    */
@@ -673,6 +671,8 @@ public abstract class Backend<C extends Configuration>
    *
    * @param rebuildConfig
    *          The rebuild configuration.
+   * @param serverContext
+   *          The server context for this instance
    * @throws ConfigException
    *           If an unrecoverable problem arises during initialization.
    * @throws InitializationException
