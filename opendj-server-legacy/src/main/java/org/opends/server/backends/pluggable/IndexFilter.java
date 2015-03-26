@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
@@ -59,7 +59,7 @@ class IndexFilter
 
   /** The entry container holding the attribute indexes. */
   private final EntryContainer entryContainer;
-  private final ReadableStorage txn;
+  private final ReadableTransaction txn;
 
   /**
    * The search operation provides the search base, scope and filter.
@@ -85,7 +85,7 @@ class IndexFilter
    *                     which will help determine how the indexes contributed
    *                     to this search.
    */
-  IndexFilter(EntryContainer entryContainer, ReadableStorage txn, SearchOperation searchOp,
+  IndexFilter(EntryContainer entryContainer, ReadableTransaction txn, SearchOperation searchOp,
       StringBuilder debugBuilder, DatabaseEnvironmentMonitor monitor)
   {
     this.entryContainer = entryContainer;

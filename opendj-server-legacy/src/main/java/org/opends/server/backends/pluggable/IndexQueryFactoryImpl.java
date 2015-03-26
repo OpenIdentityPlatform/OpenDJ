@@ -35,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -46,7 +46,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 
   private static final String PRESENCE_INDEX_KEY = "presence";
 
-  private final ReadableStorage txn;
+  private final ReadableTransaction txn;
   /** The Map containing the string type identifier and the corresponding index. */
   private final AttributeIndex attributeIndex;
 
@@ -58,7 +58,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
    * @param attributeIndex
    *          The targeted attribute index
    */
-  IndexQueryFactoryImpl(ReadableStorage txn, AttributeIndex attributeIndex)
+  IndexQueryFactoryImpl(ReadableTransaction txn, AttributeIndex attributeIndex)
   {
     this.txn = txn;
     this.attributeIndex = attributeIndex;

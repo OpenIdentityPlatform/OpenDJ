@@ -26,10 +26,10 @@
  */
 package org.opends.server.backends.pluggable;
 
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
 /**
  * This class is a wrapper around the JE database object and provides basic
@@ -59,7 +59,7 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           if a JE database error occurs while opening the index.
    */
-  void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableTransaction txn) throws StorageRuntimeException
   {
     txn.openTree(name);
   }
@@ -72,7 +72,7 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           if a database error occurs while deleting the index.
    */
-  void delete(WriteableStorage txn) throws StorageRuntimeException
+  void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
     txn.deleteTree(name);
   }
@@ -86,7 +86,7 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the DB operation.
    */
-  long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
+  long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException
   {
     return txn.getRecordCount(name);
   }

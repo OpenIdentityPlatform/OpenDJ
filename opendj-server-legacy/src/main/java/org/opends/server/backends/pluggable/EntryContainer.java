@@ -75,12 +75,12 @@ import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
 import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
@@ -200,7 +200,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             //Try creating all the indexes before confirming they are valid ones.
             new AttributeIndex(cfg, EntryContainer.this, txn);
@@ -225,7 +225,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             final AttributeIndex index = new AttributeIndex(cfg, EntryContainer.this, txn);
             index.open(txn);
@@ -267,7 +267,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
             deleteAttributeIndex(txn, index);
@@ -369,7 +369,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
             vlvIndex.open(txn);
@@ -409,7 +409,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             VLVIndex vlvIndex = vlvIndexMap.get(cfg.getName().toLowerCase());
             deleteDatabase(txn, vlvIndex);
@@ -482,7 +482,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws ConfigException if a configuration related error occurs.
    */
-  void open(WriteableStorage txn) throws StorageRuntimeException, ConfigException
+  void open(WriteableTransaction txn) throws StorageRuntimeException, ConfigException
   {
     try
     {
@@ -552,7 +552,7 @@ public class EntryContainer
     }
   }
 
-  private NullIndex openNewNullIndex(WriteableStorage txn, String indexId, Indexer indexer)
+  private NullIndex openNewNullIndex(WriteableTransaction txn, String indexId, Indexer indexer)
   {
     return new NullIndex(getIndexName(indexId), indexer, state, txn, this);
   }
@@ -703,7 +703,7 @@ public class EntryContainer
    * @return The highest entry ID.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  EntryID getHighestEntryID(ReadableStorage txn) throws StorageRuntimeException
+  EntryID getHighestEntryID(ReadableTransaction txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(id2entry.getName());
     try
@@ -740,7 +740,7 @@ public class EntryContainer
       return storage.read(new ReadOperation<Long>()
       {
         @Override
-        public Long run(ReadableStorage txn) throws Exception
+        public Long run(ReadableTransaction txn) throws Exception
         {
           EntryID entryID = dn2id.get(txn, entryDN);
           if (entryID != null)
@@ -783,7 +783,7 @@ public class EntryContainer
       storage.read(new ReadOperation<Void>()
       {
         @Override
-        public Void run(ReadableStorage txn) throws Exception
+        public Void run(ReadableTransaction txn) throws Exception
         {
           DN aBaseDN = searchOperation.getBaseDN();
           SearchScope searchScope = searchOperation.getScope();
@@ -1110,8 +1110,8 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchNotIndexed(ReadableStorage txn, SearchOperation searchOperation, PagedResultsControl pageRequest)
-      throws DirectoryException, CanceledOperationException
+  private void searchNotIndexed(ReadableTransaction txn, SearchOperation searchOperation,
+      PagedResultsControl pageRequest) throws DirectoryException, CanceledOperationException
   {
     DN aBaseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
@@ -1286,7 +1286,7 @@ public class EntryContainer
    * @throws DirectoryException
    *           If an error occurs retrieving the entry
    */
-  Entry getEntry(ReadableStorage txn, EntryID entryID) throws DirectoryException
+  Entry getEntry(ReadableTransaction txn, EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
     final EntryCache<?> entryCache = getEntryCache();
@@ -1328,7 +1328,7 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchIndexed(ReadableStorage txn, EntryIDSet entryIDSet, boolean candidatesAreInScope,
+  private void searchIndexed(ReadableTransaction txn, EntryIDSet entryIDSet, boolean candidatesAreInScope,
       SearchOperation searchOperation, PagedResultsControl pageRequest) throws DirectoryException,
       CanceledOperationException
   {
@@ -1497,7 +1497,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           DN parentDN = getParentWithinBase(entry.getName());
 
@@ -1631,7 +1631,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
 
@@ -1775,7 +1775,7 @@ public class EntryContainer
     return newBS;
   }
 
-  private void deleteEntry(WriteableStorage txn,
+  private void deleteEntry(WriteableTransaction txn,
       IndexBuffer indexBuffer,
       boolean manageDsaIT,
       DN targetDN,
@@ -1883,7 +1883,7 @@ public class EntryContainer
    * @throws  DirectoryException  If a problem occurs while trying to make the
    *                              determination.
    */
-  private boolean entryExists(ReadableStorage txn, final DN entryDN) throws DirectoryException
+  private boolean entryExists(ReadableTransaction txn, final DN entryDN) throws DirectoryException
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -1914,7 +1914,7 @@ public class EntryContainer
       return storage.read(new ReadOperation<Entry>()
       {
         @Override
-        public Entry run(ReadableStorage txn) throws Exception
+        public Entry run(ReadableTransaction txn) throws Exception
         {
           return getEntry0(txn, entryDN);
         }
@@ -1928,7 +1928,7 @@ public class EntryContainer
     }
   }
 
-  private Entry getEntry0(ReadableStorage txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
+  private Entry getEntry0(ReadableTransaction txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
     final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
 
@@ -2000,7 +2000,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           try
           {
@@ -2125,7 +2125,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           DN oldSuperiorDN = getParentWithinBase(currentDN);
           DN newSuperiorDN = getParentWithinBase(entry.getName());
@@ -2348,7 +2348,7 @@ public class EntryContainer
     }
   }
 
-  private void addRenamedEntry(WriteableStorage txn, IndexBuffer buffer,
+  private void addRenamedEntry(WriteableTransaction txn, IndexBuffer buffer,
                            EntryID newID,
                            Entry newEntry,
                            boolean isApexEntryMoved,
@@ -2386,7 +2386,7 @@ public class EntryContainer
     }
   }
 
-  private void removeApexEntry(WriteableStorage txn, IndexBuffer buffer,
+  private void removeApexEntry(WriteableTransaction txn, IndexBuffer buffer,
       DN oldSuperiorDN,
       EntryID oldID, EntryID newID,
       Entry oldEntry, Entry newEntry,
@@ -2456,7 +2456,7 @@ public class EntryContainer
     }
   }
 
-  private void removeSubordinateEntry(WriteableStorage txn, IndexBuffer buffer,
+  private void removeSubordinateEntry(WriteableTransaction txn, IndexBuffer buffer,
       DN oldSuperiorDN,
       EntryID oldID, EntryID newID,
       Entry oldEntry, DN newDN,
@@ -2669,7 +2669,7 @@ public class EntryContainer
    * @return The number of entries stored in this entry container.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  long getEntryCount(ReadableStorage txn) throws StorageRuntimeException
+  long getEntryCount(ReadableTransaction txn) throws StorageRuntimeException
   {
     final EntryID entryID = dn2id.get(txn, baseDN);
     if (entryID != null)
@@ -2754,7 +2754,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
-  void delete(WriteableStorage txn) throws StorageRuntimeException
+  void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -2773,7 +2773,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while attempting to delete the
    * database.
    */
-  void deleteDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
+  void deleteDatabase(WriteableTransaction txn, DatabaseContainer database) throws StorageRuntimeException
   {
     if(database == state)
     {
@@ -2794,7 +2794,8 @@ public class EntryContainer
    * @throws StorageRuntimeException If an JE database error occurs while attempting
    * to delete the index.
    */
-  private void deleteAttributeIndex(WriteableStorage txn, AttributeIndex attributeIndex) throws StorageRuntimeException
+  private void deleteAttributeIndex(WriteableTransaction txn, AttributeIndex attributeIndex)
+      throws StorageRuntimeException
   {
     attributeIndex.close();
     for (Index index : attributeIndex.getAllIndexes())
@@ -2833,7 +2834,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           for(DatabaseContainer db : databases)
           {
@@ -2868,7 +2869,7 @@ public class EntryContainer
         storage.write(new WriteOperation()
         {
           @Override
-          public void run(WriteableStorage txn) throws Exception
+          public void run(WriteableTransaction txn) throws Exception
           {
             // Open the containers backup.
             for(DatabaseContainer db : databases)
@@ -2935,7 +2936,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
           {
@@ -3003,7 +3004,7 @@ public class EntryContainer
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           clear0(txn);
         }
@@ -3015,7 +3016,7 @@ public class EntryContainer
     }
   }
 
-  private void clear0(WriteableStorage txn) throws StorageRuntimeException
+  private void clear0(WriteableTransaction txn) throws StorageRuntimeException
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -3050,7 +3051,7 @@ public class EntryContainer
    * @param database The database to clear.
    * @throws StorageRuntimeException if a JE database error occurs.
    */
-  void clearDatabase(WriteableStorage txn, DatabaseContainer database)
+  void clearDatabase(WriteableTransaction txn, DatabaseContainer database)
       throws StorageRuntimeException
   {
     try
@@ -3076,7 +3077,7 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the check of an
    * existing entry from being performed.
    */
-  private DN getMatchedDN(ReadableStorage txn, DN baseDN) throws DirectoryException
+  private DN getMatchedDN(ReadableTransaction txn, DN baseDN) throws DirectoryException
   {
     DN parentDN  = baseDN.getParentDNInSuffix();
     while (parentDN != null && parentDN.isDescendantOf(getBaseDN()))
@@ -3091,13 +3092,13 @@ public class EntryContainer
   }
 
   /** Opens the id2children and id2subtree indexes. */
-  private void openSubordinateIndexes(WriteableStorage txn)
+  private void openSubordinateIndexes(WriteableTransaction txn)
   {
     id2children = newIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
     id2subtree = newIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
   }
 
-  private Index newIndex(WriteableStorage txn, String name, Indexer indexer)
+  private Index newIndex(WriteableTransaction txn, String name, Indexer indexer)
   {
     final Index index = new Index(getIndexName(name), indexer, state, config.getIndexEntryLimit(), 0, true, txn, this);
     index.open(txn);
@@ -3117,7 +3118,7 @@ public class EntryContainer
    * @param indexEntryLimit the index entry limit
    * @return a new index
    */
-  Index newIndexForAttribute(WriteableStorage txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
+  Index newIndexForAttribute(WriteableTransaction txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
   {
     return new Index(indexName, indexer, state, indexEntryLimit, CURSOR_ENTRY_LIMIT, false, txn, this);
   }
@@ -3167,7 +3168,7 @@ public class EntryContainer
    * @return the Entry matching the baseDN.
    * @throws DirectoryException if the baseDN doesn't exist.
    */
-  private Entry fetchBaseEntry(ReadableStorage txn, DN baseDN, SearchScope searchScope)
+  private Entry fetchBaseEntry(ReadableTransaction txn, DN baseDN, SearchScope searchScope)
       throws DirectoryException
   {
     Entry baseEntry = null;
@@ -3195,7 +3196,7 @@ public class EntryContainer
     return baseEntry;
   }
 
-  private EntryIDSet sort(ReadableStorage txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
+  private EntryIDSet sort(ReadableTransaction txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
       SortOrder sortOrder, VLVRequestControl vlvRequest) throws DirectoryException
   {
     if (!entryIDSet.isDefined())

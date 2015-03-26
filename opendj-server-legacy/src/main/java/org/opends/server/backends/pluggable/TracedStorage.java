@@ -34,14 +34,14 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
 /**
  * Decorates a {@link Storage} with additional trace logging.
@@ -91,13 +91,13 @@ final class TracedStorage implements Storage
   }
 
   /**
-   * Decorates an {@link ReadableStorage} with additional trace logging.
+   * Decorates an {@link ReadableTransaction} with additional trace logging.
    */
-  private final class TracedReadableStorage implements ReadableStorage
+  private final class TracedReadableStorage implements ReadableTransaction
   {
-    private final ReadableStorage txn;
+    private final ReadableTransaction txn;
 
-    private TracedReadableStorage(final ReadableStorage txn)
+    private TracedReadableStorage(final ReadableTransaction txn)
     {
       this.txn = txn;
     }
@@ -142,13 +142,13 @@ final class TracedStorage implements Storage
   }
 
   /**
-   * Decorates an {@link WriteableStorage} with additional trace logging.
+   * Decorates an {@link WriteableTransaction} with additional trace logging.
    */
-  private final class TracedWriteableStorage implements WriteableStorage
+  private final class TracedWriteableStorage implements WriteableTransaction
   {
-    private final WriteableStorage txn;
+    private final WriteableTransaction txn;
 
-    private TracedWriteableStorage(final WriteableStorage txn)
+    private TracedWriteableStorage(final WriteableTransaction txn)
     {
       this.txn = txn;
     }
@@ -300,7 +300,7 @@ final class TracedStorage implements Storage
       op = new ReadOperation<T>()
       {
         @Override
-        public T run(final ReadableStorage txn) throws Exception
+        public T run(final ReadableTransaction txn) throws Exception
         {
           return readOperation.run(new TracedReadableStorage(txn));
         }
@@ -346,7 +346,7 @@ final class TracedStorage implements Storage
       op = new WriteOperation()
       {
         @Override
-        public void run(final WriteableStorage txn) throws Exception
+        public void run(final WriteableTransaction txn) throws Exception
         {
           writeOperation.run(new TracedWriteableStorage(txn));
         }
@@ -356,9 +356,9 @@ final class TracedStorage implements Storage
   }
 
   @Override
-  public WriteableStorage getWriteableStorage()
+  public WriteableTransaction getWriteableTransaction()
   {
-    final WriteableStorage writeableStorage = storage.getWriteableStorage();
+    final WriteableTransaction writeableStorage = storage.getWriteableTransaction();
     if (logger.isTraceEnabled())
     {
       return new TracedWriteableStorage(writeableStorage);

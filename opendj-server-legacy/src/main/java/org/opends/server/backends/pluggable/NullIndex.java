@@ -33,10 +33,10 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -47,7 +47,7 @@ import org.opends.server.types.Modification;
 final class NullIndex extends Index
 {
 
-  NullIndex(TreeName name, Indexer indexer, State state, WriteableStorage txn,
+  NullIndex(TreeName name, Indexer indexer, State state, WriteableTransaction txn,
       EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(name, indexer, state, 0, 0, false, txn, entryContainer);
@@ -56,7 +56,7 @@ final class NullIndex extends Index
   }
 
   @Override
-  void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
+  void updateKey(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
     // Do nothing.
@@ -69,20 +69,20 @@ final class NullIndex extends Index
   }
 
   @Override
-  ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
+  ConditionResult containsID(ReadableTransaction txn, ByteString key, EntryID entryID)
       throws StorageRuntimeException
   {
     return ConditionResult.UNDEFINED;
   }
 
   @Override
-  EntryIDSet read(ReadableStorage txn, ByteSequence key)
+  EntryIDSet read(ReadableTransaction txn, ByteSequence key)
   {
     return newUndefinedSet();
   }
 
   @Override
-  EntryIDSet readRange(ReadableStorage txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
+  EntryIDSet readRange(ReadableTransaction txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
       boolean upperIncluded)
   {
     return newUndefinedSet();
@@ -128,7 +128,7 @@ final class NullIndex extends Index
   }
 
   @Override
-  void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+  void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     // Do nothing.
   }
@@ -152,19 +152,19 @@ final class NullIndex extends Index
   }
 
   @Override
-  void open(WriteableStorage txn) throws StorageRuntimeException
+  void open(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
   @Override
-  long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
+  long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException
   {
     return 0;
   }
 
   @Override
-  void delete(WriteableStorage txn) throws StorageRuntimeException
+  void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing.
   }

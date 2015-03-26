@@ -102,13 +102,13 @@ import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.AttributeType;
@@ -379,7 +379,7 @@ final class Importer implements DiskSpaceMonitorHandler
    * @param backendCfg
    *          the backend configuration object
    * @return true if the backend must be cleared, false otherwise
-   * @see Importer#getSuffix(WriteableStorage, EntryContainer) for per-suffix cleanups.
+   * @see Importer#getSuffix(WriteableTransaction, EntryContainer) for per-suffix cleanups.
    */
   static boolean mustClearBackend(LDIFImportConfig importCfg, PluggableBackendCfg backendCfg)
   {
@@ -653,7 +653,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  private void initializeSuffixes(WriteableStorage txn) throws StorageRuntimeException,
+  private void initializeSuffixes(WriteableTransaction txn) throws StorageRuntimeException,
       ConfigException
   {
     for (EntryContainer ec : rootContainer.getEntryContainers())
@@ -713,7 +713,7 @@ final class Importer implements DiskSpaceMonitorHandler
     return System.identityHashCode(index);
   }
 
-  private Suffix getSuffix(WriteableStorage txn, EntryContainer entryContainer)
+  private Suffix getSuffix(WriteableTransaction txn, EntryContainer entryContainer)
       throws ConfigException
   {
     DN baseDN = entryContainer.getBaseDN();
@@ -800,7 +800,7 @@ final class Importer implements DiskSpaceMonitorHandler
     return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
   }
 
-  private EntryContainer createEntryContainer(WriteableStorage txn, DN baseDN) throws ConfigException
+  private EntryContainer createEntryContainer(WriteableTransaction txn, DN baseDN) throws ConfigException
   {
     try
     {
@@ -888,7 +888,7 @@ final class Importer implements DiskSpaceMonitorHandler
     rootContainer.getStorage().write(new WriteOperation()
     {
       @Override
-      public void run(WriteableStorage txn) throws Exception
+      public void run(WriteableTransaction txn) throws Exception
       {
         final long startTime = System.currentTimeMillis();
         rebuildManager.initialize();
@@ -907,7 +907,7 @@ final class Importer implements DiskSpaceMonitorHandler
     storage.write(new WriteOperation()
     {
       @Override
-      public void run(WriteableStorage txn) throws Exception
+      public void run(WriteableTransaction txn) throws Exception
       {
         rebuildManager.initialize();
         rebuildManager.printStartMessage(txn);
@@ -922,7 +922,7 @@ final class Importer implements DiskSpaceMonitorHandler
     storage.write(new WriteOperation()
     {
       @Override
-      public void run(WriteableStorage txn) throws Exception
+      public void run(WriteableTransaction txn) throws Exception
       {
         rebuildManager.postRebuildIndexes(txn);
       }
@@ -962,7 +962,7 @@ final class Importer implements DiskSpaceMonitorHandler
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           initializeSuffixes(txn);
           setIndexesTrusted(txn, false);
@@ -994,7 +994,7 @@ final class Importer implements DiskSpaceMonitorHandler
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           setIndexesTrusted(txn, true);
           switchEntryContainers(txn);
@@ -1050,7 +1050,7 @@ final class Importer implements DiskSpaceMonitorHandler
     dir.delete();
   }
 
-  private void switchEntryContainers(WriteableStorage txn) throws StorageRuntimeException, InitializationException
+  private void switchEntryContainers(WriteableTransaction txn) throws StorageRuntimeException, InitializationException
   {
     for (Suffix suffix : dnSuffixMap.values())
     {
@@ -1073,7 +1073,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  private void setIndexesTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+  private void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     try
     {
@@ -1111,7 +1111,7 @@ final class Importer implements DiskSpaceMonitorHandler
     storage.write(new WriteOperation()
     {
       @Override
-      public void run(WriteableStorage txn) throws Exception
+      public void run(WriteableTransaction txn) throws Exception
       {
         execService.submit(new MigrateExistingTask(txn)).get();
       }
@@ -1123,14 +1123,14 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       for (int i = 0; i < threadCount; i++)
       {
-        tasks.add(new AppendReplaceTask(storage.getWriteableStorage()));
+        tasks.add(new AppendReplaceTask(storage.getWriteableTransaction()));
       }
     }
     else
     {
       for (int i = 0; i < threadCount; i++)
       {
-        tasks.add(new ImportTask(storage.getWriteableStorage()));
+        tasks.add(new ImportTask(storage.getWriteableTransaction()));
       }
     }
     getAll(execService.invokeAll(tasks));
@@ -1139,7 +1139,7 @@ final class Importer implements DiskSpaceMonitorHandler
     storage.write(new WriteOperation()
     {
       @Override
-      public void run(WriteableStorage txn) throws Exception
+      public void run(WriteableTransaction txn) throws Exception
       {
         execService.submit(new MigrateExcludedTask(txn)).get();
       }
@@ -1280,7 +1280,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       // avoid threading issues by allocating one writeable storage per thread
       // DB transactions are generally tied to a single thread
-      WriteableStorage txn = this.rootContainer.getStorage().getWriteableStorage();
+      WriteableTransaction txn = this.rootContainer.getStorage().getWriteableTransaction();
       futures.add(dbService.submit(new IndexDBWriteTask(indexMgr, txn, permits, buffers, readAheadSize)));
     }
   }
@@ -1305,7 +1305,7 @@ final class Importer implements DiskSpaceMonitorHandler
   /** Task used to migrate excluded branch. */
   private final class MigrateExcludedTask extends ImportTask
   {
-    private MigrateExcludedTask(final WriteableStorage txn)
+    private MigrateExcludedTask(final WriteableTransaction txn)
     {
       super(txn);
     }
@@ -1369,7 +1369,7 @@ final class Importer implements DiskSpaceMonitorHandler
   /** Task to migrate existing entries. */
   private final class MigrateExistingTask extends ImportTask
   {
-    private MigrateExistingTask(final WriteableStorage txn)
+    private MigrateExistingTask(final WriteableTransaction txn)
     {
       super(txn);
     }
@@ -1458,7 +1458,7 @@ final class Importer implements DiskSpaceMonitorHandler
    */
   private class AppendReplaceTask extends ImportTask
   {
-    public AppendReplaceTask(final WriteableStorage txn)
+    public AppendReplaceTask(final WriteableTransaction txn)
     {
       super(txn);
     }
@@ -1583,13 +1583,13 @@ final class Importer implements DiskSpaceMonitorHandler
    */
   private class ImportTask implements Callable<Void>
   {
-    WriteableStorage txn;
+    WriteableTransaction txn;
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<IndexKey, IndexOutputBuffer>();
     private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
     private final IndexKey dnIndexKey = new IndexKey(dnType, ImportIndexType.DN, 1);
 
-    public ImportTask(final WriteableStorage txn)
+    public ImportTask(final WriteableTransaction txn)
     {
       this.txn = txn;
     }
@@ -1865,7 +1865,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private int nextBufferID;
     private int ownedPermits;
     private volatile boolean isRunning;
-    private final WriteableStorage txn;
+    private final WriteableTransaction txn;
 
     /**
      * Creates a new index DB writer.
@@ -1881,7 +1881,7 @@ final class Importer implements DiskSpaceMonitorHandler
      * @param cacheSize
      *          The buffer cache size.
      */
-    public IndexDBWriteTask(IndexManager indexMgr, WriteableStorage txn, Semaphore permits, int maxPermits,
+    public IndexDBWriteTask(IndexManager indexMgr, WriteableTransaction txn, Semaphore permits, int maxPermits,
         int cacheSize)
     {
       this.indexMgr = indexMgr;
@@ -2205,7 +2205,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
 
       /** Why do we still need this if we are checking parents in the first phase? */
-      private boolean checkParent(ReadableStorage txn, ImportIDSet idSet) throws StorageRuntimeException
+      private boolean checkParent(ReadableTransaction txn, ImportIDSet idSet) throws StorageRuntimeException
       {
         entryID = new EntryID(idSet.valueToByteString());
         parentDN = getParent(idSet.getKey());
@@ -2301,7 +2301,7 @@ final class Importer implements DiskSpaceMonitorHandler
         return idSet;
       }
 
-      private EntryID getParentID(ReadableStorage txn, ByteSequence dn) throws StorageRuntimeException
+      private EntryID getParentID(ReadableTransaction txn, ByteSequence dn) throws StorageRuntimeException
       {
         // Bypass the cache for append data, lookup the parent DN in the DN2ID db
         if (importConfiguration == null || !importConfiguration.appendToExistingData())
@@ -2312,7 +2312,7 @@ final class Importer implements DiskSpaceMonitorHandler
         return value != null ? new EntryID(value) : null;
       }
 
-      private void id2SubTree(ReadableStorage txn, EntryID childID) throws DirectoryException
+      private void id2SubTree(ReadableTransaction txn, EntryID childID) throws DirectoryException
       {
         if (parentID == null)
         {
@@ -2926,7 +2926,7 @@ final class Importer implements DiskSpaceMonitorHandler
     /**
      * Print start message.
      */
-    void printStartMessage(WriteableStorage txn) throws StorageRuntimeException
+    void printStartMessage(WriteableTransaction txn) throws StorageRuntimeException
     {
       this.txn = txn;
       totalEntries = suffix.getID2Entry().getRecordCount(txn);
@@ -3009,7 +3009,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void clearDegradedState(WriteableStorage txn)
+    private void clearDegradedState(WriteableTransaction txn)
     {
       setIndexesListsToBeRebuilt(txn);
       logger.info(NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
@@ -3017,7 +3017,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
 
-    private void preRebuildIndexes(WriteableStorage txn)
+    private void preRebuildIndexes(WriteableTransaction txn)
     {
       setIndexesListsToBeRebuilt(txn);
       setRebuildListIndexesTrusted(txn, false);
@@ -3032,13 +3032,13 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void postRebuildIndexes(WriteableStorage txn)
+    private void postRebuildIndexes(WriteableTransaction txn)
     {
       setRebuildListIndexesTrusted(txn, true);
     }
 
     @SuppressWarnings("fallthrough")
-    private void setIndexesListsToBeRebuilt(WriteableStorage txn) throws StorageRuntimeException
+    private void setIndexesListsToBeRebuilt(WriteableTransaction txn) throws StorageRuntimeException
     {
       // Depends on rebuild mode, (re)building indexes' lists.
       final RebuildMode mode = rebuildConfig.getRebuildMode();
@@ -3078,7 +3078,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void rebuildIndexMap(WriteableStorage txn, boolean onlyDegraded)
+    private void rebuildIndexMap(WriteableTransaction txn, boolean onlyDegraded)
     {
       // rebuildList contains the user-selected index(in USER_DEFINED mode).
       final List<String> rebuildList = rebuildConfig.getRebuildList();
@@ -3106,7 +3106,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void rebuildAttributeIndexes(WriteableStorage txn, AttributeIndex attrIndex, AttributeType attrType,
+    private void rebuildAttributeIndexes(WriteableTransaction txn, AttributeIndex attrIndex, AttributeType attrType,
         boolean onlyDegraded) throws StorageRuntimeException
     {
       fillIndexMap(txn, attrType, attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, onlyDegraded);
@@ -3125,7 +3125,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void fillIndexMap(WriteableStorage txn, AttributeType attrType, Collection<Index> indexes,
+    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Collection<Index> indexes,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
       if (indexes != null && !indexes.isEmpty())
@@ -3154,7 +3154,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void fillIndexMap(WriteableStorage txn, AttributeType attrType, Index index,
+    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Index index,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
       if (index != null
@@ -3167,7 +3167,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void clearIndexes(WriteableStorage txn, boolean onlyDegraded) throws StorageRuntimeException
+    private void clearIndexes(WriteableTransaction txn, boolean onlyDegraded) throws StorageRuntimeException
     {
       // Clears all the entry's container databases which are containing the indexes
       if (!onlyDegraded)
@@ -3219,7 +3219,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void setRebuildListIndexesTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
+    private void setRebuildListIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
     {
       try
       {
@@ -3251,7 +3251,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void setTrusted(WriteableStorage txn, final Collection<Index> indexes, boolean trusted)
+    private void setTrusted(WriteableTransaction txn, final Collection<Index> indexes, boolean trusted)
     {
       if (indexes != null && !indexes.isEmpty())
       {
@@ -3262,7 +3262,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    /** @see Importer#importPhaseOne(WriteableStorage) */
+    /** @see Importer#importPhaseOne(WriteableTransaction) */
     private void rebuildIndexesPhaseOne() throws StorageRuntimeException, InterruptedException,
         ExecutionException
     {
@@ -3994,7 +3994,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private static final String DB_NAME = "dn_cache";
     private final TreeName dnCache = new TreeName("", DB_NAME);
     private final Storage storage;
-    private final WriteableStorage txn;
+    private final WriteableTransaction txn;
 
     /**
      * Create a temporary DB environment and database to be used as a cache of
@@ -4022,7 +4022,7 @@ final class Importer implements DiskSpaceMonitorHandler
         storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues),
             DirectoryServer.getInstance().getServerContext());
         storage.open();
-        txn = storage.getWriteableStorage();
+        txn = storage.getWriteableTransaction();
         txn.openTree(dnCache);
       }
       catch (Exception e)

@@ -36,7 +36,7 @@ import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -239,7 +239,7 @@ class IndexBuffer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  void flush(WriteableStorage txn) throws StorageRuntimeException, DirectoryException
+  void flush(WriteableTransaction txn) throws StorageRuntimeException, DirectoryException
   {
     /*
      * FIXME: this seems like a surprising way to update the indexes. Why not
@@ -279,7 +279,7 @@ class IndexBuffer
     }
   }
 
-  private void updateKeys(Index index, WriteableStorage txn,
+  private void updateKeys(Index index, WriteableTransaction txn,
       Map<ByteString, BufferedIndexValues> bufferedValues)
   {
     if (bufferedValues != null)

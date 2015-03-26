@@ -52,12 +52,12 @@ import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.DN;
@@ -354,7 +354,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           compressedSchema = new JECompressedSchema(storage, txn);
           openAndRegisterEntryContainers(txn, config.getBaseDN());
@@ -385,7 +385,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @throws ConfigException
    *           If an configuration error occurs while opening the entry container.
    */
-  EntryContainer openEntryContainer(DN baseDN, WriteableStorage txn)
+  EntryContainer openEntryContainer(DN baseDN, WriteableTransaction txn)
       throws StorageRuntimeException, ConfigException
   {
     EntryContainer ec = new EntryContainer(baseDN, backend, config, storage, this);
@@ -432,7 +432,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *           If a configuration error occurs while opening the entry
    *           container.
    */
-  private void openAndRegisterEntryContainers(WriteableStorage txn, Set<DN> baseDNs) throws StorageRuntimeException,
+  private void openAndRegisterEntryContainers(WriteableTransaction txn, Set<DN> baseDNs) throws StorageRuntimeException,
       InitializationException, ConfigException
   {
     EntryID highestID = null;
@@ -632,7 +632,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       return storage.read(new ReadOperation<Long>()
       {
         @Override
-        public Long run(ReadableStorage txn) throws Exception
+        public Long run(ReadableTransaction txn) throws Exception
         {
           long entryCount = 0;
           for (EntryContainer ec : entryContainers.values())

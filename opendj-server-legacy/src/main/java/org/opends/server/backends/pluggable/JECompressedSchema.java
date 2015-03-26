@@ -44,7 +44,7 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -93,7 +93,7 @@ final class JECompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  JECompressedSchema(final Storage storage, WriteableStorage txn)
+  JECompressedSchema(final Storage storage, WriteableTransaction txn)
       throws StorageRuntimeException, InitializationException
   {
     this.storage = storage;
@@ -159,7 +159,7 @@ final class JECompressedSchema extends CompressedSchema
    * @throws InitializationException
    *           If an error occurs while loading and processing the definitions.
    */
-  private void load(WriteableStorage txn) throws StorageRuntimeException, InitializationException
+  private void load(WriteableTransaction txn) throws StorageRuntimeException, InitializationException
   {
     txn.openTree(adTreeName);
     txn.openTree(ocTreeName);
@@ -236,7 +236,7 @@ final class JECompressedSchema extends CompressedSchema
       storage.write(new WriteOperation()
       {
         @Override
-        public void run(WriteableStorage txn) throws Exception
+        public void run(WriteableTransaction txn) throws Exception
         {
           txn.put(treeName, keyEntry, value);
         }

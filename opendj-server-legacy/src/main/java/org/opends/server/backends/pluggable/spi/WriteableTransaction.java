@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 /**
  * Represents a writeable transaction on a storage engine.
  */
-public interface WriteableStorage extends ReadableStorage
+public interface WriteableTransaction extends ReadableTransaction
 {
   /**
    * Opens the tree identified by the provided name. The tree is created if it does not already exist.

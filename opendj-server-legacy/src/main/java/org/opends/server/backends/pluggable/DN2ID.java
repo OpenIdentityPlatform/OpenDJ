@@ -29,10 +29,10 @@ package org.opends.server.backends.pluggable;
 import static org.opends.server.backends.pluggable.JebFormat.*;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DN;
 
 /**
@@ -66,7 +66,7 @@ class DN2ID extends DatabaseContainer
    * @throws StorageRuntimeException If an error occurred while attempting to insert
    * the new record.
    */
-  void put(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
+  void put(WriteableTransaction txn, DN dn, EntryID id) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = id.toByteString();
@@ -82,7 +82,7 @@ class DN2ID extends DatabaseContainer
    * @throws StorageRuntimeException If an error occurred while attempting to remove
    * the record.
    */
-  boolean remove(WriteableStorage txn, DN dn) throws StorageRuntimeException
+  boolean remove(WriteableTransaction txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
 
@@ -97,7 +97,7 @@ class DN2ID extends DatabaseContainer
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  EntryID get(ReadableStorage txn, DN dn) throws StorageRuntimeException
+  EntryID get(ReadableTransaction txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = txn.read(getName(), key);
