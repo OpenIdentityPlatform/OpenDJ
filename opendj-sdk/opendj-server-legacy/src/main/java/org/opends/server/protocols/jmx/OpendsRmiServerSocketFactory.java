@@ -31,33 +31,30 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.rmi.server.RMIServerSocketFactory;
 
-
 /**
+ * An implementation of the socketServer.
+ * <p>
  * The RMI connector class starts and stops the JMX RMI connector server.
  * There are 2 different connector servers
  * <ul>
- * <li> the RMI Client connector server, supporting TLS-encrypted.
- * communication, server authentication by certificate and client
+ * <li>the RMI Client connector server, supporting TLS-encrypted communication,
+ * server authentication by certificate and client
  * authentication by providing appropriate LDAP credentials through
- * SASL/PLAIN.
- * <li> the RMI client connector server, supporting TLS-encrypted
- * communication, server authentication by certificate, client
- * authentication by certificate and identity assertion through SASL/PLAIN.
+ * SASL/PLAIN.</li>
+ * <li>the RMI client connector server, supporting TLS-encrypted communication,
+ * server authentication by certificate, client
+ * authentication by certificate and identity assertion through SASL/PLAIN.</li>
  * </ul>
  * <p>
  * Each connector is registered into the JMX MBean server.
- */
-
-/**
- * An implementation of the socketServer.
  */
 public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
 {
   /** The address to listen on, which could be INADDR_ANY. */
   private final InetAddress listenAddress;
 
-  /** The Created ServerSocket. */
-  ServerSocket serverSocket;
+  /** The created ServerSocket. */
+  private ServerSocket serverSocket;
 
   /**
    * Create a new socket factory which will listen on the specified address.
@@ -69,17 +66,12 @@ public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
     this.listenAddress = listenAddress;
   }
 
-  /**
-   *  Create a server socket on the specified port, listening on the address
-   *  passed in the constructor. (port 0 indicates an anonymous port).
-   *
-   *  @param port the port number
-   *  @return the server socket on the specified port
-   *  @throws IOException if an I/O error occurs during server socket creation
-   */
-  public ServerSocket createServerSocket(int port)  throws IOException
+  /** {@inheritDoc} */
+  @Override
+  public ServerSocket createServerSocket(int port) throws IOException
   {
-    return new ServerSocket(port, 100, listenAddress);
+    serverSocket = new ServerSocket(port, 50, listenAddress);
+    return serverSocket;
   }
 
   /**
@@ -87,8 +79,12 @@ public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
    *
    * @throws IOException If an I/O error occurs when closing the socket.
    */
-  protected void close() throws IOException
+  void close() throws IOException
   {
-    serverSocket.close();
+    if (serverSocket != null)
+    {
+      serverSocket.close();
+      serverSocket = null;
+    }
   }
 }
