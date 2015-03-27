@@ -64,7 +64,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final Locale currentLocale = Locale.forLanguageTag(locale);
+        final Locale currentLocale = getLocaleFromTag(locale);
 
         final String localeReference = getLocalesAndSubTypesDocumentation(currentLocale);
         final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.xml");
@@ -111,6 +111,10 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A DocBook XML VariableList element documenting supported locales.
      */
     private String getLocalesDocumentation(final Locale currentLocale) {
+        if (currentLocale == null) {
+            return "";
+        }
+
         class LocaleDoc {
             String tag;
             String language;
@@ -119,7 +123,10 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
 
         Map<String, LocaleDoc> locales = new HashMap<String, LocaleDoc>();
         for (String tag : localeTagsToOids.keySet()) {
-            final Locale locale = Locale.forLanguageTag(tag);
+            final Locale locale = getLocaleFromTag(tag);
+            if (locale == null) {
+                continue;
+            }
             final LocaleDoc localeDoc = new LocaleDoc();
             localeDoc.tag = tag;
             localeDoc.language = locale.getDisplayName(currentLocale);
@@ -167,11 +174,18 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A DocBook XML ItemizedList element documenting supported language subtypes.
      */
     private String getSubTypesDocumentation(final Locale currentLocale) {
+        if (currentLocale == null) {
+            return "";
+        }
+
         Map<String, String> map = new TreeMap<String, String>();
         for (String tag : localeTagsToOids.keySet()) {
             int idx = tag.indexOf('-');
             if (idx == -1) {
-                final Locale locale = Locale.forLanguageTag(tag);
+                final Locale locale = getLocaleFromTag(tag);
+                if (locale == null) {
+                    continue;
+                }
                 final String language = locale.getDisplayName(currentLocale);
                 if (!language.equals(tag)) {
                     map.put(language, tag);
@@ -207,7 +221,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
         final String eol = System.getProperty("line.separator");
         return "<section xml:id=\"sec-locales-subtypes\" "
                 + "xmlns=\"http://docbook.org/ns/docbook\" version=\"5.0\" "
-                + "xml:lang=\"" + currentLocale.toLanguageTag() + "\" "
+                + "xml:lang=\"" + getTagFromLocale(currentLocale) + "\" "
                 + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
                 + "xsi:schemaLocation=\"http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd\""
                 + ">" + eol
@@ -216,5 +230,76 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
                 + getLocalesDocumentation(currentLocale) + eol
                 + getSubTypesDocumentation(currentLocale) + eol
                 + "</section>";
+    }
+
+    /**
+     * Returns the Locale based on the tag, or null if the tag is null.
+     * <br>
+     * Java 6 is missing {@code Locale.forLanguageTag()}.
+     * @param tag   The tag for the locale, such as {@code en_US}.
+     * @return The Locale based on the tag, or null if the tag is null.
+     */
+    private Locale getLocaleFromTag(final String tag) {
+        if (tag == null) {
+            return null;
+        }
+
+        // Apparently Locale tags can include not only languages and countries,
+        // but also variants, e.g. es_ES_Traditional_WIN.
+        // Pull these apart to be able to construct the locale.
+        //
+        // OpenDJ does not seem to have any locales with variants, but just in case...
+        // The separator in OpenDJ seems to be '-'.
+        // @see CoreSchemaSupportedLocales#LOCALE_NAMES_TO_OIDS
+        final char sep = '-';
+        int langIdx = tag.indexOf(sep);
+        final String lang;
+        if (langIdx == -1) {
+            // No country or variant
+            return new Locale(tag);
+        } else {
+            lang = tag.substring(0, langIdx);
+        }
+
+        int countryIdx = tag.indexOf(sep, langIdx + 1);
+        final String country;
+        if (countryIdx == -1) {
+            // No variant
+            country = tag.substring(langIdx + 1);
+            return new Locale(lang, country);
+        } else {
+            country = tag.substring(langIdx + 1, countryIdx);
+            final String variant = tag.substring(countryIdx + 1);
+            return new Locale(lang, country, variant);
+        }
+    }
+
+    /**
+     * Returns the tag based on the Locale, or null if the Locale is null.
+     * <br>
+     * Java 6 is missing {@code Locale.toLanguageTag()}.
+     * @param locale        The Locale for which to return the tag.
+     * @return The tag based on the Locale, or null if the Locale is null.
+     */
+    private String getTagFromLocale(final Locale locale) {
+        if (locale == null) {
+            return null;
+        }
+
+        final String  lang    = locale.getLanguage();
+        final String  country = locale.getCountry();
+        final String  variant = locale.getVariant();
+        final char    sep     = '-';
+        StringBuilder tag     = new StringBuilder();
+        if (lang != null) {
+            tag.append(lang);
+        }
+        if (country != null && !country.isEmpty()) {
+            tag.append(sep).append(country);
+        }
+        if (variant != null && !variant.isEmpty()) {
+            tag.append(sep).append(variant);
+        }
+        return tag.toString();
     }
 }
