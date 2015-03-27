@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  The following example schedules a restore as a task
+  to begin immediately while OpenDJ directory server is online.
+ </para>
+
+ <screen>
+$ restore -p 4444 -D "cn=Directory Manager" -w password
+ -d /path/to/opendj/bak -I 20110613080032 -t 0
+Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST
+ </screen>
+
+ <para>
+  The following example restores data while OpenDJ is offline.
+ </para>
+
+ <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
+...</computeroutput>
+
+$ <userinput>restore --backupDirectory /path/to/opendj/bak/userRoot \
+ --listBackups</userinput>
+<computeroutput>Backup ID:          20120928102414Z
+Backup Date:        28/Sep/2012:12:24:17 +0200
+Is Incremental:     false
+Is Compressed:      false
+Is Encrypted:       false
+Has Unsigned Hash:  false
+Has Signed Hash:    false
+Dependent Upon:     none</computeroutput>
+
+$ <userinput>restore --backupDirectory /path/to/opendj/bak/userRoot \
+ --backupID 20120928102414Z</userinput>
+<computeroutput>[28/Sep/2012:12:26:20 +0200] ... msg=Restored: 00000000.jdb (size 355179)</computeroutput>
+
+$ <userinput>start-ds</userinput>
+<computeroutput>[28/Sep/2012:12:27:29 +0200] ... The Directory Server has started successfully</computeroutput>
+ </screen>
+</refsect1>

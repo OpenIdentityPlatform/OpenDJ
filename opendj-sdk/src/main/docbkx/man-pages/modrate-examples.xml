@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  The following example demonstrates testing directory performance
+  by using the <command>modrate</command> command
+  to write random 16-character description values to all entries in a sample file.
+ </para>
+
+ <screen>
+$ <userinput>grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt</userinput>
+$ <userinput>modrate -p 1389 -D "cn=Directory Manager" -w password  -A -F -c 4 -t 4 \
+ -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)" \
+ -g "randstr(16)" 'description:%2$s'</userinput>
+<computeroutput>--------------------------------------------------------------------------
+     Throughput                            Response Time
+   (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  req/res
+--------------------------------------------------------------------------
+1085.9   1088.5  993.849  993.849  2135.220  2510.361  2510.361  0.0  2.3
+2086.7   1648.8  1963.980  1683.038  3015.025  3078.628  3215.050  0.0  1.0
+3097.3   2092.6  1332.930  1524.278  2940.131  3024.811  3215.050  0.0  1.0
+3848.3   2501.4  1045.000  1352.583  2902.235  3015.863  3215.050  0.0  1.0
+3641.2   2717.4  1106.157  1290.003  2901.379  3015.597  3215.050  0.0  1.0
+3759.4   2883.0  1065.732  1243.534  2900.400  3015.501  3215.050  0.0  1.0
+^C</computeroutput>
+ </screen>
+</refsect1>

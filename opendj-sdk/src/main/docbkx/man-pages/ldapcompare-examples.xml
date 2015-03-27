@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  The following examples demonstrate comparing Babs Jensen's UID.
+ </para>
+
+ <para>
+  The following example uses a matching UID value.
+ </para>
+
+ <screen>
+$ <userinput>ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com</userinput>
+<computeroutput>Comparing type uid with value bjensen in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned true for entry
+uid=bjensen,ou=people,dc=example,dc=com</computeroutput>
+ </screen>
+
+ <para>
+  The following example uses a UID value that does not match.
+ </para>
+
+ <screen>
+$ <userinput>ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com</userinput>
+<computeroutput>Comparing type uid with value beavis in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned false for entry
+uid=bjensen,ou=people,dc=example,dc=com</computeroutput>
+ </screen>
+</refsect1>

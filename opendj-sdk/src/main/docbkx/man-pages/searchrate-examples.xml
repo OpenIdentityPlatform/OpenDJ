@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  The following example demonstrates measuring search performance.
+ </para>
+
+ <screen>
+$ <userinput>grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt</userinput>
+$ <userinput>searchrate -p 1389 -b dc=example,dc=com -A -F -c 4 -t 4 \
+ -g "rand(names.txt)" "(uid=%s)"</userinput>
+<computeroutput>-------------------------------------------------------------------------------
+     Throughput                            Response Time
+   (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Entries/Srch
+-------------------------------------------------------------------------------
+1475.9   1475.9   0.423    0.423  6.938  126.236 126.236      0.0           1.0
+2596.5   2038.4   0.254    0.315  6.866  12.980  126.236      0.0           1.0
+3210.7   2428.2   0.205    0.267  5.733  11.710  126.236      0.0           1.0
+3080.5   2591.0   0.215    0.252  5.733  10.541  126.236      0.0           1.0
+3236.9   2720.1   0.203    0.240  5.258  10.514  126.236      0.0           1.0
+3181.1   2796.8   0.207    0.234  5.258  10.384  126.236      0.0           1.0
+3202.5   2854.8   0.206    0.229  4.825  10.384  126.236      0.0           1.0
+^C</computeroutput>
+ </screen>
+</refsect1>

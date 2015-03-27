@@ -528,26 +528,312 @@
             </configuration>
           </execution>
 
-          <!-- TODO: Generate man page sources
           <execution>
              <id>generate-doc</id>
              <goals>
                <goal>generate-refentry</goal>
              </goals>
              <configuration>
-               <outputDir>${project.build.directory}</outputDir>
+               <outputDir>${project.build.directory}/docbkx-sources/man-pages</outputDir>
                <tools>
+                 <tool>
+                  <name>backup</name>
+                  <application>org.opends.server.tools.BackUpDB</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-1.xml</trailingSectionPath>
+                    <trailingSectionPath>backup-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>base64</name>
+                  <application>org.opends.server.util.Base64</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>base64-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>control-panel</name>
+                  <application>org.opends.guitools.controlpanel.ControlPanelLauncher</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>control-panel-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>create-rc-script</name>
+                  <application>org.opends.server.tools.CreateRCScript</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>create-rc-script-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>dbtest</name>
+                  <application>org.opends.server.tools.DBTest</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>dbtest-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>dsconfig</name>
+                  <application>org.forgerock.opendj.config.dsconfig.DSConfig</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>dsconfig-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>dsjavaproperties</name>
+                  <application>org.opends.server.tools.JavaPropertiesTool</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>dsjavaproperties-files.xml</trailingSectionPath>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>dsjavaproperties-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>dsreplication</name>
+                  <application>org.opends.server.tools.dsreplication.ReplicationCliMain</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>dsreplication-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>encode-password</name>
+                  <application>org.opends.server.tools.EncodePassword</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
+                    <trailingSectionPath>encode-password-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>export-ldif</name>
+                  <application>org.opends.server.tools.ExportLDIF</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>export-ldif-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>import-ldif</name>
+                  <application>org.opends.server.tools.ImportLDIF</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>export-ldif-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldapcompare</name>
+                  <application>org.opends.server.tools.LDAPCompare</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>ldapcompare-exit-codes.xml</trailingSectionPath>
+                    <trailingSectionPath>files.xml</trailingSectionPath>
+                    <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldapdelete</name>
+                  <application>org.opends.server.tools.LDAPDelete</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                    <trailingSectionPath>files.xml</trailingSectionPath>
+                    <trailingSectionPath>ldapdelete-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldapmodify</name>
+                  <application>org.opends.server.tools.LDAPModify</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                    <trailingSectionPath>files.xml</trailingSectionPath>
+                    <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldappasswordmodify</name>
+                  <application>org.opends.server.tools.LDAPPasswordModify</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                    <trailingSectionPath>files.xml</trailingSectionPath>
+                    <trailingSectionPath>ldappasswordmodify-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
                  <tool>
                   <name>ldapsearch</name>
                   <application>org.opends.server.tools.LDAPSearch</application>
                   <trailingSectionPaths>
-                    <trailingSectionPath>../shared/refsect1.xml</trailingSectionPath>
+                    <trailingSectionPath>filters.xml</trailingSectionPath>
+                    <trailingSectionPath>attributes.xml</trailingSectionPath>
+                    <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                    <trailingSectionPath>files.xml</trailingSectionPath>
+                    <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldif-diff</name>
+                  <application>org.opends.server.tools.LDIFDiff</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
+                    <trailingSectionPath>ldif-diff-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldifmodify</name>
+                  <application>org.opends.server.tools.LDIFModify</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>ldifsearch</name>
+                  <application>org.opends.server.tools.LDIFSearch</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>list-backends</name>
+                  <application>org.opends.server.tools.ListBackends</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>list-backends-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>make-ldif</name>
+                  <application>org.opends.server.tools.makeldif.MakeLDIF</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>make-ldif-examples.xml</trailingSectionPath>
+                    <trailingSectionPath>make-ldif-see-also.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>manage-account</name>
+                  <application>org.opends.server.tools.ManageAccount</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                    <trailingSectionPath>manage-account-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>manage-tasks</name>
+                  <application>org.opends.server.tools.ManageTasks</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>manage-tasks-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>rebuild-index</name>
+                  <application>org.opends.server.tools.RebuildIndex</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>rebuild-index-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>restore</name>
+                  <application>org.opends.server.tools.RestoreDB</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>restore-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>setup</name>
+                  <application>org.opends.quicksetup.installer.SetupLauncher</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>setup-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>start-ds</name>
+                  <application>org.opends.server.core.DirectoryServer</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>start-ds-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>status</name>
+                  <application>org.opends.server.tools.status.StatusCli</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>status-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>stop-ds</name>
+                  <application>org.opends.server.tools.StopDS</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>stop-ds-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>uninstall</name>
+                  <application>org.opends.guitools.uninstaller.UninstallLauncher</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                    <trailingSectionPath>uninstall-examples.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>upgrade</name>
+                  <application>org.opends.server.tools.upgrade.UpgradeCli</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>upgrade-exit-codes.xml</trailingSectionPath>
+                  </trailingSectionPaths>
+                 </tool>
+
+                 <tool>
+                  <name>verify-index</name>
+                  <application>org.opends.server.tools.VerifyIndex</application>
+                  <trailingSectionPaths>
+                    <trailingSectionPath>verify-index-exit-codes.xml</trailingSectionPath>
+                    <trailingSectionPath>verify-index-examples.xml</trailingSectionPath>
                   </trailingSectionPaths>
                  </tool>
                </tools>
              </configuration>
            </execution>
-          -->
          </executions>
       </plugin>
 

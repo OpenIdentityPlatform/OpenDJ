@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  The following examples use this template file,
+  <filename>addrate.template</filename>.
+ </para>
+
+ <programlisting language="ldif">
+<![CDATA[
+define suffix=dc=example,dc=com
+define maildomain=example.com
+
+branch: [suffix]
+
+branch: ou=People,[suffix]
+subordinateTemplate: person
+
+template: person
+rdnAttr: uid
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: <first>
+sn: <last>
+cn: {givenName} {sn}
+initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
+employeeNumber: <sequential:0>
+uid: user.{employeeNumber}
+mail: {uid}@[maildomain]
+userPassword: password
+telephoneNumber: <random:telephone>
+homePhone: <random:telephone>
+pager: <random:telephone>
+mobile: <random:telephone>
+street: <random:numeric:5> <file:streets> Street
+l: <file:cities>
+st: <file:states>
+postalCode: <random:numeric:5>
+postalAddress: {cn}${street}${l}, {st}  {postalCode}
+description: This is the description for {cn}.
+
+]]>
+ </programlisting>
+
+ <para>
+  The following example adds entries, and then randomly deletes them
+  when more than 10,000 entries have been added.
+ </para>
+
+ <screen>
+$ <userinput>addrate -p 1389 -D "cn=Directory Manager" -w password \
+-f -c 10 -C random -s 10000 addrate.template</userinput>
+<computeroutput>
+-----------------------------------------------------------------------
+    Throughput                            Response Time
+  (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Add%
+-----------------------------------------------------------------------
+466.7    467.2  20.738   20.738  187.00  201.00   201.00      0.0  100.00
+588.9    528.1  17.015   18.661  166.00  201.00   201.00      0.0  100.00
+1584.9    880.3   6.076   11.109  150.00  196.00   201.00      0.0  79.87
+1577.8   1054.5   6.138    9.252  132.00  192.00   201.00      0.0  50.00
+1853.0   1214.4   5.188    8.010  124.00  187.00   201.00      0.0  49.99
+^CPurge phase...
+2482.7   1426.2   3.790    6.783  114.00  187.00   201.00      0.0  9.77</computeroutput>
+ </screen>
+
+ <para>
+  The following example also adds entries, and then deletes them
+  in the order they were added after they are 10 seconds old.
+ </para>
+
+ <screen>
+$ <userinput>addrate -p 1389 -D "cn=Directory Manager" -w password \
+-f -c 10 -C fifo -a 10 addrate.template</userinput>
+<computeroutput>
+-----------------------------------------------------------------------
+    Throughput                            Response Time
+  (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Add%
+-----------------------------------------------------------------------
+2065.6   2068.1   4.646    4.646  30.00   51.00    58.00      0.0  100.00
+1479.7   1773.3   6.567    5.449  46.00   59.00    67.00      0.0  99.23
+1443.4   1663.3   6.730    5.820  56.00  112.00   120.00      0.0  50.01
+1462.6   1613.0   6.635    6.005  56.00  102.00   120.00      0.0  50.08
+1452.2   1580.8   6.678    6.129  62.00  110.00   120.00      0.0  49.97
+^CPurge phase...
+1344.5   1541.4   7.170    6.280  69.00  176.00  1900.00      0.0  17.30
+1703.3   1564.6   5.449    6.151  68.00  176.00  3000.00      0.0  0.00</computeroutput>
+ </screen>
+</refsect1>

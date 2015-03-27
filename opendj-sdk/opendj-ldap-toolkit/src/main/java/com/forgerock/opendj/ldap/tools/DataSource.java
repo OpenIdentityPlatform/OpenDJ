@@ -217,7 +217,7 @@ final class DataSource {
 
         public static LocalizableMessage getUsage() {
             return LocalizableMessage
-                    .raw("\"randstr({length},<charSet>)\" Random string of specified "
+                    .raw("\"randstr({length},_charSet_)\" Random string of specified "
                             + "length and optionally from characters in "
                             + "the charSet string. A range of character "
                             + "can be specified with [start-end] charSet notation. "

@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2012-2015 ForgeRock AS.
+  !
+-->
+<refentry xml:id='makeldif-template-5'
+          xmlns='http://docbook.org/ns/docbook'
+          version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info>
+  <copyright>
+   <year>2012-2015</year>
+   <holder>ForgeRock AS.</holder>
+  </copyright>
+ </info>
+
+ <refmeta>
+  <refentrytitle>makeldif.template</refentrytitle><manvolnum>5</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version">${docTargetVersion}</refmiscinfo>
+ </refmeta>
+
+ <refnamediv>
+  <refname>makeldif.template</refname>
+  <refpurpose>template file for the makeldif command</refpurpose>
+ </refnamediv>
+
+ <refsynopsisdiv>
+  <synopsis># Comment lines start with #.
+#
+# Notice that this synopsis includes blank lines after entries.
+# In the same way you would use blank lines after entries in normal LDIF,
+# leave empty lines after "entries" in template files.
+
+# Optionally define constants used in the template.
+# To reference constants later, put brackets around the name: [constant-name]
+#
+define <replaceable>constant-name</replaceable>=<replaceable>value</replaceable>
+...
+
+# Define branches by suffix DN, such as the following:
+#
+#  dc=example,dc=com
+#  ou=People,dc=example,dc=com
+#  ou=Groups,dc=example,dc=com
+#
+# makeldif generates the necessary object class definitions and RDNs.
+#
+# A branch can have subordinateTemplates that define templates to use for
+# the branch entry. The optional <replaceable>number</replaceable> at the end
+# of the subordinateTemplate specification defines how many entries to generate.
+# If you do not specify a number, makeldif continues to generate entries
+# indefinitely until you interrupt the command.
+#
+# A branch can have additional attributes generated on the branch entry. See
+# the Description below for more information on specifying attribute values.
+#
+branch: <replaceable>suffix-dn</replaceable>
+objectClass: top
+objectClass: <replaceable>suffix-object-class</replaceable>
+[subordinateTemplate: <replaceable>template-name</replaceable>[:<replaceable>number</replaceable>]
+...]
+[<replaceable>attribute</replaceable>: <replaceable>attr-value</replaceable>
+...]
+
+...
+
+# Define entries using templates.
+#
+# A template can extend another template.
+# A template defines the RDN attribute(s) used for generated entries.
+# A template can have a subordinateTemplate that defines a template to use for
+# the generated entries.
+#
+# A template then defines attributes. See the Description below for more
+# information on specifying attribute values.
+#
+template: <replaceable>template-name</replaceable>
+[extends: <replaceable>template-name</replaceable>]
+rdnAttr: <replaceable>attribute</replaceable>[+<replaceable>attribute</replaceable> ...]
+[subordinateTemplate: <replaceable>template-name</replaceable>:<replaceable>number</replaceable>]
+[<replaceable>attribute</replaceable>: <replaceable>attr-value</replaceable>
+...]
+
+...
+</synopsis>
+ </refsynopsisdiv>
+
+ <refsect1>
+  <title>Description</title>
+
+  <para>
+   Template files specify how to build LDIF.
+   They allow you to define variables,
+   insert random values from other files,
+   and generally build arbitrarily large LDIF files for testing purposes.
+
+   You pass template files to the <command>makeldif</command> command
+   when generating LDIF.
+  </para>
+
+  <para>
+   The Synopsis above shows the layout
+   for a <command>makeldif</command>
+   template file.
+
+   This section focuses on what you can do to specify entry attribute values,
+   called <replaceable>attr-value</replaceable> in the Synopsis section.
+  </para>
+
+  <variablelist>
+   <title>Specifying Attribute Values</title>
+
+   <para>
+    When specifying attribute values in <command>makeldif</command> templates,
+    you can use static text and constants that you have defined,
+    enclosing names for constants in brackets, <literal>[myConstant]</literal>.
+
+    You can use more than one constant per line, as in the following example.
+   </para>
+
+   <programlisting language="ldif"
+           >description: Description for [org] under [suffix]</programlisting>
+
+   <para>
+    You can also use two kinds of tags when specifying attribute values.
+
+    One kind of tag gets replaced with the value of another attribute
+    in the generated entry.
+
+    Such tags are delimited with braces, <literal>{ }</literal>.
+
+    For example, if your template includes
+    definitions for first name and last name attributes:
+   </para>
+
+   <programlisting language="ldif">givenName: &lt;first>
+sn: &lt;last></programlisting>
+
+   <para>
+    Then you can define a mail attribute that uses the values of both attributes,
+    and an initials attribute that takes the first character of each.
+   </para>
+
+   <programlisting language="ldif">mail: {givenName}.{sn}@[myDomain]
+initials: {givenName:1}{sn:1}</programlisting>
+
+   <para>
+    The other kind of tag is delimited with <literal>&lt;</literal>
+    and <literal>></literal>,
+    as shown above in the example with
+    <literal>&lt;first></literal> and <literal>&lt;last></literal>.
+
+    Tag names are not case sensitive.
+
+    Many tags can take arguments separated by colons, <literal>:</literal>,
+    from the tag names within the tag.
+   </para>
+
+   <para>
+    Use backslashes to escape literal start tag characters
+    (<literal>&lt; [ {</literal>) as shown in the following example,
+    and to escape literal end tag characters within tags
+    (<literal>> ] }</literal>).
+   </para>
+
+   <programlisting language="ldif"
+           >scimMail: \{"emails": \[\{"value": "{mail}", "type": "work", "primary": true}]}
+xml: \&lt;id>{uid}\&lt;/id></programlisting>
+
+   <para>
+    The <command>makeldif</command> command supports the following tags.
+   </para>
+
+   <varlistentry>
+    <term>&lt;DN></term>
+    <listitem>
+     <para>
+      The DN tag gets replaced by the distinguished name of the current entry.
+
+      An optional integer argument specifies the sub-components
+      of the DN to generate.
+
+      For example, if the DN of the entry is
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>,
+      then <literal>&lt;DN:1></literal> gets replaced
+      by <literal>uid=bjensen</literal>,
+      and <literal>&lt;DN:-2></literal> gets replaced
+      by <literal>dc=example,dc=com</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;File></term>
+    <listitem>
+     <para>
+      The File tag gets replaced by a line from a text file you specify.
+
+      The File tag takes a required argument,
+      the path to the text file,
+      and an optional second argument,
+      either <literal>random</literal> or <literal>sequential</literal>.
+
+      For the file argument, either specify an absolute path to the file
+      such as <literal>&lt;file:/path/to/myDescriptions></literal>,
+      or specify a path relative to the template file
+      such as <literal>&lt;file:streets></literal>.
+
+      For the second argument, if you specify <literal>sequential</literal>
+      then lines from the file are read in sequential order.
+
+      Otherwise, lines from the file are read in random order.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;First></term>
+    <listitem>
+     <para>
+      The first name tag gets replaced by a random line from
+      <filename>first.names</filename>.
+
+      Combinations of generated first and last names are unique,
+      with integers appended to the name strings
+      if not enough combinations are available.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;GUID></term>
+    <listitem>
+     <para>
+      The GUID tag gets replaced
+      by a 128-bit, type 4 (random) universally unique identifier,
+      such as <literal>f47ac10b-58cc-4372-a567-0e02b2c3d479</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;IfAbsent></term>
+    <listitem>
+     <para>
+      The IfAbsent tag takes as its first argument the name of another attribute,
+      and optionally as its second argument a value to use.
+
+      This tag causes the attribute to be generated
+      only if the named attribute is not present on the generated entry.
+
+      Use this tag when you have used <literal>&lt;Presence></literal>
+      to define another attribute that is not always present on generated entries.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;IfPresent></term>
+    <listitem>
+     <para>
+      The IfPresent takes as its first argument the name of another attribute,
+      and optionally as its second argument a value to use.
+
+      This tag causes the attribute to be generated
+      only if the named attribute is also present on the generated entry.
+
+      Use this tag when you have used <literal>&lt;Presence></literal>
+      to define another attribute that is sometimes present on generated entries.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;Last></term>
+    <listitem>
+     <para>
+      The last name tag gets replaced by a random line from
+      <filename>/path/to/opendj/config/MakeLDIF/last.names</filename>.
+
+      Combinations of generated first and last names are unique,
+      with integers appended to the name strings
+      if not enough combinations are available.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;List></term>
+    <listitem>
+     <para>
+      The List tag gets replaced by one of the values from the list of
+      arguments you provide.
+
+      For example, <literal>&lt;List:bronze:silver:gold></literal>
+      gets replaced with <literal>bronze</literal>, <literal>silver</literal>,
+      or <literal>gold</literal>.
+     </para>
+
+     <para>
+      You can weight arguments to ensure
+      that some arguments are selected more often than others.
+
+      For example, if you want two bronze for one silver and one gold,
+      use <literal>&lt;List:bronze;2:silver;1:gold;1></literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;ParentDN></term>
+    <listitem>
+     <para>
+      The ParentDN tag gets replaced
+      by the distinguished name of the parent entry.
+
+      For example, if the DN of the entry is
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>,
+      <literal>&lt;ParentDN></literal> gets replaced by
+      <literal>ou=People,dc=example,dc=com</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;Presence></term>
+    <listitem>
+     <para>
+      The Presence tag takes a percent argument.
+
+      It does not get replaced by a value itself,
+      but instead results in the attribute being generated
+      on the percentage of entries you specify in the argument.
+
+      For example, <literal>description: &lt;Presence:50>A description</literal>
+      generates <literal>description: A description</literal>
+      on half the entries.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;Random></term>
+    <listitem>
+     <para>
+      The Random tag lets you generate a variety of random numbers and strings.
+
+      The Random tag has the following subtypes, which you include as arguments,
+      that is <literal>&lt;Random:<replaceable>subtype</replaceable>></literal>.
+
+     </para>
+
+     <itemizedlist>
+      <listitem>
+       <para>
+        <literal>alpha:<replaceable>length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>alpha:<replaceable
+                >min-length</replaceable>:<replaceable
+                >max-length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>numeric:<replaceable>length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>numeric:<replaceable
+                >minvalue</replaceable>:<replaceable
+                >maxvalue</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>numeric:<replaceable
+                >minvalue</replaceable>:<replaceable
+                >maxvalue</replaceable>:<replaceable
+                >format</replaceable></literal>,
+        where <replaceable>format</replaceable> is a
+        <literal>java.text.DecimalFormat</literal> pattern
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>alphanumeric:<replaceable>length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>alphanumeric:<replaceable
+                >min-length</replaceable>:<replaceable
+                >max-length</replaceable></literal></para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>chars:<replaceable
+                >characters</replaceable>:<replaceable
+                >length</replaceable></literal></para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>chars:<replaceable
+                >characters</replaceable>:<replaceable
+                >min-length</replaceable>:<replaceable
+                >max-length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>hex:<replaceable>length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>hex:<replaceable
+                >min-length</replaceable>:<replaceable
+                >max-length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>base64:<replaceable>length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>base64:<replaceable
+                >min-length</replaceable>:<replaceable
+               >max-length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>month</literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>month:<replaceable>max-length</replaceable></literal>
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <literal>telephone</literal>, a telephone number
+        starting with the country code <literal>+1</literal>
+       </para>
+      </listitem>
+     </itemizedlist>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;RDN></term>
+    <listitem>
+     <para>
+      The RDN tag gets replaced with the RDN of the entry.
+
+      Use this in the template after you have specified <literal>rdnAttr</literal>
+      so that the RDN has already been generated when this tag is replaced.
+     </para>
+
+     <para>
+      An optional integer argument specifies the sub-components of the RDN
+      to generate.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;Sequential></term>
+    <listitem>
+     <para>
+      The Sequential tag gets replaced
+      by a sequentially increasing generated integer.
+
+      The first optional integer argument specifies the starting number.
+
+      The second optional boolean argument specifies whether to start over
+      when generating entries for a new parent entry.
+
+      For example,
+      <literal>&lt;Sequential>:42:true</literal> starts counting from 42,
+      and starts over when the parent entry changes from
+      <literal>o=Engineering</literal> to <literal>o=Marketing</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;_DN></term>
+    <listitem>
+     <para>The _DN tag gets replaced by the DN of the current entry with
+     underscores in the place of commas.</para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>&lt;_ParentDN></term>
+    <listitem>
+     <para>
+      The _ParentDN tag gets replaced
+      by the DN the parent entry with underscores in the place of commas.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+
+ <refsect1>
+  <title>Examples</title>
+
+  <para>
+   The following example generates 10 organization units,
+   each containing 50 entries.
+
+   Add it next to the supporting files,
+   such as <filename>first.names</filename> and <filename>last.names</filename>
+   needed to generate the output.
+  </para>
+
+  <programlisting language="plain"><![CDATA[define suffix=dc=example,dc=com
+define maildomain=example.com
+define numusers=50
+define numorgs=10
+
+branch: [suffix]
+objectClass: top
+objectClass: domain
+
+branch: ou=People,[suffix]
+objectClass: top
+objectClass: organizationalUnit
+subordinateTemplate: orgunit:[numorgs]
+description: This is the People container
+telephoneNumber: +33 00010002
+
+template: orgunit
+subordinateTemplate: person:[numusers]
+rdnAttr: ou
+ou: Org-<sequential:0>
+objectClass: top
+objectClass: organizationalUnit
+description: This is the {ou} organizational unit
+
+template: person
+rdnAttr: uid
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: <first>
+sn: <last>
+cn: {givenName} {sn}
+initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
+employeeNumber: <sequential:0>
+uid: user.{employeeNumber}
+mail: {uid}@[maildomain]
+userPassword: password
+telephoneNumber: <random:telephone>
+homePhone: <random:telephone>
+pager: <random:telephone>
+mobile: <random:telephone>
+street: <random:numeric:5> <file:streets> Street
+l: <file:cities>
+st: <file:states>
+postalCode: <random:numeric:5>
+postalAddress: {cn}${street}${l}, {st}  {postalCode}
+description: This is the description for {cn}.]]></programlisting>
+ </refsect1>
+
+ <refsect1>
+  <title>See Also</title>
+
+  <para>
+   <link
+    xlink:show="new"
+    xlink:href="dev-guide#makeldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink"><citerefentry><refentrytitle
+    >makeldif</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
+   the OpenDJ directory server template file
+   <filename>/path/to/opendj/config/MakeLDIF/example.template</filename>
+  </para>
+ </refsect1>
+</refentry>
