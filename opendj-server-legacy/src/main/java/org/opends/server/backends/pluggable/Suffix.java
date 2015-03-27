@@ -202,18 +202,16 @@ class Suffix
    * It will optionally check the dn2id database for the dn if the specified
    * cleared backend boolean is {@code true}.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param dn The DN to check for.
    * @param dnCache The importer DN cache.
    * @param clearedBackend Set to {@code true} if the import process cleared the
    *                       backend before processing.
    * @return {@code true} if the dn is contained in the parent ID, or
    *         {@code false} otherwise.
-   *
    * @throws StorageRuntimeException If an error occurred searching the DN cache, or
    *                           dn2id database.
-   * @throws InterruptedException If an error occurred processing the pending
-   *                              map.
+   * @throws InterruptedException If an error occurred processing the pending map
    */
   public boolean isParentProcessed(ReadableTransaction txn, DN dn, DNCache dnCache, boolean clearedBackend)
       throws StorageRuntimeException, InterruptedException {

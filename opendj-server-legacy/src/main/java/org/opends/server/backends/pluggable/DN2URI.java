@@ -105,7 +105,7 @@ class DN2URI extends DatabaseContainer
    * @param entryContainer
    *          The entryContainer of the DN database.
    * @throws StorageRuntimeException
-   *           If an error occurs in the JE database.
+   *           If an error occurs in the database.
    */
   DN2URI(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
   {
@@ -163,11 +163,10 @@ class DN2URI extends DatabaseContainer
   /**
    * Puts a URI value in the referral database.
    *
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param dn The DN of the referral entry.
    * @param labeledURIs The labeled URI value of the ref attribute.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void put(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
@@ -200,12 +199,11 @@ class DN2URI extends DatabaseContainer
   /**
    * Delete URI values for a given referral entry from the referral database.
    *
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param dn The DN of the referral entry for which URI values are to be
    * deleted.
    * @return true if the values were deleted, false if not.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private boolean delete(WriteableTransaction txn, DN dn) throws StorageRuntimeException
   {
@@ -221,11 +219,10 @@ class DN2URI extends DatabaseContainer
 
   /**
    * Delete a single URI value from the referral database.
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param dn The DN of the referral entry.
    * @param labeledURIs The URI value to be deleted.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void delete(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
@@ -283,12 +280,11 @@ class DN2URI extends DatabaseContainer
    * not do anything unless the entry before the modification or the entry after
    * the modification is a referral entry.
    *
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param before The entry before the modifications have been applied.
    * @param after The entry after the modifications have been applied.
    * @param mods The sequence of modifications made to the entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void modifyEntry(WriteableTransaction txn, Entry before, Entry after, List<Modification> mods)
       throws StorageRuntimeException
@@ -360,7 +356,7 @@ class DN2URI extends DatabaseContainer
    * @param after
    *          The entry after it was replaced.
    * @throws StorageRuntimeException
-   *           If an error occurs in the JE database.
+   *           If an error occurs in the database.
    */
   void replaceEntry(WriteableTransaction txn, Entry before, Entry after)
        throws StorageRuntimeException
@@ -372,10 +368,9 @@ class DN2URI extends DatabaseContainer
   /**
    * Update the referral database for a new entry. Does nothing if the entry
    * is not a referral entry.
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param entry The entry to be added.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void addEntry(WriteableTransaction txn, Entry entry)
        throws StorageRuntimeException
@@ -390,10 +385,9 @@ class DN2URI extends DatabaseContainer
   /**
    * Update the referral database for a deleted entry. Does nothing if the entry
    * was not a referral entry.
-   * @param txn A database transaction used for the update, or null if none is
-   * required.
+   * @param txn a non null database transaction
    * @param entry The entry to be deleted.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void deleteEntry(WriteableTransaction txn, Entry entry) throws StorageRuntimeException
   {
@@ -509,7 +503,7 @@ class DN2URI extends DatabaseContainer
 
   /**
    * Process referral entries that are above the target DN of an operation.
-   * @param txn The transaction to use when making the determination.
+   * @param txn a non null database transaction
    * @param targetDN The target DN of the operation, or the base object of a
    * search operation.
    * @param searchScope The scope of the search operation, or null if the
@@ -567,7 +561,7 @@ class DN2URI extends DatabaseContainer
   /**
    * Return search result references for a search operation using the referral
    * database to find all referral entries within scope of the search.
-   * @param txn The transaction to use when making the determination.
+   * @param txn a non null database transaction
    * @param searchOp The search operation for which search result references
    * should be returned.
    * @return  <CODE>true</CODE> if the caller should continue processing the

@@ -53,7 +53,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 
 /**
- * Represents an index implemented by a JE database in which each key maps to
+ * Represents an index implemented by a tree in which each key maps to
  * a set of entry IDs.  The key is a byte array, and is constructed from some
  * normalized form of an attribute value (or fragment of a value) appearing
  * in the entry.
@@ -109,9 +109,9 @@ class Index extends DatabaseContainer
    * @param cursorEntryLimit The configured limit on the number of entry IDs
    * @param maintainCount Whether to maintain a count of IDs for a key once
    * the entry limit has exceeded.
-   * @param txn The transaction to use when creating this object
+   * @param txn a non null database transaction
    * @param entryContainer The database entryContainer holding this index.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   Index(TreeName name, Indexer indexer, State state, int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
       WriteableTransaction txn, EntryContainer entryContainer) throws StorageRuntimeException
@@ -145,7 +145,7 @@ class Index extends DatabaseContainer
   /**
    * Delete the specified import ID set from the import ID set associated with the key.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param importIdSet The import ID set to delete.
    * @throws StorageRuntimeException If a database error occurs.
    */
@@ -174,7 +174,7 @@ class Index extends DatabaseContainer
   /**
    * Insert the specified import ID set into this index. Creates a DB cursor if needed.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param importIdSet The set of import IDs.
    * @throws StorageRuntimeException If a database error occurs.
    */
@@ -397,7 +397,7 @@ class Index extends DatabaseContainer
    * @return true if the entry ID is indexed by the given key, false if it is not indexed by the
    *         given key, undefined if the key has exceeded the entry limit.
    * @throws StorageRuntimeException
-   *           If an error occurs in the JE database.
+   *           If an error occurs in the database.
    */
   ConditionResult containsID(ReadableTransaction txn, ByteString key, EntryID entryID)
        throws StorageRuntimeException
@@ -418,7 +418,7 @@ class Index extends DatabaseContainer
   /**
    * Reads the value associated to a key.
    *
-   * @param txn The transaction to use for the operation
+   * @param txn a non null database transaction
    * @param key The key to read
    * @return The non null set of entry IDs.
    */
@@ -444,7 +444,7 @@ class Index extends DatabaseContainer
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
    *
-   * @param txn The transaction to use for the operation
+   * @param txn a non null database transaction
    * @param lower The lower bound of the range. A 0 length byte array indicates
    *                      no lower bound and the range will start from the
    *                      smallest key.

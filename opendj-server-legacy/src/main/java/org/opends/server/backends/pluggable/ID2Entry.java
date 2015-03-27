@@ -227,8 +227,7 @@ class ID2Entry extends DatabaseContainer
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
    * @param entryContainer The entryContainer of the entry database.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   *
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   ID2Entry(TreeName name, DataConfig dataConfig) throws StorageRuntimeException
   {
@@ -312,10 +311,10 @@ class ID2Entry extends DatabaseContainer
   /**
    * Write a record in the entry database.
    *
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param id The entry ID which forms the key.
    * @param entry The LDAP entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
@@ -338,10 +337,10 @@ class ID2Entry extends DatabaseContainer
   /**
    * Remove a record from the entry database.
    *
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param id The entry ID which forms the key.
    * @return true if the entry was removed, false if it was not.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   boolean remove(WriteableTransaction txn, EntryID id) throws StorageRuntimeException
   {
@@ -351,11 +350,11 @@ class ID2Entry extends DatabaseContainer
   /**
    * Fetch a record from the entry database.
    *
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param id The desired entry ID which forms the key.
    * @return The requested entry, or null if there is no such record.
    * @throws DirectoryException If a problem occurs while getting the entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   public Entry get(ReadableTransaction txn, EntryID id)
        throws DirectoryException, StorageRuntimeException

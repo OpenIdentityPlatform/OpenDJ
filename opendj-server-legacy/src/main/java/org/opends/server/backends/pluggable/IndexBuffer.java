@@ -235,8 +235,8 @@ class IndexBuffer
    * Flush the buffered index changes until the given transaction to
    * the database.
    *
-   * @param txn The database transaction to be used for the updates.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @param txn a non null database transaction
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void flush(WriteableTransaction txn) throws StorageRuntimeException, DirectoryException

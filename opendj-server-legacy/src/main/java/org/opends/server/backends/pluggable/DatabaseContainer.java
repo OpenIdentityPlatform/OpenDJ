@@ -32,7 +32,7 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
 /**
- * This class is a wrapper around the JE database object and provides basic
+ * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
 abstract class DatabaseContainer
@@ -51,13 +51,13 @@ abstract class DatabaseContainer
   }
 
   /**
-   * Opens a JE database in this database container. If the provided database configuration is
+   * Opens a database in this database container. If the provided database configuration is
    * transactional, a transaction will be created and used to perform the open.
    *
    * @param txn
-   *          The transaction.
+   *          a non null database transaction
    * @throws StorageRuntimeException
-   *           if a JE database error occurs while opening the index.
+   *           if a database error occurs while opening the index.
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException
   {
@@ -68,7 +68,7 @@ abstract class DatabaseContainer
    * Deletes this database and all of its contents.
    *
    * @param txn
-   *          The transaction.
+   *          a non null database transaction
    * @throws StorageRuntimeException
    *           if a database error occurs while deleting the index.
    */
@@ -81,7 +81,7 @@ abstract class DatabaseContainer
    * Returns the number of key/value pairs in this database container.
    *
    * @param txn
-   *          The transaction.
+   *          a non null database transaction
    * @return the number of key/value pairs in the provided tree.
    * @throws StorageRuntimeException
    *           If an error occurs in the DB operation.
@@ -103,9 +103,9 @@ abstract class DatabaseContainer
   }
 
   /**
-   * Get the JE database name for this database container.
+   * Get the database name for this database container.
    *
-   * @return JE database name for this database container.
+   * @return database name for this database container.
    */
   final TreeName getName()
   {
@@ -113,7 +113,7 @@ abstract class DatabaseContainer
   }
 
   /**
-   * Set the JE database name to use for this container.
+   * Set the database name to use for this container.
    *
    * @param name The database name to use for this container.
    */

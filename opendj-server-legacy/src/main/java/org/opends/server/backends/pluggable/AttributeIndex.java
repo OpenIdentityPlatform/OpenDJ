@@ -131,7 +131,7 @@ class AttributeIndex
    *
    * @param indexConfig The attribute index configuration.
    * @param entryContainer The entryContainer of this attribute index.
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @throws ConfigException if a configuration related error occurs.
    */
   AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableTransaction txn)
@@ -260,9 +260,8 @@ class AttributeIndex
   /**
    * Open the attribute index.
    *
-   * @param txn The database transaction
-   * @throws StorageRuntimeException if a JE database error occurs while
-   * opening the index.
+   * @param txn a non null database transaction
+   * @throws StorageRuntimeException if a database error occurs while opening the index
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException
   {
@@ -313,7 +312,7 @@ class AttributeIndex
    * @param buffer The index buffer to use to store the added keys
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
@@ -331,7 +330,7 @@ class AttributeIndex
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID
    * @param entry       The contents of the deleted entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
@@ -353,7 +352,7 @@ class AttributeIndex
    * @param newEntry The entry after the modifications were applied.
    * @param mods The sequence of modifications in the Modify operation.
    * @throws StorageRuntimeException If an error occurs during an operation on a
-   * JE database.
+   * database.
    */
   void modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
@@ -882,9 +881,9 @@ class AttributeIndex
   }
 
   /**
-   * Get the JE database name prefix for indexes in this attribute index.
+   * Get the database name prefix for indexes in this attribute index.
    *
-   * @return JE database name for this database container.
+   * @return database name for this database container.
    */
   String getName()
   {

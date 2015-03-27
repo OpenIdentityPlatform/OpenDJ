@@ -78,7 +78,7 @@ class IndexFilter
    * Construct an index filter for a search operation.
    *
    * @param entryContainer The entry entryContainer.
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param searchOp       The search operation to be evaluated.
    * @param monitor        The monitor to gather filter usage stats.
    * @param debugBuilder If not null, a diagnostic string will be written

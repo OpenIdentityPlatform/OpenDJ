@@ -118,7 +118,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
 
   private static final int IMPORT_PROGRESS_INTERVAL = 10000;
 
-  /** The JE database environment. */
+  /** The database storage. */
   private Storage storage;
 
   /** The backend to which this entry root container belongs. */

@@ -57,7 +57,7 @@ class State extends DatabaseContainer
    *
    * @param index The index we need the key for.
    * @return the key
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private ByteString keyForIndex(DatabaseContainer index)
     throws StorageRuntimeException
@@ -69,10 +69,10 @@ class State extends DatabaseContainer
   /**
    * Remove a record from the entry database.
    *
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param index The index storing the trusted state info.
    * @return true if the entry was removed, false if it was not.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   boolean removeIndexTrustState(WriteableTransaction txn, DatabaseContainer index) throws StorageRuntimeException
   {
@@ -82,10 +82,10 @@ class State extends DatabaseContainer
 
   /**
    * Fetch index state from the database.
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param index The index storing the trusted state info.
    * @return The trusted state of the index in the database.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   boolean getIndexTrustState(ReadableTransaction txn, DatabaseContainer index)
       throws StorageRuntimeException
@@ -98,10 +98,10 @@ class State extends DatabaseContainer
 
   /**
    * Put index state to database.
-   * @param txn The database transaction or null if none.
+   * @param txn a non null database transaction
    * @param index The index storing the trusted state info.
    * @param trusted The state value to put into the database.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void putIndexTrustState(WriteableTransaction txn, DatabaseContainer index, boolean trusted)
       throws StorageRuntimeException

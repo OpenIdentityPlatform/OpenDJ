@@ -135,7 +135,7 @@ class VerifyJob
    *
    * @param rootContainer The root container that holds the entries to verify.
    * @return The error count.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
   long verifyBackend(final RootContainer rootContainer) throws StorageRuntimeException,
@@ -385,7 +385,7 @@ class VerifyJob
    * index completeness. We check that the ID for the entry is indeed
    * present in the indexes for the appropriate values.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -458,7 +458,7 @@ class VerifyJob
    * index cleanliness. For each ID in the index we check that the
    * entry it refers to does indeed contain the expected value.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
   private void iterateIndex(ReadableTransaction txn) throws StorageRuntimeException, DirectoryException
@@ -496,7 +496,7 @@ class VerifyJob
    * Iterate through the entries in DN2ID to perform a check for
    * index cleanliness.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -567,7 +567,7 @@ class VerifyJob
    * Iterate through the entries in ID2Children to perform a check for
    * index cleanliness.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void iterateID2Children(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -693,7 +693,7 @@ class VerifyJob
    * Iterate through the entries in ID2Subtree to perform a check for
    * index cleanliness.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void iterateID2Subtree(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -870,7 +870,7 @@ class VerifyJob
    *
    * @param vlvIndex The VLV index to perform the check against.
    * @param verifyID True to verify the IDs against id2entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
   private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
@@ -975,7 +975,7 @@ class VerifyJob
    * Iterate through the entries in an attribute index to perform a check for
    * index cleanliness.
    * @param index The index database to be checked.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private void iterateAttrIndex(ReadableTransaction txn, Index index, IndexingOptions options)
       throws StorageRuntimeException

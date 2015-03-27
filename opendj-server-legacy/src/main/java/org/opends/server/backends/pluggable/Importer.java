@@ -3608,7 +3608,7 @@ final class Importer implements DiskSpaceMonitorHandler
      * Create a new rebuild index progress task.
      *
      * @throws StorageRuntimeException
-     *           If an error occurred while accessing the JE database.
+     *           If an error occurred while accessing the database.
      */
     public RebuildFirstPhaseProgressTask() throws StorageRuntimeException
     {
