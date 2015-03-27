@@ -55,7 +55,7 @@ import static org.opends.messages.JebMessages.*;
  * This class provides a compressed schema implementation whose definitions are
  * persisted in a database.
  */
-final class JECompressedSchema extends CompressedSchema
+final class PersistentCompressedSchema extends CompressedSchema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -69,7 +69,7 @@ final class JECompressedSchema extends CompressedSchema
   /** The compressed object class set schema tree. */
   private static final TreeName ocTreeName = new TreeName("compressed_schema", DB_NAME_OC);
 
-  /** The environment in which the databases are held. */
+  /** The storage in which the databases are held. */
   private Storage storage;
 
   private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
@@ -93,7 +93,7 @@ final class JECompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  JECompressedSchema(final Storage storage, WriteableTransaction txn)
+  PersistentCompressedSchema(final Storage storage, WriteableTransaction txn)
       throws StorageRuntimeException, InitializationException
   {
     this.storage = storage;

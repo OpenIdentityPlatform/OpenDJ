@@ -135,7 +135,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private AtomicLong nextid = new AtomicLong(1);
 
   /** The compressed schema manager for this backend. */
-  private JECompressedSchema compressedSchema;
+  private PersistentCompressedSchema compressedSchema;
 
   /**
    * Creates a new RootContainer object. Each root container represents a JE
@@ -360,7 +360,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          compressedSchema = new JECompressedSchema(storage, txn);
+          compressedSchema = new PersistentCompressedSchema(storage, txn);
           openAndRegisterEntryContainers(txn, config.getBaseDN());
         }
       });
