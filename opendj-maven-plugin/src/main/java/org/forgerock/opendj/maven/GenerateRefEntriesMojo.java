@@ -35,18 +35,20 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
-import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Generate DocBook RefEntry source documents for command-line tools man pages.
@@ -67,9 +69,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     @Parameter(required = true)
     private File outputDir;
 
-    /** End of line. */
-    public static final String EOL = System.getProperty("line.separator");
-
     /**
      * Writes a RefEntry file to the output directory for each tool.
      * Files names correspond to script names: {@code man-&lt;name>.xml}.
@@ -80,17 +79,29 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        PrintStream out = System.out;
-
-        // Set the magic property for generating DocBook XML.
-        System.setProperty("org.forgerock.opendj.gendoc", "true");
-
         // A Maven plugin classpath does not include project files.
         // Prepare a ClassLoader capable of loading the command-line tools.
+        URLClassLoader toolsClassLoader = getBootToolsClassLoader();
+
+        if (!isOutputDirAvailable()) {
+            throw new MojoFailureException("Output directory " + outputDir.getPath() + " not available");
+        }
+
+        for (CommandLineTool tool : tools) {
+            generateManPageForTool(toolsClassLoader, tool);
+        }
+    }
+
+    /**
+     * Returns a ClassLoader capable of loading the command-line tools.
+     * @return A ClassLoader capable of loading the command-line tools.
+     * @throws MojoFailureException     Failed to build classpath.
+     */
+    private URLClassLoader getBootToolsClassLoader() throws MojoFailureException {
         URLClassLoader toolsClassLoader;
         try {
             List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-            List<URL> runtimeUrls = new LinkedList<URL>();
+            Set<URL> runtimeUrls = new LinkedHashSet<URL>();
             for (String element : runtimeClasspathElements) {
                 runtimeUrls.add(new File(element).toURI().toURL());
             }
@@ -103,53 +114,99 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             throw new MojoFailureException("Failed to add element to classpath.", e);
         }
         debugClassPathElements(toolsClassLoader);
+        return toolsClassLoader;
+    }
 
-        List<String> failures = new LinkedList<String>();
-        for (CommandLineTool tool : tools) {
-            final File manPage = new File(outputDir, "man-" + tool.getName() + ".xml");
-            try {
-                setSystemOut(refEntryFile(manPage.getPath()));
-            } catch (FileNotFoundException e) {
-                setSystemOut(out);
-                failures.add(manPage.getPath());
-                throw new MojoExecutionException("Failed to write " + manPage.getPath(), e);
+    /**
+     * Generate a RefEntry file to the output directory for a tool.
+     * The files name corresponds to the tool name: {@code man-&lt;name>.xml}.
+     * @param toolsClassLoader          The ClassLoader to run the tool.
+     * @param tool                      The tool to run in order to generate the page.
+     * @throws MojoExecutionException   Failed to run the tool.
+     * @throws MojoFailureException     Tool did not exit successfully.
+     */
+    private void generateManPageForTool(final URLClassLoader toolsClassLoader, final CommandLineTool tool)
+            throws MojoExecutionException, MojoFailureException {
+        final File   manPage    = new File(outputDir, "man-" + tool.getName() + ".xml");
+        final String toolScript = tool.getName();
+        final String toolSects  = pathsToXIncludes(tool.getTrailingSectionPaths());
+        final String toolClass  = tool.getApplication();
+        List<String> commands   = new LinkedList<String>();
+        commands.add(getJavaCommand());
+        commands.addAll(getJavaArgs(toolScript, toolSects));
+        commands.add("-classpath");
+        commands.add(getClassPath(toolsClassLoader));
+        commands.add(toolClass);
+        commands.add(getUsageArgument(toolScript));
+        getLog().info("Writing man page: " + manPage.getPath());
+        try {
+            // Tools tend to use System.exit() so run them as separate processes.
+            ProcessBuilder builder = new ProcessBuilder(commands);
+            Process process = builder.start();
+            writeToFile(process.getInputStream(), manPage);
+            process.waitFor();
+            final int result = process.exitValue();
+            if (result != 0) {
+                throw new MojoFailureException("Failed to write page. Tool exit code: " + result);
             }
+        }  catch (InterruptedException e) {
+            throw new MojoExecutionException(toolClass + " interrupted", e);
+        } catch (IOException e) {
+            throw new MojoExecutionException(toolClass + " not found", e);
+        }
+    }
 
-            // Set the properties for script name and list of trailing sections.
-            System.setProperty("com.forgerock.opendj.ldap.tools.scriptName", tool.getName());
-            final String xInclude = pathsToXIncludes(tool.getTrailingSectionPaths());
-            System.setProperty("org.forgerock.opendj.gendoc.trailing", xInclude);
+    /**
+     * Returns true if the output directory is available.
+     * Attempts to create the directory if it does not exist.
+     * @return True if the output directory is available.
+     */
+    private boolean isOutputDirAvailable() {
+        return outputDir != null && (outputDir.exists() && outputDir.isDirectory() || outputDir.mkdirs());
+    }
 
+    /**
+     * Returns the path to the current Java executable.
+     * @return The path to the current Java executable.
+     */
+    private String getJavaCommand() {
+        return System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+    }
+
+    /**
+     * Returns the Java args for running a tool.
+     * @param scriptName        The name of the tool.
+     * @param trailingSections  The man page sections to Xinclude.
+     * @return The Java args for running a tool.
+     */
+    private List<String> getJavaArgs(final String scriptName, final String trailingSections) {
+        List<String> args = new LinkedList<String>();
+        args.add("-Dorg.forgerock.opendj.gendoc=true");
+        args.add("-Dorg.opends.server.ServerRoot=" + System.getProperty("java.io.tmpdir"));
+        args.add("-Dcom.forgerock.opendj.ldap.tools.scriptName=" + scriptName);
+        args.add("-Dorg.forgerock.opendj.gendoc.trailing=" + trailingSections + "");
+        return args;
+    }
+
+    /**
+     * Returns the classpath for the class loader.
+     * @param classLoader   Contains the URLs of the class path to return.
+     * @return The classpath for the class loader.
+     */
+    private String getClassPath(final URLClassLoader classLoader) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        final URL[] urls = classLoader.getURLs();
+        for (int i = 0; i < urls.length; i++) {
+            if (i > 0) {
+                stringBuilder.append(File.pathSeparator);
+            }
             try {
-                final Class<?> toolClass = toolsClassLoader.loadClass(tool.getApplication());
-                final Class[] argTypes = new Class[]{String[].class};
-                final Method main = toolClass.getDeclaredMethod("main", argTypes);
-                final String[] args = {"-?"};
-                main.invoke(null, (Object) args);
-            } catch (ClassNotFoundException e) {
-                failures.add(manPage.getPath());
-                throw new MojoExecutionException(tool.getApplication() + " not found", e);
-            } catch (NoSuchMethodException e) {
-                failures.add(manPage.getPath());
-                throw new MojoExecutionException(tool.getApplication() + " has no main method.", e);
-            } catch (IllegalAccessException e) {
-                failures.add(manPage.getPath());
-                throw new MojoExecutionException("Failed to run " + tool.getApplication() + ".main()", e);
-            } catch (InvocationTargetException e) {
-                failures.add(manPage.getPath());
-                throw new MojoExecutionException("Failed to run " + tool.getApplication() + ".main()", e);
-            } finally {
-                setSystemOut(out);
+                stringBuilder.append(new File(urls[i].toURI()).getPath());
+            } catch (URISyntaxException e) {
+                getLog().info("Failed to add classpath element", e);
             }
         }
-
-        final StringBuilder list = new StringBuilder();
-        if (!failures.isEmpty()) {
-            for (final String failure : failures) {
-                list.append(failure).append(EOL);
-            }
-            throw new MojoFailureException("Failed to write the following RefEntry files: " + list);
-        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -173,26 +230,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     }
 
     /**
-     * Returns a PrintStream to a file to which to write a RefEntry.
-     * @param   path                    Path to the file to be written.
-     * @return                          PrintStream to a file to which to write a RefEntry.
-     * @throws  FileNotFoundException   Failed to open the file for writing.
-     */
-    private PrintStream refEntryFile(final String path) throws FileNotFoundException {
-        return new PrintStream(new BufferedOutputStream(new FileOutputStream(path)), true);
-    }
-
-    /**
-     * Sets the System output stream.
-     * @param out   The stream to use.
-     */
-    private void setSystemOut(PrintStream out) {
-        if (out != null) {
-            System.setOut(out);
-        }
-    }
-
-    /**
      * Translates relative paths to XML files into XInclude elements.
      *
      * @param paths Paths to XInclude'd files, relative to the RefEntry.
@@ -208,8 +245,40 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         final String nameSpace = "xinclude";
         final StringBuilder result = new StringBuilder();
         for (String path : paths) {
-            result.append("<").append(nameSpace).append(":include href=\"").append(path).append("\" />").append(EOL);
+            result.append("<").append(nameSpace).append(":include href='").append(path).append("' />");
         }
         return result.toString();
+    }
+
+    /**
+     * Returns the usage argument.
+     * @param scriptName The name of the tool.
+     * @return The usage argument.
+     */
+    private String getUsageArgument(final String scriptName) {
+        return scriptName.equals("dsjavaproperties") ? "-H" : "-?";
+    }
+
+    /**
+     * Write the content of the input stream to the output file.
+     * @param input     The input stream to write.
+     * @param output    The file to write it to.
+     * @throws IOException  Failed to write the content of the input stream.
+     */
+    private void writeToFile(final InputStream input, final File output) throws IOException {
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(output);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.write(System.getProperty("line.separator"));
+            }
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
     }
 }

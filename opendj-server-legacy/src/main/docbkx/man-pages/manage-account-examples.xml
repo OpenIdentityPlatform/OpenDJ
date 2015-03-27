@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <para>
+  For the following examples the directory admin user, Kirsten Vaughan,
+  has <literal>ds-privilege-name: password-reset</literal>
+  and the following ACI on <literal>ou=People,dc=example,dc=com</literal>.
+ </para>
+
+ <programlisting language="aci">
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+ </programlisting>
+
+ <para>
+  The following command locks a user account.
+ </para>
+
+ <screen>
+$ <userinput>manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery set-account-is-disabled -O true \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X</userinput>
+<computeroutput>Account Is Disabled:  true</computeroutput>
+ </screen>
+
+ <para>
+  The following command unlocks a user account.
+ </para>
+
+ <screen>
+$ <userinput>manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery clear-account-is-disabled \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X</userinput>
+<computeroutput>Account Is Disabled:  false</computeroutput>
+ </screen>
+</refsect1>

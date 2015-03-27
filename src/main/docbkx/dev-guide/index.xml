@@ -78,28 +78,57 @@
   <title>Tools Reference</title>
 
   <partintro>
-   <para>You can find the tools under the <filename>bin/</filename> or
-   <filename>bat\</filename> folder where you installed OpenDJ LDAP SDK
-   toolkit as described in the procedure explaining how <link
-   xlink:href="dev-guide#install-latest-sdk"
-   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install the
-   Latest SDK &amp; Tools</citetitle></link>. For example,
-   <filename>/path/to/opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/bin</filename>.</para>
+   <para>
+    You can find the tools under
+    the <filename>bin/</filename> or <filename>bat\</filename> folder
+    where you installed OpenDJ LDAP SDK toolkit
+    as described in the procedure explaining how
+    <link
+     xlink:show="new"
+     xlink:href="dev-guide#install-latest-sdk"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><citetitle>To Install the Latest SDK &amp; Tools</citetitle></link>.
+    For example, <filename>/path/to/opendj-ldap-toolkit-${sdkDocTargetVersion}/bin</filename>.
+   </para>
   </partintro>
 
-  <xinclude:include href='man-addrate.xml' />
-  <xinclude:include href='man-authrate.xml' />
-  <xinclude:include href='man-ldapcompare.xml' />
-  <xinclude:include href='man-ldapmodify.xml' />
-  <xinclude:include href='man-ldappasswordmodify.xml' />
-  <xinclude:include href='man-ldapsearch.xml' />
-  <xinclude:include href='man-ldifdiff.xml' />
-  <xinclude:include href='man-ldifmodify.xml' />
-  <xinclude:include href='man-ldifsearch.xml' />
-  <xinclude:include href='man-makeldif.xml' />
-  <xinclude:include href='man-makeldif-template.xml' />
-  <xinclude:include href='man-modrate.xml' />
-  <xinclude:include href='man-searchrate.xml' />
+  <xinclude:include href='../man-pages/man-addrate.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-authrate.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldapcompare.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldapmodify.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldappasswordmodify.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldapsearch.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldifdiff.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldifmodify.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-ldifsearch.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-makeldif.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-makeldif-template.xml' />
+  <xinclude:include href='../man-pages/man-modrate.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
+  <xinclude:include href='../man-pages/man-searchrate.xml'>
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
  </reference>
 
  <xinclude:include href="../shared/glossary.xml" />

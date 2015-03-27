@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Attributes</title>
+
+ <para>
+  The optional attribute list specifies the attributes to return
+  in the entries found by the search.
+  In addition to identifying attributes by name
+  such as <literal>cn sn mail</literal> and so forth,
+  you can use the following notations, too.
+ </para>
+
+ <variablelist>
+  <varlistentry>
+   <term><literal>*</literal></term>
+   <listitem>
+    <para>
+     Return all user attributes
+     such as <literal>cn</literal>, <literal>sn</literal>, and <literal>mail</literal>.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><literal>+</literal></term>
+   <listitem>
+    <para>
+     Return all operational attributes
+     such as <literal>etag</literal> and <literal>pwdPolicySubentry</literal>.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><literal>@<replaceable>objectclass</replaceable></literal></term>
+   <listitem>
+    <para>
+     Return all attributes of the specified object class,
+     where <replaceable>objectclass</replaceable> is one of the object classes
+     on the entries returned by the search.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><literal>1.1</literal></term>
+   <listitem>
+    <para>
+     Return no attributes, only the DNs of matching entries.
+    </para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</refsect1>

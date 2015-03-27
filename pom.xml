@@ -163,6 +163,31 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>unpack-sdk-man-pages</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-ldap-toolkit</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>man-pages</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
         <version>${frDocPluginVersion}</version>

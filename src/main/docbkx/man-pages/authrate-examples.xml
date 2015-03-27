@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+  <para>
+   The following example demonstrates measuring simple bind performance.
+  </para>
+
+  <screen>
+$ <userinput>authrate -p 1389 -g "rand(names.txt)" \
+ -D "uid=%s,ou=people,dc=example,dc=com" -w password -c 10 -f</userinput>
+<computeroutput>-----------------------------------------------------------------
+     Throughput                            Response Time
+   (ops/second)                           (milliseconds)
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec
+-----------------------------------------------------------------
+9796.9   9816.6   1.029    1.029  12.413  161.451  161.835      0.0
+14201.1  12028.1   0.704    0.835  9.508  161.456  167.573      0.0
+14450.0  12835.9   0.692    0.782  8.989  161.835  174.518      0.0
+12934.3  12860.6   0.773    0.779  9.253  161.339  174.426      0.0
+14154.5  13121.0   0.706    0.764  9.025  161.451  177.101      0.0
+^C</computeroutput>
+  </screen>
+
+  <para>
+   The <filename>names.txt</filename> contains
+   all the user IDs for the sample suffix.
+   All user password values have been set to <literal>password</literal>
+   for this example.
+  </para>
+</refsect1>
