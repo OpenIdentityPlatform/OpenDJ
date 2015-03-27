@@ -53,7 +53,7 @@ import static org.opends.messages.JebMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
- * stored in a Berkeley DB JE database.
+ * persisted in a database.
  */
 final class JECompressedSchema extends CompressedSchema
 {
@@ -85,7 +85,7 @@ final class JECompressedSchema extends CompressedSchema
    * @param storage
    *          A reference to the database environment in which the databases
    *          will be held.
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @throws StorageRuntimeException
    *           If a database problem occurs while loading the compressed schema
    *           definitions from the database.

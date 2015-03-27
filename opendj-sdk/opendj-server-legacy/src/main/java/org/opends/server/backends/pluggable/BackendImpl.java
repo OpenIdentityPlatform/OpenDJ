@@ -61,8 +61,8 @@ import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
 
 /**
- * This is an implementation of a Directory Server Backend which stores entries locally in a
- * Berkeley DB JE database.
+ * This is an implementation of a Directory Server Backend which stores entries locally
+ * in a pluggable storage.
  *
  * @param <C>
  *          the type of the BackendCfg for the current backend

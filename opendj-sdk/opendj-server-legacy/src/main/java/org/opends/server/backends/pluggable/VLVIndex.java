@@ -127,9 +127,9 @@ class VLVIndex extends DatabaseContainer
    * @param state            The state database to persist vlvIndex state info.
    * @param storage          The storage currently in use
    * @param entryContainer   The database entryContainer holding this vlvIndex. the sort order
-   * @param txn              The transaction to use when creating this object
+   * @param txn a non null database transaction
    * @throws StorageRuntimeException
-   *          If an error occurs in the JE database.
+   *          If an error occurs in the database.
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
@@ -311,8 +311,7 @@ class VLVIndex extends DatabaseContainer
    * @param mods The sequence of modifications in the Modify operation.
    * @return True if the modification was successfully processed or False
    * otherwise.
-   * @throws StorageRuntimeException If an error occurs during an operation on a
-   * JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   boolean modifyEntry(IndexBuffer buffer,
@@ -386,15 +385,13 @@ class VLVIndex extends DatabaseContainer
    * Get a sorted values set that should contain the entry with the given
    * information.
    *
-   * @param txn The transaction to use when retrieving the set or NULL if it is
-   *            not required.
+   * @param txn a non null database transaction
    * @param entryID The entry ID to use.
    * @param values The values to use.
    * @param types The types of the values to use.
    * @return The SortValuesSet that should contain the entry with the given
    *         information.
-   * @throws StorageRuntimeException If an error occurs during an operation on a
-   * JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private SortValuesSet getSortValuesSet(ReadableTransaction txn, long entryID,
@@ -442,14 +439,13 @@ class VLVIndex extends DatabaseContainer
    * Search for entries matching the entry ID and attribute values and
    * return its entry ID.
    *
-   * @param txn The JE transaction to use for database updates.
+   * @param txn a non null database transaction
    * @param entryID The entry ID to search for.
    * @param values The values to search for.
    * @param types The types of the values to search for.
    * @return The index of the entry ID matching the values or -1 if its not
    * found.
-   * @throws StorageRuntimeException If an error occurs during an operation on a
-   * JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private boolean containsValues(ReadableTransaction txn, long entryID, ByteString[] values, AttributeType[] types)
@@ -479,10 +475,10 @@ class VLVIndex extends DatabaseContainer
   /**
    * Update the vlvIndex with the specified values to add and delete.
    *
-   * @param txn A database transaction, or null if none is required.
+   * @param txn a non null database transaction
    * @param addedValues The values to add to the VLV index.
    * @param deletedValues The values to delete from the VLV index.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
@@ -630,8 +626,7 @@ class VLVIndex extends DatabaseContainer
   /**
    * Evaluate a search with sort control using this VLV index.
    *
-   * @param txn The transaction to used when reading the index or NULL if it is
-   *            not required.
+   * @param txn a non null database transaction
    * @param searchOperation The search operation to evaluate.
    * @param sortControl The sort request control to evaluate.
    * @param vlvRequest The VLV request control to evaluate or NULL if VLV is not
@@ -642,7 +637,7 @@ class VLVIndex extends DatabaseContainer
    * @return The sorted EntryIDSet containing the entry IDs that match the
    *         search criteria.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   EntryIDSet evaluate(ReadableTransaction txn,
                              SearchOperation searchOperation,
@@ -935,10 +930,9 @@ class VLVIndex extends DatabaseContainer
 
   /**
    * Set the vlvIndex trust state.
-   * @param txn A database transaction, or null if none is required.
-   * @param trusted True if this vlvIndex should be trusted or false
-   *                otherwise.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @param txn a non null database transaction
+   * @param trusted True if this vlvIndex should be trusted or false otherwise.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   synchronized void setTrusted(WriteableTransaction txn, boolean trusted)
       throws StorageRuntimeException
@@ -1273,7 +1267,7 @@ class VLVIndex extends DatabaseContainer
    *         or zero if there is no difference between the values with regard to
    *         ordering.
    * @throws StorageRuntimeException
-   *           If an error occurs during an operation on a JE database.
+   *           If an error occurs during an operation on a database.
    * @throws DirectoryException
    *           If an error occurs while trying to normalize the value (e.g., if
    *           it is not acceptable for use with the associated equality

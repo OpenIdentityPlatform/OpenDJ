@@ -153,7 +153,7 @@ public class EntryContainer
   /** The backend configuration. */
   private PluggableBackendCfg config;
 
-  /** The JE database environment. */
+  /** The database storage. */
   private final Storage storage;
 
   /** The DN database maps a normalized DN string to an entry ID (8 bytes). */
@@ -478,8 +478,8 @@ public class EntryContainer
   /**
    * Opens the entryContainer for reading and writing.
    *
-   * @param txn The database transaction
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @param txn a non null database transaction
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws ConfigException if a configuration related error occurs.
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException, ConfigException
@@ -560,7 +560,7 @@ public class EntryContainer
   /**
    * Closes the entry container.
    *
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   @Override
   public void close() throws StorageRuntimeException
@@ -699,9 +699,9 @@ public class EntryContainer
    * Determine the highest entryID in the entryContainer.
    * The entryContainer must already be open.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @return The highest entry ID.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   EntryID getHighestEntryID(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -730,7 +730,7 @@ public class EntryContainer
    *                number of entries immediately under the given entry.
    * @return The number of subordinate entries for the given entry or -1 if
    *         the entry does not exist.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   long getNumSubordinates(final DN entryDN, final boolean subtree)
   throws StorageRuntimeException
@@ -772,7 +772,7 @@ public class EntryContainer
    * @throws DirectoryException
    *          If a problem occurs while processing the
    *          search.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void search(final SearchOperation searchOperation)
@@ -1279,7 +1279,7 @@ public class EntryContainer
   /**
    * Returns the entry corresponding to the provided entryID.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param entryID
    *          the id of the entry to retrieve
    * @return the entry corresponding to the provided entryID
@@ -1486,7 +1486,7 @@ public class EntryContainer
    *                     performed internally.
    * @throws DirectoryException If a problem occurs while trying to add the
    *                            entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void addEntry(final Entry entry, final AddOperation addOperation)
@@ -1620,7 +1620,7 @@ public class EntryContainer
    *                        deletes performed internally.
    * @throws DirectoryException If a problem occurs while trying to remove the
    *                            entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
@@ -1988,7 +1988,7 @@ public class EntryContainer
    * @param modifyOperation The modify operation with which this action is
    *                        associated.  This may be <CODE>null</CODE> for
    *                        modifications performed internally.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
@@ -2114,7 +2114,7 @@ public class EntryContainer
    *          If this backend noticed and reacted
    *          to a request to cancel or abandon the
    *          modify DN operation.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
@@ -2590,7 +2590,7 @@ public class EntryContainer
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be inserted into the indexes.
    * @param entryID The ID of the entry to be inserted into the indexes.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexInsertEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
@@ -2613,7 +2613,7 @@ public class EntryContainer
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be removed from the indexes.
    * @param entryID The ID of the entry to be removed from the indexes.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexRemoveEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
@@ -2639,7 +2639,7 @@ public class EntryContainer
    * @param newEntry The contents of the entry after the change.
    * @param entryID The ID of the entry that was changed.
    * @param mods The sequence of modifications made to the entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexModifications(IndexBuffer buffer, Entry oldEntry, Entry newEntry,
@@ -2665,9 +2665,9 @@ public class EntryContainer
   /**
    * Get a count of the number of entries stored in this entry container.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @return The number of entries stored in this entry container.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   long getEntryCount(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -2750,7 +2750,7 @@ public class EntryContainer
    * Delete this entry container from disk. The entry container should be
    * closed before calling this method.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
@@ -2768,7 +2768,7 @@ public class EntryContainer
   /**
    * Remove a database from disk.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param database The database container to remove.
    * @throws StorageRuntimeException If an error occurs while attempting to delete the
    * database.
@@ -2791,7 +2791,7 @@ public class EntryContainer
    * Removes a attribute index from disk.
    *
    * @param attributeIndex The attribute index to remove.
-   * @throws StorageRuntimeException If an JE database error occurs while attempting
+   * @throws StorageRuntimeException If an database error occurs while attempting
    * to delete the index.
    */
   private void deleteAttributeIndex(WriteableTransaction txn, AttributeIndex attributeIndex)
@@ -2822,7 +2822,7 @@ public class EntryContainer
    * existing databases in use by this entry container.
    *
    * @param newBaseDN The new database prefix to use.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
   {
@@ -3047,9 +3047,9 @@ public class EntryContainer
   /**
    * Clear the contents for a database from disk.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param database The database to clear.
-   * @throws StorageRuntimeException if a JE database error occurs.
+   * @throws StorageRuntimeException if a database error occurs.
    */
   void clearDatabase(WriteableTransaction txn, DatabaseContainer database)
       throws StorageRuntimeException
@@ -3112,7 +3112,7 @@ public class EntryContainer
   /**
    * Creates a new index for an attribute.
    *
-   * @param txn The database transaction
+   * @param txn a non null database transaction
    * @param indexName the name to give to the new index
    * @param indexer the indexer to use when inserting data into the index
    * @param indexEntryLimit the index entry limit

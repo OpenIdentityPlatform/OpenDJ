@@ -87,7 +87,7 @@ class ExportJob
   /**
    * Export entries from the backend to an LDIF file.
    * @param rootContainer The root container to export.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws IOException If an I/O error occurs while writing an entry.
    * @throws LDIFException If an error occurs while trying to determine whether
    * to write an entry.
@@ -186,7 +186,7 @@ class ExportJob
    * one of the base DNs.
    * @param entryContainer The entry container that holds the entries to be
    *                       exported.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    * @throws IOException If an error occurs while writing an entry.
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.

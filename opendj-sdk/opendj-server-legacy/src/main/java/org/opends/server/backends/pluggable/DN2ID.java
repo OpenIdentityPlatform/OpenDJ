@@ -49,7 +49,7 @@ class DN2ID extends DatabaseContainer
    *
    * @param treeName The name of the DN database.
    * @param entryContainer The entryContainer of the DN database.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   DN2ID(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
   {
@@ -59,8 +59,7 @@ class DN2ID extends DatabaseContainer
 
   /**
    * Adds a new record into the DN database replacing any existing record having the same DN.
-   * @param txn A JE database transaction to be used for the database operation,
-   * or null if none.
+   * @param txn a non null database transaction
    * @param dn The entry DN, which is the key to the record.
    * @param id The entry ID, which is the value of the record.
    * @throws StorageRuntimeException If an error occurred while attempting to insert
@@ -75,8 +74,7 @@ class DN2ID extends DatabaseContainer
 
   /**
    * Remove a record from the DN database.
-   * @param txn A JE database transaction to be used for the database operation,
-   * or null if none.
+   * @param txn a non null database transaction
    * @param dn The entry DN, which is the key to the record.
    * @return true if the record was removed, false if it was not removed.
    * @throws StorageRuntimeException If an error occurred while attempting to remove
@@ -91,11 +89,10 @@ class DN2ID extends DatabaseContainer
 
   /**
    * Fetch the entry ID for a given DN.
-   * @param txn A JE database transaction to be used for the database read, or
-   * null if none is required.
+   * @param txn a non null database transaction
    * @param dn The DN for which the entry ID is desired.
    * @return The entry ID, or null if the given DN is not in the DN database.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   EntryID get(ReadableTransaction txn, DN dn) throws StorageRuntimeException
   {

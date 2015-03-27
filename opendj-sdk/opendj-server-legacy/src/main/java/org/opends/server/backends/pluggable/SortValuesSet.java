@@ -99,7 +99,7 @@ class SortValuesSet
    *
    * @param sv The sort values to add.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   void add(SortValues sv) throws StorageRuntimeException, DirectoryException
   {
@@ -115,7 +115,7 @@ class SortValuesSet
    * @return True if the information was successfully added or False
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   private boolean add(long entryID, ByteString[] values, AttributeType[] types)
       throws StorageRuntimeException, DirectoryException
@@ -387,7 +387,7 @@ class SortValuesSet
    * @return Index of the entry matching the values and optionally the entry ID
    * if it is found or a negative index if its not found.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   int binarySearch(long entryID, ByteString... values)
       throws StorageRuntimeException, DirectoryException
@@ -483,7 +483,7 @@ class SortValuesSet
    * @return The key as an array of bytes that should be used for this set in
    * the database or NULL if this set is empty.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   ByteString getKeyBytes()
       throws StorageRuntimeException, DirectoryException
@@ -521,7 +521,7 @@ class SortValuesSet
    * @return The key as a sort values object that should be used for this set in
    * the database or NULL if this set is empty or unbounded.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   SortValues getKeySortValues()
       throws StorageRuntimeException, DirectoryException
@@ -556,7 +556,7 @@ class SortValuesSet
    * @param index The index of the sort values to get.
    * @return The sort values object at the specified index.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   SortValues getSortValues(int index) throws StorageRuntimeException, DirectoryException
   {
@@ -615,7 +615,7 @@ class SortValuesSet
    * @param index The vlvIndex of the attribute value to retrieve.
    * @return The byte array representation of the attribute value.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the database.
    */
   ByteString getValue(int index)
       throws StorageRuntimeException, DirectoryException
