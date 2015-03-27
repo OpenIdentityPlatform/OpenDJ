@@ -79,14 +79,13 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        // A Maven plugin classpath does not include project files.
-        // Prepare a ClassLoader capable of loading the command-line tools.
-        URLClassLoader toolsClassLoader = getBootToolsClassLoader();
-
         if (!isOutputDirAvailable()) {
             throw new MojoFailureException("Output directory " + outputDir.getPath() + " not available");
         }
 
+        // A Maven plugin classpath does not include project files.
+        // Prepare a ClassLoader capable of loading the command-line tools.
+        final URLClassLoader toolsClassLoader = getBootToolsClassLoader();
         for (CommandLineTool tool : tools) {
             generateManPageForTool(toolsClassLoader, tool);
         }
@@ -98,23 +97,23 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      * @throws MojoFailureException     Failed to build classpath.
      */
     private URLClassLoader getBootToolsClassLoader() throws MojoFailureException {
-        URLClassLoader toolsClassLoader;
         try {
             List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
             Set<URL> runtimeUrls = new LinkedHashSet<URL>();
             for (String element : runtimeClasspathElements) {
                 runtimeUrls.add(new File(element).toURI().toURL());
             }
-            toolsClassLoader = new URLClassLoader(
+
+            final URLClassLoader toolsClassLoader = new URLClassLoader(
                     runtimeUrls.toArray(new URL[runtimeClasspathElements.size()]),
                     Thread.currentThread().getContextClassLoader());
+            debugClassPathElements(toolsClassLoader);
+            return toolsClassLoader;
         } catch (DependencyResolutionRequiredException e) {
             throw new MojoFailureException("Failed to access the runtime classpath.", e);
         } catch (MalformedURLException e) {
             throw new MojoFailureException("Failed to add element to classpath.", e);
         }
-        debugClassPathElements(toolsClassLoader);
-        return toolsClassLoader;
     }
 
     /**
@@ -138,6 +137,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         commands.add(getClassPath(toolsClassLoader));
         commands.add(toolClass);
         commands.add(getUsageArgument(toolScript));
+
         getLog().info("Writing man page: " + manPage.getPath());
         try {
             // Tools tend to use System.exit() so run them as separate processes.
