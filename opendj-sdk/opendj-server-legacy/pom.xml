@@ -358,8 +358,6 @@
         </executions>
       </plugin>
 
-
-
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
@@ -1134,7 +1132,22 @@
         </executions>
       </plugin>
 
-      <!-- Generate documentation (guide) -->
+      <!-- Generate documentation -->
+      <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-doc-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>generate-schema-reference-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-schema-ref</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
