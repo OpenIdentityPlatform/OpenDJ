@@ -26,6 +26,13 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,12 +80,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /**
  * This class provides a data structure for holding password policy state
  * information for a user account.
@@ -114,8 +115,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private ConditionResult isIdleLocked = ConditionResult.UNDEFINED;
 
   /**
-   * Indicates whether the user may use a grace login if the password is expiredand there are one or
-   * more grace logins remaining.
+   * Indicates whether the user may use a grace login if the password is expired and there are one
+   * or more grace logins remaining.
    */
   private ConditionResult mayUseGraceLogin = ConditionResult.UNDEFINED;
 
@@ -159,9 +160,11 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   /**
    * Creates a new password policy state object with the provided information.
+   * <p>
    * Note that this version of the constructor should only be used for testing purposes when the tests should be
    * evaluated with a fixed time rather than the actual current time. For all other purposes, the other constructor
    * should be used.
+   * </p>
    *
    * @param policy      The password policy associated with the state.
    * @param userEntry   The entry with the user account.
@@ -186,20 +189,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     */
   private String getValue(AttributeType attributeType)
   {
-    String stringValue = null;
-
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isEmpty()) continue;
-
-        stringValue = a.iterator().next().toString();
-        break ;
-      }
-    }
-
+    Attribute attr = getFirstAttributeNotEmpty(attributeType);
+    String stringValue = attr != null ? attr.iterator().next().toString() : null;
     if (stringValue == null)
     {
       if (logger.isTraceEnabled())
@@ -219,7 +210,21 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return stringValue;
   }
 
-
+  private Attribute getFirstAttributeNotEmpty(AttributeType attributeType)
+  {
+    List<Attribute> attrList = userEntry.getAttribute(attributeType);
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        if (!a.isEmpty())
+        {
+          return a;
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Retrieves the set of values of the specified attribute from the user's entry in generalized time format.
@@ -383,22 +388,16 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public Set<ByteString> getPasswordValues()
   {
-    List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-    if (attrList != null)
+    final Attribute attr = getFirstAttributeNotEmpty(passwordPolicy.getPasswordAttribute());
+    if (attr != null)
     {
-      for (Attribute a : attrList)
+      Set<ByteString> values = new LinkedHashSet<ByteString>(attr.size());
+      for (ByteString value : attr)
       {
-        if (a.isEmpty()) continue;
-
-        Set<ByteString> values = new LinkedHashSet<ByteString>(a.size());
-        for (ByteString value : a)
-        {
-          values.add(value);
-        }
-        return Collections.unmodifiableSet(values);
+        values.add(value);
       }
+      return Collections.unmodifiableSet(values);
     }
-
     return Collections.emptySet();
   }
 
@@ -1120,7 +1119,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return lastLoginTime;
     }
 
-    boolean isGeneralizedTime = type.getSyntax().getName().equals(SYNTAX_GENERALIZED_TIME_NAME);
+    boolean isGeneralizedTime = SYNTAX_GENERALIZED_TIME_NAME.equals(type.getSyntax().getName());
     lastLoginTime = -1;
     List<Attribute> attrList = userEntry.getAttribute(type);
 
@@ -1128,17 +1127,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
-        if (a.isEmpty()) continue;
+        if (a.isEmpty())
+        {
+          continue;
+        }
 
         String valueString = a.iterator().next().toString();
         try
         {
-          SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-          if (isGeneralizedTime)
-          {
-            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-          }
-          lastLoginTime = dateFormat.parse(valueString).getTime();
+          lastLoginTime = parseTime(format, valueString, isGeneralizedTime);
 
           if (logger.isTraceEnabled())
           {
@@ -1157,12 +1154,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           {
             try
             {
-              SimpleDateFormat dateFormat = new SimpleDateFormat(f);
-              if (isGeneralizedTime)
-              {
-                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-              }
-              lastLoginTime = dateFormat.parse(valueString).getTime();
+              lastLoginTime = parseTime(f, valueString, isGeneralizedTime);
 
               if (logger.isTraceEnabled())
               {
@@ -1199,7 +1191,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return lastLoginTime;
   }
 
-
+  private long parseTime(String format, String time, boolean isGeneralizedTime) throws ParseException
+  {
+    SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+    if (isGeneralizedTime)
+    {
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+    return dateFormat.parse(time).getTime();
+  }
 
   /**
    * Updates the user entry to set the current time as the last login time.
@@ -1232,7 +1232,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       SimpleDateFormat dateFormat = new SimpleDateFormat(format);
       // If the attribute has a Generalized Time syntax, make it UTC time.
-      if (type.getSyntax().getName().equals(SYNTAX_GENERALIZED_TIME_NAME))
+      if (SYNTAX_GENERALIZED_TIME_NAME.equals(type.getSyntax().getName()))
       {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       }
@@ -1313,7 +1313,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     long lockTime = currentTime - 1000L * passwordPolicy.getIdleLockoutInterval();
-    if(lockTime < 0) lockTime = 0;
+    if (lockTime < 0)
+    {
+      lockTime = 0;
+    }
 
     long theLastLoginTime = getLastLoginTime();
     if (theLastLoginTime > lockTime || getPasswordChangedTime() > lockTime)
@@ -1376,8 +1379,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     // from changing his password, then return false.
     // FIXME: the only getter responsible for a state attribute (pwdReset) that considers the policy before
     // checking the entry for the presence of the attribute.
-    if (! (passwordPolicy.isAllowUserPasswordChanges()
-           && (passwordPolicy.isForceChangeOnAdd() || passwordPolicy.isForceChangeOnReset())))
+    if (!passwordPolicy.isAllowUserPasswordChanges()
+        || (!passwordPolicy.isForceChangeOnAdd() && !passwordPolicy.isForceChangeOnReset()))
     {
       mustChangePassword = ConditionResult.FALSE;
       if (logger.isTraceEnabled())
@@ -2786,51 +2789,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
 
       String syntaxOID = toLowerCase(histStr.substring(hashPos1+1, hashPos2));
-      if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
+      if (SYNTAX_AUTH_PASSWORD_OID.equals(syntaxOID))
       {
-        StringBuilder[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(histStr.substring(hashPos2+1));
-        PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(authPWComponents[0].toString());
-        if (scheme.authPasswordMatches(password, authPWComponents[1].toString(), authPWComponents[2].toString()))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Returning true because the auth password history value matched.");
-          }
-
-          return true;
-        }
-        else
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Returning false because the auth password history value did not match.");
-          }
-
-          return false;
-        }
+        return logResult("auth", encodedAuthPasswordMatches(password, histStr.substring(hashPos2+1)));
       }
-      else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
+      else if (SYNTAX_USER_PASSWORD_OID.equals(syntaxOID))
       {
-        String[] userPWComponents = UserPasswordSyntax.decodeUserPassword(histStr.substring(hashPos2+1));
-        PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
-        if (scheme.passwordMatches(password, ByteString.valueOf(userPWComponents[1])))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Returning true because the user password history value matched.");
-          }
-
-          return true;
-        }
-        else
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Returning false because the user password history value did not match.");
-          }
-
-          return false;
-        }
+        return logResult("user", encodedUserPasswordMatches(password, histStr.substring(hashPos2+1)));
       }
       else
       {
@@ -2859,7 +2824,33 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
   }
 
+  private boolean encodedAuthPasswordMatches(ByteString password, String encodedAuthPassword) throws DirectoryException
+  {
+    StringBuilder[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword);
+    PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(authPWComponents[0].toString());
+    return scheme.authPasswordMatches(password, authPWComponents[1].toString(), authPWComponents[2].toString());
+  }
 
+  private boolean encodedUserPasswordMatches(ByteString password, String encodedUserPassword) throws DirectoryException
+  {
+    String[] userPWComponents = UserPasswordSyntax.decodeUserPassword(encodedUserPassword);
+    PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
+    return scheme.passwordMatches(password, ByteString.valueOf(userPWComponents[1]));
+  }
+
+  private boolean logResult(String passwordType, boolean passwordMatches)
+  {
+    if (passwordMatches)
+    {
+      logger.trace("Returning true because the %s password history value matched.", passwordType);
+      return true;
+    }
+    else
+    {
+      logger.trace("Returning false because the %s password history value did not match.", passwordType);
+      return false;
+    }
+  }
 
   /**
    * Updates the password history information for this user by adding one of the passwords to it.
@@ -3054,8 +3045,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
     }
 
-    String[] historyArray = new String[historyValues.size()];
-    return historyValues.toArray(historyArray);
+    return historyValues.toArray(new String[historyValues.size()]);
   }
 
 
@@ -3192,4 +3182,3 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
   }
 }
-
