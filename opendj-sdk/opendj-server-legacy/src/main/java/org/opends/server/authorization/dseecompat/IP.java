@@ -33,7 +33,7 @@ import java.util.*;
 import java.net.InetAddress;
 
 /**
- * This class represents a single ACI's IP bind rule expression. It is possble
+ * This class represents a single ACI's IP bind rule expression. It is possible
  * for that expression to contain several IP addresses to evaluate, so the
  * class contains a list of classes that can evaluate a remote clients IP
  * address for each IP address parsed from the bind rule.
@@ -73,7 +73,7 @@ public class IP implements KeywordBindRule {
      * IP class the can be used to evaluate remote clients IP addresses.
      *
      * @param expr The expression string from the ACI IP bind rule.
-     * @param type An enmumeration representing the expression type.
+     * @param type An enumeration representing the expression type.
      * @return  A class that can be used to evaluate remote clients IP
      *          addresses.
      * @throws AciException  If there is a parsing error.
