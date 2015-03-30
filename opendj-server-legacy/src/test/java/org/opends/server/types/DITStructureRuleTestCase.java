@@ -36,9 +36,9 @@ import org.testng.annotations.Test;
 
 
 /**
- * This class provides a set of test cases for virtual attributes.
+ * This class provides a set of test cases for DIT Structure Rules
  */
-public class DITContentRuleTestCase
+public class DITStructureRuleTestCase
        extends TypesTestCase
 {
 
@@ -59,13 +59,13 @@ public class DITContentRuleTestCase
 
 
   /**
-   * Tests the addition of a new DITConentRule with a conflicting
+   * Tests the addition of a new DITContentRule with a conflicting
    * rule identifier.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testInvalidDITContentRule()
+  public void testInvalidDITStructureRule()
          throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(
@@ -81,26 +81,27 @@ public class DITContentRuleTestCase
     {
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D","cn=directory manager",
-      "-w","password",
+      "-D", "cn=directory manager",
+      "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-a",
       "-f", filePath
     };
     int err = LDAPModify.mainModify(args, false, null,null);
     //Shouldn't perform this operation.
-    assertEquals(err,53);
+    assertEquals(err, 53);
   }
 
 
 
   /**
-   * Tests the addition of new DITContentRules with unique rule ids.
+   * Tests the addition of new DITStructureRules with unique rule ids.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dependsOnMethods = {"org.opends.server.types."+
-  "DITContentRuleTestCase.testInvalidDITContentRule"})
-  public void testValidDITRContentRules()
+  "DITStructureRuleTestCase.testInvalidDITStructureRule"})
+  public void testValidDITStructureRules()
          throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(
@@ -135,13 +136,13 @@ public class DITContentRuleTestCase
 
 
   /**
-   * Cleans up the DITContentRules.
+   * Cleans up the DITStructureRules.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dependsOnMethods = {"org.opends.server.types."+
-  "DITContentRuleTestCase.testValidDITRContentRules"})
-  public void cleanUpDITRContentRules()
+  "DITStructureRuleTestCase.testValidDITStructureRules"})
+  public void cleanUpDITStructureRules()
          throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(

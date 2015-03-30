@@ -743,6 +743,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -793,6 +794,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -1707,6 +1709,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -2326,6 +2329,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -3151,6 +3155,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -4206,6 +4211,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -4774,6 +4780,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaFile.exists());
   }
 
+
+
   /**
    * Tests the behavior of the schema backend when attempting to replace an
    * existing matching rule use.
@@ -4810,6 +4818,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "-J", "1.2.840.113556.1.4.1413",
       "-f", path
     };
 
@@ -5155,6 +5164,342 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNull(mru);
   }
 
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to attributeTypes that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testAttributeTypesMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testattributetypesmatchingrule-oid " +
+              "NAME 'testAttributeTypesMatchingRule' " +
+              "EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testattributetypesmatchingrule-oid " +
+              "NAME 'testAttributeTypesMatchingRule' " +
+              "EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testattributetypesmatchingrule";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to objectClasses that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testObjectClassesMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testobjectclassesmatchingrule-oid " +
+              "NAME 'testObjectClassesMatchingRule' " +
+              "SUP top STRUCTURAL MAY cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testobjectclassesmatchingrule-oid " +
+              "NAME 'testObjectClassesMatchingRule' " +
+              "SUP top AUXILIARY MAY mail " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String objectClassName = "testobjectclassesmatchingrule";
+    assertFalse(DirectoryServer.getSchema().hasObjectClass(objectClassName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to nameForms that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testNameFormsMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testnameformsmatchingruleoc-oid " +
+              "NAME 'testNameFormsMatchingRuleOC' " +
+              "SUP top STRUCTURAL MAY ( cn $ mail ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: nameForms",
+         "nameForms: ( testnameformsmatchingrule-oid " +
+              "NAME 'testNameFormsMatchingRule' " +
+              "OC testNameFormsMatchingRuleOC MUST mail " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: nameForms",
+         "nameForms: ( testnameformsmatchingrule-oid " +
+              "NAME 'testNameFormsMatchingRule' " +
+              "OC testNameFormsMatchingRuleOC MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String nameFormName = "testnameformsmatchingrule";
+    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to dITContentRules that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testDitContentRulesMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testditcontentrulesmatchingrule-oid " +
+              "NAME 'testDitContentRulesMatchingRuleOC' " +
+              "SUP top STRUCTURAL MAY ( cn $ mail ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: dITContentRules",
+         "dITContentRules: ( testditcontentrulesmatchingrule-oid " +
+              "NAME 'testDitContentRulesMatchingRule' " +
+              "MUST mail " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: dITContentRules",
+         "dITContentRules: ( testditcontentrulesmatchingrule-oid " +
+              "NAME 'testDitContentRulesMatchingRule' " +
+              "MUST cn " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String objectClassName = "testditcontentrulesmatchingruleoc";
+    assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to dITStructureRules that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testDitStructureRulesMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testditstructurerulesmatchingruleoc1-oid " +
+              "NAME 'testDitStructureRulesMatchingRuleOC1' " +
+              "SUP top STRUCTURAL MAY ( cn $ mail ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testditstructurerulesmatchingruleoc2-oid " +
+              "NAME 'testDitStructureRulesMatchingRuleOC2' " +
+              "SUP top STRUCTURAL MAY ( cn $ mail ) " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: nameForms",
+         "nameForms: ( testditstructurerulesmatchingrulenf1-oid " +
+              "NAME 'testDitStructureRulesMatchingRuleNF1' " +
+              "OC testDitStructureRulesMatchingRuleOC1 MUST mail " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: nameForms",
+         "nameForms: ( testditstructurerulesmatchingrulenf2-oid " +
+              "NAME 'testDitStructureRulesMatchingRuleNF2' " +
+              "OC testDitStructureRulesMatchingRuleOC2 MUST mail " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: dITStructureRules",
+         "dITStructureRules: ( 999666 " +
+              "NAME 'testDitStructureRulesMatchingRule' " +
+              "FORM testDitStructureRulesMatchingRuleNF1 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: dITStructureRules",
+         "dITStructureRules: ( 999666 " +
+              "NAME 'testDitStructureRulesMatchingRule' " +
+              "FORM testDitStructureRulesMatchingRuleNF2 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String objectClassName = "testditcontentrulesmatchingruleoc1";
+    assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add another
+   * value to matchingRuleUse that matches an existing one using the correct
+   * matching rules.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testMatchingRuleUseMatchingRule()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testmatchingruleusematchingruleat1-oid " +
+              "NAME 'testMatchingRuleUseMatchingRuleAT1' " +
+              "EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testmatchingruleusematchingruleat2-oid " +
+              "NAME 'testMatchingRuleUseMatchingRuleAT2' " +
+              "EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: matchingRuleUse",
+         "matchingRuleUse: ( booleanMatch " +
+              "NAME 'testMatchingRuleUseMatchingRule' " +
+              "APPLIES testMatchingRuleUseMatchingRuleAT1 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: matchingRuleUse",
+         "matchingRuleUse: ( booleanMatch " +
+              "NAME 'testMatchingRuleUseMatchingRule' " +
+              "APPLIES testMatchingRuleUseMatchingRuleAT2 " +
+              "X-ORIGIN 'SchemaBackendTestCase' )");
+
+    String attrName = "testmatchingruleusematchingruleat1";
+    assertNull(DirectoryServer.getSchema().getAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+  }
+
+
+
   /**
    * This test case covers the problem identified in issue #1318.  In that
    * issue, a problem arose if the following elements occurred in the following
@@ -5455,4 +5800,3 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(alerts.isEmpty());
   }
 }
-
