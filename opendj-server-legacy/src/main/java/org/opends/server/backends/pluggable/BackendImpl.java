@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -788,9 +787,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = initializeRootContainer();
       }
-      // FIXME JNR remove cast
-      final Importer importer = new Importer(rebuildConfig, (PersistitBackendCfg) cfg, serverContext);
-      importer.rebuildIndexes(rootContainer);
+      new Importer(rebuildConfig, cfg, serverContext).rebuildIndexes(rootContainer);
     }
     catch (ExecutionException execEx)
     {
