@@ -243,8 +243,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
@@ -348,8 +346,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return -1;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
@@ -361,8 +357,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     return ConditionResult.valueOf(ret != 0);
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -409,8 +403,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
@@ -437,8 +429,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return entry;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation) throws DirectoryException, CanceledOperationException
@@ -461,8 +451,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       accessEnd();
     }
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -488,8 +476,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry, ModifyOperation modifyOperation)
@@ -514,8 +500,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       accessEnd();
     }
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -549,8 +533,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       accessEnd();
     }
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -864,16 +846,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
