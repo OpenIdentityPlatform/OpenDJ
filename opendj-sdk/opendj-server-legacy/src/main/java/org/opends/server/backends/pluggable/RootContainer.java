@@ -48,7 +48,6 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -319,9 +318,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     try
     {
-      // TODO JNR remove cast
-      final Importer importer = new Importer(importConfig, (PersistitBackendCfg) config, serverContext);
-      return importer.processImport(this);
+      return new Importer(importConfig, config, serverContext).processImport(this);
     }
     catch (DirectoryException e)
     {

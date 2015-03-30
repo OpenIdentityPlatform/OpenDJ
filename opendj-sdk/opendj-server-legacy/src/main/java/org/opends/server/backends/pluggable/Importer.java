@@ -191,8 +191,6 @@ final class Importer implements DiskSpaceMonitorHandler
 
   /** Import configuration. */
   private final LDIFImportConfig importConfiguration;
-  /** Backend configuration. */
-  private final PersistitBackendCfg backendConfiguration;
   private final ServerContext serverContext;
 
   /** LDIF reader. */
@@ -288,11 +286,10 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws ConfigException
    *           If a problem occurs during initialization.
    */
-  Importer(RebuildConfig rebuildConfig, PersistitBackendCfg cfg, ServerContext serverContext)
+  Importer(RebuildConfig rebuildConfig, PluggableBackendCfg cfg, ServerContext serverContext)
       throws InitializationException, StorageRuntimeException, ConfigException
   {
     this.importConfiguration = null;
-    this.backendConfiguration = cfg;
     this.serverContext = serverContext;
     this.tmpEnv = null;
     this.threadCount = 1;
@@ -327,12 +324,11 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws StorageRuntimeException
    *           If an error occurred when opening the DB.
    */
-  Importer(LDIFImportConfig importConfiguration, PersistitBackendCfg backendCfg, ServerContext serverContext)
+  Importer(LDIFImportConfig importConfiguration, PluggableBackendCfg backendCfg, ServerContext serverContext)
       throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rebuildManager = null;
     this.importConfiguration = importConfiguration;
-    this.backendConfiguration = backendCfg;
     this.serverContext = serverContext;
 
     if (importConfiguration.getThreadCount() == 0)
@@ -605,27 +601,8 @@ final class Importer implements DiskSpaceMonitorHandler
     if (DirectoryServer.isRunning())
     {
       // Online import/rebuild.
-      Runtime runTime = Runtime.getRuntime();
-      // call twice gc to ensure finalizers are called
-      // and young to old gen references are properly gc'd
-      runTime.gc();
-      runTime.gc();
-      final long usedMemory = runTime.totalMemory() - runTime.freeMemory();
-      final long maxUsableMemory = Platform.getUsableMemoryForCaching();
-      final long usableMemory = maxUsableMemory - usedMemory;
-
-      final long configuredMemory;
-      if (backendConfiguration.getDBCacheSize() > 0)
-      {
-        configuredMemory = backendConfiguration.getDBCacheSize();
-      }
-      else
-      {
-        configuredMemory = backendConfiguration.getDBCachePercent() * Runtime.getRuntime().maxMemory() / 100;
-      }
-
-      // Round up to minimum of 16MB (e.g. unit tests only use 2% cache).
-      totalAvailableMemory = Math.max(Math.min(usableMemory, configuredMemory), 16 * MB);
+      final long availableMemory = serverContext.getMemoryQuota().getAvailableMemory();
+      totalAvailableMemory = Math.max(availableMemory, 16 * MB);
     }
     else
     {
