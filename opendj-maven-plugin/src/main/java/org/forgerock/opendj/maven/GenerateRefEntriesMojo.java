@@ -69,6 +69,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     @Parameter(required = true)
     private File outputDir;
 
+    private static final String EOL = System.getProperty("line.separator");
+
     /**
      * Writes a RefEntry file to the output directory for each tool.
      * Files names correspond to script names: {@code man-&lt;name>.xml}.
@@ -147,7 +149,16 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             process.waitFor();
             final int result = process.exitValue();
             if (result != 0) {
-                throw new MojoFailureException("Failed to write page. Tool exit code: " + result);
+                final StringBuilder message = new StringBuilder();
+                message.append("Failed to write page. Tool exit code: ").append(result).append(EOL);
+                message.append("To debug the problem, run the following command and connect your IDE:").append(EOL);
+                commands.add(1, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000");
+                for (String arg: commands) {
+                    // Surround with quotes to handle trailing sections.
+                    message.append("\"").append(arg).append("\"").append(' ');
+                }
+                message.append(EOL);
+                throw new MojoFailureException(message.toString());
             }
         }  catch (InterruptedException e) {
             throw new MojoExecutionException(toolClass + " interrupted", e);
@@ -273,7 +284,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             String line;
             while ((line = reader.readLine()) != null) {
                 writer.write(line);
-                writer.write(System.getProperty("line.separator"));
+                writer.write(EOL);
             }
         } finally {
             if (writer != null) {
