@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions copyright 2014 ForgeRock AS.
+  !      Portions copyright 2014-2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="backend-vlv-index"
   plural-name="backend-vlv-indexes"
@@ -196,36 +196,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-name</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="max-block-size" read-only="true"
-    advanced="true">
-    <adm:synopsis>
-      Specifies the number of entry IDs to store in a single sorted
-      set before it must be split.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          The blocks are resized lazily the next time the index is 
-          modified.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>  
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>4000</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer>
-        <adm:unit-synopsis>Number of entry IDs</adm:unit-synopsis>
-      </adm:integer>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-max-block-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
