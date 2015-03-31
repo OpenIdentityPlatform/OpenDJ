@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -51,7 +52,7 @@ final class NullIndex extends Index
       EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(name, indexer, state, 0, 0, false, txn, entryContainer);
-    state.putIndexTrustState(txn, this, false);
+    state.removeFlagsFromIndex(txn, name, IndexFlag.TRUSTED);
     super.delete(txn);
   }
 

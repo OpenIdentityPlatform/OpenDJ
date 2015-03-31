@@ -28,9 +28,8 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
-import static org.opends.server.util.StaticUtils.byteArrayToHexPlusAscii;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
 import java.util.Arrays;
@@ -54,6 +53,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
+import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -136,7 +136,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
 
     this.sortOrder = new SortOrder(parseSortKeys(config.getSortOrder()));
     this.state = state;
-    this.trusted = state.getIndexTrustState(txn, this);
+    this.trusted = state.getIndexFlags(txn, getName()).contains(IndexFlag.TRUSTED);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       /*
@@ -276,7 +276,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
       ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
       try
       {
-        state.putIndexTrustState(txn, this, false);
+        state.removeFlagsFromIndex(txn, getName(), IndexFlag.TRUSTED);
       }
       catch (final StorageRuntimeException de)
       {
@@ -340,7 +340,11 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
   synchronized void setTrusted(final WriteableTransaction txn, final boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
-    state.putIndexTrustState(txn, this, trusted);
+    if ( trusted ) {
+      state.addFlagsToIndex(txn, getName(), IndexFlag.TRUSTED);
+    } else {
+      state.removeFlagsFromIndex(txn, getName(), IndexFlag.TRUSTED);
+    }
   }
 
   void addEntry(final IndexBuffer buffer, final EntryID entryID, final Entry entry) throws DirectoryException
@@ -635,7 +639,8 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
     }
   }
 
-  private long[] readRange(final Cursor cursor, final int count, final StringBuilder debugBuilder)
+  private long[] readRange(final Cursor<ByteString, ByteString> cursor, final int count,
+      final StringBuilder debugBuilder)
   {
     long[] selectedIDs = new long[count];
     int selectedPos = 0;

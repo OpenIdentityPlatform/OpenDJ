@@ -705,7 +705,7 @@ public class EntryContainer
    */
   EntryID getHighestEntryID(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor cursor = txn.openCursor(id2entry.getName());
+    Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
     try
     {
       // Position a cursor on the last data item, and the key should give the highest ID.
@@ -1196,7 +1196,7 @@ public class EntryContainer
 
     try
     {
-      final Cursor cursor = txn.openCursor(dn2id.getName());
+      final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
       try
       {
         // Initialize the cursor very close to the starting value.
@@ -1662,7 +1662,7 @@ public class EntryContainer
 
             int subordinateEntriesDeleted = 0;
 
-            Cursor cursor = txn.openCursor(dn2id.getName());
+            Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
             try
             {
               // Step forward until we pass the ending value.
@@ -2235,7 +2235,7 @@ public class EntryContainer
             suffix.append((byte) 0x00);
             end.append((byte) 0x01);
 
-            Cursor cursor = txn.openCursor(dn2id.getName());
+            Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
             try
             {
 
@@ -2783,7 +2783,7 @@ public class EntryContainer
     database.delete(txn);
     if(database instanceof Index)
     {
-      state.removeIndexTrustState(txn, database);
+      state.deleteRecord(txn, database.getName());
     }
   }
 
@@ -2801,7 +2801,7 @@ public class EntryContainer
     for (Index index : attributeIndex.getAllIndexes())
     {
       index.delete(txn);
-      state.removeIndexTrustState(txn, index);
+      state.deleteRecord(txn, index.getName());
     }
   }
 

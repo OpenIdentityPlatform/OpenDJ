@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -45,6 +47,7 @@ import org.testng.annotations.Test;
  * Test case for ByteStringBuilder.
  */
 @SuppressWarnings("javadoc")
+@Test(groups = "unit")
 public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     private static byte b(int i) {
@@ -70,6 +73,33 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
         return addlSequences;
     }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testCannotAppendCompactNegativeValues() {
+        ByteStringBuilder builder = new ByteStringBuilder();
+        builder.appendCompactUnsigned(-1);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testCannotAppendCompact57BitsValues() {
+        new ByteStringBuilder().appendCompactUnsigned(0x100000000000000L);
+    }
+
+    @Test(dataProvider = "unsignedLongValues")
+    public void testCanAppendCompactPositiveValue(long value) {
+        assertThat(new ByteStringBuilder().appendCompactUnsigned(value).asReader().getCompactUnsigned()).isEqualTo(
+                value);
+    }
+
+    @DataProvider
+    public Object[][] unsignedLongValues() throws Exception {
+        return new Object[][] {
+            { 0 }, { 0x80L }, { 0x81L }, { 0x4000L }, { 0x4001L }, { 0x200000L }, { 0x200001L },
+            { 0x10000000L }, { 0x10000001L }, { 0x800000000L }, { 0x800000001L }, { 0x40000000000L },
+            { 0x40000000001L }, { 0x2000000000000L }, { 0x2000000000001L }, { 0x00FFFFFFFFFFFFFFL }
+        };
+    }
+
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteBufferLength1() {
@@ -191,7 +221,6 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         Assert.assertTrue(Arrays.equals(trimmedArray, ba));
     }
 
-    @SuppressWarnings("unused")
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidCapacity() {
         new ByteStringBuilder(-1);

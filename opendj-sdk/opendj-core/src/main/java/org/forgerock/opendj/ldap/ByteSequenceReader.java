@@ -26,12 +26,26 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.util.Arrays;
+
 /**
- * An interface for iteratively reading date from a {@link ByteSequence} .
+ * An interface for iteratively reading data from a {@link ByteSequence} .
  * {@code ByteSequenceReader} must be created using the associated
  * {@code ByteSequence}'s {@code asReader()} method.
  */
 public final class ByteSequenceReader {
+
+    private static final int[] DECODE_SIZE = new int[256];
+    static {
+        Arrays.fill(DECODE_SIZE, 0, 0x80, 1);
+        Arrays.fill(DECODE_SIZE, 0x80, 0xc0, 2);
+        Arrays.fill(DECODE_SIZE, 0xc0, 0xe0, 3);
+        Arrays.fill(DECODE_SIZE, 0xe0, 0xf0, 4);
+        Arrays.fill(DECODE_SIZE, 0xf0, 0xf8, 5);
+        Arrays.fill(DECODE_SIZE, 0xf8, 0xfc, 6);
+        Arrays.fill(DECODE_SIZE, 0xfc, 0xfe, 7);
+        Arrays.fill(DECODE_SIZE, 0xfe, 0x100, 8);
+    }
 
     /** The current position in the byte sequence. */
     private int pos;
@@ -298,6 +312,87 @@ public final class ByteSequenceReader {
         }
 
         return v;
+    }
+
+    /**
+     * Relative get method for reading a compacted long value.
+     * Compaction allows to reduce number of bytes needed to hold long types
+     * depending on its value (i.e: if value < 128, value will be encoded using one byte only).
+     * Reads the next bytes at this reader's current position, composing them into a long value
+     * according to big-endian byte order, and then increments the position by the size of the
+     * encoded long.
+     * Note that the maximum value of a compact long is 2^56.
+     *
+     * @return The long value at this reader's current position.
+     * @throws IndexOutOfBoundsException
+     *             If there are fewer bytes remaining in this reader than are
+     *             required to satisfy the request.
+     */
+    public long getCompactUnsigned() {
+        final int b0 = get();
+        final int size = decodeSize(b0);
+        long value;
+        switch (size) {
+        case 1:
+            value = b2l((byte) b0);
+            break;
+        case 2:
+            value = (b0 & 0x3fL) << 8;
+            value |= b2l(get());
+            break;
+        case 3:
+            value = (b0 & 0x1fL) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+            break;
+        case 4:
+            value = (b0 & 0x0fL) << 24;
+            value |= b2l(get()) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+            break;
+        case 5:
+            value = (b0 & 0x07L) << 32;
+            value |= b2l(get()) << 24;
+            value |= b2l(get()) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+            break;
+        case 6:
+            value = (b0 & 0x03L) << 40;
+            value |= b2l(get()) << 32;
+            value |= b2l(get()) << 24;
+            value |= b2l(get()) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+            break;
+        case 7:
+            value = (b0 & 0x01L) << 48;
+            value |= b2l(get()) << 40;
+            value |= b2l(get()) << 32;
+            value |= b2l(get()) << 24;
+            value |= b2l(get()) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+            break;
+        default:
+            value = b2l(get()) << 48;
+            value |= b2l(get()) << 40;
+            value |= b2l(get()) << 32;
+            value |= b2l(get()) << 24;
+            value |= b2l(get()) << 16;
+            value |= b2l(get()) << 8;
+            value |= b2l(get());
+        }
+        return value;
+    }
+
+    private static long b2l(final byte b) {
+        return b & 0xffL;
+    }
+
+    private static int decodeSize(int b) {
+        return DECODE_SIZE[b & 0xff];
     }
 
     /**

@@ -194,7 +194,7 @@ class ExportJob
   private void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
-    Cursor cursor = txn.openCursor(entryContainer.getID2Entry().getName());
+    Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getID2Entry().getName());
     try
     {
       while (cursor.next())
