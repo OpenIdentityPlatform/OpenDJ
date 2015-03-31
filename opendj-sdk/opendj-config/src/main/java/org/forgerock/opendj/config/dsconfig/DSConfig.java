@@ -153,12 +153,13 @@ public final class DSConfig extends ConsoleApplication {
                 final LocalizableMessage name = defn.getUserFriendlyName();
                 sb.append(op).append(REF_DSCFG_ARG_ADDITIONAL_INFO.get(name, name, nameOption)).append(cp).append(EOL);
             } else {
-                listSubtypes(sb, a, defn);
+                listSubtypes(sb, sc, a, defn);
             }
             return sb.toString();
         }
 
-        private void listSubtypes(StringBuilder sb, Argument a, AbstractManagedObjectDefinition<?, ?> defn) {
+        private void listSubtypes(StringBuilder sb, SubCommand sc, Argument a,
+                                  AbstractManagedObjectDefinition<?, ?> defn) {
             final LocalizableMessage placeholder = a.getValuePlaceholder();
 
             Map<String, Object> map = new HashMap<String, Object>();
@@ -176,8 +177,7 @@ public final class DSConfig extends ConsoleApplication {
                 child.put("default", REF_DSCFG_CHILD_DEFAULT.get(placeholder, childDefn.getUserFriendlyName()));
                 child.put("enabled", REF_DSCFG_CHILD_ENABLED_BY_DEFAULT.get(propertyExists(childDefn, "enabled")));
 
-                final String link = getLink(getScriptName() + "-" + a.getLongIdentifier()
-                        + "-" + defn.getName() + "-prop-" + childDefn.getName());
+                final String link = getLink(getScriptName() + "-" + sc.getName() + "-" + defn.getName());
                 child.put("link", REF_DSCFG_CHILD_LINK.get(link, defn.getUserFriendlyName()));
 
                 children.add(child);
@@ -198,12 +198,12 @@ public final class DSConfig extends ConsoleApplication {
         /** {@inheritDoc} */
         @Override
         public String getProperties(SubCommand sc) {
-            StringBuilder sb = new StringBuilder();
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
             if (defn == null) {
                 return "";
             }
 
+            StringBuilder sb = new StringBuilder();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
                 final List<PropertyDefinition<?>> props =
                     new ArrayList<PropertyDefinition<?>>(childDefn.getAllPropertyDefinitions());
