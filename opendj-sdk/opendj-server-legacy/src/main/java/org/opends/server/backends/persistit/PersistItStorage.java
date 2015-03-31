@@ -177,6 +177,29 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
+    public boolean positionToIndex(int index)
+    {
+      // There doesn't seem to be a way to optimize this using Persistit.
+      try
+      {
+        clearCurrentKeyAndValue();
+        ex.getKey().to(Key.BEFORE);
+        for (int i = 0; i < index; i++)
+        {
+          if (!ex.next())
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+      catch (final PersistitException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+    }
+
+    @Override
     public boolean positionToLastKey()
     {
       try

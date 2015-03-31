@@ -65,6 +65,16 @@ public interface Cursor extends Closeable
   boolean positionToLastKey();
 
   /**
+   * Positions the cursor to the specified index within the tree. Implementations may take advantage
+   * of optimizations provided by the underlying storage, such as counted B-Trees.
+   *
+   * @param index
+   *          the index where the cursor should be positioned, (0 is the first record).
+   * @return {@code true} if the cursor could be positioned to the index, {@code false} otherwise
+   */
+  boolean positionToIndex(int index);
+
+  /**
    * Moves this cursor to the next record in the tree.
    *
    * @return {@code true} if the cursor could move to the next record,

@@ -27,12 +27,13 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.backends.pluggable.VLVIndex.encodeTargetAssertion;
+import static org.opends.server.backends.pluggable.VLVIndex.encodeVLVKey;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.types.AdditionalLogItem.*;
@@ -44,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -783,7 +783,7 @@ public class EntryContainer
       storage.read(new ReadOperation<Void>()
       {
         @Override
-        public Void run(ReadableTransaction txn) throws Exception
+        public Void run(final ReadableTransaction txn) throws Exception
         {
           DN aBaseDN = searchOperation.getBaseDN();
           SearchScope searchScope = searchOperation.getScope();
@@ -870,7 +870,7 @@ public class EntryContainer
             {
               try
               {
-                entryIDSet = vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest, debugBuffer);
+                entryIDSet = vlvIndex.evaluate(txn, searchOperation, sortRequest, vlvRequest, debugBuffer);
                 if (entryIDSet != null)
                 {
                   searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
@@ -3208,7 +3208,7 @@ public class EntryContainer
     final SearchScope scope = searchOperation.getScope();
     final SearchFilter filter = searchOperation.getFilter();
 
-    final TreeMap<SortValues, Long> sortMap = new TreeMap<SortValues, Long>();
+    final TreeMap<ByteString, EntryID> sortMap = new TreeMap<ByteString, EntryID>();
     for (EntryID id : entryIDSet)
     {
       try
@@ -3216,7 +3216,7 @@ public class EntryContainer
         Entry e = getEntry(txn, id);
         if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
         {
-          sortMap.put(new SortValues(id, e, sortOrder), id.longValue());
+          sortMap.put(encodeVLVKey(sortOrder, e, id.longValue()), id);
         }
       }
       catch (Exception e)
@@ -3238,83 +3238,81 @@ public class EntryContainer
       return sortByOffset(searchOperation, vlvRequest, sortMap);
     }
 
-    return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortMap);
+    return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortOrder, sortMap);
   }
 
-  /** FIXME: Might be moved into a util.Longs class */
-  private static final long[] toArray(Collection<? extends Number> collection)
+  private static final long[] toArray(Collection<EntryID> entryIDs)
   {
-    checkNotNull(collection, "collection must not be null");
-    final long[] array = new long[collection.size()];
+    final long[] array = new long[entryIDs.size()];
     int i = 0;
-    for (Number number : collection)
+    for (EntryID entryID : entryIDs)
     {
-      array[i++] = number.longValue();
+      array[i++] = entryID.longValue();
     }
     return array;
   }
 
   private static final EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
-      VLVRequestControl vlvRequest, final TreeMap<SortValues, Long> sortMap)
+      VLVRequestControl vlvRequest, SortOrder sortOrder, final TreeMap<ByteString, EntryID> sortMap)
+      throws DirectoryException
   {
     ByteString assertionValue = vlvRequest.getGreaterThanOrEqualAssertion();
+    ByteSequence encodedTargetAssertion =
+        encodeTargetAssertion(sortOrder, assertionValue, searchOperation, sortMap.size());
 
     boolean targetFound = false;
-    int targetOffset = 0;
-    int includedBeforeCount = 0;
+    int index = 0;
+    int targetIndex = 0;
+    int startIndex = 0;
     int includedAfterCount = 0;
-
-    LinkedList<Long> idList = new LinkedList<Long>();
-    for (Map.Entry<SortValues, Long> entry : sortMap.entrySet())
+    long[] idSet = new long[sortMap.size()];
+    for (Map.Entry<ByteString, EntryID> entry : sortMap.entrySet())
     {
-      SortValues sortValues = entry.getKey();
-      long id = entry.getValue().longValue();
+      ByteString vlvKey = entry.getKey();
+      EntryID id = entry.getValue();
+      idSet[index++] = id.longValue();
 
       if (targetFound)
       {
-        idList.add(id);
         includedAfterCount++;
-        if (includedAfterCount >= vlvRequest.getBeforeCount())
+        if (includedAfterCount >= vlvRequest.getAfterCount())
         {
           break;
         }
       }
       else
       {
-        targetFound = sortValues.compareTo(assertionValue) >= 0;
-        targetOffset++;
-
+        targetFound = vlvKey.compareTo(encodedTargetAssertion) >= 0;
         if (targetFound)
         {
-          idList.add(id);
+          startIndex = Math.max(0, targetIndex - vlvRequest.getBeforeCount());
         }
-        else if (vlvRequest.getBeforeCount() > 0)
-        {
-          idList.add(id);
-          includedBeforeCount++;
-          if (includedBeforeCount > vlvRequest.getBeforeCount())
-          {
-            idList.removeFirst();
-            includedBeforeCount--;
-          }
-        }
+        targetIndex++;
       }
     }
 
-    if (!targetFound)
+    final EntryIDSet result;
+    if (targetFound)
     {
-      // No entry was found to be greater than or equal to the sort key, so the target offset will be one greater
-      // than the content count.
-      targetOffset = sortMap.size() + 1;
+      final long[] array = new long[index - startIndex];
+      System.arraycopy(idSet, startIndex, array, 0, index);
+      result = newDefinedSet(array);
     }
-
-    searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
-
-    return newDefinedSet(toArray(idList));
+    else
+    {
+      /*
+       * No entry was found to be greater than or equal to the sort key, so the target offset will
+       * be one greater than the content count.
+       */
+      targetIndex = sortMap.size() + 1;
+      result = newDefinedSet();
+    }
+    searchOperation.addResponseControl(new VLVResponseControl(targetIndex, sortMap.size(), LDAPResultCode.SUCCESS));
+    return result;
   }
 
   private static final EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
-      TreeMap<SortValues, Long> sortMap) throws DirectoryException
+      TreeMap<ByteString, EntryID> sortMap) throws DirectoryException
   {
     int targetOffset = vlvRequest.getOffset();
     if (targetOffset < 0)
@@ -3354,12 +3352,10 @@ public class EntryContainer
     }
 
     int count = 1 + beforeCount + afterCount;
-
     long[] sortedIDs = new long[count];
-
     int treePos = 0;
     int arrayPos = 0;
-    for (Long id : sortMap.values())
+    for (EntryID id : sortMap.values())
     {
       if (treePos++ < startPos)
       {
@@ -3381,7 +3377,6 @@ public class EntryContainer
     }
 
     searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
-
     return newDefinedSet(sortedIDs);
   }
 
