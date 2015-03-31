@@ -25,10 +25,14 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.types.Attributes.*;
+import static org.forgerock.opendj.ldap.ModificationType.ADD;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.opends.server.TestCaseUtils.newSortedSet;
+import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
+import static org.opends.server.protocols.internal.Requests.newSearchRequest;
+import static org.opends.server.types.Attributes.create;
+import static org.opends.server.types.IndexType.EQUALITY;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -44,6 +48,11 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
+import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
+import org.opends.server.admin.std.server.BackendIndexCfg;
+import org.opends.server.admin.std.server.BackendVLVIndexCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -56,7 +65,6 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
@@ -73,9 +81,11 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
-public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCase
+public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg> extends DirectoryServerTestCase
 {
-  protected BackendImpl backend;
+  protected final String backendTestName = this.getClass().getName().replaceAll("[^.]*\\.", "");
+
+  protected BackendImpl<C> backend;
 
   protected List<Entry> topEntries;
   protected List<Entry> entries;
@@ -89,7 +99,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   protected int ldifNumberOfEntries;
   protected String backupID;
   protected String[] backendIndexes = { "sn" };
-  protected String[] backendVlvIndexes = {};
+  protected String[] backendVlvIndexes = { "people" };
 
   private AttributeType modifyAttribute;
   private final ByteString modifyValue = ByteString.valueOf("foo");
@@ -97,15 +107,21 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   private BackupDirectory backupDirectory;
 
   /**
-   * Configures a backend for the specified backend
+   * Factory method for creating a new unconfigured backend instance.
    *
-   * @param homeDirName
-   *          Directory where database file live
-   * @param testBaseDN
-   *          Root DN for the DIT
-   * @return a backend object.
+   * @return the unconfigured backend instance.
+   * @see #setUp()
    */
-  protected abstract BackendImpl createBackend() throws Exception;
+  protected abstract BackendImpl<C> createBackend();
+
+  /**
+   * Factory method for creating a new backend configuration. All methods specific to the sub-class
+   * should be stubbed out.
+   *
+   * @return the new backend configuration.
+   * @see #setUp()
+   */
+  protected abstract C createBackendCfg();
 
   @BeforeClass
   public void setUp() throws Exception
@@ -114,7 +130,31 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     TestCaseUtils.startServer();
 
     testBaseDN = DN.valueOf("dc=test,dc=com");
+
+    C backendCfg = createBackendCfg();
+    when(backendCfg.dn()).thenReturn(testBaseDN);
+    when(backendCfg.getBackendId()).thenReturn(backendTestName);
+    when(backendCfg.getBaseDN()).thenReturn(newSortedSet(testBaseDN));
+    when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes);
+    when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
+    when(backendCfg.isSubordinateIndexesEnabled()).thenReturn(true);
+
+    BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
+    when(indexCfg.getIndexType()).thenReturn(newSortedSet(IndexType.PRESENCE, IndexType.EQUALITY));
+    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType(backendIndexes[0]));
+    when(backendCfg.getBackendIndex(backendIndexes[0])).thenReturn(indexCfg);
+
+    BackendVLVIndexCfg vlvIndexCfg = mock(BackendVLVIndexCfg.class);
+    when(vlvIndexCfg.getName()).thenReturn("people");
+    when(vlvIndexCfg.getBaseDN()).thenReturn(testBaseDN);
+    when(vlvIndexCfg.getFilter()).thenReturn("(objectClass=person)");
+    when(vlvIndexCfg.getScope()).thenReturn(Scope.WHOLE_SUBTREE);
+    when(vlvIndexCfg.getSortOrder()).thenReturn("sn -employeeNumber +uid");
+    when(backendCfg.getBackendVLVIndex(backendVlvIndexes[0])).thenReturn(vlvIndexCfg);
+
     backend = createBackend();
+    backend.setBackendID(backendCfg.getBackendId());
+    backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
     backend.openBackend();
 
     topEntries = TestCaseUtils.makeEntries(
@@ -550,6 +590,19 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     }
   }
 
+  /**
+   * Tests the storage API for resource checking. The tested method has no return value, but an
+   * exception, while not systematic, may be thrown, in which case the test must fail.
+   *
+   * @throws Exception
+   *           if resources are low.
+   */
+  @Test
+  public void testCheckForEnoughResources() throws Exception
+  {
+    backend.getRootContainer().checkForEnoughResources(null);
+  }
+
   @Test
   public void testAdd() throws Exception
   {
@@ -581,8 +634,8 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   public void testUtilityAPIs()
   {
     assertEquals(backend.getEntryCount(), getTotalNumberOfLDIFEntries());
-    assertFalse(backend.isIndexed(modifyAttribute, IndexType.EQUALITY));
-    assertTrue(backend.isIndexed(DirectoryServer.getAttributeType(backendIndexes[0]), IndexType.EQUALITY));
+    assertFalse(backend.isIndexed(modifyAttribute, EQUALITY));
+    assertTrue(backend.isIndexed(DirectoryServer.getAttributeType(backendIndexes[0]), EQUALITY));
   }
 
   private int getTotalNumberOfLDIFEntries()

@@ -183,7 +183,6 @@ public class TestJebFormat extends DirectoryServerTestCase {
 
   private void encodeV1Attributes(ByteStringBuilder buffer,
                                 Map<AttributeType,List<Attribute>> attributes)
-      throws DirectoryException
   {
     int numAttributes = 0;
 
