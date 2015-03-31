@@ -83,8 +83,7 @@ public final class MemoryQuota
       }
     }
     Runtime runtime = Runtime.getRuntime();
-    return new MemoryUsage(0, runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory(),
-        runtime.totalMemory(), runtime.maxMemory());
+    return new MemoryUsage(0, runtime.totalMemory() - runtime.freeMemory(), runtime.totalMemory(), runtime.maxMemory());
   }
 
   /**
