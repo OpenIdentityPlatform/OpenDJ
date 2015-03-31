@@ -27,8 +27,9 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.JebFormat.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
+import static org.opends.server.backends.pluggable.JebFormat.dnToDNKey;
+import static org.opends.server.backends.pluggable.VLVIndex.decodeEntryIDFromVLVKey;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -876,7 +877,7 @@ class VerifyJob
   private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
       throws StorageRuntimeException, DirectoryException
   {
-    if(vlvIndex == null)
+    if(vlvIndex == null || !verifyID)
     {
       return;
     }
@@ -884,85 +885,43 @@ class VerifyJob
     Cursor cursor = txn.openCursor(vlvIndex.getName());
     try
     {
-      SortValues lastValues = null;
       while (cursor.next())
       {
         ByteString key = cursor.getKey();
-        ByteString value = cursor.getValue();
-
-        SortValuesSet sortValuesSet = new SortValuesSet(key, value, vlvIndex);
-        for(int i = 0; i < sortValuesSet.getEntryIDs().length; i++)
+        EntryID id = new EntryID(decodeEntryIDFromVLVKey(key));
+        Entry entry;
+        try
         {
-          keyCount++;
-          SortValues values = sortValuesSet.getSortValues(i);
-          if(lastValues != null && lastValues.compareTo(values) >= 1)
+          entry = id2entry.get(txn, id);
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
+          errorCount++;
+          continue;
+        }
+
+        if (entry == null)
+        {
+          errorCount++;
+          if (logger.isTraceEnabled())
           {
-            // Make sure the values is larger then the previous one.
-            if(logger.isTraceEnabled())
-            {
-              logger.trace("Values %s and %s are incorrectly ordered",
-                                lastValues, values, keyDump(vlvIndex,
-                                          sortValuesSet.getKeySortValues()));
-            }
-            errorCount++;
+            logger.trace("Reference to unknown entry ID %s%n%s", id, keyDump(vlvIndex.toString(), key));
           }
-          if (i == sortValuesSet.getEntryIDs().length - 1 && key.length() != 0)
+          continue;
+        }
+
+        ByteString expectedKey = vlvIndex.encodeVLVKey(entry, id.longValue());
+        if (expectedKey.compareTo(key) != 0)
+        {
+          errorCount++;
+          if (logger.isTraceEnabled())
           {
-            // If this is the last one in a bounded set, make sure it is the
-            // same as the database key.
-            ByteString encodedKey = vlvIndex.encodeKey(values);
-            if (!key.equals(encodedKey))
-            {
-              if(logger.isTraceEnabled())
-              {
-                logger.trace("Incorrect key for SortValuesSet in VLV " +
-                    "index %s. Last values bytes %s, Key bytes %s",
-                    vlvIndex.getName(), encodedKey, key);
-              }
-              errorCount++;
-            }
-          }
-          lastValues = values;
-
-          if(verifyID)
-          {
-            Entry entry;
-            EntryID id = new EntryID(values.getEntryID());
-            try
-            {
-              entry = id2entry.get(txn, id);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-              errorCount++;
-              continue;
-            }
-
-            if (entry == null)
-            {
-              errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Reference to unknown ID %d%n%s",
-                    id, keyDump(vlvIndex, sortValuesSet.getKeySortValues()));
-              }
-              continue;
-            }
-
-            SortValues entryValues = new SortValues(id, entry, vlvIndex.getSortOrder());
-            if(entryValues.compareTo(values) != 0)
-            {
-              errorCount++;
-              if(logger.isTraceEnabled())
-              {
-                logger.trace("Reference to entry ID %d " +
-                    "which does not match the values%n%s",
-                    id, keyDump(vlvIndex, sortValuesSet.getKeySortValues()));
-              }
-            }
+            logger.trace("Reference to entry ID %s has a key which does not match the expected key%n%s",
+                id, keyDump(vlvIndex.toString(), expectedKey));
           }
         }
+
       }
     }
     finally
@@ -1008,7 +967,7 @@ class VerifyJob
             logger.traceException(e);
 
             logger.trace("Malformed ID list: %s%n%s",
-                StaticUtils.bytesToHex(value), keyDump(index, key));
+                StaticUtils.bytesToHex(value), keyDump(index.toString(), key));
           }
           continue;
         }
@@ -1023,7 +982,10 @@ class VerifyJob
           {
             if (prevID != null && id.equals(prevID) && logger.isTraceEnabled())
             {
-              logger.trace("Duplicate reference to ID %d%n%s", id, keyDump(index, key));
+              if (logger.isTraceEnabled())
+              {
+                logger.trace("Duplicate reference to ID %d%n%s", id, keyDump(index.toString(), key));
+              }
             }
             prevID = id;
 
@@ -1044,7 +1006,7 @@ class VerifyJob
               errorCount++;
               if (logger.isTraceEnabled())
               {
-                logger.trace("Reference to unknown ID %d%n%s", id, keyDump(index, key));
+                logger.trace("Reference to unknown ID %d%n%s", id, keyDump(index.toString(), key));
               }
               continue;
             }
@@ -1096,9 +1058,8 @@ class VerifyJob
               errorCount++;
               if (logger.isTraceEnabled())
               {
-                logger.trace("Reference to entry "
-                    + "<%s> which does not match the value%n%s",
-                    entry.getName(), keyDump(index, key));
+                logger.trace("Reference to entry <%s> which does not match the value%n%s",
+                    entry.getName(), keyDump(index.toString(), key));
               }
             }
           }
@@ -1337,17 +1298,17 @@ class VerifyJob
   /**
    * Construct a printable string from a raw key value.
    *
-   * @param index
-   *          The index database containing the key value.
+   * @param indexName
+   *          The name of the index database containing the key value.
    * @param key
    *          The bytes of the key.
    * @return A string that may be logged or printed.
    */
-  private String keyDump(Index index, ByteSequence key)
+  private String keyDump(String indexName, ByteSequence key)
   {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("File: ");
-    buffer.append(index);
+    buffer.append("Index: ");
+    buffer.append(indexName);
     buffer.append(ServerConstants.EOL);
     buffer.append("Key:");
     buffer.append(ServerConstants.EOL);
@@ -1356,35 +1317,12 @@ class VerifyJob
   }
 
   /**
-   * Construct a printable string from a raw key value.
-   *
-   * @param vlvIndex The vlvIndex database containing the key value.
-   * @param keySortValues THe sort values that is being used as the key.
-   * @return A string that may be logged or printed.
-   */
-  private String keyDump(VLVIndex vlvIndex, SortValues keySortValues)
-  {
-    StringBuilder buffer = new StringBuilder(128);
-    buffer.append("File: ");
-    buffer.append(vlvIndex);
-    buffer.append(ServerConstants.EOL);
-    buffer.append("Key (last sort values):");
-    if(keySortValues != null)
-    {
-      buffer.append(keySortValues);
-    }
-    else
-    {
-      buffer.append("UNBOUNDED (0x00)");
-    }
-    return buffer.toString();
-  }
-
-  /**
    * Check that an attribute index is complete for a given entry.
    *
-   * @param entryID The entry ID.
-   * @param entry The entry to be checked.
+   * @param entryID
+   *          The entry ID.
+   * @param entry
+   *          The entry to be checked.
    */
   private void verifyIndex(ReadableTransaction txn, EntryID entryID, Entry entry)
   {
@@ -1520,7 +1458,7 @@ class VerifyJob
       {
         if (logger.isTraceEnabled())
         {
-          logger.trace("Missing ID %d%n%s", entryID, keyDump(index, key));
+          logger.trace("Missing ID %d%n%s", entryID, keyDump(index.toString(), key));
         }
         errorCount++;
       }
@@ -1535,7 +1473,7 @@ class VerifyJob
       {
         logger.traceException(e);
 
-        logger.trace("Error reading database: %s%n%s", e.getMessage(), keyDump(index, key));
+        logger.trace("Error reading database: %s%n%s", e.getMessage(), keyDump(index.toString(), key));
       }
       errorCount++;
     }

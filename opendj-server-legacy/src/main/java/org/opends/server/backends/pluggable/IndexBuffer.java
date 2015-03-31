@@ -122,23 +122,23 @@ class IndexBuffer
   /** A simple class representing a pair of added and deleted VLV values. */
   static class BufferedVLVIndexValues
   {
-    private TreeSet<SortValues> addedValues;
-    private TreeSet<SortValues> deletedValues;
+    private TreeSet<ByteString> addedValues;
+    private TreeSet<ByteString> deletedValues;
 
     /**
      * Adds the provided values to this object.
      *
      * @param sortValues the values to add
      */
-    void addValues(SortValues sortValues)
+    void addValues(ByteString sortValues)
     {
       if (!remove(deletedValues, sortValues))
       {
-        if (this.addedValues == null)
+        if (addedValues == null)
         {
-          this.addedValues = new TreeSet<SortValues>();
+          addedValues = new TreeSet<ByteString>();
         }
-        this.addedValues.add(sortValues);
+        addedValues.add(sortValues);
       }
     }
 
@@ -147,19 +147,19 @@ class IndexBuffer
      *
      * @param sortValues the values to delete
      */
-    void deleteValues(SortValues sortValues)
+    void deleteValues(ByteString sortValues)
     {
       if (!remove(addedValues, sortValues))
       {
-        if (this.deletedValues == null)
+        if (deletedValues == null)
         {
-          this.deletedValues = new TreeSet<SortValues>();
+          deletedValues = new TreeSet<ByteString>();
         }
-        this.deletedValues.add(sortValues);
+        deletedValues.add(sortValues);
       }
     }
 
-    private boolean remove(TreeSet<SortValues> values, SortValues sortValues)
+    private boolean remove(TreeSet<ByteString> values, ByteString sortValues)
     {
       if (values != null && values.contains(sortValues))
       {

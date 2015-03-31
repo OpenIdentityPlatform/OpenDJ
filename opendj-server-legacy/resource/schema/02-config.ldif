@@ -21,7 +21,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2014 ForgeRock AS.
+#      Portions Copyright 2010-2015 ForgeRock AS.
 #      Portions Copyright 2011 profiq, s.r.o.
 #      Portions Copyright 2012 Manuel Gaupp
 #
@@ -5793,6 +5793,5 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.25
          ds-cfg-filter $
          ds-cfg-sort-order $
          ds-cfg-name )
-  MAY ds-cfg-max-block-size
   X-ORIGIN 'OpenDJ Directory Server' )
 

@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.SearchScope.Enum;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
@@ -130,7 +129,7 @@ public class VLVIndex extends DatabaseContainer
 
     this.config = config;
     this.baseDN = config.getBaseDN();
-    this.scope = valueOf(config.getScope());
+    this.scope = convertScope(config.getScope());
     this.sortedSetCapacity = config.getMaxBlockSize();
 
     try
@@ -204,17 +203,19 @@ public class VLVIndex extends DatabaseContainer
     this.config.addChangeListener(this);
   }
 
-  private SearchScope valueOf(Scope cfgScope)
+  private SearchScope convertScope(final Scope cfgScope)
   {
-    final Enum toFind = SearchScope.Enum.valueOf(cfgScope.name());
-    for (SearchScope scope : SearchScope.values())
+    switch (cfgScope)
     {
-      if (scope.asEnum() == toFind)
-      {
-        return scope;
-      }
+    case BASE_OBJECT:
+      return SearchScope.BASE_OBJECT;
+    case SINGLE_LEVEL:
+      return SearchScope.SINGLE_LEVEL;
+    case SUBORDINATE_SUBTREE:
+      return SearchScope.SUBORDINATES;
+    default: // WHOLE_SUBTREE
+      return SearchScope.WHOLE_SUBTREE;
     }
-    return null;
   }
 
   /** {@inheritDoc} */
@@ -1298,7 +1299,7 @@ public class VLVIndex extends DatabaseContainer
     // Update scope only if changed.
     if(!config.getScope().equals(cfg.getScope()))
     {
-      this.scope = SearchScope.valueOf(cfg.getScope().name());
+      this.scope = convertScope(cfg.getScope());
       ccr.setAdminActionRequired(true);
     }
 
