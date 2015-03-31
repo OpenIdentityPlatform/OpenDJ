@@ -187,6 +187,10 @@
   <xinclude:include href='../man-pages/man-windows-service.xml' />
  </reference>
 
+ <xinclude:include href="../man-pages/man-dsconfig-subcommands-ref.xml">
+  <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+ </xinclude:include>
+
  <xinclude:include href="../shared/glossary.xml" />
 
  <xinclude:include href="appendix-rest2ldap.xml" />

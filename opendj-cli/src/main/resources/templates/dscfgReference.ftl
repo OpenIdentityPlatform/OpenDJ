@@ -24,20 +24,23 @@
  #      Copyright 2015 ForgeRock AS.
  #
  #-->
-<refsect1 xml:id="${name}-subcommands">
-  <title>Subcommands</title>
+${marker}
+<reference xml:id="${name}-subcommands-ref"
+           xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="${locale}"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://docbook.org/ns/docbook
+                               http://docbook.org/xml/5.0/xsd/docbook.xsd"
+           xmlns:xinclude="http://www.w3.org/2001/XInclude">
 
-  <#if info??>
-    ${info}
-  </#if>
+ <title>${title}</title>
 
+ <partintro>
   <para>
-   The <command>${name}</command> utility supports the following subcommands.
+   ${partintro}
   </para>
+ </partintro>
 
-  <#if isItemizedList??><itemizedlist></#if>
-  <#list subcommands as subcommand>
-   ${subcommand}
-  </#list>
-  <#if isItemizedList??></itemizedlist></#if>
-</refsect1>
+ <#list subcommands as subcommand>
+ <xinclude:include href="../man-pages/man-${subcommand.id}.xml" />
+ </#list>
+</reference>

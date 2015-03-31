@@ -24,7 +24,7 @@
  #      Copyright 2015 ForgeRock AS.
  #
  #-->
-<refsect3 xml:id="${id}">
+<refsect1 xml:id="${id}">
   <title>${title}</title>
 
   <para>
@@ -32,4 +32,4 @@
   </para>
 
   ${list}
-</refsect3>
+</refsect1>
