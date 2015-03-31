@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential=true)
 public class EntryIDSetTest extends DirectoryServerTestCase
 {
