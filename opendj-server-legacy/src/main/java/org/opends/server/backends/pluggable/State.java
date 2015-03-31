@@ -26,10 +26,19 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Reject.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.util.StaticUtils;
 
@@ -39,8 +48,35 @@ import org.opends.server.util.StaticUtils;
  */
 class State extends DatabaseContainer
 {
-  private static final ByteString falseBytes = ByteString.wrap(new byte[] { 0x00 });
-  private static final ByteString trueBytes = ByteString.wrap(new byte[] { 0x01 });
+
+  /**
+   * Use COMPACTED serialization for new indexes.
+   * @see {@link EntryIDSet.EntryIDSetCompactCodec}
+   */
+  private static final Collection<IndexFlag> DEFAULT_FLAGS = Collections.unmodifiableCollection(Arrays
+      .asList(IndexFlag.COMPACTED));
+
+  /**
+   * Bit-field containing possible flags that an index can have
+   * When adding flags, ensure that its value fits on a single bit.
+   */
+  static enum IndexFlag
+  {
+    TRUSTED(0x01),
+
+    /**
+     * Use compact encoding for indexes' ID storage.
+     */
+    COMPACTED(0x02);
+
+    static final EnumSet<IndexFlag> ALL_FLAGS = EnumSet.allOf(IndexFlag.class);
+
+    final byte mask;
+
+    IndexFlag(int mask) {
+      this.mask=(byte) mask;
+    }
+  }
 
   /**
    * Create a new State object.
@@ -52,18 +88,102 @@ class State extends DatabaseContainer
     super(name);
   }
 
+  private ByteString keyForIndex(TreeName indexTreeName) throws StorageRuntimeException
+  {
+    return ByteString.wrap(StaticUtils.getBytes(indexTreeName.toString()));
+  }
+
   /**
-   * Return the key associated with the index in the state database.
-   *
-   * @param index The index we need the key for.
-   * @return the key
+   * Fetch index flags from the database.
+   * @param txn The database transaction or null if none.
+   * @param indexTreeName The tree's name of the index
+   * @return The flags of the index in the database or an empty set if no index has no flags.
+   * @throws NullPointerException if tnx or index is null
    * @throws StorageRuntimeException If an error occurs in the database.
    */
-  private ByteString keyForIndex(DatabaseContainer index)
-    throws StorageRuntimeException
+  EnumSet<IndexFlag> getIndexFlags(ReadableTransaction txn, TreeName indexTreeName) throws StorageRuntimeException {
+    checkNotNull(txn, "txn must not be null");
+    checkNotNull(indexTreeName, "indexTreeName must not be null");
+
+    final ByteString value = txn.read(getName(), keyForIndex(indexTreeName));
+    return decodeFlagsOrGetDefault(value);
+  }
+
+  /**
+   * Ensure that the specified flags are set for the given index
+   * @param txn a non null database transaction
+   * @param index The index storing the trusted state info.
+   * @return true if the flags have been updated
+   * @throws NullPointerException if txn, index or flags is null
+   * @throws StorageRuntimeException If an error occurs in the database.
+   */
+  boolean addFlagsToIndex(WriteableTransaction txn, TreeName indexTreeName, final IndexFlag... flags)
   {
-    String shortName = index.getName().toString();
-    return ByteString.wrap(StaticUtils.getBytes(shortName));
+    checkNotNull(txn, "txn must not be null");
+    checkNotNull(indexTreeName, "indexTreeName must not be null");
+    checkNotNull(flags, "flags must not be null");
+
+    return txn.update(getName(), keyForIndex(indexTreeName), new UpdateFunction()
+    {
+      @Override
+      public ByteSequence computeNewValue(ByteSequence oldValue)
+      {
+        final EnumSet<IndexFlag> currentFlags = decodeFlagsOrGetDefault(oldValue);
+        currentFlags.addAll(Arrays.asList(flags));
+        return encodeFlags(currentFlags);
+      }
+    });
+  }
+
+  private EnumSet<IndexFlag> decodeFlagsOrGetDefault(ByteSequence sequence) {
+    if ( sequence == null ) {
+      return EnumSet.copyOf(DEFAULT_FLAGS);
+    } else {
+      final EnumSet<IndexFlag> indexState = EnumSet.noneOf(IndexFlag.class);
+      final byte indexValue = sequence.byteAt(0);
+      for (IndexFlag state : IndexFlag.ALL_FLAGS)
+      {
+        if ((indexValue & state.mask) == state.mask)
+        {
+          indexState.add(state);
+        }
+      }
+      return indexState;
+    }
+  }
+
+  private ByteString encodeFlags(EnumSet<IndexFlag> flags) {
+    byte value = 0;
+    for(IndexFlag flag : flags) {
+      value |= flag.mask;
+    }
+    return ByteString.valueOf(new byte[] { value });
+  }
+
+
+  /**
+   * Ensure that the specified flags are not set for the given index
+   * @param txn a non null database transaction
+   * @param index The index storing the trusted state info.
+   * @return The flags of the index
+   * @throws NullPointerException if txn, index or flags is null
+   * @throws StorageRuntimeException If an error occurs in the database.
+   */
+  void removeFlagsFromIndex(WriteableTransaction txn, TreeName indexTreeName, final IndexFlag... flags) {
+    checkNotNull(txn, "txn must not be null");
+    checkNotNull(indexTreeName, "indexTreeName must not be null");
+    checkNotNull(flags, "flags must not be null");
+
+    txn.update(getName(), keyForIndex(indexTreeName), new UpdateFunction()
+    {
+      @Override
+      public ByteSequence computeNewValue(ByteSequence oldValue)
+      {
+        final EnumSet<IndexFlag> currentFlags = decodeFlagsOrGetDefault(oldValue);
+        currentFlags.removeAll(Arrays.asList(flags));
+        return encodeFlags(currentFlags);
+      }
+    });
   }
 
   /**
@@ -72,43 +192,14 @@ class State extends DatabaseContainer
    * @param txn a non null database transaction
    * @param index The index storing the trusted state info.
    * @return true if the entry was removed, false if it was not.
+   * @throws NullPointerException if txn, index is null
    * @throws StorageRuntimeException If an error occurs in the database.
    */
-  boolean removeIndexTrustState(WriteableTransaction txn, DatabaseContainer index) throws StorageRuntimeException
+  boolean deleteRecord(WriteableTransaction txn, TreeName indexTreeName) throws StorageRuntimeException
   {
-    ByteString key = keyForIndex(index);
-    return txn.delete(getName(), key);
+    checkNotNull(txn, "txn must not be null");
+    checkNotNull(indexTreeName, "indexTreeName must not be null");
+
+    return txn.delete(getName(), keyForIndex(indexTreeName));
   }
-
-  /**
-   * Fetch index state from the database.
-   * @param txn a non null database transaction
-   * @param index The index storing the trusted state info.
-   * @return The trusted state of the index in the database.
-   * @throws StorageRuntimeException If an error occurs in the database.
-   */
-  boolean getIndexTrustState(ReadableTransaction txn, DatabaseContainer index)
-      throws StorageRuntimeException
-  {
-    ByteString key = keyForIndex(index);
-    ByteString value = txn.read(getName(), key);
-
-    return value != null && value.equals(trueBytes);
-  }
-
-  /**
-   * Put index state to database.
-   * @param txn a non null database transaction
-   * @param index The index storing the trusted state info.
-   * @param trusted The state value to put into the database.
-   * @throws StorageRuntimeException If an error occurs in the database.
-   */
-  void putIndexTrustState(WriteableTransaction txn, DatabaseContainer index, boolean trusted)
-      throws StorageRuntimeException
-  {
-    ByteString key = keyForIndex(index);
-
-    txn.put(getName(), key, trusted ? trueBytes : falseBytes);
-  }
-
 }

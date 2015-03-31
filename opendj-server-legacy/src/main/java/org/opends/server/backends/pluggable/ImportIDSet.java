@@ -29,9 +29,12 @@ package org.opends.server.backends.pluggable;
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
+import java.util.Iterator;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Reject;
+import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 
 /**
  * This class manages the set of ID that are to be eventually added to an index
@@ -39,7 +42,7 @@ import org.forgerock.util.Reject;
  * the configured ID limit. If the limit it reached, the class stops tracking
  * individual IDs and marks the set as undefined. This class is not thread safe.
  */
-final class ImportIDSet {
+final class ImportIDSet implements Iterable<EntryID> {
 
   /** The encapsulated entryIDSet where elements are stored until reaching the limit. */
   private EntryIDSet entryIDSet;
@@ -162,11 +165,17 @@ final class ImportIDSet {
     return key;
   }
 
+  @Override
+  public Iterator<EntryID> iterator() {
+      return entryIDSet.iterator();
+  }
+
   /**
    * @return Binary representation of this ID set
    */
-  ByteString valueToByteString() {
-    return entryIDSet.toByteString();
+  ByteString valueToByteString(EntryIDSetCodec codec) {
+    checkNotNull(codec, "codec must not be null");
+    return codec.encode(entryIDSet);
   }
 
   @Override

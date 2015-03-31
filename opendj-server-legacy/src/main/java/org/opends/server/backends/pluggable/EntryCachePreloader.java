@@ -258,7 +258,7 @@ class EntryCachePreloader
     }
     @Override
     public void run() {
-      Cursor cursor = null;
+      Cursor<ByteString, ByteString> cursor = null;
       ID2Entry id2entry = null;
       RootContainer rootContainer = backend.getRootContainer();
       Iterator<EntryContainer> ecIterator = rootContainer.getEntryContainers().iterator();

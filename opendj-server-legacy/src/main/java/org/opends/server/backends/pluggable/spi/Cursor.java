@@ -28,12 +28,13 @@ package org.opends.server.backends.pluggable.spi;
 import java.io.Closeable;
 
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Cursor that iterates through records in a tree.
+ * @param <K> Type of the record's key
+ * @param <V> Type of the record's value
  */
-public interface Cursor extends Closeable
+public interface Cursor<K,V> extends Closeable
 {
   /**
    * Positions the cursor to the provided key if it exists in the tree.
@@ -96,7 +97,7 @@ public interface Cursor extends Closeable
    * @return the current record's key,
    *         or {@code null} if this cursor is not positioned on any record.
    */
-  ByteString getKey();
+  K getKey();
 
   /**
    * Returns the value of the record on which this cursor is currently positioned.
@@ -104,7 +105,7 @@ public interface Cursor extends Closeable
    * @return the current record's value,
    *         or {@code null} if this cursor is not positioned on any record.
    */
-  ByteString getValue();
+  V getValue();
 
   /** {@inheritDoc} */
   @Override

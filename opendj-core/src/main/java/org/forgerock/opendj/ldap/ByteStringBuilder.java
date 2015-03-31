@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.util.Reject.*;
+
 import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
@@ -37,6 +39,8 @@ import java.nio.CharBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+
+import org.forgerock.util.Reject;
 
 /**
  * A mutable sequence of bytes backed by a byte array.
@@ -150,6 +154,7 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
         /** {@inheritDoc} */
+        @Override
         public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
             byteBuffer.put(buffer, subOffset, subLength);
             byteBuffer.flip();
@@ -164,6 +169,7 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
         /** {@inheritDoc} */
+        @Override
         public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
             return ByteString.copyTo(ByteBuffer.wrap(buffer, subOffset, subLength), charBuffer, decoder);
         }
@@ -291,10 +297,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *             If the {@code capacity} is negative.
      */
     public ByteStringBuilder(final int capacity) {
-        if (capacity < 0) {
-            throw new IllegalArgumentException();
-        }
-
+        Reject.ifFalse(capacity >= 0, "capacity must be >= 0");
         this.buffer = new byte[capacity];
         this.length = 0;
     }
@@ -578,6 +581,105 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /**
+     * Appends the compact encoded bytes of the provided unsigned long to this byte
+     * string builder. This method allows to encode unsigned long up to 56 bits using
+     * fewer bytes (from 1 to 8) than append(long). The encoding has the important
+     * property that it preserves ordering, so it can be used for keys.
+     *
+     * @param value
+     *            The long whose compact encoding is to be appended to this
+     *            byte string builder.
+     * @return This byte string builder.
+     */
+    public ByteStringBuilder appendCompactUnsigned(long value) {
+        Reject.ifFalse(value >= 0, "value must be >= 0");
+
+        final int size = getEncodedSize(value);
+        ensureAdditionalCapacity(size);
+        switch (size) {
+        case 1:
+            buffer[length++] = (byte) value;
+            break;
+        case 2:
+            buffer[length++] = (byte) ((value >>> 8) | 0x80L);
+            buffer[length++] = l2b(value);
+            break;
+        case 3:
+            buffer[length++] = (byte) ((value >>> 16) | 0xc0L);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        case 4:
+            buffer[length++] = (byte) ((value >>> 24) | 0xe0L);
+            buffer[length++] = l2b(value >>> 16);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        case 5:
+            buffer[length++] = (byte) ((value >>> 32) | 0xf0L);
+            buffer[length++] = l2b(value >>> 24);
+            buffer[length++] = l2b(value >>> 16);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        case 6:
+            buffer[length++] = (byte) ((value >>> 40) | 0xf8L);
+            buffer[length++] = l2b(value >>> 32);
+            buffer[length++] = l2b(value >>> 24);
+            buffer[length++] = l2b(value >>> 16);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        case 7:
+            buffer[length++] = (byte) ((value >>> 48) | 0xfcL);
+            buffer[length++] = l2b(value >>> 40);
+            buffer[length++] = l2b(value >>> 32);
+            buffer[length++] = l2b(value >>> 24);
+            buffer[length++] = l2b(value >>> 16);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        default:
+            buffer[length++] = (byte) 0xfe;
+            buffer[length++] = l2b(value >>> 48);
+            buffer[length++] = l2b(value >>> 40);
+            buffer[length++] = l2b(value >>> 32);
+            buffer[length++] = l2b(value >>> 24);
+            buffer[length++] = l2b(value >>> 16);
+            buffer[length++] = l2b(value >>> 8);
+            buffer[length++] = l2b(value);
+            break;
+        }
+        return this;
+    }
+
+    private static int getEncodedSize(long value) {
+        if (value < 0x80L) {
+            return 1;
+        } else if (value < 0x4000L) {
+            return 2;
+        } else if (value < 0x200000L) {
+            return 3;
+        } else if (value < 0x10000000L) {
+            return 4;
+        } else if (value < 0x800000000L) {
+            return 5;
+        } else if (value < 0x40000000000L) {
+            return 6;
+        } else if (value < 0x2000000000000L) {
+            return 7;
+        } else if (value < 0x100000000000000L) {
+            return 8;
+        } else {
+            throw new IllegalArgumentException("value out of range: " + value);
+        }
+    }
+
+    private static byte l2b(long value) {
+        return (byte) (value & 0xffL);
+    }
+
+    /**
      * Appends the byte string representation of the provided object to this
      * byte string builder. The object is converted to a byte string as follows:
      * <ul>
@@ -855,6 +957,7 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, 0, length);
         byteBuffer.flip();
@@ -869,6 +972,7 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
         return ByteString.copyTo(ByteBuffer.wrap(buffer, 0, length), charBuffer, decoder);
     }

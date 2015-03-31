@@ -526,7 +526,7 @@ class DN2URI extends DatabaseContainer
 
     try
     {
-      final Cursor cursor = txn.openCursor(getName());
+      final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
       try
       {
         // Go up through the DIT hierarchy until we find a referral.
@@ -602,7 +602,7 @@ class DN2URI extends DatabaseContainer
 
     try
     {
-      final Cursor cursor = txn.openCursor(getName());
+      final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
       try
       {
         // Initialize the cursor very close to the starting value then

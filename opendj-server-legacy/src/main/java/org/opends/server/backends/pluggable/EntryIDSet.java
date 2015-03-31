@@ -48,6 +48,9 @@ import com.forgerock.opendj.util.Iterators;
 @SuppressWarnings("javadoc")
 final class EntryIDSet implements Iterable<EntryID>
 {
+  public static final EntryIDSetCodec CODEC_V1 = new EntryIDSetCodecV1();
+  public static final EntryIDSetCodec CODEC_V2 = new EntryIDSetCodecV2();
+
   private static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
   private static final long[] EMPTY_LONG_ARRAY = new long[0];
   private static final long[] NO_ENTRY_IDS_RANGE = new long[] { 0, 0 };
@@ -60,8 +63,6 @@ final class EntryIDSet implements Iterable<EntryID>
     void toString(StringBuilder buffer);
 
     boolean isDefined();
-
-    ByteString toByteString();
 
     long[] getRange();
 
@@ -81,6 +82,20 @@ final class EntryIDSet implements Iterable<EntryID>
     Iterator<EntryID> iterator();
 
     Iterator<EntryID> iterator(EntryID begin);
+  }
+
+  /**
+   * Define serialization contract for EntryIDSet
+   */
+  interface EntryIDSetCodec {
+
+    static final int INT_SIZE = 4;
+
+    static final int LONG_SIZE = 8;
+
+    ByteString encode(EntryIDSet idSet);
+
+    EntryIDSet decode(ByteSequence key, ByteString value);
   }
 
   /**
@@ -114,17 +129,6 @@ final class EntryIDSet implements Iterable<EntryID>
     public boolean isDefined()
     {
       return true;
-    }
-
-    @Override
-    public ByteString toByteString()
-    {
-      final ByteStringBuilder builder = new ByteStringBuilder(8 * entryIDs.length);
-      for (long value : entryIDs)
-      {
-        builder.append(value);
-      }
-      return builder.toByteString();
     }
 
     @Override
@@ -198,7 +202,7 @@ final class EntryIDSet implements Iterable<EntryID>
 
       if (entryIDs.length == 0)
       {
-        entryIDs = Arrays.copyOf(anotherEntryIDSet.getIDs(), anotherEntryIDSet.getIDs().length);
+        entryIDs = anotherEntryIDSet.getIDs();
         return;
       }
 
@@ -347,13 +351,6 @@ final class EntryIDSet implements Iterable<EntryID>
     }
 
     @Override
-    public ByteString toByteString()
-    {
-      // Set top bit.
-      return ByteString.valueOf(undefinedSize | Long.MIN_VALUE);
-    }
-
-    @Override
     public boolean add(EntryID entryID)
     {
       if (maintainUndefinedSize())
@@ -466,6 +463,172 @@ final class EntryIDSet implements Iterable<EntryID>
     }
   }
 
+  /**
+   * Legacy EntryIDSet codec implementation
+   */
+  private static final class EntryIDSetCodecV1 implements EntryIDSetCodec
+  {
+    @Override
+    public ByteString encode(EntryIDSet idSet)
+    {
+      return ByteString.wrap(append(new ByteStringBuilder(getEstimatedSize(idSet)), idSet).trimToSize()
+          .getBackingArray());
+    }
+
+    @Override
+    public EntryIDSet decode(ByteSequence key, ByteString value)
+    {
+      checkNotNull(key, "key must not be null");
+      checkNotNull(value, "value must not be null");
+
+      if (value.isEmpty())
+      {
+        // Entry limit has exceeded and there is no encoded undefined set size.
+        return newDefinedSet();
+      }
+      else if ((value.byteAt(0) & 0x80) == 0x80)
+      {
+        // Entry limit has exceeded and there is an encoded undefined set size.
+        return newUndefinedSetWithSize(key, decodeUndefinedSize(value));
+      }
+      else
+      {
+        // Seems like entry limit has not been exceeded and the bytes is a list of entry IDs.
+        return newDefinedSet(decodeRaw(value.asReader(), value.length() / LONG_SIZE));
+      }
+    }
+
+    private int getEstimatedSize(EntryIDSet idSet)
+    {
+      if (idSet.isDefined())
+      {
+        return idSet.getIDs().length * LONG_SIZE;
+      }
+      else
+      {
+        return LONG_SIZE;
+      }
+    }
+
+    private long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
+    {
+      checkNotNull(reader, "builder must not be null");
+      Reject.ifFalse(nbEntriesToDecode >= 0, "nbEntriesToDecode must be >= 0");
+
+      final long ids[] = new long[nbEntriesToDecode];
+      for(int i = 0 ; i < nbEntriesToDecode ; i++) {
+        ids[i] = reader.getLong();
+      }
+      return ids;
+    }
+
+    private ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
+    {
+      checkNotNull(idSet, "idSet must not be null");
+      checkNotNull(builder, "builder must not be null");
+
+      if (idSet.isDefined())
+      {
+        for (long value : idSet.getIDs())
+        {
+          builder.append(value);
+        }
+        return builder;
+      }
+      else
+      {
+        // Set top bit.
+        return builder.append(idSet.size() | Long.MIN_VALUE);
+      }
+    }
+
+    private static long decodeUndefinedSize(ByteSequence bytes)
+    {
+      // remove top bit
+      return bytes.length() == LONG_SIZE ? bytes.asReader().getLong() & Long.MAX_VALUE : Long.MAX_VALUE;
+    }
+  }
+
+  /**
+   * Compacted EntryIDSet codec implementation. Idea is to take advantages of
+   * org.forgerock.opendj.ldap.ByteStringBuilder#appendCompact() able to write small values of long in fewer bytes.
+   * Rather than storing the full list of IDs, we store only the difference of the Nth ID with the N-1th one in the hope
+   * that the result will be small enough to be compacted by appendCompact().
+   */
+  private static final class EntryIDSetCodecV2 implements EntryIDSetCodec
+  {
+    private static final byte UNDEFINED_SET = (byte) 0xFF;
+
+    @Override
+    public ByteString encode(EntryIDSet idSet)
+    {
+      checkNotNull(idSet, "idSet must not be null");
+      ByteStringBuilder builder = new ByteStringBuilder(getEstimatedSize(idSet));
+      return append(builder, idSet).toByteString();
+    }
+
+    @Override
+    public EntryIDSet decode(ByteSequence key, ByteString value)
+    {
+      checkNotNull(key, "key must not be null");
+      checkNotNull(value, "value must not be null");
+
+      final ByteSequenceReader reader = value.asReader();
+      if ( reader.get() == UNDEFINED_SET) {
+          return newUndefinedSetWithSize(key, reader.getLong());
+      } else {
+          reader.rewind();
+          return newDefinedSet(decodeRaw(reader, (int) reader.getCompactUnsigned()));
+      }
+    }
+
+    private ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
+    {
+      checkNotNull(idSet, "idSet must not be null");
+      checkNotNull(builder, "builder must not be null");
+
+      if (idSet.isDefined())
+      {
+        builder.appendCompactUnsigned(idSet.size());
+        long basis = 0;
+        for (long value : idSet.getIDs())
+        {
+          builder.appendCompactUnsigned(value - basis);
+          basis = value;
+        }
+      }
+      else
+      {
+        builder.append(UNDEFINED_SET);
+        builder.append(idSet.size());
+      }
+      return builder;
+    }
+
+    private int getEstimatedSize(EntryIDSet idSet)
+    {
+      checkNotNull(idSet, "idSet must not be null");
+      return idSet.getIDs().length * LONG_SIZE + INT_SIZE;
+    }
+
+    private long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
+    {
+      checkNotNull(reader, "reader must not be null");
+      Reject.ifFalse(nbEntriesToDecode >= 0, "nbEntriesToDecode must be >= 0");
+
+      if ( nbEntriesToDecode == 0 ) {
+        return EMPTY_LONG_ARRAY;
+      } else {
+        final long ids[] = new long[nbEntriesToDecode];
+        ids[0] = reader.getCompactUnsigned();
+        for(int i = 1 ; i < nbEntriesToDecode ; i++) {
+          ids[i] = ids[i-1] + reader.getCompactUnsigned();
+        }
+        return ids;
+      }
+    }
+  }
+
   static EntryIDSet newUndefinedSet()
   {
     return new EntryIDSet(new UndefinedImpl(NO_KEY, Long.MAX_VALUE));
@@ -493,38 +656,6 @@ final class EntryIDSet implements Iterable<EntryID>
   {
     checkNotNull(ids, "ids must not be null");
     return new EntryIDSet(new DefinedImpl(ids));
-  }
-
-  /**
-   * Creates a new entry ID set from the raw database value.
-   *
-   * @param key
-   *          The database key that contains this value.
-   * @param value
-   *          The database value, or null if there are no entry IDs.
-   * @throws NullPointerException
-   *           if either key or value is null
-   */
-  static EntryIDSet newSetFromBytes(ByteSequence key, ByteString value)
-  {
-    checkNotNull(key, "key must not be null");
-    checkNotNull(value, "value must not be null");
-
-    if (value.isEmpty())
-    {
-      // Entry limit has exceeded and there is no encoded undefined set size.
-      return newUndefinedSetWithKey(key);
-    }
-    else if ((value.byteAt(0) & 0x80) == 0x80)
-    {
-      // Entry limit has exceeded and there is an encoded undefined set size.
-      return newUndefinedSetWithSize(key, decodeUndefinedSize(value));
-    }
-    else
-    {
-      // Seems like entry limit has not been exceeded and the bytes is a list of entry IDs.
-      return newDefinedSet(decodeEntryIDSet(value));
-    }
   }
 
   private static long[] intersection(long[] set1, long[] set2)
@@ -566,10 +697,6 @@ final class EntryIDSet implements Iterable<EntryID>
   static EntryIDSet newSetFromUnion(List<EntryIDSet> sets)
   {
     checkNotNull(sets, "sets must not be null");
-
-    // FIXME: Benchmarks shown that its possible to have a 5x performance gain if we sort the non overlapping sets. To
-    // do that, we can use compareForOverlap(). In case sets are unordered and non overlapping, this optimization allow
-    // to skip the final sort() applied on the resulting set.
 
     int count = 0;
 
@@ -629,39 +756,6 @@ final class EntryIDSet implements Iterable<EntryID>
     }
   }
 
-  /**
-   * Decodes and returns the entryID list out of the provided byte sequence.
-   *
-   * @param bytes
-   *          the encoded entryID list
-   * @return a long array representing the entryID list
-   */
-  static long[] decodeEntryIDSet(ByteSequence bytes)
-  {
-    final ByteSequenceReader reader = bytes.asReader();
-    final int count = bytes.length() / 8;
-    final long[] entryIDSet = new long[count];
-    for (int i = 0; i < count; i++)
-    {
-      entryIDSet[i] = reader.getLong();
-    }
-    return entryIDSet;
-  }
-
-  /**
-   * Decodes and returns the undefined size out of the provided byte string.
-   *
-   * @param bytes
-   *          the encoded undefined size
-   * @return the undefined size
-   */
-  static long decodeUndefinedSize(ByteString bytes)
-  {
-    return bytes.length() == 8
-        ? bytes.toLong() & Long.MAX_VALUE
-        : Long.MAX_VALUE; // remove top bit
-  }
-
   private EntryIDSetImplementor concreteImpl;
 
   private EntryIDSet(EntryIDSetImplementor concreteImpl)
@@ -708,16 +802,6 @@ final class EntryIDSet implements Iterable<EntryID>
   public boolean isDefined()
   {
     return concreteImpl.isDefined();
-  }
-
-  /**
-   * Get a database representation of this object.
-   *
-   * @return A database representation of this object as a byte array.
-   */
-  public ByteString toByteString()
-  {
-    return concreteImpl.toByteString();
   }
 
   /**

@@ -27,9 +27,8 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newSetFromBytes;
-import static org.opends.server.backends.pluggable.JebFormat.dnToDNKey;
-import static org.opends.server.backends.pluggable.VLVIndex.decodeEntryIDFromVLVKey;
+import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.backends.pluggable.VLVIndex.*;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -390,7 +389,7 @@ class VerifyJob
    */
   private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor cursor = txn.openCursor(id2entry.getName());
+    Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
     try
     {
       long storedEntryCount = id2entry.getRecordCount(txn);
@@ -501,7 +500,7 @@ class VerifyJob
    */
   private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor cursor = txn.openCursor(dn2id.getName());
+    Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
     try
     {
       while (cursor.next())
@@ -572,7 +571,7 @@ class VerifyJob
    */
   private void iterateID2Children(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor cursor = txn.openCursor(id2c.getName());
+    Cursor<ByteString, EntryIDSet> cursor = id2c.openCursor(txn);
     try
     {
       while (cursor.next())
@@ -580,7 +579,6 @@ class VerifyJob
         keyCount++;
 
         ByteString key = cursor.getKey();
-        ByteString value = cursor.getValue();
 
         EntryID entryID;
         try
@@ -603,18 +601,13 @@ class VerifyJob
 
         try
         {
-          entryIDSet = newSetFromBytes(key, value);
+          entryIDSet = cursor.getValue();
         }
         catch (Exception e)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2children has malformed ID list for ID %s:%n%s%n",
-                entryID, StaticUtils.bytesToHex(value));
-          }
+          logger.traceException(e);
+          logger.trace("File id2children has malformed ID list for ID %s", entryID);
           continue;
         }
 
@@ -698,7 +691,7 @@ class VerifyJob
    */
   private void iterateID2Subtree(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor cursor = txn.openCursor(id2s.getName());
+    Cursor<ByteString, EntryIDSet> cursor = id2s.openCursor(txn);
     try
     {
       while (cursor.next())
@@ -706,8 +699,6 @@ class VerifyJob
         keyCount++;
 
         ByteString key = cursor.getKey();
-        ByteString value = cursor.getValue();
-
         EntryID entryID;
         try
         {
@@ -728,18 +719,13 @@ class VerifyJob
         EntryIDSet entryIDSet;
         try
         {
-          entryIDSet = newSetFromBytes(key, value);
+          entryIDSet = cursor.getValue();
         }
         catch (Exception e)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2subtree has malformed ID list " +
-                "for ID %s:%n%s%n", entryID, StaticUtils.bytesToHex(value));
-          }
+          logger.traceException(e);
+          logger.trace("File id2subtree has malformed ID list  for ID %s", entryID);
           continue;
         }
 
@@ -882,7 +868,7 @@ class VerifyJob
       return;
     }
 
-    Cursor cursor = txn.openCursor(vlvIndex.getName());
+    Cursor<ByteString, ByteString> cursor = txn.openCursor(vlvIndex.getName());
     try
     {
       while (cursor.next())
@@ -944,7 +930,7 @@ class VerifyJob
       return;
     }
 
-    Cursor cursor = txn.openCursor(index.getName());
+    Cursor<ByteString,EntryIDSet> cursor = index.openCursor(txn);
     try
     {
       while (cursor.next())
@@ -952,23 +938,17 @@ class VerifyJob
         keyCount++;
 
         final ByteString key = cursor.getKey();
-        ByteString value = cursor.getValue();
 
         EntryIDSet entryIDSet;
         try
         {
-          entryIDSet = newSetFromBytes(key, value);
+          entryIDSet = cursor.getValue();
         }
         catch (Exception e)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("Malformed ID list: %s%n%s",
-                StaticUtils.bytesToHex(value), keyDump(index.toString(), key));
-          }
+          logger.traceException(e);
+          logger.trace("Malformed ID list: %n%s", keyDump(index.toString(), key));
           continue;
         }
 

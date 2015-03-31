@@ -1301,7 +1301,7 @@ final class Importer implements DiskSpaceMonitorHandler
         if (entryContainer != null && !suffix.getExcludeBranches().isEmpty())
         {
           logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
-          Cursor cursor = txn.openCursor(entryContainer.getDN2ID().getName());
+          Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
             for (DN excludedDN : suffix.getExcludeBranches())
@@ -1365,7 +1365,7 @@ final class Importer implements DiskSpaceMonitorHandler
         if (entryContainer != null && !suffix.getIncludeBranches().isEmpty())
         {
           logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
-          Cursor cursor = txn.openCursor(entryContainer.getDN2ID().getName());
+          Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
             final List<ByteString> includeBranches = includeBranchesAsBytes(suffix);
@@ -2188,7 +2188,7 @@ final class Importer implements DiskSpaceMonitorHandler
       /** Why do we still need this if we are checking parents in the first phase? */
       private boolean checkParent(ReadableTransaction txn, ImportIDSet idSet) throws StorageRuntimeException
       {
-        entryID = new EntryID(idSet.valueToByteString());
+        entryID = idSet.iterator().next();
         parentDN = getParent(idSet.getKey());
 
         //Bypass the cache for append data, lookup the parent in DN2ID and return.
@@ -2958,7 +2958,7 @@ final class Importer implements DiskSpaceMonitorHandler
     public Void call() throws Exception
     {
       ID2Entry id2entry = entryContainer.getID2Entry();
-      Cursor cursor = txn.openCursor(id2entry.getName());
+      Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
       try
       {
         while (cursor.next())

@@ -26,10 +26,13 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +44,11 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.opends.server.backends.pluggable.CursorTransformer.ValueTransformer;
+import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 import org.opends.server.backends.pluggable.IndexBuffer.BufferedIndexValues;
+import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -86,6 +93,8 @@ class Index extends DatabaseContainer
 
   private final State state;
 
+  private final EntryIDSetCodec codec;
+
   /**
    * A flag to indicate if this index should be trusted to be consistent
    * with the entries database. If not trusted, we assume that existing
@@ -121,9 +130,11 @@ class Index extends DatabaseContainer
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
-
     this.state = state;
-    this.trusted = state.getIndexTrustState(txn, this);
+
+    final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
+    this.codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
+    this.trusted = flags.contains(TRUSTED);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there
@@ -142,6 +153,19 @@ class Index extends DatabaseContainer
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
   }
 
+  final Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn) {
+    checkNotNull(txn, "txn must not be null");
+    return CursorTransformer.transformValues(txn.openCursor(getName()),
+        new ValueTransformer<ByteString, ByteString, EntryIDSet, NeverThrowsException>()
+        {
+          @Override
+          public EntryIDSet transform(ByteString key, ByteString value) throws NeverThrowsException
+          {
+            return codec.decode(key, value);
+          }
+        });
+  }
+
   /**
    * Delete the specified import ID set from the import ID set associated with the key.
    *
@@ -154,7 +178,7 @@ class Index extends DatabaseContainer
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if (value != null) {
-      final ImportIDSet importIDSet = new ImportIDSet(key, newSetFromBytes(key, value), indexEntryLimit, maintainCount);
+      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit, maintainCount);
       importIDSet.remove(importIdSet);
       if (importIDSet.isDefined() && importIDSet.size() == 0)
       {
@@ -162,7 +186,7 @@ class Index extends DatabaseContainer
       }
       else
       {
-        value = importIDSet.valueToByteString();
+        value = importIDSet.valueToByteString(codec);
         txn.put(getName(), key, value);
       }
     } else {
@@ -183,16 +207,16 @@ class Index extends DatabaseContainer
     ByteSequence key = importIdSet.getKey();
     ByteString value = txn.read(getName(), key);
     if(value != null) {
-      final ImportIDSet importIDSet = new ImportIDSet(key, newSetFromBytes(key, value), indexEntryLimit, maintainCount);
+      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit, maintainCount);
       if (importIDSet.merge(importIdSet)) {
         entryLimitExceededCount++;
       }
-      value = importIDSet.valueToByteString();
+      value = importIDSet.valueToByteString(codec);
     } else {
       if(!importIdSet.isDefined()) {
         entryLimitExceededCount++;
       }
-      value = importIdSet.valueToByteString();
+      value = importIdSet.valueToByteString(codec);
     }
     txn.put(getName(), key, value);
   }
@@ -236,7 +260,7 @@ class Index extends DatabaseContainer
       ByteString value = txn.read(getName(), key);
       if (value != null)
       {
-        EntryIDSet entryIDSet = newSetFromBytes(key, value);
+        EntryIDSet entryIDSet = codec.decode(key, value);
         if (entryIDSet.isDefined())
         {
           updateKeyWithRMW(txn, key, deletedIDs, addedIDs);
@@ -274,7 +298,7 @@ class Index extends DatabaseContainer
         if (oldValue != null)
         {
           EntryIDSet entryIDSet = computeEntryIDSet(key, oldValue.toByteString(), deletedIDs, addedIDs);
-          ByteString after = entryIDSet.toByteString();
+          ByteString after = codec.encode(entryIDSet);
           /*
            * If there are no more IDs then return null indicating that the record should be removed.
            * If index is not trusted then this will cause all subsequent reads for this key to
@@ -290,7 +314,7 @@ class Index extends DatabaseContainer
           }
           if (isNotEmpty(addedIDs))
           {
-            return addedIDs.toByteString();
+            return codec.encode(addedIDs);
           }
         }
         return null; // no change.
@@ -300,7 +324,7 @@ class Index extends DatabaseContainer
 
   private EntryIDSet computeEntryIDSet(ByteString key, ByteString value, EntryIDSet deletedIDs, EntryIDSet addedIDs)
   {
-    EntryIDSet entryIDSet = newSetFromBytes(key, value);
+    EntryIDSet entryIDSet = codec.decode(key, value);
     if(addedIDs != null)
     {
       if(entryIDSet.isDefined() && indexEntryLimit > 0)
@@ -405,7 +429,7 @@ class Index extends DatabaseContainer
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
-      EntryIDSet entryIDSet = newSetFromBytes(key, value);
+      EntryIDSet entryIDSet = codec.decode(key, value);
       if (entryIDSet.isDefined())
       {
         return ConditionResult.valueOf(entryIDSet.contains(entryID));
@@ -429,7 +453,7 @@ class Index extends DatabaseContainer
       ByteString value = txn.read(getName(), key);
       if (value != null)
       {
-        return newSetFromBytes(key, value);
+        return codec.decode(key, value);
       }
       return trusted ? newDefinedSet() : newUndefinedSet();
     }
@@ -479,7 +503,7 @@ class Index extends DatabaseContainer
 
       ArrayList<EntryIDSet> sets = new ArrayList<EntryIDSet>();
 
-      Cursor cursor = txn.openCursor(getName());
+      Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
       try
       {
         boolean success;
@@ -520,7 +544,7 @@ class Index extends DatabaseContainer
             }
           }
 
-          EntryIDSet set = newSetFromBytes(cursor.getKey(), cursor.getValue());
+          EntryIDSet set = codec.decode(cursor.getKey(), cursor.getValue());
           if (!set.isDefined())
           {
             // There is no point continuing.
@@ -618,7 +642,11 @@ class Index extends DatabaseContainer
   synchronized void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
-    state.putIndexTrustState(txn, this, trusted);
+    if (trusted) {
+      state.addFlagsToIndex(txn, getName(), TRUSTED);
+    } else {
+      state.removeFlagsFromIndex(txn, getName(), TRUSTED);
+    }
   }
 
   synchronized boolean isTrusted()
