@@ -26,6 +26,9 @@ package org.forgerock.opendj.maven.doc;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,16 +36,22 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.forgerock.opendj.ldap.schema.CoreSchemaSupportedLocales;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Generate schema-related reference documentation sources.
@@ -65,7 +74,6 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Locale currentLocale = getLocaleFromTag(locale);
-
         final String localeReference = getLocalesAndSubTypesDocumentation(currentLocale);
         final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.xml");
         try {
@@ -76,6 +84,22 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to create output directory");
         }
+    }
+
+    /**
+     * Returns a DocBook XML Section element documenting supported locales and language subtypes.
+     * @param currentLocale The locale for which to generate the documentation.
+     * @return A DocBook XML Section element documenting supported locales and language subtypes.
+     */
+    private String getLocalesAndSubTypesDocumentation(final Locale currentLocale) {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
+        map.put("lang", getTagFromLocale(currentLocale));
+        map.put("title", DOC_LOCALE_SECTION_TITLE.get());
+        map.put("info", DOC_LOCALE_SECTION_INFO.get());
+        map.put("locales", getLocalesDocMap(currentLocale));
+        map.put("subtypes", getSubTypesDocMap(currentLocale));
+        return applyTemplate("sec-locales-subtypes.ftl", map);
     }
 
     /**
@@ -105,23 +129,61 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     private final Map<String, String> localeTagsToOids =
             CoreSchemaSupportedLocales.getJvmSupportedLocaleNamesToOids();
 
+    /** FreeMarker template configuration. */
+    private Configuration configuration;
+
     /**
-     * Returns a DocBook XML VariableList element documenting supported locales.
-     * @param currentLocale The locale for which to generate the documentation.
-     * @return A DocBook XML VariableList element documenting supported locales.
+     * Returns a FreeMarker configuration for applying templates.
+     * @return A FreeMarker configuration for applying templates.
      */
-    private String getLocalesDocumentation(final Locale currentLocale) {
-        if (currentLocale == null) {
-            return "";
+    private Configuration getConfiguration() {
+        if (configuration == null) {
+            configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+            configuration.setClassForTemplateLoading(GenerateSchemaDocMojo.class, "/templates");
+            configuration.setDefaultEncoding("UTF-8");
+            configuration.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
         }
+        return configuration;
+    }
 
-        class LocaleDoc {
-            String tag;
-            String language;
-            String oid;
+    /**
+     * Returns the String result from applying a FreeMarker template.
+     * @param template The name of a template file found in {@code resources/templates/}.
+     * @param map      The map holding the data to use in the template.
+     * @return The String result from applying a FreeMarker template.
+     */
+    private String applyTemplate(final String template, final Map<String, Object> map) {
+        // FreeMarker requires a configuration to find the template.
+        configuration = getConfiguration();
+
+        // FreeMarker takes the data and a Writer to process the template.
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Writer writer = new OutputStreamWriter(outputStream);
+        try {
+            Template configurationTemplate = configuration.getTemplate(template);
+            configurationTemplate.process(map, writer);
+            return outputStream.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            org.forgerock.util.Utils.closeSilently(writer, outputStream);
         }
+    }
 
-        Map<String, LocaleDoc> locales = new HashMap<String, LocaleDoc>();
+    /** Container for documentation regarding a locale. */
+    private class LocaleDoc {
+        String tag;
+        String language;
+        String oid;
+    }
+
+    /**
+     * Returns a map of languages to Locale documentation containers.
+     * @param currentLocale     The Locale of the resulting documentation.
+     * @return A map of languages to Locale documentation containers.
+     */
+    private Map<String, LocaleDoc> getLanguagesToLocalesMap(final Locale currentLocale) {
+        Map<String, LocaleDoc> locales = new TreeMap<String, LocaleDoc>();
         for (String tag : localeTagsToOids.keySet()) {
             final Locale locale = getLocaleFromTag(tag);
             if (locale == null) {
@@ -134,52 +196,50 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
             if (!localeDoc.language.equals(localeDoc.tag)) {
                 // No display language so must not be supported in current JVM
                 locales.put(localeDoc.language, localeDoc);
-            } else {
-                if (localeDoc.tag.equals("sh")) {
-                    localeDoc.language = DOC_LANGUAGE_SH.get().toString(currentLocale);
-                    locales.put(localeDoc.language, localeDoc);
-                }
+            } else if (localeDoc.tag.equals("sh")) {
+                localeDoc.language = DOC_LANGUAGE_SH.get().toString(currentLocale);
+                locales.put(localeDoc.language, localeDoc);
             }
         }
-        if (locales.isEmpty()) {
-            return "";
-        }
-
-        final String eol = System.getProperty("line.separator");
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder
-                .append(" <variablelist xml:id=\"supported-locales\">").append(eol)
-                .append("  <title>").append(DOC_SUPPORTED_LOCALES_TITLE.get()).append("</title>").append(eol)
-                .append("  <indexterm><primary>").append(DOC_SUPPORTED_LOCALES_INDEXTERM.get())
-                .append("</primary></indexterm>").append(eol);
-        Set<String> sortedLanguages = new TreeSet<String>(locales.keySet());
-        for (String language : sortedLanguages) {
-            LocaleDoc locale = locales.get(language);
-            stringBuilder
-                    .append("  <varlistentry>").append(eol)
-                    .append("   <term>").append(locale.language).append("</term>").append(eol)
-                    .append("   <listitem>").append(eol)
-                    .append("    <para>").append(DOC_LOCALE_TAG.get(locale.tag)).append("</para>").append(eol)
-                    .append("    <para>").append(DOC_LOCALE_OID.get(locale.oid)).append("</para>").append(eol)
-                    .append("   </listitem>").append(eol)
-                    .append("  </varlistentry>").append(eol);
-        }
-        stringBuilder.append(" </variablelist>").append(eol);
-        return stringBuilder.toString();
+        return locales;
     }
 
     /**
-     * Returns a DocBook XML ItemizedList element documenting supported language subtypes.
-     * @param currentLocale The locale for which to generate the documentation.
-     * @return A DocBook XML ItemizedList element documenting supported language subtypes.
+     * Returns a map of information for documenting supported locales.
+     * @param currentLocale The locale for which to generate the information.
+     * @return A map of information for documenting supported locales.
      */
-    private String getSubTypesDocumentation(final Locale currentLocale) {
-        if (currentLocale == null) {
-            return "";
+    private Map<String, Object> getLocalesDocMap(final Locale currentLocale) {
+        final Map<String, Object> result = new HashMap<String, Object>();
+        result.put("title", DOC_SUPPORTED_LOCALES_TITLE.get());
+        result.put("indexTerm", DOC_SUPPORTED_LOCALES_INDEXTERM.get());
+        final Map<String, LocaleDoc> localesMap = getLanguagesToLocalesMap(currentLocale);
+        final Set<String> sortedLanguages = localesMap.keySet();
+        final List<Map<String, Object>> locales = new LinkedList<Map<String, Object>>();
+        for (final String language : sortedLanguages) {
+            final LocaleDoc locale = localesMap.get(language);
+            final Map<String, Object> map = new HashMap<String, Object>();
+            map.put("language", locale.language);
+            map.put("tag", DOC_LOCALE_TAG.get(locale.tag));
+            map.put("oid", DOC_LOCALE_OID.get(locale.oid));
+            locales.add(map);
         }
+        result.put("locales", locales);
+        return result;
+    }
 
-        Map<String, String> map = new TreeMap<String, String>();
-        for (String tag : localeTagsToOids.keySet()) {
+    /**
+     * Returns a map of information for documenting supported language subtypes.
+     * @param currentLocale The locale for which to generate the information.
+     * @return A map of information for documenting supported language subtypes.
+     */
+    private Map<String, Object> getSubTypesDocMap(final Locale currentLocale) {
+        final Map<String, Object> result = new HashMap<String, Object>();
+        result.put("title", DOC_SUPPORTED_SUBTYPES_TITLE.get());
+        result.put("indexTerm", DOC_SUPPORTED_SUBTYPES_INDEXTERM.get());
+        final List<Map<String, Object>> locales = new LinkedList<Map<String, Object>>();
+        for (final String tag : localeTagsToOids.keySet()) {
+            final Map<String, Object> map = new HashMap<String, Object>();
             int idx = tag.indexOf('-');
             if (idx == -1) {
                 final Locale locale = getLocaleFromTag(tag);
@@ -188,48 +248,19 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
                 }
                 final String language = locale.getDisplayName(currentLocale);
                 if (!language.equals(tag)) {
-                    map.put(language, tag);
-                } else {
-                    if (tag.equals("sh")) {
-                        map.put(DOC_LANGUAGE_SH.get().toString(currentLocale), tag);
-                    }
+                    map.put("language", language);
+                    map.put("tag", tag);
+                } else if (tag.equals("sh")) {
+                    map.put("language", DOC_LANGUAGE_SH.get().toString(currentLocale));
+                    map.put("tag", tag);
+                }
+                if (!map.isEmpty()) {
+                    locales.add(map);
                 }
             }
         }
-
-        final String eol = System.getProperty("line.separator");
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(" <itemizedlist xml:id=\"supported-language-subtypes\">").append(eol)
-                .append("  <title>").append(DOC_SUPPORTED_SUBTYPES_TITLE.get()).append("</title>").append(eol)
-                .append("  <indexterm><primary>").append(DOC_SUPPORTED_SUBTYPES_INDEXTERM.get())
-                .append("</primary></indexterm>").append(eol);
-        for (String language: map.keySet()) {
-            stringBuilder
-                    .append("  <listitem><para>").append(language).append(", ")
-                    .append(map.get(language)).append("</para></listitem>").append(eol);
-        }
-        stringBuilder.append(" </itemizedlist>").append(eol);
-        return stringBuilder.toString();
-    }
-
-    /**
-     * Returns a DocBook XML Section element documenting supported locales and language subtypes.
-     * @param currentLocale The locale for which to generate the documentation.
-     * @return A DocBook XML Section element documenting supported locales and language subtypes.
-     */
-    private String getLocalesAndSubTypesDocumentation(final Locale currentLocale) {
-        final String eol = System.getProperty("line.separator");
-        return "<section xml:id=\"sec-locales-subtypes\" "
-                + "xmlns=\"http://docbook.org/ns/docbook\" version=\"5.0\" "
-                + "xml:lang=\"" + getTagFromLocale(currentLocale) + "\" "
-                + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                + "xsi:schemaLocation=\"http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd\""
-                + ">" + eol
-                + " <title>" + DOC_LOCALE_SECTION_TITLE.get() + "</title>" + eol
-                + " <para>" + DOC_LOCALE_SECTION_INFO.get() + "</para>" + eol
-                + getLocalesDocumentation(currentLocale) + eol
-                + getSubTypesDocumentation(currentLocale) + eol
-                + "</section>";
+        result.put("locales", locales);
+        return result;
     }
 
     /**
