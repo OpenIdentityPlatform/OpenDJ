@@ -34,9 +34,14 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.forgerock.util.Utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,10 +50,14 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Generate DocBook RefEntry source documents for command-line tools man pages.
@@ -164,6 +173,14 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             throw new MojoExecutionException(toolClass + " interrupted", e);
         } catch (IOException e) {
             throw new MojoExecutionException(toolClass + " not found", e);
+        }
+
+        if (tool.getName().equals("dsconfig")) {
+            try {
+                splitPage(manPage);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to split "  + manPage.getName(), e);
+            }
         }
     }
 
@@ -287,9 +304,80 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                 writer.write(EOL);
             }
         } finally {
-            if (writer != null) {
-                writer.close();
+            Utils.closeSilently(writer);
+        }
+    }
+
+    /**
+     * Splits the content of a single man page into multiple pages.
+     * <br>
+     * RefEntry elements must be separated with a marker:
+     * {@code @@@scriptName + "-" + subCommand.getName() + @@@}.
+     *
+     * @param page          The page to split.
+     * @throws IOException  Failed to split the page.
+     */
+    private void splitPage(final File page) throws IOException {
+        // Read from a copy of the page.
+        final File pageCopy = new File(page.getPath() + ".tmp");
+        copyFile(page, pageCopy);
+        final BufferedReader reader = new BufferedReader(new FileReader(pageCopy));
+        try {
+            // Write first to the page, then to pages named according to marker values.
+            File output = page;
+            getLog().info("Rewriting man page: " + page.getPath());
+            final Pattern marker = Pattern.compile("@@@(.+?)@@@");
+            final StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                final Matcher matcher = marker.matcher(line);
+                if (matcher.find()) {
+                    writeToFile(builder.toString(), output);
+                    builder.setLength(0);
+                    output = new File(page.getParentFile(), "man-" + matcher.group(1) + ".xml");
+                    getLog().info("Writing man page: " + output.getPath());
+                } else {
+                    builder.append(line).append(System.getProperty("line.separator"));
+                }
             }
+            writeToFile(builder.toString(), output);
+            if (!pageCopy.delete()) {
+                throw new IOException("Failed to delete " +  pageCopy.getName());
+            }
+        } finally {
+            Utils.closeSilently(reader);
+        }
+    }
+
+    /**
+     * Writes the content of the input to the output file.
+     * @param input         The UTF-8 input to write.
+     * @param output        The file to write it to.
+     * @throws IOException  Failed to write the content of the input.
+     */
+    private void writeToFile(final String input, final File output) throws IOException {
+        InputStream is = new ByteArrayInputStream(input.getBytes(Charset.forName("UTF-8")));
+        writeToFile(is, output);
+    }
+
+    /**
+     * Copies the content of the original file to the copy.
+     * @param original      The original file.
+     * @param copy          The copy.
+     * @throws IOException  Failed to make the copy.
+     */
+    private void copyFile(File original, File copy) throws IOException {
+        if (!copy.exists() && !copy.createNewFile()) {
+            throw new IOException("Failed to create " + copy);
+        }
+        FileChannel in  = null;
+        FileChannel out = null;
+        try {
+            in  = new FileInputStream(original).getChannel();
+            out = new FileOutputStream(copy).getChannel();
+            out.transferFrom(in, 0, in.size());
+        } finally {
+            Utils.closeSilently(in, out);
         }
     }
 }

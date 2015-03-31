@@ -24,20 +24,13 @@
  #      Copyright 2015 ForgeRock AS.
  #
  #-->
-<refsect1 xml:id="${name}-subcommands">
-  <title>Subcommands</title>
-
-  <#if info??>
-    ${info}
-  </#if>
-
-  <para>
-   The <command>${name}</command> utility supports the following subcommands.
-  </para>
-
-  <#if isItemizedList??><itemizedlist></#if>
-  <#list subcommands as subcommand>
-   ${subcommand}
-  </#list>
-  <#if isItemizedList??></itemizedlist></#if>
-</refsect1>
+<listitem>
+ <para>
+  <link
+   <#-- Link to the Reference. Change this if the pages move to another document. -->
+   xlink:href="reference#${id}"
+   xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:show="new"
+  ><command>${name}</command></link>: ${description}
+ </para>
+</listitem>

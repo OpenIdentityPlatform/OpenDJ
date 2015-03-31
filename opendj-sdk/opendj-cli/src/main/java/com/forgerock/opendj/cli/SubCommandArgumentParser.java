@@ -396,7 +396,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     @Override
     public void setUsageArgument(Argument argument, OutputStream outputStream) {
         super.setUsageArgument(argument, outputStream);
-        usageGroupArguments.put(argument, Collections.<SubCommand> emptySet());
+        usageGroupArguments.put(argument, Collections.<SubCommand>emptySet());
     }
 
     /**
@@ -1127,7 +1127,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Appends a generated DocBook XML RefEntry (man page) to the StringBuilder.
+     * Appends one or more generated DocBook XML RefEntry elements (man pages) to the StringBuilder.
+     * <br>
+     * If the result contains more than one RefEntry,
+     * then the RefEntry elements are separated with a marker:
+     * {@code @@@scriptName + "-" + subCommand.getName() + @@@}.
      *
      * @param builder       Append the RefEntry element to this.
      * @param subCommands   Collection of subcommands for this tool.
@@ -1155,6 +1159,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
         map.put("subcommands", toRefSect1(scriptName, subCommands));
         map.put("trailingSectionString", System.getProperty("org.forgerock.opendj.gendoc.trailing"));
         applyTemplate(builder, "refEntry.ftl", map);
+
+        // For dsconfig, generate one page per subcommand.
+        if (scriptName.equals("dsconfig")) {
+            appendSubCommandPages(builder, scriptName, subCommands);
+        }
     }
 
     /**
@@ -1171,15 +1180,38 @@ public class SubCommandArgumentParser extends ArgumentParser {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("name", scriptName);
         map.put("info", getDocSubcommandsDescriptionSupplement());
-
+        if (scriptName.equals("dsconfig")) {
+            // Break dsconfig into multiple pages, so use only the list here.
+            map.put("isItemizedList", true);
+        }
         List<String> scUsageList = new ArrayList<String>();
         for (SubCommand subCommand : subCommands) {
-            scUsageList.add(toRefSect2(scriptName, subCommand));
+            if (scriptName.equals("dsconfig")) {
+                scUsageList.add(getSubCommandListItem(scriptName, subCommand));
+            } else {
+                scUsageList.add(toRefSect2(scriptName, subCommand));
+            }
         }
         map.put("subcommands", scUsageList);
 
         StringBuilder sb = new StringBuilder();
         applyTemplate(sb, "refSect1.ftl", map);
+        return sb.toString();
+    }
+
+    /**
+     * Returns a DocBook XML ListItem element linking to the subcommand page.
+     * @param scriptName    The name of this script.
+     * @param subCommand    The SubCommand to reference.
+     * @return A DocBook XML ListItem element linking to the subcommand page.
+     */
+    private String getSubCommandListItem(String scriptName, SubCommand subCommand) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id", scriptName + "-" + subCommand.getName());
+        map.put("name", scriptName + " " + subCommand.getName());
+        map.put("description", subCommand.getDescription());
+        StringBuilder sb = new StringBuilder();
+        applyTemplate(sb, "dscfgListItem.ftl", map);
         return sb.toString();
     }
 
@@ -1203,6 +1235,22 @@ public class SubCommandArgumentParser extends ArgumentParser {
         // If there is a supplement to the description for this subcommand,
         // then it is already DocBook XML, so use it as is.
         map.put("info", subCommand.getDocDescriptionSupplement());
+        setSubCommandOptionsInfo(map, subCommand);
+
+        StringBuilder sb = new StringBuilder();
+        applyTemplate(sb, "refSect2.ftl", map);
+        return sb.toString();
+    }
+
+    /**
+     * Sets information for the subcommand options in the map.
+     * <br>
+     * The map is expected to be used in a FreeMarker template to generate docs.
+     *
+     * @param map           The map in which to set the information.
+     * @param subCommand    The subcommand containing the information.
+     */
+    private void setSubCommandOptionsInfo(Map<String, Object> map, SubCommand subCommand) {
         if (!subCommand.getArguments().isEmpty()) {
             List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
             String nameOption = null;
@@ -1236,9 +1284,62 @@ public class SubCommandArgumentParser extends ArgumentParser {
         if (subCommandUsageHandler != null) {
             map.put("propertiesInfo", subCommandUsageHandler.getProperties(subCommand));
         }
+    }
 
-        StringBuilder sb = new StringBuilder();
-        applyTemplate(sb, "refSect2.ftl", map);
-        return sb.toString();
+    /**
+     * Appends a generated DocBook XML RefEntry element for each subcommand to the StringBuilder.
+     * <br>
+     * The RefEntry elements are separated with a marker:
+     * {@code @@@scriptName + "-" + subCommand.getName() + @@@}.
+     *
+     * @param builder       Append the RefEntry elements to this.
+     * @param scriptName    The name of the tool with subcommands.
+     * @param subCommands   SubCommands containing reference information.
+     */
+    private void appendSubCommandPages(StringBuilder builder, String scriptName, Collection<SubCommand> subCommands) {
+        for (SubCommand subCommand : subCommands) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("marker", "@@@" + scriptName + "-" + subCommand.getName() + "@@@");
+            map.put("locale", Locale.getDefault().getLanguage());
+            map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
+            map.put("id", scriptName + "-" + subCommand.getName());
+            map.put("name", scriptName + " " + subCommand.getName());
+            map.put("purpose", subCommand.getDescription());
+            map.put("args", INFO_SUBCMDPARSER_OPTIONS.get());
+            map.put("descTitle", REF_TITLE_DESCRIPTION.get());
+            map.put("description", subCommand.getDescription());
+            map.put("info", subCommand.getDocDescriptionSupplement());
+            map.put("optionsTitle", REF_TITLE_OPTIONS.get());
+            map.put("optionsIntro", REF_INTRO_OPTIONS.get(scriptName + " " + subCommand.getName()));
+            setSubCommandOptionsInfo(map, subCommand);
+            applyTemplate(builder, "dscfgSubcommand.ftl", map);
+        }
+        appendSubCommandReference(builder, scriptName, subCommands);
+    }
+
+    /**
+     * Appends a generated DocBook XML Reference element XIncluding subcommands.
+     *
+     * @param builder       Append the Reference element to this.
+     * @param scriptName    The name of the tool with subcommands.
+     * @param subCommands   SubCommands containing reference information.
+     */
+    private void appendSubCommandReference(StringBuilder builder,
+                                           String scriptName,
+                                           Collection<SubCommand> subCommands) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("marker", "@@@" + scriptName + "-subcommands-ref" + "@@@");
+        map.put("name", scriptName);
+        map.put("locale", Locale.getDefault().getLanguage());
+        map.put("title", REF_PART_TITLE_SUBCOMMANDS.get(scriptName));
+        map.put("partintro", REF_PART_INTRO_SUBCOMMANDS.get(scriptName));
+        List<Map<String, Object>> commands = new LinkedList<Map<String, Object>>();
+        for (SubCommand subCommand : subCommands) {
+            Map<String, Object> scMap = new HashMap<String, Object>();
+            scMap.put("id", scriptName + "-" + subCommand.getName());
+            commands.add(scMap);
+        }
+        map.put("subcommands", commands);
+        applyTemplate(builder, "dscfgReference.ftl", map);
     }
 }
