@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -422,16 +422,16 @@ public final class Entries {
                 // and removed. We won't replace the attribute because this is
                 // not
                 // reversible.
-                final Attribute addedValues = new LinkedAttribute(ato);
-                addedValues.removeAll(afrom);
-                if (!addedValues.isEmpty()) {
-                    request.addModification(new Modification(ModificationType.ADD, addedValues));
-                }
-
                 final Attribute deletedValues = new LinkedAttribute(afrom);
                 deletedValues.removeAll(ato);
                 if (!deletedValues.isEmpty()) {
                     request.addModification(new Modification(ModificationType.DELETE, deletedValues));
+                }
+
+                final Attribute addedValues = new LinkedAttribute(ato);
+                addedValues.removeAll(afrom);
+                if (!addedValues.isEmpty()) {
+                    request.addModification(new Modification(ModificationType.ADD, addedValues));
                 }
 
                 afrom = ifrom.hasNext() ? ifrom.next() : null;

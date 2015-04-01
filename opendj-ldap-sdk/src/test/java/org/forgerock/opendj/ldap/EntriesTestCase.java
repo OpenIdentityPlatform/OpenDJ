@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *       *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -151,24 +152,24 @@ public final class EntriesTestCase extends SdkTestCase {
             "bothDifferentAdds: toOnly1",
             "bothDifferentAdds: toOnly2",
             "-",
-            "add: bothDifferentAddsAndDeletes",
-            "bothDifferentAddsAndDeletes: toOnly",
-            "-",
             "delete: bothDifferentAddsAndDeletes",
             "bothDifferentAddsAndDeletes: fromOnly",
+            "-",
+            "add: bothDifferentAddsAndDeletes",
+            "bothDifferentAddsAndDeletes: toOnly",
             "-",
             "delete: bothDifferentDeletes",
             "bothDifferentDeletes: fromOnly1",
             "bothDifferentDeletes: fromOnly2",
             "-",
-            "add: bothDifferentReplace",
-            "bothDifferentReplace: toOnly1",
-            "bothDifferentReplace: toOnly2",
-            "-",
             "delete: bothDifferentReplace",
             "bothDifferentReplace: fromOnly1",
             "bothDifferentReplace: fromOnly2",
             "-",
+            "add: bothDifferentReplace",
+            "bothDifferentReplace: toOnly1",
+            "bothDifferentReplace: toOnly2",
+             "-",
             "delete: fromOnly",
             "fromOnly: fromOnlyValue",
             "-",
