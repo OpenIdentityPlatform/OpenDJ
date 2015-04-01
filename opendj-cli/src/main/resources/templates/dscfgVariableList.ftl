@@ -28,7 +28,7 @@
 
 <#list properties as property>
 
-  <varlistentry xml:id="${property.id}">
+  <varlistentry>
     <term>${property.term}</term>
     <listitem>
       <variablelist>

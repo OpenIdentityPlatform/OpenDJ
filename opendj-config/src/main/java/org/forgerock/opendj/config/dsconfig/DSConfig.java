@@ -177,7 +177,7 @@ public final class DSConfig extends ConsoleApplication {
                 child.put("default", REF_DSCFG_CHILD_DEFAULT.get(placeholder, childDefn.getUserFriendlyName()));
                 child.put("enabled", REF_DSCFG_CHILD_ENABLED_BY_DEFAULT.get(propertyExists(childDefn, "enabled")));
 
-                final String link = getLink(getScriptName() + "-" + sc.getName() + "-" + defn.getName());
+                final String link = getLink(getScriptName() + "-" + sc.getName() + "-" + childDefn.getName());
                 child.put("link", REF_DSCFG_CHILD_LINK.get(link, defn.getUserFriendlyName()));
 
                 children.add(child);
@@ -213,7 +213,7 @@ public final class DSConfig extends ConsoleApplication {
                 map.put("id", propPrefix);
                 map.put("title", childDefn.getUserFriendlyName());
                 map.put("intro", REF_DSCFG_PROPS_INTRO.get(defn.getUserFriendlyPluralName(), childDefn.getName()));
-                map.put("list", toVariableList(props, defn, propPrefix));
+                map.put("list", toVariableList(props, defn));
                 applyTemplate(sb, "dscfgAppendProps.ftl", map);
             }
             return sb.toString();
@@ -268,15 +268,13 @@ public final class DSConfig extends ConsoleApplication {
             return null;
         }
 
-        private String toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn,
-                String propPrefix) {
+        private String toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn) {
             StringBuilder b = new StringBuilder();
             Map<String, Object> map = new HashMap<String, Object>();
 
             List<Map<String, Object>> properties = new LinkedList<Map<String, Object>>();
             for (PropertyDefinition<?> prop : props) {
                 Map<String, Object> property = new HashMap<String, Object>();
-                property.put("id", propPrefix + "-" + prop.getName());
                 property.put("term", prop.getName());
                 property.put("descTitle", REF_TITLE_DESCRIPTION.get());
                 property.put("description", getDescriptionString(prop));
@@ -410,8 +408,8 @@ public final class DSConfig extends ConsoleApplication {
                 public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
                     b.append(op);
                     final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
-                    final String linkStr = getLink(rel.getName());
-                    b.append(REF_DSCFG_AGGREGATION.get(linkStr)).append(". ");
+                    final String relFriendlyName = rel.getUserFriendlyName().toString();
+                    b.append(REF_DSCFG_AGGREGATION.get(relFriendlyName)).append(". ");
                     final LocalizableMessage synopsis = prop.getSourceConstraintSynopsis();
                     if (synopsis != null) {
                         b.append(synopsis);
