@@ -763,7 +763,7 @@ public class ArgumentParser implements ToolRefDocContainer {
         map.put("shortDesc", getShortToolDescription());
         map.put("descTitle", REF_TITLE_DESCRIPTION.get());
         map.put("args", synopsisArgs);
-        map.put("description", getToolDescription());
+        map.put("description", eolToNewPara(getToolDescription()));
         map.put("info", getDocToolDescriptionSupplement());
         if (!argList.isEmpty()) {
             map.put("optionSection", getOptionsRefSect1(scriptName));
@@ -773,6 +773,14 @@ public class ArgumentParser implements ToolRefDocContainer {
         applyTemplate(builder, "refEntry.ftl", map);
     }
 
+    /**
+     * Returns a String with line separators replaced by {@code &lt;/para>&lt;para>}.
+     * @param input String in which to replace line separators.
+     * @return A String with line separators replaced by {@code &lt;/para>&lt;para>}.
+     */
+    String eolToNewPara(final LocalizableMessage input) {
+        return input.toString().replaceAll(EOL, "</para><para>");
+    }
 
     /**
      * Returns a generated DocBook XML RefSect1 element for all command options.
@@ -795,7 +803,7 @@ public class ArgumentParser implements ToolRefDocContainer {
             if (argGroup.containsArguments() && printHeaders) {
                 LocalizableMessage description = argGroup.getDescription();
                 if (description != LocalizableMessage.EMPTY) {
-                    group.put("description", argGroup.getDescription());
+                    group.put("description", eolToNewPara(description));
                 } else {
                     group.put("description", INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
                 }
@@ -844,7 +852,7 @@ public class ArgumentParser implements ToolRefDocContainer {
     private Map<String, Object> getArgumentMap(final Argument a) {
         Map<String, Object> option = new HashMap<String, Object>();
         option.put("synopsis", getOptionSynopsis(a));
-        option.put("description", a.getDescription());
+        option.put("description", eolToNewPara(a.getDescription()));
         String dv = a.getDefaultValue();
         option.put("default", dv != null ? REF_DEFAULT.get(dv) : null);
         option.put("info", a.getDocDescriptionSupplement());

@@ -1151,7 +1151,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         map.put("shortDesc", getShortToolDescription());
         map.put("descTitle", REF_TITLE_DESCRIPTION.get());
         map.put("args", getSynopsisArgs());
-        map.put("description", getToolDescription());
+        map.put("description", eolToNewPara(getToolDescription()));
         map.put("info", getDocToolDescriptionSupplement());
         if (!globalArgumentList.isEmpty()) {
             map.put("optionSection", getOptionsRefSect1(scriptName));
@@ -1209,7 +1209,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", scriptName + "-" + subCommand.getName());
         map.put("name", scriptName + " " + subCommand.getName());
-        map.put("description", subCommand.getDescription());
+        map.put("description", eolToNewPara(subCommand.getDescription()));
         StringBuilder sb = new StringBuilder();
         applyTemplate(sb, "dscfgListItem.ftl", map);
         return sb.toString();
@@ -1228,7 +1228,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         map.put("id", scriptName + "-" + subCommand.getName());
         final String name = scriptName + " " + subCommand.getName();
         map.put("name", name);
-        map.put("description", subCommand.getDescription());
+        map.put("description", eolToNewPara(subCommand.getDescription()));
         map.put("optionsTitle", REF_TITLE_OPTIONS.get());
         map.put("optionsIntro", REF_INTRO_OPTIONS.get(name));
 
@@ -1258,7 +1258,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 Map<String, Object> option = new HashMap<String, Object>();
                 String optionSynopsis = getOptionSynopsis(a);
                 option.put("synopsis", optionSynopsis);
-                option.put("description", a.getDescription());
+                option.put("description", eolToNewPara(a.getDescription()));
                 Map<String, Object> info = new HashMap<String, Object>();
                 if (subCommandUsageHandler != null) {
                     if (!doesHandleProperties(a)) {
@@ -1304,10 +1304,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
             map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
             map.put("id", scriptName + "-" + subCommand.getName());
             map.put("name", scriptName + " " + subCommand.getName());
-            map.put("purpose", subCommand.getDescription());
+            map.put("purpose", eolToNewPara(subCommand.getDescription()));
             map.put("args", INFO_SUBCMDPARSER_OPTIONS.get());
             map.put("descTitle", REF_TITLE_DESCRIPTION.get());
-            map.put("description", subCommand.getDescription());
+            map.put("description", eolToNewPara(subCommand.getDescription()));
             map.put("info", subCommand.getDocDescriptionSupplement());
             map.put("optionsTitle", REF_TITLE_OPTIONS.get());
             map.put("optionsIntro", REF_INTRO_OPTIONS.get(scriptName + " " + subCommand.getName()));
