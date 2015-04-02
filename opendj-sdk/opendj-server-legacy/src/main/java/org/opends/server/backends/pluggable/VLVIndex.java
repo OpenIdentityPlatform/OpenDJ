@@ -607,7 +607,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
       final ByteStringBuilder encodedPrimaryKey = new ByteStringBuilder(assertion.length() + 10);
       final MatchingRule matchingRule = primarySortKey.getAttributeType().getOrderingMatchingRule();
       final ByteString normalizedAttributeValue = matchingRule.normalizeAttributeValue(assertion);
-      encodeVLVKeyValue(primarySortKey, normalizedAttributeValue, encodedPrimaryKey);
+      encodeVLVKeyValue(normalizedAttributeValue, encodedPrimaryKey, primarySortKey.ascending());
       return encodedPrimaryKey;
     }
     catch (final DecodeException e)
@@ -803,29 +803,53 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
           }
         }
       }
-      encodeVLVKeyValue(sortKey, sortValue, builder);
+      encodeVLVKeyValue(sortValue, builder, sortKey.ascending());
     }
   }
 
-  private static void encodeVLVKeyValue(final SortKey sortKey, final ByteString normalizedAttributeValue,
-      final ByteStringBuilder builder)
+  /**
+   * Package private for testing.
+   * <p>
+   * Keys are logically encoded as follows:
+   * <ul>
+   * <li>if the key is {@code null} then append {@code 0xff} in order to ensure that all
+   * {@code null} keys sort after non-{@code null} keys in ascending order
+   * <li>else
+   * <ul>
+   * <li>escape any bytes that look like a separator byte ({@code 0x00}) or a separator escape byte
+   * ({@code 0x01}) by prefixing the byte with a separator escape byte ({@code 0x01})
+   * <li>escape the first byte if it looks like a null key byte ({@code 0xff}) or a null key escape
+   * byte ({@code 0xfe}) by prefixing the byte with a null key escape byte ({@code 0xfe})
+   * </ul>
+   * <li>append a separator byte ({@code 0x00}) which will be used for distinguishing between the
+   * end of the key and the start of the next key
+   * <li>invert all the bytes if the sort order is descending.
+   * </ul>
+   */
+  static void encodeVLVKeyValue(final ByteString keyBytes, final ByteStringBuilder builder,
+      final boolean ascending)
   {
-    final boolean ascending = sortKey.ascending();
     final byte separator = ascending ? (byte) 0x00 : (byte) 0xff;
-    if (normalizedAttributeValue != null)
+    if (keyBytes != null)
     {
-      // Ensure that all keys sort before (ascending) or after (descending) missing keys.
-      builder.append(separator);
-
       final byte escape = ascending ? (byte) 0x01 : (byte) 0xfe;
       final byte sortOrderMask = separator;
-      final int length = normalizedAttributeValue.length();
+      final int length = keyBytes.length();
       for (int i = 0; i < length; i++)
       {
-        final byte b = normalizedAttributeValue.byteAt(i);
-        if (b == separator || b == escape)
+        final byte b = keyBytes.byteAt(i);
+        if ((b & (byte) 0x01) == b)
         {
+          // Escape bytes that look like a separator.
           builder.append(escape);
+        }
+        else if (i == 0 && (b & (byte) 0xfe) == (byte) 0xfe)
+        {
+          /*
+           * Ensure that all keys sort before (ascending) or after (descending) null keys, by
+           * escaping the first byte if it looks like a null key.
+           */
+          builder.append((byte) ~escape);
         }
         // Invert the bits if this key is in descending order.
         builder.append((byte) (b ^ sortOrderMask));
@@ -833,7 +857,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
     }
     else
     {
-      // Ensure that missing keys sort after (ascending) or before (descending) all other keys.
+      // Ensure that null keys sort after (ascending) or before (descending) all other keys.
       builder.append(ascending ? (byte) 0xff : (byte) 0x00);
     }
     builder.append(separator);
