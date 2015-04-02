@@ -3237,7 +3237,6 @@ public class EntryContainer
     {
       return sortByOffset(searchOperation, vlvRequest, sortMap);
     }
-
     return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortOrder, sortMap);
   }
 
@@ -3295,7 +3294,7 @@ public class EntryContainer
     if (targetFound)
     {
       final long[] array = new long[index - startIndex];
-      System.arraycopy(idSet, startIndex, array, 0, index);
+      System.arraycopy(idSet, startIndex, array, 0, array.length);
       result = newDefinedSet(array);
     }
     else
