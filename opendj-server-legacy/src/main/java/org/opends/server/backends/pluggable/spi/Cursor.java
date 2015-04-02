@@ -84,14 +84,6 @@ public interface Cursor<K,V> extends Closeable
   boolean next();
 
   /**
-   * Moves this cursor to the previous record in the tree.
-   *
-   * @return {@code true} if the cursor could move to the previous record,
-   *         {@code false} if no previous record exists
-   */
-  boolean previous();
-
-  /**
    * Returns the key of the record on which this cursor is currently positioned.
    *
    * @return the current record's key,
