@@ -133,6 +133,7 @@
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
 
     <!-- START Documentation properties -->
+    <shortProductName>OpenDJ</shortProductName>
     <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
@@ -190,15 +191,8 @@
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
-        <version>${frDocPluginVersion}</version>
         <inherited>false</inherited>
         <configuration>
-         <!-- Standard configuration -->
-         <projectName>OpenDJ</projectName>
-         <projectVersion>${docTargetVersion}</projectVersion>
-         <releaseVersion>${docTargetVersion}</releaseVersion>
-         <googleAnalyticsId>${gaId}</googleAnalyticsId>
-
          <!-- JCite SDK Example code -->
          <jCiteSourcePaths>
            <jCiteSourcePath>${project.basedir}/opendj-ldap-sdk-examples/src/main/java</jCiteSourcePath>
@@ -206,32 +200,32 @@
         </configuration>
         <executions>
           <execution>
-           <id>pre-process-doc</id>
-           <phase>pre-site</phase>
-           <goals>
-            <goal>process</goal>
-           </goals>
+            <id>pre-process-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>process</goal>
+            </goals>
           </execution>
           <execution>
-           <id>build-doc</id>
-           <phase>pre-site</phase>
-           <goals>
-            <goal>build</goal>
-           </goals>
+            <id>build-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
           </execution>
           <execution>
-           <id>layout-site</id>
-           <phase>site</phase>
-           <goals>
-            <goal>site</goal>
-           </goals>
+            <id>layout-doc</id>
+            <phase>site</phase>
+            <goals>
+              <goal>site</goal>
+            </goals>
           </execution>
           <execution>
-           <id>layout-release</id>
-           <phase>site</phase>
-           <goals>
-            <goal>release</goal>
-           </goals>
+            <id>layout-release</id>
+            <phase>site</phase>
+            <goals>
+              <goal>release</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -389,6 +383,19 @@
                     </goals>
                 </execution>
             </executions>
+        </plugin>
+
+        <!-- Provides build capabilities for docs in DocBook XML format. -->
+        <plugin>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-doc-maven-plugin</artifactId>
+            <version>${frDocPluginVersion}</version>
+            <configuration>
+                <projectName>${shortProductName}</projectName>
+                <projectVersion>${docTargetVersion}</projectVersion>
+                <releaseVersion>${docTargetVersion}</releaseVersion>
+                <googleAnalyticsId>${gaId}</googleAnalyticsId>
+            </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
