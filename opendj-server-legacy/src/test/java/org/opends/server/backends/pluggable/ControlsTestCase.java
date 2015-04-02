@@ -43,6 +43,7 @@ import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -166,6 +167,76 @@ public class ControlsTestCase extends DirectoryServerTestCase
     when(vlvIndexCfg.getScope()).thenReturn(Scope.WHOLE_SUBTREE);
     when(vlvIndexCfg.getSortOrder()).thenReturn(sortOrder);
     when(backendCfg.getBackendVLVIndex(sortOrder)).thenReturn(vlvIndexCfg);
+  }
+
+  @DataProvider
+  private Object[][] encodedKeyDataProvider()
+  {
+    // @formatter:off
+    return new Object[][] {
+      // Null keys sort after everything else.
+      { null,           null,           0 },
+      { "",             null,          -1 },
+      { null,           "",             1 },
+      { "00",           null,          -1 },
+      { null,           "00",           1 },
+      { "ff",           null,          -1 },
+      { null,           "ff",           1 },
+
+      // Empty keys sort before everything else.
+      { "",             "",             0 },
+      { "00",           "",             1 },
+      { "",             "00",          -1 },
+      { "ff",           "",             1 },
+      { "",             "ff",          -1 },
+
+      // Bytes comparisons are unsigned.
+      { "00",           "00",           0 },
+      { "00",           "ff",          -1 },
+      { "ff",           "00",           1 },
+      { "ff",           "ff",           0 },
+
+      // Short keys sort before long keys.
+      { "0000",         "00",           1 },
+      { "00",           "0000",        -1 },
+      { "ffff",         "ff",           1 },
+      { "ff",           "ffff",        -1 },
+      { "0000",         "0000",         0 },
+      { "ffff",         "ffff",         0 },
+      { "0000",         "ffff",        -1 },
+      { "ffff",         "0000",         1 },
+    };
+    // @formatter:on
+  }
+
+  @Test(dataProvider = "encodedKeyDataProvider")
+  public void vlvKeyEncodingGenerateCorrectAscendingSortOrder(String key1, String key2, int expectedCompareResult)
+  {
+    ByteString bytes1 = key1 != null ? ByteString.valueOfHex(key1) : null;
+    ByteStringBuilder encodedBytes1 = new ByteStringBuilder();
+    VLVIndex.encodeVLVKeyValue(bytes1, encodedBytes1, true);
+
+    ByteString bytes2 = key2 != null ? ByteString.valueOfHex(key2) : null;
+    ByteStringBuilder encodedBytes2 = new ByteStringBuilder();
+    VLVIndex.encodeVLVKeyValue(bytes2, encodedBytes2, true);
+
+    int actualResult = Math.min(Math.max(encodedBytes1.compareTo(encodedBytes2), -1), 1);
+    assertThat(actualResult).isEqualTo(expectedCompareResult);
+  }
+
+  @Test(dataProvider = "encodedKeyDataProvider")
+  public void vlvKeyEncodingGenerateCorrectDescendingSortOrder(String key1, String key2, int expectedCompareResult)
+  {
+    ByteString bytes1 = key1 != null ? ByteString.valueOfHex(key1) : null;
+    ByteStringBuilder encodedBytes1 = new ByteStringBuilder();
+    VLVIndex.encodeVLVKeyValue(bytes1, encodedBytes1, false);
+
+    ByteString bytes2 = key2 != null ? ByteString.valueOfHex(key2) : null;
+    ByteStringBuilder encodedBytes2 = new ByteStringBuilder();
+    VLVIndex.encodeVLVKeyValue(bytes2, encodedBytes2, false);
+
+    int actualResult = Math.min(Math.max(encodedBytes1.compareTo(encodedBytes2), -1), 1);
+    assertThat(actualResult).isEqualTo(-expectedCompareResult);
   }
 
   @DataProvider
