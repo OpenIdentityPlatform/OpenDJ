@@ -527,43 +527,7 @@
             </configuration>
           </execution>
 
-          <!-- Generates log references for documentation -->
-          <execution>
-            <goals>
-              <goal>generate-xml-messages-doc</goal>
-            </goals>
-            <configuration>
-              <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
-              <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
-              <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
-              <messageFileNames>
-                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
-                <messageFileName>admin</messageFileName>
-                <messageFileName>backend</messageFileName>
-                <messageFileName>config</messageFileName>
-                <messageFileName>core</messageFileName>
-                <messageFileName>dsconfig</messageFileName>
-                <messageFileName>extension</messageFileName>
-                <messageFileName>jeb</messageFileName>
-                <messageFileName>logger</messageFileName>
-                <messageFileName>plugin</messageFileName>
-                <messageFileName>protocol</messageFileName>
-                <messageFileName>replication</messageFileName>
-                <messageFileName>schema</messageFileName>
-                <messageFileName>task</messageFileName>
-                <messageFileName>tool</messageFileName>
-                <messageFileName>utility</messageFileName>
-
-                <!-- Ignore following message files as we document only serious errors. -->
-                <!-- <messageFileName>access_control</messageFileName> -->
-                <!-- <messageFileName>admin_tool</messageFileName> -->
-                <!-- <messageFileName>quicksetup.properties</messageFileName> -->
-                <!-- <messageFileName>runtime_information.properties</messageFileName> -->
-                <!-- <messageFileName>version.properties</messageFileName> -->
-              </messageFileNames>
-            </configuration>
-          </execution>
-
+          <!-- Generates man page sources -->
           <execution>
              <id>generate-doc</id>
              <goals>
@@ -1454,65 +1418,6 @@
         </executions>
       </plugin>
 
-      <!-- Generate documentation -->
-      <plugin>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-doc-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <id>generate-schema-reference-doc</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>generate-schema-ref</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>forgerock-doc-maven-plugin</artifactId>
-        <version>${frDocPluginVersion}</version>
-        <inherited>false</inherited>
-        <configuration>
-          <projectName>${shortProductName}</projectName>
-          <projectVersion>${docTargetVersion}</projectVersion>
-          <releaseVersion>${docTargetVersion}</releaseVersion>
-          <googleAnalyticsId>${gaId}</googleAnalyticsId>
-        </configuration>
-        <executions>
-          <execution>
-            <id>pre-process-doc</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>process</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>build-doc</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>layout-doc</id>
-            <phase>site</phase>
-            <goals>
-              <goal>site</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>layout-release</id>
-            <phase>site</phase>
-            <goals>
-              <goal>release</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Build javadoc -->
       <plugin>
         <groupId>org.forgerock.maven.plugins</groupId>
@@ -1921,6 +1826,98 @@
       </build>
     </profile>
 
+    <profile>
+      <!-- Build documentation -->
+      <id>docs</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-doc-plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <id>generate-schema-reference-doc</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>generate-schema-ref</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generate-xml-messages-doc</goal>
+                </goals>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
+                  <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
+                  <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
+                  <messageFileNames>
+                    <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
+                    <messageFileName>admin</messageFileName>
+                    <messageFileName>backend</messageFileName>
+                    <messageFileName>config</messageFileName>
+                    <messageFileName>core</messageFileName>
+                    <messageFileName>dsconfig</messageFileName>
+                    <messageFileName>extension</messageFileName>
+                    <messageFileName>jeb</messageFileName>
+                    <messageFileName>logger</messageFileName>
+                    <messageFileName>plugin</messageFileName>
+                    <messageFileName>protocol</messageFileName>
+                    <messageFileName>replication</messageFileName>
+                    <messageFileName>schema</messageFileName>
+                    <messageFileName>task</messageFileName>
+                    <messageFileName>tool</messageFileName>
+                    <messageFileName>utility</messageFileName>
+
+                    <!-- Ignore following message files as we document only serious errors. -->
+                    <!-- <messageFileName>access_control</messageFileName> -->
+                    <!-- <messageFileName>admin_tool</messageFileName> -->
+                    <!-- <messageFileName>quicksetup.properties</messageFileName> -->
+                    <!-- <messageFileName>runtime_information.properties</messageFileName> -->
+                    <!-- <messageFileName>version.properties</messageFileName> -->
+                  </messageFileNames>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-doc-maven-plugin</artifactId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>build-doc</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>process</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>layout-doc</id>
+                <phase>site</phase>
+                <goals>
+                  <goal>site</goal>
+                  <goal>release</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- Build the debian package -->
     <profile>
       <id>package-deb</id>
@@ -1930,10 +1927,32 @@
           <deb.docprefix>/usr/share/doc/${lowerCaseProductName}</deb.docprefix>
           <deb.release>1</deb.release>
           <deb.maintainer>opendj@forgerock.org</deb.maintainer>
+          <manpage.dir>${project.build.directory}/docbkx/manpages/reference</manpage.dir>
         </properties>
 
         <build>
           <plugins>
+            <!-- Build man pages -->
+            <plugin>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>forgerock-doc-maven-plugin</artifactId>
+                <configuration>
+                    <formats combine.self="override">
+                        <format>man</format>
+                    </formats>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-man-pages</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>process</goal>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Filter deb install and remove scripts -->
             <plugin>
               <artifactId>maven-resources-plugin</artifactId>
@@ -1971,6 +1990,21 @@
                   <configuration>
                     <target>
                       <gzip src="resource/debian/changelog" destfile="${project.build.directory}/deb/changelog.Debian.gz" />
+                    </target>
+                  </configuration>
+                </execution>
+                <execution>
+                  <id>gzip-man-pages</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>run</goal>
+                  </goals>
+                  <configuration>
+                    <target>
+                      <apply executable="gzip"><!-- Must we also build these packages on Windows? -->
+                        <arg value="-9" />
+                        <fileset dir="${manpage.dir}" />
+                      </apply>
                     </target>
                   </configuration>
                 </execution>
@@ -2034,6 +2068,16 @@
                         </mapper>
                       </data>
 
+                      <!-- OpenDJ man pages -->
+                      <data>
+                        <src>${manpage.dir}</src>
+                        <type>directory</type>
+                        <mapper>
+                          <type>perm</type>
+                          <prefix>${deb.prefix}/share/man</prefix>
+                        </mapper>
+                      </data>
+
                       <!-- OpenDJ archive files without specific permission -->
                       <data>
                         <src>${project.build.directory}/package/${lowerCaseProductName}</src>
@@ -2089,6 +2133,27 @@
 
       <build>
         <plugins>
+            <!-- Build man pages -->
+          <plugin>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-doc-maven-plugin</artifactId>
+            <configuration>
+              <formats combine.self="override">
+                <format>man</format>
+              </formats>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-man-pages</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>process</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>rpm-maven-plugin</artifactId>
@@ -2136,6 +2201,12 @@
                   <directory>${rpm.prefix}/lib/extensions</directory>
                 </mapping>
                 <mapping>
+                  <directory>${rpm.prefix}/share</directory>
+                </mapping>
+                <mapping>
+                  <directory>${rpm.prefix}/share/man</directory>
+                </mapping>
+                <mapping>
                   <directory>${rpm.prefix}/snmp</directory>
                 </mapping>
                 <mapping>
@@ -2175,7 +2246,7 @@
                   </sources>
                 </mapping>
 
-                <!-- Add executables scripts and librairies -->
+                <!-- Add executable scripts and libraries -->
                 <mapping>
                   <directory>${rpm.prefix}</directory>
                   <filemode>755</filemode>
@@ -2195,6 +2266,19 @@
                         <exclude>**/*.app/**</exclude>
                         <exclude>**/*.app</exclude>
                       </excludes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <!-- Add man pages -->
+                <mapping>
+                  <directory>${rpm.prefix}/share/man</directory>
+                  <sources>
+                    <source>
+                      <location>${project.build.directory}/docbkx/manpages/reference</location>
+                      <includes>
+                        <include>**/*.*</include>
+                      </includes>
                     </source>
                   </sources>
                 </mapping>
@@ -2285,6 +2369,27 @@
       <id>package-svr4</id>
       <build>
         <plugins>
+          <!-- Build man pages -->
+          <plugin>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-doc-maven-plugin</artifactId>
+            <configuration>
+              <formats combine.self="override">
+                <format>man</format>
+              </formats>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-man-pages</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>process</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>

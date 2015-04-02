@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -24,12 +23,12 @@
   !
 -->
 <chapter xml:id='chap-install-cli'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ From the Command Line</title>
 
  <para>This chapter covers command-line installation with additional
@@ -482,9 +481,13 @@ ureadahead will be reprofiled on next reboot</computeroutput>
 $
    </screen>
 
-   <para>The .deb installs OpenDJ directory server in the directory
-   <filename>/opt/opendj</filename>, generates service management scripts, and
-   adds documentation files under <filename>/usr/share/doc/opendj</filename>.</para>
+   <para>
+    The .deb installs OpenDJ directory server
+    in the <filename>/opt/opendj</filename> directory,
+    generates service management scripts,
+    adds documentation files under <filename>/usr/share/doc/opendj</filename>,
+    and adds man pages under <filename>/opt/opendj/share/man</filename>.
+   </para>
 
    <para>The files are owned by root by default, making it easier to have OpenDJ
    listen on ports 389 and 636.</para>
@@ -589,10 +592,14 @@ Post Install - initial install</computeroutput>
 #
    </screen>
 
-   <para>The .rpm installs OpenDJ directory server in the directory
-   <filename>/opt/opendj</filename>, generates service management scripts, and
-   adds documentation files under <filename>/usr/share/doc/opendj-<replaceable
-   >version</replaceable></filename>.</para>
+   <para>
+    The .rpm installs OpenDJ directory server
+    in the <filename>/opt/opendj</filename> directory,
+    generates service management scripts,
+    adds documentation files under
+    <filename>/usr/share/doc/opendj-<replaceable>version</replaceable></filename>,
+    and adds man pages under <filename>/opt/opendj/share/man</filename>.
+   </para>
 
    <para>The files are owned by root by default, making it easier to have OpenDJ
    listen on ports 389 and 636.</para>

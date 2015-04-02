@@ -210,5 +210,11 @@
   </xinclude:fallback>
  </xinclude:include>
 
+ <reference>
+    <title>OpenSolaris Support Reference</title>
+    <xinclude:include href='../man-pages/man-configure.xml' />
+    <xinclude:include href='../man-pages/man-opendj.xml' />
+ </reference>
+
  <index />
 </book>

@@ -77,7 +77,7 @@
 
     <!-- Add man pages -->
     <copy todir="${svr4.layout.pkg.dir}/man">
-      <fileset dir="${resource.dir}/man" />
+      <fileset dir="${project.build.directory}/docbkx/manpages/reference" />
     </copy>
   </target>
 
