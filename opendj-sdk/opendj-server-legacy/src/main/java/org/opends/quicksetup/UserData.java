@@ -72,6 +72,8 @@ public class UserData
 
   private boolean enableWindowsService;
 
+  private String backendType;
+
   private NewSuffixOptions newSuffixOptions;
 
   private DataReplicationOptions replicationOptions;
@@ -350,6 +352,28 @@ public class UserData
   public void setEnableWindowsService(boolean enableWindowsService)
   {
     this.enableWindowsService = enableWindowsService;
+  }
+
+  /**
+   * Returns the new userRoot backend type.
+   *
+   * @return the new userRoot backend type.
+   */
+  public String getBackendType()
+  {
+    return backendType;
+  }
+
+  /**
+   * Sets the new userRoot backend type.
+   *
+   * @param backendType
+   *          The new backend type. This string must be compatible with
+   *          dsconfig tool.
+   */
+  public void setBackendType(final String backendType)
+  {
+    this.backendType = backendType;
   }
 
   /**

@@ -26,8 +26,6 @@
  */
 package org.opends.quicksetup.installer;
 
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
@@ -35,6 +33,9 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -870,6 +871,9 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-w");
     argList.add(getUserData().getDirectoryManagerPwd());
+
+    argList.add("--" + OPTION_LONG_BACKEND_TYPE);
+    argList.add(getUserData().getBackendType());
 
     if (createNotReplicatedSuffix())
     {

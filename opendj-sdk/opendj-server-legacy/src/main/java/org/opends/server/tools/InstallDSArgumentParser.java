@@ -26,10 +26,10 @@
  */
 package org.opends.server.tools;
 
+import static org.opends.messages.ToolMessages.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-
-import static org.opends.messages.ToolMessages.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,6 +39,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
@@ -105,6 +106,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    progNameArg;
   IntegerArgument   connectTimeoutArg;
   BooleanArgument   acceptLicense;
+  StringArgument    backendTypeArg;
 
   /**
    * The default constructor for this class.
@@ -392,6 +394,17 @@ public class InstallDSArgumentParser extends ArgumentParser
     showUsageArg = CommonArguments.getShowUsage();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
+
+    backendTypeArg = new StringArgument(
+        OPTION_LONG_BACKEND_TYPE.toLowerCase(),
+        OPTION_SHORT_BACKEND_TYPE, OPTION_LONG_BACKEND_TYPE,
+        false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
+        LocalDBBackendCfgDefn.getInstance().getName(),
+        OPTION_LONG_BACKEND_TYPE,
+        INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
+    );
+    addArgument(backendTypeArg);
+
   }
 
   /**
@@ -588,7 +601,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     final boolean noBaseDNProvided = !baseDNArg.isPresent() && baseDNArg.getDefaultValue() == null;
     if (noPromptArg.isPresent() && noBaseDNProvided)
     {
-      Argument[] args = {importLDIFArg, addBaseEntryArg, sampleDataArg};
+      final Argument[] args = {importLDIFArg, addBaseEntryArg, sampleDataArg, backendTypeArg};
       for (Argument arg : args)
       {
         if (arg.isPresent())

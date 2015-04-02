@@ -27,14 +27,14 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
-
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,6 +50,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.ldap.LdapName;
 
@@ -57,6 +59,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -207,6 +217,7 @@ public class InstallDS extends ConsoleApplication
 
   /** Different variables we use when the user decides to provide data again. */
   private NewSuffixOptions.Type lastResetPopulateOption;
+  private String lastResetBackendType;
 
   private String lastResetImportFile;
   private String lastResetRejectedFile;
@@ -221,6 +232,8 @@ public class InstallDS extends ConsoleApplication
 
   private Boolean lastResetEnableWindowsService;
   private Boolean lastResetStartServer;
+
+  private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> availableBackendTypes;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -366,6 +379,9 @@ public class InstallDS extends ConsoleApplication
       return InstallReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
     }
 
+    initializeConfigurationFramework();
+    availableBackendTypes = getBackendTypes();
+
     final UserData uData = new UserData();
     InstallReturnCode fillUserDataRC;
     try
@@ -408,6 +424,24 @@ public class InstallDS extends ConsoleApplication
     }
 
     return InstallReturnCode.SUCCESSFUL.getReturnCode();
+  }
+
+  private void initializeConfigurationFramework()
+  {
+    if (!ConfigurationFramework.getInstance().isInitialized())
+    {
+        try
+        {
+          ConfigurationFramework.getInstance().initialize();
+        }
+        catch (ConfigException e)
+        {
+          final LocalizableMessage message = LocalizableMessage.raw(
+              "Error occured while loading the configuration framework: " + e.getLocalizedMessage());
+          logger.error(message);
+          throw new RuntimeException(message.toString());
+        }
+    }
   }
 
   private InstallReturnCode fillUserData(UserData uData, String[] args) throws UserDataException
@@ -685,6 +719,7 @@ public class InstallDS extends ConsoleApplication
     uData.setConnectTimeout(getConnectTimeout());
 
     final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+    setBackendType(uData, errorMessages);
     final List<String> baseDNs = checkBaseDNs(errorMessages);
     setDirectoryManagerData(uData, errorMessages);
     setPorts(uData, errorMessages);
@@ -695,6 +730,19 @@ public class InstallDS extends ConsoleApplication
     {
       throw new UserDataException(null,
           Utils.getMessageFromCollection(errorMessages, formatter.getLineBreak().toString()));
+    }
+  }
+
+  private void setBackendType(final UserData uData, final List<LocalizableMessage> errorMessages)
+  {
+    final String filledBackendType = argParser.backendTypeArg.getValue();
+    if (retrieveBackendTypeFromName(filledBackendType) != null)
+    {
+      uData.setBackendType(filledBackendType);
+    }
+    else
+    {
+      errorMessages.add(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(filledBackendType, getBackendTypeNames()));
     }
   }
 
@@ -940,7 +988,7 @@ public class InstallDS extends ConsoleApplication
 
     promptIfRequiredForDirectoryManager(uData);
     promptIfRequiredForPortData(uData);
-    uData.setNewSuffixOptions(promptIfRequiredForImportData());
+    uData.setNewSuffixOptions(promptIfRequiredForImportData(uData));
     uData.setSecurityOptions(promptIfRequiredForSecurityData(uData));
     uData.setEnableWindowsService(promptIfRequiredForWindowsService());
     uData.setStartServer(promptIfRequiredForStartServer());
@@ -1217,11 +1265,13 @@ public class InstallDS extends ConsoleApplication
    * some data or if the provided data is not valid, it prompts the user to
    * provide it.
    *
+   * @param uData
+   *          The UserData object to be updated.
    * @return the NewSuffixOptions telling how to import data
    * @throws UserDataException
    *           if something went wrong checking the data.
    */
-  private NewSuffixOptions promptIfRequiredForImportData() throws UserDataException
+  private NewSuffixOptions promptIfRequiredForImportData(final UserData uData) throws UserDataException
   {
     boolean prompt = true;
     if (!argParser.baseDNArg.isPresent())
@@ -1243,6 +1293,8 @@ public class InstallDS extends ConsoleApplication
       return NewSuffixOptions.createEmpty(new LinkedList<String>());
     }
 
+    uData.setBackendType(getOrPromptForBackendType());
+
     // Add default value for base DN on first prompt
     if (argParser.baseDNArg.getDefaultValue() == null)
     {
@@ -1252,6 +1304,63 @@ public class InstallDS extends ConsoleApplication
     final List<String> baseDNs = promptIfRequiredForDNs(argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
     return promptIfRequiredForDataOptions(baseDNs);
 
+  }
+
+  private String getOrPromptForBackendType()
+  {
+    if (argParser.backendTypeArg.isPresent())
+    {
+      if (retrieveBackendTypeFromName(argParser.backendTypeArg.getValue().toLowerCase()) != null)
+      {
+        return argParser.backendTypeArg.getValue();
+      }
+      println();
+      println(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(argParser.backendTypeArg.getValue(), getBackendTypeNames()));
+    }
+
+    int backendTypeIndex = 1;
+    try
+    {
+      final MenuResult<Integer> m = getBackendTypeMenu().run();
+      if (m.isSuccess())
+      {
+        backendTypeIndex = m.getValue();
+      }
+    }
+    catch (final ClientException ce)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
+    }
+
+    return availableBackendTypes.get(backendTypeIndex - 1).getName();
+  }
+
+  private Menu<Integer> getBackendTypeMenu()
+  {
+    final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    builder.setPrompt(INFO_INSTALLDS_PROMPT_BACKEND_TYPE.get());
+    int index = 1;
+    for (AbstractManagedObjectDefinition<?, ?> backendType : availableBackendTypes)
+    {
+      final String printableBackendName = filterSchemaBackendName(backendType.getName());
+      builder.addNumberedOption(LocalizableMessage.raw(printableBackendName), MenuResult.success(index++));
+    }
+
+    final int printableIndex = getPromptedBackendTypeIndex();
+    builder.setDefault(LocalizableMessage.raw(Integer.toString(printableIndex)), MenuResult.success(printableIndex));
+    final Menu<Integer> menu = builder.toMenu();
+    return menu;
+  }
+
+  private int getPromptedBackendTypeIndex()
+  {
+    if (lastResetBackendType != null)
+    {
+      ManagedObjectDefinition<?, ?> backend = InstallDS.retrieveBackendTypeFromName(lastResetBackendType);
+      return availableBackendTypes.indexOf(backend) + 1;
+    }
+
+    return 1;
   }
 
   private NewSuffixOptions promptIfRequiredForDataOptions(List<String> baseDNs)
@@ -2507,6 +2616,7 @@ public class InstallDS extends ConsoleApplication
 
       lastResetEnableWindowsService = uData.getEnableWindowsService();
       lastResetStartServer = uData.getStartServer();
+      lastResetBackendType = uData.getBackendType();
     }
     catch (final Throwable t)
     {
@@ -2549,6 +2659,68 @@ public class InstallDS extends ConsoleApplication
   private int getConnectTimeout()
   {
     return argParser.getConnectTimeout();
+  }
+
+  static ManagedObjectDefinition<?, ?> retrieveBackendTypeFromName(final String backendTypeStr)
+  {
+    for (ManagedObjectDefinition<?, ?> backendType : getBackendTypes())
+    {
+      final String name = backendType.getName();
+      if (backendTypeStr.equalsIgnoreCase(name)
+          || backendTypeStr.equalsIgnoreCase(filterSchemaBackendName(name)))
+      {
+        return backendType;
+      }
+    }
+
+    return null;
+  }
+
+  @SuppressWarnings("unchecked")
+  static List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> getBackendTypes()
+  {
+    final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backendTypes =
+        new LinkedList<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>>();
+    backendTypes.add(LocalDBBackendCfgDefn.getInstance());
+
+    for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
+    {
+      // Filtering out only the non-abstract backends to avoid users attempt to create abstract ones
+      if (backendType instanceof ManagedObjectDefinition)
+      {
+        backendTypes.add((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
+      }
+    }
+
+    return backendTypes;
+  }
+
+  static String getBackendTypeNames()
+  {
+    String backendTypeNames = "";
+    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : getBackendTypes())
+    {
+      backendTypeNames += filterSchemaBackendName(backendType.getName()) + ", ";
+    }
+
+    if (backendTypeNames.isEmpty())
+    {
+      return "Impossible to retrieve supported backend type list";
+    }
+
+    return backendTypeNames.substring(0, backendTypeNames.length() - 2);
+  }
+
+  static String filterSchemaBackendName(final String dsCfgBackendName)
+  {
+    final String cfgNameRegExp = "(.*)-backend.*";
+    final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
+    if (regExpMatcher.matches())
+    {
+      return regExpMatcher.group(1);
+    }
+
+    return dsCfgBackendName;
   }
 
 }

@@ -26,9 +26,6 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
@@ -37,7 +34,14 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -45,12 +49,39 @@ import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.crypto.Cipher;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.MemoryBackend;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldif.LDIF;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.forgerock.opendj.ldif.LDIFEntryWriter;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
+import org.forgerock.opendj.server.config.client.LocalDBIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn;
+import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
@@ -214,6 +245,40 @@ public class ConfigureDS
   /** The DN of the DIGEST-MD5 SASL mechanism handler. */
   public static final String DN_DIGEST_MD5_SASL_MECHANISM = "cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config";
 
+  /** Describes an attribute index which should be created during installation. */
+  private static final class DefaultIndex
+  {
+    private final String name;
+    private final boolean shouldCreateSubstringIndex;
+
+    private DefaultIndex(final String name, final boolean substringIndex)
+    {
+      this.name = name;
+      this.shouldCreateSubstringIndex = substringIndex;
+    }
+
+    private static DefaultIndex withEqualityAndSubstring(final String name)
+    {
+      return new DefaultIndex(name, true);
+    }
+
+    private static DefaultIndex withEquality(final String name)
+    {
+      return new DefaultIndex(name, false);
+    }
+  }
+
+  private static final DefaultIndex[] DEFAULT_INDEXES = {
+    DefaultIndex.withEqualityAndSubstring("cn"),
+    DefaultIndex.withEqualityAndSubstring("givenName"),
+    DefaultIndex.withEqualityAndSubstring("mail"),
+    DefaultIndex.withEqualityAndSubstring("member"),
+    DefaultIndex.withEqualityAndSubstring("sn"),
+    DefaultIndex.withEqualityAndSubstring("telephoneNumber"),
+    DefaultIndex.withEquality("uid"),
+    DefaultIndex.withEquality("uniqueMember")
+  };
+
 
   private static int SUCCESS = 0;
   private static int ERROR = 1;
@@ -277,6 +342,7 @@ public class ConfigureDS
   private StringArgument certNickName;
   private StringArgument keyManagerPath;
   private StringArgument serverRoot;
+  private StringArgument backendType;
 
   private final String serverLockFileName = LockFileManager.getServerLockFileName();
   private final StringBuilder failureReason = new StringBuilder();
@@ -307,10 +373,11 @@ public class ConfigureDS
       checkArgumentsConsistency();
       checkPortArguments();
 
-      initializeDirectoryServer();
       tryAcquireExclusiveLocks();
+      updateBaseDNs(parseProvidedBaseDNs());
 
-      final LinkedList<DN> baseDNs = parseProvidedBaseDNs();
+      initializeDirectoryServer();
+
       final DN rootDN = parseRootDN();
       final String rootPW = parseRootDNPassword();
 
@@ -328,7 +395,6 @@ public class ConfigureDS
         throw new ConfigureDSException(message);
       }
 
-      updateBaseDNs(baseDNs);
       updateLdapPort();
       updateAdminConnectorPort();
       updateLdapSecurePort();
@@ -480,6 +546,13 @@ public class ConfigureDS
           null, null, null);
       serverRoot.setHidden(true);
       argParser.addArgument(serverRoot);
+
+      backendType = new StringArgument(
+          OPTION_LONG_BACKEND_TYPE.toLowerCase(), null, OPTION_LONG_BACKEND_TYPE,
+          false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
+          null, OPTION_LONG_BACKEND_TYPE, INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
+      );
+      argParser.addArgument(backendType);
     }
     catch (final ArgumentException ae)
     {
@@ -601,21 +674,20 @@ public class ConfigureDS
     }
   }
 
-  private LinkedList<DN> parseProvidedBaseDNs() throws ConfigureDSException
+  private LinkedList<org.forgerock.opendj.ldap.DN> parseProvidedBaseDNs() throws ConfigureDSException
   {
-    LinkedList<DN> baseDNs = null;
+    LinkedList<org.forgerock.opendj.ldap.DN> baseDNs = new LinkedList<org.forgerock.opendj.ldap.DN>();
     if (baseDNString.isPresent())
     {
-      baseDNs = new LinkedList<DN>();
       for (final String dnString : baseDNString.getValues())
       {
         try
         {
-          baseDNs.add(DN.valueOf(dnString));
+          baseDNs.add(org.forgerock.opendj.ldap.DN.valueOf(dnString));
         }
-        catch (final DirectoryException de)
+        catch (final Exception e)
         {
-          throw new ConfigureDSException(de, ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(dnString, de.getMessageObject()));
+          throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(dnString, e.getMessage()));
         }
       }
     }
@@ -727,24 +799,112 @@ public class ConfigureDS
     }
   }
 
-  private void updateBaseDNs(final LinkedList<DN> baseDNs) throws ConfigureDSException
+  @SuppressWarnings("unchecked")
+  private void updateBaseDNs(final List<org.forgerock.opendj.ldap.DN> baseDNs) throws ConfigureDSException
   {
-    if (baseDNs != null)
+    if (!baseDNs.isEmpty())
     {
+      final String backendTypeName = backendType.getValue();
+      final ManagedObjectDefinition<?, ?> backend = InstallDS.retrieveBackendTypeFromName(backendTypeName);
+      if (backend == null)
+      {
+        throw new ConfigureDSException(
+            ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, InstallDS.getBackendTypeNames()));
+      }
+
+      BufferedReader configReader = null;
+      BufferedWriter configWriter = null;
       try
       {
-        final DN jeBackendDN = DN.valueOf(DN_JE_BACKEND);
-        final ConfigEntry configEntry = configHandler.getConfigEntry(jeBackendDN);
+          final File configurationFile = Installation.getLocal().getCurrentConfigurationFile();
+          configReader = new BufferedReader(new FileReader(configurationFile));
 
-        final DNConfigAttribute baseDNAttr = new DNConfigAttribute(
-            ATTR_BACKEND_BASE_DN, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
-            true, true, false, baseDNs);
-        configEntry.putConfigAttribute(baseDNAttr);
+          final MemoryBackend memoryBackend = new MemoryBackend(new LDIFEntryReader(configReader));
+          final Connection co = Connections.newInternalConnection(memoryBackend);
+          // We need to add the root dse entry to make the configuration framework work.
+          co.add(LDIFEntryReader.valueOfLDIFEntry("dn:", "objectClass:top", "objectClass:ds-root-dse"));
+
+          final ManagementContext context = LDAPManagementContext.newManagementContext(co, LDAPProfile.getInstance());
+          createBackend(context.getRootConfiguration(), baseDNs,
+                        (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend);
+
+
+          final Iterator<org.forgerock.opendj.ldap.Entry> entries = memoryBackend.getAll().iterator();
+          entries.next(); // skip RootDSE
+          configWriter = new BufferedWriter(new FileWriter(configurationFile));
+          LDIF.copyTo(LDIF.newEntryIteratorReader(entries), new LDIFEntryWriter(configWriter));
       }
       catch (final Exception e)
       {
-        throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_BASE_DN.get(e));
+        throw new ConfigureDSException(ERR_CONFIGDS_SET_BACKEND_TYPE.get(backendTypeName, e.getMessage()));
       }
+      finally
+      {
+        close(configReader, configWriter);
+      }
+    }
+  }
+
+  private void createBackend(final RootCfgClient rootConfiguration, final List<org.forgerock.opendj.ldap.DN> baseDNs,
+      final ManagedObjectDefinition<?, ?> backend) throws Exception
+  {
+      final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(
+                      (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend,
+                      Installer.ROOT_BACKEND_NAME, null);
+      backendCfgClient.setEnabled(true);
+      backendCfgClient.setBaseDN(baseDNs);
+      backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
+      backendCfgClient.commit();
+
+      //FIXME: Remove once local-db backend will be pluggable.
+      if (backend instanceof LocalDBBackendCfgDefn)
+      {
+        addJEIndexes((LocalDBBackendCfgClient) backendCfgClient);
+        return;
+      }
+
+      addBackendIndexes((PluggableBackendCfgClient) backendCfgClient);
+  }
+
+  private void addBackendIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
+  {
+    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
+    {
+      final BackendIndexCfgClient index =
+          backendCfgClient.createBackendIndex(BackendIndexCfgDefn.getInstance(), defaultIndex.name, null);
+      index.setAttribute(Schema.getCoreSchema().getAttributeType(defaultIndex.name));
+
+      final List<IndexType> indexTypes = new LinkedList<IndexType>();
+      indexTypes.add(IndexType.EQUALITY);
+      if (defaultIndex.shouldCreateSubstringIndex)
+      {
+        indexTypes.add(IndexType.SUBSTRING);
+      }
+      index.setIndexType(indexTypes);
+
+      index.commit();
+    }
+  }
+
+  // FIXME: Remove once local-db backend will be pluggable.
+  private void addJEIndexes(final LocalDBBackendCfgClient jeBackendCfgClient) throws Exception
+  {
+    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
+    {
+      final LocalDBIndexCfgClient jeIndex =
+          jeBackendCfgClient.createLocalDBIndex(LocalDBIndexCfgDefn.getInstance(), defaultIndex.name, null);
+      jeIndex.setAttribute(Schema.getCoreSchema().getAttributeType(defaultIndex.name));
+
+      final List<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> indexTypes =
+          new LinkedList<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>();
+      indexTypes.add(org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.EQUALITY);
+      if (defaultIndex.shouldCreateSubstringIndex)
+      {
+        indexTypes.add(org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING);
+      }
+      jeIndex.setIndexType(indexTypes);
+
+      jeIndex.commit();
     }
   }
 

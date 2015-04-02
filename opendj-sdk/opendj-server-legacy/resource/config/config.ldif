@@ -20,8 +20,8 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2014 ForgeRock AS.
 #      Portions Copyright 2012-2014 Manuel Gaupp
+#      Portions Copyright 2010-2015 ForgeRock AS.
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -185,134 +185,6 @@ dn: cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
 cn: Backends
-
-dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
-ds-cfg-backend-id: userRoot
-ds-cfg-writability-mode: enabled
-ds-cfg-base-dn: dc=example,dc=com
-ds-cfg-db-directory: db
-ds-cfg-db-directory-permissions: 700
-ds-cfg-index-entry-limit: 4000
-ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-entries-compressed: false
-ds-cfg-compact-encoding: true
-ds-cfg-db-cache-percent: 50
-ds-cfg-db-cache-size: 0 megabytes
-ds-cfg-db-txn-no-sync: false
-ds-cfg-db-txn-write-no-sync: true
-ds-cfg-db-run-cleaner: true
-ds-cfg-db-cleaner-min-utilization: 50
-ds-cfg-db-evictor-lru-only: false
-ds-cfg-db-evictor-nodes-per-scan: 10
-ds-cfg-db-evictor-core-threads: 1
-ds-cfg-db-evictor-max-threads: 10
-ds-cfg-db-evictor-keep-alive: 600 seconds
-ds-cfg-db-log-file-max: 100 megabytes
-ds-cfg-db-log-filecache-size: 100
-ds-cfg-db-logging-file-handler-on: true
-ds-cfg-db-logging-level: CONFIG
-ds-cfg-db-checkpointer-bytes-interval: 500 megabytes
-ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-disk-full-threshold: 100 megabytes
-ds-cfg-disk-low-threshold: 200 megabytes
-
-dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Index
-
-dn: ds-cfg-attribute=aci,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: aci
-ds-cfg-index-type: presence
-
-dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: cn
-ds-cfg-index-type: equality
-ds-cfg-index-type: substring
-
-dn: ds-cfg-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: ds-sync-hist
-ds-cfg-index-type: ordering
-
-dn: ds-cfg-attribute=ds-sync-conflict,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: ds-sync-conflict
-ds-cfg-index-type: equality
-
-dn: ds-cfg-attribute=entryUUID,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: entryUUID
-ds-cfg-index-type: equality
-
-dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: givenName
-ds-cfg-index-type: equality
-ds-cfg-index-type: substring
-
-dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: mail
-ds-cfg-index-type: equality
-ds-cfg-index-type: substring
-
-dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: member
-ds-cfg-index-type: equality
-
-dn: ds-cfg-attribute=objectClass,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: objectClass
-ds-cfg-index-type: equality
-
-dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: sn
-ds-cfg-index-type: equality
-ds-cfg-index-type: substring
-
-dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: telephoneNumber
-ds-cfg-index-type: equality
-ds-cfg-index-type: substring
-
-dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: uid
-ds-cfg-index-type: equality
-
-dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-local-db-index
-ds-cfg-attribute: uniqueMember
-ds-cfg-index-type: equality
-
-dn: cn=VLV Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: VLV Index
 
 dn: ds-cfg-backend-id=backup,cn=Backends,cn=config
 objectClass: top
