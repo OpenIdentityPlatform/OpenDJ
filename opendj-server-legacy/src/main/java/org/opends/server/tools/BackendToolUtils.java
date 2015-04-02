@@ -56,6 +56,9 @@ public class BackendToolUtils
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private static final int ERROR = 1;
+  private static final int SUCCESS = 0;
+
   /**
    * Retrieves information about the backends defined in the Directory Server
    * configuration.
@@ -71,171 +74,182 @@ public class BackendToolUtils
    *          placed.
    * @return 0 if everything went fine. 1 if an error occurred.
    */
-  @SuppressWarnings("unchecked")
-  public static int getBackends(ArrayList<Backend> backendList,
-      ArrayList<BackendCfg> entryList, ArrayList<List<DN>> dnList)
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static int getBackends(final ArrayList<Backend> backendList, final ArrayList<BackendCfg> entryList,
+      final ArrayList<List<DN>> dnList)
   {
-    // Get the base entry for all backend configuration.
-    DN backendBaseDN;
     try
     {
-      backendBaseDN = DN.valueOf(DN_BACKEND_BASE);
-    }
-    catch (DirectoryException de)
-    {
-      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, de
-              .getMessageObject());
-      return 1;
-    }
-    catch (Exception e)
-    {
-      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE,
-              getExceptionMessage(e));
-      return 1;
-    }
+      final DN backendBaseDN = getBackendBaseDN();
+      final ConfigEntry baseEntry = getBaseEntry(backendBaseDN);
 
-    ConfigEntry baseEntry;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, ce
-              .getMessage());
-      return 1;
-    }
-    catch (Exception e)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE,
-              getExceptionMessage(e));
-      return 1;
-    }
-
-    // Iterate through the immediate children, attempting to parse them as
-    // backends.
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
-    {
-      // Get the backend ID attribute from the entry.  If there isn't one, then
-      // skip the entry.
-      String backendID;
-      try
+      // Iterate through the immediate children, attempting to parse them as backends.
+      final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      for (final ConfigEntry configEntry : baseEntry.getChildren().values())
       {
-        StringConfigAttribute idStub =
-            new StringConfigAttribute(ATTR_BACKEND_ID,
-                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true,
-                false, true);
-        StringConfigAttribute idAttr =
-            (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
+        final String backendID = getBackendID(configEntry);
+        if (backendID == null)
         {
           continue;
         }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
-      }
-      catch (org.opends.server.config.ConfigException ce)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
-        return 1;
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
-        return 1;
-      }
 
-      // Get the backend class name attribute from the entry.  If there isn't
-      // one, then just skip the entry.
-      String backendClassName;
-      try
-      {
-        StringConfigAttribute classStub =
-            new StringConfigAttribute(ATTR_BACKEND_CLASS,
-                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false,
-                false);
-        StringConfigAttribute classAttr =
-            (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
+        final String backendClassName = getBackendClassName(configEntry);
+        if (backendClassName == null)
         {
           continue;
         }
-        else
+
+        final Class<?> backendClass = getBackendClass(backendClassName, configEntry);
+        final Backend backend;
+        final BackendCfg cfg;
+        try
         {
-          backendClassName = classAttr.activeValue();
+          backend = (Backend) backendClass.newInstance();
+          backend.setBackendID(backendID);
+          cfg = root.getBackend(backendID);
+          backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
         }
-      }
-      catch (org.opends.server.config.ConfigException ce)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), ce.getMessage());
-        return 1;
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), getExceptionMessage(e));
-        return 1;
-      }
-
-      Class backendClass;
-      try
-      {
-        backendClass = Class.forName(backendClassName);
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
-        return 1;
-      }
-
-      Backend backend;
-      BackendCfg cfg;
-      try
-      {
-        backend = (Backend) backendClass.newInstance();
-        backend.setBackendID(backendID);
-        cfg = root.getBackend(backendID);
-        backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_INSTANTIATE_BACKEND_CLASS,
-            backendClassName, configEntry.getDN(), getExceptionMessage(e));
-        return 1;
-      }
-
-      // Get the base DN attribute from the entry.  If there isn't one, then
-      // just skip this entry.
-      List<DN> baseDNs = null;
-      try
-      {
-        DNConfigAttribute baseDNStub =
-            new DNConfigAttribute(ATTR_BACKEND_BASE_DN,
-                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true,
-                true, true);
-        DNConfigAttribute baseDNAttr =
-            (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr == null)
+        catch (final Exception e)
         {
-          logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
+          logger.error(
+              ERR_CANNOT_INSTANTIATE_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
+          return ERROR;
         }
-        else
-        {
-          baseDNs = baseDNAttr.activeValues();
-        }
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getDN(), getExceptionMessage(e));
-        return 1;
+
+        backendList.add(backend);
+        entryList.add(cfg);
+        dnList.add(getBaseDNsForEntry(configEntry));
       }
 
-      backendList.add(backend);
-      entryList.add(cfg);
-      dnList.add(baseDNs);
+      return SUCCESS;
     }
-    return 0;
+    catch (final Exception e)
+    {
+      // Error message has already been logged.
+      return ERROR;
+    }
   }
+
+  private static List<DN> getBaseDNsForEntry(final ConfigEntry configEntry) throws Exception
+  {
+    try
+    {
+      final DNConfigAttribute baseDNStub = new DNConfigAttribute(
+          ATTR_BACKEND_BASE_DN, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true, true, true);
+      final DNConfigAttribute baseDNAttr = (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
+      if (baseDNAttr == null)
+      {
+        logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
+      }
+      else
+      {
+        return baseDNAttr.activeValues();
+      }
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getDN(), getExceptionMessage(e));
+      throw e;
+    }
+
+    return null;
+  }
+
+  private static Class<?> getBackendClass(String backendClassName, ConfigEntry configEntry) throws Exception
+  {
+    try
+    {
+      return Class.forName(backendClassName);
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
+      throw e;
+    }
+  }
+
+  private static String getBackendClassName(final ConfigEntry configEntry) throws Exception
+  {
+    try
+    {
+      final StringConfigAttribute classStub = new StringConfigAttribute(
+          ATTR_BACKEND_CLASS, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false, false);
+      final StringConfigAttribute classAttr = (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
+      if (classAttr == null)
+      {
+        return null;
+      }
+
+      return classAttr != null ? classAttr.activeValue() : null;
+    }
+    catch (final org.opends.server.config.ConfigException ce)
+    {
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), ce.getMessage());
+      throw ce;
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), getExceptionMessage(e));
+      throw e;
+    }
+  }
+
+  private static String getBackendID(final ConfigEntry configEntry) throws Exception
+  {
+    try
+    {
+      final StringConfigAttribute idStub = new StringConfigAttribute(
+          ATTR_BACKEND_ID, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true, false, true);
+      final StringConfigAttribute idAttr = (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
+
+      return idAttr != null ? idAttr.activeValue() : null;
+    }
+    catch (final org.opends.server.config.ConfigException ce)
+    {
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
+      throw ce;
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
+      throw e;
+    }
+  }
+
+  private static ConfigEntry getBaseEntry(final DN backendBaseDN) throws Exception
+  {
+    try
+    {
+      return DirectoryServer.getConfigEntry(backendBaseDN);
+    }
+    catch (final ConfigException ce)
+    {
+      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, ce.getMessage());
+      throw ce;
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, getExceptionMessage(e));
+      throw e;
+    }
+  }
+
+  private static DN getBackendBaseDN() throws Exception
+  {
+    try
+    {
+      return DN.valueOf(DN_BACKEND_BASE);
+    }
+    catch (final DirectoryException de)
+    {
+      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, de.getMessageObject());
+      throw de;
+    }
+    catch (final Exception e)
+    {
+      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, getExceptionMessage(e));
+      throw e;
+    }
+  }
+
 }
