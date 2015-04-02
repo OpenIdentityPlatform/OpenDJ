@@ -1005,6 +1005,11 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   @Override
   public void removeStorageFiles() throws StorageRuntimeException
   {
+    if (!backendDirectory.exists())
+    {
+      return;
+    }
+
     if (!backendDirectory.isDirectory())
     {
       LocalizableMessage msg = ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
@@ -1025,6 +1030,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
       throw new StorageRuntimeException(message.toString(), e);
     }
+
   }
 
   @Override

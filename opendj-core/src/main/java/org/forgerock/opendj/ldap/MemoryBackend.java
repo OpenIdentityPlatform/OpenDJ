@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -239,7 +239,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 final DN parent = dn.parent();
                 if (entries.containsKey(dn)) {
                     throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '" + dn + "' already exists");
-                } else if (!entries.containsKey(parent)) {
+                } else if (parent != null && !entries.containsKey(parent)) {
                     noSuchObject(parent);
                 } else {
                     entries.put(dn, request);

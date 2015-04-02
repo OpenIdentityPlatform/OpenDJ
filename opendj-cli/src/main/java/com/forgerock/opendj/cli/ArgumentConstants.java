@@ -408,6 +408,12 @@ public final class ArgumentConstants {
     /** The value for the hidden testonly argument. */
     public static final String OPTION_LONG_TESTONLY_ARGUMENT = "testOnly";
 
+    /** The value for the backend type long option. */
+    public static final String OPTION_LONG_BACKEND_TYPE = "backendType";
+
+    /** The value for the backend type short option. */
+    public static final Character OPTION_SHORT_BACKEND_TYPE = 't';
+
     /** Prevent instantiation. */
     private ArgumentConstants() {
     }
