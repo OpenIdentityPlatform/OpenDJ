@@ -201,7 +201,7 @@
  <xinclude:include href='appendix-extended-ops.xml' />
  <xinclude:include href='appendix-l10n.xml' />
  <xinclude:include href='appendix-interface-stability.xml' />
- <xinclude:include href='${project.build.directory}/docgen/logref/log-message-reference.xml'>
+ <xinclude:include href='log-message-reference.xml'>
   <xinclude:fallback>
    <appendix>
     <title>Log Message Reference Missing</title>

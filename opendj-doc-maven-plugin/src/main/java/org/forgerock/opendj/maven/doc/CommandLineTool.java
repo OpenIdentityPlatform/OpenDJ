@@ -23,7 +23,7 @@
  *
  *      Copyright 2015 ForgeRock AS.
  */
-package org.forgerock.opendj.maven;
+package org.forgerock.opendj.maven.doc;
 
 import java.util.List;
 
