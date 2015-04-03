@@ -526,8 +526,15 @@
               <outputFile>schema.ldif.${buildRevision}</outputFile>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
 
-          <!-- Generates man page sources -->
+      <!-- Generates man page sources -->
+      <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-doc-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
           <execution>
              <id>generate-doc</id>
              <goals>
@@ -1834,7 +1841,7 @@
         <plugins>
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-doc-plugin</artifactId>
+            <artifactId>opendj-doc-maven-plugin</artifactId>
             <version>${project.version}</version>
             <executions>
               <execution>
@@ -1844,14 +1851,7 @@
                   <goal>generate-schema-ref</goal>
                 </goals>
               </execution>
-            </executions>
-          </plugin>
 
-          <plugin>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-maven-plugin</artifactId>
-            <version>${project.version}</version>
-            <executions>
               <execution>
                 <goals>
                   <goal>generate-xml-messages-doc</goal>
@@ -1859,8 +1859,7 @@
                 <phase>prepare-package</phase>
                 <configuration>
                   <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
-                  <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
-                  <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/reference</outputDirectory>
                   <messageFileNames>
                     <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
                     <messageFileName>admin</messageFileName>

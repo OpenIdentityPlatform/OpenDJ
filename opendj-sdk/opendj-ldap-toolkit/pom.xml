@@ -100,7 +100,7 @@
       </plugin>
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-maven-plugin</artifactId>
+        <artifactId>opendj-doc-maven-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
           <execution>

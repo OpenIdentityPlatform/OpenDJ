@@ -93,7 +93,7 @@
     <module>opendj-maven-plugin</module>
     <module>opendj-copyright-maven-plugin</module>
     <module>opendj-svn-property-check-maven-plugin</module>
-    <module>opendj-doc-plugin</module>
+    <module>opendj-doc-maven-plugin</module>
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
     <module>opendj-config</module>
