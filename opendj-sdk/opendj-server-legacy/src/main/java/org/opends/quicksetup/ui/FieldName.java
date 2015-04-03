@@ -39,160 +39,121 @@ package org.opends.quicksetup.ui;
  */
 public enum FieldName
 {
+  /** The value associated with this is a String. */
+  ADMIN_CONNECTOR_PORT,
+
+  /** The value associated with this is a data options.Type. */
+  DATA_OPTIONS,
+
+  /** The value associated with this is a String. */
+  DIRECTORY_BASE_DN,
+
+  /** The value associated with this is a String. */
+  DIRECTORY_MANAGER_DN,
+
+  /** The value associated with this is a String. */
+  DIRECTORY_MANAGER_PWD,
+
+  /** The value associated with this is a String. */
+  DIRECTORY_MANAGER_PWD_CONFIRM,
+
+  /** The value associated with this is a Boolean. */
+  ENABLE_WINDOWS_SERVICE,
+
+  /** The value associated with this is a Set of String. */
+  EXTERNAL_DB_DIRECTORIES,
+
+  /** The value associated with this is a Set of String. */
+  EXTERNAL_LOG_FILES,
+
+  /** The value associated with this is a String. */
+  GLOBAL_ADMINISTRATOR_PWD,
+
+  /** The value associated with this is a String. */
+  GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
+
+  /** The value associated with this is a String. */
+  GLOBAL_ADMINISTRATOR_UID,
+
+  /** The value associated with this is a String. */
+  HOST_NAME,
+
+  /** The value associated with this is a JavaArguments object. */
+  IMPORT_JAVA_ARGUMENTS,
+
+  /** The value associated with this is a String. */
+  LDIF_PATH,
+
+  /** The value associated with this is a String. */
+  NUMBER_ENTRIES,
+
+  /** The value associated with this is a Map<String, String>. */
+  REMOTE_REPLICATION_PORT,
+
+  /** The value associated with this is a Map<String, Boolean>. */
+  REMOTE_REPLICATION_SECURE,
+
+  /** The value associated with this is a String. */
+  REMOTE_SERVER_DN,
+
+  /** The value associated with this is a String. */
+  REMOTE_SERVER_HOST,
+
+  /** The value associated with this is a String. */
+  REMOTE_SERVER_PORT,
+
+  /** The value associated with this is a String. */
+  REMOTE_SERVER_PWD,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_BACKUPS,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_CONFIGURATION_AND_SCHEMA,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_DATABASES,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_LDIFS,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_LIBRARIES_AND_TOOLS,
+
+  /** The value associated with this is a Boolean. */
+  REMOVE_LOGS,
+
+  /** The value associated with this is a DataReplicationOptions.Type. */
+  REPLICATION_OPTIONS,
+
+  /** The value associated with this is a String. */
+  REPLICATION_PORT,
+
+  /** The value associated with this is a Boolean. */
+  REPLICATION_SECURE,
+
+  /** The value associated with this is a SecurityOptions object. */
+  SECURITY_OPTIONS,
+
+  /** The value associated with this is a JavaArguments object. */
+  SERVER_JAVA_ARGUMENTS,
+
   /**
    * The value associated with this is a String.
    * The web start installer uses this field to indicate the
    * location to install the server.
    */
   SERVER_LOCATION,
-  /**
-   * The value associated with this is a String.
-   */
-  HOST_NAME,
-  /**
-   * The value associated with this is a String.
-   */
+
+  /** The value associated with this is a String. */
   SERVER_PORT,
-  /**
-   * The value associated with this is a String.
-   */
-  ADMIN_CONNECTOR_PORT,
-  /**
-   * The value associated with this is a String.
-   */
-  DIRECTORY_MANAGER_DN,
-  /**
-   * The value associated with this is a String.
-   */
-  DIRECTORY_MANAGER_PWD,
-  /**
-   * The value associated with this is a String.
-   */
-  DIRECTORY_MANAGER_PWD_CONFIRM,
-  /**
-   * The value associated with this is a String.
-   */
-  DIRECTORY_BASE_DN, // the value associated with this is a String
-  /**
-  * The value associated with this is a SecurityOptions object.
-  */
-  SECURITY_OPTIONS,
-  /**
-   * The value associated with this is a data options.Type.
-   */
-  DATA_OPTIONS,
-  /**
-   * The value associated with this is a String.
-   */
-  LDIF_PATH,
-  /**
-   * The value associated with this is a String.
-   */
-  NUMBER_ENTRIES,
-  /**
-   * The value associated with this is a DataReplicationOptions.Type.
-   */
-  REPLICATION_OPTIONS,
-  /**
-   * The value associated with this is a SuffixesToReplicateOptions.Type.
-   */
-  SUFFIXES_TO_REPLICATE_OPTIONS,
-  /**
-   * The value associated with this is a Set of SuffixDescriptor.
-   */
-  SUFFIXES_TO_REPLICATE,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REPLICATION_SECURE,
-  /**
-   * The value associated with this is a String.
-   */
-  REPLICATION_PORT,
-  /**
-   * The value associated with this is a String.
-   */
-  REMOTE_SERVER_DN,
-  /**
-   * The value associated with this is a String.
-   */
-  REMOTE_SERVER_PWD,
-  /**
-   * The value associated with this is a String.
-   */
-  REMOTE_SERVER_HOST,
-  /**
-   * The value associated with this is a String.
-   */
-  REMOTE_SERVER_PORT,
-  /**
-   * The value associated with this is a String.
-   */
-  GLOBAL_ADMINISTRATOR_UID,
-  /**
-   * The value associated with this is a String.
-   */
-  GLOBAL_ADMINISTRATOR_PWD,
-  /**
-   * The value associated with this is a String.
-   */
-  GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
-  /**
-   * The value associated with this is a Map where the key is a String and the
-   * value a String.
-   */
-  REMOTE_REPLICATION_PORT,
-  /**
-   * The value associated with this is a Map where the key is a String and the
-   * value a Boolean.
-   */
-  REMOTE_REPLICATION_SECURE,
-  /**
-   * The value associated with this is a JavaArguments object.
-   */
-  SERVER_JAVA_ARGUMENTS,
-  /**
-   * The value associated with this is a JavaArguments object.
-   */
-  IMPORT_JAVA_ARGUMENTS,
-  /**
-   * The value associated with this is a Boolean.
-   */
+
+  /** The value associated with this is a Boolean. */
   SERVER_START_INSTALLER,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  ENABLE_WINDOWS_SERVICE,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_LIBRARIES_AND_TOOLS,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_DATABASES,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_LOGS,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_CONFIGURATION_AND_SCHEMA,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_BACKUPS,
-  /**
-   * The value associated with this is a Boolean.
-   */
-  REMOVE_LDIFS,
-  /**
-   * The value associated with this is a Set of String.
-   */
-  EXTERNAL_DB_DIRECTORIES,
-  /**
-   * The value associated with this is a Set of String.
-   */
-  EXTERNAL_LOG_FILES
+
+  /** The value associated with this is a Set of SuffixDescriptor. */
+  SUFFIXES_TO_REPLICATE,
+
+  /** The value associated with this is a SuffixesToReplicateOptions.Type. */
+  SUFFIXES_TO_REPLICATE_OPTIONS
 }
