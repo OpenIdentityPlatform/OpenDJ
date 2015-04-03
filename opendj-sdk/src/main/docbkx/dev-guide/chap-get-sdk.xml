@@ -20,16 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-get-sdk'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Getting OpenDJ LDAP SDK</title>
 
  <para>This chapter introduces OpenDJ LDAP SDK, demonstrating how to get the
@@ -83,7 +83,7 @@
   <para>Before you either download a build of OpenDJ LDAP SDK, or get the
   source code to build your own SDK, make sure you have a Java Development Kit
   installed. See the <citetitle>Release Notes</citetitle> section on
-  <link xlink:href="${coreDocBase}release-notes#prerequisites-java"
+  <link xlink:href="${serverDocBase}release-notes/#prerequisites-java"
   xlink:show="new"><citetitle>Java Environment</citetitle></link>
   requirements.</para>
 
