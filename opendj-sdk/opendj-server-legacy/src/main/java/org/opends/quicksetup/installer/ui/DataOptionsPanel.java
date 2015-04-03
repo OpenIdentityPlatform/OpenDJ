@@ -26,7 +26,6 @@
  */
 package org.opends.quicksetup.installer.ui;
 
-import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -37,7 +36,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -49,6 +48,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.ui.FieldName;
@@ -57,12 +58,10 @@ import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
-import org.opends.quicksetup.UserData;
 
 /**
- * This is the panel that contains the Data Options: the suffix dn, whether
- * to import data to the suffix or not, etc.
- *
+ * This is the panel that contains the Data Options: the suffix dn, whether to
+ * import data to the suffix or not, etc.
  */
 public class DataOptionsPanel extends QuickSetupStepPanel
 {
@@ -72,11 +71,9 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   private UserData defaultUserData;
 
-  private HashMap<FieldName, JLabel> hmLabels =
-      new HashMap<FieldName, JLabel>();
+  private HashMap<FieldName, JLabel> hmLabels = new HashMap<FieldName, JLabel>();
 
-  private HashMap<FieldName, JTextComponent> hmFields =
-      new HashMap<FieldName, JTextComponent>();
+  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<FieldName, JTextComponent>();
 
   private HashMap<NewSuffixOptions.Type, JRadioButton> hmRadioButtons =
       new HashMap<NewSuffixOptions.Type, JRadioButton>();
@@ -85,8 +82,9 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Constructor of the panel.
-   * @param application Application represented by this panel
-   * the fields of the panel.
+   *
+   * @param application
+   *          Application represented by this panel the fields of the panel.
    */
   public DataOptionsPanel(GuiApplication application)
   {
@@ -101,59 +99,46 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   /** {@inheritDoc} */
   public Object getFieldValue(FieldName fieldName)
   {
-    Object value = null;
-
     if (fieldName == FieldName.DATA_OPTIONS)
     {
       for (NewSuffixOptions.Type type : hmRadioButtons.keySet())
       {
         if (hmRadioButtons.get(type).isSelected())
         {
-          value = type;
-          break;
+          return type;
         }
       }
 
-    } else
+    }
+    else
     {
-      JTextComponent field = getField(fieldName);
+      final JTextComponent field = getField(fieldName);
       if (field != null)
       {
-        value = field.getText();
+        return field.getText();
       }
     }
 
-    return value;
+    return null;
   }
 
   /** {@inheritDoc} */
-  public void displayFieldInvalid(FieldName fieldName, boolean invalid)
+  public void displayFieldInvalid(final FieldName fieldName, final boolean invalid)
   {
-    JLabel label = getLabel(fieldName);
+    final JLabel label = getLabel(fieldName);
     if (label != null)
     {
-      UIFactory.TextStyle style;
+      final UIFactory.TextStyle style;
 
       if (fieldName != FieldName.DIRECTORY_BASE_DN)
       {
-        if (invalid)
-        {
-          style = UIFactory.TextStyle.SECONDARY_FIELD_INVALID;
-        } else
-        {
-          style = UIFactory.TextStyle.SECONDARY_FIELD_VALID;
-        }
-
-      } else
-      {
-        if (invalid)
-        {
-          style = UIFactory.TextStyle.PRIMARY_FIELD_INVALID;
-        } else
-        {
-          style = UIFactory.TextStyle.PRIMARY_FIELD_VALID;
-        }
+        style = invalid ? UIFactory.TextStyle.SECONDARY_FIELD_INVALID : UIFactory.TextStyle.SECONDARY_FIELD_VALID;
       }
+      else
+      {
+        style = invalid ? UIFactory.TextStyle.PRIMARY_FIELD_INVALID : UIFactory.TextStyle.PRIMARY_FIELD_VALID;
+      }
+
       UIFactory.setTextStyle(label, style);
     }
   }
@@ -203,13 +188,12 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.insets.top = 3;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    panel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        INFO_NO_BASE_DN_INLINE_HELP.get(),
-        UIFactory.TextStyle.INLINE_HELP), gbc);
+    final JLabel noBaseDNLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, INFO_NO_BASE_DN_INLINE_HELP.get(),
+                                                      UIFactory.TextStyle.INLINE_HELP);
+    panel.add(noBaseDNLabel, gbc);
 
     int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
-    int h2 = getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).
-    getPreferredSize().height;
+    int h2 = getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).getPreferredSize().height;
     int additionalInset = Math.abs(h2 - h1) / 2;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
@@ -232,6 +216,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Returns and creates the radio buttons panel.
+   *
    * @return the radio buttons panel.
    */
   private JPanel createRadioButtonPanel()
@@ -249,8 +234,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     panel.add(getRadioButton(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY), gbc);
     panel.add(getRadioButton(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE), gbc);
 
-    JPanel auxPanel =
-        createBrowseButtonPanel(FieldName.LDIF_PATH, getLDIFBrowseButton());
+    JPanel auxPanel = createBrowseButtonPanel(FieldName.LDIF_PATH, getLDIFBrowseButton());
 
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.insets.top = UIFactory.TOP_INSET_RADIO_SUBORDINATE;
@@ -258,9 +242,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     panel.add(auxPanel, gbc);
 
     gbc.insets.left = 0;
-    panel.add(getRadioButton(
-            NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA),
-        gbc);
+    panel.add(getRadioButton(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA), gbc);
 
     auxPanel = createNumberEntriesPanel();
 
@@ -274,6 +256,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Returns the number entries panel.
+   *
    * @return the number entries panel.
    */
   private JPanel createNumberEntriesPanel()
@@ -304,17 +287,16 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Creates a panel with a field and a browse button.
-   * @param fieldName the field name of the field.
-   * @param browseButton the browse button.
+   *
+   * @param fieldName
+   *          the field name of the field.
+   * @param browseButton
+   *          the browse button.
    * @return the created panel.
    */
-  private JPanel createBrowseButtonPanel(FieldName fieldName,
-      JButton browseButton)
+  private JPanel createBrowseButtonPanel(FieldName fieldName, JButton browseButton)
   {
-    return Utilities.createBrowseButtonPanel(
-            getLabel(fieldName),
-            getField(fieldName),
-            browseButton);
+    return Utilities.createBrowseButtonPanel(getLabel(fieldName), getField(fieldName), browseButton);
   }
 
   /** {@inheritDoc} */
@@ -340,208 +322,138 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Returns the default value for the provided field Name.
-   * @param fieldName the field name for which we want to get the default
-   * value.
+   *
+   * @param fieldName
+   *          the field name for which we want to get the default value.
    * @return the default value for the provided field Name.
    */
-  private Object getDefaultValue(FieldName fieldName)
+  private String getDefaultValue(FieldName fieldName)
   {
-    Object value;
+    final NewSuffixOptions suffixOptions = defaultUserData.getNewSuffixOptions();
     switch (fieldName)
     {
     case DIRECTORY_BASE_DN:
-      LinkedList<String> defaults =
-        defaultUserData.getNewSuffixOptions().getBaseDns();
-      if ((defaults != null) && !defaults.isEmpty())
-      {
-        value = defaults.getFirst();
-      }
-      else
-      {
-        value = null;
-      }
-      break;
-
-    case DATA_OPTIONS:
-      value = defaultUserData.getNewSuffixOptions().getType();
-      break;
+      return firstElementOrNull(suffixOptions.getBaseDns());
 
     case LDIF_PATH:
-      defaults =
-        defaultUserData.getNewSuffixOptions().getLDIFPaths();
-      if ((defaults != null) && !defaults.isEmpty())
-      {
-        value = defaults.getFirst();
-      }
-      else
-      {
-        value = null;
-      }
-      break;
-
-    case NUMBER_ENTRIES:
-      value = defaultUserData.getNewSuffixOptions().getNumberEntries();
-      break;
+      return firstElementOrNull(suffixOptions.getLDIFPaths());
 
     default:
-      throw new IllegalArgumentException("Unknown field name: " +
-          fieldName);
+      throw new IllegalArgumentException("Unknown field name: " + fieldName);
     }
-
-    return value;
   }
 
-  /**
-   * Returns the default string value for the provided field Name.
-   * @param fieldName the field name for which we want to get the default
-   * string value.
-   * @return the default value for the provided field Name.
-   */
-  private String getDefaultStringValue(FieldName fieldName)
+  private String firstElementOrNull(final List<String> list)
   {
-    String value = null;
-
-    Object v = getDefaultValue(fieldName);
-    if (v != null)
+    if (list != null && !list.isEmpty())
     {
-      if (v instanceof String)
-      {
-        value = (String) v;
-      } else
-      {
-        value = String.valueOf(v);
-      }
+      return list.get(0);
     }
-    return value;
+
+    return null;
   }
 
-  /**
-   * Creates the components and populates the Maps with them.
-   */
+  /** Creates the components and populates the Maps with them. */
   private void populateComponentMaps()
   {
-    HashMap<FieldName, LabelFieldDescriptor> hm =
-        new HashMap<FieldName, LabelFieldDescriptor>();
+    final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<FieldName, LabelFieldDescriptor>();
 
-    hm.put(FieldName.DIRECTORY_BASE_DN, new LabelFieldDescriptor(
-        INFO_BASE_DN_LABEL.get(), INFO_BASE_DN_TOOLTIP.get(),
-        LabelFieldDescriptor.FieldType.TEXTFIELD,
-        LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.DN_FIELD_SIZE));
+    final LabelFieldDescriptor baseDNLabelDescriptor = new LabelFieldDescriptor(
+        INFO_BASE_DN_LABEL.get(), INFO_BASE_DN_TOOLTIP.get(), LabelFieldDescriptor.FieldType.TEXTFIELD,
+        LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.DN_FIELD_SIZE);
+    hm.put(FieldName.DIRECTORY_BASE_DN, baseDNLabelDescriptor);
 
-    hm.put(FieldName.LDIF_PATH, new LabelFieldDescriptor(
-        INFO_IMPORT_PATH_LABEL.get(), INFO_IMPORT_PATH_TOOLTIP.get(),
-        LabelFieldDescriptor.FieldType.TEXTFIELD,
-        LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.PATH_FIELD_SIZE));
+    final LabelFieldDescriptor importPathLabelDescriptor = new LabelFieldDescriptor(
+        INFO_IMPORT_PATH_LABEL.get(), INFO_IMPORT_PATH_TOOLTIP.get(), LabelFieldDescriptor.FieldType.TEXTFIELD,
+        LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.PATH_FIELD_SIZE);
+    hm.put(FieldName.LDIF_PATH, importPathLabelDescriptor);
 
-    hm.put(FieldName.NUMBER_ENTRIES, new LabelFieldDescriptor(
-        INFO_NUMBER_ENTRIES_LABEL.get(), INFO_NUMBER_ENTRIES_TOOLTIP.get(),
-        LabelFieldDescriptor.FieldType.TEXTFIELD,
-        LabelFieldDescriptor.LabelType.SECONDARY,
-        UIFactory.NUMBER_ENTRIES_FIELD_SIZE));
+    final LabelFieldDescriptor entryNumberLabelDescriptor = new LabelFieldDescriptor(
+        INFO_NUMBER_ENTRIES_LABEL.get(), INFO_NUMBER_ENTRIES_TOOLTIP.get(), LabelFieldDescriptor.FieldType.TEXTFIELD,
+        LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.NUMBER_ENTRIES_FIELD_SIZE);
+    hm.put(FieldName.NUMBER_ENTRIES, entryNumberLabelDescriptor);
 
-    for (FieldName fieldName : hm.keySet())
+    for (final FieldName fieldName : hm.keySet())
     {
-      JTextComponent field;
-      LabelFieldDescriptor desc = hm.get(fieldName);
-
-      String defaultValue = getDefaultStringValue(fieldName);
-      field = UIFactory.makeJTextComponent(desc, defaultValue);
-
+      final LabelFieldDescriptor desc = hm.get(fieldName);
+      final String defaultValue = fieldName == FieldName.NUMBER_ENTRIES ?
+                                            Integer.toString(defaultUserData.getNewSuffixOptions().getNumberEntries())
+                                          : getDefaultValue(fieldName);
+      final JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
+      final JLabel label = UIFactory.makeJLabel(desc);
+      label.setLabelFor(field);
       hmFields.put(fieldName, field);
-
-      JLabel l = UIFactory.makeJLabel(desc);
-
-      l.setLabelFor(field);
-
-      hmLabels.put(fieldName, l);
+      hmLabels.put(fieldName, label);
     }
 
-    JLabel dataLabel =
-        UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            INFO_DIRECTORY_DATA_LABEL.get(),
-            UIFactory.TextStyle.PRIMARY_FIELD_VALID);
-
+    final JLabel dataLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, INFO_DIRECTORY_DATA_LABEL.get(),
+                                                  UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     hmLabels.put(FieldName.DATA_OPTIONS, dataLabel);
-
-    JRadioButton rb =
-        UIFactory.makeJRadioButton(INFO_CREATE_BASE_ENTRY_LABEL.get(
-                getDefaultStringValue(FieldName.DIRECTORY_BASE_DN)),
-            INFO_CREATE_BASE_ENTRY_TOOLTIP.get(),
-            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    hmRadioButtons.put(NewSuffixOptions.Type.CREATE_BASE_ENTRY, rb);
-
-    dataLabel.setLabelFor(rb);
-
-    rb =
-        UIFactory.makeJRadioButton(INFO_LEAVE_DATABASE_EMPTY_LABEL.get(),
-            INFO_LEAVE_DATABASE_EMPTY_TOOLTIP.get(),
-            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    hmRadioButtons.put(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, rb);
-
-    rb =
-        UIFactory.makeJRadioButton(INFO_IMPORT_DATA_FROM_LDIF_LABEL.get(),
-            INFO_IMPORT_DATA_FROM_LDIF_TOOLTIP.get(),
-            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    hmRadioButtons.put(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE, rb);
-
-    rb =
-        UIFactory.makeJRadioButton(
-            INFO_IMPORT_AUTOMATICALLY_GENERATED_LABEL.get(),
-            INFO_IMPORT_AUTOMATICALLY_GENERATED_TOOLTIP.get(),
-            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    hmRadioButtons
-        .put(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA, rb);
-
-    NewSuffixOptions.Type defaultType =
-        (NewSuffixOptions.Type) getDefaultValue(FieldName.DATA_OPTIONS);
-
-    ButtonGroup buttonGroup = new ButtonGroup();
-    for (NewSuffixOptions.Type type : hmRadioButtons.keySet())
-    {
-      rb = hmRadioButtons.get(type);
-      rb.setSelected(type == defaultType);
-      buttonGroup.add(rb);
-    }
+    createDirectoryDataChoiceRadioButton(dataLabel);
     checkEnablingState();
   }
 
-  /**
-   * Returns the browse button to browse LDIF files.
-   * If it does not exist creates the browse button to browse LDIF files.
-   * @return the browse button to browse LDIF files.
-   */
+  private void createDirectoryDataChoiceRadioButton(final JLabel dataLabel)
+  {
+    final JRadioButton createBaseEntryRB = UIFactory.makeJRadioButton(
+        INFO_CREATE_BASE_ENTRY_LABEL.get(getDefaultValue(FieldName.DIRECTORY_BASE_DN)),
+        INFO_CREATE_BASE_ENTRY_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    hmRadioButtons.put(NewSuffixOptions.Type.CREATE_BASE_ENTRY, createBaseEntryRB);
+    dataLabel.setLabelFor(createBaseEntryRB);
+
+    final JRadioButton leaveDataBaseEmptyRB = UIFactory.makeJRadioButton(
+        INFO_LEAVE_DATABASE_EMPTY_LABEL.get(),
+        INFO_LEAVE_DATABASE_EMPTY_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    hmRadioButtons.put(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, leaveDataBaseEmptyRB);
+
+    final JRadioButton importFileDataRB = UIFactory.makeJRadioButton(
+        INFO_IMPORT_DATA_FROM_LDIF_LABEL.get(),
+        INFO_IMPORT_DATA_FROM_LDIF_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    hmRadioButtons.put(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE, importFileDataRB);
+
+    final JRadioButton importGeneratedDataRB = UIFactory.makeJRadioButton(
+        INFO_IMPORT_AUTOMATICALLY_GENERATED_LABEL.get(),
+        INFO_IMPORT_AUTOMATICALLY_GENERATED_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    hmRadioButtons.put(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA, importGeneratedDataRB);
+
+    final NewSuffixOptions.Type defaultType = defaultUserData.getNewSuffixOptions().getType();
+    final ButtonGroup buttonGroup = new ButtonGroup();
+    for (NewSuffixOptions.Type type : hmRadioButtons.keySet())
+    {
+      final JRadioButton radioButton = hmRadioButtons.get(type);
+      radioButton.setSelected(type == defaultType);
+      buttonGroup.add(radioButton);
+    }
+  }
+
   private JButton getLDIFBrowseButton()
   {
     if (ldifBrowseButton == null)
     {
-      ldifBrowseButton =
-          UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
-              INFO_BROWSE_BUTTON_TOOLTIP.get());
+      ldifBrowseButton = UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(), INFO_BROWSE_BUTTON_TOOLTIP.get());
 
-      BrowseActionListener l =
-          new BrowseActionListener(getField(FieldName.LDIF_PATH),
-              BrowseActionListener.BrowseType.OPEN_LDIF_FILE, getMainWindow());
-      ldifBrowseButton.addActionListener(l);
+      final BrowseActionListener listener = new BrowseActionListener(
+          getField(FieldName.LDIF_PATH), BrowseActionListener.BrowseType.OPEN_LDIF_FILE, getMainWindow());
+      ldifBrowseButton.addActionListener(listener);
     }
+
     return ldifBrowseButton;
   }
 
-
-  /**
-   * Adds all the required document listeners to the fields.
-   */
+  /** Adds all the required document listeners to the fields. */
   private void addDocumentListeners()
   {
-    JTextComponent tf = getField(FieldName.DIRECTORY_BASE_DN);
-    tf.getDocument().addDocumentListener(new DocumentListener()
+    final DocumentListener docListener = new DocumentListener()
     {
       public void changedUpdate(DocumentEvent ev)
       {
-        LocalizableMessage newLabel = INFO_CREATE_BASE_ENTRY_LABEL.get(
-                (String) getFieldValue(FieldName.DIRECTORY_BASE_DN));
-        JRadioButton rb =
-          getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY);
-        rb.setText(newLabel.toString());
+        final LocalizableMessage newLabel =
+            INFO_CREATE_BASE_ENTRY_LABEL.get((String) getFieldValue(FieldName.DIRECTORY_BASE_DN));
+        getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).setText(newLabel.toString());
       }
 
       public void insertUpdate(DocumentEvent ev)
@@ -553,29 +465,26 @@ public class DataOptionsPanel extends QuickSetupStepPanel
       {
         changedUpdate(ev);
       }
-    });
+    };
+
+    getField(FieldName.DIRECTORY_BASE_DN).getDocument().addDocumentListener(docListener);
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addFocusListeners()
   {
-    final FocusListener l = new FocusListener()
+    final FocusListener focusListener = new FocusListener()
     {
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
         if (lastFocusComponent == getField(FieldName.LDIF_PATH))
         {
-          getRadioButton(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE).
-          setSelected(true);
+          getRadioButton(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE).setSelected(true);
         }
         else if (lastFocusComponent == getField(FieldName.NUMBER_ENTRIES))
         {
-          getRadioButton(
-              NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
-              .setSelected(true);
+          getRadioButton(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA).setSelected(true);
         }
       }
 
@@ -586,20 +495,18 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
     for (JTextComponent tf : hmFields.values())
     {
-      tf.addFocusListener(l);
+      tf.addFocusListener(focusListener);
     }
     for (JRadioButton rb : hmRadioButtons.values())
     {
-      rb.addFocusListener(l);
+      rb.addFocusListener(focusListener);
     }
-    getLDIFBrowseButton().addFocusListener(l);
+    getLDIFBrowseButton().addFocusListener(focusListener);
 
     lastFocusComponent = getField(FieldName.DIRECTORY_BASE_DN);
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addActionListeners()
   {
     final ActionListener l = new ActionListener()
@@ -609,22 +516,18 @@ public class DataOptionsPanel extends QuickSetupStepPanel
         checkEnablingState();
       }
     };
-    for (JRadioButton rb : hmRadioButtons.values())
+
+    for (final JRadioButton radioButton : hmRadioButtons.values())
     {
-      rb.addActionListener(l);
+      radioButton.addActionListener(l);
     }
   }
 
-  /**
-   * Enables/disables the fields.
-   */
+  /** Enables/disables the fields. */
   private void checkEnablingState()
   {
-    boolean importLDIF = getRadioButton(
-        NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE).isSelected();
-    boolean automaticData = getRadioButton(
-        NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA).
-        isSelected();
+    boolean importLDIF = getRadioButton(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE).isSelected();
+    boolean automaticData = getRadioButton(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA).isSelected();
 
     getField(FieldName.LDIF_PATH).setEnabled(importLDIF);
     getLDIFBrowseButton().setEnabled(importLDIF);
@@ -634,33 +537,16 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     getLabel(FieldName.NUMBER_ENTRIES).setEnabled(automaticData);
   }
 
-  /**
-   * Returns the label associated with the given field name.
-   * @param fieldName the field name for which we want to retrieve the JLabel.
-   * @return the label associated with the given field name.
-   */
   private JLabel getLabel(FieldName fieldName)
   {
     return hmLabels.get(fieldName);
   }
 
-  /**
-   * Returns the JTextComponent associated with the given field name.
-   * @param fieldName the field name for which we want to retrieve the
-   * JTextComponent.
-   * @return the JTextComponent associated with the given field name.
-   */
   private JTextComponent getField(FieldName fieldName)
   {
     return hmFields.get(fieldName);
   }
 
-  /**
-   * Returns the JRadioButton associated with the given DataOptions.Type.
-   * @param type the DataOptions.Type object for which we want to retrieve the
-   * JRadioButton.
-   * @return the JRadioButton associated with the given DataOptions.Type object.
-   */
   private JRadioButton getRadioButton(NewSuffixOptions.Type type)
   {
     return hmRadioButtons.get(type);
