@@ -33,7 +33,7 @@
 
  <para>
   <link xlink:show="new"
-        xlink:href="reference#makeldif-template-5"
+        xlink:href="reference#make-ldif-template-5"
         xlink:role="http://docbook.org/xlink/role/olink"
    ><citerefentry><refentrytitle
    >make-ldif.template</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>

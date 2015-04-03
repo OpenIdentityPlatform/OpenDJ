@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-controls'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Controls</title>
  <indexterm>
   <primary>Controls</primary>
@@ -70,7 +70,7 @@
 
   <para>For OpenDJ, the controls supported are listed in the
   <citetitle>Administration Guide</citetitle> appendix, <link xlink:show="new"
-  xlink:href="${coreDocBase}admin-guide#appendix-controls"><citetitle>LDAP
+  xlink:href="${serverDocBase}admin-guide/#appendix-controls"><citetitle>LDAP
   Controls</citetitle></link>. You can access the list of OIDs for
   supported LDAP controls by reading the <literal>supportedControl</literal>
   attribute of the root DSE.</para>
@@ -405,7 +405,7 @@ cn: Babs Jensen
   password policy configuration to set a short maximum password age, change
   Barbara Jensen's password, and wait for it to expire. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="${coreDocBase}admin-guide#default-pwp" xlink:show="new"
+  <link xlink:href="${serverDocBase}admin-guide/#default-pwp" xlink:show="new"
   ><citetitle>To Adjust the Default Password Policy</citetitle></link> for an
   example of how to adjust the maximum password age.</para>
 
@@ -439,7 +439,7 @@ cn: Babs Jensen
   interval, change Barbara Jensen's password, and wait until you enter the
   warning interval before password expiration. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="${coreDocBase}admin-guide#default-pwp"
+  <link xlink:href="${serverDocBase}admin-guide/#default-pwp"
   xlink:show="new"><citetitle>To Adjust the Default Password Policy</citetitle></link>
   for an example of how to adjust the maximum password age. Also set a short
   <literal>password-expiration-warning-interval</literal> value.</para>
@@ -476,7 +476,7 @@ cn: Babs Jensen
   Barbara Jensen's password, and then run the example during the warning
   interval and after the password has expired. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="${coreDocBase}admin-guide#default-pwp" xlink:show="new"><citetitle
+  <link xlink:href="${serverDocBase}admin-guide/#default-pwp" xlink:show="new"><citetitle
   >To Adjust the Default Password Policy</citetitle></link> for an example
   of how to adjust the maximum password age. Also set a short
   <literal>password-expiration-warning-interval</literal> value.</para>
