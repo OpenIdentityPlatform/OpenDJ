@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<variablelist
+              xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+              xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+              xsi:schemaLocation='http://docbook.org/ns/docbook
+                                  http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+
+ <para>
+  For some <replaceable>controloid</replaceable> values,
+  you can replace object identifiers with user-friendly strings.
+  The strings are listed here in lower case, but the case is not important.
+  You can use camelCase if you prefer, for example.
+ </para>
+
+ <varlistentry>
+  <term><literal>accountusable</literal></term>
+  <term><literal>accountusability</literal></term>
+  <listitem>
+   <para>
+    Account Usability Control, Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.8
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>authzid</literal></term>
+  <term><literal>authorizationidentity</literal></term>
+  <listitem>
+   <para>
+    Authorization Identity Request Control, Object Identifier: 2.16.840.1.113730.3.4.16
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>effectiverights</literal></term>
+  <term><literal>geteffectiverights</literal></term>
+  <listitem>
+   <para>
+    Get Effective Rights Request Control, Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.2
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>managedsait</literal></term>
+  <listitem>
+   <para>
+    Manage DSAIT Request Control, Object Identifier: 2.16.840.1.113730.3.4.2
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>noop</literal></term>
+  <term><literal>no-op</literal></term>
+  <listitem>
+   <para>
+    No-Op Control, Object Identifier: 1.3.6.1.4.1.4203.1.10.2
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>pwpolicy</literal></term>
+  <term><literal>passwordpolicy</literal></term>
+  <listitem>
+   <para>
+    Password Policy Control, Object Identifier: 1.3.6.1.4.1.42.2.27.8.5.1
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>realattrsonly</literal></term>
+  <term><literal>realattributesonly</literal></term>
+  <listitem>
+   <para>
+    Real Attributes Only Request Control, Object Identifier: 2.16.840.1.113730.3.4.17
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>subtreedelete</literal></term>
+  <term><literal>treedelete</literal></term>
+  <listitem>
+   <para>
+    Subtree Delete Request Control, Object Identifier: 1.2.840.113556.1.4.805
+   </para>
+  </listitem>
+ </varlistentry>
+
+ <varlistentry>
+  <term><literal>virtualattrsonly</literal></term>
+  <term><literal>virtualattributesonly</literal></term>
+  <listitem>
+   <para>
+    Virtual Attributes Only Request Control, Object Identifier: 2.16.840.1.113730.3.4.19
+   </para>
+  </listitem>
+ </varlistentry>
+</variablelist>
