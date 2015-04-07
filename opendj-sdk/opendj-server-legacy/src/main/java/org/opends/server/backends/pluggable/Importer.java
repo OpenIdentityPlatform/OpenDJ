@@ -657,21 +657,7 @@ final class Importer implements DiskSpaceMonitorHandler
   {
     for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
     {
-      putInIdContainerMap(attributeIndex.getDefaultNameToIndexes().values());
-      Map<String, Collection<MatchingRuleIndex>> extensibleMap = attributeIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        putInIdContainerMap(extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING));
-        putInIdContainerMap(extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED));
-      }
-    }
-  }
-
-  private void putInIdContainerMap(Collection<MatchingRuleIndex> indexes)
-  {
-    if (indexes != null)
-    {
-      for (Index index : indexes)
+      for (Index index : attributeIndex.getNameToIndexes().values())
       {
         putInIdContainerMap(index);
       }
@@ -1676,19 +1662,10 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       final IndexingOptions options = attrIndex.getIndexingOptions();
 
-      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getDefaultNameToIndexes().entrySet())
+      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
         ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
         processAttribute(mapEntry.getValue(), indexType, entry, attrType, entryID, options);
-      }
-
-      Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        Collection<MatchingRuleIndex> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        processAttributes(subIndexes, ImportIndexType.EX_SUBSTRING, entry, attrType, entryID, options);
-        Collection<MatchingRuleIndex> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-        processAttributes(sharedIndexes, ImportIndexType.EX_SHARED, entry, attrType, entryID, options);
       }
     }
 
@@ -1701,18 +1678,6 @@ final class Importer implements DiskSpaceMonitorHandler
         vlvIdx.addEntry(buffer, entryID, entry);
       }
       buffer.flush(txn);
-    }
-
-    private void processAttributes(Collection<MatchingRuleIndex> indexes, ImportIndexType indexType, Entry entry,
-        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
-    {
-      if (indexes != null)
-      {
-        for (MatchingRuleIndex index : indexes)
-        {
-          processAttribute(index, indexType, entry, attributeType, entryID, options);
-        }
-      }
     }
 
     private void processAttribute(MatchingRuleIndex index, ImportIndexType indexType, Entry entry,
@@ -3134,7 +3099,8 @@ final class Importer implements DiskSpaceMonitorHandler
     private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, MatchingRuleIndex index,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
-      if (index != null && (!onlyDegraded || !index.isTrusted())
+      if (index != null
+          && (!onlyDegraded || !index.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
       {
         putInIdContainerMap(index);
@@ -3807,7 +3773,14 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       return ImportIndexType.APPROXIMATE;
     }
-    throw new IllegalArgumentException("Unsupported indexID: " + indexID);
+    else if (indexID.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
+    {
+      return ImportIndexType.EX_SUBSTRING;
+    }
+    else
+    {
+      return ImportIndexType.EX_SHARED;
+    }
   }
 
   /**

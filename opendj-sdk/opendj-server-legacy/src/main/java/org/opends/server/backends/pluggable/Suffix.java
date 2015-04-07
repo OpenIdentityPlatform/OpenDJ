@@ -27,7 +27,6 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -263,15 +262,10 @@ class Suffix
     entryContainer.getID2Subtree().setTrusted(txn, trusted);
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      setTrusted(txn, attributeIndex.getDefaultNameToIndexes().values(), trusted);
-      Map<String, Collection<MatchingRuleIndex>> exIndexes = attributeIndex.getExtensibleIndexes();
-      if(!exIndexes.isEmpty())
-      {
-        setTrusted(txn, exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
-        setTrusted(txn, exIndexes.get(EXTENSIBLE_INDEXER_ID_SHARED), trusted);
-      }
+      setTrusted(txn, attributeIndex.getNameToIndexes().values(), trusted);
     }
-    for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
+    for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+    {
       vlvIdx.setTrusted(txn, trusted);
     }
   }
