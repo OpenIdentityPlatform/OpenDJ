@@ -1377,36 +1377,31 @@ public class Utils
 
   /**
    * Returns the localized string describing the DataOptions chosen by the user.
-   * @param userInstallData the DataOptions of the user.
+   *
+   * @param userInstallData
+   *          the DataOptions of the user.
    * @return the localized string describing the DataOptions chosen by the user.
    */
-  public static String getDataDisplayString(UserData userInstallData)
+  public static String getDataDisplayString(final UserData userInstallData)
   {
     LocalizableMessage msg;
 
-    DataReplicationOptions repl =
-      userInstallData.getReplicationOptions();
+    final DataReplicationOptions repl = userInstallData.getReplicationOptions();
+    final SuffixesToReplicateOptions suf = userInstallData.getSuffixesToReplicateOptions();
 
-    SuffixesToReplicateOptions suf =
-      userInstallData.getSuffixesToReplicateOptions();
-
-    boolean createSuffix =
-      repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
-      repl.getType() == DataReplicationOptions.Type.STANDALONE ||
-      suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+    boolean createSuffix = repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
+        || repl.getType() == DataReplicationOptions.Type.STANDALONE
+        || suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
 
     if (createSuffix)
     {
       LocalizableMessage arg2;
-
       NewSuffixOptions options = userInstallData.getNewSuffixOptions();
 
       switch (options.getType())
       {
       case CREATE_BASE_ENTRY:
-        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(
-            options.getBaseDns().getFirst());
-
+        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(options.getBaseDns().getFirst());
         break;
 
       case LEAVE_DATABASE_EMPTY:
@@ -1418,12 +1413,11 @@ public class Utils
         break;
 
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(
-                options.getNumberEntries());
+        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(options.getNumberEntries());
         break;
 
       default:
-        throw new IllegalArgumentException("Unknown type: "+options.getType());
+        throw new IllegalArgumentException("Unknown type: " + options.getType());
       }
 
       if (options.getBaseDns().isEmpty())
@@ -1432,30 +1426,27 @@ public class Utils
       }
       else if (options.getBaseDns().size() > 1)
       {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(
-            joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()),
-            arg2);
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
       }
       else
       {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
-          arg2);
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(), arg2);
       }
     }
     else
     {
-      StringBuilder buf = new StringBuilder();
-      Set<SuffixDescriptor> suffixes = suf.getSuffixes();
-      for (SuffixDescriptor suffix : suffixes)
+      final StringBuilder buf = new StringBuilder();
+      for (final SuffixDescriptor suffix : suf.getSuffixes())
       {
         if (buf.length() > 0)
         {
-          buf.append("\n");
+          buf.append(Constants.LINE_SEPARATOR);
         }
         buf.append(suffix.getDN());
       }
       msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf);
     }
+
     return msg.toString();
   }
 

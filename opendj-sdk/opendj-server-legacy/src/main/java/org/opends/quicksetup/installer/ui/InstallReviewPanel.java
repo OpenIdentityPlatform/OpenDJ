@@ -82,8 +82,6 @@ public class InstallReviewPanel extends ReviewPanel {
 
   private static final long serialVersionUID = -7356174829193265699L;
 
-  private static final String EOL = System.getProperty("line.separator");
-
   private final boolean displayServerLocation;
 
   private final HashMap<FieldName, JLabel> hmLabels = new HashMap<FieldName, JLabel>();
@@ -419,7 +417,7 @@ public class InstallReviewPanel extends ReviewPanel {
 
       for (final LocalizableMessage line : remoteServerLines)
       {
-        buf.append(EOL).append(line);
+        buf.append(Constants.LINE_SEPARATOR).append(line);
       }
     }
     else
@@ -450,7 +448,7 @@ public class InstallReviewPanel extends ReviewPanel {
      return INFO_USE_CUSTOM_SERVER_RUNTIME.get(serverArguments.getStringArguments()).toString();
    }
 
-   return INFO_USE_CUSTOM_SERVER_RUNTIME.get(serverArguments.getStringArguments()) + EOL
+   return INFO_USE_CUSTOM_SERVER_RUNTIME.get(serverArguments.getStringArguments()) + Constants.LINE_SEPARATOR
         + INFO_USE_CUSTOM_IMPORT_RUNTIME.get(importArguments.getStringArguments());
  }
 
@@ -809,7 +807,7 @@ public class InstallReviewPanel extends ReviewPanel {
     else if (linesToAdd.size() > 1)
     {
       final String arg0 = getJavaPropertiesFilePath(userData);
-      final String arg1 = joinAsString(EOL, linesToAdd);
+      final String arg1 = joinAsString(Constants.LINE_SEPARATOR, linesToAdd);
       sb.append(formatter.getFormattedProgress(INFO_EDIT_JAVA_PROPERTIES_LINES.get(arg0, arg1)));
     }
 
