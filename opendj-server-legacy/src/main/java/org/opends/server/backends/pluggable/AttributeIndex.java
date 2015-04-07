@@ -109,7 +109,7 @@ class AttributeIndex
   }
 
   /**
-   * This class implements an attribute indexer for matching rules in JE Backend.
+   * This class implements an attribute indexer for matching rules in a Backend.
    */
   final class MatchingRuleIndex extends DefaultIndex
   {
@@ -999,72 +999,6 @@ class AttributeIndex
   }
 
   /**
-   * Return the equality index.
-   *
-   * @return The equality index.
-   */
-  MatchingRuleIndex getEqualityIndex()
-  {
-    return getIndexById(IndexType.EQUALITY.toString());
-  }
-
-  /**
-   * Return the approximate index.
-   *
-   * @return The approximate index.
-   */
-  MatchingRuleIndex getApproximateIndex()
-  {
-    return getIndexById(IndexType.APPROXIMATE.toString());
-  }
-
-  /**
-   * Return the ordering index.
-   *
-   * @return  The ordering index.
-   */
-  MatchingRuleIndex getOrderingIndex()
-  {
-    return getIndexById(IndexType.ORDERING.toString());
-  }
-
-  /**
-   * Return the substring index.
-   *
-   * @return The substring index.
-   */
-  MatchingRuleIndex getSubstringIndex()
-  {
-    return getIndexById(IndexType.SUBSTRING.toString());
-  }
-
-  /**
-   * Return the presence index.
-   *
-   * @return The presence index.
-   */
-  MatchingRuleIndex getPresenceIndex()
-  {
-    return getIndexById(IndexType.PRESENCE.toString());
-  }
-
-  /**
-   * Return the index identified by the provided identifier.
-   * <p>
-   * Common index identifiers are "presence", "equality", "substring",
-   * "ordering" and "approximate".
-   *
-   * @param indexId
-   *          the identifier of the requested index
-   * @return The index identified by the provided identifier, or null if no such
-   *         index exists
-   */
-  MatchingRuleIndex getIndexById(String indexId)
-  {
-    return nameToIndexes.get(indexId);
-  }
-
-  /**
    * Return the mapping of extensible index types and indexes.
    *
    * @return The map containing entries (extensible index type, list of indexes)
@@ -1117,6 +1051,24 @@ class AttributeIndex
   Collection<Index> getAllIndexes()
   {
     return new LinkedHashSet<Index>(nameToIndexes.values());
+  }
+
+  Map<String, MatchingRuleIndex> getNameToIndexes()
+  {
+    return nameToIndexes;
+  }
+
+  Map<String, MatchingRuleIndex> getDefaultNameToIndexes()
+  {
+    final Map<String, MatchingRuleIndex> result = new HashMap<String, MatchingRuleIndex>(nameToIndexes);
+    for (Iterator<String> it = result.keySet().iterator(); it.hasNext();)
+    {
+      if (!isDefaultIndex(it.next()))
+      {
+        it.remove();
+      }
+    }
+    return result;
   }
 
   /**

@@ -657,11 +657,7 @@ final class Importer implements DiskSpaceMonitorHandler
   {
     for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
     {
-      putInIdContainerMap(attributeIndex.getEqualityIndex());
-      putInIdContainerMap(attributeIndex.getPresenceIndex());
-      putInIdContainerMap(attributeIndex.getSubstringIndex());
-      putInIdContainerMap(attributeIndex.getOrderingIndex());
-      putInIdContainerMap(attributeIndex.getApproximateIndex());
+      putInIdContainerMap(attributeIndex.getDefaultNameToIndexes().values());
       Map<String, Collection<MatchingRuleIndex>> extensibleMap = attributeIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
@@ -1680,11 +1676,11 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       final IndexingOptions options = attrIndex.getIndexingOptions();
 
-      processAttribute(attrIndex.getEqualityIndex(), ImportIndexType.EQUALITY, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, entry, attrType, entryID, options);
+      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getDefaultNameToIndexes().entrySet())
+      {
+        ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
+        processAttribute(mapEntry.getValue(), indexType, entry, attrType, entryID, options);
+      }
 
       Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
@@ -3090,11 +3086,11 @@ final class Importer implements DiskSpaceMonitorHandler
     private void rebuildAttributeIndexes(WriteableTransaction txn, AttributeIndex attrIndex, AttributeType attrType,
         boolean onlyDegraded) throws StorageRuntimeException
     {
-      fillIndexMap(txn, attrType, attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, onlyDegraded);
-      fillIndexMap(txn, attrType, attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, onlyDegraded);
-      fillIndexMap(txn, attrType, attrIndex.getEqualityIndex(), ImportIndexType.EQUALITY, onlyDegraded);
-      fillIndexMap(txn, attrType, attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, onlyDegraded);
-      fillIndexMap(txn, attrType, attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, onlyDegraded);
+      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getDefaultNameToIndexes().entrySet())
+      {
+        ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
+        fillIndexMap(txn, attrType, mapEntry.getValue(), indexType, onlyDegraded);
+      }
 
       final Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
@@ -3787,6 +3783,31 @@ final class Importer implements DiskSpaceMonitorHandler
     EX_SHARED,
     /** The vlv index type. */
     VLV
+  }
+
+  static ImportIndexType toImportIndexType(String indexID)
+  {
+    if (IndexType.EQUALITY.toString().equals(indexID))
+    {
+      return ImportIndexType.EQUALITY;
+    }
+    else if (IndexType.PRESENCE.toString().equals(indexID))
+    {
+      return ImportIndexType.PRESENCE;
+    }
+    else if (IndexType.SUBSTRING.toString().equals(indexID))
+    {
+      return ImportIndexType.SUBSTRING;
+    }
+    else if (IndexType.ORDERING.toString().equals(indexID))
+    {
+      return ImportIndexType.ORDERING;
+    }
+    else if (IndexType.APPROXIMATE.toString().equals(indexID))
+    {
+      return ImportIndexType.APPROXIMATE;
+    }
+    throw new IllegalArgumentException("Unsupported indexID: " + indexID);
   }
 
   /**

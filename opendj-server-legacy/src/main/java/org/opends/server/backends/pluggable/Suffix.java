@@ -263,11 +263,7 @@ class Suffix
     entryContainer.getID2Subtree().setTrusted(txn, trusted);
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      setTrusted(txn, attributeIndex.getEqualityIndex(), trusted);
-      setTrusted(txn, attributeIndex.getPresenceIndex(), trusted);
-      setTrusted(txn, attributeIndex.getSubstringIndex(), trusted);
-      setTrusted(txn, attributeIndex.getOrderingIndex(), trusted);
-      setTrusted(txn, attributeIndex.getApproximateIndex(), trusted);
+      setTrusted(txn, attributeIndex.getDefaultNameToIndexes().values(), trusted);
       Map<String, Collection<MatchingRuleIndex>> exIndexes = attributeIndex.getExtensibleIndexes();
       if(!exIndexes.isEmpty())
       {
@@ -280,21 +276,13 @@ class Suffix
     }
   }
 
-  private void setTrusted(WriteableTransaction txn, Index index, boolean trusted)
-  {
-    if (index != null)
-    {
-      index.setTrusted(txn, trusted);
-    }
-  }
-
   private void setTrusted(WriteableTransaction txn, Collection<MatchingRuleIndex> indexes, boolean trusted)
   {
     if (indexes != null)
     {
-      for (Index subIndex : indexes)
+      for (Index index : indexes)
       {
-        subIndex.setTrusted(txn, trusted);
+        index.setTrusted(txn, trusted);
       }
     }
   }

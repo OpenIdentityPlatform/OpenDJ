@@ -81,7 +81,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         {
           // Read the database and get Record for the key.
           // Select the right index to be used.
-          final Index index = attributeIndex.getIndexById(indexID);
+          final Index index = attributeIndex.getNameToIndexes().get(indexID);
           if (index == null)
           {
             if(debugMessage != null)
@@ -117,8 +117,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
       @Override
       public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
       {
-        // Find the right index.
-        final Index index = attributeIndex.getIndexById(indexID);
+        final Index index = attributeIndex.getNameToIndexes().get(indexID);
         if (index == null)
         {
           if (debugMessage != null)
@@ -265,7 +264,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
           final String indexID = PRESENCE_INDEX_KEY;
-          final Index index = attributeIndex.getIndexById(indexID);
+          final Index index = attributeIndex.getNameToIndexes().get(indexID);
           if (index == null)
           {
             if(debugMessage != null)
