@@ -29,13 +29,18 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -43,6 +48,7 @@ import org.opends.server.backends.pluggable.spi.ReadableTransaction;
  */
 final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String PRESENCE_INDEX_KEY = "presence";
 
@@ -85,7 +91,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             return createMatchAllQuery().evaluate(debugMessage);
           }
 
-          final EntryIDSet entrySet = index.read(txn, key);
+          final EntryIDSet entrySet = index.get(txn, key);
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
@@ -103,34 +109,117 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 
   /** {@inheritDoc} */
   @Override
-  public IndexQuery createRangeMatchQuery(final String indexID,
-      final ByteSequence lowerBound, final ByteSequence upperBound,
-      final boolean includeLowerBound, final boolean includeUpperBound)
+  public IndexQuery createRangeMatchQuery(final String indexID, final ByteSequence lowerBound,
+      final ByteSequence upperBound, final boolean includeLowerBound, final boolean includeUpperBound)
   {
     return new IndexQuery()
+    {
+      @Override
+      public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
       {
-        @Override
-        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+        // Find the right index.
+        final Index index = attributeIndex.getIndexById(indexID);
+        if (index == null)
         {
-          // Find the right index.
-          final Index index = attributeIndex.getIndexById(indexID);
-          if (index == null)
+          if (debugMessage != null)
           {
-            if(debugMessage != null)
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
-            }
-            return createMatchAllQuery().evaluate(debugMessage);
+            debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
           }
-
-          final EntryIDSet entrySet = index.readRange(txn, lowerBound, upperBound,
-              includeLowerBound, includeUpperBound);
-          if(debugMessage != null && !entrySet.isDefined())
-          {
-            updateStatsUndefinedResults(debugMessage, index);
-          }
-          return entrySet;
+          return createMatchAllQuery().evaluate(debugMessage);
         }
+
+        final EntryIDSet entrySet = readRange(index, txn, lowerBound, upperBound, includeLowerBound, includeUpperBound);
+        if (debugMessage != null && !entrySet.isDefined())
+        {
+          updateStatsUndefinedResults(debugMessage, index);
+        }
+        return entrySet;
+      }
+
+      private final EntryIDSet readRange(Index index, ReadableTransaction txn, ByteSequence lower, ByteSequence upper,
+          boolean lowerIncluded, boolean upperIncluded)
+      {
+        // If this index is not trusted, then just return an undefined id set.
+        if (!index.isTrusted())
+        {
+          return newUndefinedSet();
+        }
+
+        try
+        {
+          // Total number of IDs found so far.
+          int totalIDCount = 0;
+          ArrayList<EntryIDSet> sets = new ArrayList<EntryIDSet>();
+          Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn);
+          try
+          {
+            boolean success;
+            // Set the lower bound if necessary.
+            if (lower.length() > 0)
+            {
+              // Initialize the cursor to the lower bound.
+              success = cursor.positionToKeyOrNext(lower);
+
+              // Advance past the lower bound if necessary.
+              if (success && !lowerIncluded && cursor.getKey().equals(lower))
+              {
+                // Do not include the lower value.
+                success = cursor.next();
+              }
+            }
+            else
+            {
+              success = cursor.next();
+            }
+
+            if (!success)
+            {
+              // There are no values.
+              return EntryIDSet.newDefinedSet();
+            }
+
+            // Step through the keys until we hit the upper bound or the last key.
+            while (success)
+            {
+              // Check against the upper bound if necessary
+              if (upper.length() > 0)
+              {
+                int cmp = cursor.getKey().compareTo(upper);
+                if (cmp > 0 || (cmp == 0 && !upperIncluded))
+                {
+                  break;
+                }
+              }
+
+              EntryIDSet set = cursor.getValue();
+              if (!set.isDefined())
+              {
+                // There is no point continuing.
+                return set;
+              }
+              totalIDCount += set.size();
+              if (totalIDCount > IndexFilter.CURSOR_ENTRY_LIMIT)
+              {
+                // There are too many. Give up and return an undefined list.
+                return newUndefinedSet();
+              }
+              sets.add(set);
+              success = cursor.next();
+            }
+
+            return EntryIDSet.newSetFromUnion(sets);
+          }
+          finally
+          {
+            cursor.close();
+          }
+        }
+        catch (StorageRuntimeException e)
+        {
+          logger.traceException(e);
+          return newUndefinedSet();
+        }
+      }
 
         @Override
         public String toString()
@@ -186,7 +275,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             return newUndefinedSet();
           }
 
-          final EntryIDSet entrySet = index.read(txn, PresenceIndexer.presenceKey);
+          final EntryIDSet entrySet = index.get(txn, AttributeIndex.PRESENCE_KEY);
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
@@ -207,10 +296,6 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     if (!index.isTrusted())
     {
       debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
-    }
-    else if (index.isRebuildRunning())
-    {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
     }
     else
     {

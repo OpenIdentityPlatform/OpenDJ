@@ -24,154 +24,166 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.EntryIDSet.*;
-
-import java.util.List;
-import java.util.Set;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.pluggable.State.IndexFlag;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
 
 /**
- * A null index which replaces id2children and id2subtree when they have been
- * disabled.
+ * A null index which replaces id2children and id2subtree when they have been disabled.
  */
-final class NullIndex extends Index
+final class NullIndex implements Index
 {
+  private final TreeName name;
 
-  NullIndex(TreeName name, Indexer indexer, State state, WriteableTransaction txn,
-      EntryContainer entryContainer) throws StorageRuntimeException
+  NullIndex(TreeName name)
   {
-    super(name, indexer, state, 0, 0, false, txn, entryContainer);
-    state.removeFlagsFromIndex(txn, name, IndexFlag.TRUSTED);
-    super.delete(txn);
+    this.name = name;
   }
 
   @Override
-  void updateKey(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
+  public void update(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
     // Do nothing.
   }
 
   @Override
-  void delete(IndexBuffer buffer, ByteString keyBytes)
-  {
-    // Do nothing.
-  }
-
-  @Override
-  ConditionResult containsID(ReadableTransaction txn, ByteString key, EntryID entryID)
-      throws StorageRuntimeException
-  {
-    return ConditionResult.UNDEFINED;
-  }
-
-  @Override
-  EntryIDSet read(ReadableTransaction txn, ByteSequence key)
+  public EntryIDSet get(ReadableTransaction txn, ByteSequence key)
   {
     return newUndefinedSet();
   }
 
   @Override
-  EntryIDSet readRange(ReadableTransaction txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
-      boolean upperIncluded)
-  {
-    return newUndefinedSet();
-  }
-
-  @Override
-  int getEntryLimitExceededCount()
-  {
-    return 0;
-  }
-
-  @Override
-  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
-      throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  @Override
-  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
-      throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  @Override
-  void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
-      IndexingOptions options) throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  @Override
-  boolean setIndexEntryLimit(int indexEntryLimit)
+  public boolean setIndexEntryLimit(int indexEntryLimit)
   {
     return false;
   }
 
   @Override
-  int getIndexEntryLimit()
+  public int getIndexEntryLimit()
   {
     return 0;
   }
 
   @Override
-  void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
+  public void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
   @Override
-  boolean isTrusted()
+  public boolean isTrusted()
   {
     return true;
   }
 
   @Override
-  boolean isRebuildRunning()
+  public boolean getMaintainCount()
   {
     return false;
   }
 
   @Override
-  boolean getMaintainCount()
-  {
-    return false;
-  }
-
-  @Override
-  void open(WriteableTransaction txn) throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  @Override
-  long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException
+  public long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException
   {
     return 0;
   }
 
   @Override
-  void delete(WriteableTransaction txn) throws StorageRuntimeException
+  public Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn)
+  {
+    return new Cursor<ByteString, EntryIDSet>()
+    {
+
+      @Override
+      public boolean positionToKey(ByteSequence key)
+      {
+        return false;
+      }
+
+      @Override
+      public boolean positionToKeyOrNext(ByteSequence key)
+      {
+        return false;
+      }
+
+      @Override
+      public boolean positionToLastKey()
+      {
+        return false;
+      }
+
+      @Override
+      public boolean positionToIndex(int index)
+      {
+        return false;
+      }
+
+      @Override
+      public boolean next()
+      {
+        return false;
+      }
+
+      @Override
+      public ByteString getKey()
+      {
+        return null;
+      }
+
+      @Override
+      public EntryIDSet getValue()
+      {
+        return null;
+      }
+
+      @Override
+      public void close()
+      {
+        // Nothing to do.
+      }
+
+    };
+  }
+
+  @Override
+  public void importRemove(WriteableTransaction txn, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
   {
     // Do nothing.
   }
 
   @Override
-  void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  public void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded) throws StorageRuntimeException
+  {
+    // Do nothing.
+  }
+
+  @Override
+  public TreeName getName()
+  {
+    return name;
+  }
+
+  @Override
+  public void open(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    // Do nothing.
+  }
+
+  @Override
+  public void delete(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    // Do nothing.
+  }
+
+  @Override
+  public void setName(TreeName name)
   {
     // Do nothing.
   }

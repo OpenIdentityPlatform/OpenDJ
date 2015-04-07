@@ -67,106 +67,74 @@ class IndexBuffer
    * state is only ever used when updating the id2children and id2subtree indexes when deleting an
    * entry.
    */
-  static class BufferedIndexValues
+  private static class BufferedIndexValues
   {
-    private EntryIDSet addedIDs;
-    private EntryIDSet deletedIDs;
+    private EntryIDSet addedEntryIDs;
+    private EntryIDSet deletedEntryIDs;
 
-    /**
-     * Adds the provided entryID to this object associating it with the provided keyBytes.
-     *
-     * @param keyBytes the keyBytes mapping for this entryID
-     * @param entryID the entryID to add
-     */
-    void addEntryID(ByteString keyBytes, EntryID entryID)
+    void addEntryID(EntryID entryID)
     {
-      if (!remove(deletedIDs, entryID))
+      if (!remove(deletedEntryIDs, entryID))
       {
-        if (this.addedIDs == null)
+        if (this.addedEntryIDs == null)
         {
-          this.addedIDs = newDefinedSet();
+          this.addedEntryIDs = newDefinedSet();
         }
-        this.addedIDs.add(entryID);
+        this.addedEntryIDs.add(entryID);
       }
     }
 
-    /**
-     * Deletes the provided entryID from this object.
-     *
-     * @param keyBytes the keyBytes mapping for this entryID
-     * @param entryID the entryID to delete
-     */
-    void deleteEntryID(ByteString keyBytes, EntryID entryID)
+    void deleteEntryID(EntryID entryID)
     {
-      if (!remove(addedIDs, entryID))
+      if (!remove(addedEntryIDs, entryID))
       {
-        if (this.deletedIDs == null)
+        if (this.deletedEntryIDs == null)
         {
-          this.deletedIDs = newDefinedSet();
+          this.deletedEntryIDs = newDefinedSet();
         }
-        this.deletedIDs.add(entryID);
+        this.deletedEntryIDs.add(entryID);
       }
     }
 
-    private boolean remove(EntryIDSet ids, EntryID entryID)
+    private static boolean remove(EntryIDSet entryIDs, EntryID entryID)
     {
-      if (ids != null && ids.contains(entryID))
-      {
-        ids.remove(entryID);
-        return true;
-      }
-      return false;
+      return entryIDs != null ? entryIDs.remove(entryID) : false;
     }
   }
 
   /** A simple class representing a pair of added and deleted VLV values. */
-  static class BufferedVLVIndexValues
+  private static class BufferedVLVIndexValues
   {
-    private TreeSet<ByteString> addedValues;
-    private TreeSet<ByteString> deletedValues;
+    private TreeSet<ByteString> addedSortKeys;
+    private TreeSet<ByteString> deletedSortKeys;
 
-    /**
-     * Adds the provided values to this object.
-     *
-     * @param sortValues the values to add
-     */
-    void addValues(ByteString sortValues)
+    void addSortKey(ByteString sortKey)
     {
-      if (!remove(deletedValues, sortValues))
+      if (!remove(deletedSortKeys, sortKey))
       {
-        if (addedValues == null)
+        if (addedSortKeys == null)
         {
-          addedValues = new TreeSet<ByteString>();
+          addedSortKeys = new TreeSet<ByteString>();
         }
-        addedValues.add(sortValues);
+        addedSortKeys.add(sortKey);
       }
     }
 
-    /**
-     * Deletes the provided values from this object.
-     *
-     * @param sortValues the values to delete
-     */
-    void deleteValues(ByteString sortValues)
+    void deleteSortKey(ByteString sortKey)
     {
-      if (!remove(addedValues, sortValues))
+      if (!remove(addedSortKeys, sortKey))
       {
-        if (deletedValues == null)
+        if (deletedSortKeys == null)
         {
-          deletedValues = new TreeSet<ByteString>();
+          deletedSortKeys = new TreeSet<ByteString>();
         }
-        deletedValues.add(sortValues);
+        deletedSortKeys.add(sortKey);
       }
     }
 
-    private boolean remove(TreeSet<ByteString> values, ByteString sortValues)
+    private static boolean remove(TreeSet<ByteString> sortKeys, ByteString sortKey)
     {
-      if (values != null && values.contains(sortValues))
-      {
-        values.remove(sortValues);
-        return true;
-      }
-      return false;
+      return sortKeys != null ? sortKeys.remove(sortKey) : false;
     }
   }
 
@@ -181,14 +149,7 @@ class IndexBuffer
     this.entryContainer = entryContainer;
   }
 
-  /**
-   * Get the buffered VLV values for the given VLV index.
-   *
-   * @param vlvIndex The VLV index with the buffered values to retrieve.
-   * @return The buffered VLV values or <code>null</code> if there are
-   * no buffered VLV values for the specified VLV index.
-   */
-  BufferedVLVIndexValues getBufferedVLVIndexValues(VLVIndex vlvIndex)
+  private BufferedVLVIndexValues createOrGetBufferedVLVIndexValues(VLVIndex vlvIndex)
   {
     BufferedVLVIndexValues bufferedValues = bufferedVLVIndexes.get(vlvIndex);
     if (bufferedValues == null)
@@ -199,16 +160,7 @@ class IndexBuffer
     return bufferedValues;
   }
 
-  /**
-   * Get the buffered index values for the given index and keyBytes.
-   *
-   * @param index
-   *          The index for which to retrieve the buffered index values
-   * @param keyBytes
-   *          The keyBytes for which to retrieve the buffered index values
-   * @return The buffered index values, it can never be null
-   */
-  BufferedIndexValues getBufferedIndexValues(Index index, ByteString keyBytes)
+  private BufferedIndexValues createOrGetBufferedIndexValues(Index index, ByteString keyBytes)
   {
     BufferedIndexValues values = null;
 
@@ -250,7 +202,7 @@ class IndexBuffer
     {
       for (Index index : attributeIndex.getAllIndexes())
       {
-        updateKeys(index, txn, bufferedIndexes.remove(index));
+        flushIndex(index, txn, bufferedIndexes.remove(index));
       }
     }
 
@@ -259,12 +211,12 @@ class IndexBuffer
       BufferedVLVIndexValues bufferedVLVValues = bufferedVLVIndexes.remove(vlvIndex);
       if (bufferedVLVValues != null)
       {
-        vlvIndex.updateIndex(txn, bufferedVLVValues.addedValues, bufferedVLVValues.deletedValues);
+        vlvIndex.updateIndex(txn, bufferedVLVValues.addedSortKeys, bufferedVLVValues.deletedSortKeys);
       }
     }
 
     final Index id2children = entryContainer.getID2Children();
-    updateKeys(id2children, txn, bufferedIndexes.remove(id2children));
+    flushIndex(id2children, txn, bufferedIndexes.remove(id2children));
 
     final Index id2subtree = entryContainer.getID2Subtree();
     final TreeMap<ByteString, BufferedIndexValues> bufferedValues = bufferedIndexes.remove(id2subtree);
@@ -275,11 +227,36 @@ class IndexBuffer
        * entry processing in add/delete processing. This is necessary in order
        * to avoid deadlocks.
        */
-      updateKeys(id2subtree, txn, bufferedValues.descendingMap());
+      flushIndex(id2subtree, txn, bufferedValues.descendingMap());
     }
   }
 
-  private void updateKeys(Index index, WriteableTransaction txn,
+  void put(Index index, ByteString key, EntryID entryID)
+  {
+    createOrGetBufferedIndexValues(index, key).addEntryID(entryID);
+  }
+
+  void put(VLVIndex index, ByteString sortKey)
+  {
+    createOrGetBufferedVLVIndexValues(index).addSortKey(sortKey);
+  }
+
+  void remove(VLVIndex index, ByteString sortKey)
+  {
+    createOrGetBufferedVLVIndexValues(index).deleteSortKey(sortKey);
+  }
+
+  void remove(Index index, ByteString key)
+  {
+    createOrGetBufferedIndexValues(index, key);
+  }
+
+  void remove(Index index, ByteString key, EntryID entryID)
+  {
+    createOrGetBufferedIndexValues(index, key).deleteEntryID(entryID);
+  }
+
+  private void flushIndex(Index index, WriteableTransaction txn,
       Map<ByteString, BufferedIndexValues> bufferedValues)
   {
     if (bufferedValues != null)
@@ -290,9 +267,7 @@ class IndexBuffer
         final Map.Entry<ByteString, BufferedIndexValues> entry = it.next();
         final ByteString key = entry.getKey();
         final BufferedIndexValues values = entry.getValue();
-
-        index.updateKey(txn, key, values.deletedIDs, values.addedIDs);
-
+        index.update(txn, key, values.deletedEntryIDs, values.addedEntryIDs);
         it.remove();
       }
     }

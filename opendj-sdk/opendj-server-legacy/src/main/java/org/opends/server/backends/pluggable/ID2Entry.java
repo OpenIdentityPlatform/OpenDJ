@@ -57,7 +57,7 @@ import org.opends.server.types.LDAPException;
  * Represents the database containing the LDAP entries. The database key is
  * the entry ID and the value is the entry contents.
  */
-class ID2Entry extends DatabaseContainer
+class ID2Entry extends AbstractDatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

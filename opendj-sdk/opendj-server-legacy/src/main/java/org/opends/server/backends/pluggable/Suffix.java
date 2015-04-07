@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.Importer.DNCache;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -267,7 +268,7 @@ class Suffix
       setTrusted(txn, attributeIndex.getSubstringIndex(), trusted);
       setTrusted(txn, attributeIndex.getOrderingIndex(), trusted);
       setTrusted(txn, attributeIndex.getApproximateIndex(), trusted);
-      Map<String, Collection<Index>> exIndexes = attributeIndex.getExtensibleIndexes();
+      Map<String, Collection<MatchingRuleIndex>> exIndexes = attributeIndex.getExtensibleIndexes();
       if(!exIndexes.isEmpty())
       {
         setTrusted(txn, exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
@@ -287,7 +288,7 @@ class Suffix
     }
   }
 
-  private void setTrusted(WriteableTransaction txn, Collection<Index> indexes, boolean trusted)
+  private void setTrusted(WriteableTransaction txn, Collection<MatchingRuleIndex> indexes, boolean trusted)
   {
     if (indexes != null)
     {

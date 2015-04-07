@@ -74,7 +74,7 @@ import org.opends.server.util.StaticUtils;
  * as in the DN database so that all referrals in a subtree can be retrieved by
  * cursoring through a range of the records.
  */
-class DN2URI extends DatabaseContainer
+class DN2URI extends AbstractDatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

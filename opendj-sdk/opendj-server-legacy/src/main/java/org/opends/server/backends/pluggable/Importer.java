@@ -101,6 +101,7 @@ import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.persistit.PersistItStorage;
+import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -661,7 +662,7 @@ final class Importer implements DiskSpaceMonitorHandler
       putInIdContainerMap(attributeIndex.getSubstringIndex());
       putInIdContainerMap(attributeIndex.getOrderingIndex());
       putInIdContainerMap(attributeIndex.getApproximateIndex());
-      Map<String, Collection<Index>> extensibleMap = attributeIndex.getExtensibleIndexes();
+      Map<String, Collection<MatchingRuleIndex>> extensibleMap = attributeIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
         putInIdContainerMap(extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING));
@@ -670,7 +671,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  private void putInIdContainerMap(Collection<Index> indexes)
+  private void putInIdContainerMap(Collection<MatchingRuleIndex> indexes)
   {
     if (indexes != null)
     {
@@ -1527,8 +1528,8 @@ final class Importer implements DiskSpaceMonitorHandler
       importCount.getAndIncrement();
     }
 
-    void processAllIndexes(Suffix suffix, Entry entry, EntryID entryID)
-        throws DirectoryException, StorageRuntimeException, InterruptedException
+    void processAllIndexes(Suffix suffix, Entry entry, EntryID entryID) throws StorageRuntimeException,
+        InterruptedException
     {
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
@@ -1537,7 +1538,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     @Override
-    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
+    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexingOptions options,
         IndexKey indexKey) throws StorageRuntimeException, InterruptedException
     {
       if (oldEntry != null)
@@ -1631,7 +1632,6 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     /** Examine the DN for duplicates and missing parents. */
-    @SuppressWarnings("javadoc")
     boolean dnSanityCheck(DN entryDN, Entry entry, Suffix suffix)
         throws StorageRuntimeException, InterruptedException
     {
@@ -1662,8 +1662,8 @@ final class Importer implements DiskSpaceMonitorHandler
       return true;
     }
 
-    void processIndexes(Suffix suffix, Entry entry, EntryID entryID)
-        throws DirectoryException, StorageRuntimeException, InterruptedException
+    void processIndexes(Suffix suffix, Entry entry, EntryID entryID) throws StorageRuntimeException,
+        InterruptedException
     {
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
@@ -1676,7 +1676,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     void fillIndexKey(AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
-        throws InterruptedException, DirectoryException, StorageRuntimeException
+        throws InterruptedException, StorageRuntimeException
     {
       final IndexingOptions options = attrIndex.getIndexingOptions();
 
@@ -1686,12 +1686,12 @@ final class Importer implements DiskSpaceMonitorHandler
       processAttribute(attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, entry, attrType, entryID, options);
       processAttribute(attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, entry, attrType, entryID, options);
 
-      Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
+      Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
-        Collection<Index> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
+        Collection<MatchingRuleIndex> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
         processAttributes(subIndexes, ImportIndexType.EX_SUBSTRING, entry, attrType, entryID, options);
-        Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
+        Collection<MatchingRuleIndex> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
         processAttributes(sharedIndexes, ImportIndexType.EX_SHARED, entry, attrType, entryID, options);
       }
     }
@@ -1707,19 +1707,19 @@ final class Importer implements DiskSpaceMonitorHandler
       buffer.flush(txn);
     }
 
-    private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry,
+    private void processAttributes(Collection<MatchingRuleIndex> indexes, ImportIndexType indexType, Entry entry,
         AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (indexes != null)
       {
-        for (Index index : indexes)
+        for (MatchingRuleIndex index : indexes)
         {
           processAttribute(index, indexType, entry, attributeType, entryID, options);
         }
       }
     }
 
-    private void processAttribute(Index index, ImportIndexType indexType, Entry entry,
+    private void processAttribute(MatchingRuleIndex index, ImportIndexType indexType, Entry entry,
         AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (index != null)
@@ -1729,7 +1729,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
+    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexingOptions options,
         IndexKey indexKey) throws StorageRuntimeException, InterruptedException
     {
       insertKeySet.clear();
@@ -2114,12 +2114,12 @@ final class Importer implements DiskSpaceMonitorHandler
         if (deleteSet.size() > 0 || !deleteSet.isDefined())
         {
           final Index index = indexIDToIndexMap.get(indexID);
-          index.delete(txn, deleteSet);
+          index.importRemove(txn, deleteSet);
         }
         if (insertSet.size() > 0 || !insertSet.isDefined())
         {
           final Index index = indexIDToIndexMap.get(indexID);
-          index.insert(txn, insertSet);
+          index.importPut(txn, insertSet);
         }
       }
     }
@@ -2353,7 +2353,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         for (ImportIDSet idSet : map.values())
         {
-          index.insert(txn, idSet);
+          index.importPut(txn, idSet);
         }
         if (clearMap)
         {
@@ -2841,12 +2841,12 @@ final class Importer implements DiskSpaceMonitorHandler
     private final PluggableBackendCfg cfg;
 
     /** Map of index keys to indexes. */
-    private final Map<IndexKey, Index> indexMap =
-        new LinkedHashMap<IndexKey, Index>();
+    private final Map<IndexKey, MatchingRuleIndex> indexMap =
+        new LinkedHashMap<IndexKey, MatchingRuleIndex>();
 
     /** Map of index keys to extensible indexes. */
-    private final Map<IndexKey, Collection<Index>> extensibleIndexMap =
-        new LinkedHashMap<IndexKey, Collection<Index>>();
+    private final Map<IndexKey, Collection<MatchingRuleIndex>> extensibleIndexMap =
+        new LinkedHashMap<IndexKey, Collection<MatchingRuleIndex>>();
 
     /** List of VLV indexes. */
     private final List<VLVIndex> vlvIndexes = new LinkedList<VLVIndex>();
@@ -3096,23 +3096,23 @@ final class Importer implements DiskSpaceMonitorHandler
       fillIndexMap(txn, attrType, attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, onlyDegraded);
       fillIndexMap(txn, attrType, attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, onlyDegraded);
 
-      final Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
+      final Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
-        final Collection<Index> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
+        final Collection<MatchingRuleIndex> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
         fillIndexMap(txn, attrType, subIndexes, ImportIndexType.EX_SUBSTRING, onlyDegraded);
-        final Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
+        final Collection<MatchingRuleIndex> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
         fillIndexMap(txn, attrType, sharedIndexes, ImportIndexType.EX_SHARED, onlyDegraded);
       }
     }
 
-    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Collection<Index> indexes,
+    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Collection<MatchingRuleIndex> indexes,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
       if (indexes != null && !indexes.isEmpty())
       {
-        final List<Index> mutableCopy = new LinkedList<Index>(indexes);
-        for (final Iterator<Index> it = mutableCopy.iterator(); it.hasNext();)
+        final List<MatchingRuleIndex> mutableCopy = new LinkedList<MatchingRuleIndex>(indexes);
+        for (final Iterator<MatchingRuleIndex> it = mutableCopy.iterator(); it.hasNext();)
         {
           final Index index = it.next();
           if (!onlyDegraded || !index.isTrusted())
@@ -3135,11 +3135,10 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Index index,
+    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, MatchingRuleIndex index,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
-      if (index != null
-          && (!onlyDegraded || !index.isTrusted())
+      if (index != null && (!onlyDegraded || !index.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
       {
         putInIdContainerMap(index);
@@ -3179,7 +3178,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       if (!extensibleIndexMap.isEmpty())
       {
-        for (final Collection<Index> subIndexes : extensibleIndexMap.values())
+        for (final Collection<MatchingRuleIndex> subIndexes : extensibleIndexMap.values())
         {
           if (subIndexes != null)
           {
@@ -3220,7 +3219,7 @@ final class Importer implements DiskSpaceMonitorHandler
         }
         if (!extensibleIndexMap.isEmpty())
         {
-          for (Collection<Index> subIndexes : extensibleIndexMap.values())
+          for (Collection<MatchingRuleIndex> subIndexes : extensibleIndexMap.values())
           {
             setTrusted(txn, subIndexes, trusted);
           }
@@ -3232,7 +3231,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void setTrusted(WriteableTransaction txn, final Collection<Index> indexes, boolean trusted)
+    private void setTrusted(WriteableTransaction txn, final Collection<MatchingRuleIndex> indexes, boolean trusted)
     {
       if (indexes != null && !indexes.isEmpty())
       {
@@ -3493,7 +3492,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private void processExtensibleIndexes(Entry entry, EntryID entryID)
         throws InterruptedException
     {
-      for (Map.Entry<IndexKey, Collection<Index>> mapEntry :
+      for (Map.Entry<IndexKey, Collection<MatchingRuleIndex>> mapEntry :
         this.extensibleIndexMap.entrySet())
       {
         IndexKey key = mapEntry.getKey();
@@ -3502,7 +3501,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
           IndexingOptions options = attributeIndex.getIndexingOptions();
-          for (Index index : mapEntry.getValue())
+          for (MatchingRuleIndex index : mapEntry.getValue())
           {
             processAttribute(index, entry, entryID, options, key);
           }
@@ -3513,7 +3512,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private void processIndexes(Entry entry, EntryID entryID)
         throws StorageRuntimeException, InterruptedException
     {
-      for (Map.Entry<IndexKey, Index> mapEntry : indexMap.entrySet())
+      for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
       {
         IndexKey key = mapEntry.getKey();
         AttributeType attrType = key.getAttributeType();
@@ -3521,7 +3520,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
           IndexingOptions options = attributeIndex.getIndexingOptions();
-          Index index = mapEntry.getValue();
+          MatchingRuleIndex index = mapEntry.getValue();
           processAttribute(index, entry, entryID, options, key);
         }
       }

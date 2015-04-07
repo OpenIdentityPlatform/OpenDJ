@@ -503,13 +503,13 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     if (timeLimit > 0)
     {
       // Get a list of all the databases used by the backend.
-      ArrayList<DatabaseContainer> dbList = new ArrayList<DatabaseContainer>();
+      final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
       for (EntryContainer ec : entryContainers.values())
       {
         ec.sharedLock.lock();
         try
         {
-          ec.listDatabases(dbList);
+          databases.addAll(ec.listDatabases());
         }
         finally
         {
@@ -518,7 +518,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       }
 
       // Sort the list in order of priority.
-      Collections.sort(dbList, new DbPreloadComparator());
+      Collections.sort(databases, new DbPreloadComparator());
 
       // Preload each database until we reach the time limit or the cache
       // is filled.

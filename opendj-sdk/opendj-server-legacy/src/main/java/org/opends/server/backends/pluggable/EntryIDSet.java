@@ -45,7 +45,6 @@ import com.forgerock.opendj.util.Iterators;
  * Represents a set of Entry IDs. It can represent a set where the IDs are not defined, for example when the index entry
  * limit has been exceeded.
  */
-@SuppressWarnings("javadoc")
 final class EntryIDSet implements Iterable<EntryID>
 {
   public static final EntryIDSetCodec CODEC_V1 = new EntryIDSetCodecV1();

@@ -46,7 +46,7 @@ import org.opends.server.util.StaticUtils;
  * This class is responsible for storing the configuration state of
  * the JE backend for a particular suffix.
  */
-class State extends DatabaseContainer
+class State extends AbstractDatabaseContainer
 {
 
   /**
@@ -165,7 +165,6 @@ class State extends DatabaseContainer
    * Ensure that the specified flags are not set for the given index
    * @param txn a non null database transaction
    * @param index The index storing the trusted state info.
-   * @return The flags of the index
    * @throws NullPointerException if txn, index or flags is null
    * @throws StorageRuntimeException If an error occurs in the database.
    */
