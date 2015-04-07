@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-troubleshooting'
@@ -241,13 +240,9 @@ $ <userinput>dsconfig \
  --bindPassword password \
  --publisher-name "File-Based Debug Logger" \
  --set enabled:true \
- --set default-debug-level:all \
  --no-prompt \
  --trustAll</userinput>
     </screen>
-
-    <para>You can set <literal>default-debug-level</literal> to a less verbose
-    level if necessary.</para>
    </step>
 
    <step>
@@ -266,8 +261,8 @@ $ <userinput>dsconfig \
  --no-prompt \
  --trustAll</userinput>
 <computeroutput>
-Debug Target : debug-level : debug-category
--------------:-------------:---------------
+Debug Target : enabled : debug-exceptions-only
+-------------:---------:----------------------
 </computeroutput>
 $
     </screen>
@@ -286,7 +281,7 @@ $ <userinput>dsconfig \
  --publisher-name "File-Based Debug Logger" \
  --type generic \
  --target-name org.opends.server.api \
- --set debug-level:all \
+ --set enabled:true \
  --no-prompt \
  --trustAll</userinput>
     </screen>
@@ -296,15 +291,32 @@ $ <userinput>dsconfig \
     <para>Restart OpenDJ to see debug messages in the log.</para>
 
     <screen>
-$ <userinput>/path/to/opendj/bin/stop-ds --restart</userinput>
+$ <userinput>stop-ds --restart</userinput>
 ...
+$ <userinput>dsconfig \
+ list-debug-targets \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --no-prompt \
+ --trustAll</userinput>
+<computeroutput>
+Debug Target          : enabled : debug-exceptions-only
+----------------------:---------:----------------------
+org.opends.server.api : true    : false
+</computeroutput>
 $ <userinput>tail -f /path/to/opendj/logs/debug</userinput>
 ...
     </screen>
 
-    <para>If you have set <literal>debug-level:all</literal>, OpenDJ generates
-    a great deal of output in the debug log file. Use debug logging very
-    sparingly on production systems.</para>
+    <caution>
+     <para>
+      OpenDJ directory server can generate lots of debug output.
+      Use debug logging very sparingly on production systems.
+     </para>
+    </caution>
    </step>
   </procedure>
  </section>

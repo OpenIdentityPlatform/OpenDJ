@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,15 +19,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-samba'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Samba Password Synchronization</title>
  <indexterm><primary>Samba</primary></indexterm>
  
@@ -177,6 +176,17 @@ $ <userinput>dsconfig \
 
    <screen>
 $ <userinput>dsconfig \
+ set-log-publisher-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --set enabled:true \
+ --no-prompt \
+ --trustAll</userinput>
+
+$ <userinput>dsconfig \
  create-debug-target \
  --port 4444 \
  --hostname opendj.example.com \
@@ -184,20 +194,11 @@ $ <userinput>dsconfig \
  --bindPassword password \
  --publisher-name "File-Based Debug Logger" \
  --target-name org.opends.server.plugins.SambaPasswordPlugin \
- --set debug-level:all \
- --trustAll \
- --no-prompt</userinput>
-
-$ <userinput>dsconfig \
- set-log-publisher-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --publisher-name "File-Based Debug Logger" \
  --set enabled:true \
  --trustAll \
  --no-prompt</userinput>
+
+$ <userinput>tail -f /path/to/opendj/logs/debug</userinput>
    </screen>
   </step>
  </procedure>
