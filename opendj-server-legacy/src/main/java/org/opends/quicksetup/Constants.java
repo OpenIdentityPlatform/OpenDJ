@@ -34,8 +34,7 @@ import org.opends.admin.ads.ADSContext;
 public class Constants {
 
   /** Platform appropriate line separator. */
-  public static final String LINE_SEPARATOR =
-          System.getProperty("line.separator");
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   /** HTML line break tag. */
   public static final String HTML_LINE_BREAK = "<br>";
