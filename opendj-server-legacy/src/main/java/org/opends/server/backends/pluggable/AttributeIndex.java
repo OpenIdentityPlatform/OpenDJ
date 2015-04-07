@@ -1042,17 +1042,6 @@ class AttributeIndex
         || indexId.equals(IndexType.APPROXIMATE.toString());
   }
 
-  /**
-   * Retrieves all the indexes used by this attribute index.
-   *
-   * @return A collection of all indexes in use by this attribute
-   * index.
-   */
-  Collection<Index> getAllIndexes()
-  {
-    return new LinkedHashSet<Index>(nameToIndexes.values());
-  }
-
   Map<String, MatchingRuleIndex> getNameToIndexes()
   {
     return nameToIndexes;
