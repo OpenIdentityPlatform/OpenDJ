@@ -151,6 +151,32 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
     GridBagConstraints gbc = new GridBagConstraints();
     // Add the server location widgets
+    addBaseDNSection(panel, gbc);
+
+    int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
+    int h2 = getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).getPreferredSize().height;
+    int additionalInset = Math.abs(h2 - h1) / 2;
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD + additionalInset;
+    gbc.insets.left = 0;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    panel.add(getLabel(FieldName.DATA_OPTIONS), gbc);
+
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    panel.add(createRadioButtonPanel(), gbc);
+
+    addVerticalGlue(panel);
+
+    return panel;
+  }
+
+  private void addBaseDNSection(final JPanel panel, final GridBagConstraints gbc)
+  {
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     gbc.insets.top = 0;
@@ -191,27 +217,6 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     final JLabel noBaseDNLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, INFO_NO_BASE_DN_INLINE_HELP.get(),
                                                       UIFactory.TextStyle.INLINE_HELP);
     panel.add(noBaseDNLabel, gbc);
-
-    int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
-    int h2 = getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).getPreferredSize().height;
-    int additionalInset = Math.abs(h2 - h1) / 2;
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
-    gbc.weightx = 0.0;
-    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD + additionalInset;
-    gbc.insets.left = 0;
-    gbc.anchor = GridBagConstraints.NORTHWEST;
-    panel.add(getLabel(FieldName.DATA_OPTIONS), gbc);
-
-    gbc.weightx = 1.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    panel.add(createRadioButtonPanel(), gbc);
-
-    addVerticalGlue(panel);
-
-    return panel;
   }
 
   /**
