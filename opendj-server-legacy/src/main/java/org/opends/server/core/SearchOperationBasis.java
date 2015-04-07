@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
@@ -140,12 +139,12 @@ public class SearchOperationBasis
   private DN proxiedAuthorizationDN;
 
   /** The number of entries that have been sent to the client. */
-  private final AtomicInteger entriesSent = new AtomicInteger();
+  private int entriesSent;
 
   /**
    * The number of search result references that have been sent to the client.
    */
-  private final AtomicInteger referencesSent = new AtomicInteger();
+  private int referencesSent;
 
   /** The size limit for the search operation. */
   private int sizeLimit;
@@ -474,14 +473,14 @@ public class SearchOperationBasis
   @Override
   public final int getEntriesSent()
   {
-    return entriesSent.get();
+    return entriesSent;
   }
 
   /** {@inheritDoc} */
   @Override
   public final int getReferencesSent()
   {
-    return referencesSent.get();
+    return referencesSent;
   }
 
   /** {@inheritDoc} */
@@ -720,7 +719,7 @@ public class SearchOperationBasis
       {
         sendSearchEntry(filteredSearchEntry);
 
-        entriesSent.incrementAndGet();
+        entriesSent++;
       }
       catch (DirectoryException de)
       {
@@ -791,7 +790,7 @@ public class SearchOperationBasis
       {
         if (sendSearchReference(reference))
         {
-          referencesSent.incrementAndGet();
+          referencesSent++;
 
           // FIXME -- Should the size limit apply here?
         }
