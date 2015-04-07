@@ -888,6 +888,61 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
+  <para>
+   You can change the value of more than one attribute in a patch operation.
+   To do so, include multiple operations in the body of the JSON patch.
+   Notice that for a multi-valued attribute, the "value" field takes an array,
+   whereas the "value" field takes a single value for a single-valued field.
+   Also notice in the following example that for single-valued fields,
+   an "add" operation has the same effect as a "replace" operation.
+  </para>
+
+  <screen>
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/telephoneNumber",
+    "value": "+1 408 555 9999"
+  },
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "barbara.jensen@example.com"
+  }
+ ]' \
+ http://opendj.example.com:8080/users/bjensen</userinput>
+<computeroutput>{
+    "contactInformation": {
+        "emailAddress": "barbara.jensen@example.com",
+        "telephoneNumber": "+1 408 555 9999"
+    },
+    "displayName": "Barbara Jensen",
+    "manager": [
+        {
+            "displayName": "Torrey Rigden",
+            "_id": "trigden"
+        }
+    ],
+    "meta": {
+        "lastModified": "2015-04-07T10:19:41Z"
+    },
+    "schemas": [
+        "urn:scim:schemas:core:1.0"
+    ],
+    "_rev": "00000000e68ef438",
+    "name": {
+        "givenName": "Barbara",
+        "familyName": "Jensen"
+    },
+    "_id": "bjensen",
+    "userName": "barbara.jensen@example.com"
+}</computeroutput>
+  </screen>
+
   <para>You can use resource revision numbers in <literal>If-Match:
   <replaceable>revision</replaceable></literal> headers to patch the resource
   only if the resource matches a particular version.</para>
