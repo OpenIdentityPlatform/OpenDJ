@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<!--
+  This use of <informalexample> is mild tag abuse.
+  It serves as a single container element for all the elements here.
+-->
+<informalexample
+              xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+              xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+              xsi:schemaLocation='http://docbook.org/ns/docbook
+                                  http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+
+ <para>
+  The <replaceable>template-file-path</replaceable> can be one of the following:
+ </para>
+
+ <itemizedlist>
+  <listitem>
+   <para>
+    A full path to the template file such as
+    <filename>/path/to/opendj/config/MakeLDIF/example.template</filename>.
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    A relative path to the template file such as
+    <filename>../../my-test-data.template</filename>.
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    A file name that specifies one of the template files
+    that are built into the OpenDJ LDAP Toolkit,
+    such as <filename>example.template</filename>,
+    or <filename>people_and_groups.template</filename>.
+   </para>
+  </listitem>
+ </itemizedlist>
+
+ <para>
+  The OpenDJ LDAP Toolkit includes these built-in template and data files:
+ </para>
+
+ <variablelist>
+  <varlistentry>
+   <term><filename>cities</filename></term>
+   <listitem>
+    <para>
+     List of more than 200 cities.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>example.template</filename></term>
+   <listitem>
+    <para>
+     Template to generate a base entry and users
+     in a branch <literal>ou=people,[suffix]</literal>,
+     where the default setting for suffix is
+     <literal>suffix=dc=example,dc=com</literal>.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>first.names</filename></term>
+   <listitem>
+    <para>
+     List of more than 8000 first names.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>last.names</filename></term>
+   <listitem>
+    <para>
+     List of more than 13000 last names.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>people_and_groups.template</filename></term>
+   <listitem>
+    <para>
+     Template to generate a base entry, users, and groups.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>states</filename></term>
+   <listitem>
+    <para>
+     List of US states by their two-character codes.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term><filename>streets</filename></term>
+   <listitem>
+    <para>
+     List of more than 70 street names.
+    </para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</informalexample>

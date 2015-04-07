@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<!--
+  This use of <informalexample> is mild tag abuse.
+  It serves as a single container element for all the elements here.
+-->
+<informalexample
+              xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+              xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+              xsi:schemaLocation='http://docbook.org/ns/docbook
+                                  http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+
+ <para>
+  When you do not use the <option>-f</option> option
+  to keep connections open and rebind on the connections,
+  the tool can exhaust its available ports, causing the tool to crash.
+  You can work around this problem on test systems
+  by changing TCP settings on the system.
+ </para>
+
+ <para>
+  For example on Linux systems, set the following parameters
+  in the <filename>/etc/sysctl.conf</filename> file.
+ </para>
+
+ <programlisting language="ini">
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.tcp_tw_reuse = 1
+ </programlisting>
+
+ <para>
+  The parameter <literal>net.ipv4.tcp_fin_timeout</literal>
+  sets how long to wait in seconds for a final FIN packet
+  before forcing a close of the socket.
+  The default is 60 (seconds).
+ </para>
+
+ <para>
+  The parameter <literal>net.ipv4.tcp_tw_recycle</literal>
+  enables fast recycling of TIME_WAIT sockets.
+  The default is 0 (false).
+  Enabling this can cause Network Address Translation (NAT) issues.
+ </para>
+
+ <para>
+  The parameter <literal>net.ipv4.tcp_tw_reuse</literal>
+  enables reuse of TIME_WAIT sockets for new connections.
+  The default is 0 (false).
+ </para>
+
+ <para>
+  These settings are recommended only for testing,
+  and <emphasis>not for production systems</emphasis>.
+ </para>
+
+ <para>
+  After making the changes to <filename>/etc/sysctl.conf</filename>,
+  reload the configuration with the <command>sysctl</command> command.
+ </para>
+
+ <screen>
+# sysctl -p
+ </screen>
+</informalexample>
