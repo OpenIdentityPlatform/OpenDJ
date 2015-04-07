@@ -200,7 +200,7 @@ class IndexBuffer
      */
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      for (Index index : attributeIndex.getAllIndexes())
+      for (Index index : attributeIndex.getNameToIndexes().values())
       {
         flushIndex(index, txn, bufferedIndexes.remove(index));
       }
