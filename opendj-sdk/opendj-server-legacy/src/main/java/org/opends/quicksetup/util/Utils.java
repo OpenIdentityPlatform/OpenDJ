@@ -1552,13 +1552,14 @@ public class Utils
 
   /**
    * Returns a String representation of the provided command-line.
-   * @param cmd the command-line arguments.
-   * @param formatter the formatted to be used to create the String
-   * representation.
+   *
+   * @param cmd
+   *          the command-line arguments.
+   * @param formatter
+   *          the formatted to be used to create the String representation.
    * @return a String representation of the provided command-line.
    */
-  public static String getFormattedEquivalentCommandLine(ArrayList<String> cmd,
-      ProgressMessageFormatter formatter)
+  public static String getFormattedEquivalentCommandLine(List<String> cmd, ProgressMessageFormatter formatter)
   {
     StringBuilder builder = new StringBuilder();
     builder.append(formatter.getFormattedProgress(LocalizableMessage.raw(cmd.get(0))));
@@ -1799,44 +1800,42 @@ public class Utils
   /**
    * Returns the list of equivalent command-lines that must be executed to
    * enable replication as the setup does.
-   * @param userData the user data.
+   *
+   * @param userData
+   *          the user data.
    * @return the list of equivalent command-lines that must be executed to
-   * enable replication as the setup does.
+   *         enable replication as the setup does.
    */
-  public static ArrayList<ArrayList<String>>
-  getDsReplicationEnableEquivalentCommandLines(
-      UserData userData)
+  public static List<List<String>> getDsReplicationEnableEquivalentCommandLines(final UserData userData)
   {
-    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
-    Map<ServerDescriptor, Set<String>> hmServerBaseDNs =
-      getServerDescriptorBaseDNMap(userData);
+    final List<List<String>> cmdLines = new ArrayList<List<String>>();
+    final Map<ServerDescriptor, Set<String>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
     for (ServerDescriptor server : hmServerBaseDNs.keySet())
     {
-      cmdLines.add(getDsReplicationEnableEquivalentCommandLine(userData,
-          hmServerBaseDNs.get(server), server));
+      cmdLines.add(getDsReplicationEnableEquivalentCommandLine(userData, hmServerBaseDNs.get(server), server));
     }
+
     return cmdLines;
   }
 
   /**
    * Returns the list of equivalent command-lines that must be executed to
    * initialize replication as the setup does.
-   * @param userData the user data.
+   *
+   * @param userData
+   *          the user data.
    * @return the list of equivalent command-lines that must be executed to
-   * initialize replication as the setup does.
+   *         initialize replication as the setup does.
    */
-  public static ArrayList<ArrayList<String>>
-  getDsReplicationInitializeEquivalentCommandLines(
-      UserData userData)
+  public static List<List<String>> getDsReplicationInitializeEquivalentCommandLines(UserData userData)
   {
-    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
-    Map<ServerDescriptor, Set<String>> hmServerBaseDNs =
-      getServerDescriptorBaseDNMap(userData);
+    final List<List<String>> cmdLines = new ArrayList<List<String>>();
+    final Map<ServerDescriptor, Set<String>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
     for (ServerDescriptor server : hmServerBaseDNs.keySet())
     {
-      cmdLines.add(getDsReplicationInitializeEquivalentCommandLine(userData,
-          hmServerBaseDNs.get(server), server));
+      cmdLines.add(getDsReplicationInitializeEquivalentCommandLine(userData, hmServerBaseDNs.get(server), server));
     }
+
     return cmdLines;
   }
 
@@ -2103,19 +2102,18 @@ public class Utils
   }
 
   /**
-   * Returns the equivalent dsconfig command-line required to configure
-   * the first replicated server in the topology.
-   * @param userData the user data.
-   * @return the equivalent dsconfig command-line required to configure
-   * the first replicated server in the topology.
+   * Returns the equivalent dsconfig command-line required to configure the
+   * first replicated server in the topology.
+   *
+   * @param userData
+   *          the user data.
+   * @return the equivalent dsconfig command-line required to configure the
+   *         first replicated server in the topology.
    */
-  public static ArrayList<ArrayList<String>>
-  getDsConfigReplicationEnableEquivalentCommandLines(
-      UserData userData)
+  public static List<List<String>> getDsConfigReplicationEnableEquivalentCommandLines(UserData userData)
   {
-    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
-
-    String cmdName = getCommandLinePath(userData, "dsconfig");
+    final List<List<String>> cmdLines = new ArrayList<List<String>>();
+    final String cmdName = getCommandLinePath(userData, "dsconfig");
 
     ArrayList<String> connectionArgs = new ArrayList<String>();
     connectionArgs.add("--hostName");
