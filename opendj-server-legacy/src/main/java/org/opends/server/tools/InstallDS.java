@@ -50,8 +50,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.naming.ldap.LdapName;
 
@@ -59,14 +57,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.ConfigurationFramework;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
-import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
-import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -215,6 +205,8 @@ public class InstallDS extends ConsoleApplication
    */
   public static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
 
+  private final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
+
   /** Different variables we use when the user decides to provide data again. */
   private NewSuffixOptions.Type lastResetPopulateOption;
   private String lastResetBackendType;
@@ -232,8 +224,6 @@ public class InstallDS extends ConsoleApplication
 
   private Boolean lastResetEnableWindowsService;
   private Boolean lastResetStartServer;
-
-  private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> availableBackendTypes;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -379,9 +369,6 @@ public class InstallDS extends ConsoleApplication
       return InstallReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
     }
 
-    initializeConfigurationFramework();
-    availableBackendTypes = getBackendTypes();
-
     final UserData uData = new UserData();
     InstallReturnCode fillUserDataRC;
     try
@@ -424,24 +411,6 @@ public class InstallDS extends ConsoleApplication
     }
 
     return InstallReturnCode.SUCCESSFUL.getReturnCode();
-  }
-
-  private void initializeConfigurationFramework()
-  {
-    if (!ConfigurationFramework.getInstance().isInitialized())
-    {
-        try
-        {
-          ConfigurationFramework.getInstance().initialize();
-        }
-        catch (ConfigException e)
-        {
-          final LocalizableMessage message = LocalizableMessage.raw(
-              "Error occured while loading the configuration framework: " + e.getLocalizedMessage());
-          logger.error(message);
-          throw new RuntimeException(message.toString());
-        }
-    }
   }
 
   private InstallReturnCode fillUserData(UserData uData, String[] args) throws UserDataException
@@ -736,13 +705,14 @@ public class InstallDS extends ConsoleApplication
   private void setBackendType(final UserData uData, final List<LocalizableMessage> errorMessages)
   {
     final String filledBackendType = argParser.backendTypeArg.getValue();
-    if (retrieveBackendTypeFromName(filledBackendType) != null)
+    if (backendTypeHelper.retrieveBackendTypeFromName(filledBackendType) != null)
     {
       uData.setBackendType(filledBackendType);
     }
     else
     {
-      errorMessages.add(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(filledBackendType, getBackendTypeNames()));
+      errorMessages.add(
+          ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(filledBackendType, backendTypeHelper.getBackendTypeNames()));
     }
   }
 
@@ -1310,12 +1280,13 @@ public class InstallDS extends ConsoleApplication
   {
     if (argParser.backendTypeArg.isPresent())
     {
-      if (retrieveBackendTypeFromName(argParser.backendTypeArg.getValue().toLowerCase()) != null)
+      if (backendTypeHelper.retrieveBackendTypeFromName(argParser.backendTypeArg.getValue().toLowerCase()) != null)
       {
         return argParser.backendTypeArg.getValue();
       }
       println();
-      println(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(argParser.backendTypeArg.getValue(), getBackendTypeNames()));
+      println(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(
+          argParser.backendTypeArg.getValue(), backendTypeHelper.getPrintableBackendTypeNames()));
     }
 
     int backendTypeIndex = 1;
@@ -1332,7 +1303,7 @@ public class InstallDS extends ConsoleApplication
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
 
-    return availableBackendTypes.get(backendTypeIndex - 1).getName();
+    return backendTypeHelper.getBackendTypeNames().get(backendTypeIndex - 1);
   }
 
   private Menu<Integer> getBackendTypeMenu()
@@ -1340,10 +1311,9 @@ public class InstallDS extends ConsoleApplication
     final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
     builder.setPrompt(INFO_INSTALLDS_PROMPT_BACKEND_TYPE.get());
     int index = 1;
-    for (AbstractManagedObjectDefinition<?, ?> backendType : availableBackendTypes)
+    for (final String backendTypeName : backendTypeHelper.getBackendTypeNames())
     {
-      final String printableBackendName = filterSchemaBackendName(backendType.getName());
-      builder.addNumberedOption(LocalizableMessage.raw(printableBackendName), MenuResult.success(index++));
+      builder.addNumberedOption(LocalizableMessage.raw(backendTypeName), MenuResult.success(index++));
     }
 
     final int printableIndex = getPromptedBackendTypeIndex();
@@ -1356,8 +1326,7 @@ public class InstallDS extends ConsoleApplication
   {
     if (lastResetBackendType != null)
     {
-      ManagedObjectDefinition<?, ?> backend = InstallDS.retrieveBackendTypeFromName(lastResetBackendType);
-      return availableBackendTypes.indexOf(backend) + 1;
+      return backendTypeHelper.getBackendTypeNames().indexOf(lastResetBackendType) + 1;
     }
 
     return 1;
@@ -2659,68 +2628,6 @@ public class InstallDS extends ConsoleApplication
   private int getConnectTimeout()
   {
     return argParser.getConnectTimeout();
-  }
-
-  static ManagedObjectDefinition<?, ?> retrieveBackendTypeFromName(final String backendTypeStr)
-  {
-    for (ManagedObjectDefinition<?, ?> backendType : getBackendTypes())
-    {
-      final String name = backendType.getName();
-      if (backendTypeStr.equalsIgnoreCase(name)
-          || backendTypeStr.equalsIgnoreCase(filterSchemaBackendName(name)))
-      {
-        return backendType;
-      }
-    }
-
-    return null;
-  }
-
-  @SuppressWarnings("unchecked")
-  static List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> getBackendTypes()
-  {
-    final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backendTypes =
-        new LinkedList<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>>();
-    backendTypes.add(LocalDBBackendCfgDefn.getInstance());
-
-    for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
-    {
-      // Filtering out only the non-abstract backends to avoid users attempt to create abstract ones
-      if (backendType instanceof ManagedObjectDefinition)
-      {
-        backendTypes.add((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
-      }
-    }
-
-    return backendTypes;
-  }
-
-  static String getBackendTypeNames()
-  {
-    String backendTypeNames = "";
-    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : getBackendTypes())
-    {
-      backendTypeNames += filterSchemaBackendName(backendType.getName()) + ", ";
-    }
-
-    if (backendTypeNames.isEmpty())
-    {
-      return "Impossible to retrieve supported backend type list";
-    }
-
-    return backendTypeNames.substring(0, backendTypeNames.length() - 2);
-  }
-
-  static String filterSchemaBackendName(final String dsCfgBackendName)
-  {
-    final String cfgNameRegExp = "(.*)-backend.*";
-    final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
-    if (regExpMatcher.matches())
-    {
-      return regExpMatcher.group(1);
-    }
-
-    return dsCfgBackendName;
   }
 
 }

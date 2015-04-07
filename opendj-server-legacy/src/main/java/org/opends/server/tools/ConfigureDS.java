@@ -805,11 +805,12 @@ public class ConfigureDS
     if (!baseDNs.isEmpty())
     {
       final String backendTypeName = backendType.getValue();
-      final ManagedObjectDefinition<?, ?> backend = InstallDS.retrieveBackendTypeFromName(backendTypeName);
+      final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
+      final ManagedObjectDefinition<?, ?> backend = backendTypeHelper.retrieveBackendTypeFromName(backendTypeName);
       if (backend == null)
       {
         throw new ConfigureDSException(
-            ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, InstallDS.getBackendTypeNames()));
+            ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, backendTypeHelper.getBackendTypeNames()));
       }
 
       BufferedReader configReader = null;
