@@ -328,7 +328,7 @@ class AttributeIndex
 
       for (Indexer indexer : rule.getIndexers())
       {
-        nameToIndexes.put(indexID, new MatchingRuleIndex(txn, config, indexer));
+        nameToIndexes.put(indexer.getIndexID(), new MatchingRuleIndex(txn, config, indexer));
       }
     }
   }
