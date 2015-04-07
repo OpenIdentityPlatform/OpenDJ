@@ -44,7 +44,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -2464,9 +2463,8 @@ public class InstallDS extends ConsoleApplication
 
     println(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get());
     println();
-    final ArrayList<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
-    println(LocalizableMessage.raw(
-        Utils.getFormattedEquivalentCommandLine(cmd, formatter)));
+    final List<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
+    println(LocalizableMessage.raw(Utils.getFormattedEquivalentCommandLine(cmd, formatter)));
   }
 
   /**
