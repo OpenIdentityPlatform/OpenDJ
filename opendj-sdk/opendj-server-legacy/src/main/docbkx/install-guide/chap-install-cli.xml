@@ -214,9 +214,16 @@ LDAP clients? [1389]:
 On which port would you like the Administration Connector to accept
 connections? [4444]: 
 
-Do you want to create base DNs in the server? (yes / no) [yes]: 
+Do you want to create base DNs in the server? (yes / no) [yes]:
+Provide the backend type:
 
-Provide the base DN for the directory data: dc=example,dc=com
+    1)  local-db
+    2)  persistit
+
+Enter choice [1]:</computeroutput> <userinput>2</userinput>
+
+<computeroutput>Provide the base DN for the directory data: [dc=example,dc=com]:
+
 Options for populating the database:
 
     1)  Only create the base entry
@@ -226,7 +233,7 @@ Options for populating the database:
 
 Enter choice [1]:</computeroutput> <userinput>3</userinput>
 
-<computeroutput>Please specify the path to the LDIF file containing the data to import: \</computeroutput>
+<computeroutput>Please specify the path to the LDIF file containing the data to import:</computeroutput>
 <userinput>/path/to/Example.ldif</userinput>
 
 <computeroutput>Do you want to enable SSL? (yes / no) [no]:
@@ -241,6 +248,7 @@ Setup Summary
 =============
 LDAP Listener Port:            1389
 Administration Connector Port: 4444
+JMX Listener Port:
 LDAP Secure Access:            disabled
 Root User DN:                  cn=Directory Manager
 Directory Data:                Create New Base DN dc=example,dc=com.
@@ -318,11 +326,27 @@ To see basic server configuration status and configuration you can launch \
     <varlistentry>
       <term>Create base DNs</term>
       <listitem>
-        <para>You need a base Distinguished Name, such as
-        <literal>dc=example,dc=com</literal>, to add directory data. If you
-        already have LDIF, the base DN you want is the distinguished name
-        suffix common to all entries in your LDIF. You can provide more than
-        one base DN if your data belongs in more than one suffix.</para>
+        <para>
+         You need a base Distinguished Name,
+         such as <literal>dc=example,dc=com</literal>,
+         to add directory data.
+         If you already have LDIF,
+         the base DN you want is the distinguished name suffix
+         common to all entries in your LDIF.
+        </para>
+
+        <para>
+         When you choose to create a base DN,
+         the <command>setup</command> command also
+         prompts you for a backend type,
+         which identifies the implementation of the repository
+         that holds your data.
+        </para>
+
+        <para>
+         Later you can add more base DNs
+         if your data belongs in more than one suffix.
+        </para>
       </listitem>
     </varlistentry>
     <varlistentry>
