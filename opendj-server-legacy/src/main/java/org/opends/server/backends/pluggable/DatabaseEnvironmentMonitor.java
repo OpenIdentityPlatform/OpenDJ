@@ -196,9 +196,7 @@ class DatabaseEnvironmentMonitor
     AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
     for(EntryContainer ec : rootContainer.getEntryContainers())
     {
-      List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-      ec.listDatabases(databases);
-      for(DatabaseContainer dc : databases)
+      for(DatabaseContainer dc : ec.listDatabases())
       {
         if(dc instanceof Index && !((Index)dc).isTrusted())
         {

@@ -73,6 +73,7 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
 import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
+import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -203,7 +204,7 @@ public class EntryContainer
           public void run(WriteableTransaction txn) throws Exception
           {
             //Try creating all the indexes before confirming they are valid ones.
-            new AttributeIndex(cfg, EntryContainer.this, txn);
+            new AttributeIndex(cfg, state, EntryContainer.this, txn);
           }
         });
         return true;
@@ -227,7 +228,7 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            final AttributeIndex index = new AttributeIndex(cfg, EntryContainer.this, txn);
+            final AttributeIndex index = new AttributeIndex(cfg, state, EntryContainer.this, txn);
             index.open(txn);
             if (!index.isTrusted())
             {
@@ -269,9 +270,7 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
-            deleteAttributeIndex(txn, index);
-            attrIndexMap.remove(cfg.getAttribute());
+            attrIndexMap.remove(cfg.getAttribute()).closeAndDelete(txn);
           }
         });
       }
@@ -411,9 +410,7 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            VLVIndex vlvIndex = vlvIndexMap.get(cfg.getName().toLowerCase());
-            deleteDatabase(txn, vlvIndex);
-            vlvIndexMap.remove(cfg.getName());
+            vlvIndexMap.remove(cfg.getName().toLowerCase()).closeAndDelete(txn);
           }
         });
       }
@@ -500,18 +497,7 @@ public class EntryContainer
       state = new State(getIndexName(STATE_DATABASE_NAME));
       state.open(txn);
 
-      if (config.isSubordinateIndexesEnabled())
-      {
-        openSubordinateIndexes(txn);
-      }
-      else
-      {
-        // Use a null index and ensure that future attempts to use the real
-        // subordinate indexes will fail.
-        id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
-        id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
-        logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
-      }
+      openSubordinateIndexes(txn, config);
 
       dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), this);
       dn2uri.open(txn);
@@ -520,7 +506,7 @@ public class EntryContainer
       {
         BackendIndexCfg indexCfg = config.getBackendIndex(idx);
 
-        AttributeIndex index = new AttributeIndex(indexCfg, this, txn);
+        AttributeIndex index = new AttributeIndex(indexCfg, state, this, txn);
         index.open(txn);
         if(!index.isTrusted())
         {
@@ -552,9 +538,13 @@ public class EntryContainer
     }
   }
 
-  private NullIndex openNewNullIndex(WriteableTransaction txn, String indexId, Indexer indexer)
+  private NullIndex openNewNullIndex(WriteableTransaction txn, String name)
   {
-    return new NullIndex(getIndexName(indexId), indexer, state, txn, this);
+    final TreeName treeName = getIndexName(name);
+    final NullIndex index = new NullIndex(treeName);
+    state.removeFlagsFromIndex(txn, treeName, IndexFlag.TRUSTED);
+    txn.deleteTree(treeName);
+    return index;
   }
 
   /**
@@ -746,7 +736,7 @@ public class EntryContainer
           if (entryID != null)
           {
             final Index index = subtree ? id2subtree : id2children;
-            final EntryIDSet entryIDSet = index.read(txn, entryID.toByteString());
+            final EntryIDSet entryIDSet = index.get(txn, entryID.toByteString());
             long count = entryIDSet.size();
             if (count != Long.MAX_VALUE)
             {
@@ -920,11 +910,11 @@ public class EntryContainer
               EntryIDSet scopeSet;
               if (searchScope == SearchScope.SINGLE_LEVEL)
               {
-                scopeSet = id2children.read(txn, baseIDData);
+                scopeSet = id2children.get(txn, baseIDData);
               }
               else
               {
-                scopeSet = id2subtree.read(txn, baseIDData);
+                scopeSet = id2subtree.get(txn, baseIDData);
                 if (searchScope == SearchScope.WHOLE_SUBTREE)
                 {
                   // The id2subtree list does not include the base entry ID.
@@ -1543,8 +1533,8 @@ public class EntryContainer
             if (parentDN != null)
             {
               final ByteString parentIDKeyBytes = parentID.toByteString();
-              id2children.insertID(indexBuffer, parentIDKeyBytes, entryID);
-              id2subtree.insertID(indexBuffer, parentIDKeyBytes, entryID);
+              indexBuffer.put(id2children, parentIDKeyBytes, entryID);
+              indexBuffer.put(id2subtree, parentIDKeyBytes, entryID);
 
               // Iterate up through the superior entries, starting above the
               // parent.
@@ -1558,7 +1548,7 @@ public class EntryContainer
                 }
 
                 // Insert into id2subtree for this node.
-                id2subtree.insertID(indexBuffer, nodeID.toByteString(), entryID);
+                indexBuffer.put(id2subtree, nodeID.toByteString(), entryID);
               }
             }
             indexBuffer.flush(txn);
@@ -1839,8 +1829,8 @@ public class EntryContainer
 
     // Remove the id2c and id2s records for this entry.
     final ByteString leafIDKeyBytes = leafID.toByteString();
-    id2children.delete(indexBuffer, leafIDKeyBytes);
-    id2subtree.delete(indexBuffer, leafIDKeyBytes);
+    indexBuffer.remove(id2children, leafIDKeyBytes);
+    indexBuffer.remove(id2subtree, leafIDKeyBytes);
 
     // Iterate up through the superior entries from the target entry.
     boolean isParent = true;
@@ -1858,10 +1848,10 @@ public class EntryContainer
       // Remove from id2children.
       if (isParent)
       {
-        id2children.removeID(indexBuffer, parentIDBytes, leafID);
+        indexBuffer.remove(id2children, parentIDBytes, leafID);
         isParent = false;
       }
-      id2subtree.removeID(indexBuffer, parentIDBytes, leafID);
+      indexBuffer.remove(id2subtree, parentIDBytes, leafID);
     }
 
     // Remove the entry from the entry cache.
@@ -2378,10 +2368,10 @@ public class EntryContainer
         ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
-          id2children.insertID(buffer, parentIDKeyBytes, newID);
+          buffer.put(id2children, parentIDKeyBytes, newID);
           isParent = false;
         }
-        id2subtree.insertID(buffer, parentIDKeyBytes, newID);
+        buffer.put(id2subtree, parentIDKeyBytes, newID);
       }
     }
   }
@@ -2423,10 +2413,10 @@ public class EntryContainer
         ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
-          id2children.removeID(buffer, parentIDKeyBytes, oldID);
+          buffer.remove(id2children, parentIDKeyBytes, oldID);
           isParent = false;
         }
-        id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
+        buffer.remove(id2subtree, parentIDKeyBytes, oldID);
       }
     }
 
@@ -2435,8 +2425,8 @@ public class EntryContainer
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
       ByteString oldIDKeyBytes = oldID.toByteString();
-      id2children.delete(buffer, oldIDKeyBytes);
-      id2subtree.delete(buffer, oldIDKeyBytes);
+      buffer.remove(id2children, oldIDKeyBytes);
+      buffer.remove(id2subtree, oldIDKeyBytes);
 
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
@@ -2527,7 +2517,7 @@ public class EntryContainer
       {
         EntryID parentID = dn2id.get(txn, dn);
         ByteString parentIDKeyBytes = parentID.toByteString();
-        id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
+        buffer.remove(id2subtree, parentIDKeyBytes, oldID);
       }
     }
 
@@ -2536,8 +2526,8 @@ public class EntryContainer
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
       ByteString oldIDKeyBytes = oldID.toByteString();
-      id2children.delete(buffer, oldIDKeyBytes);
-      id2subtree.delete(buffer, oldIDKeyBytes);
+      buffer.remove(id2children, oldIDKeyBytes);
+      buffer.remove(id2subtree, oldIDKeyBytes);
 
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
@@ -2674,7 +2664,7 @@ public class EntryContainer
     final EntryID entryID = dn2id.get(txn, baseDN);
     if (entryID != null)
     {
-      final EntryIDSet entryIDSet = id2subtree.read(txn, entryID.toByteString());
+      final EntryIDSet entryIDSet = id2subtree.get(txn, entryID.toByteString());
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
       {
@@ -2693,31 +2683,6 @@ public class EntryContainer
       // must not have any entries
       return 0;
     }
-  }
-
-
-  /**
-   * Get a list of the databases opened by the entryContainer.
-   * @param dbList A list of database containers.
-   */
-  void listDatabases(List<DatabaseContainer> dbList)
-  {
-    dbList.add(dn2id);
-    dbList.add(id2entry);
-    dbList.add(dn2uri);
-    if (config.isSubordinateIndexesEnabled())
-    {
-      dbList.add(id2children);
-      dbList.add(id2subtree);
-    }
-    dbList.add(state);
-
-    for(AttributeIndex index : attrIndexMap.values())
-    {
-      index.listDatabases(dbList);
-    }
-
-    dbList.addAll(vlvIndexMap.values());
   }
 
   /**
@@ -2756,10 +2721,7 @@ public class EntryContainer
    */
   void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    listDatabases(databases);
-
-    for (DatabaseContainer db : databases)
+    for (DatabaseContainer db : listDatabases())
     {
       db.delete(txn);
     }
@@ -2788,24 +2750,6 @@ public class EntryContainer
   }
 
   /**
-   * Removes a attribute index from disk.
-   *
-   * @param attributeIndex The attribute index to remove.
-   * @throws StorageRuntimeException If an database error occurs while attempting
-   * to delete the index.
-   */
-  private void deleteAttributeIndex(WriteableTransaction txn, AttributeIndex attributeIndex)
-      throws StorageRuntimeException
-  {
-    attributeIndex.close();
-    for (Index index : attributeIndex.getAllIndexes())
-    {
-      index.delete(txn);
-      state.deleteRecord(txn, index.getName());
-    }
-  }
-
-  /**
    * This method constructs a container name from a base DN. Only alphanumeric
    * characters are preserved, all other characters are replaced with an
    * underscore.
@@ -2826,8 +2770,7 @@ public class EntryContainer
    */
   void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
   {
-    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    listDatabases(databases);
+    final List<DatabaseContainer> databases = listDatabases();
     try
     {
       // Rename in transaction.
@@ -2940,19 +2883,7 @@ public class EntryContainer
         {
           if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
           {
-            if (cfg.isSubordinateIndexesEnabled())
-            {
-              // Re-enabling subordinate indexes.
-              openSubordinateIndexes(txn);
-            }
-            else
-            {
-              // Disabling subordinate indexes. Use a null index and ensure that
-              // future attempts to use the real indexes will fail.
-              id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
-              id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
-              logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
-            }
+            openSubordinateIndexes(txn, cfg);
           }
 
           if (config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
@@ -3018,8 +2949,7 @@ public class EntryContainer
 
   private void clear0(WriteableTransaction txn) throws StorageRuntimeException
   {
-    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    listDatabases(databases);
+    final List<DatabaseContainer> databases = listDatabases();
     try
     {
       for (DatabaseContainer db : databases)
@@ -3042,6 +2972,28 @@ public class EntryContainer
         }
       }
     }
+  }
+
+  List<DatabaseContainer> listDatabases()
+  {
+    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    databases.add(dn2id);
+    databases.add(id2entry);
+    databases.add(dn2uri);
+    if (config.isSubordinateIndexesEnabled())
+    {
+      databases.add(id2children);
+      databases.add(id2subtree);
+    }
+    databases.add(state);
+
+    for (AttributeIndex index : attrIndexMap.values())
+    {
+      index.listDatabases(databases);
+    }
+
+    databases.addAll(vlvIndexMap.values());
+    return databases;
   }
 
   /**
@@ -3092,35 +3044,34 @@ public class EntryContainer
   }
 
   /** Opens the id2children and id2subtree indexes. */
-  private void openSubordinateIndexes(WriteableTransaction txn)
+  private void openSubordinateIndexes(WriteableTransaction txn, PluggableBackendCfg cfg)
   {
-    id2children = newIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
-    id2subtree = newIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
-  }
-
-  private Index newIndex(WriteableTransaction txn, String name, Indexer indexer)
-  {
-    final Index index = new Index(getIndexName(name), indexer, state, config.getIndexEntryLimit(), 0, true, txn, this);
-    index.open(txn);
-    if (!index.isTrusted())
+    if (cfg.isSubordinateIndexesEnabled())
     {
-      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
-    }
-    return index;
-  }
+      TreeName name = getIndexName(ID2CHILDREN_DATABASE_NAME);
+      id2children = new DefaultIndex(name, state, config.getIndexEntryLimit(), true, txn, this);
+      id2children.open(txn);
+      if (!id2children.isTrusted())
+      {
+        logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, name);
+      }
 
-  /**
-   * Creates a new index for an attribute.
-   *
-   * @param txn a non null database transaction
-   * @param indexName the name to give to the new index
-   * @param indexer the indexer to use when inserting data into the index
-   * @param indexEntryLimit the index entry limit
-   * @return a new index
-   */
-  Index newIndexForAttribute(WriteableTransaction txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
-  {
-    return new Index(indexName, indexer, state, indexEntryLimit, CURSOR_ENTRY_LIMIT, false, txn, this);
+      name = getIndexName(ID2SUBTREE_DATABASE_NAME);
+      id2subtree = new DefaultIndex(name, state, config.getIndexEntryLimit(), true, txn, this);
+      id2subtree.open(txn);
+      if (!id2subtree.isTrusted())
+      {
+        logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, name);
+      }
+    }
+    else
+    {
+      // Disabling subordinate indexes. Use a null index and ensure that
+      // future attempts to use the real indexes will fail.
+      id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME);
+      id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME);
+      logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
+    }
   }
 
 

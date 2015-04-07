@@ -114,7 +114,7 @@ class IndexFilter
    */
   private EntryIDSet evaluateFilter(SearchFilter filter)
   {
-    EntryIDSet candidates = evaluate(filter);
+    EntryIDSet candidates = evaluateFilter0(filter);
     if (buffer != null)
     {
       candidates.toString(buffer);
@@ -122,7 +122,7 @@ class IndexFilter
     return candidates;
   }
 
-  private EntryIDSet evaluate(SearchFilter filter)
+  private EntryIDSet evaluateFilter0(SearchFilter filter)
   {
     switch (filter.getFilterType())
     {

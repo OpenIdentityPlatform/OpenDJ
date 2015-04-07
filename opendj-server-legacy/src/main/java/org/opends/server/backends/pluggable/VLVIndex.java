@@ -87,7 +87,7 @@ import org.opends.server.util.StaticUtils;
  * "tie-breaker" and ensures that keys correspond to one and only one entry. This ensures that all
  * database updates can be performed using lock-free operations.
  */
-class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
+class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -166,9 +166,8 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
   }
 
   @Override
-  void open(final WriteableTransaction txn) throws StorageRuntimeException
+  void doOpen(final WriteableTransaction txn) throws StorageRuntimeException
   {
-    super.open(txn);
     count.set((int) txn.getRecordCount(getName()));
   }
 
@@ -352,7 +351,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
   {
     if (shouldInclude(entry))
     {
-      buffer.getBufferedVLVIndexValues(this).addValues(encodeVLVKey(entry, entryID.longValue()));
+      buffer.put(this, encodeVLVKey(entry, entryID.longValue()));
     }
   }
 
@@ -418,7 +417,7 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
   {
     if (shouldInclude(entry))
     {
-      buffer.getBufferedVLVIndexValues(this).deleteValues(encodeVLVKey(entry, entryID.longValue()));
+      buffer.remove(this, encodeVLVKey(entry, entryID.longValue()));
     }
   }
 
@@ -861,5 +860,12 @@ class VLVIndex extends DatabaseContainer implements ConfigurationChangeListener<
       builder.append(ascending ? (byte) 0xff : (byte) 0x00);
     }
     builder.append(separator);
+  }
+
+  void closeAndDelete(WriteableTransaction txn)
+  {
+    close();
+    delete(txn);
+    state.deleteRecord(txn, getName());
   }
 }

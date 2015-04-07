@@ -35,21 +35,8 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
-abstract class DatabaseContainer
+interface DatabaseContainer
 {
-  /** The name of the database within the entryContainer. */
-  private TreeName name;
-
-  /**
-   * Create a new DatabaseContainer object.
-   *
-   * @param treeName The name of the entry database.
-   */
-  DatabaseContainer(TreeName treeName)
-  {
-    this.name = treeName;
-  }
-
   /**
    * Opens a database in this database container. If the provided database configuration is
    * transactional, a transaction will be created and used to perform the open.
@@ -59,10 +46,7 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           if a database error occurs while opening the index.
    */
-  void open(WriteableTransaction txn) throws StorageRuntimeException
-  {
-    txn.openTree(name);
-  }
+  void open(WriteableTransaction txn) throws StorageRuntimeException;
 
   /**
    * Deletes this database and all of its contents.
@@ -72,10 +56,7 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           if a database error occurs while deleting the index.
    */
-  void delete(WriteableTransaction txn) throws StorageRuntimeException
-  {
-    txn.deleteTree(name);
-  }
+  void delete(WriteableTransaction txn) throws StorageRuntimeException;
 
   /**
    * Returns the number of key/value pairs in this database container.
@@ -86,39 +67,26 @@ abstract class DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the DB operation.
    */
-  long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException
-  {
-    return txn.getRecordCount(name);
-  }
+  long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException;
 
   /**
    * Get a string representation of this object.
    *
    * @return return A string representation of this object.
    */
-  @Override
-  public String toString()
-  {
-    return name.toString();
-  }
+  String toString();
 
   /**
    * Get the database name for this database container.
    *
    * @return database name for this database container.
    */
-  final TreeName getName()
-  {
-    return name;
-  }
+  TreeName getName();
 
   /**
    * Set the database name to use for this container.
    *
    * @param name The database name to use for this container.
    */
-  final void setName(TreeName name)
-  {
-    this.name = name;
-  }
+  void setName(TreeName name);
 }

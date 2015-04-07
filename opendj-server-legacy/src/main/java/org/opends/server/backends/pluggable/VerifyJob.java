@@ -54,6 +54,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.VerifyConfig;
+import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -922,7 +923,7 @@ class VerifyJob
    * @param index The index database to be checked.
    * @throws StorageRuntimeException If an error occurs in the database.
    */
-  private void iterateAttrIndex(ReadableTransaction txn, Index index, IndexingOptions options)
+  private void iterateAttrIndex(ReadableTransaction txn, MatchingRuleIndex index, IndexingOptions options)
       throws StorageRuntimeException
   {
     if (index == null)
@@ -1183,7 +1184,7 @@ class VerifyJob
       {
         try
         {
-          ConditionResult cr = id2c.containsID(txn, parentID.toByteString(), entryID);
+          ConditionResult cr = indexContainsID(id2c, txn, parentID.toByteString(), entryID);
           if (cr == ConditionResult.FALSE)
           {
             if (logger.isTraceEnabled())
@@ -1247,7 +1248,7 @@ class VerifyJob
       {
         try
         {
-          ConditionResult cr = id2s.containsID(txn, id.toByteString(), entryID);
+          ConditionResult cr = indexContainsID(id2s, txn, id.toByteString(), entryID);
           if (cr == ConditionResult.FALSE)
           {
             if (logger.isTraceEnabled())
@@ -1389,7 +1390,7 @@ class VerifyJob
 
     if (presenceIndex != null)
     {
-      verifyAttributeInIndex(presenceIndex, txn, PresenceIndexer.presenceKey, entryID);
+      verifyAttributeInIndex(presenceIndex, txn, AttributeIndex.PRESENCE_KEY, entryID);
     }
 
     for (Attribute attr : attrList)
@@ -1433,7 +1434,7 @@ class VerifyJob
   {
     try
     {
-      ConditionResult cr = index.containsID(txn, key, entryID);
+      ConditionResult cr = indexContainsID(index, txn, key, entryID);
       if (cr == ConditionResult.FALSE)
       {
         if (logger.isTraceEnabled())
@@ -1457,6 +1458,16 @@ class VerifyJob
       }
       errorCount++;
     }
+  }
+
+  private ConditionResult indexContainsID(Index index, ReadableTransaction txn, ByteString key, EntryID entryID)
+  {
+    EntryIDSet entryIDSet = index.get(txn, key);
+    if (entryIDSet.isDefined())
+    {
+      return ConditionResult.valueOf(entryIDSet.contains(entryID));
+    }
+    return ConditionResult.UNDEFINED;
   }
 
   private ByteString normalize(MatchingRule matchingRule, ByteString value) throws DirectoryException

@@ -40,7 +40,7 @@ import org.opends.server.types.DN;
  * for each entry.  The key is the normalized entry DN and the value
  * is the entry ID.
  */
-class DN2ID extends DatabaseContainer
+class DN2ID extends AbstractDatabaseContainer
 {
   private final int prefixRDNComponents;
 
@@ -54,7 +54,7 @@ class DN2ID extends DatabaseContainer
   DN2ID(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
   {
     super(treeName);
-    prefixRDNComponents = entryContainer.getBaseDN().size();
+    this.prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 
   /**

@@ -41,10 +41,13 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
@@ -105,6 +108,121 @@ class AttributeIndex
     }
   }
 
+  /**
+   * This class implements an attribute indexer for matching rules in JE Backend.
+   */
+  final class MatchingRuleIndex extends DefaultIndex
+  {
+    /**
+     * The matching rule's indexer.
+     */
+    private final Indexer indexer;
+
+    MatchingRuleIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer)
+    {
+      super(getIndexName(attributeType, indexer.getIndexID()), state, cfg.getIndexEntryLimit(), false, txn,
+          entryContainer);
+      this.indexer = indexer;
+    }
+
+    void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+    {
+      List<Attribute> attributes = entry.getAttribute(attributeType, true);
+      if (attributes != null)
+      {
+        indexAttribute(attributes, keys, options);
+      }
+    }
+
+    void modifyEntry(Entry oldEntry, Entry newEntry, List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
+        IndexingOptions options)
+    {
+      List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+      if (oldAttributes != null)
+      {
+        final Set<ByteString> keys = new HashSet<ByteString>();
+        indexAttribute(oldAttributes, keys, options);
+        for (ByteString key : keys)
+        {
+          modifiedKeys.put(key, false);
+        }
+      }
+
+      List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+      if (newAttributes != null)
+      {
+        final Set<ByteString> keys = new HashSet<ByteString>();
+        indexAttribute(newAttributes, keys, options);
+        for (ByteString key : keys)
+        {
+          final Boolean needsAdding = modifiedKeys.get(key);
+          if (needsAdding == null)
+          {
+            // This value has been added.
+            modifiedKeys.put(key, true);
+          }
+          else if (!needsAdding)
+          {
+            // This value has not been added or removed.
+            modifiedKeys.remove(key);
+          }
+        }
+      }
+    }
+
+    private void indexAttribute(List<Attribute> attributes, Set<ByteString> keys, IndexingOptions options)
+    {
+      for (Attribute attr : attributes)
+      {
+        if (!attr.isVirtual())
+        {
+          for (ByteString value : attr)
+          {
+            try
+            {
+              indexer.createKeys(Schema.getDefaultSchema(), value, options, keys);
+
+              /*
+               * Optimization for presence: return immediately after first value since all values
+               * have the same key.
+               */
+              if (indexer == PRESENCE_INDEXER)
+              {
+                return;
+              }
+            }
+            catch (DecodeException e)
+            {
+              logger.traceException(e);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** The key bytes used for the presence index as a {@link ByteString}. */
+  static final ByteString PRESENCE_KEY = ByteString.valueOf("+");
+
+  /**
+   * A special indexer for generating presence indexes.
+   */
+  private static final Indexer PRESENCE_INDEXER = new Indexer()
+  {
+    @Override
+    public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
+        throws DecodeException
+    {
+      keys.add(PRESENCE_KEY);
+    }
+
+    @Override
+    public String getIndexID()
+    {
+      return IndexType.PRESENCE.toString();
+    }
+  };
+
   /*
    * FIXME Matthew Swift: Once the matching rules have been migrated we should
    * revisit this class. All of the evaluateXXX methods should go (the Matcher
@@ -115,30 +233,28 @@ class AttributeIndex
   private final EntryContainer entryContainer;
 
   /** The attribute index configuration. */
-  private BackendIndexCfg indexConfig;
+  private BackendIndexCfg config;
 
   /** The mapping from names to indexes. */
-  private final Map<String, Index> nameToIndexes = new HashMap<String, Index>();
+  private final Map<String, MatchingRuleIndex> nameToIndexes = new HashMap<String, MatchingRuleIndex>();
   private final IndexingOptions indexingOptions;
+  private final State state;
+
+  /** The attribute type for which this instance will generate index keys. */
+  private final AttributeType attributeType;
 
   /**
    * The mapping from extensible index types (e.g. "substring" or "shared") to list of indexes.
    */
-  private Map<String, Collection<Index>> extensibleIndexesMapping;
+  private Map<String, Collection<MatchingRuleIndex>> extensibleIndexesMapping;
 
-  /**
-   * Create a new attribute index object.
-   *
-   * @param indexConfig The attribute index configuration.
-   * @param entryContainer The entryContainer of this attribute index.
-   * @param txn a non null database transaction
-   * @throws ConfigException if a configuration related error occurs.
-   */
-  AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableTransaction txn)
+  AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer, WriteableTransaction txn)
       throws ConfigException
   {
     this.entryContainer = entryContainer;
-    this.indexConfig = indexConfig;
+    this.config = config;
+    this.state = state;
+    this.attributeType = config.getAttribute();
 
     buildPresenceIndex(txn);
     buildIndexes(txn, IndexType.EQUALITY);
@@ -147,35 +263,27 @@ class AttributeIndex
     buildIndexes(txn, IndexType.APPROXIMATE);
     buildExtensibleIndexes(txn);
 
-    indexingOptions = new JEIndexConfig(indexConfig.getSubstringLength());
+    indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
     extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
   private void buildPresenceIndex(WriteableTransaction txn)
   {
     final IndexType indexType = IndexType.PRESENCE;
-    if (indexConfig.getIndexType().contains(indexType))
+    if (config.getIndexType().contains(indexType))
     {
       String indexID = indexType.toString();
-      nameToIndexes.put(indexID, newPresenceIndex(txn, indexConfig));
+      nameToIndexes.put(indexID, new MatchingRuleIndex(txn, config, PRESENCE_INDEXER));
     }
-  }
-
-  private Index newPresenceIndex(WriteableTransaction txn, BackendIndexCfg cfg)
-  {
-    final AttributeType attrType = cfg.getAttribute();
-    final TreeName indexName = getIndexName(attrType, IndexType.PRESENCE.toString());
-    final PresenceIndexer indexer = new PresenceIndexer(attrType);
-    return entryContainer.newIndexForAttribute(txn, indexName, indexer, cfg.getIndexEntryLimit());
   }
 
   private void buildExtensibleIndexes(WriteableTransaction txn) throws ConfigException
   {
     final IndexType indexType = IndexType.EXTENSIBLE;
-    if (indexConfig.getIndexType().contains(indexType))
+    if (config.getIndexType().contains(indexType))
     {
-      final AttributeType attrType = indexConfig.getAttribute();
-      Set<String> extensibleRules = indexConfig.getIndexExtensibleMatchingRule();
+      final AttributeType attrType = config.getAttribute();
+      Set<String> extensibleRules = config.getIndexExtensibleMatchingRule();
       if (extensibleRules == null || extensibleRules.isEmpty())
       {
         throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType.toString()));
@@ -193,13 +301,13 @@ class AttributeIndex
           logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
           continue;
         }
-        for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+        for (Indexer indexer : rule.getIndexers())
         {
           final String indexId = indexer.getIndexID();
           if (!nameToIndexes.containsKey(indexId))
           {
             // There is no index available for this index id. Create a new index
-            nameToIndexes.put(indexId, newAttributeIndex(txn, indexConfig, indexer));
+            nameToIndexes.put(indexId, new MatchingRuleIndex(txn, config, indexer));
           }
         }
       }
@@ -208,9 +316,9 @@ class AttributeIndex
 
   private void buildIndexes(WriteableTransaction txn, IndexType indexType) throws ConfigException
   {
-    if (indexConfig.getIndexType().contains(indexType))
+    if (config.getIndexType().contains(indexType))
     {
-      final AttributeType attrType = indexConfig.getAttribute();
+      final AttributeType attrType = config.getAttribute();
       final String indexID = indexType.toString();
       final MatchingRule rule = getMatchingRule(indexType, attrType);
       if (rule == null)
@@ -218,9 +326,9 @@ class AttributeIndex
         throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexID));
       }
 
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+      for (Indexer indexer : rule.getIndexers())
       {
-        nameToIndexes.put(indexID, newAttributeIndex(txn, indexConfig, indexer));
+        nameToIndexes.put(indexID, new MatchingRuleIndex(txn, config, indexer));
       }
     }
   }
@@ -242,15 +350,6 @@ class AttributeIndex
     }
   }
 
-  private Index newAttributeIndex(WriteableTransaction txn, BackendIndexCfg indexConfig,
-      org.forgerock.opendj.ldap.spi.Indexer indexer)
-  {
-    final AttributeType attrType = indexConfig.getAttribute();
-    final TreeName indexName = getIndexName(attrType, indexer.getIndexID());
-    final AttributeIndexer attrIndexer = new AttributeIndexer(attrType, indexer);
-    return entryContainer.newIndexForAttribute(txn, indexName, attrIndexer, indexConfig.getIndexEntryLimit());
-  }
-
   private TreeName getIndexName(AttributeType attrType, String indexID)
   {
     final String attrIndexId = attrType.getNameOrOID() + "." + indexID;
@@ -269,13 +368,13 @@ class AttributeIndex
     {
       index.open(txn);
     }
-    indexConfig.addChangeListener(this);
+    config.addChangeListener(this);
   }
 
   @Override
   public void close()
   {
-    indexConfig.removeChangeListener(this);
+    config.removeChangeListener(this);
   }
 
   /**
@@ -284,7 +383,7 @@ class AttributeIndex
    */
   AttributeType getAttributeType()
   {
-    return indexConfig.getAttribute();
+    return config.getAttribute();
   }
 
   /**
@@ -303,7 +402,7 @@ class AttributeIndex
    */
   BackendIndexCfg getConfiguration()
   {
-    return indexConfig;
+    return config;
   }
 
   /**
@@ -318,9 +417,14 @@ class AttributeIndex
   void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    for (Index index : nameToIndexes.values())
+    for (MatchingRuleIndex index : nameToIndexes.values())
     {
-      index.addEntry(buffer, entryID, entry, indexingOptions);
+      HashSet<ByteString> keys = new HashSet<ByteString>();
+      index.indexEntry(entry, keys, indexingOptions);
+      for (ByteString key : keys)
+      {
+        buffer.put(index, key, entryID);
+      }
     }
   }
 
@@ -336,9 +440,14 @@ class AttributeIndex
   void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    for (Index index : nameToIndexes.values())
+    for (MatchingRuleIndex index : nameToIndexes.values())
     {
-      index.removeEntry(buffer, entryID, entry, indexingOptions);
+      HashSet<ByteString> keys = new HashSet<ByteString>();
+      index.indexEntry(entry, keys, indexingOptions);
+      for (ByteString key : keys)
+      {
+        buffer.remove(index, key, entryID);
+      }
     }
   }
 
@@ -361,9 +470,21 @@ class AttributeIndex
                           List<Modification> mods)
        throws StorageRuntimeException
   {
-    for (Index index : nameToIndexes.values())
+    for (MatchingRuleIndex index : nameToIndexes.values())
     {
-      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, indexingOptions);
+      TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
+      index.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, indexingOptions);
+      for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
+      {
+        if (modifiedKey.getValue())
+        {
+          buffer.put(index, modifiedKey.getKey(), entryID);
+        }
+        else
+        {
+          buffer.remove(index, modifiedKey.getKey(), entryID);
+        }
+      }
     }
   }
 
@@ -385,7 +506,7 @@ class AttributeIndex
     // concurrent writers.
     Set<ByteString> set = new HashSet<ByteString>();
 
-    int substrLength = indexConfig.getSubstringLength();
+    int substrLength = config.getSubstringLength();
 
     // Example: The value is ABCDE and the substring length is 3.
     // We produce the keys ABC BCD CDE DE E
@@ -426,7 +547,7 @@ class AttributeIndex
 
     if (debugBuffer != null)
     {
-      debugBuffer.append("[INDEX:").append(indexConfig.getAttribute().getNameOrOID())
+      debugBuffer.append("[INDEX:").append(config.getAttribute().getNameOrOID())
         .append(".").append(indexName).append("]");
     }
 
@@ -560,23 +681,6 @@ class AttributeIndex
   }
 
   /**
-   * Return the number of values that have exceeded the entry limit since this
-   * object was created.
-   *
-   * @return The number of values that have exceeded the entry limit.
-   */
-  long getEntryLimitExceededCount()
-  {
-    long entryLimitExceededCount = 0;
-
-    for (Index index : nameToIndexes.values())
-    {
-      entryLimitExceededCount += index.getEntryLimitExceededCount();
-    }
-    return entryLimitExceededCount;
-  }
-
-  /**
    * Get a list of the databases opened by this attribute index.
    * @param dbList A list of database containers.
    */
@@ -658,7 +762,7 @@ class AttributeIndex
       });
 
       extensibleIndexesMapping = computeExtensibleIndexesMapping();
-      indexConfig = cfg;
+      config = cfg;
     }
     catch(Exception e)
     {
@@ -693,13 +797,13 @@ class AttributeIndex
         continue;
       }
       validRules.add(rule);
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+      for (Indexer indexer : rule.getIndexers())
       {
         String indexId = indexer.getIndexID();
         validIndexIds.add(indexId);
         if (!nameToIndexes.containsKey(indexId))
         {
-          Index index = newAttributeIndex(txn, cfg, indexer);
+          MatchingRuleIndex index = new MatchingRuleIndex(txn, cfg, indexer);
           openIndex(txn, index, ccr);
           nameToIndexes.put(indexId, index);
         }
@@ -710,10 +814,6 @@ class AttributeIndex
           {
             ccr.setAdminActionRequired(true);
             ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-          }
-          if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
-          {
-            index.setIndexer(new AttributeIndexer(attrType, indexer));
           }
         }
       }
@@ -735,7 +835,7 @@ class AttributeIndex
         for (MatchingRule rule: rulesToDelete)
         {
           final List<String> indexIdsToRemove = new ArrayList<String>();
-          for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+          for (Indexer indexer : rule.getIndexers())
           {
             final String indexId = indexer.getIndexID();
             if (!validIndexIds.contains(indexId))
@@ -765,7 +865,7 @@ class AttributeIndex
   private Set<MatchingRule> getCurrentExtensibleMatchingRules()
   {
     final Set<MatchingRule> rules = new HashSet<MatchingRule>();
-    for (String ruleName : indexConfig.getIndexExtensibleMatchingRule())
+    for (String ruleName : config.getIndexExtensibleMatchingRule())
     {
         final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
         if (rule != null)
@@ -780,7 +880,7 @@ class AttributeIndex
       final ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
-    Index index = nameToIndexes.get(indexId);
+    MatchingRuleIndex index = nameToIndexes.get(indexId);
     if (!cfg.getIndexType().contains(indexType))
     {
       removeIndex(txn, index, indexType);
@@ -790,9 +890,9 @@ class AttributeIndex
     if (index == null)
     {
       final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
+      for (Indexer indexer : matchingRule.getIndexers())
       {
-        index = newAttributeIndex(txn, cfg, indexer);
+        index = new MatchingRuleIndex(txn, cfg, indexer);
         openIndex(txn, index, ccr);
         nameToIndexes.put(indexId, index);
       }
@@ -805,6 +905,12 @@ class AttributeIndex
         ccr.setAdminActionRequired(true);
         ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
+      if (indexType == IndexType.SUBSTRING && config.getSubstringLength() != cfg.getSubstringLength())
+      {
+        ccr.setAdminActionRequired(true);
+        // FIXME: msg?
+        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+      }
     }
   }
 
@@ -812,7 +918,7 @@ class AttributeIndex
   {
     final IndexType indexType = IndexType.PRESENCE;
     final String indexID = indexType.toString();
-    Index index = nameToIndexes.get(indexID);
+    MatchingRuleIndex index = nameToIndexes.get(indexID);
     if (!cfg.getIndexType().contains(indexType))
     {
       removeIndex(txn, index, indexType);
@@ -821,7 +927,7 @@ class AttributeIndex
 
     if (index == null)
     {
-      index = newPresenceIndex(txn, cfg);
+      index = new MatchingRuleIndex(txn, cfg, PRESENCE_INDEXER);
       openIndex(txn, index, ccr);
       nameToIndexes.put(indexID, index);
     }
@@ -889,7 +995,7 @@ class AttributeIndex
   {
     return entryContainer.getDatabasePrefix()
         + "_"
-        + indexConfig.getAttribute().getNameOrOID();
+        + config.getAttribute().getNameOrOID();
   }
 
   /**
@@ -897,7 +1003,7 @@ class AttributeIndex
    *
    * @return The equality index.
    */
-  Index getEqualityIndex()
+  MatchingRuleIndex getEqualityIndex()
   {
     return getIndexById(IndexType.EQUALITY.toString());
   }
@@ -907,7 +1013,7 @@ class AttributeIndex
    *
    * @return The approximate index.
    */
-  Index getApproximateIndex()
+  MatchingRuleIndex getApproximateIndex()
   {
     return getIndexById(IndexType.APPROXIMATE.toString());
   }
@@ -917,7 +1023,7 @@ class AttributeIndex
    *
    * @return  The ordering index.
    */
-  Index getOrderingIndex()
+  MatchingRuleIndex getOrderingIndex()
   {
     return getIndexById(IndexType.ORDERING.toString());
   }
@@ -927,7 +1033,7 @@ class AttributeIndex
    *
    * @return The substring index.
    */
-  Index getSubstringIndex()
+  MatchingRuleIndex getSubstringIndex()
   {
     return getIndexById(IndexType.SUBSTRING.toString());
   }
@@ -937,7 +1043,7 @@ class AttributeIndex
    *
    * @return The presence index.
    */
-  Index getPresenceIndex()
+  MatchingRuleIndex getPresenceIndex()
   {
     return getIndexById(IndexType.PRESENCE.toString());
   }
@@ -953,7 +1059,7 @@ class AttributeIndex
    * @return The index identified by the provided identifier, or null if no such
    *         index exists
    */
-  Index getIndexById(String indexId)
+  MatchingRuleIndex getIndexById(String indexId)
   {
     return nameToIndexes.get(indexId);
   }
@@ -963,16 +1069,16 @@ class AttributeIndex
    *
    * @return The map containing entries (extensible index type, list of indexes)
    */
-  Map<String, Collection<Index>> getExtensibleIndexes()
+  Map<String, Collection<MatchingRuleIndex>> getExtensibleIndexes()
   {
     return extensibleIndexesMapping;
   }
 
-  private Map<String, Collection<Index>> computeExtensibleIndexesMapping()
+  private Map<String, Collection<MatchingRuleIndex>> computeExtensibleIndexesMapping()
   {
-    final Collection<Index> substring = new ArrayList<Index>();
-    final Collection<Index> shared = new ArrayList<Index>();
-    for (Map.Entry<String, Index> entry : nameToIndexes.entrySet())
+    final Collection<MatchingRuleIndex> substring = new ArrayList<MatchingRuleIndex>();
+    final Collection<MatchingRuleIndex> shared = new ArrayList<MatchingRuleIndex>();
+    for (Map.Entry<String, MatchingRuleIndex> entry : nameToIndexes.entrySet())
     {
       final String indexId = entry.getKey();
       if (isDefaultIndex(indexId)) {
@@ -987,7 +1093,7 @@ class AttributeIndex
         shared.add(entry.getValue());
       }
     }
-    final Map<String, Collection<Index>> indexMap = new HashMap<String,Collection<Index>>();
+    final Map<String, Collection<MatchingRuleIndex>> indexMap = new HashMap<String, Collection<MatchingRuleIndex>>();
     indexMap.put(EXTENSIBLE_INDEXER_ID_SUBSTRING, substring);
     indexMap.put(EXTENSIBLE_INDEXER_ID_SHARED, shared);
     return Collections.unmodifiableMap(indexMap);
@@ -1037,7 +1143,7 @@ class AttributeIndex
      * 1. There is no matching rule provided
      * 2. The matching rule specified is actually the default equality.
      */
-    MatchingRule eqRule = indexConfig.getAttribute().getEqualityMatchingRule();
+    MatchingRule eqRule = config.getAttribute().getEqualityMatchingRule();
     if (matchRuleOID == null
         || matchRuleOID.equals(eqRule.getOID())
         || matchRuleOID.equalsIgnoreCase(eqRule.getNameOrOID()))
@@ -1047,12 +1153,12 @@ class AttributeIndex
     }
 
     MatchingRule rule = DirectoryServer.getMatchingRule(matchRuleOID);
-    if (!ruleHasAtLeasOneIndex(rule))
+    if (!ruleHasAtLeastOneIndex(rule))
     {
       if (monitor.isFilterUseEnabled())
       {
         monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(
-            matchRuleOID, indexConfig.getAttribute().getNameOrOID()));
+            matchRuleOID, config.getAttribute().getNameOrOID()));
       }
       return IndexQuery.createNullIndexQuery().evaluate(null);
     }
@@ -1062,7 +1168,7 @@ class AttributeIndex
       if (debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+        for (Indexer indexer : rule.getIndexers())
         {
             debugBuffer.append(" ")
               .append(filter.getAttributeType().getNameOrOID())
@@ -1095,9 +1201,9 @@ class AttributeIndex
     }
   }
 
-  private boolean ruleHasAtLeasOneIndex(MatchingRule rule)
+  private boolean ruleHasAtLeastOneIndex(MatchingRule rule)
   {
-    for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+    for (Indexer indexer : rule.getIndexers())
     {
       if (nameToIndexes.containsKey(indexer.getIndexID()))
       {
@@ -1107,26 +1213,31 @@ class AttributeIndex
     return false;
   }
 
-  /** This class extends the IndexConfig for JE Backend. */
-  private final class JEIndexConfig implements IndexingOptions
+  /** Indexing options implementation. */
+  private final class IndexingOptionsImpl implements IndexingOptions
   {
-    /** The length of the substring index. */
-    private int substringLength;
+    /** The length of substring keys used in substring indexes. */
+    private int substringKeySize;
 
-    /**
-     * Creates a new JEIndexConfig instance.
-     * @param substringLength The length of the substring.
-     */
-    private JEIndexConfig(int substringLength)
+    private IndexingOptionsImpl(int substringKeySize)
     {
-      this.substringLength = substringLength;
+      this.substringKeySize = substringKeySize;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int substringKeySize()
     {
-      return substringLength;
+      return substringKeySize;
+    }
+  }
+
+  void closeAndDelete(WriteableTransaction txn)
+  {
+    close();
+    for (Index index : nameToIndexes.values())
+    {
+      index.delete(txn);
+      state.deleteRecord(txn, index.getName());
     }
   }
 }
