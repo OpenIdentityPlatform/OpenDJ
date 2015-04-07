@@ -53,6 +53,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -480,11 +481,10 @@ class VerifyJob
     {
       AttributeIndex attrIndex = attrIndexList.get(0);
       final IndexingOptions options = attrIndex.getIndexingOptions();
-      iterateAttrIndex(txn, attrIndex.getEqualityIndex(), options);
-      iterateAttrIndex(txn, attrIndex.getPresenceIndex(), options);
-      iterateAttrIndex(txn, attrIndex.getSubstringIndex(), options);
-      iterateAttrIndex(txn, attrIndex.getOrderingIndex(), options);
-      iterateAttrIndex(txn, attrIndex.getApproximateIndex(), options);
+      for (MatchingRuleIndex index : attrIndex.getDefaultNameToIndexes().values())
+      {
+        iterateAttrIndex(txn, index, options);
+      }
      // TODO: Need to iterate through ExtendedMatchingRules indexes.
     }
     else if (vlvIndexList.size() > 0)
@@ -1381,11 +1381,12 @@ class VerifyJob
       return;
     }
 
-    Index equalityIndex = attrIndex.getEqualityIndex();
-    Index presenceIndex = attrIndex.getPresenceIndex();
-    Index substringIndex = attrIndex.getSubstringIndex();
-    Index orderingIndex = attrIndex.getOrderingIndex();
-    Index approximateIndex = attrIndex.getApproximateIndex();
+    final Map<String, MatchingRuleIndex> nameToIndexes = attrIndex.getNameToIndexes();
+    Index equalityIndex = nameToIndexes.get(IndexType.EQUALITY.toString());
+    Index presenceIndex = nameToIndexes.get(IndexType.PRESENCE.toString());
+    Index substringIndex = nameToIndexes.get(IndexType.SUBSTRING.toString());
+    Index orderingIndex = nameToIndexes.get(IndexType.ORDERING.toString());
+    Index approximateIndex = nameToIndexes.get(IndexType.APPROXIMATE.toString());
     // TODO: Add support for Extended Matching Rules indexes.
 
     if (presenceIndex != null)
@@ -1548,11 +1549,10 @@ class VerifyJob
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
-          totalCount += getRecordCount(txn, attrIndex.getEqualityIndex());
-          totalCount += getRecordCount(txn, attrIndex.getPresenceIndex());
-          totalCount += getRecordCount(txn, attrIndex.getSubstringIndex());
-          totalCount += getRecordCount(txn, attrIndex.getOrderingIndex());
-          totalCount += getRecordCount(txn, attrIndex.getApproximateIndex());
+          for (MatchingRuleIndex index : attrIndex.getDefaultNameToIndexes().values())
+          {
+            totalCount += getRecordCount(txn, index);
+          }
           // TODO: Add support for Extended Matching Rules indexes.
         }
         else if (vlvIndexList.size() > 0)
