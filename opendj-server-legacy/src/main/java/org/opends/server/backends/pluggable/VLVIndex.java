@@ -568,25 +568,28 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
       }
       else
       {
-        /*
-         * Treat an non-matching assertion as matching beyond the end of the index.
-         */
+        // Treat a non-matching assertion as matching beyond the end of the index.
         targetPosition = currentCount;
       }
       searchOperation.addResponseControl(new VLVResponseControl(targetPosition + 1, currentCount,
           LDAPResultCode.SUCCESS));
-      final long[] result = new long[selectedIDs.size()];
-      int i = 0;
-      for (Long entryID : selectedIDs)
-      {
-        result[i++] = entryID;
-      }
-      return newDefinedSet(result);
+      return newDefinedSet(toPrimitiveLongArray(selectedIDs));
     }
     finally
     {
       cursor.close();
     }
+  }
+
+  private long[] toPrimitiveLongArray(final List<Long> entryIDs)
+  {
+    final long[] result = new long[entryIDs.size()];
+    int i = 0;
+    for (Long entryID : entryIDs)
+    {
+      result[i++] = entryID;
+    }
+    return result;
   }
 
   /**
