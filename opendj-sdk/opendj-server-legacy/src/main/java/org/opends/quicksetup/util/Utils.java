@@ -1625,30 +1625,23 @@ public class Utils
   }
 
   /**
-   * Returns the equivalent setup CLI command-line.  Note that this command-line
-   * does not cover all the replication part of the GUI install.  Note also
-   * that to avoid problems in the WebStart setup, all the Strings are
-   * hard-coded in the implementation of this method.
-   * @param userData the user data.
+   * Returns the equivalent setup CLI command-line. Note that this command-line
+   * does not cover all the replication part of the GUI install. Note also that
+   * to avoid problems in the WebStart setup, all the Strings are hard-coded in
+   * the implementation of this method.
+   *
+   * @param userData
+   *          the user data.
    * @return the equivalent setup command-line.
    */
-  public static ArrayList<String> getSetupEquivalentCommandLine(
-      UserData userData)
+  public static List<String> getSetupEquivalentCommandLine(final UserData userData)
   {
-    ArrayList<String> cmdLine = new ArrayList<String>();
-    String setupFile;
-    if (isWindows())
-    {
-      setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
-    }
-    else
-    {
-      setupFile = Installation.UNIX_SETUP_FILE_NAME;
-    }
+    List<String> cmdLine = new ArrayList<String>();
+    final String setupFile = isWindows() ? Installation.WINDOWS_SETUP_FILE_NAME : Installation.UNIX_SETUP_FILE_NAME;
     cmdLine.add(getInstallDir(userData) + setupFile);
     cmdLine.add("--cli");
 
-    for (String baseDN : getBaseDNs(userData))
+    for (final String baseDN : getBaseDNs(userData))
     {
       cmdLine.add("--baseDN");
       cmdLine.add(baseDN);
@@ -1659,43 +1652,53 @@ public class Utils
     case CREATE_BASE_ENTRY:
       cmdLine.add("--addBaseEntry");
       break;
+
     case IMPORT_AUTOMATICALLY_GENERATED_DATA:
       cmdLine.add("--sampleData");
-      cmdLine.add(String.valueOf(
-          userData.getNewSuffixOptions().getNumberEntries()));
+      cmdLine.add(Integer.toString(userData.getNewSuffixOptions().getNumberEntries()));
       break;
+
     case IMPORT_FROM_LDIF_FILE:
-      for (String ldifFile : userData.getNewSuffixOptions().getLDIFPaths())
+      for (final String ldifFile : userData.getNewSuffixOptions().getLDIFPaths())
       {
         cmdLine.add("--ldifFile");
         cmdLine.add(ldifFile);
       }
-      String rejectFile = userData.getNewSuffixOptions().getRejectedFile();
+
+      final String rejectFile = userData.getNewSuffixOptions().getRejectedFile();
       if (rejectFile != null)
       {
         cmdLine.add("--rejectFile");
         cmdLine.add(rejectFile);
       }
-      String skipFile = userData.getNewSuffixOptions().getSkippedFile();
+
+      final String skipFile = userData.getNewSuffixOptions().getSkippedFile();
       if (skipFile != null)
       {
         cmdLine.add("--skipFile");
         cmdLine.add(skipFile);
       }
       break;
+
+    default:
+      break;
     }
 
     cmdLine.add("--ldapPort");
-    cmdLine.add(String.valueOf(userData.getServerPort()));
+    cmdLine.add(Integer.toString(userData.getServerPort()));
+
     cmdLine.add("--adminConnectorPort");
-    cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
+    cmdLine.add(Integer.toString(userData.getAdminConnectorPort()));
+
     if (userData.getServerJMXPort() != -1)
     {
       cmdLine.add("--jmxPort");
-      cmdLine.add(String.valueOf(userData.getServerJMXPort()));
+      cmdLine.add(Integer.toString(userData.getServerJMXPort()));
     }
+
     cmdLine.add("--rootUserDN");
     cmdLine.add(userData.getDirectoryManagerDn());
+
     cmdLine.add("--rootUserPassword");
     cmdLine.add(OBFUSCATED_VALUE);
 
@@ -1703,9 +1706,9 @@ public class Utils
     {
       cmdLine.add("--enableWindowsService");
     }
-    if (userData.getReplicationOptions().getType() ==
-      DataReplicationOptions.Type.STANDALONE &&
-      !userData.getStartServer())
+
+    if (userData.getReplicationOptions().getType() == DataReplicationOptions.Type.STANDALONE
+        && !userData.getStartServer())
     {
       cmdLine.add("--doNotStart");
     }
@@ -1714,11 +1717,24 @@ public class Utils
     {
       cmdLine.add("--enableStartTLS");
     }
+
     if (userData.getSecurityOptions().getEnableSSL())
     {
       cmdLine.add("--ldapsPort");
-      cmdLine.add(String.valueOf(userData.getSecurityOptions().getSslPort()));
+      cmdLine.add(Integer.toString(userData.getSecurityOptions().getSslPort()));
     }
+
+    cmdLine.addAll(getSecurityOptionSetupEquivalentCmdLine(userData));
+    cmdLine.add("--no-prompt");
+    cmdLine.add("--noPropertiesFile");
+
+    return cmdLine;
+  }
+
+  private static List<String> getSecurityOptionSetupEquivalentCmdLine(final UserData userData)
+  {
+    final List<String> cmdLine = new ArrayList<String>();
+
     switch (userData.getSecurityOptions().getCertificateType())
     {
     case SELF_SIGNED_CERTIFICATE:
@@ -1726,6 +1742,7 @@ public class Utils
       cmdLine.add("--hostName");
       cmdLine.add(userData.getHostName());
       break;
+
     case JKS:
       cmdLine.add("--useJavaKeystore");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
@@ -1734,57 +1751,68 @@ public class Utils
         cmdLine.add("--keyStorePassword");
         cmdLine.add(OBFUSCATED_VALUE);
       }
+
       if (userData.getSecurityOptions().getAliasToUse() != null)
       {
         cmdLine.add("--certNickname");
         cmdLine.add(userData.getSecurityOptions().getAliasToUse());
       }
       break;
+
     case JCEKS:
       cmdLine.add("--useJCEKS");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
+
       if (userData.getSecurityOptions().getKeystorePassword() != null)
       {
         cmdLine.add("--keyStorePassword");
         cmdLine.add(OBFUSCATED_VALUE);
       }
+
       if (userData.getSecurityOptions().getAliasToUse() != null)
       {
         cmdLine.add("--certNickname");
         cmdLine.add(userData.getSecurityOptions().getAliasToUse());
       }
       break;
+
     case PKCS12:
       cmdLine.add("--usePkcs12keyStore");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
+
       if (userData.getSecurityOptions().getKeystorePassword() != null)
       {
         cmdLine.add("--keyStorePassword");
         cmdLine.add(OBFUSCATED_VALUE);
       }
+
       if (userData.getSecurityOptions().getAliasToUse() != null)
       {
         cmdLine.add("--certNickname");
         cmdLine.add(userData.getSecurityOptions().getAliasToUse());
       }
       break;
+
     case PKCS11:
       cmdLine.add("--usePkcs11Keystore");
+
       if (userData.getSecurityOptions().getKeystorePassword() != null)
       {
         cmdLine.add("--keyStorePassword");
         cmdLine.add(OBFUSCATED_VALUE);
       }
+
       if (userData.getSecurityOptions().getAliasToUse() != null)
       {
         cmdLine.add("--certNickname");
         cmdLine.add(userData.getSecurityOptions().getAliasToUse());
       }
+      break;
+
+    default:
       break;
     }
 
-    cmdLine.add("--no-prompt");
-    cmdLine.add("--noPropertiesFile");
     return cmdLine;
   }
 
