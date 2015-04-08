@@ -29,7 +29,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -243,11 +242,6 @@ class AttributeIndex
   /** The attribute type for which this instance will generate index keys. */
   private final AttributeType attributeType;
 
-  /**
-   * The mapping from extensible index types (e.g. "substring" or "shared") to list of indexes.
-   */
-  private Map<String, Collection<MatchingRuleIndex>> extensibleIndexesMapping;
-
   AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer, WriteableTransaction txn)
       throws ConfigException
   {
@@ -264,7 +258,6 @@ class AttributeIndex
     buildExtensibleIndexes(txn);
 
     indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
-    extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
   private void buildPresenceIndex(WriteableTransaction txn)
@@ -761,7 +754,6 @@ class AttributeIndex
         }
       });
 
-      extensibleIndexesMapping = computeExtensibleIndexesMapping();
       config = cfg;
     }
     catch(Exception e)
@@ -998,66 +990,9 @@ class AttributeIndex
         + config.getAttribute().getNameOrOID();
   }
 
-  /**
-   * Return the mapping of extensible index types and indexes.
-   *
-   * @return The map containing entries (extensible index type, list of indexes)
-   */
-  Map<String, Collection<MatchingRuleIndex>> getExtensibleIndexes()
-  {
-    return extensibleIndexesMapping;
-  }
-
-  private Map<String, Collection<MatchingRuleIndex>> computeExtensibleIndexesMapping()
-  {
-    final Collection<MatchingRuleIndex> substring = new ArrayList<MatchingRuleIndex>();
-    final Collection<MatchingRuleIndex> shared = new ArrayList<MatchingRuleIndex>();
-    for (Map.Entry<String, MatchingRuleIndex> entry : nameToIndexes.entrySet())
-    {
-      final String indexId = entry.getKey();
-      if (isDefaultIndex(indexId)) {
-        continue;
-      }
-      if (indexId.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-      {
-        substring.add(entry.getValue());
-      }
-      else
-      {
-        shared.add(entry.getValue());
-      }
-    }
-    final Map<String, Collection<MatchingRuleIndex>> indexMap = new HashMap<String, Collection<MatchingRuleIndex>>();
-    indexMap.put(EXTENSIBLE_INDEXER_ID_SUBSTRING, substring);
-    indexMap.put(EXTENSIBLE_INDEXER_ID_SHARED, shared);
-    return Collections.unmodifiableMap(indexMap);
-  }
-
-  private boolean isDefaultIndex(String indexId)
-  {
-    return indexId.equals(IndexType.EQUALITY.toString())
-        || indexId.equals(IndexType.PRESENCE.toString())
-        || indexId.equals(IndexType.SUBSTRING.toString())
-        || indexId.equals(IndexType.ORDERING.toString())
-        || indexId.equals(IndexType.APPROXIMATE.toString());
-  }
-
   Map<String, MatchingRuleIndex> getNameToIndexes()
   {
     return nameToIndexes;
-  }
-
-  Map<String, MatchingRuleIndex> getDefaultNameToIndexes()
-  {
-    final Map<String, MatchingRuleIndex> result = new HashMap<String, MatchingRuleIndex>(nameToIndexes);
-    for (Iterator<String> it = result.keySet().iterator(); it.hasNext();)
-    {
-      if (!isDefaultIndex(it.next()))
-      {
-        it.remove();
-      }
-    }
-    return result;
   }
 
   /**

@@ -481,11 +481,10 @@ class VerifyJob
     {
       AttributeIndex attrIndex = attrIndexList.get(0);
       final IndexingOptions options = attrIndex.getIndexingOptions();
-      for (MatchingRuleIndex index : attrIndex.getDefaultNameToIndexes().values())
+      for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
       {
         iterateAttrIndex(txn, index, options);
       }
-     // TODO: Need to iterate through ExtendedMatchingRules indexes.
     }
     else if (vlvIndexList.size() > 0)
     {
@@ -1545,17 +1544,16 @@ class VerifyJob
         {
           totalCount = id2s.getRecordCount(txn);
         }
-        else if(attrIndexList.size() > 0)
+        else if (!attrIndexList.isEmpty())
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
-          for (MatchingRuleIndex index : attrIndex.getDefaultNameToIndexes().values())
+          for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
           {
             totalCount += getRecordCount(txn, index);
           }
-          // TODO: Add support for Extended Matching Rules indexes.
         }
-        else if (vlvIndexList.size() > 0)
+        else if (!vlvIndexList.isEmpty())
         {
           totalCount = vlvIndexList.get(0).getRecordCount(txn);
         }

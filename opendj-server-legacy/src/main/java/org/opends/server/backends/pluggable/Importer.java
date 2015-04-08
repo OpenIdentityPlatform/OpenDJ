@@ -2804,29 +2804,21 @@ final class Importer implements DiskSpaceMonitorHandler
     /** Map of index keys to indexes. */
     private final Map<IndexKey, MatchingRuleIndex> indexMap =
         new LinkedHashMap<IndexKey, MatchingRuleIndex>();
-
-    /** Map of index keys to extensible indexes. */
-    private final Map<IndexKey, Collection<MatchingRuleIndex>> extensibleIndexMap =
-        new LinkedHashMap<IndexKey, Collection<MatchingRuleIndex>>();
-
     /** List of VLV indexes. */
     private final List<VLVIndex> vlvIndexes = new LinkedList<VLVIndex>();
 
     /** The DN2ID index. */
     private DN2ID dn2id;
-
     /** The DN2URI index. */
     private DN2URI dn2uri;
 
     /** Total entries to be processed. */
     private long totalEntries;
-
     /** Total entries processed. */
     private final AtomicLong entriesProcessed = new AtomicLong(0);
 
     /** The suffix instance. */
     private Suffix suffix;
-
     /** The entry container. */
     private EntryContainer entryContainer;
 
@@ -3051,60 +3043,23 @@ final class Importer implements DiskSpaceMonitorHandler
     private void rebuildAttributeIndexes(WriteableTransaction txn, AttributeIndex attrIndex, AttributeType attrType,
         boolean onlyDegraded) throws StorageRuntimeException
     {
-      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getDefaultNameToIndexes().entrySet())
+      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
         ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
         fillIndexMap(txn, attrType, mapEntry.getValue(), indexType, onlyDegraded);
-      }
-
-      final Map<String, Collection<MatchingRuleIndex>> extensibleMap = attrIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        final Collection<MatchingRuleIndex> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        fillIndexMap(txn, attrType, subIndexes, ImportIndexType.EX_SUBSTRING, onlyDegraded);
-        final Collection<MatchingRuleIndex> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-        fillIndexMap(txn, attrType, sharedIndexes, ImportIndexType.EX_SHARED, onlyDegraded);
-      }
-    }
-
-    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, Collection<MatchingRuleIndex> indexes,
-        ImportIndexType importIndexType, boolean onlyDegraded)
-    {
-      if (indexes != null && !indexes.isEmpty())
-      {
-        final List<MatchingRuleIndex> mutableCopy = new LinkedList<MatchingRuleIndex>(indexes);
-        for (final Iterator<MatchingRuleIndex> it = mutableCopy.iterator(); it.hasNext();)
-        {
-          final Index index = it.next();
-          if (!onlyDegraded || !index.isTrusted())
-          {
-            if (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0)
-            {
-              putInIdContainerMap(index);
-            }
-          }
-          else
-          {
-            // This index is not a candidate for rebuilding.
-            it.remove();
-          }
-        }
-        if (!mutableCopy.isEmpty())
-        {
-          extensibleIndexMap.put(new IndexKey(attrType, importIndexType, 0), mutableCopy);
-        }
       }
     }
 
     private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, MatchingRuleIndex index,
         ImportIndexType importIndexType, boolean onlyDegraded)
     {
-      if (index != null
-          && (!onlyDegraded || !index.isTrusted())
+      if ((!onlyDegraded || !index.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
       {
         putInIdContainerMap(index);
-        final IndexKey key = new IndexKey(attrType, importIndexType, index.getIndexEntryLimit());
+
+        int indexEntryLimit = !importIndexType.isExtensible ? index.getIndexEntryLimit() : 0;
+        final IndexKey key = new IndexKey(attrType, importIndexType, indexEntryLimit);
         indexMap.put(key, index);
       }
     }
@@ -3127,28 +3082,13 @@ final class Importer implements DiskSpaceMonitorHandler
         entryContainer.clearDatabase(txn, entryContainer.getID2Subtree());
       }
 
-      if (!indexMap.isEmpty())
+      for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
       {
-        for (final Index index : indexMap.values())
+        final ImportIndexType indexType = mapEntry.getKey().getIndexType();
+        final Index index = mapEntry.getValue();
+        if (indexType.isExtensible || !onlyDegraded || !index.isTrusted())
         {
-          if (!onlyDegraded || !index.isTrusted())
-          {
-            entryContainer.clearDatabase(txn, index);
-          }
-        }
-      }
-
-      if (!extensibleIndexMap.isEmpty())
-      {
-        for (final Collection<MatchingRuleIndex> subIndexes : extensibleIndexMap.values())
-        {
-          if (subIndexes != null)
-          {
-            for (final Index subIndex : subIndexes)
-            {
-              entryContainer.clearDatabase(txn, subIndex);
-            }
-          }
+          entryContainer.clearDatabase(txn, index);
         }
       }
 
@@ -3172,19 +3112,9 @@ final class Importer implements DiskSpaceMonitorHandler
           ec.getID2Subtree().setTrusted(txn, trusted);
         }
         setTrusted(txn, indexMap.values(), trusted);
-        if (!vlvIndexes.isEmpty())
+        for (VLVIndex vlvIndex : vlvIndexes)
         {
-          for (VLVIndex vlvIndex : vlvIndexes)
-          {
-            vlvIndex.setTrusted(txn, trusted);
-          }
-        }
-        if (!extensibleIndexMap.isEmpty())
-        {
-          for (Collection<MatchingRuleIndex> subIndexes : extensibleIndexMap.values())
-          {
-            setTrusted(txn, subIndexes, trusted);
-          }
+          vlvIndex.setTrusted(txn, trusted);
         }
       }
       catch (StorageRuntimeException ex)
@@ -3436,7 +3366,6 @@ final class Importer implements DiskSpaceMonitorHandler
         processDN2URI(suffix, null, entry);
       }
       processIndexes(entry, entryID);
-      processExtensibleIndexes(entry, entryID);
       processVLVIndexes(entry, entryID);
     }
 
@@ -3449,26 +3378,6 @@ final class Importer implements DiskSpaceMonitorHandler
         vlvIdx.addEntry(buffer, entryID, entry);
       }
       buffer.flush(txn);
-    }
-
-    private void processExtensibleIndexes(Entry entry, EntryID entryID)
-        throws InterruptedException
-    {
-      for (Map.Entry<IndexKey, Collection<MatchingRuleIndex>> mapEntry :
-        this.extensibleIndexMap.entrySet())
-      {
-        IndexKey key = mapEntry.getKey();
-        AttributeType attrType = key.getAttributeType();
-        if (entry.hasAttribute(attrType))
-        {
-          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
-          IndexingOptions options = attributeIndex.getIndexingOptions();
-          for (MatchingRuleIndex index : mapEntry.getValue())
-          {
-            processAttribute(index, entry, entryID, options, key);
-          }
-        }
-      }
     }
 
     private void processIndexes(Entry entry, EntryID entryID)
@@ -3726,29 +3635,34 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  /**
-   * This class defines the individual index type available.
-   */
-  private enum ImportIndexType
+  /** Defines the individual index type available. */
+  enum ImportIndexType
   {
     /** The DN index type. */
-    DN,
+    DN(false),
     /** The equality index type. */
-    EQUALITY,
+    EQUALITY(false),
     /** The presence index type. */
-    PRESENCE,
+    PRESENCE(false),
     /** The sub-string index type. */
-    SUBSTRING,
+    SUBSTRING(false),
     /** The ordering index type. */
-    ORDERING,
+    ORDERING(false),
     /** The approximate index type. */
-    APPROXIMATE,
+    APPROXIMATE(false),
     /** The extensible sub-string index type. */
-    EX_SUBSTRING,
+    EX_SUBSTRING(true),
     /** The extensible shared index type. */
-    EX_SHARED,
+    EX_SHARED(true),
     /** The vlv index type. */
-    VLV
+    VLV(false);
+
+    private final boolean isExtensible;
+
+    private ImportIndexType(boolean isExtensible)
+    {
+      this.isExtensible = isExtensible;
+    }
   }
 
   static ImportIndexType toImportIndexType(String indexID)
