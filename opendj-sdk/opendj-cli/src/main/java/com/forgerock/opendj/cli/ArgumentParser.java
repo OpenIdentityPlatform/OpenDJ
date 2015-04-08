@@ -816,6 +816,12 @@ public class ArgumentParser implements ToolRefDocContainer {
                     continue;
                 }
 
+                // Return a generic FQDN for localhost as the default hostname
+                // in reference documentation.
+                if (isHostNameArgument(a)) {
+                    a.setDefaultValue("localhost.localdomain");
+                }
+
                 // The help argument should be added at the end.
                 if (isUsageArgument(a)) {
                     helpArgument = a;
@@ -842,6 +848,21 @@ public class ArgumentParser implements ToolRefDocContainer {
         StringBuilder sb = new StringBuilder();
         applyTemplate(sb, "optionsRefSect1.ftl", map);
         return sb.toString();
+    }
+
+    /**
+     * Returns true if this argument is for setting a hostname.
+     * @param a The argument.
+     * @return true if this argument is for setting a hostname.
+     */
+    boolean isHostNameArgument(final Argument a) {
+        final String name = a.getName();
+        return name.equalsIgnoreCase(OPTION_LONG_HOST)
+                || name.equalsIgnoreCase(OPTION_LONG_REFERENCED_HOST_NAME)
+                || name.equalsIgnoreCase("host1")
+                || name.equalsIgnoreCase("host2")
+                || name.equalsIgnoreCase("hostSource")
+                || name.equalsIgnoreCase("hostDestination");
     }
 
     /**
