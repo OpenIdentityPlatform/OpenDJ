@@ -374,7 +374,7 @@ public class InstallReviewPanel extends ReviewPanel {
 
     if (repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY
         && suf.getType() == SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES
-        && remotePorts.size() > 0)
+        && !remotePorts.isEmpty())
     {
       final AuthenticationData authData = userInstallData.getReplicationOptions().getAuthenticationData();
       final String serverToConnectDisplay = authData == null ? "" : authData.getHostName() + ":" + authData.getPort();
@@ -526,28 +526,14 @@ public class InstallReviewPanel extends ReviewPanel {
     {
       gbc.gridwidth = GridBagConstraints.RELATIVE;
       gbc.weightx = 0.0;
-      if (!isFirst)
-      {
-        gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-      }
-      else
-      {
-        gbc.insets.top = 0;
-      }
+      gbc.insets.top = isFirst ? 0 : UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.insets.left = 0;
       gbc.anchor = GridBagConstraints.NORTHWEST;
       panel.add(getLabel(fieldName), gbc);
 
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.HORIZONTAL;
-      if (!isFirst)
-      {
-        gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-      }
-      else
-      {
-        gbc.insets.top = 0;
-      }
+      gbc.insets.top = isFirst ? 0 : UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.gridwidth = GridBagConstraints.REMAINDER;
 
@@ -697,16 +683,14 @@ public class InstallReviewPanel extends ReviewPanel {
         .append(formatter.getTaskSeparator());
     }
 
-    sb.append(formatter.getFormattedProgress(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()))
-      .append(formatter.getLineBreak())
-      .append(Constants.HTML_BOLD_OPEN)
-      .append(getFormattedEquivalentCommandLine(getSetupEquivalentCommandLine(userData), formatter))
-      .append(Constants.HTML_BOLD_CLOSE);
+    sb.append(formatter.getFormattedProgress(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()));
+    List<String> setupCmdLine = getSetupEquivalentCommandLine(userData);
+    appendText(sb, formatter, getFormattedEquivalentCommandLine(setupCmdLine, formatter));
 
     if (userData.getReplicationOptions().getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
     {
       sb.append(formatter.getTaskSeparator());
-      final List<List<String>> cmdLines = getDsReplicationEnableEquivalentCommandLines(userData);
+      final List<List<String>> cmdLines = getDsReplicationEquivalentCommandLines("enable", userData);
       if (cmdLines.size() == 1)
       {
         sb.append(formatter.getFormattedProgress(INFO_INSTALL_ENABLE_REPLICATION_EQUIVALENT_COMMAND_LINE.get()));
@@ -718,15 +702,11 @@ public class InstallReviewPanel extends ReviewPanel {
 
       for (final List<String> cmdLine : cmdLines)
       {
-        sb.append(formatter.getLineBreak())
-          .append(Constants.HTML_BOLD_OPEN)
-          .append(getFormattedEquivalentCommandLine(cmdLine, formatter))
-          .append(Constants.HTML_BOLD_CLOSE);
+        appendText(sb, formatter, getFormattedEquivalentCommandLine(cmdLine, formatter));
       }
 
       sb.append(formatter.getLineBreak());
       sb.append(formatter.getLineBreak());
-      final List<List<String>> dsReplicationCmdLines = getDsReplicationInitializeEquivalentCommandLines(userData);
 
       if (cmdLines.size() == 1)
       {
@@ -737,12 +717,10 @@ public class InstallReviewPanel extends ReviewPanel {
         sb.append(formatter.getFormattedProgress(INFO_INSTALL_INITIALIZE_REPLICATION_EQUIVALENT_COMMAND_LINES.get()));
       }
 
+      final List<List<String>> dsReplicationCmdLines = getDsReplicationEquivalentCommandLines("initialize", userData);
       for (final List<String> cmdLine : dsReplicationCmdLines)
       {
-        sb.append(formatter.getLineBreak())
-          .append(Constants.HTML_BOLD_OPEN)
-          .append(Utils.getFormattedEquivalentCommandLine(cmdLine, formatter))
-          .append(Constants.HTML_BOLD_CLOSE);
+        appendText(sb, formatter, getFormattedEquivalentCommandLine(cmdLine, formatter));
       }
     }
     else if (userData.getReplicationOptions().getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
@@ -751,10 +729,7 @@ public class InstallReviewPanel extends ReviewPanel {
         .append(formatter.getFormattedProgress(INFO_INSTALL_ENABLE_REPLICATION_EQUIVALENT_COMMAND_LINES.get()));
       for (final List<String> cmdLine : getDsConfigReplicationEnableEquivalentCommandLines(userData))
       {
-        sb.append(formatter.getLineBreak())
-          .append(Constants.HTML_BOLD_OPEN)
-          .append(Utils.getFormattedEquivalentCommandLine(cmdLine, formatter))
-          .append(Constants.HTML_BOLD_CLOSE);
+        appendText(sb, formatter, getFormattedEquivalentCommandLine(cmdLine, formatter));
       }
     }
 
@@ -762,15 +737,20 @@ public class InstallReviewPanel extends ReviewPanel {
         && !userData.getStartServer())
     {
       sb.append(formatter.getTaskSeparator());
+      sb.append(formatter.getFormattedProgress(INFO_INSTALL_STOP_SERVER_EQUIVALENT_COMMAND_LINE.get()));
       final String cmd = getPath(Installation.getLocal().getServerStopCommandFile());
-      sb.append(formatter.getFormattedProgress(INFO_INSTALL_STOP_SERVER_EQUIVALENT_COMMAND_LINE.get()))
-        .append(formatter.getLineBreak())
-        .append(Constants.HTML_BOLD_OPEN)
-        .append(formatter.getFormattedProgress(LocalizableMessage.raw(cmd)))
-        .append(Constants.HTML_BOLD_CLOSE);
+      appendText(sb, formatter, formatter.getFormattedProgress(LocalizableMessage.raw(cmd)));
     }
 
     equivalentCommandPane.setText(sb.toString());
+  }
+
+  private void appendText(final StringBuilder sb, final HtmlProgressMessageFormatter formatter, CharSequence text)
+  {
+    sb.append(formatter.getLineBreak())
+      .append(Constants.HTML_BOLD_OPEN)
+      .append(text)
+      .append(Constants.HTML_BOLD_CLOSE);
   }
 
   private String getEquivalentJavaPropertiesProcedure(final UserData userData,

@@ -1185,18 +1185,9 @@ public class Utils
       }
       catch (Throwable t)
       {
-        String setupFile;
-        if (isWindows())
-        {
-          setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
-        }
-        else
-        {
-          setupFile = Installation.UNIX_SETUP_FILE_NAME;
-        }
         throw new IncompatibleVersionException(
             INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(
-                JNLP_SERVICE_NAME, setupFile),
+                JNLP_SERVICE_NAME, getSetupFilename()),
             t);
       }
     }
@@ -1637,8 +1628,7 @@ public class Utils
   public static List<String> getSetupEquivalentCommandLine(final UserData userData)
   {
     List<String> cmdLine = new ArrayList<String>();
-    final String setupFile = isWindows() ? Installation.WINDOWS_SETUP_FILE_NAME : Installation.UNIX_SETUP_FILE_NAME;
-    cmdLine.add(getInstallDir(userData) + setupFile);
+    cmdLine.add(getInstallDir(userData) + getSetupFilename());
     cmdLine.add("--cli");
 
     for (final String baseDN : getBaseDNs(userData))
@@ -1731,6 +1721,11 @@ public class Utils
     return cmdLine;
   }
 
+  private static String getSetupFilename()
+  {
+    return isWindows() ? Installation.WINDOWS_SETUP_FILE_NAME : Installation.UNIX_SETUP_FILE_NAME;
+  }
+
   private static List<String> getSecurityOptionSetupEquivalentCmdLine(final UserData userData)
   {
     final List<String> cmdLine = new ArrayList<String>();
@@ -1817,55 +1812,29 @@ public class Utils
   }
 
   /**
-   * Returns the list of equivalent command-lines that must be executed to
-   * enable replication as the setup does.
+   * Returns the list of equivalent command-lines that must be executed to enable or initialize
+   * replication as the setup does.
    *
+   * @param subcommand
+   *          either {@code "enable"} or {@code "initialize"}
    * @param userData
    *          the user data.
-   * @return the list of equivalent command-lines that must be executed to
-   *         enable replication as the setup does.
+   * @return the list of equivalent command-lines that must be executed to enable or initialize
+   *         replication as the setup does.
    */
-  public static List<List<String>> getDsReplicationEnableEquivalentCommandLines(final UserData userData)
+  public static List<List<String>> getDsReplicationEquivalentCommandLines(String subcommand, UserData userData)
   {
     final List<List<String>> cmdLines = new ArrayList<List<String>>();
     final Map<ServerDescriptor, Set<String>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
     for (ServerDescriptor server : hmServerBaseDNs.keySet())
     {
-      cmdLines.add(getDsReplicationEnableEquivalentCommandLine(userData, hmServerBaseDNs.get(server), server));
+      cmdLines.add(getDsReplicationEquivalentCommandLine(subcommand, userData, hmServerBaseDNs.get(server), server));
     }
-
     return cmdLines;
   }
 
-  /**
-   * Returns the list of equivalent command-lines that must be executed to
-   * initialize replication as the setup does.
-   *
-   * @param userData
-   *          the user data.
-   * @return the list of equivalent command-lines that must be executed to
-   *         initialize replication as the setup does.
-   */
-  public static List<List<String>> getDsReplicationInitializeEquivalentCommandLines(UserData userData)
+  private static void addEnableCommandOptions(UserData userData, ServerDescriptor server, ArrayList<String> cmdLine)
   {
-    final List<List<String>> cmdLines = new ArrayList<List<String>>();
-    final Map<ServerDescriptor, Set<String>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
-    for (ServerDescriptor server : hmServerBaseDNs.keySet())
-    {
-      cmdLines.add(getDsReplicationInitializeEquivalentCommandLine(userData, hmServerBaseDNs.get(server), server));
-    }
-
-    return cmdLines;
-  }
-
-  private static ArrayList<String> getDsReplicationEnableEquivalentCommandLine(
-      UserData userData, Set<String> baseDNs, ServerDescriptor server)
-  {
-    ArrayList<String> cmdLine = new ArrayList<String>();
-    String cmdName = getCommandLinePath(userData, "dsreplication");
-    cmdLine.add(cmdName);
-    cmdLine.add("enable");
-
     DataReplicationOptions replOptions = userData.getReplicationOptions();
     cmdLine.add("--host1");
     cmdLine.add(server.getHostName());
@@ -1910,29 +1879,12 @@ public class Utils
     if (replOptions.getReplicationPort() != -1)
     {
       cmdLine.add("--replicationPort2");
-      cmdLine.add(
-         String.valueOf(replOptions.getReplicationPort()));
+      cmdLine.add(String.valueOf(replOptions.getReplicationPort()));
       if (replOptions.useSecureReplication())
       {
         cmdLine.add("--secureReplication2");
       }
     }
-
-    for (String baseDN : baseDNs)
-    {
-      cmdLine.add("--baseDN");
-      cmdLine.add(baseDN);
-    }
-
-    cmdLine.add("--adminUID");
-    cmdLine.add(userData.getGlobalAdministratorUID());
-    cmdLine.add("--adminPassword");
-    cmdLine.add(OBFUSCATED_VALUE);
-
-    cmdLine.add("--trustAll");
-    cmdLine.add("--no-prompt");
-    cmdLine.add("--noPropertiesFile");
-    return cmdLine;
   }
 
   /**
@@ -1997,15 +1949,33 @@ public class Utils
     return installDir;
   }
 
-  private static ArrayList<String>
-  getDsReplicationInitializeEquivalentCommandLine(
-      UserData userData, Set<String> baseDNs, ServerDescriptor server)
+  private static ArrayList<String> getDsReplicationEquivalentCommandLine(
+      String subcommand, UserData userData, Set<String> baseDNs, ServerDescriptor server)
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
     String cmdName = getCommandLinePath(userData, "dsreplication");
     cmdLine.add(cmdName);
-    cmdLine.add("initialize");
+    cmdLine.add(subcommand);
 
+    if ("enable".equals(subcommand))
+    {
+      addEnableCommandOptions(userData, server, cmdLine);
+    }
+    else if ("initialize".equals(subcommand))
+    {
+      addInitializeCommandOptions(userData, server, cmdLine);
+    }
+    else
+    {
+      throw new IllegalArgumentException("Code is not implemented for subcommand " + subcommand);
+    }
+
+    addCommonOptions(userData, baseDNs, cmdLine);
+    return cmdLine;
+  }
+
+  private static void addInitializeCommandOptions(UserData userData, ServerDescriptor server, ArrayList<String> cmdLine)
+  {
     cmdLine.add("--hostSource");
     cmdLine.add(server.getHostName());
     cmdLine.add("--portSource");
@@ -2015,7 +1985,10 @@ public class Utils
     cmdLine.add(userData.getHostName());
     cmdLine.add("--portDestination");
     cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
+  }
 
+  private static void addCommonOptions(UserData userData, Set<String> baseDNs, ArrayList<String> cmdLine)
+  {
     for (String baseDN : baseDNs)
     {
       cmdLine.add("--baseDN");
@@ -2030,7 +2003,6 @@ public class Utils
     cmdLine.add("--trustAll");
     cmdLine.add("--no-prompt");
     cmdLine.add("--noPropertiesFile");
-    return cmdLine;
   }
 
   private static ArrayList<String> getBaseDNs(UserData userData)
