@@ -972,7 +972,7 @@ class AttributeIndex
 
   Map<String, MatchingRuleIndex> getNameToIndexes()
   {
-    return nameToIndexes;
+    return Collections.unmodifiableMap(nameToIndexes);
   }
 
   /**
