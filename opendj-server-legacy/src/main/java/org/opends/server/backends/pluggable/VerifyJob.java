@@ -1396,10 +1396,9 @@ class VerifyJob
     for (Attribute attr : attrList)
     {
       final AttributeType attrType = attr.getAttributeType();
-      MatchingRule equalityRule = attrType.getEqualityMatchingRule();
       for (ByteString value : attr)
       {
-        ByteString normalizedBytes = normalize(equalityRule, value);
+        ByteString normalizedBytes = normalize(attrType.getEqualityMatchingRule(), value);
 
         if (equalityIndex != null)
         {

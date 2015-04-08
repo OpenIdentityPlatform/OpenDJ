@@ -745,7 +745,7 @@ class AttributeIndex
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          applyChangeToPresenceIndex(txn, cfg, ccr);
+          applyChangeToIndex(txn, IndexType.PRESENCE, cfg, ccr);
           applyChangeToIndex(txn, IndexType.EQUALITY, cfg, ccr);
           applyChangeToIndex(txn, IndexType.SUBSTRING, cfg, ccr);
           applyChangeToIndex(txn, IndexType.ORDERING, cfg, ccr);
@@ -795,9 +795,7 @@ class AttributeIndex
         validIndexIds.add(indexId);
         if (!nameToIndexes.containsKey(indexId))
         {
-          MatchingRuleIndex index = new MatchingRuleIndex(txn, cfg, indexer);
-          openIndex(txn, index, ccr);
-          nameToIndexes.put(indexId, index);
+          nameToIndexes.put(indexId, openNewIndex(txn, cfg, indexer, ccr));
         }
         else
         {
@@ -881,12 +879,17 @@ class AttributeIndex
 
     if (index == null)
     {
-      final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
-      for (Indexer indexer : matchingRule.getIndexers())
+      if (indexType == IndexType.PRESENCE)
       {
-        index = new MatchingRuleIndex(txn, cfg, indexer);
-        openIndex(txn, index, ccr);
-        nameToIndexes.put(indexId, index);
+        nameToIndexes.put(indexId, openNewIndex(txn, cfg, PRESENCE_INDEXER, ccr));
+      }
+      else
+      {
+        final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
+        for (Indexer indexer : matchingRule.getIndexers())
+        {
+          nameToIndexes.put(indexId, openNewIndex(txn, cfg, indexer, ccr));
+        }
       }
     }
     else
@@ -897,38 +900,12 @@ class AttributeIndex
         ccr.setAdminActionRequired(true);
         ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
-      if (indexType == IndexType.SUBSTRING && config.getSubstringLength() != cfg.getSubstringLength())
+
+      if (indexType == IndexType.SUBSTRING
+          && config.getSubstringLength() != cfg.getSubstringLength())
       {
         ccr.setAdminActionRequired(true);
         // FIXME: msg?
-        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-      }
-    }
-  }
-
-  private void applyChangeToPresenceIndex(WriteableTransaction txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
-  {
-    final IndexType indexType = IndexType.PRESENCE;
-    final String indexID = indexType.toString();
-    MatchingRuleIndex index = nameToIndexes.get(indexID);
-    if (!cfg.getIndexType().contains(indexType))
-    {
-      removeIndex(txn, index, indexType);
-      return;
-    }
-
-    if (index == null)
-    {
-      index = new MatchingRuleIndex(txn, cfg, PRESENCE_INDEXER);
-      openIndex(txn, index, ccr);
-      nameToIndexes.put(indexID, index);
-    }
-    else
-    {
-      // already exists. Just update index entry limit.
-      if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-      {
-        ccr.setAdminActionRequired(true);
         ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
@@ -951,8 +928,10 @@ class AttributeIndex
     }
   }
 
-  private void openIndex(WriteableTransaction txn, Index index, ConfigChangeResult ccr)
+  private MatchingRuleIndex openNewIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer,
+      ConfigChangeResult ccr)
   {
+    final MatchingRuleIndex index = new MatchingRuleIndex(txn, cfg, indexer);
     index.open(txn);
 
     if (!index.isTrusted())
@@ -960,6 +939,7 @@ class AttributeIndex
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
+    return index;
   }
 
   /**
