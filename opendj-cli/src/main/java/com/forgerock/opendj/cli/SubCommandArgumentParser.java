@@ -1255,6 +1255,12 @@ public class SubCommandArgumentParser extends ArgumentParser {
             List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
             String nameOption = null;
             for (Argument a : subCommand.getArguments()) {
+                // Return a generic FQDN for localhost as the default hostname
+                // in reference documentation.
+                if (isHostNameArgument(a)) {
+                    a.setDefaultValue("localhost.localdomain");
+                }
+
                 Map<String, Object> option = new HashMap<String, Object>();
                 String optionSynopsis = getOptionSynopsis(a);
                 option.put("synopsis", optionSynopsis);
