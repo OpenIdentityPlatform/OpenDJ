@@ -70,13 +70,6 @@ interface DatabaseContainer
   long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException;
 
   /**
-   * Get a string representation of this object.
-   *
-   * @return return A string representation of this object.
-   */
-  String toString();
-
-  /**
    * Get the database name for this database container.
    *
    * @return database name for this database container.
