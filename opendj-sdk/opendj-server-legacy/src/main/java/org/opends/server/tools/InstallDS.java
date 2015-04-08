@@ -1014,7 +1014,7 @@ public class InstallDS extends ConsoleApplication
 
       nTries++;
     }
-    uData.setDirectoryManagerPwd(String.valueOf(pwd));
+    uData.setDirectoryManagerPwd(pwd);
   }
 
   /**
@@ -1317,8 +1317,7 @@ public class InstallDS extends ConsoleApplication
 
     final int printableIndex = getPromptedBackendTypeIndex();
     builder.setDefault(LocalizableMessage.raw(Integer.toString(printableIndex)), MenuResult.success(printableIndex));
-    final Menu<Integer> menu = builder.toMenu();
-    return menu;
+    return builder.toMenu();
   }
 
   private int getPromptedBackendTypeIndex()
@@ -1327,7 +1326,6 @@ public class InstallDS extends ConsoleApplication
     {
       return backendTypeHelper.getBackendTypeNames().indexOf(lastResetBackendType) + 1;
     }
-
     return 1;
   }
 

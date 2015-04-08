@@ -26,27 +26,26 @@
  */
 package org.opends.server.tools;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.DNConfigAttribute;
+import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides utility functions for all JE related client tools.
@@ -88,13 +87,8 @@ public class BackendToolUtils
       for (final ConfigEntry configEntry : baseEntry.getChildren().values())
       {
         final String backendID = getBackendID(configEntry);
-        if (backendID == null)
-        {
-          continue;
-        }
-
         final String backendClassName = getBackendClassName(configEntry);
-        if (backendClassName == null)
+        if (backendID == null || backendClassName == null)
         {
           continue;
         }
@@ -137,22 +131,18 @@ public class BackendToolUtils
       final DNConfigAttribute baseDNStub = new DNConfigAttribute(
           ATTR_BACKEND_BASE_DN, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true, true, true);
       final DNConfigAttribute baseDNAttr = (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
-      }
-      else
+      if (baseDNAttr != null)
       {
         return baseDNAttr.activeValues();
       }
+      logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
+      return null;
     }
     catch (final Exception e)
     {
       logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getDN(), getExceptionMessage(e));
       throw e;
     }
-
-    return null;
   }
 
   private static Class<?> getBackendClass(String backendClassName, ConfigEntry configEntry) throws Exception
@@ -175,11 +165,6 @@ public class BackendToolUtils
       final StringConfigAttribute classStub = new StringConfigAttribute(
           ATTR_BACKEND_CLASS, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false, false);
       final StringConfigAttribute classAttr = (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        return null;
-      }
-
       return classAttr != null ? classAttr.activeValue() : null;
     }
     catch (final org.opends.server.config.ConfigException ce)
@@ -201,7 +186,6 @@ public class BackendToolUtils
       final StringConfigAttribute idStub = new StringConfigAttribute(
           ATTR_BACKEND_ID, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true, false, true);
       final StringConfigAttribute idAttr = (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-
       return idAttr != null ? idAttr.activeValue() : null;
     }
     catch (final org.opends.server.config.ConfigException ce)
