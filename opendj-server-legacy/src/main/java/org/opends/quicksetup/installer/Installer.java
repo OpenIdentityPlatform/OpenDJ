@@ -3735,134 +3735,16 @@ public abstract class Installer extends GuiApplication {
    * Validate the data provided by the user in the new suffix data options panel
    * and update the UserInstallData object according to that content.
    *
-   * @throws UserDataException if the data provided by the user is not
-   *           valid.
+   * @throws UserDataException
+   *           if the data provided by the user is not valid.
    */
-  private void updateUserDataForNewSuffixOptionsPanel(QuickSetup qs)
-      throws UserDataException
+  private void updateUserDataForNewSuffixOptionsPanel(final QuickSetup ui) throws UserDataException
   {
-    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
-
-    NewSuffixOptions dataOptions = null;
-
-    // Check the base dn
-    boolean validBaseDn = false;
-    String baseDn = qs.getFieldStringValue(FieldName.DIRECTORY_BASE_DN);
-    if (baseDn == null || baseDn.trim().length() == 0)
-    {
-      // Do nothing, the user does not want to provide a base DN.
-      baseDn = "";
-    } else if (!isDN(baseDn))
-    {
-      errorMsgs.add(INFO_NOT_A_BASE_DN.get());
-      qs.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
-    } else if (isConfigurationDn(baseDn))
-    {
-      errorMsgs.add(INFO_BASE_DN_IS_CONFIGURATION_DN.get());
-      qs.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
-    } else
-    {
-      qs.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, false);
-      validBaseDn = true;
-    }
-
-    if ("".equals(baseDn))
-    {
-      List<String> baseDns = new LinkedList<String>();
-      dataOptions = NewSuffixOptions.createEmpty(baseDns);
-    }
-    else
-    {
-      // Check the data options
-      NewSuffixOptions.Type type =
-        (NewSuffixOptions.Type) qs.getFieldValue(FieldName.DATA_OPTIONS);
-
-      switch (type)
-      {
-      case IMPORT_FROM_LDIF_FILE:
-        String ldifPath = qs.getFieldStringValue(FieldName.LDIF_PATH);
-        if (ldifPath == null || "".equals(ldifPath.trim()))
-        {
-          errorMsgs.add(INFO_NO_LDIF_PATH.get());
-          qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
-        } else if (!fileExists(ldifPath))
-        {
-          errorMsgs.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
-          qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
-        } else if (validBaseDn)
-        {
-          LinkedList<String> baseDns = new LinkedList<String>();
-          baseDns.add(baseDn);
-          LinkedList<String> ldifPaths = new LinkedList<String>();
-          ldifPaths.add(ldifPath);
-
-          dataOptions = NewSuffixOptions.createImportFromLDIF(
-              baseDns, ldifPaths, null, null);
-          qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
-        }
-        break;
-
-      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        // variable used to know if everything went ok during these
-        // checks
-        int startErrors = errorMsgs.size();
-
-        // Check the number of entries
-        String nEntries = qs.getFieldStringValue(FieldName.NUMBER_ENTRIES);
-        if (nEntries == null || "".equals(nEntries.trim()))
-        {
-          errorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
-          qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
-        } else
-        {
-          boolean nEntriesValid = false;
-          try
-          {
-            int n = Integer.parseInt(nEntries);
-
-            nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
-          } catch (NumberFormatException nfe)
-          { /* do nothing */
-          }
-
-          if (!nEntriesValid)
-          {
-            errorMsgs.add(INFO_INVALID_NUMBER_ENTRIES_RANGE.get(
-                MIN_NUMBER_ENTRIES, MAX_NUMBER_ENTRIES));
-            qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
-          } else
-          {
-            qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-          }
-        }
-        if (startErrors == errorMsgs.size() && validBaseDn)
-        {
-          // No validation errors
-          LinkedList<String> baseDns = new LinkedList<String>();
-          baseDns.add(baseDn);
-          dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDns,
-              Integer.parseInt(nEntries));
-        }
-        break;
-
-      default:
-        qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
-        qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-        if (validBaseDn)
-        {
-          LinkedList<String> baseDns = new LinkedList<String>();
-          baseDns.add(baseDn);
-          if (type == NewSuffixOptions.Type.CREATE_BASE_ENTRY)
-          {
-            dataOptions = NewSuffixOptions.createBaseEntry(baseDns);
-          }
-          else
-          {
-            dataOptions = NewSuffixOptions.createEmpty(baseDns);
-          }
-        }
-      }
-    }
+    final List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+    // Singleton list with the provided baseDN (if exists and valid)
+    List<String> baseDn = new LinkedList<String>();
+    boolean validBaseDn = checkProvidedBaseDn(ui, baseDn, errorMsgs);
+    final NewSuffixOptions dataOptions = checkImportData(ui, baseDn, validBaseDn, errorMsgs);
 
     if (dataOptions != null)
     {
@@ -3871,11 +3753,131 @@ public abstract class Installer extends GuiApplication {
 
     if (errorMsgs.size() > 0)
     {
-      throw new UserDataException(Step.NEW_SUFFIX_OPTIONS,
-          getMessageFromCollection(errorMsgs, "\n"));
+      throw new UserDataException(
+          Step.NEW_SUFFIX_OPTIONS, getMessageFromCollection(errorMsgs, Constants.LINE_SEPARATOR));
     }
   }
 
+  private NewSuffixOptions checkImportData(final QuickSetup ui, final List<String> baseDn,
+      final boolean validBaseDn, final List<LocalizableMessage> errorMsgs)
+  {
+    if (baseDn.isEmpty())
+    {
+      return NewSuffixOptions.createEmpty(baseDn);
+    }
+
+    final NewSuffixOptions.Type type = (NewSuffixOptions.Type) ui.getFieldValue(FieldName.DATA_OPTIONS);
+    switch (type)
+    {
+    case IMPORT_FROM_LDIF_FILE:
+      return checkImportLDIFFile(ui, baseDn, validBaseDn, errorMsgs);
+
+    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+      return checkImportGeneratedData(ui, baseDn, validBaseDn, errorMsgs);
+
+    default:
+      if (validBaseDn)
+      {
+        return type == NewSuffixOptions.Type.CREATE_BASE_ENTRY ? NewSuffixOptions.createBaseEntry(baseDn)
+                                                               : NewSuffixOptions.createEmpty(baseDn);
+      }
+    }
+
+    return null;
+  }
+
+  private NewSuffixOptions checkImportGeneratedData(final QuickSetup ui, final List<String> baseDn,
+      final boolean validBaseDn, final List<LocalizableMessage> errorMsgs)
+  {
+    boolean fieldIsValid = true;
+    final List<LocalizableMessage> localErrorMsgs = new LinkedList<LocalizableMessage>();
+    final String nEntries = ui.getFieldStringValue(FieldName.NUMBER_ENTRIES);
+    if (nEntries == null || "".equals(nEntries.trim()))
+    {
+      localErrorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
+      fieldIsValid = false;
+    }
+    else
+    {
+      boolean nEntriesValid = false;
+      try
+      {
+        int n = Integer.parseInt(nEntries);
+        nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
+      }
+      catch (NumberFormatException nfe)
+      {
+        /* do nothing */
+      }
+
+      if (!nEntriesValid)
+      {
+        localErrorMsgs.add(INFO_INVALID_NUMBER_ENTRIES_RANGE.get(MIN_NUMBER_ENTRIES, MAX_NUMBER_ENTRIES));
+        fieldIsValid = false;
+      }
+    }
+
+    ui.displayFieldInvalid(FieldName.NUMBER_ENTRIES, !fieldIsValid);
+    if (validBaseDn && localErrorMsgs.isEmpty())
+    {
+      return NewSuffixOptions.createAutomaticallyGenerated(baseDn, Integer.parseInt(nEntries));
+    }
+    errorMsgs.addAll(localErrorMsgs);
+
+    return null;
+  }
+
+  private NewSuffixOptions checkImportLDIFFile(final QuickSetup ui, final List<String> baseDn,
+      final boolean validBaseDn, final List<LocalizableMessage> errorMsgs)
+  {
+    final boolean fieldIsValid = false;
+    final String ldifPath = ui.getFieldStringValue(FieldName.LDIF_PATH);
+    if (ldifPath == null || "".equals(ldifPath.trim()))
+    {
+      errorMsgs.add(INFO_NO_LDIF_PATH.get());
+    }
+    else if (!fileExists(ldifPath))
+    {
+      errorMsgs.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
+    }
+    else if (validBaseDn)
+    {
+      return NewSuffixOptions.createImportFromLDIF(baseDn, Collections.singletonList(ldifPath), null, null);
+    }
+    ui.displayFieldInvalid(FieldName.LDIF_PATH, !fieldIsValid);
+
+    return null;
+  }
+
+
+  private boolean checkProvidedBaseDn(
+      final QuickSetup ui, final List<String> baseDn, final List<LocalizableMessage> errorMsgs)
+  {
+    boolean validBaseDn = true;
+    String dn = ui.getFieldStringValue(FieldName.DIRECTORY_BASE_DN);
+    if (dn == null || dn.trim().length() == 0)
+    {
+      // Do nothing, the user does not want to provide a base DN.
+      dn = "";
+    }
+    else if (!isDN(dn))
+    {
+      validBaseDn = false;
+      errorMsgs.add(INFO_NOT_A_BASE_DN.get());
+    }
+    else if (isConfigurationDn(dn))
+    {
+      validBaseDn = false;
+      errorMsgs.add(INFO_BASE_DN_IS_CONFIGURATION_DN.get());
+    }
+    else
+    {
+      baseDn.add(dn);
+    }
+    ui.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, !validBaseDn);
+
+    return validBaseDn;
+  }
 
   /** Update the userData object according to the content of the runtime options panel. */
   private void updateUserDataForRuntimeOptionsPanel(QuickSetup qs)
