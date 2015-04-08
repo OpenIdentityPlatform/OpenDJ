@@ -169,8 +169,8 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
-  public final void update(WriteableTransaction txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
-      throws StorageRuntimeException
+  public final void update(final WriteableTransaction txn, final ByteString key, final EntryIDSet deletedIDs,
+      final EntryIDSet addedIDs) throws StorageRuntimeException
   {
     /*
      * Check the special condition where both deletedIDs and addedIDs are null. This is used when
@@ -180,7 +180,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     if (deletedIDs == null && addedIDs == null)
     {
       boolean success = txn.delete(getName(), key);
-      if (success && logger.isTraceEnabled())
+      if (!success && logger.isTraceEnabled())
       {
         StringBuilder builder = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
@@ -195,33 +195,16 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
       return;
     }
 
-    if (maintainCount)
+    /*
+     * Avoid taking a write lock on a record which has hit all IDs because it is likely to be a
+     * point of contention.
+     */
+    if (!maintainCount && !get(txn, key).isDefined())
     {
-      update0(txn, key, deletedIDs, addedIDs);
+      return;
     }
-    else if (get(txn, key).isDefined())
-    {
-      /*
-       * Avoid taking a write lock on a record which has hit all IDs because it is likely to be a
-       * point of contention.
-       */
-      update0(txn, key, deletedIDs, addedIDs);
-    } // else the record exists but we've hit all IDs.
-  }
 
-  private boolean isNullOrEmpty(EntryIDSet entryIDSet)
-  {
-    return entryIDSet == null || entryIDSet.size() == 0;
-  }
-
-  private boolean isNotEmpty(EntryIDSet entryIDSet)
-  {
-    return entryIDSet != null && entryIDSet.size() > 0;
-  }
-
-  private void update0(final WriteableTransaction txn, final ByteString key, final EntryIDSet deletedIDs,
-      final EntryIDSet addedIDs) throws StorageRuntimeException
-  {
+    // The record is going to be changed in some way.
     txn.update(getName(), key, new UpdateFunction()
     {
       @Override
@@ -252,6 +235,16 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
         return null; // no change.
       }
     });
+  }
+
+  private boolean isNullOrEmpty(EntryIDSet entryIDSet)
+  {
+    return entryIDSet == null || entryIDSet.size() == 0;
+  }
+
+  private boolean isNotEmpty(EntryIDSet entryIDSet)
+  {
+    return entryIDSet != null && entryIDSet.size() > 0;
   }
 
   private EntryIDSet computeEntryIDSet(ByteString key, ByteString value, EntryIDSet deletedIDs, EntryIDSet addedIDs)
