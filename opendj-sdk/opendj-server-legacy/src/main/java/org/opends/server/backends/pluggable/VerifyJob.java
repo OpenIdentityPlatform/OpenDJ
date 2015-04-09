@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -49,11 +50,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -61,7 +58,6 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -1308,24 +1304,7 @@ class VerifyJob
   {
     for (AttributeIndex attrIndex : attrIndexList)
     {
-      try
-      {
-        List<Attribute> attrList = entry.getAttribute(attrIndex.getAttributeType());
-        if (attrList != null)
-        {
-          verifyAttribute(txn, attrIndex, entryID, attrList);
-        }
-      }
-      catch (DirectoryException e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-
-          logger.trace("Error normalizing values of attribute %s in entry <%s>: %s.%n",
-              attrIndex.getAttributeType(), entry.getName(), e.getMessageObject());
-        }
-      }
+      verifyAttribute(txn, entryID, entry, attrIndex);
     }
 
     for (VLVIndex vlvIndex : vlvIndexList)
@@ -1366,64 +1345,17 @@ class VerifyJob
 
   /**
    * Check that an attribute index is complete for a given attribute.
-   *
-   * @param attrIndex The attribute index to be checked.
-   * @param entryID The entry ID.
-   * @param attrList The attribute to be checked.
-   * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void verifyAttribute(ReadableTransaction txn, AttributeIndex attrIndex, EntryID entryID,
-      List<Attribute> attrList) throws DirectoryException
+  private void verifyAttribute(ReadableTransaction txn, EntryID entryID, Entry entry, AttributeIndex attrIndex)
   {
-    if (attrList == null || attrList.isEmpty())
+    IndexingOptions options = attrIndex.getIndexingOptions();
+    for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
     {
-      return;
-    }
-
-    final Map<String, MatchingRuleIndex> nameToIndexes = attrIndex.getNameToIndexes();
-    Index equalityIndex = nameToIndexes.get(IndexType.EQUALITY.toString());
-    Index presenceIndex = nameToIndexes.get(IndexType.PRESENCE.toString());
-    Index substringIndex = nameToIndexes.get(IndexType.SUBSTRING.toString());
-    Index orderingIndex = nameToIndexes.get(IndexType.ORDERING.toString());
-    Index approximateIndex = nameToIndexes.get(IndexType.APPROXIMATE.toString());
-    // TODO: Add support for Extended Matching Rules indexes.
-
-    if (presenceIndex != null)
-    {
-      verifyAttributeInIndex(presenceIndex, txn, AttributeIndex.PRESENCE_KEY, entryID);
-    }
-
-    for (Attribute attr : attrList)
-    {
-      final AttributeType attrType = attr.getAttributeType();
-      for (ByteString value : attr)
+      Set<ByteString> keys = new HashSet<ByteString>();
+      index.indexEntry(entry, keys, options);
+      for (ByteString key : keys)
       {
-        ByteString normalizedBytes = normalize(attrType.getEqualityMatchingRule(), value);
-
-        if (equalityIndex != null)
-        {
-          verifyAttributeInIndex(equalityIndex, txn, normalizedBytes, entryID);
-        }
-
-        if (substringIndex != null)
-        {
-          for (ByteString key : attrIndex.substringKeys(normalizedBytes))
-          {
-            verifyAttributeInIndex(substringIndex, txn, key, entryID);
-          }
-        }
-
-        if (orderingIndex != null)
-        {
-          ByteString key = normalize(attrType.getOrderingMatchingRule(), value);
-          verifyAttributeInIndex(orderingIndex, txn, key, entryID);
-        }
-
-        if (approximateIndex != null)
-        {
-          ByteString key = normalize(attrType.getApproximateMatchingRule(), value);
-          verifyAttributeInIndex(approximateIndex, txn, key, entryID);
-        }
+        verifyAttributeInIndex(index, txn, key, entryID);
       }
     }
   }
@@ -1467,19 +1399,6 @@ class VerifyJob
       return ConditionResult.valueOf(entryIDSet.contains(entryID));
     }
     return ConditionResult.UNDEFINED;
-  }
-
-  private ByteString normalize(MatchingRule matchingRule, ByteString value) throws DirectoryException
-  {
-    try
-    {
-      return matchingRule.normalizeAttributeValue(value);
-    }
-    catch (DecodeException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          e.getMessageObject(), e);
-    }
   }
 
   /**
