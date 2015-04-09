@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -251,42 +250,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       EntryContainer ec = rootContainer.getEntryContainer(baseDNs[0]);
       AttributeIndex ai = ec.getAttributeIndex(attributeType);
-      if (ai == null)
-      {
-        return false;
-      }
-
-      Set<BackendIndexCfgDefn.IndexType> indexTypes =
-           ai.getConfiguration().getIndexType();
-      switch (indexType)
-      {
-        case PRESENCE:
-          return indexTypes.contains(BackendIndexCfgDefn.IndexType.PRESENCE);
-
-        case EQUALITY:
-          return indexTypes.contains(BackendIndexCfgDefn.IndexType.EQUALITY);
-
-        case SUBSTRING:
-        case SUBINITIAL:
-        case SUBANY:
-        case SUBFINAL:
-          return indexTypes.contains(BackendIndexCfgDefn.IndexType.SUBSTRING);
-
-        case GREATER_OR_EQUAL:
-        case LESS_OR_EQUAL:
-          return indexTypes.contains(BackendIndexCfgDefn.IndexType.ORDERING);
-
-        case APPROXIMATE:
-          return indexTypes.contains(BackendIndexCfgDefn.IndexType.APPROXIMATE);
-
-        default:
-          return false;
-      }
+      return ai != null ? ai.isIndexed(indexType) : false;
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
       return false;
     }
   }
