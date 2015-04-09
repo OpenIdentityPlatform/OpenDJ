@@ -34,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.backends.pluggable.Importer.IndexManager;
 
@@ -62,7 +63,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   private final ByteBuffer cache;
 
   /** Next fields are the fetched record data. */
-  private Integer indexID;
+  private ImportRecord record;
   private final ByteStringBuilder keyBuffer = new ByteStringBuilder(128);
   private RecordState recordState = RecordState.START;
 
@@ -163,7 +164,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    */
   public Integer getIndexID()
   {
-    if (indexID == null)
+    if (record == null)
     {
       try
       {
@@ -175,7 +176,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
         throw new RuntimeException(ex);
       }
     }
-    return indexID;
+    return record != null ? record.getIndexID() : null;
   }
 
   /**
@@ -203,14 +204,20 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       break;
     }
 
-    indexID = getInt();
+    int indexID = getInt();
+    ByteString key = toKey();
+    record = ImportRecord.from(key, indexID);
 
+    recordState = RecordState.NEED_INSERT_ID_SET;
+  }
+
+  private ByteString toKey() throws IOException
+  {
     ensureData(20);
     int keyLen = getInt();
     ensureData(keyLen);
     keyBuffer.clear().append(cache, keyLen);
-
-    recordState = RecordState.NEED_INSERT_ID_SET;
+    return keyBuffer.toByteString();
   }
 
   private int getInt() throws IOException
@@ -286,22 +293,6 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     return false;
   }
 
-  /**
-   * Compares this buffer with the provided key and index ID.
-   *
-   * @param key
-   *          The key.
-   * @param indexID
-   *          The index ID.
-   * @return true if this buffer represent the same key and indexID, false otherwise.
-   */
-  boolean sameKeyAndIndexID(final ByteStringBuilder key, Integer indexID)
-  {
-    ensureRecordFetched();
-    return Importer.indexComparator.compare(keyBuffer, key) == 0
-        && this.indexID.equals(indexID);
-  }
-
   /** {@inheritDoc} */
   @Override
   public int compareTo(IndexInputBuffer o)
@@ -312,19 +303,18 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       return 0;
     }
 
-    ensureRecordFetched();
-    o.ensureRecordFetched();
-
-    int cmp = Importer.indexComparator.compare(keyBuffer, o.keyBuffer);
+    int cmp = currentRecord().compareTo(o.currentRecord());
     if (cmp == 0)
     {
-      cmp = indexID.intValue() - o.getIndexID().intValue();
-      if (cmp == 0)
-      {
-        return bufferID - o.bufferID;
-      }
+      return bufferID - o.bufferID;
     }
     return cmp;
+  }
+
+  ImportRecord currentRecord()
+  {
+    ensureRecordFetched();
+    return record;
   }
 
   private void ensureRecordFetched()

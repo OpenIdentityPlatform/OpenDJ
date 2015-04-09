@@ -162,8 +162,6 @@ final class Importer implements DiskSpaceMonitorHandler
 
   /** The DN attribute type. */
   private static final AttributeType dnType;
-  static final IndexOutputBuffer.IndexComparator indexComparator =
-      new IndexOutputBuffer.IndexComparator();
 
   /** Phase one buffer count. */
   private final AtomicInteger bufferCount = new AtomicInteger(0);
@@ -1991,7 +1989,7 @@ final class Importer implements DiskSpaceMonitorHandler
       final ByteStringBuilder key = new ByteStringBuilder(BYTE_BUFFER_CAPACITY);
       ImportIDSet insertIDSet = null;
       ImportIDSet deleteIDSet = null;
-      Integer indexID = null;
+      ImportRecord previousRecord = null;
       try
       {
         beginWriteTask();
@@ -2007,17 +2005,17 @@ final class Importer implements DiskSpaceMonitorHandler
           while (!bufferSet.isEmpty())
           {
             IndexInputBuffer b = bufferSet.pollFirst();
-            if (!b.sameKeyAndIndexID(key, indexID))
+            if (!b.currentRecord().equals(previousRecord))
             {
-              if (indexID != null)
+              if (previousRecord != null)
               {
-                // save the previous record
-                addToDB(indexID, insertIDSet, deleteIDSet);
+                addToDB(previousRecord.getIndexID(), insertIDSet, deleteIDSet);
               }
 
               // this is a new record, reinitialize all
-              indexID = b.getIndexID();
+              int indexID = b.getIndexID();
               b.fetchKey(key);
+              previousRecord = ImportRecord.from(key, indexID);
 
               insertIDSet = newImportIDSet(key, indexID);
               deleteIDSet = newImportIDSet(key, indexID);
@@ -2034,9 +2032,9 @@ final class Importer implements DiskSpaceMonitorHandler
             }
           }
 
-          if (indexID != null)
+          if (previousRecord != null)
           {
-            addToDB(indexID, insertIDSet, deleteIDSet);
+            addToDB(previousRecord.getIndexID(), insertIDSet, deleteIDSet);
           }
         }
         return null;
@@ -2444,7 +2442,7 @@ final class Importer implements DiskSpaceMonitorHandler
         else if (!indexBuffer.sameKeyAndIndexID(i))
         {
           // this is a new record, save previous record ...
-          bufferLen += writeRecord(indexBuffer);
+          bufferLen += writeRecord(indexBuffer.currentRecord());
           // ... and reinitialize all
           indexBuffer.setPosition(i);
           resetStreams();
@@ -2454,7 +2452,7 @@ final class Importer implements DiskSpaceMonitorHandler
       if (numberKeys > 0)
       {
         // save the last record
-        bufferLen += writeRecord(indexBuffer);
+        bufferLen += writeRecord(indexBuffer.currentRecord());
       }
       return bufferLen;
     }
@@ -2478,22 +2476,20 @@ final class Importer implements DiskSpaceMonitorHandler
           indexSortedSet.add(b);
         }
       }
-      byte[] saveKey = null;
-      int saveIndexID = 0;
+      ImportRecord previousRecord = null;
       while (!indexSortedSet.isEmpty())
       {
         final IndexOutputBuffer b = indexSortedSet.pollFirst();
-        if (!b.sameKeyAndIndexID(saveKey, saveIndexID))
+        if (!b.currentRecord().equals(previousRecord))
         {
-          if (saveKey != null)
+          if (previousRecord != null)
           {
             // save the previous record
-            bufferLen += writeRecord(saveKey, saveIndexID);
+            bufferLen += writeRecord(previousRecord);
             resetStreams();
           }
           // this is a new record, reinitialize all
-          saveKey = b.getKey();
-          saveIndexID = b.getIndexID();
+          previousRecord = b.currentRecord();
         }
 
         appendNextEntryIDToStream(b, b.getPosition());
@@ -2504,9 +2500,9 @@ final class Importer implements DiskSpaceMonitorHandler
           indexSortedSet.add(b);
         }
       }
-      if (saveKey != null)
+      if (previousRecord != null)
       {
-        bufferLen += writeRecord(saveKey, saveIndexID);
+        bufferLen += writeRecord(previousRecord);
       }
       return bufferLen;
     }
@@ -2570,20 +2566,12 @@ final class Importer implements DiskSpaceMonitorHandler
       return 2 * INT_SIZE;
     }
 
-    private int writeRecord(IndexOutputBuffer b) throws IOException
+    private int writeRecord(ImportRecord record) throws IOException
     {
-      int keySize = b.getKeySize();
-      int headerSize = writeHeader(b.getIndexID(), keySize);
-      b.writeKey(bufferStream);
-      int bodySize = writeByteStreams();
-      return headerSize + keySize + bodySize;
-    }
-
-    private int writeRecord(byte[] k, int indexID) throws IOException
-    {
-      int keySize = k.length;
-      int headerSize = writeHeader(indexID, keySize);
-      bufferStream.write(k);
+      final ByteSequence key = record.getKey();
+      int keySize = key.length();
+      int headerSize = writeHeader(record.getIndexID(), keySize);
+      key.copyTo(bufferStream);
       int bodySize = writeByteStreams();
       return headerSize + keySize + bodySize;
     }
@@ -4039,7 +4027,9 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           int pLen = INT_SIZE;
           int len = reader.getInt();
-          if (indexComparator.compare(existingDnsBytes, previousPos+pLen, len, dn.getBackingArray(), dn.length()) == 0)
+          ImportRecord r1 = ImportRecord.from(ByteString.wrap(existingDnsBytes, previousPos + pLen, len), 0);
+          ImportRecord r2 = ImportRecord.from(dn, 0);
+          if (r1.equals(r2))
           {
             return true;
           }
