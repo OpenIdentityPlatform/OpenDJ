@@ -40,7 +40,9 @@ import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -58,6 +60,7 @@ import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
+import org.opends.server.tools.BackendTypeHelper;
 
 /**
  * This is the panel that contains the Data Options: the suffix dn, whether to
@@ -80,6 +83,8 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   private JButton ldifBrowseButton;
 
+  private JComboBox backendTypeComboBox;
+
   /**
    * Constructor of the panel.
    *
@@ -91,6 +96,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     super(application);
     this.defaultUserData = application.getUserData();
     populateComponentMaps();
+    createBackendTypeComboBox();
     addDocumentListeners();
     addFocusListeners();
     addActionListeners();
@@ -108,7 +114,10 @@ public class DataOptionsPanel extends QuickSetupStepPanel
           return type;
         }
       }
-
+    }
+    else if (FieldName.BACKEND_TYPE == fieldName)
+    {
+      return backendTypeComboBox.getSelectedItem().toString();
     }
     else
     {
@@ -151,6 +160,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
     GridBagConstraints gbc = new GridBagConstraints();
     // Add the server location widgets
+    addBackendTypeSection(panel, gbc);
     addBaseDNSection(panel, gbc);
 
     int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
@@ -175,14 +185,14 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  private void addBaseDNSection(final JPanel panel, final GridBagConstraints gbc)
+  private void addBackendTypeSection(final JPanel panel, final GridBagConstraints gbc)
   {
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     gbc.insets.top = 0;
     gbc.insets.left = 0;
     gbc.anchor = GridBagConstraints.WEST;
-    panel.add(getLabel(FieldName.DIRECTORY_BASE_DN), gbc);
+    panel.add(getLabel(FieldName.BACKEND_TYPE), gbc);
 
     JPanel auxPanel = new JPanel(new GridBagLayout());
     auxPanel.setOpaque(false);
@@ -190,7 +200,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 0.0;
-    auxPanel.add(getField(FieldName.DIRECTORY_BASE_DN), gbc);
+    auxPanel.add(backendTypeComboBox, gbc);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.LEFT_INSET_BROWSE;
@@ -203,6 +213,35 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     panel.add(auxPanel, gbc);
+  }
+
+  private void addBaseDNSection(final JPanel panel, final GridBagConstraints gbc)
+  {
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.insets.left = 0;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel.add(getLabel(FieldName.DIRECTORY_BASE_DN), gbc);
+
+    final JPanel auxPanel = new JPanel(new GridBagLayout());
+    auxPanel.setOpaque(false);
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    panel.add(auxPanel, gbc);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.weightx = 0.0;
+    auxPanel.add(getField(FieldName.DIRECTORY_BASE_DN), gbc);
+
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    auxPanel.add(Box.createHorizontalGlue(), gbc);
 
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
@@ -394,8 +433,18 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     final JLabel dataLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, INFO_DIRECTORY_DATA_LABEL.get(),
                                                   UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     hmLabels.put(FieldName.DATA_OPTIONS, dataLabel);
+
+    final JLabel backendTypeLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, INFO_BACKEND_TYPE_LABEL.get(),
+                                                         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    hmLabels.put(FieldName.BACKEND_TYPE, backendTypeLabel);
     createDirectoryDataChoiceRadioButton(dataLabel);
     checkEnablingState();
+  }
+
+  private void createBackendTypeComboBox()
+  {
+    final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
+    backendTypeComboBox = new JComboBox(new DefaultComboBoxModel(backendTypeHelper.getBackendTypeNames().toArray()));
   }
 
   private void createDirectoryDataChoiceRadioButton(final JLabel dataLabel)

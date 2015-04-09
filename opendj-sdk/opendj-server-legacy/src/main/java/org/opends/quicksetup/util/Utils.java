@@ -60,6 +60,8 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.cli.ArgumentConstants;
+
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
@@ -1379,6 +1381,7 @@ public class Utils
 
     final DataReplicationOptions repl = userInstallData.getReplicationOptions();
     final SuffixesToReplicateOptions suf = userInstallData.getSuffixesToReplicateOptions();
+    final String backendType = userInstallData.getBackendType();
 
     boolean createSuffix = repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
         || repl.getType() == DataReplicationOptions.Type.STANDALONE
@@ -1417,11 +1420,12 @@ public class Utils
       }
       else if (options.getBaseDns().size() > 1)
       {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(
+            backendType, joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
       }
       else
       {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(), arg2);
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(backendType, options.getBaseDns().getFirst(), arg2);
       }
     }
     else
@@ -1631,7 +1635,14 @@ public class Utils
     cmdLine.add(getInstallDir(userData) + getSetupFilename());
     cmdLine.add("--cli");
 
-    for (final String baseDN : getBaseDNs(userData))
+    final List<String> baseDNs = getBaseDNs(userData);
+    if (!baseDNs.isEmpty())
+    {
+      cmdLine.add("--" + ArgumentConstants.OPTION_LONG_BACKEND_TYPE);
+      cmdLine.add(userData.getBackendType());
+    }
+
+    for (final String baseDN : baseDNs)
     {
       cmdLine.add("--baseDN");
       cmdLine.add(baseDN);

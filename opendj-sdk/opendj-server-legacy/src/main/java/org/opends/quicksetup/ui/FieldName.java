@@ -45,6 +45,9 @@ public enum FieldName
   /** The value associated with this is a data options.Type. */
   DATA_OPTIONS,
 
+  /** The value associated with this is a String. **/
+  BACKEND_TYPE,
+
   /** The value associated with this is a String. */
   DIRECTORY_BASE_DN,
 
