@@ -122,7 +122,6 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
@@ -872,13 +871,6 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-w");
     argList.add(getUserData().getDirectoryManagerPwd());
-
-    //FIXME Remove once graphical setup will allow backend type choice
-    if (getUserData().getBackendType() == null)
-    {
-      BackendTypeHelper helper = new BackendTypeHelper();
-      getUserData().setBackendType(helper.getBackendTypeNames().get(0));
-    }
 
     argList.add("--" + OPTION_LONG_BACKEND_TYPE);
     argList.add(getUserData().getBackendType());
@@ -3748,6 +3740,7 @@ public abstract class Installer extends GuiApplication {
 
     if (dataOptions != null)
     {
+      getUserData().setBackendType(ui.getFieldStringValue(FieldName.BACKEND_TYPE));
       getUserData().setNewSuffixOptions(dataOptions);
     }
 
