@@ -462,12 +462,12 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
   private int med3(int a, int b, int c)
   {
-    ImportRecord pa = toRecord(a);
-    ImportRecord pb = toRecord(b);
-    ImportRecord pc = toRecord(c);
-    return pa.compareTo(pb) < 0
-        ? (pb.compareTo(pc) < 0 ? b : pa.compareTo(pc) < 0 ? c : a)
-        : (pb.compareTo(pc) > 0 ? b : pa.compareTo(pc) > 0 ? c : a);
+    ImportRecord ra = toRecord(a);
+    ImportRecord rb = toRecord(b);
+    ImportRecord rc = toRecord(c);
+    return ra.compareTo(rb) < 0
+        ? (rb.compareTo(rc) < 0 ? b : ra.compareTo(rc) < 0 ? c : a)
+        : (rb.compareTo(rc) > 0 ? b : ra.compareTo(rc) > 0 ? c : a);
   }
 
   private void sort(int off, int len)
@@ -499,22 +499,34 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int a = off, b = a, c = off + len - 1, d = c;
     while(true)
     {
-      while (b <= c && toRecord(b).compareTo(toRecord(m)) <= 0)
+      ImportRecord rm = toRecord(m);
+      while (b <= c)
       {
-        if (toRecord(b).equals(toRecord(m)))
+        int cmp = toRecord(b).compareTo(rm);
+        if (cmp > 0)
+        {
+          break;
+        }
+        else if (cmp == 0)
         {
           swap(a++, b);
         }
         b++;
       }
-      while (c >= b && toRecord(c).compareTo(toRecord(m)) >= 0)
-      {
-        if (toRecord(c).equals(toRecord(m)))
+
+      while (c >= b) {
+        int cmp = toRecord(c).compareTo(rm);
+        if (cmp < 0)
+        {
+          break;
+        }
+        else if (cmp == 0)
         {
           swap(c, d--);
         }
         c--;
       }
+
       if (b > c)
       {
         break;
