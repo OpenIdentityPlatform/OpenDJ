@@ -390,12 +390,39 @@ class AttributeIndex
   }
 
   /**
-   * Get the JE index configuration used by this index.
-   * @return The configuration in effect.
+   * Returns {@code true} if this attribute index supports the provided index type.
+   *
+   * @param indexType
+   *          The index type.
+   * @return {@code true} if this attribute index supports the provided index type.
    */
-  BackendIndexCfg getConfiguration()
+  boolean isIndexed(org.opends.server.types.IndexType indexType)
   {
-    return config;
+    Set<IndexType> indexTypes = config.getIndexType();
+    switch (indexType)
+    {
+    case PRESENCE:
+      return indexTypes.contains(IndexType.PRESENCE);
+
+    case EQUALITY:
+      return indexTypes.contains(IndexType.EQUALITY);
+
+    case SUBSTRING:
+    case SUBINITIAL:
+    case SUBANY:
+    case SUBFINAL:
+      return indexTypes.contains(IndexType.SUBSTRING);
+
+    case GREATER_OR_EQUAL:
+    case LESS_OR_EQUAL:
+      return indexTypes.contains(IndexType.ORDERING);
+
+    case APPROXIMATE:
+      return indexTypes.contains(IndexType.APPROXIMATE);
+
+    default:
+      return false;
+    }
   }
 
   /**
@@ -479,39 +506,6 @@ class AttributeIndex
         }
       }
     }
-  }
-
-  /**
-   * Decompose an attribute value into a set of substring index keys.
-   * The ID of the entry containing this value should be inserted
-   * into the list of each of these keys.
-   *
-   * @param normValue A byte array containing the normalized attribute value.
-   * @return A set of index keys.
-   */
-  Set<ByteString> substringKeys(ByteString normValue)
-  { // FIXME replace this code with SDK's
-    // AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys()
-
-    // Eliminate duplicates by putting the keys into a set.
-    // Sorting the keys will ensure database record locks are acquired
-    // in a consistent order and help prevent transaction deadlocks between
-    // concurrent writers.
-    Set<ByteString> set = new HashSet<ByteString>();
-
-    int substrLength = config.getSubstringLength();
-
-    // Example: The value is ABCDE and the substring length is 3.
-    // We produce the keys ABC BCD CDE DE E
-    // To find values containing a short substring such as DE,
-    // iterate through keys with prefix DE. To find values
-    // containing a longer substring such as BCDE, read keys BCD and CDE.
-    for (int i = 0, remain = normValue.length(); remain > 0; i++, remain--)
-    {
-      int len = Math.min(substrLength, remain);
-      set.add(normValue.subSequence(i, i + len));
-    }
-    return set;
   }
 
   /**
@@ -671,15 +665,6 @@ class AttributeIndex
     default:
       return null;
     }
-  }
-
-  /**
-   * Get a list of the databases opened by this attribute index.
-   * @param dbList A list of database containers.
-   */
-  void listDatabases(List<DatabaseContainer> dbList)
-  {
-    dbList.addAll(nameToIndexes.values());
   }
 
   /**

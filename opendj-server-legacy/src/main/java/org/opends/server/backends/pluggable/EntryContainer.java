@@ -2989,7 +2989,7 @@ public class EntryContainer
 
     for (AttributeIndex index : attrIndexMap.values())
     {
-      index.listDatabases(databases);
+      databases.addAll(index.getNameToIndexes().values());
     }
 
     databases.addAll(vlvIndexMap.values());
