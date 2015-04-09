@@ -117,7 +117,7 @@ class AttributeIndex
      */
     private final Indexer indexer;
 
-    MatchingRuleIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer)
+    private MatchingRuleIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer)
     {
       super(getIndexName(attributeType, indexer.getIndexID()), state, cfg.getIndexEntryLimit(), false, txn,
           entryContainer);
@@ -133,7 +133,7 @@ class AttributeIndex
       }
     }
 
-    void modifyEntry(Entry oldEntry, Entry newEntry, List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
+    private void modifyEntry(Entry oldEntry, Entry newEntry, Map<ByteString, Boolean> modifiedKeys,
         IndexingOptions options)
     {
       List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
@@ -493,7 +493,7 @@ class AttributeIndex
     for (MatchingRuleIndex index : nameToIndexes.values())
     {
       TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
-      index.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, indexingOptions);
+      index.modifyEntry(oldEntry, newEntry, modifiedKeys, indexingOptions);
       for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
       {
         if (modifiedKey.getValue())
