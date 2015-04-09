@@ -121,7 +121,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.util.Platform;
-import org.opends.server.util.StaticUtils;
 
 /**
  * This class provides the engine that performs both importing of LDIF files and
@@ -161,7 +160,10 @@ final class Importer implements DiskSpaceMonitorHandler
   private static final int SMALL_HEAP_SIZE = 256 * MB;
 
   /** The DN attribute type. */
-  private static final AttributeType dnType;
+  private static final AttributeType DN_TYPE;
+
+  /** The dn2id "index ID". */
+  private static final String DN2ID = "dn2id";
 
   /** Phase one buffer count. */
   private final AtomicInteger bufferCount = new AtomicInteger(0);
@@ -268,7 +270,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       attrType = DirectoryServer.getDefaultAttributeType("dn");
     }
-    dnType = attrType;
+    DN_TYPE = attrType;
   }
 
   /**
@@ -1549,7 +1551,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<IndexKey, IndexOutputBuffer>();
     private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
-    private final IndexKey dnIndexKey = new IndexKey(dnType, ImportIndexType.DN, 1);
+    private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID, 1);
 
     public ImportTask(final WriteableTransaction txn)
     {
@@ -1662,8 +1664,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
-        ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
-        processAttribute(mapEntry.getValue(), indexType, entry, attrType, entryID, options);
+        processAttribute(mapEntry.getValue(), mapEntry.getKey(), entry, attrType, entryID, options);
       }
     }
 
@@ -1678,12 +1679,12 @@ final class Importer implements DiskSpaceMonitorHandler
       buffer.flush(txn);
     }
 
-    private void processAttribute(MatchingRuleIndex index, ImportIndexType indexType, Entry entry,
+    private void processAttribute(MatchingRuleIndex index, String indexID, Entry entry,
         AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (index != null)
       {
-        IndexKey indexKey = new IndexKey(attributeType, indexType, index.getIndexEntryLimit());
+        IndexKey indexKey = new IndexKey(attributeType, indexID, index.getIndexEntryLimit());
         processAttribute(index, entry, entryID, options, indexKey);
       }
     }
@@ -2628,7 +2629,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           return;
         }
-        boolean isDN2ID = ImportIndexType.DN.equals(indexKey.getIndexType());
+        boolean isDN2ID = DN2ID.equals(indexKey.getIndexID());
         IndexManager indexMgr = new IndexManager(indexKey.getName(), isDN2ID, indexKey.getEntryLimit());
         if (isDN2ID)
         {
@@ -3033,21 +3034,19 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
-        ImportIndexType indexType = toImportIndexType(mapEntry.getKey());
-        fillIndexMap(txn, attrType, mapEntry.getValue(), indexType, onlyDegraded);
+        fillIndexMap(txn, attrType, mapEntry.getValue(), mapEntry.getKey(), onlyDegraded);
       }
     }
 
     private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, MatchingRuleIndex index,
-        ImportIndexType importIndexType, boolean onlyDegraded)
+        String importIndexID, boolean onlyDegraded)
     {
       if ((!onlyDegraded || !index.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
       {
         putInIdContainerMap(index);
 
-        int indexEntryLimit = !importIndexType.isExtensible ? index.getIndexEntryLimit() : 0;
-        final IndexKey key = new IndexKey(attrType, importIndexType, indexEntryLimit);
+        final IndexKey key = new IndexKey(attrType, importIndexID, index.getIndexEntryLimit());
         indexMap.put(key, index);
       }
     }
@@ -3072,9 +3071,8 @@ final class Importer implements DiskSpaceMonitorHandler
 
       for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
       {
-        final ImportIndexType indexType = mapEntry.getKey().getIndexType();
         final Index index = mapEntry.getValue();
-        if (indexType.isExtensible || !onlyDegraded || !index.isTrusted())
+        if (!onlyDegraded || !index.isTrusted())
         {
           entryContainer.clearDatabase(txn, index);
         }
@@ -3623,106 +3621,43 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  /** Defines the individual index type available. */
-  enum ImportIndexType
-  {
-    /** The DN index type. */
-    DN(false),
-    /** The equality index type. */
-    EQUALITY(false),
-    /** The presence index type. */
-    PRESENCE(false),
-    /** The sub-string index type. */
-    SUBSTRING(false),
-    /** The ordering index type. */
-    ORDERING(false),
-    /** The approximate index type. */
-    APPROXIMATE(false),
-    /** The extensible sub-string index type. */
-    EX_SUBSTRING(true),
-    /** The extensible shared index type. */
-    EX_SHARED(true),
-    /** The vlv index type. */
-    VLV(false);
-
-    private final boolean isExtensible;
-
-    private ImportIndexType(boolean isExtensible)
-    {
-      this.isExtensible = isExtensible;
-    }
-  }
-
-  static ImportIndexType toImportIndexType(String indexID)
-  {
-    if (IndexType.EQUALITY.toString().equals(indexID))
-    {
-      return ImportIndexType.EQUALITY;
-    }
-    else if (IndexType.PRESENCE.toString().equals(indexID))
-    {
-      return ImportIndexType.PRESENCE;
-    }
-    else if (IndexType.SUBSTRING.toString().equals(indexID))
-    {
-      return ImportIndexType.SUBSTRING;
-    }
-    else if (IndexType.ORDERING.toString().equals(indexID))
-    {
-      return ImportIndexType.ORDERING;
-    }
-    else if (IndexType.APPROXIMATE.toString().equals(indexID))
-    {
-      return ImportIndexType.APPROXIMATE;
-    }
-    else if (indexID.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-    {
-      return ImportIndexType.EX_SUBSTRING;
-    }
-    else
-    {
-      return ImportIndexType.EX_SHARED;
-    }
-  }
-
   /**
-   * This class is used as an index key for hash maps that need to process
-   * multiple suffix index elements into a single queue and/or maps based on
-   * both attribute type and index type (ie., cn.equality, sn.equality,...).
+   * This class is used as an index key for hash maps that need to process multiple suffix index
+   * elements into a single queue and/or maps based on both attribute type and index ID (ie.,
+   * cn.equality, sn.equality,...).
    */
   public static class IndexKey
   {
 
     private final AttributeType attributeType;
-    private final ImportIndexType indexType;
+    private final String indexID;
     private final int entryLimit;
 
     /**
-     * Create index key instance using the specified attribute type, index type
-     * and index entry limit.
+     * Create index key instance using the specified attribute type, index ID and index entry
+     * limit.
      *
      * @param attributeType
      *          The attribute type.
-     * @param indexType
-     *          The index type.
+     * @param indexID
+     *          The index ID taken from the matching rule's indexer.
      * @param entryLimit
      *          The entry limit for the index.
      */
-    private IndexKey(AttributeType attributeType, ImportIndexType indexType, int entryLimit)
+    private IndexKey(AttributeType attributeType, String indexID, int entryLimit)
     {
       this.attributeType = attributeType;
-      this.indexType = indexType;
+      this.indexID = indexID;
       this.entryLimit = entryLimit;
     }
 
     /**
-     * An equals method that uses both the attribute type and the index type.
-     * Only returns {@code true} if the attribute type and index type are equal.
+     * An equals method that uses both the attribute type and the index ID. Only returns
+     * {@code true} if the attribute type and index ID are equal.
      *
      * @param obj
      *          the object to compare.
-     * @return {@code true} if the objects are equal, or {@code false} if they
-     *         are not.
+     * @return {@code true} if the objects are equal, or {@code false} if they are not.
      */
     @Override
     public boolean equals(Object obj)
@@ -3731,7 +3666,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         IndexKey oKey = (IndexKey) obj;
         if (attributeType.equals(oKey.getAttributeType())
-            && indexType.equals(oKey.getIndexType()))
+            && indexID.equals(oKey.getIndexID()))
         {
           return true;
         }
@@ -3740,16 +3675,15 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     /**
-     * A hash code method that adds the hash codes of the attribute type and
-     * index type and returns that value.
+     * A hash code method that adds the hash codes of the attribute type and index ID and returns
+     * that value.
      *
-     * @return The combined hash values of attribute type hash code and the
-     *         index type hash code.
+     * @return The combined hash values of attribute type hash code and the index ID hash code.
      */
     @Override
     public int hashCode()
     {
-      return attributeType.hashCode() + indexType.hashCode();
+      return attributeType.hashCode() + indexID.hashCode();
     }
 
     /**
@@ -3763,26 +3697,24 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     /**
-     * Return the index type.
+     * Return the index ID.
      *
-     * @return The index type.
+     * @return The index ID.
      */
-    private ImportIndexType getIndexType()
+    private String getIndexID()
     {
-      return indexType;
+      return indexID;
     }
 
     /**
-     * Return the index key name, which is the attribute type primary name, a
-     * period, and the index type name. Used for building file names and
-     * progress output.
+     * Return the index key name, which is the attribute type primary name, a period, and the index
+     * ID name. Used for building file names and progress output.
      *
      * @return The index key name.
      */
     private String getName()
     {
-      return attributeType.getPrimaryName() + "."
-          + StaticUtils.toLowerCase(indexType.name());
+      return attributeType.getPrimaryName() + "." + indexID;
     }
 
     /**
@@ -3801,7 +3733,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       return getClass().getSimpleName()
           + "(attributeType=" + attributeType
-          + ", indexType=" + indexType
+          + ", indexID=" + indexID
           + ", entryLimit=" + entryLimit
           + ")";
     }
