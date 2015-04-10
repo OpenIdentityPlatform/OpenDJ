@@ -118,6 +118,8 @@ import com.forgerock.opendj.cli.CommandBuilder;
  */
 public class NewBaseDNPanel extends StatusGenericPanel
 {
+  private static final int MAX_ENTRIES_NUMBER_GENERATED = 1000;
+  private static final int MAX_ENTRIES_NUMBER_GENERATED_LOCAL = 20000;
   private static final long serialVersionUID = -2680821576362341119L;
   private static final LocalizableMessage NEW_BACKEND_TEXT = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
 
@@ -635,11 +637,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
   {
     if (importAutomaticallyGenerated.isSelected())
     {
-      String nEntries = numberOfEntries.getText();
-      int minValue = 1;
-      int maxValue = isLocal() ? 20000 : 1000;
-      LocalizableMessage errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
-      checkIntValue(errors, nEntries, minValue, maxValue, errMsg);
+      final int minValue = 1;
+      final int maxValue = isLocal() ? MAX_ENTRIES_NUMBER_GENERATED_LOCAL
+                                     : MAX_ENTRIES_NUMBER_GENERATED;
+      final LocalizableMessage errorMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
+      if (!checkIntValue(errors, numberOfEntries.getText(), minValue, maxValue, errorMsg))
+      {
+        setSecondaryInvalid(lNumberOfEntries);
+      }
     }
   }
 
