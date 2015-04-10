@@ -84,6 +84,7 @@ import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
+@SuppressWarnings("javadoc")
 public final class PersistItStorage implements Storage, ConfigurationChangeListener<PersistitBackendCfg>,
   DiskSpaceMonitorHandler, AlertGenerator
 {
@@ -92,7 +93,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   private static final int BUFFER_SIZE = 16 * 1024;
 
   /** PersistIt implementation of the {@link Cursor} interface. */
-  private final class CursorImpl implements Cursor
+  private final class CursorImpl implements Cursor<ByteString, ByteString>
   {
     private ByteString currentKey;
     private ByteString currentValue;
@@ -261,13 +262,13 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
-    public void put(final TreeName treeName, final ByteSequence key,
-        final ByteSequence value)
+    public void put(final TreeName treeName, final ByteSequence key, final ByteSequence value)
     {
       try
       {
         final Tree tree = trees.get(treeName);
-        importer.store(tree, bytesToKey(importKey, key),
+        importer.store(tree,
+            bytesToKey(importKey, key),
             bytesToValue(importValue, value));
       }
       catch (final Exception e)
@@ -337,8 +338,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     @Override
     public long getRecordCount(TreeName treeName)
     {
-      // FIXME: is the a better/quicker way to do this?
-      final Cursor cursor = openCursor(treeName);
+      // FIXME: is there a better/quicker way to do this?
+      final Cursor<?, ?> cursor = openCursor(treeName);
       try
       {
         long count = 0;
@@ -355,7 +356,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     }
 
     @Override
-    public Cursor openCursor(final TreeName treeName)
+    public Cursor<ByteString, ByteString> openCursor(final TreeName treeName)
     {
       try
       {

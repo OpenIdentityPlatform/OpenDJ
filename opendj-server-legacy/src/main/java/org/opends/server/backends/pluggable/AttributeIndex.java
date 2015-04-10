@@ -71,6 +71,7 @@ import org.opends.server.util.StaticUtils;
  * by the ordering matching rule.  If these could be guaranteed to be identical
  * then we would not need a separate ordering index.
  */
+@SuppressWarnings("javadoc")
 class AttributeIndex
     implements ConfigurationChangeListener<BackendIndexCfg>, Closeable
 {
@@ -434,8 +435,7 @@ class AttributeIndex
    * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-       throws StorageRuntimeException, DirectoryException
+  void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
   {
     for (MatchingRuleIndex index : nameToIndexes.values())
     {
@@ -457,8 +457,7 @@ class AttributeIndex
    * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-       throws StorageRuntimeException, DirectoryException
+  void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
   {
     for (MatchingRuleIndex index : nameToIndexes.values())
     {
@@ -479,16 +478,10 @@ class AttributeIndex
    * @param entryID The ID of the entry that was modified.
    * @param oldEntry The entry before the modifications were applied.
    * @param newEntry The entry after the modifications were applied.
-   * @param mods The sequence of modifications in the Modify operation.
    * @throws StorageRuntimeException If an error occurs during an operation on a
    * database.
    */
-  void modifyEntry(IndexBuffer buffer,
-                          EntryID entryID,
-                          Entry oldEntry,
-                          Entry newEntry,
-                          List<Modification> mods)
-       throws StorageRuntimeException
+  void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry) throws StorageRuntimeException
   {
     for (MatchingRuleIndex index : nameToIndexes.values())
     {
@@ -610,8 +603,7 @@ class AttributeIndex
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter type.
    */
-  EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory,
-      IndexFilterType indexFilterType,
+  EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
       SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     try

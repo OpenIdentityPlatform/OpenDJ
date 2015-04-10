@@ -26,11 +26,10 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.util.Reject.checkNotNull;
-import static org.opends.messages.JebMessages.ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
-import static org.opends.server.backends.pluggable.State.IndexFlag.COMPACTED;
-import static org.opends.server.backends.pluggable.State.IndexFlag.TRUSTED;
+import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 
 import java.util.EnumSet;
 
@@ -54,6 +53,7 @@ import org.opends.server.util.StaticUtils;
  * is a byte array, and is constructed from some normalized form of an attribute value (or fragment
  * of a value) appearing in the entry.
  */
+@SuppressWarnings("javadoc")
 class DefaultIndex extends AbstractDatabaseContainer implements Index
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -115,6 +115,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
+  @Override
   public final Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn)
   {
     checkNotNull(txn, "txn must not be null");
@@ -129,6 +130,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
         });
   }
 
+  @Override
   public final void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded) throws StorageRuntimeException
   {
     ByteSequence key = idsToBeAdded.getKey();
@@ -145,6 +147,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
+  @Override
   public final void importRemove(WriteableTransaction txn, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
   {
     ByteSequence key = idsToBeRemoved.getKey();
@@ -169,6 +172,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
+  @Override
   public final void update(final WriteableTransaction txn, final ByteString key, final EntryIDSet deletedIDs,
       final EntryIDSet addedIDs) throws StorageRuntimeException
   {
@@ -317,6 +321,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, getName());
   }
 
+  @Override
   public final EntryIDSet get(ReadableTransaction txn, ByteSequence key)
   {
     try
@@ -335,6 +340,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
+  @Override
   public final boolean setIndexEntryLimit(int indexEntryLimit)
   {
     final boolean rebuildRequired = this.indexEntryLimit < indexEntryLimit;
@@ -342,11 +348,13 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     return rebuildRequired;
   }
 
+  @Override
   public final int getIndexEntryLimit()
   {
     return indexEntryLimit;
   }
 
+  @Override
   public final synchronized void setTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     this.trusted = trusted;
@@ -360,11 +368,13 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
   }
 
+  @Override
   public final boolean isTrusted()
   {
     return trusted;
   }
 
+  @Override
   public final boolean getMaintainCount()
   {
     return maintainCount;

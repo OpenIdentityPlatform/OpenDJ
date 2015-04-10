@@ -2642,7 +2642,7 @@ public class EntryContainer
       // Check whether any modifications apply to this indexed attribute.
       if (isAttributeModified(index, mods))
       {
-        index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+        index.modifyEntry(buffer, entryID, oldEntry, newEntry);
       }
     }
 

@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -87,6 +87,7 @@ import org.opends.server.util.StaticUtils;
  * "tie-breaker" and ensures that keys correspond to one and only one entry. This ensures that all
  * database updates can be performed using lock-free operations.
  */
+@SuppressWarnings("javadoc")
 class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -484,14 +485,14 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
       {
         return evaluateVLVRequestByOffset(txn, searchOperation, vlvRequest, debugBuilder);
       }
-      return evaluateVLVRequestByAssertion(txn, searchOperation, vlvRequest, debugBuilder);
+      return evaluateVLVRequestByAssertion(txn, searchOperation, vlvRequest);
     }
     return evaluateNonVLVRequest(txn, debugBuilder);
   }
 
   private EntryIDSet evaluateNonVLVRequest(final ReadableTransaction txn, final StringBuilder debugBuilder)
   {
-    final Cursor cursor = txn.openCursor(getName());
+    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
     try
     {
       final long[] selectedIDs = readRange(cursor, count.get(), debugBuilder);
@@ -509,7 +510,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
    * entries following the nearest entry.
    */
   private EntryIDSet evaluateVLVRequestByAssertion(final ReadableTransaction txn,
-      final SearchOperation searchOperation, final VLVRequestControl vlvRequest, final StringBuilder debugBuilder)
+      final SearchOperation searchOperation, final VLVRequestControl vlvRequest)
       throws DirectoryException
   {
     final int currentCount = count.get();
@@ -518,7 +519,6 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
     final ByteString assertion = vlvRequest.getGreaterThanOrEqualAssertion();
     final ByteSequence encodedTargetAssertion =
         encodeTargetAssertion(sortOrder, assertion, searchOperation, currentCount);
-    @SuppressWarnings("unchecked")
     final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
     try
     {
@@ -672,7 +672,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
     }
 
     final int count = 1 + beforeCount + afterCount;
-    final Cursor cursor = txn.openCursor(getName());
+    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
     try
     {
       final long[] selectedIDs;
