@@ -226,7 +226,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     add(newBackend, gbc);
     ItemListener comboListener = new ItemListener()
     {
-      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         Object o = backends.getSelectedItem();
@@ -256,20 +255,17 @@ public class NewBaseDNPanel extends StatusGenericPanel
     baseDN = Utilities.createTextField();
     documentListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         String text = baseDN.getText().trim();
         setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
       }
 
-      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -332,8 +328,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.insets.left = 30;
     add(createPathPanel(), gbc);
 
-    importAutomaticallyGenerated = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_IMPORT_AUTOMATICALLY_GENERATED_LABEL.get());
+    importAutomaticallyGenerated =
+        Utilities.createRadioButton(INFO_CTRL_PANEL_IMPORT_AUTOMATICALLY_GENERATED_LABEL.get());
     importAutomaticallyGenerated.setOpaque(false);
     importAutomaticallyGenerated.setSelected(false);
 
@@ -396,8 +392,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
     newElements.add(NEW_BACKEND);
     super.updateComboBoxModel(newElements, (DefaultComboBoxModel) backends.getModel());
     updateErrorPaneAndOKButtonIfAuthRequired(desc,
-        isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get() :
-                    INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+        isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get()
+                  : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
       public void run()
@@ -582,8 +578,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
         setPrimaryInvalid(lDirectoryBaseDN);
       }
     }
-    // TODO: what happens with sub-suffixes?
 
+    // TODO: what happens with sub-suffixes?
     if (importDataFromLDIF.isSelected())
     {
       String ldifPath = path.getText();
@@ -672,8 +668,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
     public NewBaseDNTask(ControlPanelInfo info, ProgressDialog dlg)
     {
@@ -726,8 +725,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
-        // All the operations are incompatible if they apply to this
-        // backend.
+        // All the operations are incompatible if they apply to this backend.
         Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         if (backends.size() > 0)
@@ -837,7 +835,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
             public void run()
             {
               List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
@@ -852,7 +849,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
             public void run()
             {
               LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(getBackendName(), newBaseDN);
@@ -875,7 +871,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
             public void run()
             {
               LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(newBaseDN, getBackendName());
@@ -896,7 +891,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -915,7 +909,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
             public void run()
             {
               getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -1143,13 +1136,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     private String getBackendLdif(String backendName)
     {
-      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName )+ ",cn=Backends,cn=config";
+      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName ) +  ",cn=Backends,cn=config";
       return Utilities.makeLdif(
           "dn: " + dn,
           "objectClass: top",
           "objectClass: ds-cfg-backend",
           "objectClass: ds-cfg-local-db-backend",
-          "ds-cfg-base-dn: "+newBaseDN,
+          "ds-cfg-base-dn: " + newBaseDN,
           "ds-cfg-enabled: true",
           "ds-cfg-writability-mode: enabled",
           "ds-cfg-java-class: " +
@@ -1249,9 +1242,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     private void createAdditionalIndexes(InitialLdapContext ctx, String backendName) throws OpenDsException
     {
-      ArrayList<ArrayList<String>> argsArray = new ArrayList<ArrayList<String>>();
-      ArrayList<String> dns = new ArrayList<String>();
-      ArrayList<Attributes> attributes = new ArrayList<Attributes>();
+      List<List<String>> argsArray = new ArrayList<List<String>>();
+      List<String> dns = new ArrayList<String>();
+      List<Attributes> attributes = new ArrayList<Attributes>();
 
       // Instead of adding indexes using management framework, use this approach
       // so that we have to define the additional indexes only in the method
@@ -1265,7 +1258,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         Entry indexEntry;
         while ((indexEntry = reader.readEntry()) != null)
         {
-          ArrayList<String> args = new ArrayList<String>();
+          List<String> args = new ArrayList<String>();
           args.add("create-local-db-index");
           args.add("--backend-name");
           args.add(backendName);
@@ -1337,7 +1330,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           }
         });
 
-        for (int i=0; i<dns.size(); i++)
+        for (int i = 0; i < dns.size(); i++)
         {
           ctx.createSubcontext(dns.get(i), attributes.get(i));
         }
