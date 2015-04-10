@@ -53,7 +53,7 @@ public interface ReadableTransaction extends Closeable
    *          the tree name
    * @return a new cursor
    */
-  Cursor openCursor(TreeName treeName);
+  Cursor<ByteString, ByteString> openCursor(TreeName treeName);
 
   /**
    * Returns the number of key/value pairs in the provided tree.

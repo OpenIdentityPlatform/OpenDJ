@@ -46,6 +46,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 /**
  * Decorates a {@link Storage} with additional trace logging.
  */
+@SuppressWarnings("javadoc")
 final class TracedStorage implements Storage
 {
   /**
@@ -112,9 +113,9 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public Cursor openCursor(final TreeName name)
+    public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
-      final Cursor cursor = txn.openCursor(name);
+      final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
       logger.trace("Storage@%s.ReadableStorage@%s.openCursor(%s, %s)",
           storageId(), id(), backendId, name);
       return cursor;
@@ -188,9 +189,9 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public Cursor openCursor(final TreeName name)
+    public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
-      final Cursor cursor = txn.openCursor(name);
+      final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
       logger.trace("Storage@%s.WriteableStorage@%s.openCursor(%s, %s)",
           storageId(), id(), backendId, name);
       return cursor;

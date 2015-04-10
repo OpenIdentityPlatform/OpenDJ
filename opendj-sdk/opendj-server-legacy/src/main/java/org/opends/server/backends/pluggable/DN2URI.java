@@ -258,7 +258,7 @@ class DN2URI extends AbstractDatabaseContainer
    */
   private ConditionResult containsReferrals(ReadableTransaction txn)
   {
-    Cursor cursor = txn.openCursor(getName());
+    Cursor<?, ?> cursor = txn.openCursor(getName());
     try
     {
       return ConditionResult.valueOf(cursor.next());
