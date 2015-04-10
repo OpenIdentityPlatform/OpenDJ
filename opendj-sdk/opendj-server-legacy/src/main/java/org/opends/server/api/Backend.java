@@ -366,16 +366,14 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Retrieves the requested entry from this backend.  Note that the
-   * caller must hold a read or write lock on the specified DN.
+   * Retrieves the requested entry from this backend. The caller is not required to hold any locks
+   * on the specified DN.
    *
-   * @param  entryDN  The distinguished name of the entry to retrieve.
-   *
-   * @return  The requested entry, or {@code null} if the entry does
-   *          not exist.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to
-   *                              retrieve the entry.
+   * @param entryDN
+   *          The distinguished name of the entry to retrieve.
+   * @return The requested entry, or {@code null} if the entry does not exist.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to retrieve the entry.
    */
   public abstract Entry getEntry(DN entryDN) throws DirectoryException;
 
@@ -414,20 +412,16 @@ public abstract class Backend<C extends Configuration>
   public abstract long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException;
 
   /**
-   * Indicates whether an entry with the specified DN exists in the
-   * backend. The default implementation obtains a read lock and calls
-   * {@code getEntry}, but backend implementations may override this
-   * with a more efficient version that does not require a lock.  The
-   * caller is not required to hold any locks on the specified DN.
+   * Indicates whether an entry with the specified DN exists in the backend. The default
+   * implementation calls {@code getEntry}, but backend implementations may override this with a
+   * more efficient version. The caller is not required to hold any locks on the specified DN.
    *
-   * @param  entryDN  The DN of the entry for which to determine
-   *                  existence.
-   *
-   * @return  {@code true} if the specified entry exists in this
-   *          backend, or {@code false} if it does not.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to
-   *                              make the determination.
+   * @param entryDN
+   *          The DN of the entry for which to determine existence.
+   * @return {@code true} if the specified entry exists in this backend, or {@code false} if it does
+   *         not.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to make the determination.
    */
   public boolean entryExists(DN entryDN) throws DirectoryException
   {

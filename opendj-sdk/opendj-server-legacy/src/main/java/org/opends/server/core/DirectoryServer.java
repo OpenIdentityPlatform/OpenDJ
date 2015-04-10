@@ -5446,32 +5446,24 @@ public final class DirectoryServer
 
 
   /**
-   * Retrieves the entry with the requested DN.  It will first determine which
-   * backend should be used for this DN and will then use that backend to
-   * retrieve the entry.  The caller must already hold the appropriate lock on
-   * the specified entry.
+   * Retrieves the entry with the requested DN. It will first determine which backend should be used
+   * for this DN and will then use that backend to retrieve the entry. The caller is not required to
+   * hold any locks on the specified DN.
    *
-   * @param  entryDN  The DN of the entry to retrieve.
-   *
-   * @return  The requested entry, or <CODE>null</CODE> if it does not exist.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              retrieve the entry.
+   * @param entryDN
+   *          The DN of the entry to retrieve.
+   * @return The requested entry, or <CODE>null</CODE> if it does not exist.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to retrieve the entry.
    */
-  public static Entry getEntry(DN entryDN)
-         throws DirectoryException
+  public static Entry getEntry(DN entryDN) throws DirectoryException
   {
     if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend.getRootDSE();
     }
-
     final Backend<?> backend = getBackend(entryDN);
-    if (backend != null)
-    {
-      return backend.getEntry(entryDN);
-    }
-    return null;
+    return backend != null ? backend.getEntry(entryDN) : null;
   }
 
 
