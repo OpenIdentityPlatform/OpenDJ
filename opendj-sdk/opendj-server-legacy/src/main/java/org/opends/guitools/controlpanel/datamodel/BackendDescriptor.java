@@ -49,20 +49,20 @@ public class BackendDescriptor
   /** An enumeration describing the type of backend. */
   public enum Type
   {
+    /** The backend is a backup backend. */
+    BACKUP,
     /** The backend is a local backend. */
     LOCAL_DB,
     /** The backend is a LDIF backend. */
     LDIF,
     /** The backend is a memory backend. */
     MEMORY,
-    /** The backend is a backup backend. */
-    BACKUP,
     /** The backend is a monitor backend. */
     MONITOR,
-    /** The backend is a task backend. */
-    TASK,
     /** The backend is another type of backend (for instance user defined). */
-    OTHER
+    OTHER,
+    /** The backend is a task backend. */
+    TASK
   }
 
   /**
