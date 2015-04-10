@@ -47,6 +47,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
+import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterMethod;
@@ -76,6 +77,7 @@ public class StateTest extends DirectoryServerTestCase
 
     ServerContext serverContext = mock(ServerContext.class);
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());
+    when(serverContext.getDiskSpaceMonitor()).thenReturn(new DiskSpaceMonitor());
 
     storage = new PersistItStorage(createBackendCfg(), serverContext);
     org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport();

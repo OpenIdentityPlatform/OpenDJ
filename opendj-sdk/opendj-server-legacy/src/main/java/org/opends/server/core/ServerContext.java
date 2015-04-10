@@ -26,6 +26,7 @@
 package org.opends.server.core;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
@@ -86,4 +87,13 @@ public interface ServerContext
    * @return the memory quota system
    */
   MemoryQuota getMemoryQuota();
+
+  /**
+   * Returns the Disk Space Monitoring service, for checking free disk space.
+   * Configure a directory to be monitored and optionally get alerted when
+   * disk space transitions from low to full to back to normal.
+   *
+   * @return the Disk Space Monioring service
+   */
+  DiskSpaceMonitor getDiskSpaceMonitor();
 }

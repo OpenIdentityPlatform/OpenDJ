@@ -136,6 +136,7 @@ import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.DebugLogPublisher;
@@ -797,6 +798,9 @@ public final class DirectoryServer
   /** The memory reservation system */
   private MemoryQuota memoryQuota;
 
+  /** The Disk Space Monitor */
+  private DiskSpaceMonitor diskSpaceMonitor;
+
   /**
    * The maximum size that internal buffers will be allowed to grow to until
    * they are trimmed.
@@ -898,6 +902,12 @@ public final class DirectoryServer
     {
       return directoryServer.memoryQuota;
     }
+
+    @Override
+    public DiskSpaceMonitor getDiskSpaceMonitor()
+    {
+      return directoryServer.diskSpaceMonitor;
+    }
   }
 
 
@@ -930,6 +940,7 @@ public final class DirectoryServer
     serverContext = new DirectoryServerContext();
     virtualAttributeConfigManager = new VirtualAttributeConfigManager(serverContext);
     memoryQuota = new MemoryQuota();
+    diskSpaceMonitor = new DiskSpaceMonitor();
   }
 
 
@@ -1469,6 +1480,8 @@ public final class DirectoryServer
 
       // Determine whether or not we should start the connection handlers.
       boolean startConnectionHandlers = !environmentConfig.disableConnectionHandlers();
+
+      diskSpaceMonitor.startDiskSpaceMonitor();
 
       initializeSchema();
 

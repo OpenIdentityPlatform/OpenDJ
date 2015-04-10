@@ -27,7 +27,8 @@
 
 package org.opends.server.api;
 
-import org.opends.server.extensions.DiskSpaceMonitor;
+import java.io.File;
+
 
 /**
  * This interface defines the set of methods that must be implemented
@@ -40,22 +41,26 @@ public interface DiskSpaceMonitorHandler {
   /**
    * Notifies that the registered "low" threshold have been reached.
    *
-   * @param monitor The DiskSpaceMonitor that detected this event.
+   * @param directory the directory for which the threshold has been triggered
+   * @param thresholdInBytes the threshold value in bytes
    */
-  void diskLowThresholdReached(DiskSpaceMonitor monitor);
+  void diskLowThresholdReached(File directory, long thresholdInBytes);
 
   /**
    * Notifies that the registered "full" threshold have been reached.
    *
-   * @param monitor The DiskSpaceMonitor that detected this event.
+   * @param directory the directory for which the threshold has been triggered
+   * @param thresholdInBytes the threshold value in bytes
    */
-  void diskFullThresholdReached(DiskSpaceMonitor monitor);
+  void diskFullThresholdReached(File directory, long thresholdInBytes);
 
   /**
-   * Notifies that the free disk space is now above both "low" and
-   * "full" thresholds.
+   * Notifies that the free disk space is now above both "low" and "full" thresholds.
    *
-   * @param monitor The DiskSpaceMonitor that detected this event.
+   * @param directory the directory for which the threshold has been triggeredTODO
+   *
+   * @param lowThresholdInBytes the low threshold value in bytes
+   * @param fullThresholdInBytes the full threshold value in bytes
    */
-  void diskSpaceRestored(DiskSpaceMonitor monitor);
+  void diskSpaceRestored(File directory, long lowThresholdInBytes, long fullThresholdInBytes);
 }

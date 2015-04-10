@@ -27,7 +27,6 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
-
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.jeb.IndexOutputBuffer.*;
@@ -84,7 +83,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -98,6 +97,7 @@ import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -162,6 +162,8 @@ final class Importer implements DiskSpaceMonitorHandler
   private static final int MIN_READ_AHEAD_CACHE_SIZE = 2 * KB;
   /** Small heap threshold used to give more memory to JVM to attempt OOM errors. */
   private static final int SMALL_HEAP_SIZE = 256 * MB;
+  /** Minimum memory needed for import */
+  private static final int MINIMUM_AVAILABLE_MEMORY = 32 * MB;
 
   /** The DN attribute type. */
   private static final AttributeType dnType;
@@ -267,6 +269,8 @@ final class Importer implements DiskSpaceMonitorHandler
   /** Number of phase one buffers. */
   private int phaseOneBufferCount;
 
+  private final DiskSpaceMonitor diskSpaceMonitor;
+
   static
   {
     AttributeType attrType = DirectoryServer.getAttributeType("dn");
@@ -286,6 +290,8 @@ final class Importer implements DiskSpaceMonitorHandler
    *          The local DB back-end configuration.
    * @param envConfig
    *          The JEB environment config.
+   * @param serverContext
+   *          The ServerContext for this Directory Server instance
    * @throws InitializationException
    *           If a problem occurs during initialization.
    * @throws JebException
@@ -293,14 +299,15 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws ConfigException
    *           If a problem occurs during initialization.
    */
-  public Importer(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg,
-      EnvironmentConfig envConfig) throws InitializationException,
+  public Importer(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg, EnvironmentConfig envConfig,
+      ServerContext serverContext) throws InitializationException,
       JebException, ConfigException
   {
     this.importConfiguration = null;
     this.backendConfiguration = cfg;
     this.tmpEnv = null;
     this.threadCount = 1;
+    this.diskSpaceMonitor = serverContext.getDiskSpaceMonitor();
     this.rebuildManager = new RebuildIndexManager(rebuildConfig, cfg);
     this.indexCount = rebuildManager.getIndexCount();
     this.clearedBackend = false;
@@ -327,6 +334,8 @@ final class Importer implements DiskSpaceMonitorHandler
    *          The local DB back-end configuration.
    * @param envConfig
    *          The JEB environment config.
+   * @param serverContext
+   *          The ServerContext for this Directory Server instance
    * @throws InitializationException
    *           If a problem occurs during initialization.
    * @throws ConfigException
@@ -334,13 +343,14 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws DatabaseException
    *           If an error occurred when opening the DB.
    */
-  public Importer(LDIFImportConfig importConfiguration,
-      LocalDBBackendCfg localDBBackendCfg, EnvironmentConfig envConfig)
+  public Importer(LDIFImportConfig importConfiguration, LocalDBBackendCfg localDBBackendCfg,
+      EnvironmentConfig envConfig, ServerContext serverContext)
       throws InitializationException, ConfigException, DatabaseException
   {
     this.rebuildManager = null;
     this.importConfiguration = importConfiguration;
     this.backendConfiguration = localDBBackendCfg;
+    this.diskSpaceMonitor = serverContext.getDiskSpaceMonitor();
 
     if (importConfiguration.getThreadCount() == 0)
     {
@@ -625,8 +635,8 @@ final class Importer implements DiskSpaceMonitorHandler
         configuredMemory = backendConfiguration.getDBCachePercent() * Runtime.getRuntime().maxMemory() / 100;
       }
 
-      // Round up to minimum of 16MB (e.g. unit tests only use 2% cache).
-      totalAvailableMemory = Math.max(Math.min(usableMemory, configuredMemory), 16 * MB);
+      // Round up to minimum of 32MB (e.g. unit tests only use a small cache).
+      totalAvailableMemory = Math.max(Math.min(usableMemory, configuredMemory), MINIMUM_AVAILABLE_MEMORY);
     }
     else
     {
@@ -860,14 +870,10 @@ final class Importer implements DiskSpaceMonitorHandler
     this.rootContainer = rootContainer;
     long startTime = System.currentTimeMillis();
 
-    DiskSpaceMonitor tmpMonitor = createDiskSpaceMonitor(tempDir, "backend index rebuild tmp directory");
-    tmpMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(tmpMonitor);
+    updateDiskMonitor(tempDir, "backend index rebuild tmp directory");
     File parentDirectory = getFileForPath(backendConfiguration.getDBDirectory());
     File backendDirectory = new File(parentDirectory, backendConfiguration.getBackendId());
-    DiskSpaceMonitor dbMonitor = createDiskSpaceMonitor(backendDirectory, "backend index rebuild DB directory");
-    dbMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(dbMonitor);
+    updateDiskMonitor(backendDirectory, "backend index rebuild DB directory");
 
     try
     {
@@ -879,10 +885,8 @@ final class Importer implements DiskSpaceMonitorHandler
     }
     finally
     {
-      DirectoryServer.deregisterMonitorProvider(tmpMonitor);
-      DirectoryServer.deregisterMonitorProvider(dbMonitor);
-      tmpMonitor.finalizeMonitorProvider();
-      dbMonitor.finalizeMonitorProvider();
+      diskSpaceMonitor.deregisterMonitoredDirectory(tempDir, this);
+      diskSpaceMonitor.deregisterMonitoredDirectory(backendDirectory, this);
     }
   }
 
@@ -908,8 +912,8 @@ final class Importer implements DiskSpaceMonitorHandler
       InterruptedException, ExecutionException
   {
     this.rootContainer = rootContainer;
-    DiskSpaceMonitor tmpMonitor = null;
-    DiskSpaceMonitor dbMonitor = null;
+    File parentDirectory = getFileForPath(backendConfiguration.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, backendConfiguration.getBackendId());
     try {
       try
       {
@@ -921,14 +925,8 @@ final class Importer implements DiskSpaceMonitorHandler
         throw new InitializationException(message, ioe);
       }
 
-      tmpMonitor = createDiskSpaceMonitor(tempDir, "backend import tmp directory");
-      tmpMonitor.initializeMonitorProvider(null);
-      DirectoryServer.registerMonitorProvider(tmpMonitor);
-      File parentDirectory = getFileForPath(backendConfiguration.getDBDirectory());
-      File backendDirectory = new File(parentDirectory, backendConfiguration.getBackendId());
-      dbMonitor = createDiskSpaceMonitor(backendDirectory, "backend import DB directory");
-      dbMonitor.initializeMonitorProvider(null);
-      DirectoryServer.registerMonitorProvider(dbMonitor);
+      updateDiskMonitor(tempDir, "backend import tmp directory");
+      updateDiskMonitor(backendDirectory, "backend import DB directory");
 
       logger.info(NOTE_JEB_IMPORT_STARTING, DirectoryServer.getVersionString(),
               BUILD_ID, REVISION_NUMBER);
@@ -991,24 +989,15 @@ final class Importer implements DiskSpaceMonitorHandler
           // Do nothing.
         }
       }
-      if (tmpMonitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(tmpMonitor);
-        tmpMonitor.finalizeMonitorProvider();
-      }
-      if (dbMonitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(dbMonitor);
-        dbMonitor.finalizeMonitorProvider();
-      }
+      diskSpaceMonitor.deregisterMonitoredDirectory(tempDir, this);
+      diskSpaceMonitor.deregisterMonitoredDirectory(backendDirectory, this);
     }
   }
 
-  private DiskSpaceMonitor createDiskSpaceMonitor(File dir, String backendSuffix)
+  private void updateDiskMonitor(File dir, String backendSuffix)
   {
-    final LocalDBBackendCfg cfg = backendConfiguration;
-    return new DiskSpaceMonitor(cfg.getBackendId() + " " + backendSuffix, dir,
-        cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(), 5, TimeUnit.SECONDS, this);
+    diskSpaceMonitor.registerMonitoredDirectory(backendConfiguration.getBackendId() + " " + backendSuffix, dir,
+        backendConfiguration.getDiskLowThreshold(), backendConfiguration.getDiskFullThreshold(), this);
   }
 
   private void recursiveDelete(File dir)
@@ -3643,21 +3632,20 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     @Override
-    public void diskLowThresholdReached(DiskSpaceMonitor monitor)
+    public void diskLowThresholdReached(File directory, long thresholdInBytes)
     {
-      diskFullThresholdReached(monitor);
+      diskFullThresholdReached(directory, thresholdInBytes);
     }
 
     @Override
-    public void diskFullThresholdReached(DiskSpaceMonitor monitor)
+    public void diskFullThresholdReached(File directory, long thresholdInBytes)
     {
       isCanceled = true;
-      logger.error(ERR_REBUILD_INDEX_LACK_DISK, monitor.getDirectory().getPath(),
-              monitor.getFreeSpace(), monitor.getLowThreshold());
+      logger.error(ERR_REBUILD_INDEX_LACK_DISK, directory.getAbsolutePath(), thresholdInBytes);
     }
 
     @Override
-    public void diskSpaceRestored(DiskSpaceMonitor monitor)
+    public void diskSpaceRestored(File directory, long lowThresholdInBytes, long fullThresholdInBytes)
     {
       // Do nothing
     }
@@ -4406,25 +4394,25 @@ final class Importer implements DiskSpaceMonitorHandler
 
   /** {@inheritDoc} */
   @Override
-  public void diskLowThresholdReached(DiskSpaceMonitor monitor)
+  public void diskLowThresholdReached(File directory, long thresholdInBytes)
   {
-    diskFullThresholdReached(monitor);
+    diskFullThresholdReached(directory, thresholdInBytes);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void diskFullThresholdReached(DiskSpaceMonitor monitor)
+  public void diskFullThresholdReached(File directory, long thresholdInBytes)
   {
     isCanceled = true;
-    Arg3<Object, Number, Number> argMsg = !isPhaseOneDone
+    Arg2<Object, Number> argMsg = !isPhaseOneDone
         ? ERR_IMPORT_LDIF_LACK_DISK_PHASE_ONE
         : ERR_IMPORT_LDIF_LACK_DISK_PHASE_TWO;
-    logger.error(argMsg.get(monitor.getDirectory().getPath(), monitor.getFreeSpace(), monitor.getLowThreshold()));
+    logger.error(argMsg.get(directory.getAbsolutePath(), thresholdInBytes));
   }
 
   /** {@inheritDoc} */
   @Override
-  public void diskSpaceRestored(DiskSpaceMonitor monitor)
+  public void diskSpaceRestored(File directory, long lowThresholdInBytes, long fullThresholdInBytes)
   {
     // Do nothing.
   }

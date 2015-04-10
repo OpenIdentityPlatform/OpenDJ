@@ -36,15 +36,20 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.UtilityMessages.*;
 
 
@@ -108,8 +113,29 @@ public final class Platform
     /** Constructors for each of the above classes. */
     private static Constructor<?> certKeyGenCons, X500NameCons;
 
+    /** Filesystem APIs */
+    private static Method FILESYSTEMS_GETSTORES;
+    private static Method FILESYSTEMS_PATHSGET;
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     static
     {
+
+      try
+      {
+        // FileSystem and FileStores APIs were introduced in JDK 7.
+        FILESYSTEMS_PATHSGET = Class.forName("java.nio.file.Paths").getMethod("get", String.class, String[].class);
+        FILESYSTEMS_GETSTORES = Class.forName("java.nio.file.Files").getMethod(
+            "getFileStore", Class.forName("java.nio.file.Path"));
+      }
+      catch (Exception e)
+      {
+        FILESYSTEMS_GETSTORES = null;
+        FILESYSTEMS_PATHSGET = null;
+        logger.warn(WARN_UNABLE_TO_USE_FILESYSTEM_API.get());
+      }
+
       String x509pkg = pkgPrefix + ".x509";
       String certAndKeyGen;
       if (pkgPrefix.equals(IBM_SEC)
@@ -155,21 +181,7 @@ public final class Platform
 
 
 
-    /**
-     * Delete the specified alias from the specified keystore.
-     *
-     * @param ks
-     *          The keystore to delete the alias from.
-     * @param ksPath
-     *          The path to the keystore.
-     * @param alias
-     *          The alias to use in the request generation.
-     * @param pwd
-     *          The keystore password to use.
-     * @throws KeyStoreException
-     *           If an error occurred deleting the alias.
-     */
-    public final void deleteAlias(KeyStore ks, String ksPath, String alias,
+    private final void deleteAlias(KeyStore ks, String ksPath, String alias,
         char[] pwd) throws KeyStoreException
     {
       try
@@ -193,28 +205,7 @@ public final class Platform
 
 
 
-    /**
-     * Add the certificate in the specified path to the specified keystore,
-     * creating the keystore using the specified type and path if it the
-     * keystore doesn't exist.
-     *
-     * @param ks
-     *          The keystore to add the certificate to, may be null if it
-     *          doesn't exist.
-     * @param ksType
-     *          The type to use if the keystore is created.
-     * @param ksPath
-     *          The path to the keystore if it is created.
-     * @param alias
-     *          The alias to store the certificate under.
-     * @param pwd
-     *          The password to use in saving the certificate.
-     * @param certPath
-     *          The path to the file containing the certificate.
-     * @throws KeyStoreException
-     *           If an error occurred adding the certificate to the keystore.
-     */
-    public final void addCertificate(KeyStore ks, String ksType, String ksPath,
+    private final void addCertificate(KeyStore ks, String ksType, String ksPath,
         String alias, char[] pwd, String certPath) throws KeyStoreException
     {
       try
@@ -255,31 +246,7 @@ public final class Platform
 
 
 
-    /**
-     * Generate a self-signed certificate using the specified alias, dn string
-     * and validity period. If the keystore does not exist, create it using the
-     * specified type and path.
-     *
-     * @param ks
-     *          The keystore to save the certificate in. May be null if it does
-     *          not exist.
-     * @param ksType
-     *          The keystore type to use if the keystore is created.
-     * @param ksPath
-     *          The path to the keystore if the keystore is created.
-     * @param alias
-     *          The alias to store the certificate under.
-     * @param pwd
-     *          The password to us in saving the certificate.
-     * @param dn
-     *          The dn string used as the certificate subject.
-     * @param validity
-     *          The validity of the certificate in days.
-     * @return The keystore that the self-signed certificate was stored in.
-     * @throws KeyStoreException
-     *           If the self-signed certificate cannot be generated.
-     */
-    public final KeyStore generateSelfSignedCertificate(KeyStore ks,
+    private final KeyStore generateSelfSignedCertificate(KeyStore ks,
         String ksType, String ksPath, String alias, char[] pwd, String dn,
         int validity) throws KeyStoreException
     {
@@ -330,19 +297,6 @@ public final class Platform
     /**
      * Generate a x509 certificate from the input stream. Verification is done
      * only if it is self-signed.
-     *
-     * @param alias
-     *          The alias to save the certificate under.
-     * @param cf
-     *          The x509 certificate factory.
-     * @param ks
-     *          The keystore to add the certificate in.
-     * @param in
-     *          The input stream to read the certificate from.
-     * @throws KeyStoreException
-     *           If the alias exists already in the keystore, if the self-signed
-     *           certificate didn't verify, or the certificate could not be
-     *           stored.
      */
     private void trustedCert(String alias, CertificateFactory cf, KeyStore ks,
         InputStream in) throws KeyStoreException
@@ -369,10 +323,6 @@ public final class Platform
 
     /**
      * Check that the issuer and subject DNs match.
-     *
-     * @param cert
-     *          The certificate to examine.
-     * @return {@code true} if the certificate is self-signed.
      */
     private boolean isSelfSigned(X509Certificate cert)
     {
@@ -391,14 +341,7 @@ public final class Platform
 
 
 
-    /**
-     * Calculates the usable memory which could potentially be used by the
-     * application for caching objects.
-     *
-     * @return The usable memory which could potentially be used by the
-     *         application for caching objects.
-     */
-    public long getUsableMemoryForCaching()
+    private long getUsableMemoryForCaching()
     {
       long youngGenSize = 0;
       long oldGenSize = 0;
@@ -453,6 +396,40 @@ public final class Platform
         return (runTime.freeMemory() + (runTime.maxMemory() - runTime
             .totalMemory())) * 40 / 100;
       }
+    }
+
+    private File getFilesystem(File directory) throws IOException
+    {
+      if (FILESYSTEMS_GETSTORES != null)
+      {
+        try
+        {
+          Object dirFStore = FILESYSTEMS_GETSTORES.invoke(null,
+              FILESYSTEMS_PATHSGET.invoke(null, directory.getAbsolutePath(), new String[0]));
+          File parentDir = directory.getParentFile();
+          /*
+           * Since there is no concept of mount point in the APIs, iterate on all parents of
+           * the given directory until the FileSystem Store changes (hint of a different
+           * device, hence a mount point) or we get to root, which works too.
+           */
+          while (parentDir != null)
+          {
+            Object parentFStore = FILESYSTEMS_GETSTORES.invoke(null,
+                FILESYSTEMS_PATHSGET.invoke(null, parentDir.getAbsolutePath(), new String[0]));
+            if (!parentFStore.equals(dirFStore))
+            {
+              return directory;
+            }
+            directory = directory.getParentFile();
+            parentDir = directory.getParentFile();
+          }
+        }
+        catch (Exception e)
+        {
+          throw new IOException(e);
+        }
+      }
+      return directory;
     }
   }
 
@@ -647,5 +624,17 @@ public final class Platform
   public static long getUsableMemoryForCaching()
   {
     return IMPL.getUsableMemoryForCaching();
+  }
+
+  /**
+   * Returns the filesystem on which the given directory resides by its mountpoint.
+   *
+   * @param directory the directory whose filesystem is required
+   * @return the filesystem on which the given directory resides
+   * @throws IOException The exception in case information on filesystem/storage cannot be found
+   */
+  public static File getFilesystem(File directory) throws IOException
+  {
+    return IMPL.getFilesystem(directory);
   }
 }
