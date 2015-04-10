@@ -84,7 +84,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -98,7 +97,6 @@ import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
-import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.persistit.PersistItStorage;
@@ -114,7 +112,6 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -128,7 +125,7 @@ import org.opends.server.util.Platform;
  * This class provides the engine that performs both importing of LDIF files and
  * the rebuilding of indexes.
  */
-final class Importer implements DiskSpaceMonitorHandler
+final class Importer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -2781,7 +2778,7 @@ final class Importer implements DiskSpaceMonitorHandler
   /**
    * The rebuild index manager handles all rebuild index related processing.
    */
-  private class RebuildIndexManager extends ImportTask implements DiskSpaceMonitorHandler
+  private class RebuildIndexManager extends ImportTask
   {
 
     /** Rebuild index configuration. */
@@ -3402,26 +3399,6 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       return this.totalEntries;
     }
-
-    @Override
-    public void diskLowThresholdReached(DiskSpaceMonitor monitor)
-    {
-      diskFullThresholdReached(monitor);
-    }
-
-    @Override
-    public void diskFullThresholdReached(DiskSpaceMonitor monitor)
-    {
-      isCanceled = true;
-      logger.error(ERR_REBUILD_INDEX_LACK_DISK, monitor.getDirectory().getPath(),
-              monitor.getFreeSpace(), monitor.getLowThreshold());
-    }
-
-    @Override
-    public void diskSpaceRestored(DiskSpaceMonitor monitor)
-    {
-      // Do nothing
-    }
   }
 
   /**
@@ -4034,30 +4011,5 @@ final class Importer implements DiskSpaceMonitorHandler
         throw new StorageRuntimeException(e);
       }
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskLowThresholdReached(DiskSpaceMonitor monitor)
-  {
-    diskFullThresholdReached(monitor);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskFullThresholdReached(DiskSpaceMonitor monitor)
-  {
-    isCanceled = true;
-    Arg3<Object, Number, Number> argMsg = !isPhaseOneDone
-        ? ERR_IMPORT_LDIF_LACK_DISK_PHASE_ONE
-        : ERR_IMPORT_LDIF_LACK_DISK_PHASE_TWO;
-    logger.error(argMsg.get(monitor.getDirectory().getPath(), monitor.getFreeSpace(), monitor.getLowThreshold()));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void diskSpaceRestored(DiskSpaceMonitor monitor)
-  {
-    // Do nothing.
   }
 }

@@ -28,23 +28,39 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_FULL;
+import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_SPACE_LOW;
+import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_FULL;
+import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_SPACE_LOW;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.Platform;
 
 /**
  * This class provides an application-wide disk space monitoring service.
@@ -56,243 +72,428 @@ import org.opends.server.types.InitializationException;
  * have been reached, the handler will not be notified again until the
  * free space raises above the "low" threshold.
  */
-public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
-    implements Runnable
+public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implements Runnable, AlertGenerator,
+    ServerShutdownListener
 {
+  /**
+   * Helper class for each requestor for use with cn=monitor reporting and users of a spcific mountpoint.
+   */
+  private class MonitoredDirectory extends MonitorProvider<MonitorProviderCfg>
+  {
+    private volatile File directory;
+    private volatile long lowThreshold;
+    private volatile long fullThreshold;
+    private final DiskSpaceMonitorHandler handler;
+    private final String instanceName;
+    private final String baseName;
+    private int lastState;
+
+    private MonitoredDirectory(File directory, String instanceName, String baseName, DiskSpaceMonitorHandler handler)
+    {
+      this.directory = directory;
+      this.instanceName = instanceName;
+      this.baseName = baseName;
+      this.handler = handler;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getMonitorInstanceName() {
+      return instanceName + "," + "cn=" + baseName;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void initializeMonitorProvider(MonitorProviderCfg configuration)
+        throws ConfigException, InitializationException {
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<Attribute> getMonitorData() {
+      final List<Attribute> monitorAttrs = new ArrayList<Attribute>();
+      monitorAttrs.add(attr("disk-dir", getDefaultStringSyntax(), directory.getPath()));
+      monitorAttrs.add(attr("disk-free", getDefaultIntegerSyntax(), getFreeSpace()));
+      monitorAttrs.add(attr("disk-state", getDefaultStringSyntax(), getState()));
+      return monitorAttrs;
+    }
+
+    private File getDirectory() {
+      return directory;
+    }
+
+    private long getFreeSpace() {
+      return directory.getUsableSpace();
+    }
+
+    private long getFullThreshold() {
+      return fullThreshold;
+    }
+
+    private long getLowThreshold() {
+      return lowThreshold;
+    }
+
+    private void setFullThreshold(long fullThreshold) {
+      this.fullThreshold = fullThreshold;
+    }
+
+    private void setLowThreshold(long lowThreshold) {
+      this.lowThreshold = lowThreshold;
+    }
+
+    private Attribute attr(String name, AttributeSyntax<?> syntax, Object value)
+    {
+      AttributeType attrType = DirectoryServer.getDefaultAttributeType(name, syntax);
+      return Attributes.create(attrType, String.valueOf(value));
+    }
+
+    private String getState()
+    {
+      switch(lastState)
+      {
+      case NORMAL:
+        return "normal";
+      case LOW:
+        return "low";
+      case FULL:
+        return "full";
+      default:
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Helper class for building temporary list of handlers to notify on threshold hits.
+   * One object per directory per state will hold all the handlers matching directory and state.
+   */
+  private class HandlerNotifier {
+    private File directory;
+    private int state;
+    /** printable list of handlers names, for reporting backend names in alert messages */
+    private final StringBuilder diskNames = new StringBuilder();
+    private final List<MonitoredDirectory> allHandlers = new ArrayList<MonitoredDirectory>();
+
+    private HandlerNotifier(File directory, int state)
+    {
+      this.directory = directory;
+      this.state = state;
+    }
+
+    private void notifyHandlers()
+    {
+      for (MonitoredDirectory mdElem : allHandlers)
+      {
+        switch (state)
+        {
+        case FULL:
+          mdElem.handler.diskFullThresholdReached(mdElem.getDirectory(), mdElem.getFullThreshold());
+          break;
+        case LOW:
+          mdElem.handler.diskLowThresholdReached(mdElem.getDirectory(), mdElem.getLowThreshold());
+          break;
+        case NORMAL:
+          mdElem.handler.diskSpaceRestored(mdElem.getDirectory(), mdElem.getLowThreshold(),
+              mdElem.getFullThreshold());
+          break;
+        }
+      }
+    }
+
+    private boolean isEmpty()
+    {
+      return allHandlers.size() == 0;
+    }
+
+    private void addHandler(MonitoredDirectory handler)
+    {
+      logger.trace("State change: %d -> %d", handler.lastState, state);
+      handler.lastState = state;
+      if (handler.handler != null)
+      {
+        allHandlers.add(handler);
+      }
+      appendName(diskNames, handler.instanceName);
+    }
+
+    private void appendName(StringBuilder strNames, String strVal)
+    {
+      if (strNames.length() > 0)
+      {
+        strNames.append(", ");
+      }
+      strNames.append(strVal);
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int NORMAL = 0;
   private static final int LOW = 1;
   private static final int FULL = 2;
-
-  private volatile File directory;
-  private volatile long lowThreshold;
-  private volatile long fullThreshold;
-  private final DiskSpaceMonitorHandler handler;
-  private final int interval;
-  private final TimeUnit unit;
-  private final String instanceName;
-  private int lastState;
+  private static final String INSTANCENAME = "Disk Space Monitor";
+  private final HashMap<File, List<MonitoredDirectory>> monitoredDirs =
+      new HashMap<File, List<MonitoredDirectory>>();
 
   /**
-   * Constructs a new DiskSpaceMonitor that will notify the specified
-   * DiskSpaceMonitorHandler when the specified disk
-   * falls below the provided thresholds.
-   *
-   * @param instanceName A unique name for this monitor.
-   * @param directory The directory to monitor.
-   * @param lowThreshold The "low" threshold.
-   * @param fullThreshold   The "full" threshold.
-   * @param interval  The polling interval for checking free space.
-   * @param unit the time unit of the interval parameter.
-   * @param handler The handler to get notified when the provided thresholds are
-   *                reached or <code>null</code> if no notification is needed;
+   * Constructs a new DiskSpaceMonitor that will notify registered DiskSpaceMonitorHandler objects when filesystems
+   * on which configured directories reside, fall below the provided thresholds.
    */
-  public DiskSpaceMonitor(String instanceName, File directory,
-                          long lowThreshold,
-                          long fullThreshold, int interval, TimeUnit unit,
-                          DiskSpaceMonitorHandler handler) {
-    this.directory = directory;
-    this.lowThreshold = lowThreshold;
-    this.fullThreshold = fullThreshold;
-    this.interval = interval;
-    this.unit = unit;
-    this.handler = handler;
-    this.instanceName = instanceName+",cn=Disk Space Monitor";
-  }
-
-  /**
-   * Retrieves the directory currently being monitored.
-   *
-   * @return The directory currently being monitored.
-   */
-  public File getDirectory() {
-    return directory;
-  }
-
-  /**
-   * Sets the directory to monitor.
-   *
-   * @param directory The directory to monitor.
-   */
-  public void setDirectory(File directory) {
-    this.directory = directory;
-  }
-
-  /**
-   * Retrieves the currently "low" space threshold currently being enforced.
-   *
-   * @return The currently "low" space threshold currently being enforced.
-   */
-  public long getLowThreshold() {
-    return lowThreshold;
-  }
-
-  /**
-   * Sets the "low" space threshold to enforce.
-   *
-   * @param lowThreshold The "low" space threshold to enforce.
-   */
-  public void setLowThreshold(long lowThreshold) {
-    this.lowThreshold = lowThreshold;
-  }
-
-  /**
-   * Retrieves the currently full threshold currently being enforced.
-   *
-   * @return The currently full space threshold currently being enforced.
-   */
-  public long getFullThreshold() {
-    return fullThreshold;
-  }
-
-  /**
-   * Sets the full threshold to enforce.
-   *
-   * @param fullThreshold The full space threshold to enforce.
-   */
-  public void setFullThreshold(long fullThreshold) {
-    this.fullThreshold = fullThreshold;
-  }
-
-  /**
-   * Retrieves the free space currently on the disk.
-   *
-   * @return The free space currently on the disk.
-   */
-  public long getFreeSpace() {
-    return directory.getUsableSpace();
-  }
-
-  /**
-   * Indicates if the "full" threshold is reached.
-   *
-   * @return <code>true</code> if the free space is lower than the "full"
-   *         threshold or <code>false</code> otherwise.
-   */
-  public boolean isFullThresholdReached()
+  public DiskSpaceMonitor()
   {
-    return lastState >= FULL;
   }
 
   /**
-   * Indicates if the "low" threshold is reached.
-   *
-   * @return <code>true</code> if the free space is lower than the "low"
-   *         threshold or <code>false</code> otherwise.
+   * Starts periodic monitoring of all registered directories.
    */
-  public boolean isLowThresholdReached()
+  public void startDiskSpaceMonitor()
   {
-    return lastState >= LOW;
+    DirectoryServer.registerMonitorProvider(this);
+    DirectoryServer.registerShutdownListener(this);
+    scheduleUpdate(this, 0, 5, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Registers or reconfigures a directory for monitoring.
+   * If possible, we will try to get and use the mountpoint where the directory resides and monitor it instead.
+   * If the directory is already registered for the same <code>handler</code>, simply change its configuration.
+   * @param instanceName A name for the handler, as used by cn=monitor
+   * @param directory The directory to monitor
+   * @param lowThresholdBytes Disk slow threshold expressed in bytes
+   * @param fullThresholdBytes Disk full threshold expressed in bytes
+   * @param handler The class requesting to be called when a transition in disk space occurs
+   */
+  public void registerMonitoredDirectory(String instanceName, File directory, long lowThresholdBytes,
+      long fullThresholdBytes, DiskSpaceMonitorHandler handler)
+  {
+    File fsMountPoint;
+    try
+    {
+      fsMountPoint = Platform.getFilesystem(directory);
+    }
+    catch (IOException ioe)
+    {
+      logger.warn(ERR_DISK_SPACE_GET_MOUNT_POINT, directory.getAbsolutePath(), ioe.getLocalizedMessage());
+      fsMountPoint = directory;
+    }
+    MonitoredDirectory newDSH = new MonitoredDirectory(directory, instanceName, INSTANCENAME, handler);
+    newDSH.setFullThreshold(fullThresholdBytes);
+    newDSH.setLowThreshold(lowThresholdBytes);
+
+    synchronized (monitoredDirs)
+    {
+      List<MonitoredDirectory> diskHelpers = monitoredDirs.get(fsMountPoint);
+      if (diskHelpers == null)
+      {
+        List<MonitoredDirectory> newList = new ArrayList<MonitoredDirectory>();
+        newList.add(newDSH);
+        monitoredDirs.put(fsMountPoint, newList);
+      }
+      else
+      {
+        for (MonitoredDirectory elem : diskHelpers)
+        {
+          if (elem.handler.equals(handler) && elem.getDirectory().equals(directory))
+          {
+            elem.setFullThreshold(fullThresholdBytes);
+            elem.setLowThreshold(lowThresholdBytes);
+            return;
+          }
+        }
+        diskHelpers.add(newDSH);
+      }
+      DirectoryServer.registerMonitorProvider(newDSH);
+    }
+  }
+
+  /**
+   * Removes a directory from the set of monitored directories.
+   *
+   * @param directory The directory to stop monitoring on
+   * @param handler The class that requested monitoring
+   */
+  public void deregisterMonitoredDirectory(File directory, DiskSpaceMonitorHandler handler)
+  {
+    synchronized (monitoredDirs)
+    {
+
+      List<MonitoredDirectory> directories = monitoredDirs.get(directory);
+      if (directories != null)
+      {
+        Iterator<MonitoredDirectory> itr = directories.iterator();
+        while (itr.hasNext())
+        {
+          MonitoredDirectory curDirectory = itr.next();
+          if (curDirectory.handler.equals(handler))
+          {
+            DirectoryServer.deregisterMonitorProvider(curDirectory);
+            itr.remove();
+          }
+        }
+        if (directories.isEmpty())
+        {
+          monitoredDirs.remove(directory);
+        }
+      }
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
       throws ConfigException, InitializationException {
-    scheduleUpdate(this, 0, interval, unit);
+    // Not used...
   }
 
   /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName() {
-    return instanceName;
+    return INSTANCENAME;
   }
 
   /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData() {
-    final ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-    monitorAttrs.add(attr("disk-dir", getDefaultStringSyntax(), directory.getPath()));
-    monitorAttrs.add(attr("disk-free", getDefaultIntegerSyntax(), getFreeSpace()));
-    monitorAttrs.add(attr("disk-state", getDefaultStringSyntax(), getState()));
-    return monitorAttrs;
+    return new ArrayList<Attribute>();
   }
 
-  private Attribute attr(String name, AttributeSyntax<?> syntax, Object value)
+  /** {@inheritDoc} */
+  @Override
+  public void run()
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name, syntax);
-    return Attributes.create(attrType, String.valueOf(value));
-  }
+    List<HandlerNotifier> diskFull = new ArrayList<HandlerNotifier>();
+    List<HandlerNotifier> diskLow = new ArrayList<HandlerNotifier>();
+    List<HandlerNotifier> diskRestored = new ArrayList<HandlerNotifier>();
 
-  private String getState()
-  {
-    switch(lastState)
+    synchronized (monitoredDirs)
     {
-    case NORMAL:
-      return "normal";
-    case LOW:
-      return "low";
-    case FULL:
-      return "full";
-    default:
-      return null;
+      for (Entry<File, List<MonitoredDirectory>> dirElem : monitoredDirs.entrySet())
+      {
+        File directory = dirElem.getKey();
+        HandlerNotifier diskFullClients = new HandlerNotifier(directory, FULL);
+        HandlerNotifier diskLowClients = new HandlerNotifier(directory, LOW);
+        HandlerNotifier diskRestoredClients = new HandlerNotifier(directory, NORMAL);
+        try
+        {
+          long lastFreeSpace = directory.getUsableSpace();
+          for (MonitoredDirectory handlerElem : dirElem.getValue())
+          {
+            if (lastFreeSpace < handlerElem.getFullThreshold() && handlerElem.lastState < FULL)
+            {
+              diskFullClients.addHandler(handlerElem);
+            }
+            else if (lastFreeSpace < handlerElem.getLowThreshold() && handlerElem.lastState < LOW)
+            {
+              diskLowClients.addHandler(handlerElem);
+            }
+            else if (handlerElem.lastState != NORMAL)
+            {
+              diskRestoredClients.addHandler(handlerElem);
+            }
+          }
+          addToList(diskFull, diskFullClients);
+          addToList(diskLow, diskLowClients);
+          addToList(diskRestored, diskRestoredClients);
+        }
+        catch(Exception e)
+        {
+          logger.error(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED, directory, e);
+          logger.traceException(e);
+        }
+      }
+    }
+    // It is probably better to notify handlers outside of the synchronized section.
+    sendNotification(diskFull, FULL, ALERT_DESCRIPTION_DISK_FULL);
+    sendNotification(diskLow, LOW, ALERT_TYPE_DISK_SPACE_LOW);
+    sendNotification(diskRestored, NORMAL, null);
+  }
+
+  private void addToList(List<HandlerNotifier> hnList, HandlerNotifier notifier)
+  {
+    if (!notifier.isEmpty())
+    {
+      hnList.add(notifier);
+    }
+  }
+
+  private void sendNotification(List<HandlerNotifier> diskList, int state, String alert)
+  {
+    for (HandlerNotifier dirElem : diskList)
+    {
+      String dirPath = dirElem.directory.getAbsolutePath();
+      String handlerNames = dirElem.diskNames.toString();
+      long freeSpace = dirElem.directory.getFreeSpace();
+      if (state == FULL)
+      {
+        DirectoryServer.sendAlertNotification(this, alert,
+            ERR_DISK_SPACE_FULL_THRESHOLD_REACHED.get(dirPath, handlerNames, freeSpace));
+      }
+      else if (state == LOW)
+      {
+        DirectoryServer.sendAlertNotification(this, alert,
+            ERR_DISK_SPACE_LOW_THRESHOLD_REACHED.get(dirPath, handlerNames, freeSpace));
+      }
+      else
+      {
+        logger.error(NOTE_DISK_SPACE_RESTORED.get(freeSpace, dirPath));
+      }
+      dirElem.notifyHandlers();
     }
   }
 
   /** {@inheritDoc} */
   @Override
-  public void run() {
+  public DN getComponentEntryDN()
+  {
     try
     {
-      long lastFreeSpace = directory.getUsableSpace();
-
-      if(logger.isTraceEnabled())
-      {
-        logger.trace("Free space for %s: %d, " +
-            "low threshold: %d, full threshold: %d, state: %d",
-            directory.getPath(), lastFreeSpace, lowThreshold, fullThreshold,
-            lastState);
-      }
-
-      if(lastFreeSpace < fullThreshold)
-      {
-        if (lastState < FULL)
-        {
-          if(logger.isTraceEnabled())
-          {
-            logger.trace("State change: %d -> %d", lastState, FULL);
-          }
-
-          lastState = FULL;
-          if(handler != null)
-          {
-            handler.diskFullThresholdReached(this);
-          }
-        }
-      }
-      else if(lastFreeSpace < lowThreshold)
-      {
-        if (lastState < LOW)
-        {
-          if(logger.isTraceEnabled())
-          {
-            logger.trace("State change: %d -> %d", lastState, LOW);
-          }
-          lastState = LOW;
-          if(handler != null)
-          {
-            handler.diskLowThresholdReached(this);
-          }
-        }
-      }
-      else if (lastState != NORMAL)
-      {
-        if(logger.isTraceEnabled())
-        {
-          logger.trace("State change: %d -> %d", lastState, NORMAL);
-        }
-        lastState = NORMAL;
-        if(handler != null)
-        {
-          handler.diskSpaceRestored(this);
-        }
-      }
+      return DN.valueOf(INSTANCENAME);
     }
-    catch(Exception e)
+    catch (DirectoryException de)
     {
-      logger.error(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED, directory.getPath(), e);
-      logger.traceException(e);
+      return DN.NULL_DN;
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getClassName()
+  {
+    return DiskSpaceMonitor.class.getName();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Map<String, String> getAlerts()
+  {
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    alerts.put(ALERT_TYPE_DISK_SPACE_LOW, ALERT_DESCRIPTION_DISK_SPACE_LOW);
+    alerts.put(ALERT_TYPE_DISK_FULL, ALERT_DESCRIPTION_DISK_FULL);
+    return alerts;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getShutdownListenerName()
+  {
+    return INSTANCENAME;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void processServerShutdown(LocalizableMessage reason)
+  {
+    synchronized (monitoredDirs)
+    {
+      for (Entry<File, List<MonitoredDirectory>> dirElem : monitoredDirs.entrySet())
+      {
+        for (MonitoredDirectory handlerElem : dirElem.getValue())
+        {
+          DirectoryServer.deregisterMonitorProvider(handlerElem);
+        }
+      }
+    }
+    DirectoryServer.deregisterMonitorProvider(this);
   }
 }
