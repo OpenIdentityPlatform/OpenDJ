@@ -115,11 +115,12 @@ import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The class that appears when the user clicks on 'New Base DN'.
- *
  */
 public class NewBaseDNPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -2680821576362341119L;
+  private static final LocalizableMessage NEW_BACKEND_TEXT = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
+
   private JComboBox backends;
   private JTextField newBackend;
   private JTextField baseDN;
@@ -140,7 +141,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
   private DocumentListener documentListener;
 
-  private final LocalizableMessage NEW_BACKEND = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
 
   /** Default constructor. */
   public NewBaseDNPanel()
@@ -210,7 +210,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.insets.left = 10;
     gbc.gridx = 1;
     backends = Utilities.createComboBox();
-    backends.setModel(new DefaultComboBoxModel(new Object[] {"bogus", NEW_BACKEND}));
+    backends.setModel(new DefaultComboBoxModel(new Object[] {"bogus", NEW_BACKEND_TEXT}));
     backends.setRenderer(new CustomListCellRenderer(backends));
     backends.addItemListener(new IgnoreItemListener(backends));
     gbc.gridwidth = 1;
@@ -229,7 +229,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       public void itemStateChanged(ItemEvent ev)
       {
         Object o = backends.getSelectedItem();
-        newBackend.setEnabled(NEW_BACKEND.equals(o));
+        newBackend.setEnabled(NEW_BACKEND_TEXT.equals(o));
       }
     };
     backends.addItemListener(comboListener);
@@ -389,7 +389,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       newElements.add(COMBO_SEPARATOR);
     }
-    newElements.add(NEW_BACKEND);
+    newElements.add(NEW_BACKEND_TEXT);
     super.updateComboBoxModel(newElements, (DefaultComboBoxModel) backends.getModel());
     updateErrorPaneAndOKButtonIfAuthRequired(desc,
         isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get()
@@ -464,14 +464,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void cancelClicked()
   {
+    resetLabelAsValid();
+    super.cancelClicked();
+  }
+
+  private void resetLabelAsValid()
+  {
     setPrimaryValid(lBackend);
     setPrimaryValid(lDirectoryBaseDN);
     setPrimaryValid(lDirectoryData);
     setSecondaryValid(lPath);
     setSecondaryValid(lNumberOfEntries);
-    super.cancelClicked();
   }
-
 
   /** {@inheritDoc} */
   protected void checkOKButtonEnable()
@@ -482,133 +486,22 @@ public class NewBaseDNPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    setPrimaryValid(lBackend);
-    setPrimaryValid(lDirectoryBaseDN);
-    setPrimaryValid(lDirectoryData);
-    setSecondaryValid(lPath);
-    setSecondaryValid(lNumberOfEntries);
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    resetLabelAsValid();
 
-    ServerDescriptor desc = getInfo().getServerDescriptor();
+    final Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final ServerDescriptor desc = getInfo().getServerDescriptor();
+    final Set<BackendDescriptor> existingBackends = desc.getBackends();
 
-    Set<BackendDescriptor> backendObjects = desc.getBackends();
-
-    Object o = backends.getSelectedItem();
-    String backendName = String.valueOf(o);
-    if (o == null)
-    {
-      errors.add(ERR_CTRL_PANEL_NO_BACKENDS_SELECTED.get());
-      setPrimaryInvalid(lBackend);
-    }
-    else if (o.equals(NEW_BACKEND))
-    {
-      backendName = newBackend.getText().trim();
-      if (backendName.length() == 0)
-      {
-        errors.add(ERR_NEW_BACKEND_NAME_REQUIRED.get());
-        setPrimaryInvalid(lBackend);
-      }
-      else
-      {
-        // Check that the backend is not already defined.
-        for (BackendDescriptor backend : backendObjects)
-        {
-          if (backendName.equalsIgnoreCase(backend.getBackendID()))
-          {
-            errors.add(ERR_BACKEND_ALREADY_EXISTS.get(backendName));
-            setPrimaryInvalid(lBackend);
-            break;
-          }
-        }
-      }
-    }
-
-    String dn = baseDN.getText();
-    if (dn.trim().length() == 0)
-    {
-      errors.add(ERR_NEW_BASE_DN_VALUE_REQUIRED.get());
-      setPrimaryInvalid(lDirectoryBaseDN);
-    }
-    else
-    {
-      try
-      {
-        DN theDN = DN.valueOf(dn);
-        // Check that the DN is not defined.
-        boolean baseDNAlreadyDefined = false;
-        for (BackendDescriptor backend : backendObjects)
-        {
-          for (BaseDNDescriptor baseDN : backend.getBaseDns())
-          {
-            if (baseDN.getDn().equals(theDN))
-            {
-              errors.add(ERR_BASE_DN_ALREADY_EXISTS.get(dn));
-              setPrimaryInvalid(lDirectoryBaseDN);
-              baseDNAlreadyDefined = true;
-              break;
-            }
-            else if (baseDN.getDn().isAncestorOf(theDN))
-            {
-              if (backendName.equalsIgnoreCase(backend.getBackendID()))
-              {
-                errors.add(ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN.getDn()));
-                setPrimaryInvalid(lDirectoryBaseDN);
-                baseDNAlreadyDefined = true;
-                break;
-              }
-            }
-            else if (theDN.isAncestorOf(baseDN.getDn())
-                && backendName.equalsIgnoreCase(backend.getBackendID()))
-            {
-              errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()));
-              setPrimaryInvalid(lDirectoryBaseDN);
-              baseDNAlreadyDefined = true;
-              break;
-            }
-          }
-          if (baseDNAlreadyDefined)
-          {
-            break;
-          }
-        }
-      }
-      catch (OpenDsException oe)
-      {
-        errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn, oe.getMessageObject()));
-        setPrimaryInvalid(lDirectoryBaseDN);
-      }
-    }
-
-    // TODO: what happens with sub-suffixes?
-    if (importDataFromLDIF.isSelected())
-    {
-      String ldifPath = path.getText();
-      if (ldifPath == null || "".equals(ldifPath.trim()))
-      {
-        errors.add(INFO_NO_LDIF_PATH.get());
-        setSecondaryInvalid(lPath);
-      }
-      else if (isLocal() && !Utils.fileExists(ldifPath))
-      {
-        errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
-        setSecondaryInvalid(lPath);
-      }
-    }
-
-    if (importAutomaticallyGenerated.isSelected())
-    {
-      String nEntries = numberOfEntries.getText();
-      int minValue = 1;
-      int maxValue = isLocal() ? 20000 : 1000;
-      LocalizableMessage errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
-      checkIntValue(errors, nEntries, minValue, maxValue, errMsg);
-    }
+    final String backendName = validateBackendName(existingBackends, errors);
+    final String dn = validateBaseDN(backendName, existingBackends, errors);
+    validateImportLDIFFilePath(errors);
+    validateAutomaticallyGenerated(errors);
 
     if (errors.isEmpty())
     {
-      ProgressDialog progressDialog = new ProgressDialog(
+      final ProgressDialog progressDialog = new ProgressDialog(
           Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(), getInfo());
-      NewBaseDNTask newTask = new NewBaseDNTask(getInfo(), progressDialog);
+      final NewBaseDNTask newTask = new NewBaseDNTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
@@ -631,16 +524,129 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
+    }
+  }
+
+  /** Returns the existing or the new backend name, once user have clicked on 'OK' button */
+  private String validateBackendName(
+      final Set<BackendDescriptor> existingBackends, final Set<LocalizableMessage> errors)
+  {
+    final Object selectedItem = backends.getSelectedItem();
+    if (!selectedItem.equals(NEW_BACKEND_TEXT))
+    {
+      return selectedItem.toString();
+    }
+
+    final String backendName = newBackend.getText().trim();
+    if (backendName.length() == 0)
+    {
+      errors.add(ERR_NEW_BACKEND_NAME_REQUIRED.get());
+      setPrimaryInvalid(lBackend);
+      return backendName;
+    }
+
+    // Check that the backend is not already defined.
+    for (BackendDescriptor backend : existingBackends)
+    {
+      if (backendName.equalsIgnoreCase(backend.getBackendID()))
+      {
+        errors.add(ERR_BACKEND_ALREADY_EXISTS.get(backendName));
+        setPrimaryInvalid(lBackend);
+      }
+    }
+
+    return backendName;
+  }
+
+  private String validateBaseDN(final String backendName, final Set<BackendDescriptor> existingBackends,
+      final Set<LocalizableMessage> errors)
+  {
+    String dn = baseDN.getText();
+    if (dn.trim().length() == 0)
+    {
+      errors.add(ERR_NEW_BASE_DN_VALUE_REQUIRED.get());
+      setPrimaryInvalid(lDirectoryBaseDN);
+      return dn;
+    }
+
+    try
+    {
+      final DN theDN = DN.valueOf(dn);
+      for (final BackendDescriptor backend : existingBackends)
+      {
+        for (final BaseDNDescriptor baseDN : backend.getBaseDns())
+        {
+          if (baseDN.getDn().equals(theDN))
+          {
+            return invalidBaseDNValue(dn, ERR_BASE_DN_ALREADY_EXISTS.get(dn), errors);
+          }
+          else if (baseDN.getDn().isAncestorOf(theDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          {
+            return invalidBaseDNValue(dn, ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN.getDn()), errors);
+          }
+          else if (theDN.isAncestorOf(baseDN.getDn()) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          {
+            return invalidBaseDNValue(dn, ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()), errors);
+          }
+        }
+      }
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn, oe.getMessageObject()));
+      setPrimaryInvalid(lDirectoryBaseDN);
+    }
+
+    return dn;
+  }
+
+  /** Mark the provided base DN as invalid with the provided reason and return it. */
+  private String invalidBaseDNValue(final String dn, final LocalizableMessage errorMsg,
+      final Set<LocalizableMessage> errors)
+  {
+    errors.add(errorMsg);
+    setPrimaryInvalid(lDirectoryBaseDN);
+    return dn;
+  }
+
+  private void validateImportLDIFFilePath(final Set<LocalizableMessage> errors)
+  {
+    // TODO: what happens with sub-suffixes?
+    if (importDataFromLDIF.isSelected())
+    {
+      String ldifPath = path.getText();
+      if (ldifPath == null || "".equals(ldifPath.trim()))
+      {
+        errors.add(INFO_NO_LDIF_PATH.get());
+        setSecondaryInvalid(lPath);
+      }
+      else if (isLocal() && !Utils.fileExists(ldifPath))
+      {
+        errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
+        setSecondaryInvalid(lPath);
+      }
+    }
+  }
+
+  private void validateAutomaticallyGenerated(final Set<LocalizableMessage> errors)
+  {
+    if (importAutomaticallyGenerated.isSelected())
+    {
+      String nEntries = numberOfEntries.getText();
+      int minValue = 1;
+      int maxValue = isLocal() ? 20000 : 1000;
+      LocalizableMessage errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
+      checkIntValue(errors, nEntries, minValue, maxValue, errMsg);
     }
   }
 
   private String getBackendName()
   {
     Object backendName = backends.getSelectedItem();
-    if (NEW_BACKEND.equals(backendName))
+    if (NEW_BACKEND_TEXT.equals(backendName))
     {
       return newBackend.getText().trim();
     }
@@ -656,7 +662,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
   private boolean isNewBackend()
   {
-    return NEW_BACKEND.equals(backends.getSelectedItem());
+    return NEW_BACKEND_TEXT.equals(backends.getSelectedItem());
   }
 
   /** The task in charge of creating the base DN (and if required, the backend). */
