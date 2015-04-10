@@ -29,7 +29,6 @@ package org.opends.server.workflowelement.localbackend;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.Backend;
@@ -67,7 +66,7 @@ public class LocalBackendCompareOperation
   /**
    * The backend in which the comparison is to be performed.
    */
-  private Backend backend;
+  private Backend<?> backend;
 
   /**
    * The client connection for this operation.
@@ -185,19 +184,8 @@ public class LocalBackendCompareOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-
-    // Grab a read lock on the entry.
-    final Lock readLock = LockManager.lockRead(entryDN);
-
     try
     {
-      if (readLock == null)
-      {
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(entryDN));
-        return;
-      }
-
       // Get the entry. If it does not exist, then fail.
       try
       {
@@ -318,15 +306,7 @@ public class LocalBackendCompareOperation
     catch (DirectoryException de)
     {
       logger.traceException(de);
-
       setResponseData(de);
-    }
-    finally
-    {
-      if (readLock != null)
-      {
-        LockManager.unlock(entryDN, readLock);
-      }
     }
   }
 

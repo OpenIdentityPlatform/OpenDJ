@@ -27,8 +27,6 @@
 package org.opends.server.controls;
 
 import java.io.IOException;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
@@ -283,56 +281,42 @@ public class ProxiedAuthV1Control
     }
 
 
-    final Lock entryLock = LockManager.lockRead(authzDN);
-    if (entryLock == null)
+    Entry userEntry = DirectoryServer.getEntry(authzDN);
+    if (userEntry == null)
     {
-      throw new DirectoryException(ResultCode.BUSY,
-          ERR_PROXYAUTH1_CANNOT_LOCK_USER.get(authzDN));
+      // The requested user does not exist.
+      LocalizableMessage message = ERR_PROXYAUTH1_NO_SUCH_USER.get(authzDN);
+      throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
 
-    try
+
+    // FIXME -- We should provide some mechanism for enabling debug
+    // processing.
+    AuthenticationPolicyState state = AuthenticationPolicyState.forUser(
+        userEntry, false);
+
+    if (state.isDisabled())
     {
-      Entry userEntry = DirectoryServer.getEntry(authzDN);
-      if (userEntry == null)
+      LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(userEntry.getName());
+      throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
+    }
+
+    if (state.isPasswordPolicy())
+    {
+      PasswordPolicyState pwpState = (PasswordPolicyState) state;
+      if (pwpState.isAccountExpired() ||
+          pwpState.lockedDueToFailures() ||
+          pwpState.lockedDueToIdleInterval() ||
+          pwpState.lockedDueToMaximumResetAge() ||
+          pwpState.isPasswordExpired())
       {
-        // The requested user does not exist.
-        LocalizableMessage message = ERR_PROXYAUTH1_NO_SUCH_USER.get(authzDN);
+        LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(authzDN);
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
-
-
-      // FIXME -- We should provide some mechanism for enabling debug
-      // processing.
-      AuthenticationPolicyState state = AuthenticationPolicyState.forUser(
-          userEntry, false);
-
-      if (state.isDisabled())
-      {
-        LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(userEntry.getName());
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
-      }
-
-      if (state.isPasswordPolicy())
-      {
-        PasswordPolicyState pwpState = (PasswordPolicyState) state;
-        if (pwpState.isAccountExpired() ||
-            pwpState.lockedDueToFailures() ||
-            pwpState.lockedDueToIdleInterval() ||
-            pwpState.lockedDueToMaximumResetAge() ||
-            pwpState.isPasswordExpired())
-        {
-          LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(authzDN);
-          throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
-        }
-      }
-
-      // If we've made it here, then the user is acceptable.
-      return userEntry;
     }
-    finally
-    {
-      LockManager.unlock(authzDN, entryLock);
-    }
+
+    // If we've made it here, then the user is acceptable.
+    return userEntry;
   }
 
 

@@ -32,8 +32,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PlainSASLMechanismHandlerCfg;
@@ -229,16 +227,6 @@ public class PlainSASLMechanismHandler
         userDN = rootDN;
       }
 
-      // Acquire a read lock on the user entry.  If this fails, then so will the
-      // authentication.
-      final Lock readLock = LockManager.lockRead(userDN);
-      if (readLock == null)
-      {
-        bindOperation.setResultCode(ResultCode.BUSY);
-        bindOperation.setAuthFailureReason(INFO_SASLPLAIN_CANNOT_LOCK_ENTRY.get(userDN));
-        return;
-      }
-
       try
       {
         userEntry = DirectoryServer.getEntry(userDN);
@@ -252,10 +240,6 @@ public class PlainSASLMechanismHandler
         LocalizableMessage message = ERR_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN.get(userDN, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
-      }
-      finally
-      {
-        LockManager.unlock(userDN, readLock);
       }
     }
     else

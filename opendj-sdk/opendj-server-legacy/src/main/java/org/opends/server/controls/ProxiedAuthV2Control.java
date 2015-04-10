@@ -27,8 +27,6 @@
 package org.opends.server.controls;
 
 import java.io.IOException;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
@@ -236,35 +234,20 @@ public class ProxiedAuthV2Control
           authzDN = actualDN;
         }
 
-        final Lock entryLock = LockManager.lockRead(authzDN);
-        if (entryLock == null)
+        Entry userEntry = DirectoryServer.getEntry(authzDN);
+        if (userEntry == null)
         {
-          throw new DirectoryException(ResultCode.BUSY,
-              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(authzDN));
+          // The requested user does not exist.
+          LocalizableMessage message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
+          throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
         }
 
-        try
-        {
-          Entry userEntry = DirectoryServer.getEntry(authzDN);
-          if (userEntry == null)
-          {
-            // The requested user does not exist.
-            LocalizableMessage message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                         message);
-          }
+        // FIXME -- We should provide some mechanism for enabling debug
+        // processing.
+        checkAccountIsUsable(userEntry);
 
-          // FIXME -- We should provide some mechanism for enabling debug
-          // processing.
-          checkAccountIsUsable(userEntry);
-
-          // If we've made it here, then the user is acceptable.
-          return userEntry;
-        }
-        finally
-        {
-          LockManager.unlock(authzDN, entryLock);
-        }
+        // If we've made it here, then the user is acceptable.
+        return userEntry;
       }
     }
     else if (lowerAuthzID.startsWith("u:"))
