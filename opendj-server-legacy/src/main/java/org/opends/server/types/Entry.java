@@ -29,8 +29,6 @@ package org.opends.server.types;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -2188,64 +2186,12 @@ public class Entry
         DN parentDN = dn.getParentDNInSuffix();
         if (parentDN != null)
         {
-          // Get the parent entry and check its structural class.
-          final Lock lock = LockManager.lockRead(parentDN);
-          if (lock == null)
+          try
           {
-            LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(dn, parentDN);
-
-            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            parentEntry = DirectoryServer.getEntry(parentDN);
+            if (parentEntry == null)
             {
-              invalidReason.append(message);
-              return false;
-            }
-            else if (structuralPolicy == AcceptRejectWarn.WARN)
-            {
-              logger.error(message);
-            }
-          }
-          else
-          {
-            try
-            {
-              parentEntry = DirectoryServer.getEntry(parentDN);
-              if (parentEntry == null)
-              {
-                LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(dn, parentDN);
-
-                if (structuralPolicy == AcceptRejectWarn.REJECT)
-                {
-                  invalidReason.append(message);
-                  return false;
-                }
-                else if (structuralPolicy == AcceptRejectWarn.WARN)
-                {
-                  logger.error(message);
-                }
-              }
-              else
-              {
-                boolean dsrValid =
-                     validateDITStructureRule(ditStructureRule,
-                                              structuralClass,
-                                              parentEntry,
-                                              structuralPolicy,
-                                              invalidReason);
-                if (! dsrValid)
-                {
-                  return false;
-                }
-              }
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              LocalizableMessage message =
-                   ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR.get(
-                           dn,
-                           ditStructureRule.getNameOrRuleID(),
-                           getExceptionMessage(e));
+              LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(dn, parentDN);
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2257,9 +2203,38 @@ public class Entry
                 logger.error(message);
               }
             }
-            finally
+            else
             {
-              LockManager.unlock(parentDN, lock);
+              boolean dsrValid =
+                   validateDITStructureRule(ditStructureRule,
+                                            structuralClass,
+                                            parentEntry,
+                                            structuralPolicy,
+                                            invalidReason);
+              if (! dsrValid)
+              {
+                return false;
+              }
+            }
+          }
+          catch (Exception e)
+          {
+            logger.traceException(e);
+
+            LocalizableMessage message =
+                 ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR.get(
+                         dn,
+                         ditStructureRule.getNameOrRuleID(),
+                         getExceptionMessage(e));
+
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logger.error(message);
             }
           }
         }
@@ -2282,57 +2257,14 @@ public class Entry
         DN parentDN = getName().getParentDNInSuffix();
         if (parentDN != null)
         {
-          // Get the parent entry and check its structural class.
-          final Lock lock = LockManager.lockRead(parentDN);
-          if (lock == null)
+          try
           {
-            LocalizableMessage message =
-                ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(dn, parentDN);
-
-            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            parentEntry = DirectoryServer.getEntry(parentDN);
+            if (parentEntry == null)
             {
-              invalidReason.append(message);
-              return false;
-            }
-            else if (structuralPolicy == AcceptRejectWarn.WARN)
-            {
-              logger.error(message);
-            }
-          }
-          else
-          {
-            try
-            {
-              parentEntry = DirectoryServer.getEntry(parentDN);
-              if (parentEntry == null)
-              {
-                LocalizableMessage message =
-                     ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
-                         dn, parentDN);
-
-                if (structuralPolicy == AcceptRejectWarn.REJECT)
-                {
-                  invalidReason.append(message);
-                  return false;
-                }
-                else if (structuralPolicy == AcceptRejectWarn.WARN)
-                {
-                  logger.error(message);
-                }
-              }
-              else
-              {
-                parentExists = true;
-                parentStructuralClass = parentEntry.getStructuralObjectClass();
-              }
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
               LocalizableMessage message =
-                   ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR.get(
-                       dn, getExceptionMessage(e));
+                   ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
+                       dn, parentDN);
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2344,9 +2276,28 @@ public class Entry
                 logger.error(message);
               }
             }
-            finally
+            else
             {
-              LockManager.unlock(parentDN, lock);
+              parentExists = true;
+              parentStructuralClass = parentEntry.getStructuralObjectClass();
+            }
+          }
+          catch (Exception e)
+          {
+            logger.traceException(e);
+
+            LocalizableMessage message =
+                 ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR.get(
+                     dn, getExceptionMessage(e));
+
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+              invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+              logger.error(message);
             }
           }
         }

@@ -539,28 +539,21 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     do
     {
-      final Lock lock = LockManager.lockRead(dn);
-      assertNotNull(lock, "could not lock entry " + dn);
-      try
+      final Entry newEntry = DirectoryServer.getEntry(dn);
+      if (newEntry != null)
       {
-        final Entry newEntry = DirectoryServer.getEntry(dn);
-        if (newEntry != null)
+        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
+        if ((tmpAttrList != null) && (!tmpAttrList.isEmpty()))
         {
-          List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-          if ((tmpAttrList != null) && (!tmpAttrList.isEmpty()))
-          {
-            Attribute tmpAttr = tmpAttrList.get(0);
-            found = tmpAttr.contains(ByteString.valueOf(valueString));
-          }
+          Attribute tmpAttr = tmpAttrList.get(0);
+          found = tmpAttr.contains(ByteString.valueOf(valueString));
         }
-      }
-      finally
-      {
-        LockManager.unlock(dn, lock);
       }
 
       if (found != hasAttribute)
+      {
         Thread.sleep(100);
+      }
     } while ((--count > 0) && (found != hasAttribute));
     return found;
   }
@@ -584,19 +577,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       count--;
     }
 
-    final Lock lock = LockManager.lockRead(dn);
-    assertNotNull(lock, "could not lock entry " + dn);
-    try
+    Entry entry = DirectoryServer.getEntry(dn);
+    if (entry != null)
     {
-      Entry entry = DirectoryServer.getEntry(dn);
-      if (entry != null)
-        return entry.duplicate(true);
-      return null;
+      return entry.duplicate(true);
     }
-    finally
-    {
-      LockManager.unlock(dn, lock);
-    }
+    return null;
   }
 
   /**
@@ -833,24 +819,15 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       Thread.sleep(100);
 
-      final Lock lock = LockManager.lockRead(dn);
-      assertNotNull(lock, "could not lock entry " + dn);
-      try
+      Entry newEntry = DirectoryServer.getEntry(dn);
+      if (newEntry != null)
       {
-        Entry newEntry = DirectoryServer.getEntry(dn);
-        if (newEntry != null)
+        Attribute attribute = newEntry.getAttribute("entryuuid").get(0);
+        for (ByteString val : attribute)
         {
-          Attribute attribute = newEntry.getAttribute("entryuuid").get(0);
-          for (ByteString val : attribute)
-          {
-            found = val.toString();
-            break;
-          }
+          found = val.toString();
+          break;
         }
-      }
-      finally
-      {
-        LockManager.unlock(dn, lock);
       }
       count --;
     }

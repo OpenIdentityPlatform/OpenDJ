@@ -30,8 +30,6 @@ package org.opends.server.extensions;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.locks.Lock;
-
 import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -140,16 +138,6 @@ public class SubjectEqualsDNCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
-    // Acquire a read lock on the user entry.  If this fails, then so will the
-    // certificate mapping.
-    final Lock readLock = LockManager.lockRead(subjectDN);
-    if (readLock == null)
-    {
-      throw new DirectoryException(ResultCode.BUSY, ERR_SEDCM_CANNOT_LOCK_ENTRY.get(subjectDN));
-    }
-
-
     // Retrieve the entry with the specified DN from the directory.
     Entry userEntry;
     try
@@ -170,11 +158,6 @@ public class SubjectEqualsDNCertificateMapper
       LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(subjectDN, getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message, e);
     }
-    finally
-    {
-      LockManager.unlock(subjectDN, readLock);
-    }
-
 
     if (userEntry == null)
     {

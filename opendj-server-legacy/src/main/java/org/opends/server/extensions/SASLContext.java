@@ -34,8 +34,6 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-
 import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.LoginContext;
@@ -861,13 +859,6 @@ public class SASLContext implements CallbackHandler,
    */
   private void getAuthEntry(final DN userDN)
   {
-    final Lock readLock = LockManager.lockRead(userDN);
-    if (readLock == null)
-    {
-      setCallbackMsg(INFO_SASL_CANNOT_LOCK_ENTRY.get(userDN));
-      return;
-    }
-
     try
     {
       authEntry = DirectoryServer.getEntry(userDN);
@@ -877,10 +868,6 @@ public class SASLContext implements CallbackHandler,
       logger.traceException(e);
       setCallbackMsg(ERR_SASL_CANNOT_GET_ENTRY_BY_DN.get(
           userDN, SASL_MECHANISM_DIGEST_MD5, e.getMessageObject()));
-    }
-    finally
-    {
-      LockManager.unlock(userDN, readLock);
     }
   }
 

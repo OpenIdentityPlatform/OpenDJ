@@ -30,8 +30,6 @@ package org.opends.server.authorization.dseecompat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -914,13 +912,6 @@ public final class AciHandler extends
    */
   private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
   {
-    final Lock entryLock = LockManager.lockRead(superiorDN);
-    if (entryLock == null)
-    {
-      logger.warn(WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER, superiorDN);
-      return false;
-    }
-
     try
     {
       Entry superiorEntry = DirectoryServer.getEntry(superiorDN);
@@ -935,10 +926,6 @@ public final class AciHandler extends
     catch (DirectoryException ex)
     {
       return false;
-    }
-    finally
-    {
-      LockManager.unlock(superiorDN, entryLock);
     }
   }
 

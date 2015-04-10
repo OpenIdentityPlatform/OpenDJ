@@ -31,8 +31,6 @@ import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
@@ -318,16 +316,6 @@ public class CRAMMD5SASLMechanismHandler
         userDN = rootDN;
       }
 
-      // Acquire a read lock on the user entry.  If this fails, then so will the
-      // authentication.
-      final Lock readLock = LockManager.lockRead(userDN);
-      if (readLock == null)
-      {
-        bindOperation.setResultCode(ResultCode.BUSY);
-        bindOperation.setAuthFailureReason(INFO_SASLCRAMMD5_CANNOT_LOCK_ENTRY.get(userDN));
-        return;
-      }
-
       try
       {
         userEntry = DirectoryServer.getEntry(userDN);
@@ -341,10 +329,6 @@ public class CRAMMD5SASLMechanismHandler
         LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN.get(userDN, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
-      }
-      finally
-      {
-        LockManager.unlock(userDN, readLock);
       }
     }
     else

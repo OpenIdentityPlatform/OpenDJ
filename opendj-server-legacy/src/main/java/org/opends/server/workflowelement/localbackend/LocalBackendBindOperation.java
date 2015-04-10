@@ -27,8 +27,6 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
@@ -67,7 +65,7 @@ public class LocalBackendBindOperation
   /**
    * The backend in which the bind operation should be processed.
    */
-  protected Backend backend;
+  protected Backend<?> backend;
 
   /**
    * Indicates whether the bind response should include the first warning
@@ -438,187 +436,170 @@ public class LocalBackendBindOperation
       bindDN = actualRootDN;
     }
 
-    // Get the user entry based on the bind DN.  If it does not exist,
-    // then fail.
-    final Lock userLock = LockManager.lockRead(bindDN);
-    if (userLock == null)
-    {
-      throw new DirectoryException(ResultCode.BUSY,
-          ERR_BIND_OPERATION_CANNOT_LOCK_USER.get(bindDN));
-    }
-
+    Entry userEntry;
     try
     {
-      Entry userEntry;
-      try
+      userEntry = backend.getEntry(bindDN);
+    }
+    catch (DirectoryException de)
+    {
+      logger.traceException(de);
+
+      userEntry = null;
+
+      if (de.getResultCode() == ResultCode.REFERRAL)
       {
-        userEntry = backend.getEntry(bindDN);
+        // Re-throw referral exceptions - these should be passed back
+        // to the client.
+        throw de;
       }
-      catch (DirectoryException de)
+      else
       {
-        logger.traceException(de);
-
-        userEntry = null;
-
-        if (de.getResultCode() == ResultCode.REFERRAL)
-        {
-          // Re-throw referral exceptions - these should be passed back
-          // to the client.
-          throw de;
-        }
-        else
-        {
-          // Replace other exceptions in case they expose any sensitive
-          // information.
-          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              de.getMessageObject());
-        }
+        // Replace other exceptions in case they expose any sensitive
+        // information.
+        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+            de.getMessageObject());
       }
+    }
 
-      if (userEntry == null)
+    if (userEntry == null)
+    {
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                                   ERR_BIND_OPERATION_UNKNOWN_USER.get());
+    }
+    else
+    {
+      setUserEntryDN(userEntry.getName());
+    }
+
+
+    // Check to see if the user has a password. If not, then fail.
+    // FIXME -- We need to have a way to enable/disable debugging.
+    authPolicyState = AuthenticationPolicyState.forUser(userEntry, false);
+    if (authPolicyState.isPasswordPolicy())
+    {
+      // Account is managed locally.
+      PasswordPolicyState pwPolicyState =
+        (PasswordPolicyState) authPolicyState;
+      PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
+
+      AttributeType pwType = policy.getPasswordAttribute();
+      List<Attribute> pwAttr = userEntry.getAttribute(pwType);
+      if ((pwAttr == null) || (pwAttr.isEmpty()))
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     ERR_BIND_OPERATION_UNKNOWN_USER.get());
+            ERR_BIND_OPERATION_NO_PASSWORD.get());
+      }
+
+      // Perform a number of password policy state checks for the
+      // non-authenticated user.
+      checkUnverifiedPasswordPolicyState(userEntry, null);
+
+      // Invoke pre-operation plugins.
+      if (!invokePreOpPlugins())
+      {
+        return false;
+      }
+
+      // Determine whether the provided password matches any of the stored
+      // passwords for the user.
+      if (pwPolicyState.passwordMatches(simplePassword))
+      {
+        setResultCode(ResultCode.SUCCESS);
+
+        checkVerifiedPasswordPolicyState(userEntry, null);
+
+        if (DirectoryServer.lockdownMode()
+            && (!ClientConnection.hasPrivilege(userEntry,
+                Privilege.BYPASS_LOCKDOWN)))
+        {
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+              ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
+        }
+        setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+            DirectoryServer.isRootDN(userEntry.getName())));
+
+        // Set resource limits for the authenticated user.
+        setResourceLimits(userEntry);
+
+        // Perform any remaining processing for a successful simple
+        // authentication.
+        pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
+        pwPolicyState.clearFailureLockout();
+
+        if (isFirstWarning)
+        {
+          pwPolicyState.setWarnedTime();
+
+          int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+          LocalizableMessage m = WARN_BIND_PASSWORD_EXPIRING
+              .get(secondsToTimeString(numSeconds));
+
+          pwPolicyState.generateAccountStatusNotification(
+              AccountStatusNotificationType.PASSWORD_EXPIRING, userEntry, m,
+              AccountStatusNotification.createProperties(pwPolicyState,
+                  false, numSeconds, null, null));
+        }
+
+        if (isGraceLogin)
+        {
+          pwPolicyState.updateGraceLoginTimes();
+        }
+
+        pwPolicyState.setLastLoginTime();
       }
       else
       {
-        setUserEntryDN(userEntry.getName());
-      }
+        setResultCode(ResultCode.INVALID_CREDENTIALS);
+        setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
 
-
-      // Check to see if the user has a password. If not, then fail.
-      // FIXME -- We need to have a way to enable/disable debugging.
-      authPolicyState = AuthenticationPolicyState.forUser(userEntry, false);
-      if (authPolicyState.isPasswordPolicy())
-      {
-        // Account is managed locally.
-        PasswordPolicyState pwPolicyState =
-          (PasswordPolicyState) authPolicyState;
-        PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
-
-        AttributeType pwType = policy.getPasswordAttribute();
-        List<Attribute> pwAttr = userEntry.getAttribute(pwType);
-        if ((pwAttr == null) || (pwAttr.isEmpty()))
+        if (policy.getLockoutFailureCount() > 0)
         {
-          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              ERR_BIND_OPERATION_NO_PASSWORD.get());
-        }
-
-        // Perform a number of password policy state checks for the
-        // non-authenticated user.
-        checkUnverifiedPasswordPolicyState(userEntry, null);
-
-        // Invoke pre-operation plugins.
-        if (!invokePreOpPlugins())
-        {
-          return false;
-        }
-
-        // Determine whether the provided password matches any of the stored
-        // passwords for the user.
-        if (pwPolicyState.passwordMatches(simplePassword))
-        {
-          setResultCode(ResultCode.SUCCESS);
-
-          checkVerifiedPasswordPolicyState(userEntry, null);
-
-          if (DirectoryServer.lockdownMode()
-              && (!ClientConnection.hasPrivilege(userEntry,
-                  Privilege.BYPASS_LOCKDOWN)))
-          {
-            throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
-          }
-          setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-              DirectoryServer.isRootDN(userEntry.getName())));
-
-          // Set resource limits for the authenticated user.
-          setResourceLimits(userEntry);
-
-          // Perform any remaining processing for a successful simple
-          // authentication.
-          pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
-          pwPolicyState.clearFailureLockout();
-
-          if (isFirstWarning)
-          {
-            pwPolicyState.setWarnedTime();
-
-            int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-            LocalizableMessage m = WARN_BIND_PASSWORD_EXPIRING
-                .get(secondsToTimeString(numSeconds));
-
-            pwPolicyState.generateAccountStatusNotification(
-                AccountStatusNotificationType.PASSWORD_EXPIRING, userEntry, m,
-                AccountStatusNotification.createProperties(pwPolicyState,
-                    false, numSeconds, null, null));
-          }
-
-          if (isGraceLogin)
-          {
-            pwPolicyState.updateGraceLoginTimes();
-          }
-
-          pwPolicyState.setLastLoginTime();
-        }
-        else
-        {
-          setResultCode(ResultCode.INVALID_CREDENTIALS);
-          setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
-
-          if (policy.getLockoutFailureCount() > 0)
-          {
-            generateAccountStatusNotificationForLockedBindAccount(userEntry,
-                pwPolicyState);
-          }
+          generateAccountStatusNotificationForLockedBindAccount(userEntry,
+              pwPolicyState);
         }
       }
-      else
-      {
-        // Check to see if the user is administratively disabled or locked.
-        if (authPolicyState.isDisabled())
-        {
-          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-              ERR_BIND_OPERATION_ACCOUNT_DISABLED.get());
-        }
-
-        // Invoke pre-operation plugins.
-        if (!invokePreOpPlugins())
-        {
-          return false;
-        }
-
-        if (authPolicyState.passwordMatches(simplePassword))
-        {
-          setResultCode(ResultCode.SUCCESS);
-
-          if (DirectoryServer.lockdownMode()
-              && (!ClientConnection.hasPrivilege(userEntry,
-                  Privilege.BYPASS_LOCKDOWN)))
-          {
-            throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
-          }
-          setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-              DirectoryServer.isRootDN(userEntry.getName())));
-
-          // Set resource limits for the authenticated user.
-          setResourceLimits(userEntry);
-        }
-        else
-        {
-          setResultCode(ResultCode.INVALID_CREDENTIALS);
-          setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
-        }
-      }
-
-      return true;
     }
-    finally
+    else
     {
-      // No matter what, make sure to unlock the user's entry.
-      LockManager.unlock(bindDN, userLock);
+      // Check to see if the user is administratively disabled or locked.
+      if (authPolicyState.isDisabled())
+      {
+        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+            ERR_BIND_OPERATION_ACCOUNT_DISABLED.get());
+      }
+
+      // Invoke pre-operation plugins.
+      if (!invokePreOpPlugins())
+      {
+        return false;
+      }
+
+      if (authPolicyState.passwordMatches(simplePassword))
+      {
+        setResultCode(ResultCode.SUCCESS);
+
+        if (DirectoryServer.lockdownMode()
+            && (!ClientConnection.hasPrivilege(userEntry,
+                Privilege.BYPASS_LOCKDOWN)))
+        {
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+              ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
+        }
+        setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+            DirectoryServer.isRootDN(userEntry.getName())));
+
+        // Set resource limits for the authenticated user.
+        setResourceLimits(userEntry);
+      }
+      else
+      {
+        setResultCode(ResultCode.INVALID_CREDENTIALS);
+        setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
+      }
     }
+
+    return true;
   }
 
 
