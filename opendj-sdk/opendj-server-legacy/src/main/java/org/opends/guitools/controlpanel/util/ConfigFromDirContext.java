@@ -43,10 +43,6 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
@@ -54,6 +50,9 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -64,10 +63,34 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
+import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.CommunicationException;
+import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.*;
+import org.opends.server.admin.std.client.AdministrationConnectorCfgClient;
+import org.opends.server.admin.std.client.BackendCfgClient;
+import org.opends.server.admin.std.client.BackupBackendCfgClient;
+import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.HTTPConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.JMXConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.LDIFBackendCfgClient;
+import org.opends.server.admin.std.client.LDIFConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
+import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
+import org.opends.server.admin.std.client.MemoryBackendCfgClient;
+import org.opends.server.admin.std.client.MonitorBackendCfgClient;
+import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
+import org.opends.server.admin.std.client.ReplicationServerCfgClient;
+import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
+import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.std.client.RootDNCfgClient;
+import org.opends.server.admin.std.client.RootDNUserCfgClient;
+import org.opends.server.admin.std.client.SNMPConnectionHandlerCfgClient;
+import org.opends.server.admin.std.client.TaskBackendCfgClient;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
@@ -82,9 +105,10 @@ import org.opends.server.util.ServerConstants;
  */
 public class ConfigFromDirContext extends ConfigReader
 {
-  private static final String DATABASE_ENVIRONMENT_SUFFIX =
-    " Database Environment";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final String DATABASE_ENVIRONMENT_SUFFIX = " Database Environment";
+  private static final String SYNC_PROVIDER_NAME = "Multimaster Synchronization";
 
   private CustomSearchResult rootMonitor;
   private CustomSearchResult jvmMemoryUsage;
@@ -98,29 +122,21 @@ public class ConfigFromDirContext extends ConfigReader
   private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
     new HashMap<String, CustomSearchResult>();
 
-  /**
-   * The monitor root entry DN.
-   */
+  /** The monitor root entry DN. */
   protected DN monitorDN = DN.rootDN();
-  /**
-   * The JVM memory usage monitoring entry DN.
-   */
+
+  /** The JVM memory usage monitoring entry DN. */
   protected DN jvmMemoryUsageDN = DN.rootDN();
-  /**
-   * The system information monitoring entry DN.
-   */
+  /** The system information monitoring entry DN. */
   protected DN systemInformationDN = DN.rootDN();
-  /**
-   * The entry cache monitoring entry DN.
-   */
+
+  /**The entry cache monitoring entry DN. */
   protected DN entryCachesDN = DN.rootDN();
-  /**
-   * The work queue monitoring entry DN.
-   */
+
+  /** The work queue monitoring entry DN. */
   protected DN workQueueDN = DN.rootDN();
-  /**
-   * The version monitoring entry DN.
-   */
+
+  /** The version monitoring entry DN. */
   protected DN versionDN = DN.rootDN();
 
   {
@@ -139,21 +155,18 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
-  /**
-   * The date formatter to be used to parse GMT dates.
-   */
-  public static final SimpleDateFormat utcParser = new SimpleDateFormat(
-      ServerConstants.DATE_FORMAT_GMT_TIME);
+  /** The date formatter to be used to parse GMT dates. */
+  public static final SimpleDateFormat utcParser = new SimpleDateFormat(ServerConstants.DATE_FORMAT_GMT_TIME);
   {
     utcParser.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
-  /**
-   * The date formatter to be used to format dates.
-   */
+
+  /** The date formatter to be used to format dates. */
   public static final DateFormat formatter = DateFormat.getDateTimeInstance();
 
   /**
    * Returns the monitoring entry for the entry caches.
+   *
    * @return the monitoring entry for the entry caches.
    */
   public CustomSearchResult getEntryCaches()
@@ -163,6 +176,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Returns the monitoring entry for the JVM memory usage.
+   *
    * @return the monitoring entry for the JVM memory usage.
    */
   public CustomSearchResult getJvmMemoryUsage()
@@ -172,6 +186,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Returns the root entry of the monitoring tree.
+   *
    * @return the root entry of the monitoring tree.
    */
   public CustomSearchResult getRootMonitor()
@@ -181,6 +196,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Returns the version entry of the monitoring tree.
+   *
    * @return the version entry of the monitoring tree.
    */
   public CustomSearchResult getVersionMonitor()
@@ -190,6 +206,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Returns the monitoring entry for the system information.
+   *
    * @return the monitoring entry for the system information.
    */
   public CustomSearchResult getSystemInformation()
@@ -199,6 +216,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Returns the monitoring entry for the work queue.
+   *
    * @return the monitoring entry for the work queue.
    */
   public CustomSearchResult getWorkQueue()
@@ -208,9 +226,11 @@ public class ConfigFromDirContext extends ConfigReader
 
   /**
    * Sets whether this server represents the local instance or a remote server.
-   * @param isLocal whether this server represents the local instance or a
-   * remote server (in another machine or in another installation on the same
-   * machine).
+   *
+   * @param isLocal
+   *          whether this server represents the local instance or a remote
+   *          server (in another machine or in another installation on the same
+   *          machine).
    */
   public void setIsLocal(boolean isLocal)
   {
@@ -220,8 +240,9 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * Returns <CODE>true</CODE> if we are trying to manage the local host and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if we are trying to manage the local host and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isLocal()
   {
@@ -231,16 +252,17 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * Reads configuration and monitoring information using the provided
    * connection.
-   * @param ctx the connection to be used to read the information.
+   *
+   * @param context
+   *          the connection to be used to read the information.
    */
-  public void readConfiguration(InitialLdapContext ctx)
+  public void readConfiguration(final InitialLdapContext context)
   {
-    List<OpenDsException> ex = new ArrayList<OpenDsException>();
-    Set<ConnectionHandlerDescriptor> ls =
-      new HashSet<ConnectionHandlerDescriptor>();
-    Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
-    Set<DN> as = new HashSet<DN>();
-    Set<TaskEntry> ts = new HashSet<TaskEntry>();
+    final List<OpenDsException> errors = new ArrayList<OpenDsException>();
+    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<ConnectionHandlerDescriptor>();
+    final Set<BackendDescriptor> backendDescriptors = new HashSet<BackendDescriptor>();
+    final Set<DN> as = new HashSet<DN>();
+    final Set<TaskEntry> tasks = new HashSet<TaskEntry>();
 
     rootMonitor = null;
     jvmMemoryUsage = null;
@@ -251,11 +273,64 @@ public class ConfigFromDirContext extends ConfigReader
 
     hmConnectionHandlersMonitor.clear();
 
+    readSchemaIfNeeded(context, errors);
+
+    try
+    {
+      readConfig(context, connectionHandlers, backendDescriptors, as, errors);
+    }
+    catch (final Throwable t)
+    {
+      errors.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+    }
+
+    for (OpenDsException oe : errors)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading configuration: " + oe, oe));
+    }
+    administrativeUsers = Collections.unmodifiableSet(as);
+    listeners = Collections.unmodifiableSet(connectionHandlers);
+    backends = Collections.unmodifiableSet(backendDescriptors);
+    try
+    {
+      updateMonitorInformation(context, errors);
+    }
+    catch (Throwable t)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading monitoring: " + t, t));
+      errors.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+    }
+
+    try
+    {
+      updateTaskInformation(context, errors, tasks);
+    }
+    catch (Throwable t)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading task information: " + t, t));
+      errors.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+    }
+
+    taskEntries = Collections.unmodifiableSet(tasks);
+    for (ConnectionHandlerDescriptor ch : getConnectionHandlers())
+    {
+      ch.setMonitoringEntries(getMonitoringEntries(ch));
+    }
+
+    if (adminConnector != null)
+    {
+      adminConnector.setMonitoringEntries(getMonitoringEntries(adminConnector));
+    }
+    exceptions = Collections.unmodifiableList(errors);
+  }
+
+  private void readSchemaIfNeeded(final InitialLdapContext context, final List<OpenDsException> errors)
+  {
     if (mustReadSchema())
     {
       try
       {
-        readSchema(ctx);
+        readSchema(context);
         if (getSchema() != null)
         {
           // Update the schema: so that when we call the server code the
@@ -265,303 +340,293 @@ public class ConfigFromDirContext extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        ex.add(oe);
+        errors.add(oe);
       }
     }
+  }
+
+  private void readConfig(final InitialLdapContext context,
+      final Set<ConnectionHandlerDescriptor> connectionHandlers, final Set<BackendDescriptor> backendDescriptors,
+      final Set<DN> alternateBindDNs, final List<OpenDsException> errors) throws Exception
+  {
+    // Get the Directory Server configuration handler and use it.
+    ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(context));
+    final RootCfgClient root = mCtx.getRootConfiguration();
+
+    readAdminConnector(root, errors);
+    readConnectionHandlers(connectionHandlers, root, errors);
+    isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
+
+    readBackendConfiguration(backendDescriptors, root, errors);
+
+    boolean isReplicationSecure = readIfReplicationIsSecure(root, errors);
+
+    final ReplicationSynchronizationProviderCfgClient sync = readSyncProviderIfExists(root);
+    if (sync != null)
+    {
+      readReplicationConfig(connectionHandlers, backendDescriptors, sync, isReplicationSecure, errors);
+    }
+
+    readAlternateBindDNs(alternateBindDNs, root, errors);
+  }
+
+  private void readAdminConnector(final RootCfgClient root, final List<OpenDsException> errors)
+  {
+    try
+    {
+      AdministrationConnectorCfgClient adminConnector = root.getAdministrationConnector();
+      this.adminConnector = getConnectionHandler(adminConnector);
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(oe);
+    }
+  }
+
+  private void readConnectionHandlers(final Set<ConnectionHandlerDescriptor> connectionHandlers,
+      RootCfgClient root, final List<OpenDsException> errors) throws ConcurrentModificationException,
+      AuthorizationException, CommunicationException
+  {
+    for (String connHandler : root.listConnectionHandlers())
+    {
+      try
+      {
+        ConnectionHandlerCfgClient connectionHandler = root.getConnectionHandler(connHandler);
+        connectionHandlers.add(getConnectionHandler(connectionHandler, connHandler));
+      }
+      catch (OpenDsException oe)
+      {
+        errors.add(oe);
+      }
+    }
+  }
+
+  private void readBackendConfiguration(final Set<BackendDescriptor> backendDescriptors,
+      final RootCfgClient root, final List<OpenDsException> errors) throws Exception
+  {
+    for (final String backendName : root.listBackends())
+    {
+      try
+      {
+        BackendCfgClient backend = root.getBackend(backendName);
+        Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
+        for (DN dn : backend.getBaseDN())
+        {
+          BaseDNDescriptor baseDN = new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn, null, -1, -1, -1);
+          baseDNs.add(baseDN);
+        }
+        Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
+        Set<VLVIndexDescriptor> vlvIndexes = new HashSet<VLVIndexDescriptor>();
+        BackendDescriptor.Type type;
+        if (backend instanceof LocalDBBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.LOCAL_DB;
+          refreshLocalDBBackendConfig(indexes, vlvIndexes, backend, errors);
+        }
+        else if (backend instanceof LDIFBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.LDIF;
+        }
+        else if (backend instanceof MemoryBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.MEMORY;
+        }
+        else if (backend instanceof BackupBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.BACKUP;
+        }
+        else if (backend instanceof MonitorBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.MONITOR;
+        }
+        else if (backend instanceof TaskBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.TASK;
+        }
+        else
+        {
+          type = BackendDescriptor.Type.OTHER;
+        }
+
+        BackendDescriptor desc = new BackendDescriptor(
+            backend.getBackendId(), baseDNs, indexes, vlvIndexes, -1, backend.isEnabled(), type);
+        for (AbstractIndexDescriptor index: indexes)
+        {
+          index.setBackend(desc);
+        }
+        for (AbstractIndexDescriptor index: vlvIndexes)
+        {
+          index.setBackend(desc);
+        }
+        for (BaseDNDescriptor baseDN : baseDNs)
+        {
+          baseDN.setBackend(desc);
+        }
+        backendDescriptors.add(desc);
+      }
+      catch (OpenDsException oe)
+      {
+        errors.add(oe);
+      }
+    }
+  }
+
+  private void refreshLocalDBBackendConfig(final Set<IndexDescriptor> indexes,
+      final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<OpenDsException> errors)
+  {
+    LocalDBBackendCfgClient db = (LocalDBBackendCfgClient)backend;
+    try
+    {
+      for (String indexName : db.listLocalDBIndexes())
+      {
+        LocalDBIndexCfgClient index = db.getLocalDBIndex(indexName);
+        indexes.add(new IndexDescriptor(
+            index.getAttribute().getNameOrOID(), index.getAttribute(),
+            null, index.getIndexType(), index.getIndexEntryLimit()));
+      }
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(oe);
+    }
+    indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexType>(), -1));
+    indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexType>(), -1));
+    indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexType>(), -1));
 
     try
     {
-      // Get the Directory Server configuration handler and use it.
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-
-      try
+      for (String vlvIndexName : db.listLocalDBVLVIndexes())
       {
-        AdministrationConnectorCfgClient adminConnector =
-          root.getAdministrationConnector();
-        this.adminConnector = getConnectionHandler(adminConnector);
-      }
-      catch (OpenDsException oe)
-      {
-        ex.add(oe);
-      }
-      for (String connHandler : root.listConnectionHandlers())
-      {
-        try
-        {
-          ConnectionHandlerCfgClient connectionHandler =
-              root.getConnectionHandler(connHandler);
-          ls.add(getConnectionHandler(connectionHandler, connHandler));
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
-      }
-      isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
-
-      for (String backendName : root.listBackends())
-      {
-        try
-        {
-          BackendCfgClient backend = root.getBackend(backendName);
-          Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
-          for (DN dn : backend.getBaseDN())
-          {
-            BaseDNDescriptor baseDN =
-              new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn,
-                  null, -1, -1, -1);
-            baseDNs.add(baseDN);
-          }
-          Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
-          Set<VLVIndexDescriptor> vlvIndexes =
-            new HashSet<VLVIndexDescriptor>();
-          BackendDescriptor.Type type;
-          if (backend instanceof LocalDBBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.LOCAL_DB;
-            LocalDBBackendCfgClient db = (LocalDBBackendCfgClient)backend;
-            try
-            {
-              for (String indexName : db.listLocalDBIndexes())
-              {
-                LocalDBIndexCfgClient index = db.getLocalDBIndex(indexName);
-                indexes.add(new IndexDescriptor(
-                    index.getAttribute().getNameOrOID(), index.getAttribute(),
-                    null, index.getIndexType(), index.getIndexEntryLimit()));
-              }
-            }
-            catch (OpenDsException oe)
-            {
-              ex.add(oe);
-            }
-            indexes.add(new IndexDescriptor("dn2id", null, null,
-                new TreeSet<IndexType>(), -1));
-            indexes.add(new IndexDescriptor("id2children", null, null,
-                new TreeSet<IndexType>(), -1));
-            indexes.add(new IndexDescriptor("id2subtree", null, null,
-                new TreeSet<IndexType>(), -1));
-
-            try
-            {
-              for (String vlvIndexName : db.listLocalDBVLVIndexes())
-              {
-                LocalDBVLVIndexCfgClient index =
-                  db.getLocalDBVLVIndex(vlvIndexName);
-                String s = index.getSortOrder();
-                List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
-                vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null,
-                    index.getBaseDN(), index.getScope(), index.getFilter(),
-                    sortOrder, index.getMaxBlockSize()));
-              }
-            }
-            catch (OpenDsException oe)
-            {
-              ex.add(oe);
-            }
-          }
-          else if (backend instanceof LDIFBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.LDIF;
-          }
-          else if (backend instanceof MemoryBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.MEMORY;
-          }
-          else if (backend instanceof BackupBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.BACKUP;
-          }
-          else if (backend instanceof MonitorBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.MONITOR;
-          }
-          else if (backend instanceof TaskBackendCfgClient)
-          {
-            type = BackendDescriptor.Type.TASK;
-          }
-          else
-          {
-            type = BackendDescriptor.Type.OTHER;
-          }
-          BackendDescriptor desc = new BackendDescriptor(backend.getBackendId(),
-              baseDNs, indexes, vlvIndexes, -1, backend.isEnabled(), type);
-          for (AbstractIndexDescriptor index: indexes)
-          {
-            index.setBackend(desc);
-          }
-          for (AbstractIndexDescriptor index: vlvIndexes)
-          {
-            index.setBackend(desc);
-          }
-          for (BaseDNDescriptor baseDN : baseDNs)
-          {
-            baseDN.setBackend(desc);
-          }
-          bs.add(desc);
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
-      }
-
-      boolean isReplicationSecure = false;
-      try
-      {
-        CryptoManagerCfgClient cryptoManager = root.getCryptoManager();
-        isReplicationSecure = cryptoManager.isSSLEncryption();
-      }
-      catch (OpenDsException oe)
-      {
-        ex.add(oe);
-      }
-
-
-      replicationPort = -1;
-      ReplicationSynchronizationProviderCfgClient sync = null;
-      try
-      {
-        sync = (ReplicationSynchronizationProviderCfgClient)
-        root.getSynchronizationProvider("Multimaster Synchronization");
-      }
-      catch (OpenDsException oe)
-      {
-        // Ignore this one
-      }
-      if (sync != null)
-      {
-        try
-        {
-          if (sync.isEnabled() && sync.hasReplicationServer())
-          {
-            ReplicationServerCfgClient replicationServer =
-              sync.getReplicationServer();
-            if (replicationServer != null)
-            {
-              replicationPort = replicationServer.getReplicationPort();
-              ConnectionHandlerDescriptor.Protocol protocol =
-                isReplicationSecure ?
-                    ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE :
-                    ConnectionHandlerDescriptor.Protocol.REPLICATION;
-              Set<CustomSearchResult> emptySet = Collections.emptySet();
-              ConnectionHandlerDescriptor connHandler =
-                new ConnectionHandlerDescriptor(
-                    new HashSet<InetAddress>(),
-                    replicationPort,
-                    protocol,
-                    ConnectionHandlerDescriptor.State.ENABLED,
-                    "Multimaster Synchronization",
-                    emptySet);
-              ls.add(connHandler);
-            }
-          }
-          String[] domains = sync.listReplicationDomains();
-          if (domains != null)
-          {
-            for (String domain2 : domains)
-            {
-              ReplicationDomainCfgClient domain =
-                sync.getReplicationDomain(domain2);
-              DN dn = domain.getBaseDN();
-              for (BackendDescriptor backend : bs)
-              {
-                for (BaseDNDescriptor baseDN : backend.getBaseDns())
-                {
-                  if (baseDN.getDn().equals(dn))
-                  {
-                    baseDN.setType(sync.isEnabled() ?
-                        BaseDNDescriptor.Type.REPLICATED :
-                          BaseDNDescriptor.Type.DISABLED);
-                    baseDN.setReplicaID(domain.getServerId());
-                  }
-                }
-              }
-            }
-          }
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
-      }
-
-
-      try
-      {
-        RootDNCfgClient rootDN = root.getRootDN();
-        String[] rootUsers = rootDN.listRootDNUsers();
-        if (rootUsers != null)
-        {
-          for (String rootUser2 : rootUsers)
-          {
-            RootDNUserCfgClient rootUser = rootDN.getRootDNUser(rootUser2);
-            as.addAll(rootUser.getAlternateBindDN());
-          }
-        }
-      }
-      catch (OpenDsException oe)
-      {
-        ex.add(oe);
+        LocalDBVLVIndexCfgClient index = db.getLocalDBVLVIndex(vlvIndexName);
+        String s = index.getSortOrder();
+        List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
+        vlvIndexes.add(new VLVIndexDescriptor(
+            index.getName(), null, index.getBaseDN(), index.getScope(), index.getFilter(),
+            sortOrder, index.getMaxBlockSize()));
       }
     }
-    catch (final Throwable t)
+    catch (OpenDsException oe)
     {
-      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+      errors.add(oe);
     }
-    for (OpenDsException oe : ex)
-    {
-      logger.warn(LocalizableMessage.raw("Error reading configuration: "+oe, oe));
-    }
-    administrativeUsers = Collections.unmodifiableSet(as);
-    listeners = Collections.unmodifiableSet(ls);
-    backends = Collections.unmodifiableSet(bs);
+  }
+
+  private boolean readIfReplicationIsSecure(final RootCfgClient root, final List<OpenDsException> errors)
+  {
     try
     {
-      updateMonitorInformation(ctx, ex);
+      return root.getCryptoManager().isSSLEncryption();
     }
-    catch (Throwable t)
+    catch (OpenDsException oe)
     {
-      logger.warn(LocalizableMessage.raw("Error reading monitoring: "+t, t));
-      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+      errors.add(oe);
+      return false;
     }
+  }
+
+  private ReplicationSynchronizationProviderCfgClient readSyncProviderIfExists(final RootCfgClient root)
+  {
     try
     {
-      updateTaskInformation(ctx, ex, ts);
+      return (ReplicationSynchronizationProviderCfgClient) root.getSynchronizationProvider(SYNC_PROVIDER_NAME);
     }
-    catch (Throwable t)
+    catch (OpenDsException oe)
     {
-      logger.warn(LocalizableMessage.raw("Error reading task information: "+t, t));
-      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
+      return null;
     }
-    taskEntries = Collections.unmodifiableSet(ts);
-    for (ConnectionHandlerDescriptor ch : getConnectionHandlers())
+  }
+
+  private void readReplicationConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,
+      final Set<BackendDescriptor> backendDescriptors, final ReplicationSynchronizationProviderCfgClient sync,
+      boolean isReplicationSecure, final List<OpenDsException> errors)
+  {
+    replicationPort = -1;
+    try
     {
-      ch.setMonitoringEntries(getMonitoringEntries(ch));
+      if (sync.isEnabled() && sync.hasReplicationServer())
+      {
+        ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
+        if (replicationServer != null)
+        {
+          replicationPort = replicationServer.getReplicationPort();
+          ConnectionHandlerDescriptor.Protocol protocol =
+            isReplicationSecure ? ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE
+                                : ConnectionHandlerDescriptor.Protocol.REPLICATION;
+          Set<CustomSearchResult> emptySet = Collections.emptySet();
+          ConnectionHandlerDescriptor connHandler = new ConnectionHandlerDescriptor(
+              new HashSet<InetAddress>(), replicationPort, protocol, ConnectionHandlerDescriptor.State.ENABLED,
+                SYNC_PROVIDER_NAME, emptySet);
+          connectionHandlers.add(connHandler);
+        }
+      }
+
+      String[] domains = sync.listReplicationDomains();
+      if (domains != null)
+      {
+        for (String domain2 : domains)
+        {
+          ReplicationDomainCfgClient domain = sync.getReplicationDomain(domain2);
+          DN dn = domain.getBaseDN();
+          for (BackendDescriptor backend : backendDescriptors)
+          {
+            for (BaseDNDescriptor baseDN : backend.getBaseDns())
+            {
+              if (baseDN.getDn().equals(dn))
+              {
+                baseDN.setType(sync.isEnabled() ? BaseDNDescriptor.Type.REPLICATED
+                                                : BaseDNDescriptor.Type.DISABLED);
+                baseDN.setReplicaID(domain.getServerId());
+              }
+            }
+          }
+        }
+      }
     }
-    if (adminConnector != null)
+    catch (OpenDsException oe)
     {
-      adminConnector.setMonitoringEntries(getMonitoringEntries(adminConnector));
+      errors.add(oe);
     }
-    exceptions = Collections.unmodifiableList(ex);
+  }
+
+  private void readAlternateBindDNs(final Set<DN> alternateBindDNs, final RootCfgClient root,
+      final List<OpenDsException> errors)
+  {
+    try
+    {
+      RootDNCfgClient rootDN = root.getRootDN();
+      String[] rootUsers = rootDN.listRootDNUsers();
+      if (rootUsers != null)
+      {
+        for (String rootUser2 : rootUsers)
+        {
+          RootDNUserCfgClient rootUser = rootDN.getRootDNUser(rootUser2);
+          alternateBindDNs.addAll(rootUser.getAlternateBindDN());
+        }
+      }
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(oe);
+    }
   }
 
   /**
    * Returns an array of monitoring attributes to be returned in the request.
+   *
    * @return an array of monitoring attributes to be returned in the request.
    */
   protected String[] getMonitoringAttributes()
   {
-    return new String[] {
-        "*"
-    };
+    return new String[] {"*"};
   }
 
   /**
    * Reads the schema from the files.
-   * @param ctx the connection to be used to load the schema.
-   * @throws OpenDsException if an error occurs reading the schema.
+   *
+   * @param ctx
+   *          the connection to be used to load the schema.
+   * @throws OpenDsException
+   *           if an error occurs reading the schema.
    */
   private void readSchema(InitialLdapContext ctx) throws OpenDsException
   {
@@ -591,10 +656,13 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * Takes the provided search result and updates the monitoring information
    * accordingly.
-   * @param sr the search result.
-   * @param searchBaseDN the base search.
-   * @throws NamingException if there is an error retrieving the values of the
-   * search result.
+   *
+   * @param sr
+   *          the search result.
+   * @param searchBaseDN
+   *          the base search.
+   * @throws NamingException
+   *           if there is an error retrieving the values of the search result.
    */
   protected void handleMonitoringSearchResult(SearchResult sr,
       String searchBaseDN)
@@ -616,8 +684,7 @@ public class ConfigFromDirContext extends ConfigReader
 
     String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
     String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
-    String missingChanges = ConnectionUtils.getFirstValue(sr,
-        "missing-changes");
+    String missingChanges = ConnectionUtils.getFirstValue(sr, "missing-changes");
 
     if ((dn != null)  && (replicaId != null) && (missingChanges != null))
     {
@@ -628,13 +695,12 @@ public class ConfigFromDirContext extends ConfigReader
           try
           {
             if (baseDN.getDn().equals(DN.valueOf(dn)) &&
-                String.valueOf(baseDN.getReplicaID()).equals(replicaId))
+                Integer.toString(baseDN.getReplicaID()).equals(replicaId))
             {
               try
               {
                 baseDN.setAgeOfOldestMissingChange(
-                    Long.valueOf(ConnectionUtils.getFirstValue(sr,
-                    "approx-older-change-not-synchronized-millis")));
+                    Long.valueOf(ConnectionUtils.getFirstValue(sr, "approx-older-change-not-synchronized-millis")));
               }
               catch (Throwable t)
               {
@@ -657,14 +723,10 @@ public class ConfigFromDirContext extends ConfigReader
     else
     {
       CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
-      String backendID = ConnectionUtils.getFirstValue(sr,
-          "ds-backend-id");
-      String entryCount = ConnectionUtils.getFirstValue(sr,
-          "ds-backend-entry-count");
-      Set<String> baseDnEntries = ConnectionUtils.getValues(sr,
-          "ds-base-dn-entry-count");
-      if ((backendID != null) && ((entryCount != null) ||
-          (baseDnEntries != null)))
+      String backendID = ConnectionUtils.getFirstValue(sr, "ds-backend-id");
+      String entryCount = ConnectionUtils.getFirstValue(sr, "ds-backend-entry-count");
+      Set<String> baseDnEntries = ConnectionUtils.getValues(sr, "ds-base-dn-entry-count");
+      if ((backendID != null) && ((entryCount != null) || (baseDnEntries != null)))
       {
         for (BackendDescriptor backend : backends)
         {
@@ -712,8 +774,7 @@ public class ConfigFromDirContext extends ConfigReader
         String cn = ConnectionUtils.getFirstValue(sr, "cn");
         if ((cn != null) && cn.endsWith(DATABASE_ENVIRONMENT_SUFFIX))
         {
-          String monitorBackendID = cn.substring(0, cn.length() -
-              DATABASE_ENVIRONMENT_SUFFIX.length());
+          String monitorBackendID = cn.substring(0, cn.length() - DATABASE_ENVIRONMENT_SUFFIX.length());
           for (BackendDescriptor backend : backends)
           {
             if (backend.getBackendID().equalsIgnoreCase(monitorBackendID))
@@ -755,7 +816,7 @@ public class ConfigFromDirContext extends ConfigReader
           String cn = ConnectionUtils.getFirstValue(sr, "cn");
           if (cn.endsWith(statistics))
           {
-//          Assume it is a connection handler
+            // Assume it is a connection handler
             String name = cn.substring(0, cn.length() - statistics.length());
             hmConnectionHandlersMonitor.put(getKey(name), csr);
           }
@@ -771,17 +832,20 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * Takes the provided search result and updates the task information
    * accordingly.
-   * @param sr the search result.
-   * @param searchBaseDN the base search.
-   * @param taskEntries the collection of TaskEntries to be updated.
-   * @param ex the list of exceptions to be updated if an error occurs.
-   * @throws NamingException if there is an error retrieving the values of the
-   * search result.
+   *
+   * @param sr
+   *          the search result.
+   * @param searchBaseDN
+   *          the base search.
+   * @param taskEntries
+   *          the collection of TaskEntries to be updated.
+   * @param ex
+   *          the list of exceptions to be updated if an error occurs.
+   * @throws NamingException
+   *           if there is an error retrieving the values of the search result.
    */
-  private void handleTaskSearchResult(SearchResult sr,
-      String searchBaseDN,
-      Collection<TaskEntry> taskEntries, List<OpenDsException> ex)
-  throws NamingException
+  private void handleTaskSearchResult(SearchResult sr, String searchBaseDN, Collection<TaskEntry> taskEntries,
+      List<OpenDsException> ex) throws NamingException
   {
     CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
     try
@@ -804,17 +868,13 @@ public class ConfigFromDirContext extends ConfigReader
     // to get everything in just one request.
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        getMonitoringAttributes());
+    ctls.setReturningAttributes(getMonitoringAttributes());
     String filter = "(objectclass=*)";
 
     try
     {
       LdapName jndiName = new LdapName("cn=monitor");
-
-      NamingEnumeration<SearchResult> monitorEntries =
-        ctx.search(jndiName, filter, ctls);
-
+      NamingEnumeration<SearchResult> monitorEntries = ctx.search(jndiName, filter, ctls);
       javaVersion = null;
       numberConnections = -1;
 
@@ -833,37 +893,35 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (NamingException ne)
     {
-      ex.add(new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
     }
   }
 
   /**
-   * Updates the provided list of TaskEntry with the task entries found in
-   * a server.
-   * @param ctx the connection to the server.
-   * @param ex the list of exceptions encountered while retrieving the task
-   * entries.
-   * @param ts the list of task entries to be updated.
+   * Updates the provided list of TaskEntry with the task entries found in a
+   * server.
+   *
+   * @param ctx
+   *          the connection to the server.
+   * @param ex
+   *          the list of exceptions encountered while retrieving the task
+   *          entries.
+   * @param ts
+   *          the list of task entries to be updated.
    */
-  public void updateTaskInformation(InitialLdapContext ctx,
-      List<OpenDsException> ex, Collection<TaskEntry> ts)
+  public void updateTaskInformation(InitialLdapContext ctx, List<OpenDsException> ex, Collection<TaskEntry> ts)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        getMonitoringAttributes());
+    ctls.setReturningAttributes(getMonitoringAttributes());
     String filter = "(objectclass=ds-task)";
 
     try
     {
       LdapName jndiName = new LdapName(ConfigConstants.DN_TASK_ROOT);
-
-      NamingEnumeration<SearchResult> taskEntries =
-        ctx.search(jndiName, filter, ctls);
-
+      NamingEnumeration<SearchResult> taskEntries = ctx.search(jndiName, filter, ctls);
       try
       {
         while (taskEntries.hasMore())
@@ -879,29 +937,24 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (NamingException ne)
     {
-      ex.add(new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
     }
   }
 
-  private ConnectionHandlerDescriptor getConnectionHandler(
-      ConnectionHandlerCfgClient connHandler, String name)
+  private ConnectionHandlerDescriptor getConnectionHandler(ConnectionHandlerCfgClient connHandler, String name)
   throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
-        getInetAddressComparator());
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
     int port;
 
     ConnectionHandlerDescriptor.Protocol protocol;
 
-    ConnectionHandlerDescriptor.State state = connHandler.isEnabled() ?
-        ConnectionHandlerDescriptor.State.ENABLED :
-          ConnectionHandlerDescriptor.State.DISABLED;
+    ConnectionHandlerDescriptor.State state = connHandler.isEnabled() ? ConnectionHandlerDescriptor.State.ENABLED
+                                                                      : ConnectionHandlerDescriptor.State.DISABLED;
 
     if (connHandler instanceof LDAPConnectionHandlerCfgClient)
     {
-      LDAPConnectionHandlerCfgClient ldap =
-        (LDAPConnectionHandlerCfgClient)connHandler;
+      LDAPConnectionHandlerCfgClient ldap = (LDAPConnectionHandlerCfgClient)connHandler;
       if (ldap.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.LDAPS;
@@ -919,8 +972,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     else if (connHandler instanceof HTTPConnectionHandlerCfgClient)
     {
-      HTTPConnectionHandlerCfgClient http =
-          (HTTPConnectionHandlerCfgClient) connHandler;
+      HTTPConnectionHandlerCfgClient http = (HTTPConnectionHandlerCfgClient) connHandler;
       if (http.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.HTTPS;
@@ -934,8 +986,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     else if (connHandler instanceof JMXConnectionHandlerCfgClient)
     {
-      JMXConnectionHandlerCfgClient jmx =
-        (JMXConnectionHandlerCfgClient)connHandler;
+      JMXConnectionHandlerCfgClient jmx = (JMXConnectionHandlerCfgClient)connHandler;
       if (jmx.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMXS;
@@ -955,8 +1006,7 @@ public class ConfigFromDirContext extends ConfigReader
     else if (connHandler instanceof SNMPConnectionHandlerCfgClient)
     {
       protocol = ConnectionHandlerDescriptor.Protocol.SNMP;
-      SNMPConnectionHandlerCfgClient snmp =
-        (SNMPConnectionHandlerCfgClient)connHandler;
+      SNMPConnectionHandlerCfgClient snmp = (SNMPConnectionHandlerCfgClient)connHandler;
       addAll(addresses, snmp.getListenAddress());
       port = snmp.getListenPort();
     }
@@ -966,8 +1016,7 @@ public class ConfigFromDirContext extends ConfigReader
       port = -1;
     }
     Set<CustomSearchResult> emptySet = Collections.emptySet();
-    return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        name, emptySet);
+    return new ConnectionHandlerDescriptor(addresses, port, protocol, state, name, emptySet);
   }
 
   private <T> void addAll(Collection<T> target, Collection<T> source)
@@ -978,64 +1027,53 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
-  private ConnectionHandlerDescriptor getConnectionHandler(
-      AdministrationConnectorCfgClient adminConnector) throws OpenDsException
+  private ConnectionHandlerDescriptor getConnectionHandler(AdministrationConnectorCfgClient adminConnector)
+      throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
-        getInetAddressComparator());
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
 
-    ConnectionHandlerDescriptor.Protocol protocol =
-      ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
-
-    ConnectionHandlerDescriptor.State state =
-      ConnectionHandlerDescriptor.State.ENABLED;
+    ConnectionHandlerDescriptor.Protocol protocol = ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
+    ConnectionHandlerDescriptor.State state = ConnectionHandlerDescriptor.State.ENABLED;
 
     addAll(addresses, adminConnector.getListenAddress());
     int port = adminConnector.getListenPort();
 
     Set<CustomSearchResult> emptySet = Collections.emptySet();
-    return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
+    return new ConnectionHandlerDescriptor(
+        addresses, port, protocol, state, INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
   }
 
-  private boolean isRootMonitor(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isRootMonitor(CustomSearchResult csr) throws OpenDsException
   {
     return monitorDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isVersionMonitor(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isVersionMonitor(CustomSearchResult csr) throws OpenDsException
   {
     return versionDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isSystemInformation(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isSystemInformation(CustomSearchResult csr) throws OpenDsException
   {
     return systemInformationDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isJvmMemoryUsage(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isJvmMemoryUsage(CustomSearchResult csr) throws OpenDsException
   {
     return jvmMemoryUsageDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isWorkQueue(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isWorkQueue(CustomSearchResult csr) throws OpenDsException
   {
     return workQueueDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isEntryCaches(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isEntryCaches(CustomSearchResult csr) throws OpenDsException
   {
     return entryCachesDN.equals(DN.valueOf(csr.getDN()));
   }
 
-  private boolean isConnectionHandler(CustomSearchResult csr)
-  throws OpenDsException
+  private boolean isConnectionHandler(CustomSearchResult csr) throws OpenDsException
   {
     boolean isConnectionHandler = false;
     DN dn = DN.valueOf(csr.getDN());
@@ -1045,7 +1083,7 @@ public class ConfigFromDirContext extends ConfigReader
       List<?> vs = csr.getAttributeValues("cn");
       if ((vs != null) && !vs.isEmpty())
       {
-        String cn = (String)vs.iterator().next();
+        String cn = (String) vs.iterator().next();
         String statistics = " Statistics";
         if (cn.endsWith(statistics))
         {
@@ -1056,8 +1094,7 @@ public class ConfigFromDirContext extends ConfigReader
     return isConnectionHandler;
   }
 
-  private static boolean isTaskEntry(CustomSearchResult csr)
-  throws OpenDsException
+  private static boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
   {
     boolean isTaskEntry = false;
     List<Object> vs = csr.getAttributeValues("objectclass");
@@ -1076,9 +1113,11 @@ public class ConfigFromDirContext extends ConfigReader
   }
 
   /**
-   * Commodity method to get the string representation to be used in the
-   * hash maps as key.
-   * @param value the value to be transformed into a key for a hash map.
+   * Commodity method to get the string representation to be used in the hash
+   * maps as key.
+   *
+   * @param value
+   *          the value to be transformed into a key for a hash map.
    * @return the string representation to be used in the hash maps as key.
    */
   private String getKey(String value)
@@ -1086,8 +1125,7 @@ public class ConfigFromDirContext extends ConfigReader
     return value.toLowerCase();
   }
 
-  private Set<CustomSearchResult>getMonitoringEntries(
-      ConnectionHandlerDescriptor ch)
+  private Set<CustomSearchResult>getMonitoringEntries(ConnectionHandlerDescriptor ch)
   {
     Set<CustomSearchResult> monitorEntries = new HashSet<CustomSearchResult>();
     if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
@@ -1122,4 +1160,5 @@ public class ConfigFromDirContext extends ConfigReader
 
     return monitorEntries;
   }
+
 }
