@@ -1761,28 +1761,36 @@ implements ConfigChangeListener
   /**
    * Checks that the provided string value is a valid integer and if it is not
    * updates a list of error messages with an error.
-   * @param errors the list of error messages to be updated.
-   * @param stringValue the string value to analyze.
-   * @param minValue the minimum integer value accepted.
-   * @param maxValue the maximum integer value accepted.
-   * @param errMsg the error message to use to update the error list if the
-   * provided value is not valid.
+   *
+   * @param errors
+   *          the list of error messages to be updated.
+   * @param stringValue
+   *          the string value to analyze.
+   * @param minValue
+   *          the minimum integer value accepted.
+   * @param maxValue
+   *          the maximum integer value accepted.
+   * @param errMsg
+   *          the error message to use to update the error list if the provided
+   *          value is not valid.
+   * @return {@code true} if the provided string value is a valid integer and if
+   *         it is not updates a list of error messages with an error.
    */
-  protected void checkIntValue(Collection<LocalizableMessage> errors, String stringValue,
+  protected boolean checkIntValue(Collection<LocalizableMessage> errors, String stringValue,
       int minValue, int maxValue, LocalizableMessage errMsg)
   {
     try
     {
       int n = Integer.parseInt(stringValue);
-      if (n > maxValue || n < minValue)
+      if (minValue <= n && n <= maxValue)
       {
-        throw new RuntimeException("Invalid value");
+        return true;
       }
     }
-    catch (Throwable t)
-    {
-      errors.add(errMsg);
-    }
+    catch (NumberFormatException ignored) {}
+
+    errors.add(errMsg);
+    return false;
   }
 
   /**

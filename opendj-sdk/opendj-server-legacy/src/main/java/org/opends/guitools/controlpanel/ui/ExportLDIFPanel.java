@@ -377,14 +377,11 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     addScheduleErrors(getSchedule(), errors, lExportOptions);
     if (wrapText.isSelected())
     {
-      String cols = wrapColumn.getText();
-      int minValue = 1;
-      int maxValue = 1000;
-      LocalizableMessage errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue,
-      maxValue);
-      int size1 = errors.size();
-      checkIntValue(errors, cols, minValue, maxValue, errMsg);
-      if (errors.size() > size1)
+      final String cols = wrapColumn.getText();
+      final int minValue = 1;
+      final int maxValue = 1000;
+      final LocalizableMessage errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue, maxValue);
+      if (!checkIntValue(errors, cols, minValue, maxValue, errMsg))
       {
         setPrimaryInvalid(lExportOptions);
       }
