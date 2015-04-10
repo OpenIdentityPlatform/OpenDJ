@@ -376,12 +376,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     EntryContainer ec = accessBegin(null, entryDN);
-
     ec.sharedLock.lock();
-    Entry entry;
     try
     {
-      entry = ec.getEntry(entryDN);
+      return ec.getEntry(entryDN);
     }
     catch (StorageRuntimeException e)
     {
@@ -393,8 +391,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       ec.sharedLock.unlock();
       accessEnd();
     }
-
-    return entry;
   }
 
   /** {@inheritDoc} */

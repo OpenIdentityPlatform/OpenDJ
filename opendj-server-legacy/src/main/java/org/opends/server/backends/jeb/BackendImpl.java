@@ -429,14 +429,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     readerBegin();
-
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     ec.sharedLock.lock();
-    Entry entry;
     try
     {
-      entry = ec.getEntry(entryDN);
+      return ec.getEntry(entryDN);
     }
     catch (DatabaseException e)
     {
@@ -448,8 +446,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       ec.sharedLock.unlock();
       readerEnd();
     }
-
-    return entry;
   }
 
 

@@ -1221,7 +1221,7 @@ public class EntryContainer
   Entry getEntry(EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
-    final EntryCache entryCache = getEntryCache();
+    final EntryCache<?> entryCache = getEntryCache();
     final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
     if (cacheEntry != null)
     {
@@ -1874,9 +1874,7 @@ public class EntryContainer
 
     try
     {
-      // Read the ID from dn2id.
-      EntryID id = dn2id.get(null, entryDN, LockMode.DEFAULT);
-      return id != null;
+      return dn2id.get(null, entryDN, LockMode.DEFAULT) != null;
     }
     catch (DatabaseException e)
     {
@@ -1886,63 +1884,46 @@ public class EntryContainer
   }
 
   /**
-   * Fetch an entry by DN, trying the entry cache first, then the database.
-   * Retrieves the requested entry, trying the entry cache first,
-   * then the database.  Note that the caller must hold a read or write lock
-   * on the specified DN.
+   * Fetch an entry by DN, trying the entry cache first, then the database. Retrieves the requested
+   * entry, trying the entry cache first, then the database.
    *
-   * @param entryDN The distinguished name of the entry to retrieve.
-   * @return The requested entry, or <CODE>null</CODE> if the entry does not
-   *         exist.
-   * @throws DirectoryException If a problem occurs while trying to retrieve
-   *                            the entry.
-   * @throws DatabaseException An error occurred during a database operation.
+   * @param entryDN
+   *          The distinguished name of the entry to retrieve.
+   * @return The requested entry, or <CODE>null</CODE> if the entry does not exist.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to retrieve the entry.
+   * @throws DatabaseException
+   *           An error occurred during a database operation.
    */
-  Entry getEntry(DN entryDN)
-  throws DatabaseException, DirectoryException
+  Entry getEntry(DN entryDN) throws DatabaseException, DirectoryException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    Entry entry = null;
-
-    // Try the entry cache first.
     if (entryCache != null)
     {
-      entry = entryCache.getEntry(entryDN);
+      Entry entry = entryCache.getEntry(entryDN);
+      if (entry != null)
+      {
+        return entry;
+      }
     }
 
-    if (entry == null)
+    EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
+    if (entryID == null)
     {
-      // Read dn2id.
-      EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
-      if (entryID == null)
-      {
-        // The entryDN does not exist.
-
-        // Check for referral entries above the target entry.
-        dn2uri.targetEntryReferrals(entryDN, null);
-
-        return null;
-      }
-
-      // Read id2entry.
-      entry = id2entry.get(null, entryID, LockMode.DEFAULT);
-
-      if (entry == null)
-      {
-        // The entryID does not exist.
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-            ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
-      }
-
-      // Put the entry in the cache making sure not to overwrite
-      // a newer copy that may have been inserted since the time
-      // we read the cache.
-      if (entryCache != null)
-      {
-        entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
-      }
+      // The entryDN does not exist. Check for referral entries above the target entry.
+      dn2uri.targetEntryReferrals(entryDN, null);
+      return null;
     }
 
+    Entry entry = id2entry.get(null, entryID, LockMode.DEFAULT);
+    if (entry != null && entryCache != null)
+    {
+      /*
+       * Put the entry in the cache making sure not to overwrite a newer copy that may have been
+       * inserted since the time we read the cache.
+       */
+      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+    }
     return entry;
   }
 

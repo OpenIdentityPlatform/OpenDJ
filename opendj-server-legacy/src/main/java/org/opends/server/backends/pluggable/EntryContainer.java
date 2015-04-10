@@ -1921,8 +1921,6 @@ public class EntryContainer
   private Entry getEntry0(ReadableTransaction txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
     final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-
-    // Try the entry cache first.
     if (entryCache != null)
     {
       final Entry entry = entryCache.getEntry(entryDN);
@@ -1934,29 +1932,21 @@ public class EntryContainer
 
     try
     {
-      // Read dn2id.
-      EntryID entryID = dn2id.get(txn, entryDN);
+      final EntryID entryID = dn2id.get(txn, entryDN);
       if (entryID == null)
       {
-        // The entryDN does not exist.
-        // Check for referral entries above the target entry.
+        // The entryDN does not exist. Check for referral entries above the target entry.
         dn2uri.targetEntryReferrals(txn, entryDN, null);
         return null;
       }
 
-      // Read id2entry.
       final Entry entry = id2entry.get(txn, entryID);
-      if (entry == null)
+      if (entry != null && entryCache != null)
       {
-        // The entryID does not exist.
-        throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
-      }
-
-      // Put the entry in the cache making sure not to overwrite
-      // a newer copy that may have been inserted since the time
-      // we read the cache.
-      if (entryCache != null)
-      {
+        /*
+         * Put the entry in the cache making sure not to overwrite a newer copy that may have been
+         * inserted since the time we read the cache.
+         */
         entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
       }
       return entry;
