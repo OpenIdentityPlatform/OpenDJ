@@ -91,7 +91,6 @@ import com.forgerock.opendj.cli.CommandBuilder;
 /**
  * The panel that displays an existing index (it appears on the right of the
  * 'Manage Indexes' dialog).
- *
  */
 public class IndexPanel extends AbstractIndexPanel
 {
@@ -105,7 +104,6 @@ public class IndexPanel extends AbstractIndexPanel
 
   /**
    * Default constructor.
-   *
    */
   public IndexPanel()
   {
@@ -115,7 +113,6 @@ public class IndexPanel extends AbstractIndexPanel
 
   /**
    * Creates the layout of the panel (but the contents are not populated here).
-   *
    */
   private void createLayout()
   {
@@ -179,7 +176,6 @@ public class IndexPanel extends AbstractIndexPanel
     buttonPanel.add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         saveIndex(false);
@@ -188,19 +184,16 @@ public class IndexPanel extends AbstractIndexPanel
 
     entryLimit.getDocument().addDocumentListener(new DocumentListener()
     {
-      /** {@inheritDoc} */
       public void insertUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
       public void changedUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
       {
         checkSaveButton();
@@ -209,7 +202,6 @@ public class IndexPanel extends AbstractIndexPanel
 
     ActionListener listener = new ActionListener()
     {
-      /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
         checkSaveButton();
@@ -243,7 +235,6 @@ public class IndexPanel extends AbstractIndexPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       public void run()
       {
         checkSaveButton();
@@ -258,41 +249,41 @@ public class IndexPanel extends AbstractIndexPanel
   }
 
   /**
-   * Method used to know if there are unsaved changes or not.  It is used by
-   * the index selection listener when the user changes the selection.
+   * Method used to know if there are unsaved changes or not. It is used by the
+   * index selection listener when the user changes the selection.
+   *
    * @return <CODE>true</CODE> if there are unsaved changes (and so the
-   * selection of the index should be canceled) and <CODE>false</CODE>
-   * otherwise.
+   *         selection of the index should be canceled) and <CODE>false</CODE>
+   *         otherwise.
    */
   public boolean mustCheckUnsavedChanges()
   {
-    return (index != null) &&
+    return index != null &&
         saveChanges.isVisible() && saveChanges.isEnabled();
   }
 
   /**
    * Tells whether the user chose to save the changes in the panel, to not save
    * them or simply cancelled the selection in the tree.
+   *
    * @return the value telling whether the user chose to save the changes in the
-   * panel, to not save them or simply cancelled the selection change in the
-   * tree.
+   *         panel, to not save them or simply cancelled the selection change in
+   *         the tree.
    */
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     UnsavedChangesDialog.Result result;
-    UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(
-          Utilities.getParentDialog(this), getInfo());
+    UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(Utilities.getParentDialog(this), getInfo());
     unsavedChangesDlg.setMessage(INFO_CTRL_PANEL_UNSAVED_CHANGES_SUMMARY.get(),
-        INFO_CTRL_PANEL_UNSAVED_INDEX_CHANGES_DETAILS.get(index.getName()));
-    Utilities.centerGoldenMean(unsavedChangesDlg,
-          Utilities.getParentDialog(this));
+                                 INFO_CTRL_PANEL_UNSAVED_INDEX_CHANGES_DETAILS.get(index.getName()));
+    Utilities.centerGoldenMean(unsavedChangesDlg, Utilities.getParentDialog(this));
     unsavedChangesDlg.setVisible(true);
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
       saveIndex(false);
-      if ((newModifyTask == null) || // The user data is not valid
-          (newModifyTask.getState() != Task.State.FINISHED_SUCCESSFULLY))
+      if (newModifyTask == null || // The user data is not valid
+          newModifyTask.getState() != Task.State.FINISHED_SUCCESSFULLY)
       {
         result = UnsavedChangesDialog.Result.CANCEL;
       }
@@ -301,13 +292,10 @@ public class IndexPanel extends AbstractIndexPanel
     return result;
   }
 
-  /**
-   * Checks the enabling state of the save button.
-   *
-   */
+  /** Checks the enabling state of the save button. */
   private void checkSaveButton()
   {
-    if (!ignoreCheckSave && (index != null))
+    if (!ignoreCheckSave && index != null)
     {
       saveChanges.setEnabled(
           !authenticationRequired(getInfo().getServerDescriptor()) &&
@@ -317,38 +305,32 @@ public class IndexPanel extends AbstractIndexPanel
 
   private void deleteIndex()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_INDEX_TITLE.get(), getInfo());
-    ArrayList<AbstractIndexDescriptor> indexesToDelete =
-      new ArrayList<AbstractIndexDescriptor>();
+    ArrayList<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
     indexesToDelete.add(index);
-    DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg,
-        indexesToDelete);
+    DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg, indexesToDelete);
     for (Task task : getInfo().getTasks())
     {
       task.canLaunch(newTask, errors);
     }
+
     if (errors.isEmpty())
     {
       String indexName = index.getName();
       String backendName = index.getBackend().getBackendID();
-      if (displayConfirmationDialog(
-          INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_CONFIRMATION_INDEX_DELETE_DETAILS.get(indexName,
-              backendName)))
+      if (displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                                    INFO_CTRL_PANEL_CONFIRMATION_INDEX_DELETE_DETAILS.get(indexName, backendName)))
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_DELETING_INDEX_SUMMARY.get(),
             INFO_CTRL_PANEL_DELETING_INDEX_COMPLETE.get(),
-            INFO_CTRL_PANEL_DELETING_INDEX_SUCCESSFUL.get(indexName,
-                backendName),
+            INFO_CTRL_PANEL_DELETING_INDEX_SUCCESSFUL.get(indexName, backendName),
             ERR_CTRL_PANEL_DELETING_INDEX_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_DELETING_INDEX_ERROR_DETAILS.get(indexName),
-            null,
-            dlg);
+            ERR_CTRL_PANEL_DELETING_INDEX_ERROR_DETAILS.get(indexName), null, dlg);
         dlg.setVisible(true);
       }
     }
@@ -360,8 +342,9 @@ public class IndexPanel extends AbstractIndexPanel
 
   /**
    * Saves the index modifications.
-   * @param modal whether the progress dialog for the task must be modal or
-   * not.
+   *
+   * @param modal
+   *          whether the progress dialog for the task must be modal or not.
    */
   private void saveIndex(boolean modal)
   {
@@ -392,12 +375,9 @@ public class IndexPanel extends AbstractIndexPanel
         launchOperation(newModifyTask,
             INFO_CTRL_PANEL_MODIFYING_INDEX_SUMMARY.get(attributeName),
             INFO_CTRL_PANEL_MODIFYING_INDEX_COMPLETE.get(),
-            INFO_CTRL_PANEL_MODIFYING_INDEX_SUCCESSFUL.get(attributeName,
-                backendName),
+            INFO_CTRL_PANEL_MODIFYING_INDEX_SUCCESSFUL.get(attributeName, backendName),
             ERR_CTRL_PANEL_MODIFYING_INDEX_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_MODIFYING_INDEX_ERROR_DETAILS.get(attributeName),
-            null,
-            dlg);
+            ERR_CTRL_PANEL_MODIFYING_INDEX_ERROR_DETAILS.get(attributeName), null, dlg);
         saveChanges.setEnabled(false);
         dlg.setVisible(true);
       }
@@ -411,7 +391,9 @@ public class IndexPanel extends AbstractIndexPanel
 
   /**
    * Updates the contents of the panel with the provided index.
-   * @param index the index descriptor to be used to update the panel.
+   *
+   * @param index
+   *          the index descriptor to be used to update the panel.
    */
   public void update(IndexDescriptor index)
   {
@@ -451,7 +433,7 @@ public class IndexPanel extends AbstractIndexPanel
 
     JComponent[] comps = {entryLimit, lType, typesPanel, lEntryLimit};
 
-    for (int i=0; i<comps.length; i++)
+    for (int i = 0; i < comps.length; i++)
     {
       comps[i].setVisible(!index.isDatabaseIndex());
     }
@@ -494,8 +476,9 @@ public class IndexPanel extends AbstractIndexPanel
   /**
    * Returns <CODE>true</CODE> if the index has been modified and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the index has been modified and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   private boolean isModified()
   {
@@ -505,7 +488,6 @@ public class IndexPanel extends AbstractIndexPanel
 
   /**
    * The task in charge of modifying the index.
-   *
    */
   protected class ModifyIndexTask extends Task
   {
@@ -519,8 +501,11 @@ public class IndexPanel extends AbstractIndexPanel
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
     public ModifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
@@ -555,8 +540,7 @@ public class IndexPanel extends AbstractIndexPanel
     }
 
     /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -564,8 +548,7 @@ public class IndexPanel extends AbstractIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         if (backends.size() > 0)
         {
@@ -579,7 +562,9 @@ public class IndexPanel extends AbstractIndexPanel
 
     /**
      * Updates the configuration of the modified index.
-     * @throws OpenDsException if there is an error updating the configuration.
+     *
+     * @throws OpenDsException
+     *           if there is an error updating the configuration.
      */
     private void updateConfiguration() throws OpenDsException
     {
@@ -595,32 +580,28 @@ public class IndexPanel extends AbstractIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(),
-              ConfigReader.configFile);
+              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
             public void run()
             {
               StringBuilder sb = new StringBuilder();
               sb.append(getConfigCommandLineName());
-              List<String> args =
-                getObfuscatedCommandLineArguments(
-                    getDSConfigCommandLineArguments());
+              List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
 
-              printEquivalentCommandLine(getConfigCommandLineName(),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY_INDEX.get());
+              printEquivalentCommandLine(
+                      getConfigCommandLineName(), args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY_INDEX.get());
             }
           });
         }
+
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -629,6 +610,7 @@ public class IndexPanel extends AbstractIndexPanel
                     ColorAndFontConstants.progressFont));
           }
         });
+
         if (isServerRunning())
         {
           // Create additional indexes and display the equivalent command.
@@ -639,9 +621,9 @@ public class IndexPanel extends AbstractIndexPanel
         {
           modifyIndex();
         }
+
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -653,8 +635,7 @@ public class IndexPanel extends AbstractIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
           getInfo().startPooling();
         }
       }
@@ -662,29 +643,30 @@ public class IndexPanel extends AbstractIndexPanel
 
     /**
      * Returns the LDIF representation of the modified index.
+     *
      * @return the LDIF representation of the modified index.
      */
     private String getIndexLDIF()
     {
-      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
-      ",cn=Backends,cn=config";
-      ArrayList<String> lines = new ArrayList<String>();
-      lines.add("dn: "+
-          Utilities.getRDNString("ds-cfg-attribute", attributeName)+
-          ",cn=Index,"+dn);
+      final String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName) + ",cn=Backends,cn=config";
+      final List<String> lines = new ArrayList<String>();
+      lines.add("dn: " + Utilities.getRDNString("ds-cfg-attribute", attributeName) + ",cn=Index,"+dn);
       lines.add("objectClass: ds-cfg-local-db-index");
       lines.add("objectClass: top");
-      lines.add("ds-cfg-attribute: "+attributeName);
-      lines.add("ds-cfg-index-entry-limit: "+entryLimitValue);
+      lines.add("ds-cfg-attribute: " + attributeName);
+      lines.add("ds-cfg-index-entry-limit: " + entryLimitValue);
       for (IndexType type : indexTypes)
       {
         lines.add("ds-cfg-index-type: " + type);
       }
-      StringBuilder sb = new StringBuilder();
-      for (String line : lines)
+
+      final StringBuilder sb = new StringBuilder();
+      for (final String line : lines)
       {
-        sb.append(line).append(ServerConstants.EOL);
+        sb.append(line)
+          .append(ServerConstants.EOL);
       }
+
       return sb.toString();
     }
 
@@ -698,17 +680,13 @@ public class IndexPanel extends AbstractIndexPanel
         ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
         LDIFReader reader = new LDIFReader(ldifImportConfig);
         Entry newConfigEntry = reader.readEntry();
-        Entry oldEntry = DirectoryServer.getConfigEntry(
-            newConfigEntry.getName()).getEntry();
-        DirectoryServer.getConfigHandler().replaceEntry(oldEntry,
-            newConfigEntry,
-            null);
+        Entry oldEntry = DirectoryServer.getConfigEntry(newConfigEntry.getName()).getEntry();
+        DirectoryServer.getConfigHandler().replaceEntry(oldEntry, newConfigEntry, null);
         DirectoryServer.getConfigHandler().writeUpdatedConfig();
       }
       catch (IOException ioe)
       {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       catch (ConfigException ce)
       {
@@ -725,25 +703,25 @@ public class IndexPanel extends AbstractIndexPanel
 
     /**
      * Modifies index using the provided connection.
-     * @param ctx the connection to be used to update the index configuration.
-     * @throws OpenDsException if there is an error updating the server.
+     *
+     * @param ctx
+     *          the connection to be used to update the index configuration.
+     * @throws OpenDsException
+     *           if there is an error updating the server.
      */
     private void modifyIndex(InitialLdapContext ctx) throws OpenDsException
     {
       final StringBuilder sb = new StringBuilder();
       sb.append(getConfigCommandLineName());
-      Collection<String> args =
-        getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
+      Collection<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
       for (String arg : args)
       {
         sb.append(" ").append(CommandBuilder.escapeValue(arg));
       }
 
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend =
-        (LocalDBBackendCfgClient)root.getBackend(backendName);
+      LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendName);
       LocalDBIndexCfgClient index = backend.getLocalDBIndex(attributeName);
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
@@ -769,10 +747,11 @@ public class IndexPanel extends AbstractIndexPanel
     }
 
     /**
-     * Returns the full command-line path of the dsconfig command-line if we
-     * can provide an equivalent command-line (the server is running).
-     * @return the full command-line path of the dsconfig command-line if we
-     * can provide an equivalent command-line (the server is running).
+     * Returns the full command-line path of the dsconfig command-line if we can
+     * provide an equivalent command-line (the server is running).
+     *
+     * @return the full command-line path of the dsconfig command-line if we can
+     *         provide an equivalent command-line (the server is running).
      */
     private String getConfigCommandLineName()
     {
@@ -813,7 +792,7 @@ public class IndexPanel extends AbstractIndexPanel
     /** {@inheritDoc} */
     public void postOperation()
     {
-      if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY))
+      if (lastException == null && state == State.FINISHED_SUCCESSFULLY)
       {
         rebuildIndexIfNecessary(modifiedIndex, getProgressDialog());
       }
