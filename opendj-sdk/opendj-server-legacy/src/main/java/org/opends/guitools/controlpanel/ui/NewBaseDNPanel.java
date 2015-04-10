@@ -71,6 +71,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -83,8 +86,6 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
@@ -99,10 +100,10 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -141,10 +142,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
   private final LocalizableMessage NEW_BACKEND = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
 
-  /**
-   * The default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewBaseDNPanel()
   {
     super();
@@ -172,35 +170,56 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
+    addErrorPanel(gbc);
+    addBackendLabel(gbc);
+    addBackendNamesComboBox(gbc);
+    addNewBackendName(gbc);
+    addBaseDNLabel(gbc);
+    addBaseDNTextField(gbc);
+    addBaseDNInlineHelp(gbc);
+    addDirectoryDataLabel(gbc);
+    addImportDataChoiceSection(gbc);
+    addBottomGlue(gbc);
+  }
 
+  private void addErrorPanel(GridBagConstraints gbc)
+  {
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.gridwidth = 3;
     addErrorPane(gbc);
+  }
 
+  private void addBackendLabel(GridBagConstraints gbc)
+  {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.weightx = 0.0;
     gbc.gridwidth = 1;
     gbc.gridy ++;
     gbc.fill = GridBagConstraints.NONE;
-    lBackend = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_BACKEND_LABEL.get());
+    lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
     add(lBackend, gbc);
+  }
+
+  private void addBackendNamesComboBox(GridBagConstraints gbc)
+  {
     gbc.insets.left = 10;
     gbc.gridx = 1;
     backends = Utilities.createComboBox();
-    backends.setModel(new DefaultComboBoxModel(new Object[]{"bogus",
-        NEW_BACKEND}));
+    backends.setModel(new DefaultComboBoxModel(new Object[] {"bogus", NEW_BACKEND}));
     backends.setRenderer(new CustomListCellRenderer(backends));
     backends.addItemListener(new IgnoreItemListener(backends));
     gbc.gridwidth = 1;
     add(backends, gbc);
+
+  }
+
+  private void addNewBackendName(GridBagConstraints gbc)
+  {
     newBackend = Utilities.createTextField();
     newBackend.setColumns(25);
     gbc.gridx = 2;
@@ -216,16 +235,21 @@ public class NewBaseDNPanel extends StatusGenericPanel
     };
     backends.addItemListener(comboListener);
     comboListener.itemStateChanged(null);
+  }
 
+  private void addBaseDNLabel(GridBagConstraints gbc)
+  {
     gbc.insets.top = 10;
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
     gbc.gridwidth = 1;
-    lDirectoryBaseDN =
-      Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BASE_DN_LABEL.get());
+    lDirectoryBaseDN = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BASE_DN_LABEL.get());
     add(lDirectoryBaseDN, gbc);
+  }
 
+  private void addBaseDNTextField(GridBagConstraints gbc)
+  {
     gbc.gridx = 1;
     gbc.insets.left = 10;
     gbc.gridwidth = 2;
@@ -236,8 +260,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       public void changedUpdate(DocumentEvent ev)
       {
         String text = baseDN.getText().trim();
-        setEnabledOK((text != null) && (text.length() > 0) &&
-            !errorPane.isVisible());
+        setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
       }
 
       /** {@inheritDoc} */
@@ -256,25 +279,32 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(baseDN, gbc);
+  }
+
+  private void addBaseDNInlineHelp(GridBagConstraints gbc)
+  {
     gbc.gridy ++;
     gbc.anchor = GridBagConstraints.EAST;
     gbc.insets.top = 3;
-    JLabel inlineHelp =
-      Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_BASE_DN_EXAMPLE.get());
+    JLabel inlineHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_BASE_DN_EXAMPLE.get());
     add(inlineHelp, gbc);
+  }
 
+  private void addDirectoryDataLabel(GridBagConstraints gbc)
+  {
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
     gbc.weightx = 0.0;
-    lDirectoryData = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_DIRECTORY_DATA_LABEL.get());
+    lDirectoryData = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_DIRECTORY_DATA_LABEL.get());
     add(lDirectoryData, gbc);
+  }
 
-    onlyCreateBaseEntry = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_ONLY_CREATE_BASE_ENTRY_LABEL.get());
+  private void addImportDataChoiceSection(GridBagConstraints gbc)
+  {
+    onlyCreateBaseEntry = Utilities.createRadioButton(INFO_CTRL_PANEL_ONLY_CREATE_BASE_ENTRY_LABEL.get());
     onlyCreateBaseEntry.setSelected(false);
 
     gbc.insets.left = 10;
@@ -282,8 +312,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.gridwidth = 2;
     add(onlyCreateBaseEntry, gbc);
 
-    leaveDatabaseEmpty = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_LEAVE_DATABASE_EMPTY_LABEL.get());
+    leaveDatabaseEmpty = Utilities.createRadioButton(INFO_CTRL_PANEL_LEAVE_DATABASE_EMPTY_LABEL.get());
     leaveDatabaseEmpty.setSelected(false);
 
     gbc.gridy ++;
@@ -291,8 +320,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.insets.top = 5;
     add(leaveDatabaseEmpty, gbc);
 
-    importDataFromLDIF = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_IMPORT_FROM_LDIF_LABEL.get());
+    importDataFromLDIF = Utilities.createRadioButton(INFO_CTRL_PANEL_IMPORT_FROM_LDIF_LABEL.get());
     importDataFromLDIF.setSelected(false);
 
     gbc.gridy ++;
@@ -337,6 +365,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         lNumberOfEntries.setEnabled(importAutomaticallyGenerated.isSelected());
       }
     };
+
     Enumeration<AbstractButton> buttons = group.getElements();
     while (buttons.hasMoreElements())
     {
@@ -344,8 +373,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
     onlyCreateBaseEntry.setSelected(true);
     listener.stateChanged(null);
-
-    addBottomGlue(gbc);
   }
 
   /** {@inheritDoc} */
@@ -360,18 +387,17 @@ public class NewBaseDNPanel extends StatusGenericPanel
         sortedBackends.add(backend.getBackendID());
       }
     }
+
     ArrayList<Object> newElements = new ArrayList<Object>(sortedBackends);
     if (sortedBackends.size() > 0)
     {
       newElements.add(COMBO_SEPARATOR);
     }
     newElements.add(NEW_BACKEND);
-    super.updateComboBoxModel(newElements,
-        ((DefaultComboBoxModel)backends.getModel()));
+    super.updateComboBoxModel(newElements, (DefaultComboBoxModel) backends.getModel());
     updateErrorPaneAndOKButtonIfAuthRequired(desc,
-      isLocal() ?
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get() :
-      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+        isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get() :
+                    INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
       public void run()
@@ -390,8 +416,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.gridwidth = 1;
     gbc.gridy = 0;
     gbc.gridx = 0;
-    lPath = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_IMPORT_LDIF_PATH_LABEL.get());
+    lPath = Utilities.createDefaultLabel(INFO_CTRL_PANEL_IMPORT_LDIF_PATH_LABEL.get());
     panel.add(lPath, gbc);
 
     gbc.gridx = 1;
@@ -400,19 +425,16 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel.add(path, gbc);
-    browseImportPath =
-      Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+    browseImportPath = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     browseImportPath.addActionListener(
-        new BrowseActionListener(path,
-            BrowseActionListener.BrowseType.OPEN_LDIF_FILE,  this));
+        new BrowseActionListener(path, BrowseActionListener.BrowseType.OPEN_LDIF_FILE,  this));
     gbc.gridx = 2;
     gbc.weightx = 0.0;
     panel.add(browseImportPath, gbc);
 
     gbc.gridy ++;
     gbc.gridx = 1;
-    lRemoteFileHelp = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
     gbc.insets.top = 3;
     gbc.insets.left = 10;
     panel.add(lRemoteFileHelp, gbc);
@@ -427,8 +449,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    lNumberOfEntries = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NUMBER_OF_USER_ENTRIES_LABEL.get());
+    lNumberOfEntries = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NUMBER_OF_USER_ENTRIES_LABEL.get());
     panel.add(lNumberOfEntries, gbc);
 
     gbc.gridx = 1;
@@ -566,11 +587,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (importDataFromLDIF.isSelected())
     {
       String ldifPath = path.getText();
-      if ((ldifPath == null) || (ldifPath.trim().equals("")))
+      if (ldifPath == null || "".equals(ldifPath.trim()))
       {
         errors.add(INFO_NO_LDIF_PATH.get());
         setSecondaryInvalid(lPath);
-      } else if (isLocal() && !Utils.fileExists(ldifPath))
+      }
+      else if (isLocal() && !Utils.fileExists(ldifPath))
       {
         errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
         setSecondaryInvalid(lPath);
@@ -589,13 +611,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
-          getInfo());
+          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(), getInfo());
       NewBaseDNTask newTask = new NewBaseDNTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
       }
+
       if (errors.isEmpty())
       {
         launchOperation(newTask,
@@ -612,6 +634,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
+
     if (errors.size() > 0)
     {
       displayErrorDialog(errors);
@@ -640,10 +663,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     return NEW_BACKEND.equals(backends.getSelectedItem());
   }
 
-  /**
-   * The task in charge of creating the base DN (and if required, the backend).
-   *
-   */
+  /** The task in charge of creating the base DN (and if required, the backend). */
   protected class NewBaseDNTask extends Task
   {
     Set<String> backendSet;
@@ -697,42 +717,33 @@ public class NewBaseDNPanel extends StatusGenericPanel
     /** {@inheritDoc} */
     public LocalizableMessage getTaskDescription()
     {
-      return INFO_CTRL_PANEL_NEW_BASE_DN_TASK_DESCRIPTION.get(newBaseDN,
-      backendSet.iterator().next());
+      return INFO_CTRL_PANEL_NEW_BASE_DN_TASK_DESCRIPTION.get(newBaseDN, backendSet.iterator().next());
     }
 
     /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         if (backends.size() > 0)
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }
       return canLaunch;
     }
 
-    /**
-     * Returns the equivalent command-line to generate the data.
-     * @return the equivalent command-line to generate the data.
-     */
     private String getDataCommandLineToDisplay()
     {
       StringBuilder sb = new StringBuilder();
       sb.append(getDataCommandLineName());
-      Collection<String> args = getObfuscatedCommandLineArguments(
-            getDataCommandLineArguments(path.getText(), false));
+      Collection<String> args = getObfuscatedCommandLineArguments(getDataCommandLineArguments(path.getText(), false));
       args.removeAll(getConfigCommandLineArguments());
       for (String arg : args)
       {
@@ -741,41 +752,28 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return sb.toString();
     }
 
-    /**
-     * Returns the path of the command-line to be used to generate the data.
-     * @return the path of the command-line to be used to generate the data.
-     */
     private String getDataCommandLineName()
     {
-      String cmdLineName;
       if (!leaveDatabaseEmpty.isSelected())
       {
-        if (isLocal())
-        {
-          cmdLineName = getCommandLinePath("import-ldif");
-        }
-        else
-        {
-          cmdLineName = getCommandLinePath("ldapmodify");
-        }
+         return  getCommandLinePath(isLocal() ? "import-ldif" : "ldapmodify");
       }
-      else
-      {
-        cmdLineName = null;
-      }
-      return cmdLineName;
+
+      return null;
     }
 
     /**
      * Returns the arguments of the command-line that can be used to generate
      * the data.
-     * @param ldifFile the LDIF file.
-     * @param useTemplate whether to use a template or not.
+     *
+     * @param ldifFile
+     *          the LDIF file.
+     * @param useTemplate
+     *          whether to use a template or not.
      * @return the arguments of the command-line that can be used to generate
-     * the data.
+     *         the data.
      */
-    private ArrayList<String> getDataCommandLineArguments(String ldifFile,
-        boolean useTemplate)
+    private ArrayList<String> getDataCommandLineArguments(String ldifFile, boolean useTemplate)
     {
       ArrayList<String> args = new ArrayList<String>();
       if (!leaveDatabaseEmpty.isSelected())
@@ -814,6 +812,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
         args.add(getNoPropertiesFileArgument());
       }
+
       return args;
     }
 
@@ -830,8 +829,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-                org.opends.server.extensions.ConfigFileHandler.class.getName(),
-                ConfigReader.configFile);
+              ConfigFileHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
           configHandlerUpdated = true;
         }
@@ -842,15 +840,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
             /** {@inheritDoc} */
             public void run()
             {
-              List<String> args =
-                getObfuscatedCommandLineArguments(
-                    getDSConfigCommandLineArguments());
+              List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineFullPath(),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_BASE_DN.get());
+              printEquivalentCommandLine(
+                  getConfigCommandLineFullPath(), args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_BASE_DN.get());
             }
           });
         }
+
         if (isNewBackend())
         {
           SwingUtilities.invokeLater(new Runnable()
@@ -858,22 +855,20 @@ public class NewBaseDNPanel extends StatusGenericPanel
             /** {@inheritDoc} */
             public void run()
             {
-              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(
-                  getBackendName(), newBaseDN);
+              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(getBackendName(), newBaseDN);
               getProgressDialog().appendProgressHtml(
-                  Utilities.getProgressWithPoints(msg,
-                  ColorAndFontConstants.progressFont));
+                  Utilities.getProgressWithPoints(msg, ColorAndFontConstants.progressFont));
             }
           });
+
           if (isServerRunning())
           {
-            createBackend(getInfo().getDirContext(), getBackendName(),
-                newBaseDN);
+            createBackend(getInfo().getDirContext(), getBackendName(), newBaseDN);
           }
           else
           {
-            createBackend(getBackendName(), newBaseDN);
-            createAdditionalIndexes(getBackendName());
+            copyLdifEntries(getBackendLdif(getBackendName()));
+            copyLdifEntries(getAdditionalIndexLdif(getBackendName()));
           }
         }
         else
@@ -883,13 +878,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
             /** {@inheritDoc} */
             public void run()
             {
-              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(
-                  newBaseDN, getBackendName());
+              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(newBaseDN, getBackendName());
               getProgressDialog().appendProgressHtml(
-                  Utilities.getProgressWithPoints(msg,
-                  ColorAndFontConstants.progressFont));
+                  Utilities.getProgressWithPoints(msg, ColorAndFontConstants.progressFont));
             }
           });
+
           if (isServerRunning())
           {
             addBaseDN(getInfo().getDirContext(), getBackendName(), newBaseDN);
@@ -899,14 +893,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
             addBaseDN(getBackendName(), newBaseDN);
           }
         }
+
         SwingUtilities.invokeLater(new Runnable()
         {
           /** {@inheritDoc} */
           public void run()
           {
             getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont)+
-            "<br><br>");
+                Utilities.getProgressDone(ColorAndFontConstants.progressFont) + "<br><br>");
           }
         });
 
@@ -925,8 +919,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             public void run()
             {
               getProgressDialog().getProgressBar().setIndeterminate(false);
-              getProgressDialog().getProgressBar().setValue(
-                  progressAfterConfigurationUpdate);
+              getProgressDialog().getProgressBar().setValue(progressAfterConfigurationUpdate);
             }
           });
         }
@@ -935,27 +928,56 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
           getInfo().startPooling();
+        }
+      }
+    }
+
+    private void copyLdifEntries(final String ldif) throws OpenDsException
+    {
+      LDIFImportConfig ldifImportConfig = null;
+      try
+      {
+        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        LDIFReader reader = new LDIFReader(ldifImportConfig);
+        Entry indexEntry;
+        while ((indexEntry = reader.readEntry()) != null)
+        {
+          DirectoryServer.getConfigHandler().addEntry(indexEntry, null);
+        }
+        DirectoryServer.getConfigHandler().writeUpdatedConfig();
+      }
+      catch (IOException ioe)
+      {
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+      }
+      finally
+      {
+        if (ldifImportConfig != null)
+        {
+          ldifImportConfig.close();
         }
       }
     }
 
     /**
      * Creates the data in the new base DN.
-     * @throws OpenDsException if there is an error importing contents.
-     * @throws IOException if there is an err
+     *
+     * @throws OpenDsException
+     *           if there is an error importing contents.
+     * @throws IOException
+     *           if there is an err
      */
     private void updateData() throws OpenDsException, IOException
     {
       final boolean leaveEmpty = leaveDatabaseEmpty.isSelected();
       final boolean createBaseEntry = onlyCreateBaseEntry.isSelected();
       final boolean importLDIF = importDataFromLDIF.isSelected();
-      final boolean generateData = !leaveEmpty && !createBaseEntry &&
-      !importLDIF;
+      final boolean generateData = !leaveEmpty && !createBaseEntry && !importLDIF;
       final String nEntries = numberOfEntries.getText();
       final String ldif = path.getText();
+
       if (leaveEmpty)
       {
         state = State.FINISHED_SUCCESSFULLY;
@@ -973,8 +995,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             public void run()
             {
               progressDialog.appendProgressHtml(Utilities.applyFont(
-                  "Equivalent command line:<br><b>"+cmdLine+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+                  "Equivalent command line:<br><b>" + cmdLine + "</b><br><br>", ColorAndFontConstants.progressFont));
             }
           });
         }
@@ -985,8 +1006,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             public void run()
             {
               progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
-                  INFO_PROGRESS_CREATING_BASE_ENTRY.get(newBaseDN),
-                  ColorAndFontConstants.progressFont));
+                  INFO_PROGRESS_CREATING_BASE_ENTRY.get(newBaseDN), ColorAndFontConstants.progressFont));
             }
           });
           InstallerHelper helper = new InstallerHelper();
@@ -1002,26 +1022,25 @@ public class NewBaseDNPanel extends StatusGenericPanel
               if (isLocal())
               {
                 progressDialog.appendProgressHtml(Utilities.applyFont(
-                    INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries).
-                    toString(), ColorAndFontConstants.progressFont)+"<br>");
+                    INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries).toString(),
+                    ColorAndFontConstants.progressFont) + "<br>");
               }
               else
               {
-                getProgressDialog().appendProgressHtml(
-                    Utilities.getProgressWithPoints(
-              INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_REMOTE.get(nEntries),
-                      ColorAndFontConstants.progressFont));
+                getProgressDialog().appendProgressHtml(Utilities.getProgressWithPoints(
+                    INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_REMOTE.get(nEntries),
+                    ColorAndFontConstants.progressFont));
               }
             }
           });
-          File f = SetupUtils.createTemplateFile(newBaseDN,
-              Integer.parseInt(nEntries));
+
+          File f = SetupUtils.createTemplateFile(newBaseDN, Integer.parseInt(nEntries));
           if (!isLocal())
           {
-            File tempFile = File.createTempFile("opendj-control-panel",
-                ".ldif");
+            File tempFile = File.createTempFile("opendj-control-panel", ".ldif");
             tempFile.deleteOnExit();
             ldifFile = tempFile.getAbsolutePath();
+
             // Create the LDIF file locally using make-ldif
             ArrayList<String> makeLDIFArgs = new ArrayList<String>();
             makeLDIFArgs.add("--templateFile");
@@ -1031,22 +1050,20 @@ public class NewBaseDNPanel extends StatusGenericPanel
             makeLDIFArgs.add("--randomSeed");
             makeLDIFArgs.add("0");
             makeLDIFArgs.add("--resourcePath");
-            File makeLDIFPath =
-              new File(Installation.getLocal().getConfigurationDirectory(),
-                  "MakeLDIF");
+
+            File makeLDIFPath = new File(Installation.getLocal().getConfigurationDirectory(), "MakeLDIF");
             makeLDIFArgs.add(makeLDIFPath.getAbsolutePath());
             makeLDIFArgs.addAll(getConfigCommandLineArguments());
+
             MakeLDIF makeLDIF = new MakeLDIF();
             String[] array = new String[makeLDIFArgs.size()];
             makeLDIFArgs.toArray(array);
-            returnCode = makeLDIF.makeLDIFMain(array, false, false,
-                outPrintStream, errorPrintStream);
+            returnCode = makeLDIF.makeLDIFMain(array, false, false, outPrintStream, errorPrintStream);
             f.delete();
+
             if (returnCode != 0)
             {
-              throw new OnlineUpdateException(
-                  ERR_CTRL_PANEL_ERROR_CREATING_NEW_DATA_LDIF.get(returnCode),
-                  null);
+              throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_CREATING_NEW_DATA_LDIF.get(returnCode), null);
             }
           }
           else
@@ -1054,11 +1071,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
             ldifFile = f.getAbsolutePath();
           }
         }
-        ArrayList<String> arguments = getDataCommandLineArguments(ldifFile,
-            generateData);
 
+        ArrayList<String> arguments = getDataCommandLineArguments(ldifFile, generateData);
         String[] args = new String[arguments.size()];
-
         arguments.toArray(args);
         if (createBaseEntry || !isLocal())
         {
@@ -1071,15 +1086,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
           {
             if (isLocal() || importLDIF)
             {
-              returnCode = ImportLDIF.mainImportLDIF(args, false,
-                  outPrintStream,
-                errorPrintStream);
+              returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream, errorPrintStream);
             }
             else
             {
-              returnCode = LDAPModify.mainModify(args,  false,
-                  outPrintStream,
-                  errorPrintStream);
+              returnCode = LDAPModify.mainModify(args,  false, outPrintStream, errorPrintStream);
             }
           }
           else
@@ -1089,10 +1100,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
         finally
         {
-          {
-            outPrintStream.setNotifyListeners(true);
-            errorPrintStream.setNotifyListeners(true);
-          }
+          outPrintStream.setNotifyListeners(true);
+          errorPrintStream.setNotifyListeners(true);
         }
 
         if (returnCode != 0)
@@ -1107,9 +1116,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             {
               public void run()
               {
-                progressDialog.appendProgressHtml(
-                    Utilities.getProgressDone(
-                        ColorAndFontConstants.progressFont));
+                progressDialog.appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
               }
             });
           }
@@ -1118,16 +1125,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    private void createBackend(InitialLdapContext ctx, String backendName,
-        String baseDN) throws OpenDsException
+    private void createBackend(InitialLdapContext ctx, String backendName, String baseDN) throws OpenDsException
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
       LocalDBBackendCfgDefn provider = LocalDBBackendCfgDefn.getInstance();
-      LocalDBBackendCfgClient backend = root.createBackend(provider,
-          backendName, null);
+      LocalDBBackendCfgClient backend = root.createBackend(provider, backendName, null);
       backend.setEnabled(true);
+
       Set<DN> baseDNs = new HashSet<DN>();
       baseDNs.add(DN.valueOf(baseDN));
       backend.setBaseDN(baseDNs);
@@ -1138,10 +1143,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     private String getBackendLdif(String backendName)
     {
-      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
-      ",cn=Backends,cn=config";
+      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName )+ ",cn=Backends,cn=config";
       return Utilities.makeLdif(
-          "dn: "+dn,
+          "dn: " + dn,
           "objectClass: top",
           "objectClass: ds-cfg-backend",
           "objectClass: ds-cfg-local-db-backend",
@@ -1153,30 +1157,30 @@ public class NewBaseDNPanel extends StatusGenericPanel
           "ds-cfg-backend-id: " + backendName,
           "ds-cfg-db-directory: db",
           "",
-          "dn: cn=Index,"+dn,
+          "dn: cn=Index," + dn,
           "objectClass: top",
           "objectClass: ds-cfg-branch",
           "cn: Index",
           "",
-          "dn: ds-cfg-attribute=aci,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=aci,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: aci",
           "ds-cfg-index-type: presence",
           "",
-          "dn: ds-cfg-attribute=ds-sync-hist,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=ds-sync-hist,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: ds-sync-hist",
           "ds-cfg-index-type: ordering",
           "",
-          "dn: ds-cfg-attribute=entryUUID,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=entryUUID,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: entryUUID",
           "ds-cfg-index-type: equality",
           "",
-          "dn: ds-cfg-attribute=objectClass,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=objectClass,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: objectClass",
@@ -1186,56 +1190,56 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     private String getAdditionalIndexLdif(String backendName)
     {
-      String dn = "ds-cfg-backend-id="+backendName+",cn=Backends,cn=config";
+      String dn = "ds-cfg-backend-id=" + backendName + ",cn=Backends,cn=config";
       return Utilities.makeLdif(
-          "dn: ds-cfg-attribute=cn,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=cn,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: cn",
           "ds-cfg-index-type: equality",
           "ds-cfg-index-type: substring",
           "",
-          "dn: ds-cfg-attribute=givenName,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=givenName,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: givenName",
           "ds-cfg-index-type: equality",
           "ds-cfg-index-type: substring",
           "",
-          "dn: ds-cfg-attribute=mail,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=mail,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: mail",
           "ds-cfg-index-type: equality",
           "ds-cfg-index-type: substring",
           "",
-          "dn: ds-cfg-attribute=member,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=member,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: member",
           "ds-cfg-index-type: equality",
           "",
-          "dn: ds-cfg-attribute=sn,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=sn,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: sn",
           "ds-cfg-index-type: equality",
           "ds-cfg-index-type: substring",
           "",
-          "dn: ds-cfg-attribute=telephoneNumber,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=telephoneNumber,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: telephoneNumber",
           "ds-cfg-index-type: equality",
           "ds-cfg-index-type: substring",
           "",
-          "dn: ds-cfg-attribute=uid,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=uid,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: uid",
           "ds-cfg-index-type: equality",
           "",
-          "dn: ds-cfg-attribute=uniqueMember,cn=Index,"+dn,
+          "dn: ds-cfg-attribute=uniqueMember,cn=Index," + dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
           "ds-cfg-attribute: uniqueMember",
@@ -1243,73 +1247,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
       );
     }
 
-    private void createBackend(String backendName, String baseDN)
-    throws OpenDsException
+    private void createAdditionalIndexes(InitialLdapContext ctx, String backendName) throws OpenDsException
     {
-      LDIFImportConfig ldifImportConfig = null;
-      try
-      {
-        String ldif = getBackendLdif(backendName);
-
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
-        Entry backendConfigEntry;
-        while ((backendConfigEntry = reader.readEntry()) != null)
-        {
-          DirectoryServer.getConfigHandler().addEntry(backendConfigEntry, null);
-        }
-        DirectoryServer.getConfigHandler().writeUpdatedConfig();
-      }
-      catch (IOException ioe)
-      {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
-      }
-      finally
-      {
-        if (ldifImportConfig != null)
-        {
-          ldifImportConfig.close();
-        }
-      }
-    }
-
-    private void createAdditionalIndexes(String backendName)
-    throws OpenDsException
-    {
-      LDIFImportConfig ldifImportConfig = null;
-      try
-      {
-        String ldif = getAdditionalIndexLdif(backendName);
-
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
-        Entry indexEntry;
-        while ((indexEntry = reader.readEntry()) != null)
-        {
-          DirectoryServer.getConfigHandler().addEntry(indexEntry, null);
-        }
-        DirectoryServer.getConfigHandler().writeUpdatedConfig();
-      }
-      catch (IOException ioe)
-      {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
-      }
-      finally
-      {
-        if (ldifImportConfig != null)
-        {
-          ldifImportConfig.close();
-        }
-      }
-    }
-
-    private void createAdditionalIndexes(InitialLdapContext ctx,
-        String backendName) throws OpenDsException
-    {
-      ArrayList<ArrayList<String>> argsArray =
-        new ArrayList<ArrayList<String>>();
+      ArrayList<ArrayList<String>> argsArray = new ArrayList<ArrayList<String>>();
       ArrayList<String> dns = new ArrayList<String>();
       ArrayList<Attributes> attributes = new ArrayList<Attributes>();
 
@@ -1343,8 +1283,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           }
           attrs.put(oc);
 
-          List<org.opends.server.types.Attribute> odsAttrs =
-            indexEntry.getAttributes();
+          List<org.opends.server.types.Attribute> odsAttrs = indexEntry.getAttributes();
           for (org.opends.server.types.Attribute odsAttr : odsAttrs)
           {
             String attrName = odsAttr.getName();
@@ -1356,12 +1295,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
             attrs.put(attr);
 
-            if (attrName.equalsIgnoreCase("ds-cfg-attribute"))
+            if ("ds-cfg-attribute".equalsIgnoreCase(attrName))
             {
               args.add("--index-name");
               args.add(odsAttr.iterator().next().toString());
             }
-            else if (attrName.equalsIgnoreCase("ds-cfg-index-type"))
+            else if ("ds-cfg-index-type".equalsIgnoreCase(attrName))
             {
               it = odsAttr.iterator();
               while (it.hasNext())
@@ -1382,8 +1321,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         StringBuilder sb = new StringBuilder();
         for (List<String> args : argsArray)
         {
-          sb.append(getEquivalentCommandLine(getCommandLinePath("dsconfig"),
-              getObfuscatedCommandLineArguments(args)));
+          sb.append(getEquivalentCommandLine(getCommandLinePath("dsconfig"), getObfuscatedCommandLineArguments(args)));
           sb.append("<br><br>");
         }
         final String cmdLines = sb.toString();
@@ -1392,13 +1330,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
           public void run()
           {
             getProgressDialog().appendProgressHtml(Utilities.applyFont(
-             INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ADDITIONAL_INDEXES.get()+
-             "<br><br><b>"+cmdLines+"</b>",
+             INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ADDITIONAL_INDEXES.get() + "<br><br><b>" + cmdLines + "</b>",
              ColorAndFontConstants.progressFont));
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressWithPoints(
-                    INFO_CTRL_PANEL_CREATING_ADDITIONAL_INDEXES_PROGRESS.get(),
-                    ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(Utilities.getProgressWithPoints(
+                    INFO_CTRL_PANEL_CREATING_ADDITIONAL_INDEXES_PROGRESS.get(), ColorAndFontConstants.progressFont));
           }
         });
 
@@ -1412,15 +1347,13 @@ public class NewBaseDNPanel extends StatusGenericPanel
           public void run()
           {
             getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont)+
-                "<br><br>");
+                Utilities.getProgressDone(ColorAndFontConstants.progressFont) + "<br><br>");
           }
         });
       }
       catch (Throwable t)
       {
-        throw new OnlineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t), t);
+        throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t), t);
       }
       finally
       {
@@ -1431,12 +1364,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    private void addBaseDN(String backendName, String baseDN)
-    throws OpenDsException, ConfigException
+    private void addBaseDN(String backendName, String baseDN) throws OpenDsException, ConfigException
     {
       LinkedList<DN> baseDNs = new LinkedList<DN>();
-      for (BackendDescriptor backend :
-        getInfo().getServerDescriptor().getBackends())
+      for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
       {
         if (backend.getBackendID().equalsIgnoreCase(backendName))
         {
@@ -1449,28 +1380,22 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       baseDNs.add(DN.valueOf(baseDN));
 
-      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
-      ",cn=Backends,cn=config";
-      ConfigEntry configEntry =
-        DirectoryServer.getConfigHandler().getConfigEntry(DN.valueOf(dn));
+      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName) + ",cn=Backends,cn=config";
+      ConfigEntry configEntry = DirectoryServer.getConfigHandler().getConfigEntry(DN.valueOf(dn));
 
       DNConfigAttribute baseDNAttr =
         new DNConfigAttribute(
-            ConfigConstants.ATTR_BACKEND_BASE_DN,
-            INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
+            ConfigConstants.ATTR_BACKEND_BASE_DN, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
             true, true, false, baseDNs);
       configEntry.putConfigAttribute(baseDNAttr);
       DirectoryServer.getConfigHandler().writeUpdatedConfig();
     }
 
-    private void addBaseDN(InitialLdapContext ctx, String backendName,
-        String baseDN) throws OpenDsException
+    private void addBaseDN(InitialLdapContext ctx, String backendName, String baseDN) throws OpenDsException
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend =
-        (LocalDBBackendCfgClient)root.getBackend(backendName);
+      LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendName);
 
       Set<DN> baseDNs = backend.getBaseDN();
       DN dn = DN.valueOf(baseDN);
@@ -1491,26 +1416,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return new ArrayList<String>();
     }
 
-    /**
-     * Returns the configuration command-line full path.
-     * @return the configuration command-line full path.
-     */
     private String getConfigCommandLineFullPath()
     {
-      if (isServerRunning())
-      {
-        return getCommandLinePath("dsconfig");
-      }
-      else
-      {
-        return null;
-      }
+      return isServerRunning() ? getCommandLinePath("dsconfig") : null;
     }
 
-    /**
-     * Returns the configuration command-line arguments.
-     * @return the configuration command-line arguments.
-     */
     private ArrayList<String> getDSConfigCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
