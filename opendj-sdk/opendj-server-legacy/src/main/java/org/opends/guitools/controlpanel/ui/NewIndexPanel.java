@@ -344,9 +344,8 @@ public class NewIndexPanel extends AbstractIndexPanel
 
   private String getAttributeName()
   {
-    CategorizedComboBoxElement o =
-      (CategorizedComboBoxElement)attributes.getSelectedItem();
-    return o != null ? o.toString() : null;
+    CategorizedComboBoxElement o = (CategorizedComboBoxElement) attributes.getSelectedItem();
+    return o != null ? o.getValue().toString() : null;
   }
 
   /**
