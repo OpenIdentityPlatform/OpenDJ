@@ -34,26 +34,33 @@ import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.AttributeType;
 
 /**
- * The class used to describe the index configuration (the normal index: the
- * one used to improve search performance on a given attribute).
- *
+ * The class used to describe the index configuration (the normal index: the one
+ * used to improve search performance on a given attribute).
  */
 public class IndexDescriptor extends AbstractIndexDescriptor
 {
 
-  private SortedSet<IndexType> types = new TreeSet<IndexType>();
-  private boolean isDatabaseIndex;
-  private int entryLimit;
-  private AttributeType attr;
+  private static final String[] DATABASE_INDEXES = new String[] {"dn2id", "id2children", "id2subtree"};
+
+  private final SortedSet<IndexType> types = new TreeSet<IndexType>();
+  private final boolean isDatabaseIndex;
+  private final int entryLimit;
+  private final AttributeType attr;
   private int hashCode;
 
   /**
-   * Constructor of the index.
-   * @param name name of the index.
-   * @param attr the attribute type associated with the index attribute.
-   * @param backend the backend where the index is defined.
-   * @param types the type of indexes (equality, substring, etc.).
-   * @param entryLimit the entry limit for the index.
+   * Constructor of the index descriptor.
+   *
+   * @param name
+   *          name of the index.
+   * @param attr
+   *          the attribute type associated with the index attribute.
+   * @param backend
+   *          the backend where the index is defined.
+   * @param types
+   *          the type of indexes (equality, substring, etc.).
+   * @param entryLimit
+   *          the entry limit for the index.
    */
   public IndexDescriptor(String name, AttributeType attr,
       BackendDescriptor backend,
@@ -69,6 +76,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the attribute type associated with the index attribute.
+   *
    * @return the attribute type associated with the index attribute.
    */
   public AttributeType getAttributeType()
@@ -76,13 +84,13 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     return attr;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compareTo(AbstractIndexDescriptor o)
   {
     return getName().toLowerCase().compareTo(o.getName().toLowerCase());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -90,6 +98,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the type of indexes (equality, substring, etc.).
+   *
    * @return the type of indexes (equality, substring, etc.).
    */
   public SortedSet<IndexType> getTypes()
@@ -98,10 +107,11 @@ public class IndexDescriptor extends AbstractIndexDescriptor
   }
 
   /**
-   * Tells whether this is a database index or not.  Database indexes are not
+   * Tells whether this is a database index or not. Database indexes are not
    * modifiable and for internal use only.
+   *
    * @return <CODE>true</CODE> if this is a database index and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isDatabaseIndex()
   {
@@ -110,18 +120,25 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Tells whether the provide index name corresponds to a database index or
-   * not.  Database indexes are not modifiable and for internal use only.
+   * not. Database indexes are not modifiable and for internal use only.
+   *
    * @return <CODE>true</CODE> if the provide index name corresponds to a
-   * database index and <CODE>false</CODE> otherwise.
+   *         database index and <CODE>false</CODE> otherwise.
    */
-  private boolean isDatabaseIndex(String name)
+  private boolean isDatabaseIndex(final String indexName)
   {
-    return name.equalsIgnoreCase("dn2id") ||
-    name.equalsIgnoreCase("id2children") ||
-    name.equalsIgnoreCase("id2subtree");
+    for (final String dbIndex : DATABASE_INDEXES)
+    {
+      if (indexName.equalsIgnoreCase(dbIndex))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (o == this)
@@ -132,7 +149,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     {
       return false;
     }
-    IndexDescriptor index = (IndexDescriptor)o;
+    final IndexDescriptor index = (IndexDescriptor)o;
     return index.getName().equalsIgnoreCase(getName())
         && index.isDatabaseIndex() == isDatabaseIndex()
         && index.getTypes().equals(getTypes())
@@ -149,6 +166,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the entry limit of the index.
+   *
    * @return the entry limit of the index.
    */
   public int getEntryLimit()
@@ -156,11 +174,11 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     return entryLimit;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void recalculateHashCode()
   {
-    StringBuilder sb = new StringBuilder();
-    for (IndexType t : types)
+    final StringBuilder sb = new StringBuilder();
+    for (final IndexType t : types)
     {
       sb.append(t).append(",");
     }
