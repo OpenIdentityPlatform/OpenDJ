@@ -27,6 +27,7 @@
 
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
@@ -93,16 +94,15 @@ import com.forgerock.opendj.cli.CommandBuilder;
 /**
  * The panel that displays an existing VLV index (it appears on the right of the
  * 'Manage Indexes' dialog).
- *
  */
 public class VLVIndexPanel extends AbstractVLVIndexPanel
 {
   private static final long serialVersionUID = 6333337497315464283L;
-  private JButton deleteIndex = Utilities.createButton(
-      INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
-  private JButton saveChanges = Utilities.createButton(
-      INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());
-  private JLabel warning = Utilities.createDefaultLabel();
+  private static final LocalizableMessage INDEX_MODIFIED = INFO_CTRL_PANEL_INDEX_MODIFIED_MESSAGE.get();
+
+  private final JButton deleteIndex = Utilities.createButton(INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
+  private final JButton saveChanges = Utilities.createButton(INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());
+  private final JLabel warning = Utilities.createDefaultLabel();
 
   private ScrollPaneBorderListener scrollListener;
 
@@ -110,47 +110,39 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   private boolean ignoreCheckSave;
 
-  private LocalizableMessage INDEX_MODIFIED =
-    INFO_CTRL_PANEL_INDEX_MODIFIED_MESSAGE.get();
-
-
   private VLVIndexDescriptor index;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public VLVIndexPanel()
   {
     super(null, null);
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VLV_INDEX_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return baseDN;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     if (updateLayout(desc))
     {
-      updateErrorPaneIfAuthRequired(desc,
-          isLocal() ?
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_VLV_INDEX_EDITING.get() :
-      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+      LocalizableMessage msg = isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_VLV_INDEX_EDITING.get()
+                                         : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname());
+      updateErrorPaneIfAuthRequired(desc, msg);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           checkSaveButton();
@@ -160,47 +152,46 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
 
   /**
-   * Method used to know if there are unsaved changes or not.  It is used by
-   * the index selection listener when the user changes the selection.
+   * Method used to know if there are unsaved changes or not. It is used by the
+   * index selection listener when the user changes the selection.
+   *
    * @return <CODE>true</CODE> if there are unsaved changes (and so the
-   * selection of the index should be canceled) and <CODE>false</CODE>
-   * otherwise.
+   *         selection of the index should be canceled) and <CODE>false</CODE>
+   *         otherwise.
    */
   public boolean mustCheckUnsavedChanges()
   {
-    return (index != null) &&
-        saveChanges.isVisible() && saveChanges.isEnabled();
+    return index != null && saveChanges.isVisible() && saveChanges.isEnabled();
   }
 
   /**
    * Tells whether the user chose to save the changes in the panel, to not save
    * them or simply cancelled the selection in the tree.
+   *
    * @return the value telling whether the user chose to save the changes in the
-   * panel, to not save them or simply cancelled the selection change in the
-   * tree.
+   *         panel, to not save them or simply cancelled the selection change in
+   *         the tree.
    */
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     UnsavedChangesDialog.Result result;
-    UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(
-          Utilities.getParentDialog(this), getInfo());
+    final UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(getParentDialog(this), getInfo());
     unsavedChangesDlg.setMessage(INFO_CTRL_PANEL_UNSAVED_CHANGES_SUMMARY.get(),
-        INFO_CTRL_PANEL_UNSAVED_INDEX_CHANGES_DETAILS.get(index.getName()));
-    Utilities.centerGoldenMean(unsavedChangesDlg,
-          Utilities.getParentDialog(this));
+                                 INFO_CTRL_PANEL_UNSAVED_INDEX_CHANGES_DETAILS.get(index.getName()));
+    centerGoldenMean(unsavedChangesDlg, getParentDialog(this));
     unsavedChangesDlg.setVisible(true);
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
       saveIndex(false);
-      if ((newModifyTask == null) || // The user data is not valid
-          (newModifyTask.getState() != Task.State.FINISHED_SUCCESSFULLY))
+      if (newModifyTask == null
+       || newModifyTask.getState() != Task.State.FINISHED_SUCCESSFULLY) // The user data is not valid
       {
         result = UnsavedChangesDialog.Result.CANCEL;
       }
@@ -211,11 +202,9 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   private void checkSaveButton()
   {
-    if (!ignoreCheckSave && (index != null))
+    if (!ignoreCheckSave && index != null)
     {
-      saveChanges.setEnabled(
-          !authenticationRequired(getInfo().getServerDescriptor()) &&
-          isModified());
+      saveChanges.setEnabled(!authenticationRequired(getInfo().getServerDescriptor()) && isModified());
     }
   }
 
@@ -232,7 +221,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
-    JPanel p = new JPanel(new GridBagLayout());
+    final JPanel p = new JPanel(new GridBagLayout());
     p.setOpaque(false);
     super.createBasicLayout(p, gbc, true);
     p.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -242,12 +231,11 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridx = 0;
     gbc.gridy = 0;
-    JScrollPane scroll = Utilities.createBorderLessScrollBar(p);
-    scrollListener =
-      ScrollPaneBorderListener.createBottomBorderListener(scroll);
+    final JScrollPane scroll = Utilities.createBorderLessScrollBar(p);
+    scrollListener = ScrollPaneBorderListener.createBottomBorderListener(scroll);
     add(scroll, gbc);
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.gridx = 0;
     gbc.weightx = 1.0;
     gbc.weighty = 0.0;
@@ -262,8 +250,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     add(warning, gbc);
     Utilities.setWarningLabel(warning, INDEX_MODIFIED);
 
-    gbc.gridy ++;
-    JPanel buttonPanel = new JPanel(new GridBagLayout());
+    gbc.gridy++;
+    final JPanel buttonPanel = new JPanel(new GridBagLayout());
     buttonPanel.setOpaque(false);
     gbc.insets = new Insets(10, 10, 10, 10);
     add(buttonPanel, gbc);
@@ -278,7 +266,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     buttonPanel.add(deleteIndex, gbc);
     deleteIndex.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteIndex();
@@ -294,43 +282,42 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     buttonPanel.add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         saveIndex(false);
       }
     });
 
-    DocumentListener documentListener = new DocumentListener()
+    final DocumentListener documentListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
     };
 
-    ActionListener actionListener = new ActionListener()
+    final ActionListener actionListener = new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkSaveButton();
       }
     };
-
 
     baseDNs.addActionListener(actionListener);
     baseObject.addActionListener(actionListener);
@@ -340,19 +327,19 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     attributes.addActionListener(actionListener);
     sortOrder.getModel().addListDataListener(new ListDataListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void contentsChanged(ListDataEvent e)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void intervalAdded(ListDataEvent e)
       {
         checkSaveButton();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void intervalRemoved(ListDataEvent e)
       {
         checkSaveButton();
@@ -367,38 +354,31 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   private void deleteIndex()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
-    ProgressDialog dlg = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_DELETE_VLV_INDEX_TITLE.get(), getInfo());
-    ArrayList<AbstractIndexDescriptor> indexesToDelete =
-      new ArrayList<AbstractIndexDescriptor>();
+    final List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ProgressDialog dlg = new ProgressDialog(
+        createFrame(), getParentDialog(this), INFO_CTRL_PANEL_DELETE_VLV_INDEX_TITLE.get(), getInfo());
+    final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
     indexesToDelete.add(index);
-    DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg,
-        indexesToDelete);
-    for (Task task : getInfo().getTasks())
+    final DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg, indexesToDelete);
+    for (final Task task : getInfo().getTasks())
     {
       task.canLaunch(newTask, errors);
     }
+
     if (errors.isEmpty())
     {
-      String indexName = index.getName();
-      String backendName = index.getBackend().getBackendID();
-      if (displayConfirmationDialog(
-          INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_CONFIRMATION_VLV_INDEX_DELETE_DETAILS.get(indexName,
-              backendName)))
+      final String indexName = index.getName();
+      final String backendName = index.getBackend().getBackendID();
+      if (displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                                    INFO_CTRL_PANEL_CONFIRMATION_VLV_INDEX_DELETE_DETAILS.get(indexName, backendName)))
       {
         launchOperation(newTask,
-            INFO_CTRL_PANEL_DELETING_VLV_INDEX_SUMMARY.get(),
-            INFO_CTRL_PANEL_DELETING_VLV_INDEX_COMPLETE.get(),
-            INFO_CTRL_PANEL_DELETING_VLV_INDEX_SUCCESSFUL.get(indexName,
-                backendName),
-            ERR_CTRL_PANEL_DELETING_VLV_INDEX_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_DELETING_VLV_INDEX_ERROR_DETAILS.get(indexName),
-            null,
-            dlg);
+                        INFO_CTRL_PANEL_DELETING_VLV_INDEX_SUMMARY.get(),
+                        INFO_CTRL_PANEL_DELETING_VLV_INDEX_COMPLETE.get(),
+                        INFO_CTRL_PANEL_DELETING_VLV_INDEX_SUCCESSFUL.get(indexName, backendName),
+                        ERR_CTRL_PANEL_DELETING_VLV_INDEX_ERROR_SUMMARY.get(),
+                        ERR_CTRL_PANEL_DELETING_VLV_INDEX_ERROR_DETAILS.get(indexName),
+                        null, dlg);
         dlg.setVisible(true);
       }
     }
@@ -415,32 +395,29 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     {
       return;
     }
-    List<LocalizableMessage> errors = checkErrors(false);
+    final List<LocalizableMessage> errors = checkErrors(false);
 
     if (errors.isEmpty())
     {
-      ProgressDialog dlg = new ProgressDialog(
-          Utilities.getFrame(this),
-          Utilities.getFrame(this),
-          INFO_CTRL_PANEL_MODIFYING_INDEX_TITLE.get(), getInfo());
+      final ProgressDialog dlg =
+          new ProgressDialog(getFrame(this), getFrame(this), INFO_CTRL_PANEL_MODIFYING_INDEX_TITLE.get(), getInfo());
       dlg.setModal(modal);
       newModifyTask = new ModifyVLVIndexTask(getInfo(), dlg);
-      for (Task task : getInfo().getTasks())
+      for (final Task task : getInfo().getTasks())
       {
         task.canLaunch(newModifyTask, errors);
       }
       if (errors.isEmpty() && checkIndexRequired())
       {
-        String indexName = index.getName();
-        String backendName = index.getBackend().getBackendID();
+        final String indexName = index.getName();
+        final String backendName = index.getBackend().getBackendID();
         launchOperation(newModifyTask,
-            INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_SUMMARY.get(indexName),
-            INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_COMPLETE.get(),
-            INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_SUCCESSFUL.get(indexName, backendName),
-            ERR_CTRL_PANEL_MODIFYING_VLV_INDEX_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_MODIFYING_VLV_INDEX_ERROR_DETAILS.get(indexName),
-            null,
-            dlg);
+                        INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_SUMMARY.get(indexName),
+                        INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_COMPLETE.get(),
+                        INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_SUCCESSFUL.get(indexName, backendName),
+                        ERR_CTRL_PANEL_MODIFYING_VLV_INDEX_ERROR_SUMMARY.get(),
+                        ERR_CTRL_PANEL_MODIFYING_VLV_INDEX_ERROR_DETAILS.get(indexName),
+                        null, dlg);
         saveChanges.setEnabled(false);
         dlg.setVisible(true);
       }
@@ -452,10 +429,11 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-
   /**
    * Updates the contents of the panel with the provided VLV index.
-   * @param index the VLV index descriptor to be used to update the panel.
+   *
+   * @param index
+   *          the VLV index descriptor to be used to update the panel.
    */
   public void update(VLVIndexDescriptor index)
   {
@@ -467,8 +445,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       updateBaseDNCombo(index.getBackend());
       backendName.setText(index.getBackend().getBackendID());
     }
-    String dn = Utilities.unescapeUtf8(index.getBaseDN().toString());
-    if (((DefaultComboBoxModel)baseDNs.getModel()).getIndexOf(dn) != -1)
+    final String dn = Utilities.unescapeUtf8(index.getBaseDN().toString());
+    if (((DefaultComboBoxModel) baseDNs.getModel()).getIndexOf(dn) != -1)
     {
       baseDN.setText("");
       baseDNs.setSelectedItem(dn);
@@ -478,27 +456,12 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       baseDN.setText(dn);
       baseDNs.setSelectedItem(OTHER_BASE_DN);
     }
-    switch (index.getScope())
-    {
-    case BASE_OBJECT:
-      baseObject.setSelected(true);
-      break;
-    case SINGLE_LEVEL:
-      singleLevel.setSelected(true);
-      break;
-    case SUBORDINATE_SUBTREE:
-      subordinateSubtree.setSelected(true);
-      break;
-    case WHOLE_SUBTREE:
-      wholeSubtree.setSelected(true);
-      break;
-    }
+    selectScopeRadioButton(index);
     filter.setText(index.getFilter());
 
     // Simulate a remove to update the attribute combo box and add them again.
-    int indexes[] = new int[sortOrderModel.getSize()];
-
-    for (int i=0; i<indexes.length; i++)
+    final int indexes[] = new int[sortOrderModel.getSize()];
+    for (int i = 0; i < indexes.length; i++)
     {
       indexes[i] = i;
     }
@@ -506,17 +469,14 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     remove.doClick();
 
     // The list is now empty and the attribute combo properly updated.
-    DefaultComboBoxModel model =
-      (DefaultComboBoxModel)attributes.getModel();
-    for (VLVSortOrder s : index.getSortOrder())
+    final DefaultComboBoxModel model = (DefaultComboBoxModel) attributes.getModel();
+    for (final VLVSortOrder s : index.getSortOrder())
     {
       sortOrderModel.addElement(s);
-      for (int i=0; i<model.getSize(); i++)
+      for (int i = 0; i < model.getSize(); i++)
       {
-        CategorizedComboBoxElement o =
-          (CategorizedComboBoxElement)model.getElementAt(i);
-        if ((o.getType() == CategorizedComboBoxElement.Type.REGULAR) &&
-            o.getValue().equals(s.getAttributeName()))
+        final CategorizedComboBoxElement o = (CategorizedComboBoxElement) model.getElementAt(i);
+        if (o.getType() == CategorizedComboBoxElement.Type.REGULAR && o.getValue().equals(s.getAttributeName()))
         {
           model.removeElementAt(i);
           break;
@@ -532,7 +492,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     {
       if (getInfo().mustReindex(index))
       {
-        Utilities.setWarningLabel(warning, INDEX_MODIFIED);
+        setWarningLabel(warning, INDEX_MODIFIED);
         warning.setVisible(true);
         warning.setVerticalTextPosition(SwingConstants.TOP);
       }
@@ -549,18 +509,34 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     scrollListener.updateBorder();
   }
 
+  private void selectScopeRadioButton(final VLVIndexDescriptor index)
+  {
+    switch (index.getScope())
+    {
+    case BASE_OBJECT:
+      baseObject.setSelected(true);
+      break;
+    case SINGLE_LEVEL:
+      singleLevel.setSelected(true);
+      break;
+    case SUBORDINATE_SUBTREE:
+      subordinateSubtree.setSelected(true);
+      break;
+    case WHOLE_SUBTREE:
+      wholeSubtree.setSelected(true);
+      break;
+    }
+  }
+
   private boolean isModified()
   {
     try
     {
-      return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) ||
-      (getScope() != index.getScope()) ||
-      !filter.getText().trim().equals(index.getFilter()) ||
-      !getSortOrder().equals(index.getSortOrder()) ||
-      !String.valueOf(index.getMaxBlockSize()).equals(
-          maxBlockSize.getText().trim());
+      return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) || index.getScope() != getScope()
+          || !index.getFilter().equals(filter.getText().trim()) || !index.getSortOrder().equals(getSortOrder())
+          || !Integer.toString(index.getMaxBlockSize()).equals(maxBlockSize.getText().trim());
     }
-    catch (OpenDsException odse)
+    catch (final OpenDsException odse)
     {
       // The base DN is not valid.  This means that the index has been modified.
       return true;
@@ -569,27 +545,29 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   /**
    * The task in charge of modifying the VLV index.
-   *
    */
   protected class ModifyVLVIndexTask extends Task
   {
-    private Set<String> backendSet;
-    private String indexName;
-    private String baseDN;
-    private String filterValue;
-    private Scope scope;
-    private List<VLVSortOrder> sortOrder;
-    private String backendID;
-    private String sortOrderStringValue;
-    private String ldif;
-    private VLVIndexDescriptor indexToModify;
-    private int maxBlock;
+    private final Set<String> backendSet;
+    private final String indexName;
+    private final String baseDN;
+    private final String filterValue;
+    private final Scope scope;
+    private final List<VLVSortOrder> sortOrder;
+    private final String backendID;
+    private final String sortOrderStringValue;
+    private final String ldif;
+    private final VLVIndexDescriptor indexToModify;
+    private final int maxBlock;
     private VLVIndexDescriptor modifiedIndex;
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
     public ModifyVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
@@ -608,28 +586,26 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       indexToModify = index;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.MODIFY_INDEX;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
-      return INFO_CTRL_PANEL_MODIFY_VLV_INDEX_TASK_DESCRIPTION.get(
-          indexName, backendID);
+      return INFO_CTRL_PANEL_MODIFY_VLV_INDEX_TASK_DESCRIPTION.get(indexName, backendID);
     }
 
-    /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    @Override
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -637,13 +613,11 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         if (backends.size() > 0)
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }
@@ -664,32 +638,30 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(),
-              ConfigReader.configFile);
+              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
-              List<String> args = getObfuscatedCommandLineArguments(
-                  getDSConfigCommandLineArguments());
+              final List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineName(),
-                  args,
+              printEquivalentCommandLine(getConfigCommandLineName(), args,
                   INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY_VLV_INDEX.get());
             }
           });
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(
-                Utilities.getProgressWithPoints(
-                    INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_PROGRESS.get(indexName),
+                Utilities.getProgressWithPoints(INFO_CTRL_PANEL_MODIFYING_VLV_INDEX_PROGRESS.get(indexName),
                     ColorAndFontConstants.progressFont));
           }
         });
@@ -706,10 +678,10 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         SwingUtilities.invokeLater(new Runnable()
         {
           /** {@inheritDoc} */
+          @Override
           public void run()
           {
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
           }
         });
       }
@@ -717,8 +689,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
           getInfo().startPooling();
         }
       }
@@ -730,19 +701,15 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       try
       {
         ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
-        Entry newConfigEntry = reader.readEntry();
-        Entry oldEntry = DirectoryServer.getConfigEntry(
-            newConfigEntry.getName()).getEntry();
-        DirectoryServer.getConfigHandler().replaceEntry(oldEntry,
-            newConfigEntry,
-            null);
+        final LDIFReader reader = new LDIFReader(ldifImportConfig);
+        final Entry newConfigEntry = reader.readEntry();
+        final Entry oldEntry = DirectoryServer.getConfigEntry(newConfigEntry.getName()).getEntry();
+        DirectoryServer.getConfigHandler().replaceEntry(oldEntry, newConfigEntry, null);
         DirectoryServer.getConfigHandler().writeUpdatedConfig();
       }
-      catch (IOException ioe)
+      catch (final IOException ioe)
       {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       finally
       {
@@ -755,40 +722,43 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
     /**
      * Modifies index using the provided connection.
-     * @param ctx the connection to be used to update the index configuration.
-     * @throws OpenDsException if there is an error updating the server.
+     *
+     * @param ctx
+     *          the connection to be used to update the index configuration.
+     * @throws OpenDsException
+     *           if there is an error updating the server.
      */
     private void modifyIndex(InitialLdapContext ctx) throws OpenDsException
     {
       final StringBuilder sb = new StringBuilder();
       sb.append(getConfigCommandLineName());
-      Collection<String> args =
-        getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
-      for (String arg : args)
+      final Collection<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
+      for (final String arg : args)
       {
         sb.append(" ");
         sb.append(CommandBuilder.escapeValue(arg));
       }
 
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend =
-        (LocalDBBackendCfgClient)root.getBackend(backendID);
-      LocalDBVLVIndexCfgClient index = backend.getLocalDBVLVIndex(indexName);
-      DN b = DN.valueOf(baseDN);
+      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
+      final RootCfgClient root = mCtx.getRootConfiguration();
+      final LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendID);
+      final LocalDBVLVIndexCfgClient index = backend.getLocalDBVLVIndex(indexName);
+      final DN b = DN.valueOf(baseDN);
       if (!indexToModify.getBaseDN().equals(b))
       {
         index.setBaseDN(b);
       }
+
       if (!indexToModify.getFilter().equals(filterValue))
       {
         index.setFilter(filterValue);
       }
+
       if (indexToModify.getScope() != scope)
       {
         index.setScope(scope);
       }
+
       if (!indexToModify.getSortOrder().equals(sortOrder))
       {
         index.setSortOrder(sortOrderStringValue);
@@ -796,13 +766,13 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       index.commit();
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -817,7 +787,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -826,32 +796,31 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       try
       {
         updateConfiguration();
-        modifiedIndex = new VLVIndexDescriptor(
-            indexName, indexToModify.getBackend(), DN.valueOf(baseDN),
-            scope, filterValue, sortOrder, maxBlock);
+        modifiedIndex =
+            new VLVIndexDescriptor(indexName, indexToModify.getBackend(), DN.valueOf(baseDN), scope, filterValue,
+                sortOrder, maxBlock);
         getInfo().registerModifiedIndex(modifiedIndex);
         state = State.FINISHED_SUCCESSFULLY;
       }
-      catch (Throwable t)
+      catch (final Throwable t)
       {
         lastException = t;
         state = State.FINISHED_WITH_ERROR;
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void postOperation()
     {
-      if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY))
+      if (lastException == null && state == State.FINISHED_SUCCESSFULLY)
       {
         rebuildIndexIfNecessary(modifiedIndex, getProgressDialog());
       }
     }
 
-    private ArrayList<String> getDSConfigCommandLineArguments()
+    private List<String> getDSConfigCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      final List<String> args = new ArrayList<String>();
       args.add("set-local-db-vlv-index-prop");
       args.add("--backend-name");
       args.add(backendID);
@@ -861,33 +830,33 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
       try
       {
-        DN b = DN.valueOf(baseDN);
+        final DN b = DN.valueOf(baseDN);
         if (!indexToModify.getBaseDN().equals(b))
         {
           args.add("--set");
-          args.add("base-dn:"+baseDN);
+          args.add("base-dn:" + baseDN);
         }
       }
-      catch (OpenDsException odse)
+      catch (final OpenDsException odse)
       {
-        throw new RuntimeException("Unexpected error parsing DN "+
-            getBaseDN()+": "+odse, odse);
+        throw new RuntimeException("Unexpected error parsing DN " + getBaseDN() + ": " + odse, odse);
       }
+
       if (indexToModify.getScope() != scope)
       {
         args.add("--set");
-        args.add("scope:"+scope);
+        args.add("scope:" + scope);
       }
       if (!indexToModify.getFilter().equals(filterValue))
       {
         args.add("--set");
-        args.add("filter:"+filterValue);
+        args.add("filter:" + filterValue);
       }
 
       if (!indexToModify.getSortOrder().equals(sortOrder))
       {
         args.add("--set");
-        args.add("sort-order:"+sortOrderStringValue);
+        args.add("sort-order:" + sortOrderStringValue);
       }
 
       args.addAll(getConnectionCommandLineArguments());

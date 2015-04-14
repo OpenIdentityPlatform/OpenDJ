@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
@@ -60,60 +61,58 @@ import org.opends.server.types.OpenDsException;
  */
 public class DeleteIndexTask extends Task
 {
-  private Set<String> backendSet;
-  private ArrayList<AbstractIndexDescriptor> indexesToDelete =
-    new ArrayList<AbstractIndexDescriptor>();
-  private ArrayList<AbstractIndexDescriptor> deletedIndexes =
-    new ArrayList<AbstractIndexDescriptor>();
+  private final Set<String> backendSet;
+  private final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
+  private final List<AbstractIndexDescriptor> deletedIndexes = new ArrayList<AbstractIndexDescriptor>();
 
   /**
    * Constructor of the task.
-   * @param info the control panel information.
-   * @param dlg the progress dialog where the task progress will be displayed.
-   * @param indexesToDelete the indexes that must be deleted.
+   *
+   * @param info
+   *          the control panel information.
+   * @param dlg
+   *          the progress dialog where the task progress will be displayed.
+   * @param indexesToDelete
+   *          the indexes that must be deleted.
    */
-  public DeleteIndexTask(ControlPanelInfo info, ProgressDialog dlg,
-      ArrayList<AbstractIndexDescriptor> indexesToDelete)
+  public DeleteIndexTask(ControlPanelInfo info, ProgressDialog dlg, List<AbstractIndexDescriptor> indexesToDelete)
   {
     super(info, dlg);
     backendSet = new HashSet<String>();
-    for (AbstractIndexDescriptor index : indexesToDelete)
+    for (final AbstractIndexDescriptor index : indexesToDelete)
     {
       backendSet.add(index.getBackend().getBackendID());
     }
     this.indexesToDelete.addAll(indexesToDelete);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.DELETE_INDEX;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     if (backendSet.size() == 1)
     {
-      return INFO_CTRL_PANEL_DELETE_INDEX_TASK_DESCRIPTION.get(
-      Utilities.getStringFromCollection(backendSet, ", "));
+      return INFO_CTRL_PANEL_DELETE_INDEX_TASK_DESCRIPTION.get(getStringFromCollection(backendSet, ", "));
     }
     else
     {
-      return INFO_CTRL_PANEL_DELETE_INDEX_IN_BACKENDS_TASK_DESCRIPTION.get(
-          Utilities.getStringFromCollection(backendSet, ", "));
+      return INFO_CTRL_PANEL_DELETE_INDEX_IN_BACKENDS_TASK_DESCRIPTION.get(getStringFromCollection(backendSet, ", "));
     }
   }
 
-  /** {@inheritDoc} */
-  public boolean canLaunch(Task taskToBeLaunched,
-      Collection<LocalizableMessage> incompatibilityReasons)
+  @Override
+  public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -121,13 +120,11 @@ public class DeleteIndexTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      Set<String> backends =
-        new TreeSet<String>(taskToBeLaunched.getBackends());
+      final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
       if (backends.size() > 0)
       {
-        incompatibilityReasons.add(getIncompatibilityMessage(this,
-            taskToBeLaunched));
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         canLaunch = false;
       }
     }
@@ -136,7 +133,9 @@ public class DeleteIndexTask extends Task
 
   /**
    * Update the configuration in the server.
-   * @throws OpenDsException if an error occurs.
+   *
+   * @throws OpenDsException
+   *           if an error occurs.
    */
   private void updateConfiguration() throws OpenDsException
   {
@@ -154,8 +153,7 @@ public class DeleteIndexTask extends Task
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
         DirectoryServer.getInstance().initializeConfiguration(
-            org.opends.server.extensions.ConfigFileHandler.class.getName(),
-            ConfigReader.configFile);
+            org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
       }
       boolean isFirst = true;
@@ -165,6 +163,7 @@ public class DeleteIndexTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               getProgressDialog().appendProgressHtml("<br><br>");
@@ -176,35 +175,31 @@ public class DeleteIndexTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
-             List<String> args =
-                getObfuscatedCommandLineArguments(
-                    getDSConfigCommandLineArguments(index));
+              final List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments(index));
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineName(index),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_INDEX.get());
+              printEquivalentCommandLine(getConfigCommandLineName(index), args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_INDEX.get());
             }
           });
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             if (isVLVIndex(index))
             {
               getProgressDialog().appendProgressHtml(
-                  Utilities.getProgressWithPoints(
-                      INFO_CTRL_PANEL_DELETING_VLV_INDEX.get(
-                          index.getName()),
+                  Utilities.getProgressWithPoints(INFO_CTRL_PANEL_DELETING_VLV_INDEX.get(index.getName()),
                       ColorAndFontConstants.progressFont));
             }
             else
             {
               getProgressDialog().appendProgressHtml(
-                  Utilities.getProgressWithPoints(
-                      INFO_CTRL_PANEL_DELETING_INDEX.get(
-                          index.getName()),
+                  Utilities.getProgressWithPoints(INFO_CTRL_PANEL_DELETING_INDEX.get(index.getName()),
                       ColorAndFontConstants.progressFont));
             }
           }
@@ -217,17 +212,16 @@ public class DeleteIndexTask extends Task
         {
           deleteIndex(index);
         }
-        numberDeleted ++;
+        numberDeleted++;
         final int fNumberDeleted = numberDeleted;
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().getProgressBar().setIndeterminate(false);
-            getProgressDialog().getProgressBar().setValue(
-                (fNumberDeleted * 100) / totalNumber);
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+            getProgressDialog().getProgressBar().setValue((fNumberDeleted * 100) / totalNumber);
+            getProgressDialog().appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
           }
         });
         deletedIndexes.add(index);
@@ -237,8 +231,7 @@ public class DeleteIndexTask extends Task
     {
       if (configHandlerUpdated)
       {
-        DirectoryServer.getInstance().initializeConfiguration(
-            ConfigReader.configClassName, ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
         getInfo().startPooling();
       }
     }
@@ -247,9 +240,11 @@ public class DeleteIndexTask extends Task
   /**
    * Returns <CODE>true</CODE> if the index is a VLV index and
    * <CODE>false</CODE> otherwise.
-   * @param index the index.
+   *
+   * @param index
+   *          the index.
    * @return <CODE>true</CODE> if the index is a VLV index and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   private boolean isVLVIndex(AbstractIndexDescriptor index)
   {
@@ -257,44 +252,46 @@ public class DeleteIndexTask extends Task
   }
 
   /**
-   * Deletes an index.  The code assumes that the server is not running
-   * and that the configuration file can be edited.
-   * @param index the index to be deleted.
-   * @throws OpenDsException if an error occurs.
+   * Deletes an index. The code assumes that the server is not running and that
+   * the configuration file can be edited.
+   *
+   * @param index
+   *          the index to be deleted.
+   * @throws OpenDsException
+   *           if an error occurs.
    */
   private void deleteIndex(AbstractIndexDescriptor index) throws OpenDsException
   {
-    String backendId = Utilities.getRDNString("ds-cfg-backend-id", index.getBackend().getBackendID());
+    final String backendId = Utilities.getRDNString("ds-cfg-backend-id", index.getBackend().getBackendID());
     String dn;
     if (isVLVIndex(index))
     {
-      dn = Utilities.getRDNString("ds-cfg-name", index.getName())
-          + ",cn=VLV Index," + backendId + ",cn=Backends,cn=config";
+      dn = getRDNString("ds-cfg-name", index.getName()) + ",cn=VLV Index," + backendId + ",cn=Backends,cn=config";
     }
     else
     {
-      dn = Utilities.getRDNString("ds-cfg-attribute", index.getName())
-          + ",cn=Index," + backendId + ",cn=Backends,cn=config";
+      dn = getRDNString("ds-cfg-attribute", index.getName()) + ",cn=Index," + backendId + ",cn=Backends,cn=config";
     }
     DirectoryServer.getConfigHandler().deleteEntry(DN.valueOf(dn), null);
   }
 
   /**
-   * Deletes an index.  The code assumes that the server is running
-   * and that the provided connection is active.
-   * @param index the index to be deleted.
-   * @param ctx the connection to the server.
-   * @throws OpenDsException if an error occurs.
+   * Deletes an index. The code assumes that the server is running and that the
+   * provided connection is active.
+   *
+   * @param index
+   *          the index to be deleted.
+   * @param ctx
+   *          the connection to the server.
+   * @throws OpenDsException
+   *           if an error occurs.
    */
-  private void deleteIndex(InitialLdapContext ctx,
-      AbstractIndexDescriptor index) throws OpenDsException
+  private void deleteIndex(InitialLdapContext ctx, AbstractIndexDescriptor index) throws OpenDsException
   {
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
-    LocalDBBackendCfgClient backend =
-      (LocalDBBackendCfgClient)root.getBackend(
-          index.getBackend().getBackendID());
+    final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
+    final RootCfgClient root = mCtx.getRootConfiguration();
+    final LocalDBBackendCfgClient backend =
+        (LocalDBBackendCfgClient) root.getBackend(index.getBackend().getBackendID());
     if (isVLVIndex(index))
     {
       backend.removeLocalDBVLVIndex(index.getName());
@@ -306,13 +303,13 @@ public class DeleteIndexTask extends Task
     backend.commit();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<String>();
@@ -321,9 +318,11 @@ public class DeleteIndexTask extends Task
   /**
    * Returns the path of the command line to be used to delete the specified
    * index.
-   * @param index the index to be deleted.
+   *
+   * @param index
+   *          the index to be deleted.
    * @return the path of the command line to be used to delete the specified
-   * index.
+   *         index.
    */
   private String getConfigCommandLineName(AbstractIndexDescriptor index)
   {
@@ -337,7 +336,7 @@ public class DeleteIndexTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -348,14 +347,14 @@ public class DeleteIndexTask extends Task
       updateConfiguration();
       state = State.FINISHED_SUCCESSFULLY;
     }
-    catch (Throwable t)
+    catch (final Throwable t)
     {
       lastException = t;
       state = State.FINISHED_WITH_ERROR;
     }
     finally
     {
-      for (AbstractIndexDescriptor index : deletedIndexes)
+      for (final AbstractIndexDescriptor index : deletedIndexes)
       {
         getInfo().unregisterModifiedIndex(index);
       }
@@ -364,13 +363,14 @@ public class DeleteIndexTask extends Task
 
   /**
    * Return the dsconfig arguments required to delete an index.
-   * @param index the index to be deleted.
+   *
+   * @param index
+   *          the index to be deleted.
    * @return the dsconfig arguments required to delete an index.
    */
-  private ArrayList<String> getDSConfigCommandLineArguments(
-      AbstractIndexDescriptor index)
+  private List<String> getDSConfigCommandLineArguments(AbstractIndexDescriptor index)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    final List<String> args = new ArrayList<String>();
     if (isVLVIndex(index))
     {
       args.add("delete-local-db-vlv-index");
@@ -388,6 +388,7 @@ public class DeleteIndexTask extends Task
     args.addAll(getConnectionCommandLineArguments());
     args.add("--no-prompt");
     args.add(getNoPropertiesFileArgument());
+
     return args;
   }
 }
