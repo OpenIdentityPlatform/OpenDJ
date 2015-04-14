@@ -828,14 +828,14 @@ public class IndexPanel extends AbstractIndexPanel
             toDelete.add(oldType);
           }
         }
-        for (IndexType newType : toAdd)
-        {
-          args.add("--add");
-          args.add("index-type:" + newType);
-        }
         for (IndexType newType : toDelete)
         {
           args.add("--remove");
+          args.add("index-type:" + newType);
+        }
+        for (IndexType newType : toAdd)
+        {
+          args.add("--add");
           args.add("index-type:" + newType);
         }
       }
