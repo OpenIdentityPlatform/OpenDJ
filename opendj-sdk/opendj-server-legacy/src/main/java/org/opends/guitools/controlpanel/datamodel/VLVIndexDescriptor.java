@@ -35,30 +35,36 @@ import org.opends.server.types.DN;
 
 /**
  * The class used to describe the VLV index configuration.
- *
  */
 public class VLVIndexDescriptor extends AbstractIndexDescriptor
 {
-  private DN baseDN;
-  private Scope scope;
-  private String filter;
+  private final DN baseDN;
+  private final Scope scope;
+  private final String filter;
   private List<VLVSortOrder> sortOrder = Collections.emptyList();
-  private int maxBlockSize;
+  private final int maxBlockSize;
   private int hashCode;
 
   /**
    * Constructor for the VLVIndexDescriptor.
-   * @param name the name of the index.
-   * @param backend the backend where the index is defined.
-   * @param baseDN the baseDN of the search indexed by the VLV index.
-   * @param scope the scope of the search indexed by the VLV index.
-   * @param filter the filter or the search indexed by the VLV index.
-   * @param sortOrder the sort order list of the VLV index.
-   * @param maxBlockSize the maximum block size of the VLV index.
+   *
+   * @param name
+   *          the name of the index.
+   * @param backend
+   *          the backend where the index is defined.
+   * @param baseDN
+   *          the baseDN of the search indexed by the VLV index.
+   * @param scope
+   *          the scope of the search indexed by the VLV index.
+   * @param filter
+   *          the filter or the search indexed by the VLV index.
+   * @param sortOrder
+   *          the sort order list of the VLV index.
+   * @param maxBlockSize
+   *          the maximum block size of the VLV index.
    */
-  public VLVIndexDescriptor(String name, BackendDescriptor backend, DN baseDN,
-      Scope scope, String filter, List<VLVSortOrder> sortOrder,
-      int maxBlockSize)
+  public VLVIndexDescriptor(String name, BackendDescriptor backend, DN baseDN, Scope scope, String filter,
+      List<VLVSortOrder> sortOrder, int maxBlockSize)
   {
     super(name, backend);
     this.baseDN = baseDN;
@@ -70,13 +76,13 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     recalculateHashCode();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compareTo(AbstractIndexDescriptor o)
   {
     return getName().toLowerCase().compareTo(o.getName().toLowerCase());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -84,6 +90,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the baseDN of the search indexed by the VLV index.
+   *
    * @return the baseDN of the search indexed by the VLV index.
    */
   public DN getBaseDN()
@@ -93,6 +100,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the filter of the search indexed by the VLV index.
+   *
    * @return the filter of the search indexed by the VLV index.
    */
   public String getFilter()
@@ -102,6 +110,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the scope of the search indexed by the VLV index.
+   *
    * @return the scope of the search indexed by the VLV index.
    */
   public Scope getScope()
@@ -111,6 +120,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the sort order list of the VLV index.
+   *
    * @return the sort order list of the VLV index.
    */
   public List<VLVSortOrder> getSortOrder()
@@ -118,7 +128,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     return sortOrder;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (o == this)
@@ -130,7 +140,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
       return false;
     }
 
-    VLVIndexDescriptor index = (VLVIndexDescriptor)o;
+    final VLVIndexDescriptor index = (VLVIndexDescriptor) o;
     return index.getName().equalsIgnoreCase(getName())
         && index.getBaseDN().equals(getBaseDN())
         && index.getFilter().equals(getFilter())
@@ -149,11 +159,11 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
         && getBackend().getBackendID().equals(index.getBackend().getBackendID());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void recalculateHashCode()
   {
-    StringBuilder sb = new StringBuilder();
-    for (VLVSortOrder s : sortOrder)
+    final StringBuilder sb = new StringBuilder();
+    for (final VLVSortOrder s : sortOrder)
     {
       sb.append(s.getAttributeName()).append(s.isAscending()).append(",");
     }
@@ -166,10 +176,12 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
 
   /**
    * Returns the maximum block size of the VLV index.
+   *
    * @return the maximum block size of the VLV index.
    */
   public int getMaxBlockSize()
   {
     return maxBlockSize;
   }
+
 }
