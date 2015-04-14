@@ -798,9 +798,9 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    private ArrayList<String> getDSConfigCommandLineArguments()
+    private List<String> getDSConfigCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      List<String> args = new ArrayList<String>();
       args.add("set-local-db-index-prop");
       args.add("--backend-name");
       args.add(backendName);
