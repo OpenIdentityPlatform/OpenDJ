@@ -41,7 +41,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -76,21 +76,19 @@ import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.admin.std.server.RootDNUserCfg;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.TaskBackendCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 
 /**
  * A class that reads the configuration information from the files.
- *
  */
 public class ConfigFromFile extends ConfigReader
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * Creates a new instance of this config file handler.  No initialization
+   * Creates a new instance of this config file handler. No initialization
    * should be performed here, as all of that work should be done in the
    * <CODE>initializeConfigHandler</CODE> method.
    */
@@ -104,312 +102,334 @@ public class ConfigFromFile extends ConfigReader
    */
   public void readConfiguration()
   {
-    List<OpenDsException> ex = new ArrayList<OpenDsException>();
-    Set<ConnectionHandlerDescriptor> ls =
-      new HashSet<ConnectionHandlerDescriptor>();
-    Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
-    Set<DN> as = new HashSet<DN>();
+    final List<OpenDsException> errors = new ArrayList<OpenDsException>();
+    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<ConnectionHandlerDescriptor>();
+    final Set<BackendDescriptor> backendDescriptors = new HashSet<BackendDescriptor>();
+    final Set<DN> alternateBindDNs = new HashSet<DN>();
     try
     {
       DirectoryServer.getInstance().initializeConfiguration();
 
-      if (mustReadSchema())
-      {
-        try
-        {
-          readSchema();
-          if (getSchema() != null)
-          {
-            // Update the schema: so that when we call the server code the
-            // latest schema read on the server we are managing is used.
-            DirectoryServer.setSchema(getSchema());
-          }
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
-      }
-
-      // Get the Directory Server configuration handler and use it.
-      RootCfg root =
-        ServerManagementContext.getInstance().getRootConfiguration();
-      try
-      {
-        AdministrationConnectorCfg adminConnector =
-          root.getAdministrationConnector();
-        this.adminConnector = getConnectionHandler(adminConnector);
-      }
-      catch (ConfigException ce)
-      {
-        ex.add(toConfigException(ce));
-      }
-      for (String connHandler : root.listConnectionHandlers())
-      {
-        try
-        {
-          ConnectionHandlerCfg connectionHandler =
-              root.getConnectionHandler(connHandler);
-          ls.add(getConnectionHandler(connectionHandler, connHandler));
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
-      }
-      isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
-
-      for (String backendName : root.listBackends())
-      {
-        try
-        {
-          BackendCfg backend = root.getBackend(backendName);
-          Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
-          for (DN dn : backend.getBaseDN())
-          {
-            BaseDNDescriptor baseDN =
-              new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn,
-                  null, -1, -1, -1);
-            baseDNs.add(baseDN);
-          }
-          Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
-          Set<VLVIndexDescriptor> vlvIndexes =
-            new HashSet<VLVIndexDescriptor>();
-          BackendDescriptor.Type type;
-          if (backend instanceof LocalDBBackendCfg)
-          {
-            type = BackendDescriptor.Type.LOCAL_DB;
-            LocalDBBackendCfg db = (LocalDBBackendCfg)backend;
-            try
-            {
-              for (String indexName : db.listLocalDBIndexes())
-              {
-                LocalDBIndexCfg index = db.getLocalDBIndex(indexName);
-                indexes.add(new IndexDescriptor(
-                    index.getAttribute().getNameOrOID(), index.getAttribute(),
-                    null, index.getIndexType(), index.getIndexEntryLimit()));
-              }
-            }
-            catch (ConfigException ce)
-            {
-              ex.add(toConfigException(ce));
-            }
-            indexes.add(new IndexDescriptor("dn2id", null, null,
-                new TreeSet<IndexType>(), -1));
-            indexes.add(new IndexDescriptor("id2children", null, null,
-                new TreeSet<IndexType>(), -1));
-            indexes.add(new IndexDescriptor("id2subtree", null, null,
-                new TreeSet<IndexType>(), -1));
-
-            try
-            {
-              for (String vlvIndexName : db.listLocalDBVLVIndexes())
-              {
-                LocalDBVLVIndexCfg index =
-                  db.getLocalDBVLVIndex(vlvIndexName);
-                String s = index.getSortOrder();
-                List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
-                vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null,
-                    index.getBaseDN(), index.getScope(), index.getFilter(),
-                    sortOrder, index.getMaxBlockSize()));
-              }
-            }
-            catch (ConfigException ce)
-            {
-              ex.add(toConfigException(ce));
-            }
-          }
-          else if (backend instanceof LDIFBackendCfg)
-          {
-            type = BackendDescriptor.Type.LDIF;
-          }
-          else if (backend instanceof MemoryBackendCfg)
-          {
-            type = BackendDescriptor.Type.MEMORY;
-          }
-          else if (backend instanceof BackupBackendCfg)
-          {
-            type = BackendDescriptor.Type.BACKUP;
-          }
-          else if (backend instanceof MonitorBackendCfg)
-          {
-            type = BackendDescriptor.Type.MONITOR;
-          }
-          else if (backend instanceof TaskBackendCfg)
-          {
-            type = BackendDescriptor.Type.TASK;
-          }
-          else
-          {
-            type = BackendDescriptor.Type.OTHER;
-          }
-          BackendDescriptor desc = new BackendDescriptor(
-              backend.getBackendId(), baseDNs, indexes, vlvIndexes, -1,
-              backend.isEnabled(), type);
-          for (AbstractIndexDescriptor index: indexes)
-          {
-            index.setBackend(desc);
-          }
-          for (AbstractIndexDescriptor index: vlvIndexes)
-          {
-            index.setBackend(desc);
-          }
-
-          bs.add(desc);
-        }
-        catch (ConfigException ce)
-        {
-          ex.add(toConfigException(ce));
-        }
-      }
-
-      boolean isReplicationSecure = false;
-      try
-      {
-        CryptoManagerCfg cryptoManager = root.getCryptoManager();
-        isReplicationSecure = cryptoManager.isSSLEncryption();
-      }
-      catch (ConfigException ce)
-      {
-        ex.add(toConfigException(ce));
-      }
-
-
-      replicationPort = -1;
-      ReplicationSynchronizationProviderCfg sync = null;
-      try
-      {
-        sync = (ReplicationSynchronizationProviderCfg)
-        root.getSynchronizationProvider("Multimaster Synchronization");
-      }
-      catch (ConfigException ce)
-      {
-        // Ignore this one
-      }
-      if (sync != null)
-      {
-        try
-        {
-          if (sync.isEnabled() && sync.hasReplicationServer())
-          {
-            ReplicationServerCfg replicationServer =
-              sync.getReplicationServer();
-            if (replicationServer != null)
-            {
-              replicationPort = replicationServer.getReplicationPort();
-              ConnectionHandlerDescriptor.Protocol protocol =
-                isReplicationSecure ?
-                    ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE :
-                    ConnectionHandlerDescriptor.Protocol.REPLICATION;
-              Set<CustomSearchResult> emptySet = Collections.emptySet();
-              ConnectionHandlerDescriptor connHandler =
-                new ConnectionHandlerDescriptor(
-                    new HashSet<InetAddress>(),
-                    replicationPort,
-                    protocol,
-                    ConnectionHandlerDescriptor.State.ENABLED,
-                    "Multimaster Synchronization",
-                    emptySet);
-              ls.add(connHandler);
-            }
-          }
-          String[] domains = sync.listReplicationDomains();
-          if (domains != null)
-          {
-            for (String domain2 : domains)
-            {
-              ReplicationDomainCfg domain =
-                sync.getReplicationDomain(domain2);
-              DN dn = domain.getBaseDN();
-              for (BackendDescriptor backend : bs)
-              {
-                for (BaseDNDescriptor baseDN : backend.getBaseDns())
-                {
-                  if (baseDN.getDn().equals(dn))
-                  {
-                    baseDN.setType(sync.isEnabled() ?
-                        BaseDNDescriptor.Type.REPLICATED :
-                          BaseDNDescriptor.Type.DISABLED);
-                    baseDN.setReplicaID(domain.getServerId());
-                  }
-                }
-              }
-            }
-          }
-        }
-        catch (ConfigException ce)
-        {
-          ex.add(toConfigException(ce));
-        }
-      }
-
-
-      try
-      {
-        RootDNCfg rootDN = root.getRootDN();
-        String[] rootUsers = rootDN.listRootDNUsers();
-        as.clear();
-        if (rootUsers != null)
-        {
-          for (String rootUser2 : rootUsers)
-          {
-            RootDNUserCfg rootUser = rootDN.getRootDNUser(rootUser2);
-            as.addAll(rootUser.getAlternateBindDN());
-          }
-        }
-      }
-      catch (ConfigException ce)
-      {
-        ex.add(toConfigException(ce));
-      }
+      readSchemaIfNeeded(errors);
+      readConfig(connectionHandlers, backendDescriptors, alternateBindDNs, errors);
     }
-    catch (OpenDsException oe)
+    catch (final OpenDsException oe)
     {
-      ex.add(oe);
+      errors.add(oe);
     }
     catch (final Throwable t)
     {
-      logger.warn(LocalizableMessage.raw("Error reading configuration: "+t, t));
-      ex.add(new OfflineUpdateException(ERR_READING_CONFIG_LDAP.get(t.getMessage()), t));
+      logger.warn(LocalizableMessage.raw("Error reading configuration: " + t, t));
+      errors.add(new OfflineUpdateException(ERR_READING_CONFIG_LDAP.get(t.getMessage()), t));
     }
 
-    if (ex.size() > 0 && environmentSettingException != null)
+    if (errors.size() > 0 && environmentSettingException != null)
     {
-      ex.add(0, environmentSettingException);
+      errors.add(0, environmentSettingException);
     }
 
-    for (OpenDsException oe : ex)
+    for (final OpenDsException oe : errors)
     {
-      logger.warn(LocalizableMessage.raw("Error reading configuration: "+oe, oe));
+      logger.warn(LocalizableMessage.raw("Error reading configuration: " + oe, oe));
     }
-    exceptions = Collections.unmodifiableList(ex);
-    administrativeUsers = Collections.unmodifiableSet(as);
-    listeners = Collections.unmodifiableSet(ls);
-    backends = Collections.unmodifiableSet(bs);
+    exceptions = Collections.unmodifiableList(errors);
+    administrativeUsers = Collections.unmodifiableSet(alternateBindDNs);
+    listeners = Collections.unmodifiableSet(connectionHandlers);
+    backends = Collections.unmodifiableSet(backendDescriptors);
   }
 
+  private void readSchemaIfNeeded(final List<OpenDsException> errors) throws ConfigException
+  {
+    if (mustReadSchema())
+    {
+      try
+      {
+        readSchema();
+        if (getSchema() != null)
+        {
+          // Update the schema: so that when we call the server code the
+          // latest schema read on the server we are managing is used.
+          DirectoryServer.setSchema(getSchema());
+        }
+      }
+      catch (final OpenDsException oe)
+      {
+        errors.add(oe);
+      }
+    }
+  }
 
-  private org.opends.server.config.ConfigException toConfigException(ConfigException ce)
+  private void readConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,
+      final Set<BackendDescriptor> backendDescriptors, final Set<DN> alternateBindDNs,
+      final List<OpenDsException> errors) throws OpenDsException, ConfigException
+  {
+    // Get the Directory Server configuration handler and use it.
+    final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    readAdminConnector(root, errors);
+    readConnectionHandlers(connectionHandlers, root, errors);
+    isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
+
+    readBackendConfiguration(backendDescriptors, root, errors);
+    boolean isReplicationSecure = readIfReplicationIsSecure(root, errors);
+    ReplicationSynchronizationProviderCfg sync = readSyncProviderIfExists(root);
+    if (sync != null)
+    {
+      readReplicationConfig(connectionHandlers, backendDescriptors, sync, isReplicationSecure, errors);
+    }
+    readAlternateBindDNs(alternateBindDNs, root, errors);
+  }
+
+  private void readAdminConnector(final RootCfg root, final List<OpenDsException> errors) throws OpenDsException
+  {
+    try
+    {
+      final AdministrationConnectorCfg adminConnector = root.getAdministrationConnector();
+      this.adminConnector = getConnectionHandler(adminConnector);
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+  }
+
+  private void readConnectionHandlers(final Set<ConnectionHandlerDescriptor> connectionHandlers, final RootCfg root,
+      final List<OpenDsException> errors) throws ConfigException
+  {
+    for (final String connHandler : root.listConnectionHandlers())
+    {
+      try
+      {
+        final ConnectionHandlerCfg connectionHandler = root.getConnectionHandler(connHandler);
+        connectionHandlers.add(getConnectionHandler(connectionHandler, connHandler));
+      }
+      catch (final OpenDsException oe)
+      {
+        errors.add(oe);
+      }
+    }
+  }
+
+  private void readBackendConfiguration(final Set<BackendDescriptor> backendDescriptors, final RootCfg root,
+      final List<OpenDsException> errors)
+  {
+    for (final String backendName : root.listBackends())
+    {
+      try
+      {
+        final BackendCfg backend = root.getBackend(backendName);
+        final Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
+        for (final DN dn : backend.getBaseDN())
+        {
+          final BaseDNDescriptor baseDN =
+              new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn, null, -1, -1, -1);
+          baseDNs.add(baseDN);
+        }
+        final Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
+        final Set<VLVIndexDescriptor> vlvIndexes = new HashSet<VLVIndexDescriptor>();
+        BackendDescriptor.Type type;
+        if (backend instanceof LocalDBBackendCfg)
+        {
+          type = BackendDescriptor.Type.LOCAL_DB;
+          final LocalDBBackendCfg db = (LocalDBBackendCfg) backend;
+          try
+          {
+            for (final String indexName : db.listLocalDBIndexes())
+            {
+              final LocalDBIndexCfg index = db.getLocalDBIndex(indexName);
+              indexes.add(new IndexDescriptor(index.getAttribute().getNameOrOID(), index.getAttribute(), null,
+                  index.getIndexType(), index.getIndexEntryLimit()));
+            }
+          }
+          catch (final ConfigException ce)
+          {
+            errors.add(toConfigException(ce));
+          }
+          indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexType>(), -1));
+          indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexType>(), -1));
+          indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexType>(), -1));
+
+          try
+          {
+            for (final String vlvIndexName : db.listLocalDBVLVIndexes())
+            {
+              final LocalDBVLVIndexCfg index = db.getLocalDBVLVIndex(vlvIndexName);
+              final String s = index.getSortOrder();
+              final List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
+              vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null, index.getBaseDN(),
+                  index.getScope(), index.getFilter(), sortOrder, index.getMaxBlockSize()));
+            }
+          }
+          catch (final ConfigException ce)
+          {
+            errors.add(toConfigException(ce));
+          }
+        }
+        else if (backend instanceof LDIFBackendCfg)
+        {
+          type = BackendDescriptor.Type.LDIF;
+        }
+        else if (backend instanceof MemoryBackendCfg)
+        {
+          type = BackendDescriptor.Type.MEMORY;
+        }
+        else if (backend instanceof BackupBackendCfg)
+        {
+          type = BackendDescriptor.Type.BACKUP;
+        }
+        else if (backend instanceof MonitorBackendCfg)
+        {
+          type = BackendDescriptor.Type.MONITOR;
+        }
+        else if (backend instanceof TaskBackendCfg)
+        {
+          type = BackendDescriptor.Type.TASK;
+        }
+        else
+        {
+          type = BackendDescriptor.Type.OTHER;
+        }
+        final BackendDescriptor desc =
+            new BackendDescriptor(backend.getBackendId(), baseDNs, indexes, vlvIndexes, -1, backend.isEnabled(), type);
+        for (final AbstractIndexDescriptor index : indexes)
+        {
+          index.setBackend(desc);
+        }
+        for (final AbstractIndexDescriptor index : vlvIndexes)
+        {
+          index.setBackend(desc);
+        }
+
+        backendDescriptors.add(desc);
+      }
+      catch (final ConfigException ce)
+      {
+        errors.add(toConfigException(ce));
+      }
+    }
+  }
+
+  private boolean readIfReplicationIsSecure(final RootCfg root, final List<OpenDsException> errors)
+  {
+    boolean isReplicationSecure = false;
+    try
+    {
+      final CryptoManagerCfg cryptoManager = root.getCryptoManager();
+      isReplicationSecure = cryptoManager.isSSLEncryption();
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+    return isReplicationSecure;
+  }
+
+  private ReplicationSynchronizationProviderCfg readSyncProviderIfExists(final RootCfg root)
+  {
+    replicationPort = -1;
+    ReplicationSynchronizationProviderCfg sync = null;
+    try
+    {
+      sync = (ReplicationSynchronizationProviderCfg) root.getSynchronizationProvider("Multimaster Synchronization");
+    }
+    catch (final ConfigException ce)
+    {
+      // Ignore this one
+    }
+    return sync;
+  }
+
+  private void readReplicationConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,
+      final Set<BackendDescriptor> backendDescriptors, ReplicationSynchronizationProviderCfg sync,
+      boolean isReplicationSecure, final List<OpenDsException> errors)
+  {
+    try
+    {
+      if (sync.isEnabled() && sync.hasReplicationServer())
+      {
+        final ReplicationServerCfg replicationServer = sync.getReplicationServer();
+        if (replicationServer != null)
+        {
+          replicationPort = replicationServer.getReplicationPort();
+          final ConnectionHandlerDescriptor.Protocol protocol =
+              isReplicationSecure ? ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE
+                  : ConnectionHandlerDescriptor.Protocol.REPLICATION;
+          final Set<CustomSearchResult> emptySet = Collections.emptySet();
+          final ConnectionHandlerDescriptor connHandler =
+              new ConnectionHandlerDescriptor(new HashSet<InetAddress>(), replicationPort, protocol,
+                  ConnectionHandlerDescriptor.State.ENABLED, "Multimaster Synchronization", emptySet);
+          connectionHandlers.add(connHandler);
+        }
+      }
+      final String[] domains = sync.listReplicationDomains();
+      if (domains != null)
+      {
+        for (final String domain2 : domains)
+        {
+          final ReplicationDomainCfg domain = sync.getReplicationDomain(domain2);
+          final DN dn = domain.getBaseDN();
+          for (final BackendDescriptor backend : backendDescriptors)
+          {
+            for (final BaseDNDescriptor baseDN : backend.getBaseDns())
+            {
+              if (baseDN.getDn().equals(dn))
+              {
+                baseDN
+                    .setType(sync.isEnabled() ? BaseDNDescriptor.Type.REPLICATED : BaseDNDescriptor.Type.DISABLED);
+                baseDN.setReplicaID(domain.getServerId());
+              }
+            }
+          }
+        }
+      }
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+  }
+
+  private void readAlternateBindDNs(final Set<DN> dns, final RootCfg root, final List<OpenDsException> errors)
+  {
+    try
+    {
+      final RootDNCfg rootDN = root.getRootDN();
+      final String[] rootUsers = rootDN.listRootDNUsers();
+      dns.clear();
+      if (rootUsers != null)
+      {
+        for (final String rootUser2 : rootUsers)
+        {
+          final RootDNUserCfg rootUser = rootDN.getRootDNUser(rootUser2);
+          dns.addAll(rootUser.getAlternateBindDN());
+        }
+      }
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+  }
+
+  private org.opends.server.config.ConfigException toConfigException(final ConfigException ce)
   {
     return new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
   }
 
-  private ConnectionHandlerDescriptor getConnectionHandler(
-      ConnectionHandlerCfg connHandler, String name) throws OpenDsException
+  private ConnectionHandlerDescriptor getConnectionHandler(final ConnectionHandlerCfg connHandler, final String name)
+      throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
-        getInetAddressComparator());
+    final SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
     int port;
 
     ConnectionHandlerDescriptor.Protocol protocol;
 
-    ConnectionHandlerDescriptor.State state = connHandler.isEnabled() ?
-        ConnectionHandlerDescriptor.State.ENABLED :
-          ConnectionHandlerDescriptor.State.DISABLED;
+    final ConnectionHandlerDescriptor.State state =
+        connHandler.isEnabled() ? ConnectionHandlerDescriptor.State.ENABLED
+            : ConnectionHandlerDescriptor.State.DISABLED;
 
     if (connHandler instanceof LDAPConnectionHandlerCfg)
     {
-      LDAPConnectionHandlerCfg ldap = (LDAPConnectionHandlerCfg)connHandler;
+      final LDAPConnectionHandlerCfg ldap = (LDAPConnectionHandlerCfg) connHandler;
       if (ldap.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.LDAPS;
@@ -427,7 +447,7 @@ public class ConfigFromFile extends ConfigReader
     }
     else if (connHandler instanceof HTTPConnectionHandlerCfg)
     {
-      HTTPConnectionHandlerCfg http = (HTTPConnectionHandlerCfg) connHandler;
+      final HTTPConnectionHandlerCfg http = (HTTPConnectionHandlerCfg) connHandler;
       if (http.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.HTTPS;
@@ -441,7 +461,7 @@ public class ConfigFromFile extends ConfigReader
     }
     else if (connHandler instanceof JMXConnectionHandlerCfg)
     {
-      JMXConnectionHandlerCfg jmx = (JMXConnectionHandlerCfg)connHandler;
+      final JMXConnectionHandlerCfg jmx = (JMXConnectionHandlerCfg) connHandler;
       if (jmx.isUseSSL())
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMXS;
@@ -461,7 +481,7 @@ public class ConfigFromFile extends ConfigReader
     else if (connHandler instanceof SNMPConnectionHandlerCfg)
     {
       protocol = ConnectionHandlerDescriptor.Protocol.SNMP;
-      SNMPConnectionHandlerCfg snmp = (SNMPConnectionHandlerCfg)connHandler;
+      final SNMPConnectionHandlerCfg snmp = (SNMPConnectionHandlerCfg) connHandler;
       addAll(addresses, snmp.getListenAddress());
       port = snmp.getListenPort();
     }
@@ -470,12 +490,11 @@ public class ConfigFromFile extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.OTHER;
       port = -1;
     }
-    Set<CustomSearchResult> emptySet = Collections.emptySet();
-    return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        name, emptySet);
+    final Set<CustomSearchResult> emptySet = Collections.emptySet();
+    return new ConnectionHandlerDescriptor(addresses, port, protocol, state, name, emptySet);
   }
 
-  private <T> void addAll(Collection<T> target, Collection<T> source)
+  private <T> void addAll(final Collection<T> target, final Collection<T> source)
   {
     if (source != null)
     {
@@ -483,23 +502,19 @@ public class ConfigFromFile extends ConfigReader
     }
   }
 
-  private ConnectionHandlerDescriptor getConnectionHandler(
-      AdministrationConnectorCfg adminConnector) throws OpenDsException
+  private ConnectionHandlerDescriptor getConnectionHandler(final AdministrationConnectorCfg adminConnector)
+      throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
-        getInetAddressComparator());
+    final SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
 
-    ConnectionHandlerDescriptor.Protocol protocol =
-      ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
+    final ConnectionHandlerDescriptor.Protocol protocol = ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
 
-    ConnectionHandlerDescriptor.State state =
-      ConnectionHandlerDescriptor.State.ENABLED;
+    final ConnectionHandlerDescriptor.State state = ConnectionHandlerDescriptor.State.ENABLED;
 
     addAll(addresses, adminConnector.getListenAddress());
-    int port = adminConnector.getListenPort();
-    Set<CustomSearchResult> emptySet = Collections.emptySet();
+    final int port = adminConnector.getListenPort();
+    final Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(),
-        emptySet);
+        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
   }
 }
