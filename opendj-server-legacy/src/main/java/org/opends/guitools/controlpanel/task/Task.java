@@ -775,9 +775,9 @@ public abstract class Task
    * script).
    * @return the command-line arguments that correspond to the configuration.
    */
-  protected ArrayList<String> getConfigCommandLineArguments()
+  protected List<String> getConfigCommandLineArguments()
   {
-    ArrayList<String> args = new ArrayList<String>();
+    List<String> args = new ArrayList<String>();
     args.add("--configClass");
     args.add(org.opends.server.extensions.ConfigFileHandler.class.getName());
     args.add("--configFile");

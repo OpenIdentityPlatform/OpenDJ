@@ -27,6 +27,7 @@
 
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
@@ -39,9 +40,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -51,8 +54,6 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
-import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -70,7 +71,6 @@ import org.opends.server.util.LDIFReader;
 
 /**
  * Panel that appears when the user defines a new VLV index.
- *
  */
 public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 {
@@ -78,9 +78,12 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
   /**
    * Constructor of the panel.
-   * @param backendName the backend where the index will be created.
-   * @param relativeComponent the component relative to which the dialog
-   * containing this panel will be centered.
+   *
+   * @param backendName
+   *          the backend where the index will be created.
+   * @param relativeComponent
+   *          the component relative to which the dialog containing this panel
+   *          will be centered.
    */
   public NewVLVIndexPanel(String backendName, Component relativeComponent)
   {
@@ -88,33 +91,35 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     createBasicLayout(this, new GridBagConstraints(), false);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ServerDescriptor desc = ev.getNewDescriptor();
+    final ServerDescriptor desc = ev.getNewDescriptor();
     if (updateLayout(desc))
     {
-      updateErrorPaneAndOKButtonIfAuthRequired(desc,
-         isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_VLV.get() :
-      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+      LocalizableMessage msg = isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_VLV.get()
+                                         : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname());
+      updateErrorPaneAndOKButtonIfAuthRequired(desc, msg);
     }
   }
 
   /**
    * Updates the contents of the panel with the provided backend.
-   * @param backend the backend where the index will be created.
+   *
+   * @param backend
+   *          the backend where the index will be created.
    */
   public void update(BackendDescriptor backend)
   {
@@ -123,34 +128,29 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   }
 
   /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
-    List<LocalizableMessage> errors = checkErrors(true);
+    final List<LocalizableMessage> errors = checkErrors(true);
     if (errors.isEmpty())
     {
-      ProgressDialog dlg = new ProgressDialog(
-          Utilities.createFrame(),
-          Utilities.getParentDialog(this),
-          INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get(), getInfo());
-      NewVLVIndexTask newTask = new NewVLVIndexTask(getInfo(), dlg);
-      for (Task task : getInfo().getTasks())
+      final ProgressDialog dlg = new ProgressDialog(
+          createFrame(), getParentDialog(this), INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get(), getInfo());
+      final NewVLVIndexTask newTask = new NewVLVIndexTask(getInfo(), dlg);
+      for (final Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
       }
       if (errors.isEmpty() && checkIndexRequired())
       {
-        String indexName = name.getText().trim();
-        launchOperation(newTask,
-            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUMMARY.get(indexName),
+        final String indexName = name.getText().trim();
+        launchOperation(newTask, INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUMMARY.get(indexName),
             INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_SUMMARY.get(),
-            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_DETAILS.get(
-                indexName),
+            INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_SUCCESSFUL_DETAILS.get(indexName),
             ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_DETAILS.get(),
-            null,
-            dlg);
+            ERR_CTRL_PANEL_CREATING_NEW_VLV_INDEX_ERROR_DETAILS.get(), null, dlg);
         dlg.setVisible(true);
-        Utilities.getParentDialog(this).setVisible(false);
+        getParentDialog(this).setVisible(false);
       }
     }
 
@@ -160,28 +160,28 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-  /**
-   * The task in charge of creating the VLV index.
-   *
-   */
+  /** The task in charge of creating the VLV index. */
   protected class NewVLVIndexTask extends Task
   {
-    private Set<String> backendSet;
-    private String indexName;
-    private Scope scope;
-    private List<VLVSortOrder> sortOrder;
-    private String baseDN;
-    private String filterValue;
-    private String backendID;
-    private String ldif;
-    private String sortOrderStringValue;
-    private int maxBlock;
+    private final Set<String> backendSet;
+    private final String indexName;
+    private final Scope scope;
+    private final List<VLVSortOrder> sortOrder;
+    private final String baseDN;
+    private final String filterValue;
+    private final String backendID;
+    private final String ldif;
+    private final String sortOrderStringValue;
+    private final int maxBlock;
     private VLVIndexDescriptor newIndex;
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
     public NewVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
@@ -199,28 +199,26 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       maxBlock = Integer.parseInt(maxBlockSize.getText());
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.NEW_INDEX;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
-      return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(
-          indexName, backendID);
+      return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(indexName, backendID);
     }
 
-    /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    @Override
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -228,13 +226,11 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         if (backends.size() > 0)
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }
@@ -255,35 +251,30 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(),
-              ConfigReader.configFile);
+              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
-              List<String> args = getObfuscatedCommandLineArguments(
-                  getDSConfigCommandLineArguments());
+              final List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineName(),
-                  args,
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_VLV_INDEX.get());
+              printEquivalentCommandLine(
+                  getConfigCommandLineName(), args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_VLV_INDEX.get());
             }
           });
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
+          @Override
           public void run()
           {
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressWithPoints(
-                    INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_PROGRESS.get(
-                        indexName),
-                    ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(getProgressWithPoints(
+                  INFO_CTRL_PANEL_CREATING_NEW_VLV_INDEX_PROGRESS.get(indexName), ColorAndFontConstants.progressFont));
           }
         });
         if (isServerRunning())
@@ -298,11 +289,10 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
+          @Override
           public void run()
           {
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(getProgressDone(ColorAndFontConstants.progressFont));
           }
         });
       }
@@ -310,8 +300,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
           getInfo().startPooling();
         }
       }
@@ -322,31 +311,23 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       LDIFImportConfig ldifImportConfig = null;
       try
       {
-        String topEntryDN =
-          "cn=VLV Index,"+Utilities.getRDNString("ds-cfg-backend-id",
-          backendName.getText())+",cn=Backends,cn=config";
-        boolean topEntryExists =
-          DirectoryServer.getConfigHandler().entryExists(
-              DN.valueOf(topEntryDN));
+        final String topEntryDN =
+            "cn=VLV Index," + getRDNString("ds-cfg-backend-id", backendName.getText()) + ",cn=Backends,cn=config";
+        final boolean topEntryExists = DirectoryServer.getConfigHandler().entryExists(DN.valueOf(topEntryDN));
 
         if (!topEntryExists)
         {
-          String completeLDIF =
-          Utilities.makeLdif(
-          "dn: "+topEntryDN,
-          "objectClass: top",
-          "objectClass: ds-cfg-branch",
-          "cn: VLV Index", "") + ldif;
-          ldifImportConfig =
-            new LDIFImportConfig(new StringReader(completeLDIF));
+          final String completeLDIF =
+              makeLdif("dn: " + topEntryDN, "objectClass: top", "objectClass: ds-cfg-branch", "cn: VLV Index", "")
+              + ldif;
+          ldifImportConfig = new LDIFImportConfig(new StringReader(completeLDIF));
         }
         else
         {
           ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
         }
 
-
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
+        final LDIFReader reader = new LDIFReader(ldifImportConfig);
         Entry backendConfigEntry;
         while ((backendConfigEntry = reader.readEntry()) != null)
         {
@@ -354,10 +335,9 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         }
         DirectoryServer.getConfigHandler().writeUpdatedConfig();
       }
-      catch (IOException ioe)
+      catch (final IOException ioe)
       {
-         throw new OfflineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       finally
       {
@@ -370,14 +350,11 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
     private void createIndex(InitialLdapContext ctx) throws OpenDsException
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend =
-        (LocalDBBackendCfgClient)root.getBackend(backendName.getText());
-      LocalDBVLVIndexCfgDefn provider = LocalDBVLVIndexCfgDefn.getInstance();
-      LocalDBVLVIndexCfgClient index =
-        backend.createLocalDBVLVIndex(provider, name.getText(), null);
+      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
+      final RootCfgClient root = mCtx.getRootConfiguration();
+      final LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendName.getText());
+      final LocalDBVLVIndexCfgDefn provider = LocalDBVLVIndexCfgDefn.getInstance();
+      final LocalDBVLVIndexCfgClient index = backend.createLocalDBVLVIndex(provider, name.getText(), null);
 
       index.setFilter(filter.getText().trim());
       index.setSortOrder(getSortOrderStringValue(getSortOrder()));
@@ -387,16 +364,14 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       index.commit();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected ArrayList<String> getCommandLineArguments()
+    protected List<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
     }
@@ -413,7 +388,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -423,14 +397,12 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       try
       {
         updateConfiguration();
-        for (BackendDescriptor backend :
-          getInfo().getServerDescriptor().getBackends())
+        for (final BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
         {
           if (backend.getBackendID().equalsIgnoreCase(backendID))
           {
-            newIndex = new VLVIndexDescriptor(
-                indexName, backend, DN.valueOf(baseDN),
-                scope, filterValue, sortOrder, maxBlock);
+            newIndex =
+               new VLVIndexDescriptor(indexName, backend, DN.valueOf(baseDN), scope, filterValue, sortOrder, maxBlock);
             getInfo().registerModifiedIndex(newIndex);
             notifyConfigurationElementCreated(newIndex);
             break;
@@ -438,27 +410,25 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         }
         state = State.FINISHED_SUCCESSFULLY;
       }
-      catch (Throwable t)
+      catch (final Throwable t)
       {
         lastException = t;
         state = State.FINISHED_WITH_ERROR;
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void postOperation()
     {
-      if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&
-          (newIndex != null))
+      if (lastException == null && state == State.FINISHED_SUCCESSFULLY && newIndex != null)
       {
         rebuildIndexIfNecessary(newIndex, getProgressDialog());
       }
     }
 
-    private ArrayList<String> getDSConfigCommandLineArguments()
+    private List<String> getDSConfigCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      final List<String> args = new ArrayList<String>();
       args.add("create-local-db-vlv-index");
       args.add("--backend-name");
       args.add(backendID);
@@ -469,16 +439,16 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       args.add(indexName);
 
       args.add("--set");
-      args.add("base-dn:"+baseDN);
+      args.add("base-dn:" + baseDN);
 
       args.add("--set");
-      args.add("filter:"+filterValue);
+      args.add("filter:" + filterValue);
 
       args.add("--set");
-      args.add("scope:"+scope);
+      args.add("scope:" + scope);
 
       args.add("--set");
-      args.add("sort-order:"+sortOrderStringValue);
+      args.add("sort-order:" + sortOrderStringValue);
 
       args.addAll(getConnectionCommandLineArguments());
       args.add(getNoPropertiesFileArgument());
