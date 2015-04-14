@@ -207,11 +207,11 @@ public abstract class Driver {
         throws PropertyException {
       // First check that the requested type of managed object
       // corresponds to the path.
-      AbstractManagedObjectDefinition<?, ?> supr = target
+      AbstractManagedObjectDefinition<?, ?> actualType = target
           .getManagedObjectDefinition();
-      if (!supr.isParentOf(d)) {
+      if (!d.isParentOf(actualType)) {
         throw PropertyException.defaultBehaviorException(
-            nextProperty, new DefinitionDecodingException(supr,
+            nextProperty, new DefinitionDecodingException(d,
                 Reason.WRONG_TYPE_INFORMATION));
       }
 
