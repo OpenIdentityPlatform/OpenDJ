@@ -24,9 +24,9 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
@@ -60,6 +60,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -73,10 +74,9 @@ import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
+import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
@@ -92,126 +92,103 @@ import org.opends.server.util.ServerConstants;
  * Abstract class used to re-factor some code between the classes that are used
  * to edit/create a VLV index.
  */
-public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
+abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -82857384664911898L;
+
   /** Title panel. */
-  protected TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
-
+  protected final TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
   /** Name label. */
-  protected JLabel lName = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_NAME_LABEL.get());
-
+  private final JLabel lName = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_NAME_LABEL.get());
   /** Base DN label. */
-  protected JLabel lBaseDN = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_BASE_DN_LABEL.get());
-
+  private final JLabel lBaseDN = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_BASE_DN_LABEL.get());
   /** Search scope label. */
-  protected JLabel lSearchScope = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_SEARCH_SCOPE_LABEL.get());
-
+  private final JLabel lSearchScope = createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_SEARCH_SCOPE_LABEL.get());
   /** Search filter label. */
-  protected JLabel lFilter = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_FILTER_LABEL.get());
-
+  private final JLabel lFilter = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_FILTER_LABEL.get());
   /** Sort order label. */
-  protected JLabel lSortOrder = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_SORT_ORDER_LABEL.get());
-
+  private final JLabel lSortOrder = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_SORT_ORDER_LABEL.get());
   /** Backends label. */
-  protected JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
-
+  private final JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
   /** Max block size label. */
-  protected JLabel lMaxBlockSize = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_MAX_BLOCK_SIZE_LABEL.get());
+  private final JLabel lMaxBlockSize = createPrimaryLabel(INFO_CTRL_PANEL_VLV_INDEX_MAX_BLOCK_SIZE_LABEL.get());
+  /** Read-only name label. */
+  protected final JLabel readOnlyName = Utilities.createDefaultLabel();
+  /** Read-only backend name label. */
+  protected final JLabel backendName = Utilities.createDefaultLabel();
 
   /** Name text field. */
-  protected JTextField name = Utilities.createMediumTextField();
-
-  /** Read-only name label. */
-  protected JLabel readOnlyName = Utilities.createDefaultLabel();
-
-  /** Read-only backend name label. */
-  protected JLabel backendName = Utilities.createDefaultLabel();
-
+  protected final JTextField name = Utilities.createMediumTextField();
   /** Base DNs combo box. */
-  protected JComboBox baseDNs = Utilities.createComboBox();
-
+  protected final JComboBox baseDNs = Utilities.createComboBox();
   /** Subtree text field. */
-  protected JTextField baseDN = Utilities.createLongTextField();
+  protected final JTextField baseDN = Utilities.createLongTextField();
 
   /** Base Object scope radio button. */
-  protected JRadioButton baseObject = Utilities.createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_BASE_OBJECT_LABEL.get());
-
+  protected final JRadioButton baseObject = createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_BASE_OBJECT_LABEL.get());
   /** Single Level scope radio button. */
-  protected JRadioButton singleLevel = Utilities.createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_SINGLE_LEVEL_LABEL.get());
-
+  protected final JRadioButton singleLevel = createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_SINGLE_LEVEL_LABEL.get());
   /** Subordinate subtree scope radio button. */
-  protected JRadioButton subordinateSubtree = Utilities
+  protected final JRadioButton subordinateSubtree = Utilities
       .createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_SUBORDINATE_SUBTREE_LABEL.get());
-
   /** Whole subtree scope radio button. */
-  protected JRadioButton wholeSubtree = Utilities
+  protected final JRadioButton wholeSubtree = Utilities
       .createRadioButton(INFO_CTRL_PANEL_VLV_INDEX_WHOLE_SUBTREE_LABEL.get());
 
   /** Filter text field. */
-  protected JTextField filter = Utilities.createLongTextField();
-
+  protected final JTextField filter = Utilities.createLongTextField();
   /** Max block size text field. */
-  protected JTextField maxBlockSize = Utilities.createShortTextField();
-
+  protected final JTextField maxBlockSize = Utilities.createShortTextField();
   /** Attributes combo box. */
-  protected JComboBox attributes = Utilities.createComboBox();
+  protected final JComboBox attributes = Utilities.createComboBox();
 
   /** The list containing the sort order elements. */
-  protected JList sortOrder = new JList();
+  protected final JList sortOrder = new JList();
 
   /** The add button. */
-  protected JButton add = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_ADD_BUTTON_LABEL.get());
-
+  private final JButton add = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_ADD_BUTTON_LABEL.get());
   /** The move up button. */
-  protected JButton moveUp = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_MOVE_UP_BUTTON_LABEL.get());
-
+  private final JButton moveUp = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_MOVE_UP_BUTTON_LABEL.get());
   /** The move down button. */
-  protected JButton moveDown = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_MOVE_DOWN_BUTTON_LABEL.get());
-
+  private final JButton moveDown = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_MOVE_DOWN_BUTTON_LABEL.get());
   /** The remove button. */
-  protected JButton remove = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_REMOVE_BUTTON_LABEL.get());
+  protected final JButton remove = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_REMOVE_BUTTON_LABEL.get());
 
   /** Ascending order combo box. */
-  protected JComboBox ascendingOrder = Utilities.createComboBox();
+  private final JComboBox ascendingOrder = Utilities.createComboBox();
 
   /** Combo box containing the sort order. */
   protected DefaultListModel sortOrderModel;
 
   /** The list of labels. */
-  protected JLabel[] labels = { lName, lBaseDN, lSearchScope, lFilter, lSortOrder, lBackend, lMaxBlockSize };
+  private final JLabel[] labels = { lName, lBaseDN, lSearchScope, lFilter, lSortOrder, lBackend, lMaxBlockSize };
 
   /**
    * The relative component that must be used to center the parent dialog of
    * this panel.
    */
-  protected Component relativeComponent;
+  private final Component relativeComponent;
 
   /** Other base DN message. */
   protected final LocalizableMessage OTHER_BASE_DN = INFO_CTRL_PANEL_VLV_OTHER_BASE_DN_LABEL.get();
-
   /** Ascending message. */
-  protected final LocalizableMessage ASCENDING = INFO_CTRL_PANEL_VLV_ASCENDING_LABEL.get();
-
+  private final LocalizableMessage ASCENDING = INFO_CTRL_PANEL_VLV_ASCENDING_LABEL.get();
   /** Descending message. */
-  protected final LocalizableMessage DESCENDING = INFO_CTRL_PANEL_VLV_DESCENDING_LABEL.get();
+  private final LocalizableMessage DESCENDING = INFO_CTRL_PANEL_VLV_DESCENDING_LABEL.get();
 
   /** Custom attributes message. */
-  protected LocalizableMessage CUSTOM_ATTRIBUTES = INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
-
+  private final LocalizableMessage CUSTOM_ATTRIBUTES = INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
   /** Standard attributes message. */
-  protected LocalizableMessage STANDARD_ATTRIBUTES = INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
+  private final LocalizableMessage STANDARD_ATTRIBUTES = INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
 
   /** The list of standard attribute names. */
-  protected TreeSet<String> standardAttrNames = new TreeSet<String>(new LowerCaseComparator());
-
+  private final TreeSet<String> standardAttrNames = new TreeSet<String>(new LowerCaseComparator());
   /** The list of configuration attribute names. */
-  protected TreeSet<String> configurationAttrNames = new TreeSet<String>(new LowerCaseComparator());
-
+  private final TreeSet<String> configurationAttrNames = new TreeSet<String>(new LowerCaseComparator());
   /** The list of custom attribute names. */
-  protected TreeSet<String> customAttrNames = new TreeSet<String>(new LowerCaseComparator());
+  private final TreeSet<String> customAttrNames = new TreeSet<String>(new LowerCaseComparator());
 
-  private int defaultVLVEntryLimitValue;
+  private final int defaultVLVEntryLimitValue;
   {
     DefinedDefaultBehaviorProvider<Integer> provider =
         (DefinedDefaultBehaviorProvider<Integer>) LocalDBVLVIndexCfgDefn.getInstance()
@@ -220,14 +197,12 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   }
 
   /** Minimum value for max block size. */
-  protected final int MIN_MAX_BLOCK_SIZE = LocalDBVLVIndexCfgDefn.getInstance().getMaxBlockSizePropertyDefinition()
+  private final int MIN_MAX_BLOCK_SIZE = LocalDBVLVIndexCfgDefn.getInstance().getMaxBlockSizePropertyDefinition()
       .getLowerLimit();
-
   /** Maximum value for max block size. */
-  protected final int MAX_MAX_BLOCK_SIZE = 2147483647;
-
+  private final int MAX_MAX_BLOCK_SIZE = 2147483647;
   /** Default value for max block size. */
-  protected final int DEFAULT_MAX_BLOCK_SIZE = defaultVLVEntryLimitValue;
+  private final int DEFAULT_MAX_BLOCK_SIZE = defaultVLVEntryLimitValue;
 
   /**
    * Constructor.
@@ -240,7 +215,6 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    */
   protected AbstractVLVIndexPanel(String backendID, Component relativeComponent)
   {
-    super();
     if (backendID != null)
     {
       backendName.setText(backendID);
@@ -395,18 +369,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         for (AttributeType attr : schema.getAttributeTypes().values())
         {
           String name = attr.getPrimaryName();
-          boolean defined = false;
-          ListModel model = sortOrder.getModel();
-          for (int i = 0; i < model.getSize(); i++)
-          {
-            VLVSortOrder s = (VLVSortOrder) model.getElementAt(i);
-            if (name.equalsIgnoreCase(s.getAttributeName()))
-            {
-              defined = true;
-              break;
-            }
-          }
-          if (!defined)
+          if (!isDefined(name))
           {
             if (Utilities.isStandard(attr))
             {
@@ -439,15 +402,6 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           newElements.add(new CategorizedComboBoxElement(attrName, CategorizedComboBoxElement.Type.REGULAR));
         }
       }
-      // Ignore configuration attr names
-      /*
-       * if (configurationAttrNames.size() > 0) { newElements.add(new
-       * CategorizedComboBoxDescriptor( "Configuration Attributes",
-       * CategorizedComboBoxDescriptor.Type.CATEGORY)); for (String attrName :
-       * configurationAttrNames) { newElements.add(new
-       * CategorizedComboBoxDescriptor( attrName,
-       * CategorizedComboBoxDescriptor.Type.REGULAR)); } }
-       */
       DefaultComboBoxModel model = (DefaultComboBoxModel) attributes.getModel();
       updateComboBoxModel(newElements, model);
     }
@@ -461,6 +415,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         if (getButtonType() == GenericDialog.ButtonType.OK)
@@ -484,6 +439,20 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     return !error[0];
   }
 
+  private boolean isDefined(String name)
+  {
+    ListModel model = sortOrder.getModel();
+    for (int i = 0; i < model.getSize(); i++)
+    {
+      VLVSortOrder s = (VLVSortOrder) model.getElementAt(i);
+      if (name.equalsIgnoreCase(s.getAttributeName()))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Returns <CODE>true</CODE> if the user accepts to continue creating the VLV
    * index even if no indexes are created for the provided filter for the VLV
@@ -499,7 +468,6 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    */
   protected boolean checkIndexRequired()
   {
-    boolean confirm = true;
     String f = filter.getText().trim();
     try
     {
@@ -513,17 +481,16 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         {
           sb.append("<br>-").append(msg);
         }
-        confirm =
-            displayConfirmationDialog(INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_TITLE.get(),
+        return displayConfirmationDialog(INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_TITLE.get(),
                 INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_MSG.get(getBackend().getBackendID(), sb));
       }
+      return true;
     }
     catch (Throwable t)
     {
       // Bug
       throw new RuntimeException("Unexpected error: " + t, t);
     }
-    return confirm;
   }
 
   /**
@@ -608,7 +575,6 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    */
   private IndexDescriptor getIndex(String indexName)
   {
-    IndexDescriptor index = null;
     BackendDescriptor backend = getBackend();
     if (backend != null)
     {
@@ -616,12 +582,11 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       {
         if (i.getName().equalsIgnoreCase(indexName))
         {
-          index = i;
-          break;
+          return i;
         }
       }
     }
-    return index;
+    return null;
   }
 
   /**
@@ -759,19 +724,16 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    *
    * @return the backend for the index.
    */
-  protected BackendDescriptor getBackend()
+  private BackendDescriptor getBackend()
   {
-    //  Check that the index does not exist
-    BackendDescriptor backend = null;
     for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
     {
       if (b.getBackendID().equalsIgnoreCase(backendName.getText()))
       {
-        backend = b;
-        break;
+        return b;
       }
     }
-    return backend;
+    return null;
   }
 
   /**
@@ -786,14 +748,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     {
       selectedItem = baseDN.getText().trim();
     }
-    if (selectedItem != null)
-    {
-      return selectedItem.toString();
-    }
-    else
-    {
-      return null;
-    }
+    return selectedItem != null ? selectedItem.toString() : null;
   }
 
   /**
@@ -801,19 +756,10 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    *
    * @return the selected attribute.
    */
-  protected String getSelectedAttribute()
+  private String getSelectedAttribute()
   {
-    String attrName;
     CategorizedComboBoxElement o = (CategorizedComboBoxElement) attributes.getSelectedItem();
-    if (o != null)
-    {
-      attrName = o.getValue().toString();
-    }
-    else
-    {
-      attrName = null;
-    }
-    return attrName;
+    return o != null ? o.getValue().toString() : null;
   }
 
   /**
@@ -905,6 +851,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     baseDNs.addItemListener(listener);
     baseDNs.addItemListener(new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         baseDN.setEnabled(OTHER_BASE_DN.equals(baseDNs.getSelectedItem()));
@@ -986,6 +933,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     final ListSelectionListener listListener = new ListSelectionListener()
     {
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         int[] indexes = sortOrder.getSelectedIndices();
@@ -1013,6 +961,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     add.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         String attr = getSelectedAttribute();
@@ -1057,6 +1006,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     });
     moveUp.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         int[] indexes = sortOrder.getSelectedIndices();
@@ -1075,6 +1025,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     });
     moveDown.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         int[] indexes = sortOrder.getSelectedIndices();
@@ -1093,6 +1044,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     });
     remove.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         int[] indexes = sortOrder.getSelectedIndices();
@@ -1100,9 +1052,9 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         synchronized (standardAttrNames)
         {
           DefaultComboBoxModel model = (DefaultComboBoxModel) attributes.getModel();
-          for (int i = 0; i < indexes.length; i++)
+          for (int index : indexes)
           {
-            VLVSortOrder sortOrder = (VLVSortOrder) sortOrderModel.getElementAt(indexes[i]);
+            VLVSortOrder sortOrder = (VLVSortOrder) sortOrderModel.getElementAt(index);
             String attrName = sortOrder.getAttributeName();
             boolean isCustom = customAttrNames.contains(attrName);
             boolean dealingWithCustom = true;

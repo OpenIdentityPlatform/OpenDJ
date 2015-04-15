@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
@@ -64,6 +63,7 @@ import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
@@ -72,7 +72,7 @@ import org.opends.server.util.LDIFReader;
 /**
  * Panel that appears when the user defines a new VLV index.
  */
-public class NewVLVIndexPanel extends AbstractVLVIndexPanel
+class NewVLVIndexPanel extends AbstractVLVIndexPanel
 {
   private static final long serialVersionUID = 1554866540747530939L;
 
@@ -85,7 +85,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
    *          the component relative to which the dialog containing this panel
    *          will be centered.
    */
-  public NewVLVIndexPanel(String backendName, Component relativeComponent)
+  NewVLVIndexPanel(String backendName, Component relativeComponent)
   {
     super(backendName, relativeComponent);
     createBasicLayout(this, new GridBagConstraints(), false);
@@ -121,7 +121,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
    * @param backend
    *          the backend where the index will be created.
    */
-  public void update(BackendDescriptor backend)
+  void update(BackendDescriptor backend)
   {
     updateBaseDNCombo(backend);
     backendName.setText(backend.getBackendID());
@@ -161,7 +161,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   }
 
   /** The task in charge of creating the VLV index. */
-  protected class NewVLVIndexTask extends Task
+  private class NewVLVIndexTask extends Task
   {
     private final Set<String> backendSet;
     private final String indexName;
@@ -183,7 +183,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
      * @param dlg
      *          the progress dialog that shows the progress of the task.
      */
-    public NewVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
+    private NewVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<String>();
@@ -220,7 +220,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     @Override
     public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
-      boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
@@ -231,10 +230,10 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
         if (backends.size() > 0)
         {
           incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
-          canLaunch = false;
+          return false;
         }
       }
-      return canLaunch;
+      return true;
     }
 
     private void updateConfiguration() throws OpenDsException
@@ -311,21 +310,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       LDIFImportConfig ldifImportConfig = null;
       try
       {
-        final String topEntryDN =
-            "cn=VLV Index," + getRDNString("ds-cfg-backend-id", backendName.getText()) + ",cn=Backends,cn=config";
-        final boolean topEntryExists = DirectoryServer.getConfigHandler().entryExists(DN.valueOf(topEntryDN));
-
-        if (!topEntryExists)
-        {
-          final String completeLDIF =
-              makeLdif("dn: " + topEntryDN, "objectClass: top", "objectClass: ds-cfg-branch", "cn: VLV Index", "")
-              + ldif;
-          ldifImportConfig = new LDIFImportConfig(new StringReader(completeLDIF));
-        }
-        else
-        {
-          ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        }
+        ldifImportConfig = new LDIFImportConfig(new StringReader(getLDIF()));
 
         final LDIFReader reader = new LDIFReader(ldifImportConfig);
         Entry backendConfigEntry;
@@ -346,6 +331,25 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
           ldifImportConfig.close();
         }
       }
+    }
+
+    private String getLDIF() throws DirectoryException
+    {
+      final String topEntryDN =
+          "cn=VLV Index," + getRDNString("ds-cfg-backend-id", backendName.getText()) + ",cn=Backends,cn=config";
+      final boolean topEntryExists = DirectoryServer.getConfigHandler().entryExists(DN.valueOf(topEntryDN));
+
+      if (!topEntryExists)
+      {
+        return makeLdif(
+            "dn: " + topEntryDN,
+            "objectClass: top",
+            "objectClass: ds-cfg-branch",
+            "cn: VLV Index",
+            "")
+            + ldif;
+      }
+      return ldif;
     }
 
     private void createIndex(InitialLdapContext ctx) throws OpenDsException
