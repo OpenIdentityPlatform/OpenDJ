@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -246,11 +246,11 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       }
 
       //Check if we find our OID.
-      assertTrue(syntaxList.contains("9.9.9"));
+      assertThat(syntaxList).contains("9.9.9");
       //DirectoryString.
-      assertTrue(syntaxList.contains("1.3.6.1.4.1.1466.115.121.1.15"));
+      assertThat(syntaxList).contains("1.3.6.1.4.1.1466.115.121.1.15");
       //IA5String.
-      assertTrue(syntaxList.contains("1.3.6.1.4.1.1466.115.121.1.26"));
+      assertThat(syntaxList).contains("1.3.6.1.4.1.1466.115.121.1.26");
     }
     finally
     {
@@ -282,7 +282,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
           "add: objectclasses",
           "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr)"
         );
-      assertTrue(resultCode == 0);
+      assertThat(resultCode).isEqualTo(0);
       TestCaseUtils.initializeTestBackend(true);
 
       TestCaseUtils.addEntry(
@@ -456,8 +456,6 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     }
   }
 
-
-
   /**
    * Tests the ordering-based search using enum syntax.
    */
@@ -496,7 +494,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertThat(entries).as("expected one entry to be returned").isNotEmpty();
-      assertTrue(entries.get(0).getName().equals(DN.valueOf("cn=test1,o=test")));
+      assertThat(entries.get(0).getName()).isEqualTo(DN.valueOf("cn=test1,o=test"));
     }
     finally
     {
@@ -547,11 +545,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "add: ldapsyntaxes",
     "ldapsyntaxes: ( 9.9.9 DESC 'Unimplemented Syntax'   " +
     " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
   }
-
-
 
   /** Deletes the substitutionSyntax from the schema. */
   private void deleteSubstitutionSyntax() throws Exception
@@ -563,10 +558,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "delete: ldapsyntaxes",
     "ldapsyntaxes: ( 9.9.9 DESC 'Unimplemented Syntax'   " +
     " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
   }
-
 
   /** Adds a regex syntax to the schema. */
   private void addRegexSyntax() throws Exception
@@ -578,7 +571,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "add: ldapsyntaxes",
     "ldapSyntaxes: ( 1.1.1 DESC 'Host and Port in the format of HOST:PORT'  " +
             "X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )");
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
 
     resultCode = TestCaseUtils.applyModifications(true,
           "dn: cn=schema",
@@ -589,10 +582,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
           "add: objectclasses",
           "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-regex)"
         );
-    assertTrue(resultCode == 0);
+    assertThat(resultCode).isEqualTo(0);
   }
-
-
 
   /** Deletes the regex syntax from the schema. */
   private void deleteRegexSyntax() throws Exception
@@ -607,8 +598,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       "delete: attributetypes",
       "attributetypes: ( test-attr-oid NAME 'test-attr-regex' SYNTAX 1.1.1 )"
     );
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
 
     resultCode = TestCaseUtils.applyModifications(true,
     "dn: cn=schema",
@@ -616,11 +606,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "delete: ldapsyntaxes",
     "ldapSyntaxes: ( 1.1.1 DESC 'Host and Port in the format of HOST:PORT'  " +
             "X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )");
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
   }
-
-
 
   /** Adds an enum syntax to the schema. */
   private void addEnumSyntax() throws Exception
@@ -632,7 +619,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "add: ldapsyntaxes",
     "ldapSyntaxes: ( 3.3.3  DESC 'Day Of The Week'  " +
             "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
 
     resultCode = TestCaseUtils.applyModifications(true,
           "dn: cn=schema",
@@ -643,10 +630,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
           "add: objectclasses",
           "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-enum)"
         );
-    assertTrue(resultCode == 0);
+    assertThat(resultCode).isEqualTo(0);
   }
-
-
 
   /** Deletes the enum syntax from the schema. */
   private void deleteEnumSyntax() throws Exception
@@ -660,8 +645,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       "delete: attributetypes",
       "attributetypes: ( test-attr-oid NAME 'test-attr-enum' SYNTAX 3.3.3 )"
     );
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
 
     resultCode = TestCaseUtils.applyModifications(true,
     "dn: cn=schema",
@@ -669,7 +653,6 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "delete: ldapsyntaxes",
     "ldapSyntaxes: ( 3.3.3  DESC 'Day Of The Week'  " +
             "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
-
-    assertTrue(resultCode==0);
+    assertThat(resultCode).isEqualTo(0);
   }
 }
