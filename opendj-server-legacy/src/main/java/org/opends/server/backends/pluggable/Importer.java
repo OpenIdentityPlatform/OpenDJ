@@ -1095,7 +1095,7 @@ final class Importer
         tasks.add(new ImportTask(storage.getWriteableTransaction()));
       }
     }
-    getAll(execService.invokeAll(tasks));
+    execService.invokeAll(tasks);
     tasks.clear();
 
     storage.write(new WriteOperation()
@@ -2149,23 +2149,16 @@ final class Importer
         entryID = idSet.iterator().next();
         parentDN = getParent(idSet.getKey());
 
-        //Bypass the cache for append data, lookup the parent in DN2ID and return.
-        if (importConfiguration != null
-            && importConfiguration.appendToExistingData())
+        if (bypassCacheForAppendMode())
         {
-          //If null is returned than this is a suffix DN.
+          // If null is returned then this is a suffix DN.
           if (parentDN != null)
           {
-            ByteString value = txn.read(dn2id, parentDN);
-            if (value != null)
-            {
-              parentID = new EntryID(value);
-            }
-            else
+            parentID = get(txn, dn2id, parentDN);
+            if (parentID == null)
             {
               // We have a missing parent. Maybe parent checking was turned off?
               // Just ignore.
-              parentID = null;
               return false;
             }
           }
@@ -2240,17 +2233,6 @@ final class Importer
         return idSet;
       }
 
-      private EntryID getParentID(ReadableTransaction txn, ByteSequence dn) throws StorageRuntimeException
-      {
-        // Bypass the cache for append data, lookup the parent DN in the DN2ID db
-        if (importConfiguration == null || !importConfiguration.appendToExistingData())
-        {
-          return parentIDMap.get(dn);
-        }
-        ByteString value = txn.read(dn2id, dn);
-        return value != null ? new EntryID(value) : null;
-      }
-
       private void id2SubTree(ReadableTransaction txn, EntryID childID) throws DirectoryException
       {
         if (parentID == null)
@@ -2276,6 +2258,26 @@ final class Importer
         {
           flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
         }
+      }
+
+      private EntryID getParentID(ReadableTransaction txn, ByteSequence dn) throws StorageRuntimeException
+      {
+        return bypassCacheForAppendMode() ? get(txn, dn2id, dn) : parentIDMap.get(dn);
+      }
+
+      /**
+       * For append data, bypass the {@link #parentIDMap} cache, and lookup the parent DN in the
+       * DN2ID index.
+       */
+      private boolean bypassCacheForAppendMode()
+      {
+        return importConfiguration != null && importConfiguration.appendToExistingData();
+      }
+
+      EntryID get(ReadableTransaction txn, TreeName dn2id, ByteSequence dn) throws StorageRuntimeException
+      {
+        ByteString value = txn.read(dn2id, dn);
+        return value != null ? new EntryID(value) : null;
       }
 
       private ImportIDSet getId2subtreeImportIDSet(EntryID entryID)
