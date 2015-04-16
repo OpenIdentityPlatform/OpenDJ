@@ -801,6 +801,9 @@ public final class DirectoryServer
   /** The Disk Space Monitor */
   private DiskSpaceMonitor diskSpaceMonitor;
 
+  /** The lock manager which will be used for coordinating access to LDAP entries */
+  private final LockManager lockManager = new LockManager();
+
   /**
    * The maximum size that internal buffers will be allowed to grow to until
    * they are trimmed.
@@ -7208,7 +7211,6 @@ public final class DirectoryServer
     TimeThread.start();
 
     getNewInstance(config);
-    LockManager.reinitializeLockTable();
     directoryServer.bootstrapServer();
     directoryServer.initializeConfiguration();
     return directoryServer;
@@ -8489,6 +8491,16 @@ public final class DirectoryServer
   public static int getMaxInternalBufferSize()
   {
     return directoryServer.maxInternalBufferSize;
+  }
+
+  /**
+   * Returns the lock manager which will be used for coordinating access to LDAP entries.
+   *
+   * @return the lock manager which will be used for coordinating access to LDAP entries.
+   */
+  public static LockManager getLockManager()
+  {
+    return directoryServer.lockManager;
   }
 
 }

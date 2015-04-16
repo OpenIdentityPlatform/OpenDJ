@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.opends.server.core;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -41,7 +39,6 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
@@ -637,82 +634,6 @@ public class CompareOperationTestCase extends OperationTestCase
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
     examineIncompleteOperation(compareOperation);
-  }
-
-  @Test(groups = "slow")
-  public void testCompareWriteLock() throws Exception
-  {
-    // We need the operation to be run in a separate thread because we are going
-    // to write lock the entry in the test case thread and check that the
-    // compare operation does not proceed.
-
-    // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    try
-    {
-      org.opends.server.tools.LDAPReader r =
-          new org.opends.server.tools.LDAPReader(s);
-      LDAPWriter w = new LDAPWriter(s);
-      TestCaseUtils.configureSocket(s);
-
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                ByteString.valueOf("cn=Directory Manager"),
-                3, ByteString.valueOf("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      // Since we are going to be watching the post-response count, we need to
-      // wait for the server to become idle before kicking off the next request
-      // to ensure that any remaining post-response processing from the previous
-      // operation has completed.
-      TestCaseUtils.quiesceServer();
-
-      Lock writeLock = LockManager.lockWrite(entry.getName());
-      assertNotNull(writeLock);
-
-      try
-      {
-        InvocationCounterPlugin.resetAllCounters();
-
-        long compareRequests  = ldapStatistics.getCompareRequests();
-        long compareResponses = ldapStatistics.getCompareResponses();
-
-        CompareRequestProtocolOp compareRequest =
-          new CompareRequestProtocolOp(
-               ByteString.valueOf(entry.getName().toString()),
-               "uid", ByteString.valueOf("rogasawara"));
-        message = new LDAPMessage(2, compareRequest);
-        w.writeMessage(message);
-
-        message = r.readMessage();
-        CompareResponseProtocolOp compareResponse =
-             message.getCompareResponseProtocolOp();
-
-        assertEquals(compareResponse.getResultCode(), LDAPResultCode.BUSY);
-
-//        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
-//        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
-//        assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
-
-        // The post response might not have been called yet.
-        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-
-        assertEquals(ldapStatistics.getCompareRequests(), compareRequests+1);
-        assertEquals(ldapStatistics.getCompareResponses(), compareResponses+1);
-      } finally
-      {
-        LockManager.unlock(entry.getName(), writeLock);
-      }
-    } finally
-    {
-      s.close();
-    }
-
   }
 
 }

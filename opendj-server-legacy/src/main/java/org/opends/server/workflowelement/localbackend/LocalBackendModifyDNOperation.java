@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -62,12 +61,12 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
@@ -309,17 +308,24 @@ public class LocalBackendModifyDNOperation
     checkIfCanceled(false);
 
     /*
-     * FIXME: we lock the target DN and the renamed target DN, but not the parent of the target DN,
-     * which seems inconsistent with the add operation implementation. Specifically, this
-     * implementation does not defend against concurrent deletes of the parent of the renamed entry.
+     * Acquire subtree write locks for the current and new DN. Be careful to avoid deadlocks by
+     * taking the locks in a well defined order.
      */
-
-    // Acquire write locks for the current and new DN.
-    final Lock currentLock = LockManager.lockWrite(entryDN);
-    Lock newLock = null;
-
+    DNLock currentLock = null;
+    DNLock newLock = null;
     try
     {
+      if (entryDN.compareTo(newDN) < 0)
+      {
+        currentLock = DirectoryServer.getLockManager().tryWriteLockSubtree(entryDN);
+        newLock = DirectoryServer.getLockManager().tryWriteLockSubtree(newDN);
+      }
+      else
+      {
+        newLock = DirectoryServer.getLockManager().tryWriteLockSubtree(newDN);
+        currentLock = DirectoryServer.getLockManager().tryWriteLockSubtree(entryDN);
+      }
+
       if (currentLock == null)
       {
         setResultCode(ResultCode.BUSY);
@@ -327,23 +333,10 @@ public class LocalBackendModifyDNOperation
         return;
       }
 
-      try
+      if (newLock == null)
       {
-        newLock = LockManager.lockWrite(newDN);
-        if (newLock == null)
-        {
-          setResultCode(ResultCode.BUSY);
-          appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(entryDN, newDN));
-          return;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        setResultCodeAndMessageNoInfoDisclosure(null, newDN,
-            DirectoryServer.getServerErrorResultCode(),
-            ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(entryDN, newDN, getExceptionMessage(e)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(entryDN, newDN));
         return;
       }
 
@@ -495,11 +488,11 @@ public class LocalBackendModifyDNOperation
     {
       if (currentLock != null)
       {
-        LockManager.unlock(entryDN, currentLock);
+        currentLock.unlock();
       }
       if (newLock != null)
       {
-        LockManager.unlock(newDN, newLock);
+        newLock.unlock();
       }
       processSynchPostOperationPlugins();
     }

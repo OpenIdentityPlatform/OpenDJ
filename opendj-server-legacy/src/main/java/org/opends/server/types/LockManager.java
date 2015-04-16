@@ -21,629 +21,517 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Reject;
 
 /**
- * This class defines a Directory Server component that can keep track
- * of all locks needed throughout the Directory Server.  It is
- * intended primarily for entry locking but support for other types of
- * objects might be added in the future.
+ * A lock manager coordinates directory update operations so that the DIT structure remains in a
+ * consistent state, as well as providing repeatable read isolation. When accessing entries
+ * components need to ensure that they have the appropriate lock:
+ * <ul>
+ * <li>repeatable reads: repeatable read isolation is rarely needed in practice, since all backend
+ * reads are guaranteed to be performed with read-committed isolation, which is normally sufficient.
+ * Specifically, read-only operations such as compare and search do not require any additional
+ * locking. If repeatable read isolation is required then lock the entry using
+ * {@link #tryReadLockEntry(DN)}
+ * <li>modifying an entry: acquire an entry write-lock for the target entry using
+ * {@link #tryWriteLockEntry(DN)}. Updates are typically performed using a read-modify-write cycle,
+ * so the write lock should be acquired before performing the initial read in order to ensure
+ * consistency
+ * <li>adding an entry: client code must acquire an entry write-lock for the target entry using
+ * {@link #tryWriteLockEntry(DN)}. The parent entry will automatically be protected from deletion by
+ * an implicit subtree read lock on the parent
+ * <li>deleting an entry: client code must acquire a subtree write lock for the target entry using
+ * {@link #tryWriteLockSubtree(DN)}
+ * <li>renaming an entry: client code must acquire a subtree write lock for the old entry, and a
+ * subtree write lock for the new entry using {@link #tryWriteLockSubtree(DN)}. Care should be taken
+ * to avoid deadlocks, e.g. by locking the DN which sorts first.
+ * </ul>
+ * In addition, backend implementations may choose to use their own lock manager for enforcing
+ * atomicity and isolation. This is typically the case for backends which cannot take advantage of
+ * atomicity guarantees provided by an underlying DB (the task backend is one such example).
+ * <p>
+ * <b>Implementation Notes</b>
+ * <p>
+ * The lock table is conceptually a cache of locks keyed on DN, i.e. a {@code Map<DN, DNLock>}.
+ * Locks must be kept in the cache while they are locked, but may be removed once they are no longer
+ * locked by any threads. Locks are represented using a pair of read-write locks: the first lock is
+ * the "subtree" lock and the second is the "entry" lock.
+ * <p>
+ * In order to lock an entry for read or write a <b>subtree</b> read lock is first acquired on each
+ * of the parent entries from the root DN down to the immediate parent of the entry to be locked.
+ * Then the appropriate read or write <b>entry</b> lock is acquired for the target entry. Subtree
+ * write locking is performed by acquiring a <b>subtree</b> read lock on each of the parent entries
+ * from the root DN down to the immediate parent of the subtree to be locked. Then a <b>subtree</b>
+ * write lock is acquired for the target subtree.
+ * <p>
+ * The lock table itself is not represented using a {@code ConcurrentHashMap} because the JDK6/7
+ * APIs do not provide the ability to atomically add-and-lock or unlock-and-remove locks (this
+ * capability is provided in JDK8). Instead, we provide our own implementation comprising of a fixed
+ * number of buckets, a bucket being a {@code LinkedList} of {@code DNLock}s. In addition, it is
+ * important to be able to efficiently iterate up and down a chain of hierarchically related locks,
+ * so each lock maintains a reference to its parent lock. Modern directories tend to have a flat
+ * structure so it is also important to avoid contention on "hot" parent DNs. Typically, a lock
+ * attempt against a DN will involve a cache miss for the target DN and a cache hit for the parent,
+ * but the parent will be the same parent for all lock requests, resulting in a lot of contention on
+ * the same lock bucket. To avoid this the lock manager maintains a small-thread local cache of
+ * locks, so that parent locks can be acquired using a lock-free algorithm.
+ * <p>
+ * Since the thread local cache may reference locks which are not actively locked by anyone, a
+ * reference counting mechanism is used in order to prevent cached locks from being removed from the
+ * underlying lock table. The reference counting mechanism is also used for references between a
+ * lock and its parent lock. To summarize, locking a DN involves the following steps:
+ * <ul>
+ * <li>get the lock from the thread local cache. If the lock was not in the thread local cache then
+ * try fetching it from the lock table:
+ * <ul>
+ * <li><i>found</i> - store it in the thread local cache and bump the reference count
+ * <li><i>not found</i> - create a new lock. First fetch the parent lock using the same process,
+ * i.e. looking in the thread local cache, etc. Then create a new lock referencing the parent lock
+ * (bumps the reference count for the parent lock), and store it in the lock table and the thread
+ * local cache with a reference count of 1.
+ * </ul>
+ * <li>return the lock to the application and increment its reference count since the application
+ * now also has a reference to the lock.
+ * </ul>
+ * Locks are dereferenced when they are unlocked, when they are evicted from a thread local cache,
+ * and when a child lock's reference count reaches zero. A lock is completely removed from the lock
+ * table once its reference count reaches zero.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=true)
+@org.opends.server.types.PublicAPI(stability = org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate = false, mayExtend = false, mayInvoke = true)
 public final class LockManager
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /**
-   * The default setting for the use of fair ordering locks.
+   * A lock on an entry or subtree. A lock can only be unlocked once.
    */
-  public static final boolean DEFAULT_FAIR_ORDERING = true;
-
-  /**
-   * The default initial size to use for the lock table.
-   */
-  public static final int DEFAULT_INITIAL_TABLE_SIZE = 64;
-
-
-
-  /**
-   * The default concurrency level to use for the lock table.
-   */
-  public static final int DEFAULT_CONCURRENCY_LEVEL = 32;
-
-
-
-  /**
-   * The default load factor to use for the lock table.
-   */
-  public static final float DEFAULT_LOAD_FACTOR = 0.75F;
-
-
-
-  /**
-   * The default length of time in milliseconds to wait while
-   * attempting to acquire a read or write lock.
-   */
-  public static final long DEFAULT_TIMEOUT = 9000;
-
-
-
-  /** The set of entry locks that the server knows about. */
-  private static
-       ConcurrentHashMap<DN,ReentrantReadWriteLock> lockTable;
-
-  /** Whether fair ordering should be used on the locks. */
-  private static boolean fair;
-
-
-
-  /** Initialize the lock table. */
-  static
+  public final class DNLock
   {
-    DirectoryEnvironmentConfig environmentConfig =
-         DirectoryServer.getEnvironmentConfig();
-    lockTable = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
-         environmentConfig.getLockManagerTableSize(),
-         DEFAULT_LOAD_FACTOR,
-         environmentConfig.getLockManagerConcurrencyLevel());
-    fair = environmentConfig.getLockManagerFairOrdering();
-  }
+    private final DNLockHolder lock;
+    private final Lock subtreeLock;
+    private final Lock entryLock;
+    private boolean isLocked = true;
 
-
-
-  /**
-   * Recreates the lock table.  This should be called only in the
-   * case that the Directory Server is in the process of an in-core
-   * restart because it will destroy the existing lock table.
-   */
-  public static synchronized void reinitializeLockTable()
-  {
-    ConcurrentHashMap<DN,ReentrantReadWriteLock> oldTable = lockTable;
-
-    DirectoryEnvironmentConfig environmentConfig =
-         DirectoryServer.getEnvironmentConfig();
-    lockTable = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
-         environmentConfig.getLockManagerTableSize(),
-         DEFAULT_LOAD_FACTOR,
-         environmentConfig.getLockManagerConcurrencyLevel());
-
-    if  (! oldTable.isEmpty())
+    private DNLock(final DNLockHolder lock, final Lock subtreeLock, final Lock entryLock)
     {
-      for (DN dn : oldTable.keySet())
-      {
-        try
-        {
-          ReentrantReadWriteLock lock = oldTable.get(dn);
-          if (lock.isWriteLocked())
-          {
-            logger.trace("Found stale write lock on %s", dn);
-          }
-          else if (lock.getReadLockCount() > 0)
-          {
-            logger.trace("Found stale read lock on %s", dn);
-          }
-          else
-          {
-            logger.trace("Found stale unheld lock on %s", dn);
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-
-      oldTable.clear();
+      this.lock = lock;
+      this.subtreeLock = subtreeLock;
+      this.entryLock = entryLock;
     }
 
-    fair = environmentConfig.getLockManagerFairOrdering();
+    @Override
+    public String toString()
+    {
+      return lock.toString();
+    }
+
+    /**
+     * Unlocks this lock and releases any blocked threads.
+     *
+     * @throws IllegalStateException
+     *           If this lock has already been unlocked.
+     */
+    public void unlock()
+    {
+      if (!isLocked)
+      {
+        throw new IllegalStateException("Already unlocked");
+      }
+      lock.releaseParentSubtreeReadLock();
+      subtreeLock.unlock();
+      entryLock.unlock();
+      dereference(lock);
+      isLocked = false;
+    }
+
+    // For unit testing.
+    int refCount()
+    {
+      return lock.refCount.get();
+    }
   }
 
-
-
   /**
-   * Attempts to acquire a read lock on the specified entry.  It will
-   * succeed only if the write lock is not already held.  If any
-   * blocking is required, then this call will fail rather than block.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the read
-   *                  lock.
-   *
-   * @return  The read lock that was acquired, or {@code null} if it
-   *          was not possible to obtain a read lock for some reason.
+   * Lock implementation
    */
-  private static Lock tryLockRead(DN entryDN)
+  private final class DNLockHolder
   {
-    ReentrantReadWriteLock entryLock =
-        new ReentrantReadWriteLock(fair);
-    Lock readLock = entryLock.readLock();
-    readLock.lock();
+    private final AtomicInteger refCount = new AtomicInteger();
+    private final DNLockHolder parent;
+    private final DN dn;
+    private final int dnHashCode;
+    private final ReentrantReadWriteLock subtreeLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
 
-    ReentrantReadWriteLock existingLock =
-         lockTable.putIfAbsent(entryDN, entryLock);
-    if (existingLock == null)
+    DNLockHolder(final DNLockHolder parent, final DN dn, final int dnHashCode)
     {
-      return readLock;
+      this.parent = parent;
+      this.dn = dn;
+      this.dnHashCode = dnHashCode;
     }
-    else
+
+    @Override
+    public String toString()
     {
-      // There's a lock in the table, but it could potentially be
-      // unheld.  We'll do an unsafe check to see whether it might be
-      // held and if so then fail to acquire the lock.
-      if (existingLock.isWriteLocked())
-      {
-        readLock.unlock();
-        return null;
-      }
+      return "\"" + dn + "\" : " + refCount;
+    }
 
-      // We will never remove a lock from the table without holding
-      // its monitor.  Since there's already a lock in the table, then
-      // get its monitor and try to acquire the lock.  This should
-      // prevent the owner from releasing the lock and removing it
-      // from the table before it can be acquired by another thread.
-      synchronized (existingLock)
+    /**
+     * Unlocks the subtree read lock from the parent of this lock up to the root.
+     */
+    void releaseParentSubtreeReadLock()
+    {
+      for (DNLockHolder lock = parent; lock != null; lock = lock.parent)
       {
-        ReentrantReadWriteLock existingLock2 =
-             lockTable.putIfAbsent(entryDN, entryLock);
-        if (existingLock2 == null)
-        {
-          return readLock;
-        }
-        else if (existingLock == existingLock2)
-        {
-          // We were able to synchronize on the lock's monitor while
-          // the lock was still in the table.  Try to acquire it now
-          // (which will succeed if the lock isn't held by anything)
-          // and either return it or return null.
-          readLock.unlock();
-          readLock = existingLock.readLock();
-
-          try
-          {
-            if (readLock.tryLock(0, TimeUnit.SECONDS))
-            {
-              return readLock;
-            }
-            else
-            {
-              return null;
-            }
-          }
-          catch(InterruptedException ie)
-          {
-            // This should never happen. Just return null
-            return null;
-          }
-        }
-        else
-        {
-          // If this happens, then it means that while we were waiting
-          // the existing lock was unlocked and removed from the table
-          // and a new one was created and added to the table.  This
-          // is more trouble than it's worth, so return null.
-          readLock.unlock();
-          return null;
-        }
+        lock.subtreeLock.readLock().unlock();
       }
     }
-  }
 
-
-
-  /**
-   * Attempts to acquire a read lock for the specified entry.
-   * Multiple threads can hold the read lock concurrently for an entry
-   * as long as the write lock is held.  If the write lock is held,
-   * then no other read or write locks will be allowed for that entry
-   * until the write lock is released.  A default timeout will be used
-   * for the lock.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the read
-   *                  lock.
-   *
-   * @return  The read lock that was acquired, or {@code null} if it
-   *          was not possible to obtain a read lock for some reason.
-   */
-  public static Lock lockRead(DN entryDN)
-  {
-    return lockRead(entryDN, DEFAULT_TIMEOUT);
-  }
-
-
-
-  /**
-   * Attempts to acquire a read lock for the specified entry.
-   * Multiple threads can hold the read lock concurrently for an entry
-   * as long as the write lock is not held.  If the write lock is
-   * held, then no other read or write locks will be allowed for that
-   * entry until the write lock is released.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the read
-   *                  lock.
-   * @param  timeout  The maximum length of time in milliseconds to
-   *                  wait for the lock before timing out.
-   *
-   * @return  The read lock that was acquired, or <CODE>null</CODE> if
-   *          it was not possible to obtain a read lock for some
-   *          reason.
-   */
-  private static Lock lockRead(DN entryDN, long timeout)
-  {
-    // First, try to get the lock without blocking.
-    Lock readLock = tryLockRead(entryDN);
-    if (readLock != null)
+    DNLock tryReadLockEntry()
     {
-      return readLock;
+      return tryLock(subtreeLock.readLock(), entryLock.readLock());
     }
 
-    ReentrantReadWriteLock entryLock =
-        new ReentrantReadWriteLock(fair);
-    readLock = entryLock.readLock();
-    readLock.lock();
-
-    ReentrantReadWriteLock existingLock =
-         lockTable.putIfAbsent(entryDN, entryLock);
-    if (existingLock == null)
+    DNLock tryWriteLockEntry()
     {
-      return readLock;
+      return tryLock(subtreeLock.readLock(), entryLock.writeLock());
     }
 
-    long surrenderTime = System.currentTimeMillis() + timeout;
-    readLock.unlock();
-    readLock = existingLock.readLock();
+    DNLock tryWriteLockSubtree()
+    {
+      return tryLock(subtreeLock.writeLock(), entryLock.writeLock());
+    }
 
-    while (true)
+    /**
+     * Locks the subtree read lock from the root down to the parent of this lock.
+     */
+    private boolean tryAcquireParentSubtreeReadLock()
+    {
+      // First lock the parents of the parent.
+      if (parent == null)
+      {
+        return true;
+      }
+
+      if (!parent.tryAcquireParentSubtreeReadLock())
+      {
+        return false;
+      }
+
+      // Then lock the parent of this lock
+      if (tryLockWithTimeout(parent.subtreeLock.readLock()))
+      {
+        return true;
+      }
+
+      // Failed to grab the parent lock within the timeout, so roll-back the other locks.
+      releaseParentSubtreeReadLock();
+      return false;
+    }
+
+    private DNLock tryLock(final Lock subtreeLock, final Lock entryLock)
+    {
+      if (tryAcquireParentSubtreeReadLock())
+      {
+        if (tryLockWithTimeout(subtreeLock))
+        {
+          if (tryLockWithTimeout(entryLock))
+          {
+            return new DNLock(this, subtreeLock, entryLock);
+          }
+          subtreeLock.unlock();
+        }
+        releaseParentSubtreeReadLock();
+      }
+      // Failed to acquire all the necessary locks within the time out.
+      dereference(this);
+      return null;
+    }
+
+    private boolean tryLockWithTimeout(final Lock lock)
     {
       try
       {
-        // See if we can acquire the lock while it's still in the
-        // table within the given timeout.
-        if (readLock.tryLock(timeout, TimeUnit.MILLISECONDS))
+        return lock.tryLock(lockTimeout, lockTimeoutUnits);
+      }
+      catch (final InterruptedException e)
+      {
+        // Unable to handle interrupts here.
+        Thread.currentThread().interrupt();
+        return false;
+      }
+    }
+  }
+
+  private static final long DEFAULT_LOCK_TIMEOUT = 9;
+  private static final TimeUnit DEFAULT_LOCK_TIMEOUT_UNITS = TimeUnit.SECONDS;
+  private static final int MINIMUM_NUMBER_OF_BUCKETS = 64;
+  private static final int THREAD_LOCAL_CACHE_SIZE = 8;
+
+  private final int numberOfBuckets;
+  private final LinkedList<DNLockHolder>[] lockTable;
+  private final long lockTimeout;
+  private final TimeUnit lockTimeoutUnits;
+
+  // Avoid sub-classing in order to workaround class leaks in app servers.
+  private final ThreadLocal<LinkedList<DNLockHolder>> threadLocalCache = new ThreadLocal<LinkedList<DNLockHolder>>();
+
+  /**
+   * Creates a new lock manager with a lock timeout of 9 seconds and an automatically chosen number
+   * of lock table buckets based on the number of processors.
+   */
+  public LockManager()
+  {
+    this(DEFAULT_LOCK_TIMEOUT, DEFAULT_LOCK_TIMEOUT_UNITS);
+  }
+
+  /**
+   * Creates a new lock manager with the specified lock timeout and an automatically chosen number
+   * of lock table buckets based on the number of processors.
+   *
+   * @param lockTimeout
+   *          The lock timeout.
+   * @param lockTimeoutUnit
+   *          The lock timeout units.
+   */
+  public LockManager(final long lockTimeout, final TimeUnit lockTimeoutUnit)
+  {
+    this(lockTimeout, lockTimeoutUnit, Runtime.getRuntime().availableProcessors() * 8);
+  }
+
+  /**
+   * Creates a new lock manager with the provided configuration.
+   *
+   * @param lockTimeout
+   *          The lock timeout.
+   * @param lockTimeoutUnit
+   *          The lock timeout units.
+   * @param numberOfBuckets
+   *          The number of buckets to use in the lock table. The minimum number of buckets is 64.
+   */
+  @SuppressWarnings("unchecked")
+  public LockManager(final long lockTimeout, final TimeUnit lockTimeoutUnit, final int numberOfBuckets)
+  {
+    Reject.ifFalse(lockTimeout >= 0, "lockTimeout must be a non-negative integer");
+    Reject.ifNull(lockTimeoutUnit, "lockTimeoutUnit must be non-null");
+    Reject.ifFalse(numberOfBuckets > 0, "numberOfBuckets must be a positive integer");
+
+    this.lockTimeout = lockTimeout;
+    this.lockTimeoutUnits = lockTimeoutUnit;
+    this.numberOfBuckets = getNumberOfBuckets(numberOfBuckets);
+    this.lockTable = new LinkedList[this.numberOfBuckets];
+    for (int i = 0; i < this.numberOfBuckets; i++)
+    {
+      this.lockTable[i] = new LinkedList<DNLockHolder>();
+    }
+  }
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < numberOfBuckets; i++)
+    {
+      final LinkedList<DNLockHolder> bucket = lockTable[i];
+      synchronized (bucket)
+      {
+        for (final DNLockHolder lock : bucket)
         {
-          synchronized (existingLock)
+          builder.append(lock);
+          builder.append('\n');
+        }
+      }
+    }
+    return builder.toString();
+  }
+
+  /**
+   * Acquires the read lock for the specified entry. This method will block if the entry is already
+   * write locked or if the entry, or any of its parents, have the subtree write lock taken.
+   *
+   * @param entry
+   *          The entry whose read lock is required.
+   * @return The lock, or {@code null} if the lock attempt timed out.
+   */
+  public DNLock tryReadLockEntry(final DN entry)
+  {
+    return acquireLockFromCache(entry).tryReadLockEntry();
+  }
+
+  /**
+   * Acquires the write lock for the specified entry. This method will block if the entry is already
+   * read or write locked or if the entry, or any of its parents, have the subtree write lock taken.
+   *
+   * @param entry
+   *          The entry whose write lock is required.
+   * @return The lock, or {@code null} if the lock attempt timed out.
+   */
+  public DNLock tryWriteLockEntry(final DN entry)
+  {
+    return acquireLockFromCache(entry).tryWriteLockEntry();
+  }
+
+  /**
+   * Acquires the write lock for the specified subtree. This method will block if any entry or
+   * subtree within the subtree is already read or write locked or if any of the parent entries of
+   * the subtree have the subtree write lock taken.
+   *
+   * @param subtree
+   *          The subtree whose write lock is required.
+   * @return The lock, or {@code null} if the lock attempt timed out.
+   */
+  public DNLock tryWriteLockSubtree(final DN subtree)
+  {
+    return acquireLockFromCache(subtree).tryWriteLockSubtree();
+  }
+
+  // For unit testing.
+  int getLockTableRefCountFor(final DN dn)
+  {
+    final int dnHashCode = dn.hashCode();
+    final LinkedList<DNLockHolder> bucket = getBucket(dnHashCode);
+    synchronized (bucket)
+    {
+      for (final DNLockHolder lock : bucket)
+      {
+        if (lock.dnHashCode == dnHashCode && lock.dn.equals(dn))
+        {
+          return lock.refCount.get();
+        }
+      }
+      return -1;
+    }
+  }
+
+  //For unit testing.
+  int getThreadLocalCacheRefCountFor(final DN dn)
+  {
+    final LinkedList<DNLockHolder> cache = threadLocalCache.get();
+    if (cache == null)
+    {
+      return -1;
+    }
+    final int dnHashCode = dn.hashCode();
+    for (final DNLockHolder lock : cache)
+    {
+      if (lock.dnHashCode == dnHashCode && lock.dn.equals(dn))
+      {
+        return lock.refCount.get();
+      }
+    }
+    return -1;
+  }
+
+  private DNLockHolder acquireLockFromCache(final DN dn)
+  {
+    LinkedList<DNLockHolder> cache = threadLocalCache.get();
+    if (cache == null)
+    {
+      cache = new LinkedList<DNLockHolder>();
+      threadLocalCache.set(cache);
+    }
+    return acquireLockFromCache0(dn, cache);
+  }
+
+  private DNLockHolder acquireLockFromCache0(final DN dn, final LinkedList<DNLockHolder> cache)
+  {
+    final int dnHashCode = dn.hashCode();
+    DNLockHolder lock = removeLock(cache, dn, dnHashCode);
+    if (lock == null)
+    {
+      lock = acquireLockFromLockTable(dn, dnHashCode, cache);
+      if (cache.size() >= THREAD_LOCAL_CACHE_SIZE)
+      {
+        // Cache too big: evict oldest entry.
+        dereference(cache.removeLast());
+      }
+    }
+    cache.addFirst(lock); // optimize for LRU
+    lock.refCount.incrementAndGet();
+    return lock;
+  }
+
+  private DNLockHolder acquireLockFromLockTable(final DN dn, final int dnHashCode, final LinkedList<DNLockHolder> cache)
+  {
+    final LinkedList<DNLockHolder> bucket = getBucket(dnHashCode);
+    synchronized (bucket)
+    {
+      DNLockHolder lock = removeLock(bucket, dn, dnHashCode);
+      if (lock == null)
+      {
+        final DN parentDN = dn.parent();
+        final DNLockHolder parentLock = parentDN != null ? acquireLockFromCache0(parentDN, cache) : null;
+        lock = new DNLockHolder(parentLock, dn, dnHashCode);
+      }
+      bucket.addFirst(lock); // optimize for LRU
+      lock.refCount.incrementAndGet();
+      return lock;
+    }
+  }
+
+  private void dereference(final DNLockHolder lock)
+  {
+    if (lock.refCount.decrementAndGet() <= 0)
+    {
+      final LinkedList<DNLockHolder> bucket = getBucket(lock.dnHashCode);
+      synchronized (bucket)
+      {
+        // Double check: another thread could have acquired the lock since we decremented it to zero.
+        if (lock.refCount.get() <= 0)
+        {
+          removeLock(bucket, lock.dn, lock.dnHashCode);
+          if (lock.parent != null)
           {
-            if (lockTable.get(entryDN) == existingLock)
-            {
-              // We acquired the lock within the timeout and it's
-              // still in the lock table, so we're good to go.
-              return readLock;
-            }
-            else
-            {
-              ReentrantReadWriteLock existingLock2 =
-                   lockTable.putIfAbsent(entryDN, existingLock);
-              if (existingLock2 == null)
-              {
-                // The lock had already been removed from the table,
-                // but nothing had replaced it before we put it back,
-                // so we're good to go.
-                return readLock;
-              }
-              else
-              {
-                readLock.unlock();
-                existingLock = existingLock2;
-                readLock     = existingLock.readLock();
-              }
-            }
+            dereference(lock.parent);
           }
         }
-        else
-        {
-          // We couldn't acquire the lock before the timeout occurred,
-          // so we have to fail.
-          return null;
-        }
-      } catch (InterruptedException ie) {}
-
-
-      // There are only two reasons we should be here:
-      // - If the attempt to acquire the lock was interrupted.
-      // - If we acquired the lock but it had already been removed
-      //   from the table and another one had replaced it before we
-      //   could put it back.
-      // Our only recourse is to try again, but we need to reduce the
-      // timeout to account for the time we've already waited.
-      timeout = surrenderTime - System.currentTimeMillis();
-      if (timeout <= 0)
-      {
-        return null;
       }
     }
   }
 
-
-
-  /**
-   * Attempts to acquire a write lock on the specified entry.  It will
-   * succeed only if the lock is not already held.  If any blocking is
-   * required, then this call will fail rather than block.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the
-   *                  write lock.
-   *
-   * @return  The write lock that was acquired, or <CODE>null</CODE>
-   *          if it was not possible to obtain a write lock for some
-   *          reason.
-   */
-  private static Lock tryLockWrite(DN entryDN)
+  private LinkedList<DNLockHolder> getBucket(final int dnHashCode)
   {
-    ReentrantReadWriteLock entryLock =
-        new ReentrantReadWriteLock(fair);
-    Lock writeLock = entryLock.writeLock();
-    writeLock.lock();
+    return lockTable[dnHashCode & numberOfBuckets - 1];
+  }
 
-    ReentrantReadWriteLock existingLock =
-         lockTable.putIfAbsent(entryDN, entryLock);
-    if (existingLock == null)
+  /*
+   * Ensure that the number of buckets is a power of 2 in order to make it easier to map hash codes
+   * to bucket indexes.
+   */
+  private int getNumberOfBuckets(final int buckets)
+  {
+    final int roundedNumberOfBuckets = Math.min(buckets, MINIMUM_NUMBER_OF_BUCKETS);
+    int powerOf2 = 1;
+    while (powerOf2 < roundedNumberOfBuckets)
     {
-      return writeLock;
+      powerOf2 <<= 1;
     }
-    else
-    {
-      // There's a lock in the table, but it could potentially be
-      // unheld.  We'll do an unsafe check to see whether it might be
-      // held and if so then fail to acquire the lock.
-      if ((existingLock.getReadLockCount() > 0) ||
-          (existingLock.isWriteLocked()))
-      {
-        writeLock.unlock();
-        return null;
-      }
+    return powerOf2;
+  }
 
-      // We will never remove a lock from the table without holding
-      // its monitor.  Since there's already a lock in the table, then
-      // get its monitor and try to acquire the lock.  This should
-      // prevent the owner from releasing the lock and removing it
-      // from the table before it can be acquired by another thread.
-      synchronized (existingLock)
+  private DNLockHolder removeLock(final LinkedList<DNLockHolder> lockList, final DN dn, final int dnHashCode)
+  {
+    final Iterator<DNLockHolder> iterator = lockList.iterator();
+    while (iterator.hasNext())
+    {
+      final DNLockHolder lock = iterator.next();
+      if (lock.dnHashCode == dnHashCode && lock.dn.equals(dn))
       {
-        ReentrantReadWriteLock existingLock2 =
-             lockTable.putIfAbsent(entryDN, entryLock);
-        if (existingLock2 == null)
-        {
-          return writeLock;
-        }
-        else if (existingLock == existingLock2)
-        {
-          // We were able to synchronize on the lock's monitor while
-          // the lock was still in the table.  Try to acquire it now
-          // (which will succeed if the lock isn't held by anything)
-          // and either return it or return null.
-          writeLock.unlock();
-          writeLock = existingLock.writeLock();
-          try
-          {
-            if (writeLock.tryLock(0, TimeUnit.SECONDS))
-            {
-              return writeLock;
-            }
-            else
-            {
-              return null;
-            }
-          }
-          catch(InterruptedException ie)
-          {
-            // This should never happen. Just return null
-            return null;
-          }
-        }
-        else
-        {
-          // If this happens, then it means that while we were waiting
-          // the existing lock was unlocked and removed from the table
-          // and a new one was created and added to the table.  This
-          // is more trouble than it's worth, so return null.
-          writeLock.unlock();
-          return null;
-        }
+        // Found: remove the lock because it will be moved to the front of the list.
+        iterator.remove();
+        return lock;
       }
     }
-  }
-
-
-
-  /**
-   * Attempts to acquire the write lock for the specified entry.  Only
-   * a single thread may hold the write lock for an entry at any given
-   * time, and during that time no read locks may be held for it.  A
-   * default timeout will be used for the lock.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the
-   *                  write lock.
-   *
-   * @return  The write lock that was acquired, or <CODE>null</CODE>
-   *          if it was not possible to obtain a write lock for some
-   *          reason.
-   */
-  public static Lock lockWrite(DN entryDN)
-  {
-    return lockWrite(entryDN, DEFAULT_TIMEOUT);
-  }
-
-
-
-  /**
-   * Attempts to acquire the write lock for the specified entry.  Only
-   * a single thread may hold the write lock for an entry at any given
-   * time, and during that time no read locks may be held for it.
-   *
-   * @param  entryDN  The DN of the entry for which to obtain the
-   *                  write lock.
-   * @param  timeout  The maximum length of time in milliseconds to
-   *                  wait for the lock before timing out.
-   *
-   * @return  The write lock that was acquired, or <CODE>null</CODE>
-   *          if it was not possible to obtain a read lock for some
-   *          reason.
-   */
-  private static Lock lockWrite(DN entryDN, long timeout)
-  {
-    // First, try to get the lock without blocking.
-    Lock writeLock = tryLockWrite(entryDN);
-    if (writeLock != null)
-    {
-      return writeLock;
-    }
-
-    ReentrantReadWriteLock entryLock =
-        new ReentrantReadWriteLock(fair);
-    writeLock = entryLock.writeLock();
-    writeLock.lock();
-
-    ReentrantReadWriteLock existingLock =
-         lockTable.putIfAbsent(entryDN, entryLock);
-    if (existingLock == null)
-    {
-      return writeLock;
-    }
-
-    long surrenderTime = System.currentTimeMillis() + timeout;
-    writeLock.unlock();
-    writeLock = existingLock.writeLock();
-
-    while (true)
-    {
-      try
-      {
-        // See if we can acquire the lock while it's still in the
-        // table within the given timeout.
-        if (writeLock.tryLock(timeout, TimeUnit.MILLISECONDS))
-        {
-          synchronized (existingLock)
-          {
-            if (lockTable.get(entryDN) == existingLock)
-            {
-              // We acquired the lock within the timeout and it's
-              // still in the lock table, so we're good to go.
-              return writeLock;
-            }
-            else
-            {
-              ReentrantReadWriteLock existingLock2 =
-                   lockTable.putIfAbsent(entryDN, existingLock);
-              if (existingLock2 == null)
-              {
-                // The lock had already been removed from the table,
-                // but nothing had replaced it before we put it back,
-                // so we're good to go.
-                return writeLock;
-              }
-              else
-              {
-                writeLock.unlock();
-                existingLock  = existingLock2;
-                writeLock     = existingLock.writeLock();
-              }
-            }
-          }
-        }
-        else
-        {
-          // We couldn't acquire the lock before the timeout occurred,
-          // so we have to fail.
-          return null;
-        }
-      } catch (InterruptedException ie) {}
-
-
-      // There are only two reasons we should be here:
-      // - If the attempt to acquire the lock was interrupted.
-      // - If we acquired the lock but it had already been removed
-      //   from the table and another one had replaced it before we
-      //   could put it back.
-      // Our only recourse is to try again, but we need to reduce the
-      // timeout to account for the time we've already waited.
-      timeout = surrenderTime - System.currentTimeMillis();
-      if (timeout <= 0)
-      {
-        return null;
-      }
-    }
-  }
-
-
-
-  /**
-   * Releases a read or write lock held on the specified entry.
-   *
-   * @param  entryDN  The DN of the entry for which to release the
-   *                  lock.
-   * @param  lock     The read or write lock held for the entry.
-   */
-  public static void unlock(DN entryDN, Lock lock)
-  {
-    // Get the corresponding read-write lock from the lock table.
-    ReentrantReadWriteLock existingLock = lockTable.get(entryDN);
-
-    // it should never be null, if it is is then all we can do is
-    // release the lock and return.
-    lock.unlock();
-    if (existingLock != null
-        && !existingLock.hasQueuedThreads()
-        && existingLock.getReadLockCount() <= 1)
-    {
-      synchronized (existingLock)
-      {
-        if (!existingLock.isWriteLocked()
-            && existingLock.getReadLockCount() == 0)
-        {
-          // If there's nothing waiting on the lock,
-          // then we can remove it from the table when we unlock it.
-          lockTable.remove(entryDN, existingLock);
-        }
-      }
-    }
-  }
-
-
-
-  /**
-   * Removes any reference to the specified entry from the lock table.
-   * This may be helpful if there is a case where a lock has been
-   * orphaned somehow and must be removed before other threads may
-   * acquire it.
-   *
-   * @param  entryDN  The DN of the entry for which to remove the lock
-   *                  from the table.
-   *
-   * @return  The read write lock that was removed from the table, or
-   *          {@code null} if nothing was in the table for the
-   *          specified entry.  If a lock object is returned, it may
-   *          be possible to get information about who was holding it.
-   */
-  public static ReentrantReadWriteLock destroyLock(DN entryDN)
-  {
-    return lockTable.remove(entryDN);
-  }
-
-
-
-  /**
-   * Retrieves the number of entries currently held in the lock table.
-   * Note that this may be an expensive operation.
-   *
-   * @return  The number of entries currently held in the lock table.
-   */
-  public static int lockTableSize()
-  {
-    return lockTable.size();
+    return null;
   }
 }
-

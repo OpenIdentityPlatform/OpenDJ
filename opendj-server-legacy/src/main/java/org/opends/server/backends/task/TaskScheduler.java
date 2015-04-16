@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -45,6 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFException;
@@ -1553,22 +1553,20 @@ public class TaskScheduler
    *
    * @return  The write lock that has been acquired for the entry.
    */
-  Lock writeLockEntry(DN entryDN)
+  DNLock writeLockEntry(DN entryDN)
   {
-    Lock lock = LockManager.lockWrite(entryDN);
+    DNLock lock = null;
     while (lock == null)
     {
-      lock = LockManager.lockWrite(entryDN);
+      lock = DirectoryServer.getLockManager().tryWriteLockEntry(entryDN);
     }
-
     return lock;
   }
 
 
 
   /**
-   * Attempts to acquire a read lock on the specified entry, trying up to five
-   * times before failing.
+   * Attempts to acquire a read lock on the specified entry.
    *
    * @param  entryDN  The DN of the entry for which to acquire the read lock.
    *
@@ -1576,32 +1574,14 @@ public class TaskScheduler
    *
    * @throws  DirectoryException  If the read lock cannot be acquired.
    */
-  Lock readLockEntry(DN entryDN)
-       throws DirectoryException
+  DNLock readLockEntry(DN entryDN) throws DirectoryException
   {
-    final Lock lock = LockManager.lockRead(entryDN);
-    if (lock == null)
-    {
-      throw new DirectoryException(ResultCode.BUSY,
-          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(entryDN));
-    }
-    else
+    final DNLock lock = DirectoryServer.getLockManager().tryReadLockEntry(entryDN);
+    if (lock != null)
     {
       return lock;
     }
-  }
-
-
-
-  /**
-   * Releases the lock held on the specified entry.
-   *
-   * @param  entryDN  The DN of the entry for which the lock is held.
-   * @param  lock     The lock held on the entry.
-   */
-  void unlockEntry(DN entryDN, Lock lock)
-  {
-    LockManager.unlock(entryDN, lock);
+    throw new DirectoryException(ResultCode.BUSY, ERR_BACKEND_CANNOT_LOCK_ENTRY.get(entryDN));
   }
 
 
@@ -1670,8 +1650,7 @@ public class TaskScheduler
       for (Task t : tasks.values())
       {
         DN taskEntryDN = t.getTaskEntryDN();
-        Lock lock = readLockEntry(taskEntryDN);
-
+        DNLock lock = readLockEntry(taskEntryDN);
         try
         {
           Entry e = t.getTaskEntry().duplicate(true);
@@ -1682,7 +1661,7 @@ public class TaskScheduler
         }
         finally
         {
-          unlockEntry(taskEntryDN, lock);
+          lock.unlock();
         }
       }
 
@@ -1818,8 +1797,7 @@ public class TaskScheduler
       for (RecurringTask rt : recurringTasks.values())
       {
         DN recurringTaskEntryDN = rt.getRecurringTaskEntryDN();
-        Lock lock = readLockEntry(recurringTaskEntryDN);
-
+        DNLock lock = readLockEntry(recurringTaskEntryDN);
         try
         {
           Entry e = rt.getRecurringTaskEntry().duplicate(true);
@@ -1830,7 +1808,7 @@ public class TaskScheduler
         }
         finally
         {
-          unlockEntry(recurringTaskEntryDN, lock);
+          lock.unlock();
         }
       }
 

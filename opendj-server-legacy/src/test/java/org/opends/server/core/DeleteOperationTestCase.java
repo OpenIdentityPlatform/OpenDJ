@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -45,6 +44,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.testng.annotations.AfterMethod;
@@ -207,8 +207,9 @@ public class DeleteOperationTestCase extends OperationTestCase
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
+    @SuppressWarnings("unchecked")
     List<LocalBackendDeleteOperation> localOps =
-      (List) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
+        (List<LocalBackendDeleteOperation>) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     assertNotNull(localOps);
     for (LocalBackendDeleteOperation curOp : localOps)
     {
@@ -239,8 +240,9 @@ public class DeleteOperationTestCase extends OperationTestCase
 
     DeleteOperation deleteOperation = processDeleteRaw("ou=People,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    @SuppressWarnings("unchecked")
     List<LocalBackendDeleteOperation> localOps =
-      (List) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
+        (List<LocalBackendDeleteOperation>) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     assertNotNull(localOps);
     for (LocalBackendDeleteOperation curOp : localOps)
     {
@@ -694,8 +696,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Lock entryLock = LockManager.lockRead(DN.valueOf("o=test"));
-
+    final DNLock entryLock = DirectoryServer.getLockManager().tryReadLockEntry(DN.valueOf("o=test"));
     try
     {
       DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -703,7 +704,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     }
     finally
     {
-      LockManager.unlock(DN.valueOf("o=test"), entryLock);
+      entryLock.unlock();
     }
   }
 

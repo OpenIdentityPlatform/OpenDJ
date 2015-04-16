@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -79,13 +78,13 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -394,8 +393,7 @@ public class LocalBackendModifyOperation
     checkIfCanceled(false);
 
     // Acquire a write lock on the target entry.
-    final Lock entryLock = LockManager.lockWrite(entryDN);
-
+    final DNLock entryLock = DirectoryServer.getLockManager().tryWriteLockEntry(entryDN);
     try
     {
       if (entryLock == null)
@@ -605,7 +603,7 @@ public class LocalBackendModifyOperation
     {
       if (entryLock != null)
       {
-        LockManager.unlock(entryDN, entryLock);
+        entryLock.unlock();
       }
       processSynchPostOperationPlugins();
     }

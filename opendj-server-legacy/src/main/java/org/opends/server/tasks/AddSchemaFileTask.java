@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
@@ -43,10 +42,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.getSchemaDN;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -179,11 +181,10 @@ public class AddSchemaFileTask
   {
     // Obtain a write lock on the server schema so that we can be sure nothing
     // else tries to write to it at the same time.
-    DN schemaDN = DirectoryServer.getSchemaDN();
-    final Lock schemaLock = LockManager.lockWrite(schemaDN);
+    final DNLock schemaLock = DirectoryServer.getLockManager().tryWriteLockEntry(getSchemaDN());
     if (schemaLock == null)
     {
-      logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA, schemaDN);
+      logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA, getSchemaDN());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -267,7 +268,7 @@ public class AddSchemaFileTask
     }
     finally
     {
-      LockManager.unlock(schemaDN, schemaLock);
+      schemaLock.unlock();
     }
   }
 }

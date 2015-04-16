@@ -36,7 +36,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -65,6 +64,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 
 /**
  * This class implements the password modify extended operation defined in RFC
@@ -253,10 +253,9 @@ public class PasswordModifyExtendedOperation
 
     // See if a user identity was provided.  If so, then try to resolve it to
     // an actual user.
-    DN    userDN    = null;
+    DN userDN = null;
     Entry userEntry = null;
-    Lock  userLock  = null;
-
+    DNLock userLock = null;
     try
     {
       if (userIdentity == null)
@@ -272,16 +271,7 @@ public class PasswordModifyExtendedOperation
           return;
         }
 
-        // Retrieve a write lock on that user's entry.
         userDN = requestorEntry.getName();
-        userLock = LockManager.lockWrite(userDN);
-        if (userLock == null)
-        {
-          operation.setResultCode(ResultCode.BUSY);
-          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY.get(userDN));
-          return;
-        }
-
         userEntry = requestorEntry;
       }
       else
@@ -341,11 +331,13 @@ public class PasswordModifyExtendedOperation
             return;
           }
         }
-        // the userIdentity provided does not follow Authorization Identity form. RFC3062 declaration "may or may
-        // not be an LDAPDN" allows for pretty much anything in that field. we gonna try to parse it as DN first
-        // then if that fails as user ID.
         else
         {
+          /*
+           * the userIdentity provided does not follow Authorization Identity form. RFC3062
+           * declaration "may or may not be an LDAPDN" allows for pretty much anything in that
+           * field. we gonna try to parse it as DN first then if that fails as user ID.
+           */
           try
           {
             userDN = DN.valueOf(authzIDStr);
@@ -382,6 +374,14 @@ public class PasswordModifyExtendedOperation
 
           userDN = userEntry.getName();
         }
+      }
+
+      userLock = DirectoryServer.getLockManager().tryWriteLockEntry(userDN);
+      if (userLock == null)
+      {
+        operation.setResultCode(ResultCode.BUSY);
+        operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY.get(userDN));
+        return;
       }
 
       // At this point, we should have the user entry.  Get the associated password policy.
@@ -908,7 +908,7 @@ public class PasswordModifyExtendedOperation
     {
       if (userLock != null)
       {
-        LockManager.unlock(userDN, userLock);
+        userLock.unlock();
       }
     }
   }

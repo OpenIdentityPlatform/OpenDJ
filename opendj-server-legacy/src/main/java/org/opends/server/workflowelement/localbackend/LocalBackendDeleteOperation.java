@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -53,10 +52,10 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
@@ -207,12 +206,14 @@ public class LocalBackendDeleteOperation
       return;
     }
 
-    // Grab a write lock on the entry.
-    final Lock entryLock = LockManager.lockWrite(entryDN);
-
+    /*
+     * Grab a write lock on the entry and its subtree in order to prevent concurrent updates to
+     * subordinate entries.
+     */
+    final DNLock subtreeLock = DirectoryServer.getLockManager().tryWriteLockSubtree(entryDN);
     try
     {
-      if (entryLock == null)
+      if (subtreeLock == null)
       {
         setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(entryDN));
@@ -348,9 +349,9 @@ public class LocalBackendDeleteOperation
     }
     finally
     {
-      if (entryLock != null)
+      if (subtreeLock != null)
       {
-        LockManager.unlock(entryDN, entryLock);
+        subtreeLock.unlock();
       }
       processSynchPostOperationPlugins();
     }
