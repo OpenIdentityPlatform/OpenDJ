@@ -37,11 +37,8 @@ import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -49,7 +46,6 @@ import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -61,13 +57,7 @@ import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldif.LDIF;
-import org.forgerock.opendj.ldif.LDIFEntryReader;
-import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
@@ -813,45 +803,32 @@ public class ConfigureDS
             ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, backendTypeHelper.getBackendTypeNames()));
       }
 
-      BufferedReader configReader = null;
-      BufferedWriter configWriter = null;
       try
       {
-          final File configurationFile = Installation.getLocal().getCurrentConfigurationFile();
-          configReader = new BufferedReader(new FileReader(configurationFile));
-
-          final MemoryBackend memoryBackend = new MemoryBackend(new LDIFEntryReader(configReader));
-          final Connection co = Connections.newInternalConnection(memoryBackend);
-          // We need to add the root dse entry to make the configuration framework work.
-          co.add(LDIFEntryReader.valueOfLDIFEntry("dn:", "objectClass:top", "objectClass:ds-root-dse"));
-
-          final ManagementContext context = LDAPManagementContext.newManagementContext(co, LDAPProfile.getInstance());
+          final File ldifConfigFile = Installation.getLocal().getCurrentConfigurationFile();
+          final List<IOException> exceptions = new LinkedList<IOException>();
+          final ManagementContext context =
+              LDAPManagementContext.newLDIFManagementContext(ldifConfigFile, LDAPProfile.getInstance(), exceptions);
           createBackend(context.getRootConfiguration(), baseDNs,
-                        (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend);
-
-
-          final Iterator<org.forgerock.opendj.ldap.Entry> entries = memoryBackend.getAll().iterator();
-          entries.next(); // skip RootDSE
-          configWriter = new BufferedWriter(new FileWriter(configurationFile));
-          LDIF.copyTo(LDIF.newEntryIteratorReader(entries), new LDIFEntryWriter(configWriter));
+              (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend);
+          context.close();
+          if (!exceptions.isEmpty())
+          {
+            throw exceptions.get(0);
+          }
       }
       catch (final Exception e)
       {
         throw new ConfigureDSException(ERR_CONFIGDS_SET_BACKEND_TYPE.get(backendTypeName, e.getMessage()));
       }
-      finally
-      {
-        close(configReader, configWriter);
-      }
     }
   }
 
   private void createBackend(final RootCfgClient rootConfiguration, final List<org.forgerock.opendj.ldap.DN> baseDNs,
-      final ManagedObjectDefinition<?, ?> backend) throws Exception
+      final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend) throws Exception
   {
-      final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(
-                      (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend,
-                      Installer.ROOT_BACKEND_NAME, null);
+      final BackendCfgClient backendCfgClient =
+          rootConfiguration.createBackend(backend, Installer.ROOT_BACKEND_NAME, null);
       backendCfgClient.setEnabled(true);
       backendCfgClient.setBaseDN(baseDNs);
       backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
