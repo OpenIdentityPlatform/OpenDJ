@@ -784,9 +784,18 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(PersistitBackendCfg newCfg,
+      List<LocalizableMessage> unacceptableReasons)
   {
-    return checkConfigurationDirectories(cfg, unacceptableReasons);
+    long newSize = computeSize(newCfg);
+    long oldSize = computeSize(config);
+    return (newSize <= oldSize || memQuota.isMemoryAvailable(newSize - oldSize))
+        && checkConfigurationDirectories(newCfg, unacceptableReasons);
+  }
+
+  private long computeSize(PersistitBackendCfg cfg)
+  {
+    return cfg.getDBCacheSize() > 0 ? cfg.getDBCacheSize() : memQuota.memPercentToBytes(cfg.getDBCachePercent());
   }
 
   /**

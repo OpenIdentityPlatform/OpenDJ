@@ -41,8 +41,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public final class MemoryQuota
 {
-  private static final double INIT_FUDGE_FACTOR = 0.9;
-  private static final double FUDGE_FACTOR = 1.3;
   private static final long ONE_MEGABYTE = 1024 * 1024;
 
   private Semaphore reservedMemory;
@@ -55,7 +53,7 @@ public final class MemoryQuota
   public MemoryQuota()
   {
     allowOvercommit = System.getProperty(ENABLE_MEMORY_OVERCOMMIT) != null;
-    reservableMemory = (int)(INIT_FUDGE_FACTOR * (getOldGenInfo().getMax() / ONE_MEGABYTE));
+    reservableMemory = (int)(Math.pow(Math.E / Math.PI, 2) * (getOldGenInfo().getMax() / ONE_MEGABYTE));
     reservedMemory = new Semaphore(reservableMemory, true);
   }
 
@@ -117,7 +115,7 @@ public final class MemoryQuota
     {
       return true;
     }
-    return reservedMemory.tryAcquire((int)(FUDGE_FACTOR * size / ONE_MEGABYTE));
+    return reservedMemory.tryAcquire((int)(size / ONE_MEGABYTE));
   }
 
   /**
@@ -163,6 +161,6 @@ public final class MemoryQuota
     {
       return;
     }
-    reservedMemory.release((int)(FUDGE_FACTOR * size / ONE_MEGABYTE));
+    reservedMemory.release((int)(size / ONE_MEGABYTE));
   }
 }
