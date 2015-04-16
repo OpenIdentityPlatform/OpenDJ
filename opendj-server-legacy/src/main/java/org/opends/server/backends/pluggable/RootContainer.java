@@ -318,7 +318,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     try
     {
-      return new Importer(importConfig, config, serverContext).processImport(this);
+      return new Importer(this, importConfig, config, serverContext).processImport();
     }
     catch (DirectoryException e)
     {

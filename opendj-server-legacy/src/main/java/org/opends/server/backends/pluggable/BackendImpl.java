@@ -733,7 +733,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = initializeRootContainer();
       }
-      new Importer(rebuildConfig, cfg, serverContext).rebuildIndexes(rootContainer);
+      new Importer(rootContainer, rebuildConfig, cfg, serverContext).rebuildIndexes();
     }
     catch (ExecutionException execEx)
     {
