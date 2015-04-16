@@ -30,6 +30,7 @@ import static org.opends.messages.JebMessages.*;
 import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -147,7 +148,6 @@ final class Importer
   private static final int READER_WRITER_BUFFER_SIZE = 8 * KB;
   private static final int MIN_DB_CACHE_MEMORY = MAX_DB_CACHE_SIZE
       + MAX_DB_LOG_SIZE;
-  private static final int BYTE_BUFFER_CAPACITY = 128;
 
   /** Max size of phase one buffer. */
   private static final int MAX_BUFFER_SIZE = 2 * MB;
@@ -1256,9 +1256,8 @@ final class Importer
       super(storage);
     }
 
-    /** {@inheritDoc} */
     @Override
-    Void call0(WriteableTransaction txn) throws Exception
+    void call0(WriteableTransaction txn) throws Exception
     {
       for (Suffix suffix : dnSuffixMap.values())
       {
@@ -1308,7 +1307,6 @@ final class Importer
           }
         }
       }
-      return null;
     }
   }
 
@@ -1320,9 +1318,8 @@ final class Importer
       super(storage);
     }
 
-    /** {@inheritDoc} */
     @Override
-    Void call0(WriteableTransaction txn) throws Exception
+    void call0(WriteableTransaction txn) throws Exception
     {
       for (Suffix suffix : dnSuffixMap.values())
       {
@@ -1382,7 +1379,6 @@ final class Importer
           }
         }
       }
-      return null;
     }
 
     private List<ByteString> includeBranchesAsBytes(Suffix suffix)
@@ -1415,9 +1411,8 @@ final class Importer
     private Entry oldEntry;
     private EntryID entryID;
 
-    /** {@inheritDoc} */
     @Override
-    Void call0(WriteableTransaction txn) throws Exception
+    void call0(WriteableTransaction txn) throws Exception
     {
       try
       {
@@ -1426,7 +1421,7 @@ final class Importer
           if (importConfiguration.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
-            return null;
+            return;
           }
           oldEntry = null;
           Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
@@ -1439,7 +1434,6 @@ final class Importer
           processEntry(txn, entry, suffix);
         }
         flushIndexBuffers();
-        return null;
       }
       catch (Exception e)
       {
@@ -1555,7 +1549,8 @@ final class Importer
       return null;
     }
 
-    Void call0(WriteableTransaction txn) throws Exception {
+    void call0(WriteableTransaction txn) throws Exception
+    {
       try
       {
         while (true)
@@ -1563,7 +1558,7 @@ final class Importer
           if (importConfiguration.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
-            return null;
+            return;
           }
           Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
           if (entry == null)
@@ -1575,7 +1570,6 @@ final class Importer
           processEntry(txn, entry, entryID, suffix);
         }
         flushIndexBuffers();
-        return null;
       }
       catch (Exception e)
       {
@@ -1983,7 +1977,6 @@ final class Importer
         return null;
       }
 
-      final ByteStringBuilder key = new ByteStringBuilder(BYTE_BUFFER_CAPACITY);
       ImportIDSet insertIDSet = null;
       ImportIDSet deleteIDSet = null;
       ImportRecord previousRecord = null;
@@ -2009,13 +2002,12 @@ final class Importer
                 addToDB(previousRecord.getIndexID(), insertIDSet, deleteIDSet);
               }
 
-              // this is a new record, reinitialize all
-              int indexID = b.getIndexID();
-              b.fetchKey(key);
-              previousRecord = ImportRecord.from(key, indexID);
+              // this is a new record
+              final ImportRecord newRecord = b.currentRecord();
+              insertIDSet = newImportIDSet(newRecord);
+              deleteIDSet = newImportIDSet(newRecord);
 
-              insertIDSet = newImportIDSet(key, indexID);
-              deleteIDSet = newImportIDSet(key, indexID);
+              previousRecord = newRecord;
             }
 
             // merge all entryIds into the idSets
@@ -2047,15 +2039,15 @@ final class Importer
       }
     }
 
-    private ImportIDSet newImportIDSet(ByteStringBuilder key, Integer indexID)
+    private ImportIDSet newImportIDSet(ImportRecord record)
     {
       if (indexMgr.isDN2ID())
       {
-        return new ImportIDSet(key, newDefinedSet(), 1, false);
+        return new ImportIDSet(record.getKey(), newDefinedSet(), 1, false);
       }
 
-      final Index index = indexIDToIndexMap.get(indexID);
-      return new ImportIDSet(key, newDefinedSet(), index.getIndexEntryLimit(), index.getMaintainCount());
+      final Index index = indexIDToIndexMap.get(record.getIndexID());
+      return new ImportIDSet(record.getKey(), newDefinedSet(), index.getIndexEntryLimit(), index.getMaintainCount());
     }
 
     private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
@@ -2843,10 +2835,7 @@ final class Importer
       }
     }
 
-    /**
-     * Print start message.
-     */
-    void printStartMessage(WriteableTransaction txn) throws StorageRuntimeException
+    private void printStartMessage(WriteableTransaction txn) throws StorageRuntimeException
     {
       totalEntries = suffix.getID2Entry().getRecordCount(txn);
 
@@ -2891,9 +2880,8 @@ final class Importer
       }
     }
 
-    /** {@inheritDoc} */
     @Override
-    Void call0(WriteableTransaction txn) throws Exception
+    void call0(WriteableTransaction txn) throws Exception
     {
       ID2Entry id2entry = entryContainer.getID2Entry();
       Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
@@ -2903,7 +2891,7 @@ final class Importer
         {
           if (isCanceled)
           {
-            return null;
+            return;
           }
           EntryID entryID = new EntryID(cursor.getKey());
           Entry entry =
@@ -2913,7 +2901,6 @@ final class Importer
           entriesProcessed.getAndIncrement();
         }
         flushIndexBuffers();
-        return null;
       }
       catch (Exception e)
       {
@@ -3193,7 +3180,7 @@ final class Importer
       for (String index : rebuildList)
       {
         final String lowerName = index.toLowerCase();
-        if ("dn2id".equals(lowerName))
+        if (DN2ID_INDEX_NAME.equals(lowerName))
         {
           indexCount += 3;
         }
@@ -3209,8 +3196,8 @@ final class Importer
           }
           indexCount++;
         }
-        else if ("id2subtree".equals(lowerName)
-            || "id2children".equals(lowerName))
+        else if (ID2SUBTREE_INDEX_NAME.equals(lowerName)
+            || ID2CHILDREN_INDEX_NAME.equals(lowerName))
         {
           throw attributeIndexNotConfigured(index);
         }

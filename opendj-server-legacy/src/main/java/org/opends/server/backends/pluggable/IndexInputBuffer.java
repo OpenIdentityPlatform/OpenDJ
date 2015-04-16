@@ -85,8 +85,8 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    * @throws IOException
    *           If an IO error occurred when priming the cache.
    */
-  public IndexInputBuffer(IndexManager indexMgr, FileChannel channel,
-      long begin, long end, int bufferID, int cacheSize) throws IOException
+  IndexInputBuffer(IndexManager indexMgr, FileChannel channel, long begin, long end, int bufferID, int cacheSize)
+      throws IOException
   {
     this.indexMgr = indexMgr;
     this.channel = channel;
@@ -130,42 +130,17 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    * @throws IOException
    *           If an IO error occurred.
    */
-  public boolean hasMoreData() throws IOException
+  boolean hasMoreData() throws IOException
   {
     boolean hasMore = begin + offset < end;
     return cache.remaining() != 0 || hasMore;
   }
 
-  /**
-   * Returns the length of the next key.
-   *
-   * @return The length of the next key.
-   */
-  public int getKeyLen()
-  {
-    return keyBuffer.length();
-  }
-
-  /**
-   * Fetches the next key into the provided byte string builder.
-   *
-   * @param b
-   *          A builder where to fetch the key
-   */
-  public void fetchKey(ByteStringBuilder b)
-  {
-    b.clear().append(keyBuffer);
-  }
-
-  /**
-   * Returns the index ID of the next record.
-   *
-   * @return The index ID of the next record.
-   */
-  public Integer getIndexID()
+  ImportRecord currentRecord()
   {
     if (record == null)
     {
+      // ensure record fetched
       try
       {
         fetchNextRecord();
@@ -176,7 +151,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
         throw new RuntimeException(ex);
       }
     }
-    return record != null ? record.getIndexID() : null;
+    return record;
   }
 
   /**
@@ -186,7 +161,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    * @throws IOException
    *           If an IO error occurred.
    */
-  public void fetchNextRecord() throws IOException
+  void fetchNextRecord() throws IOException
   {
     switch (recordState)
     {
@@ -233,15 +208,14 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   }
 
   /**
-   * Reads the next ID set from the record and merges it with the provided ID
-   * set.
+   * Reads the next ID set from the record and merges it with the provided ID set.
    *
    * @param idSet
    *          The ID set to be merged.
    * @throws IOException
    *           If an IO error occurred.
    */
-  public void mergeIDSet(ImportIDSet idSet) throws IOException
+  void mergeIDSet(ImportIDSet idSet) throws IOException
   {
     if (recordState == RecordState.START)
     {
@@ -309,19 +283,5 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       return bufferID - o.bufferID;
     }
     return cmp;
-  }
-
-  ImportRecord currentRecord()
-  {
-    ensureRecordFetched();
-    return record;
-  }
-
-  private void ensureRecordFetched()
-  {
-    if (keyBuffer.length() == 0)
-    {
-      getIndexID();
-    }
   }
 }
