@@ -35,7 +35,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -59,6 +58,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -413,8 +413,7 @@ public class TaskBackend
       return null;
     }
 
-    Lock lock = taskScheduler.readLockEntry(entryDN);
-
+    DNLock lock = taskScheduler.readLockEntry(entryDN);
     try
     {
       if (entryDN.equals(taskRootDN))
@@ -453,7 +452,7 @@ public class TaskBackend
     }
     finally
     {
-      taskScheduler.unlockEntry(entryDN, lock);
+      lock.unlock();
     }
   }
 
@@ -584,11 +583,10 @@ public class TaskBackend
       ModifyOperation modifyOperation) throws DirectoryException
   {
     DN entryDN = newEntry.getName();
-
-    Lock entryLock = null;
+    DNLock entryLock = null;
     if (! taskScheduler.holdsSchedulerLock())
     {
-      entryLock = LockManager.lockWrite(entryDN);
+      entryLock = DirectoryServer.getLockManager().tryWriteLockEntry(entryDN);
       if (entryLock == null)
       {
         throw new DirectoryException(ResultCode.BUSY,
@@ -707,7 +705,7 @@ public class TaskBackend
     {
       if (entryLock != null)
       {
-        LockManager.unlock(entryDN, entryLock);
+        entryLock.unlock();
       }
     }
   }
@@ -868,8 +866,7 @@ public class TaskBackend
       }
       else if (parentDN.equals(scheduledTaskParentDN))
       {
-        Lock lock = taskScheduler.readLockEntry(baseDN);
-
+        DNLock lock = taskScheduler.readLockEntry(baseDN);
         try
         {
           Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
@@ -890,13 +887,12 @@ public class TaskBackend
         }
         finally
         {
-          taskScheduler.unlockEntry(baseDN, lock);
+          lock.unlock();
         }
       }
       else if (parentDN.equals(recurringTaskParentDN))
       {
-        Lock lock = taskScheduler.readLockEntry(baseDN);
-
+        DNLock lock = taskScheduler.readLockEntry(baseDN);
         try
         {
           Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
@@ -917,7 +913,7 @@ public class TaskBackend
         }
         finally
         {
-          taskScheduler.unlockEntry(baseDN, lock);
+          lock.unlock();
         }
       }
       else

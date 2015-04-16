@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -71,7 +70,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
@@ -240,34 +239,40 @@ public class LocalBackendAddOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Grab a read lock on the parent entry, if there is one. We need to do
-    // this to ensure that the parent is not deleted or renamed while this add
-    // is in progress, and we could also need it to check the entry against
-    // a DIT structure rule.
-    Lock entryLock = null;
-    Lock parentLock = null;
-    DN parentDN = null;
-
+    // Grab a write lock on the target entry. We'll need to do this
+    // eventually anyway, and we want to make sure that the two locks are
+    // always released when exiting this method, no matter what. Since
+    // the entry shouldn't exist yet, locking earlier than necessary
+    // shouldn't cause a problem.
+    final DNLock entryLock = DirectoryServer.getLockManager().tryWriteLockEntry(entryDN);
     try
     {
-      parentDN = entryDN.getParentDNInSuffix();
-      parentLock = lockParent(parentDN);
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-      // Grab a write lock on the target entry. We'll need to do this
-      // eventually anyway, and we want to make sure that the two locks are
-      // always released when exiting this method, no matter what. Since
-      // the entry shouldn't exist yet, locking earlier than necessary
-      // shouldn't cause a problem.
-      entryLock = LockManager.lockWrite(entryDN);
       if (entryLock == null)
       {
         setResultCode(ResultCode.BUSY);
         appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(entryDN));
         return;
       }
+
+      DN parentDN = entryDN.getParentDNInSuffix();
+      if (parentDN == null && !DirectoryServer.isNamingContext(entryDN))
+      {
+        if (entryDN.isRootDN())
+        {
+          // This is not fine.  The root DSE cannot be added.
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
+        }
+        else
+        {
+          // The entry doesn't have a parent but isn't a suffix.  This is not
+          // allowed.
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
+        }
+      }
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
 
       // Invoke any conflict resolution processing that might be needed by the
       // synchronization provider.
@@ -520,32 +525,31 @@ public class LocalBackendAddOperation
     }
     finally
     {
-      for (SynchronizationProvider<?> provider : DirectoryServer
-          .getSynchronizationProviders())
-      {
-        try
-        {
-          provider.doPostOperation(this);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          logger.error(ERR_ADD_SYNCH_POSTOP_FAILED, getConnectionID(),
-              getOperationID(), getExceptionMessage(de));
-          setResponseData(de);
-          break;
-        }
-      }
-
       if (entryLock != null)
       {
-        LockManager.unlock(entryDN, entryLock);
+        entryLock.unlock();
       }
+      processSynchPostOperationPlugins();
+    }
+  }
 
-      if (parentLock != null)
+
+
+  private void processSynchPostOperationPlugins()
+  {
+    for (SynchronizationProvider<?> provider : DirectoryServer.getSynchronizationProviders())
+    {
+      try
       {
-        LockManager.unlock(parentDN, parentLock);
+        provider.doPostOperation(this);
+      }
+      catch (DirectoryException de)
+      {
+        logger.traceException(de);
+        logger.error(ERR_ADD_SYNCH_POSTOP_FAILED, getConnectionID(),
+            getOperationID(), getExceptionMessage(de));
+        setResponseData(de);
+        break;
       }
     }
   }
@@ -605,48 +609,6 @@ public class LocalBackendAddOperation
         null, entryDN, resultCode, message,
         ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
         ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
-  }
-
-  /**
-   * Acquire a read lock on the parent of the entry to add.
-   *
-   * @return  The acquired read lock.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              acquire the lock.
-   */
-  private Lock lockParent(DN parentDN) throws DirectoryException
-  {
-    if (parentDN != null)
-    {
-      final Lock parentLock = LockManager.lockRead(parentDN);
-      if (parentLock == null)
-      {
-        throw newDirectoryException(parentDN, ResultCode.BUSY,
-            ERR_ADD_CANNOT_LOCK_PARENT.get(entryDN, parentDN));
-      }
-      return parentLock;
-    }
-
-    // Either this entry is a suffix or doesn't belong in the directory.
-    if (DirectoryServer.isNamingContext(entryDN))
-    {
-      // This is fine.  This entry is one of the configured suffixes.
-      return null;
-    }
-    else if (entryDN.isRootDN())
-    {
-      // This is not fine.  The root DSE cannot be added.
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
-    }
-    else
-    {
-      // The entry doesn't have a parent but isn't a suffix.  This is not
-      // allowed.
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
-    }
   }
 
 

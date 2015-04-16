@@ -102,14 +102,9 @@ public class LDIFBackend
    */
   public LDIFBackend()
   {
-    super();
-
     entryMap = new LinkedHashMap<DN,Entry>();
     childDNs = new HashMap<DN, Set<DN>>();
-
-    boolean useFairLocking =
-         DirectoryServer.getEnvironmentConfig().getLockManagerFairOrdering();
-    backendLock = new ReentrantReadWriteLock(useFairLocking);
+    backendLock = new ReentrantReadWriteLock();
   }
 
   /** {@inheritDoc} */

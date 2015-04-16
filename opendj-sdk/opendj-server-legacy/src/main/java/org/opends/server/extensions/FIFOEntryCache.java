@@ -49,7 +49,6 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
 
@@ -117,7 +116,7 @@ public class FIFOEntryCache
   private FIFOEntryCacheCfg registeredConfiguration;
 
   /** The maximum length of time to try to obtain a lock before giving up. */
-  private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
+  private long lockTimeout = 2000;
 
   /** Creates a new instance of this FIFO entry cache. */
   public FIFOEntryCache()
@@ -850,7 +849,7 @@ public class FIFOEntryCache
    * @return  <CODE>true</CODE> if configuration is acceptable,
    *          or <CODE>false</CODE> otherwise.
    */
-  public boolean processEntryCacheConfig(
+  private boolean processEntryCacheConfig(
       FIFOEntryCacheCfg                   configuration,
       boolean                             applyChanges,
       EntryCacheCommon.ConfigErrorHandler errorHandler

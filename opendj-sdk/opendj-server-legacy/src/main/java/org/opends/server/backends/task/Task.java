@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 import javax.mail.MessagingException;
 
@@ -47,6 +46,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -583,13 +583,11 @@ public abstract class Task
   {
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
-    boolean needLock = (! taskScheduler.holdsSchedulerLock());
-    Lock lock = null;
-    if (needLock)
+    DNLock lock = null;
+    if (!taskScheduler.holdsSchedulerLock())
     {
       lock = taskScheduler.writeLockEntry(taskEntryDN);
     }
-
     try
     {
       this.taskState = taskState;
@@ -601,9 +599,9 @@ public abstract class Task
     }
     finally
     {
-      if (needLock)
+      if (lock != null)
       {
-        taskScheduler.unlockEntry(taskEntryDN, lock);
+        lock.unlock();
       }
     }
   }
@@ -675,13 +673,11 @@ public abstract class Task
   {
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
-    boolean needLock = (! taskScheduler.holdsSchedulerLock());
-    Lock lock = null;
-    if (needLock)
+    DNLock lock = null;
+    if (!taskScheduler.holdsSchedulerLock())
     {
       lock = taskScheduler.writeLockEntry(taskEntryDN);
     }
-
     try
     {
       Entry taskEntry = getTaskEntry();
@@ -694,9 +690,9 @@ public abstract class Task
     }
     finally
     {
-      if (needLock)
+      if (lock != null)
       {
-        taskScheduler.unlockEntry(taskEntryDN, lock);
+        lock.unlock();
       }
     }
   }
@@ -744,13 +740,11 @@ public abstract class Task
   {
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
-    boolean needLock = (! taskScheduler.holdsSchedulerLock());
-    Lock lock = null;
-    if (needLock)
+    DNLock lock = null;
+    if (!taskScheduler.holdsSchedulerLock())
     {
       lock = taskScheduler.writeLockEntry(taskEntryDN);
     }
-
     try
     {
       this.actualStartTime = actualStartTime;
@@ -764,9 +758,9 @@ public abstract class Task
     }
     finally
     {
-      if (needLock)
+      if (lock != null)
       {
-        taskScheduler.unlockEntry(taskEntryDN, lock);
+        lock.unlock();
       }
     }
   }
@@ -800,13 +794,11 @@ public abstract class Task
   {
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
-    boolean needLock = (! taskScheduler.holdsSchedulerLock());
-    Lock lock = null;
-    if (needLock)
+    DNLock lock = null;
+    if (!taskScheduler.holdsSchedulerLock())
     {
       lock = taskScheduler.writeLockEntry(taskEntryDN);
     }
-
     try
     {
       this.completionTime = completionTime;
@@ -822,9 +814,9 @@ public abstract class Task
     }
     finally
     {
-      if (needLock)
+      if (lock != null)
       {
-        taskScheduler.unlockEntry(taskEntryDN, lock);
+        lock.unlock();
       }
     }
   }
@@ -946,13 +938,11 @@ public abstract class Task
 
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.
-    boolean needLock = (! taskScheduler.holdsSchedulerLock());
-    Lock lock = null;
-    if (needLock)
+    DNLock lock = null;
+    if (!taskScheduler.holdsSchedulerLock())
     {
       lock = taskScheduler.writeLockEntry(taskEntryDN);
     }
-
     try
     {
       StringBuilder buffer = new StringBuilder();
@@ -1008,9 +998,9 @@ public abstract class Task
     }
     finally
     {
-      if (needLock)
+      if (lock != null)
       {
-        taskScheduler.unlockEntry(taskEntryDN, lock);
+        lock.unlock();
       }
     }
   }

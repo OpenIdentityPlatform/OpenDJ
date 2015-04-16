@@ -31,7 +31,6 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import javax.naming.Context;
 import javax.naming.InvalidNameException;
@@ -52,6 +51,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -1042,7 +1042,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
 
-      Lock writeLock = LockManager.lockWrite(entry.getName());
+      final DNLock writeLock = DirectoryServer.getLockManager().tryWriteLockEntry(entry.getName());
       assertNotNull(writeLock);
 
       try
@@ -1076,7 +1076,7 @@ public class TestModifyDNOperation extends OperationTestCase
 //                     modifyDNResponses+1);
       } finally
       {
-        LockManager.unlock(entry.getName(), writeLock);
+        writeLock.unlock();
       }
     } finally
     {

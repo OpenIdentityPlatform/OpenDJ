@@ -1887,8 +1887,7 @@ public class EntryContainer
   /**
    * Fetch an entry by DN, trying the entry cache first, then the database.
    * Retrieves the requested entry, trying the entry cache first,
-   * then the database.  Note that the caller must hold a read or write lock
-   * on the specified DN.
+   * then the database.
    *
    * @param entryDN The distinguished name of the entry to retrieve.
    * @return The requested entry, or <CODE>null</CODE> if the entry does not

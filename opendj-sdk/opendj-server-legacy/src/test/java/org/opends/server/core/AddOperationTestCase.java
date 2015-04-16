@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -60,11 +59,11 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
@@ -1582,8 +1581,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Lock entryLock = LockManager.lockRead(DN.valueOf("ou=People,o=test"));
-
+    final DNLock entryLock = DirectoryServer.getLockManager().tryReadLockEntry(DN.valueOf("ou=People,o=test"));
     try
     {
       Entry entry = TestCaseUtils.makeEntry(
@@ -1597,7 +1595,7 @@ public class AddOperationTestCase
     }
     finally
     {
-      LockManager.unlock(DN.valueOf("ou=People,o=test"), entryLock);
+      entryLock.unlock();
     }
   }
 
