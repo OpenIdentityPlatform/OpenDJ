@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -85,14 +85,14 @@ public final class LDAPManagementContext extends ManagementContext {
      * @param profile
      *            The LDAP profile
      * @param exceptions
-     *            Contains {@code IOException} that may occurred during
-     *            management context close. Could be {@code null}
+     *            Contains {@code IOException} that may occurred during management context close.
+     *            Could be {@code null}
      * @return A LDIF file management context
      * @throws IOException
      *             If problems occurs while reading the file.
      */
-    public static ManagementContext newLDIFManagementContext(
-        final File ldifFile, final LDAPProfile profile, final List<IOException> exceptions) throws IOException {
+    public static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile,
+            final List<IOException> exceptions) throws IOException {
         final BufferedReader configReader = new BufferedReader(new FileReader(ldifFile));
         try {
             final MemoryBackend memoryBackend = new MemoryBackend(new LDIFEntryReader(configReader));
@@ -113,7 +113,7 @@ public final class LDAPManagementContext extends ManagementContext {
                             exceptions.add(e);
                         } else {
                             logger.error(LocalizableMessage.raw(
-                                "IOException occured during LDIF context management close:" + e));
+                                    "IOException occured during LDIF context management close:", e));
                         }
                     }
                 }
@@ -124,8 +124,7 @@ public final class LDAPManagementContext extends ManagementContext {
                 }
             };
 
-            // We need to add the root dse entry to make the configuration
-            // framework work.
+            // We need to add the root dse entry to make the configuration framework work.
             co.add(LDIFEntryReader.valueOfLDIFEntry("dn:", "objectClass:top", "objectClass:ds-root-dse"));
             return LDAPManagementContext.newManagementContext(co, LDAPProfile.getInstance());
         } finally {
@@ -144,8 +143,8 @@ public final class LDAPManagementContext extends ManagementContext {
      * @throws IOException
      *             If problems occurs while reading the file.
      */
-    public static ManagementContext newLDIFManagementContext(
-        final File ldifFile, final LDAPProfile profile) throws IOException {
+    public static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile)
+            throws IOException {
         return newLDIFManagementContext(ldifFile, profile, null);
     }
 
