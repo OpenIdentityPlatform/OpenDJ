@@ -356,37 +356,36 @@ public class BackendConfigManager implements
         }
       }
     }
-
-
-    // See if the entry contains an attribute that specifies the class name
-    // for the backend implementation.  If it does, then load it and make sure
-    // that it's a valid backend implementation.  There is no such attribute,
-    // the specified class cannot be loaded, or it does not contain a valid
-    // backend implementation, then log an error and skip it.
-    String className = configEntry.getJavaClass();
-    try
+    else if (configEntry.isEnabled())
     {
-      Class<Backend<?>> backendClass = loadBackendClass(className);
-      if (! Backend.class.isAssignableFrom(backendClass))
+      /*
+       * If the backend was not enabled, it has not been registered with directory server, so
+       * no listeners will be registered at the lower layers. Verify as it was an add.
+       */
+      String className = configEntry.getJavaClass();
+      try
       {
-        unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
-        return false;
-      }
+        Class<Backend<BackendCfg>> backendClass = loadBackendClass(className);
+        if (! Backend.class.isAssignableFrom(backendClass))
+        {
+          unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+          return false;
+        }
 
-      Backend b = backendClass.newInstance();
-      if (! b.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
+        Backend<BackendCfg> b = backendClass.newInstance();
+        if (! b.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
+        {
+          return false;
+        }
+      }
+      catch (Exception e)
       {
+        logger.traceException(e);
+        unacceptableReason.add(
+            ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendDN, stackTraceToSingleLineString(e)));
         return false;
       }
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      unacceptableReason.add(
-          ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendDN, stackTraceToSingleLineString(e)));
-      return false;
-    }
-
 
     // If we've gotten to this point, then it is acceptable as far as we are
     // concerned.  If it is unacceptable according to the configuration for that
@@ -777,7 +776,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = cfg.getJavaClass();
 
-    Backend<?> backend;
+    Backend<BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -900,9 +899,9 @@ public class BackendConfigManager implements
   }
 
   @SuppressWarnings("unchecked")
-  private Class<Backend<?>> loadBackendClass(String className) throws Exception
+  private Class<Backend<BackendCfg>> loadBackendClass(String className) throws Exception
   {
-    return (Class<Backend<?>>) DirectoryServer.loadClass(className);
+    return (Class<Backend<BackendCfg>>) DirectoryServer.loadClass(className);
   }
 
   private WritabilityMode toWritabilityMode(BackendCfgDefn.WritabilityMode writabilityMode)
