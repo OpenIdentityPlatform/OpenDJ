@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -110,13 +111,12 @@ import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * An abstract class that contains a number of methods that are shared by all
- * the inheriting classes.  In general a StatusGenericPanel is contained in a
- * GenericDialog and specifies the kind of buttons that this dialog has.  The
- * StatusGenericPanel is also notified when the dialog is displayed (through
- * the toBeDisplayed method)
+ * the inheriting classes. In general a StatusGenericPanel is contained in a
+ * GenericDialog and specifies the kind of buttons that this dialog has. The
+ * StatusGenericPanel is also notified when the dialog is displayed (through the
+ * toBeDisplayed method)
  */
-public abstract class StatusGenericPanel extends JPanel
-implements ConfigChangeListener
+public abstract class StatusGenericPanel extends JPanel implements ConfigChangeListener
 {
   private static final long serialVersionUID = -9123358652232556732L;
 
@@ -128,11 +128,10 @@ implements ConfigChangeListener
   /**
    * The not applicable message.
    */
-  protected static final LocalizableMessage NOT_APPLICABLE =
-    INFO_NOT_APPLICABLE_LABEL.get();
+  protected static final LocalizableMessage NOT_APPLICABLE = INFO_NOT_APPLICABLE_LABEL.get();
 
-  private final LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
-  private final LocalizableMessage START = INFO_START_BUTTON_LABEL.get();
+  private static final LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
+  private static final LocalizableMessage START = INFO_START_BUTTON_LABEL.get();
 
   private ControlPanelInfo info;
 
@@ -159,8 +158,8 @@ implements ConfigChangeListener
   /** The last displayed message in the error pane. */
   private String lastDisplayedError;
 
-  private final ArrayList<ConfigurationElementCreatedListener> confListeners =
-    new ArrayList<ConfigurationElementCreatedListener>();
+  private final List<ConfigurationElementCreatedListener> confListeners =
+      new ArrayList<ConfigurationElementCreatedListener>();
 
   private boolean sizeSet;
   private boolean focusSet;
@@ -169,6 +168,7 @@ implements ConfigChangeListener
 
   /**
    * Returns the title that will be used as title of the dialog.
+   *
    * @return the title that will be used as title of the dialog.
    */
   public abstract LocalizableMessage getTitle();
@@ -176,8 +176,9 @@ implements ConfigChangeListener
   /**
    * Returns the buttons that the dialog where this panel is contained should
    * display.
+   *
    * @return the buttons that the dialog where this panel is contained should
-   * display.
+   *         display.
    */
   public GenericDialog.ButtonType getButtonType()
   {
@@ -187,6 +188,7 @@ implements ConfigChangeListener
   /**
    * Returns the component that should get the focus when the dialog that
    * contains this panel is displayed.
+   *
    * @return the component that should get the focus.
    */
   public abstract Component getPreferredFocusComponent();
@@ -194,8 +196,9 @@ implements ConfigChangeListener
   /**
    * Returns <CODE>true</CODE> if this panel requires some bordering (in general
    * an EmptyBorder with some insets) and <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if this panel requires some bordering (in general
-   * an EmptyBorder with some insets) and <CODE>false</CODE> otherwise.
+   *         an EmptyBorder with some insets) and <CODE>false</CODE> otherwise.
    */
   public boolean requiresBorder()
   {
@@ -203,8 +206,9 @@ implements ConfigChangeListener
   }
 
   /**
-   * Returns the menu bar that the panel might have.  Returns
-   * <CODE>null</CODE> if the panel has no menu bar associated.
+   * Returns the menu bar that the panel might have. Returns <CODE>null</CODE>
+   * if the panel has no menu bar associated.
+   *
    * @return the menu bar that the panel might have.
    */
   public JMenuBar getMenuBar()
@@ -212,15 +216,15 @@ implements ConfigChangeListener
     return null;
   }
 
-
   /**
-   * This method is called to indicate that the configuration changes should
-   * be called in the background.  In the case of panels which require some
-   * time to be updated with the new configuration this method returns
-   * <CODE>true</CODE> and the operation will be performed in the background
-   * while a message of type 'Loading...' is displayed on the panel.
+   * This method is called to indicate that the configuration changes should be
+   * called in the background. In the case of panels which require some time to
+   * be updated with the new configuration this method returns <CODE>true</CODE>
+   * and the operation will be performed in the background while a message of
+   * type 'Loading...' is displayed on the panel.
+   *
    * @return <CODE>true</CODE> if changes should be loaded in the background and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean callConfigurationChangedInBackground()
   {
@@ -229,16 +233,19 @@ implements ConfigChangeListener
 
   /**
    * The panel is notified that the dialog is going to be visible or invisible.
-   * @param visible whether is going to be visible or not.
+   *
+   * @param visible
+   *          whether is going to be visible or not.
    */
-  public void toBeDisplayed(boolean visible)
+  public void toBeDisplayed(final boolean visible)
   {
   }
 
   /**
    * Tells whether this panel should be contained in a scroll pane or not.
+   *
    * @return <CODE>true</CODE> if this panel should be contained in a scroll
-   * pane and <CODE>false</CODE> otherwise.
+   *         pane and <CODE>false</CODE> otherwise.
    */
   public boolean requiresScroll()
   {
@@ -247,7 +254,6 @@ implements ConfigChangeListener
 
   /**
    * Constructor.
-   *
    */
   protected StatusGenericPanel()
   {
@@ -285,67 +291,76 @@ implements ConfigChangeListener
 
   /**
    * The components are not added directly to the panel but to the main panel.
-   * This is done to be able to display a message that takes the whole panel
-   * (of type 'Loading...') when we are doing long operations.
-   * @param comp the Component to be added.
-   * @param constraints the constraints.
+   * This is done to be able to display a message that takes the whole panel (of
+   * type 'Loading...') when we are doing long operations.
+   *
+   * @param comp
+   *          the Component to be added.
+   * @param constraints
+   *          the constraints.
    */
   @Override
-  public void add(Component comp, Object constraints)
+  public void add(final Component comp, final Object constraints)
   {
     mainPanel.add(comp, constraints);
   }
 
   /**
    * Adds a bottom glue to the main panel with the provided constraints.
-   * @param gbc the constraints.
+   *
+   * @param gbc
+   *          the constraints.
    */
-  protected void addBottomGlue(GridBagConstraints gbc)
+  protected void addBottomGlue(final GridBagConstraints gbc)
   {
-    GridBagConstraints gbc2 = (GridBagConstraints)gbc.clone();
+    GridBagConstraints gbc2 = (GridBagConstraints) gbc.clone();
     gbc2.insets = new Insets(0, 0, 0, 0);
-    gbc2.gridy ++;
+    gbc2.gridy++;
     gbc2.gridwidth = GridBagConstraints.REMAINDER;
     gbc2.weighty = 1.0;
     gbc2.fill = GridBagConstraints.VERTICAL;
     add(Box.createVerticalGlue(), gbc2);
-    gbc.gridy ++;
+    gbc.gridy++;
   }
 
   /**
    * Returns a label with text 'Required Field' and an icon (used as legend in
    * some panels).
+   *
    * @return a label with text 'Required Field' and an icon (used as legend in
-   * some panels).
+   *         some panels).
    */
   protected JLabel createRequiredLabel()
   {
-    JLabel requiredLabel = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_INDICATES_REQUIRED_FIELD_LABEL.get());
-    requiredLabel.setIcon(
-        Utilities.createImageIcon(IconPool.IMAGE_PATH+"/required.gif"));
+    JLabel requiredLabel = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_INDICATES_REQUIRED_FIELD_LABEL.get());
+    requiredLabel.setIcon(Utilities.createImageIcon(IconPool.IMAGE_PATH + "/required.gif"));
 
     return requiredLabel;
   }
 
   /**
-   * Creates and adds an error pane.  Is up to the caller to set the proper
+   * Creates and adds an error pane. Is up to the caller to set the proper
    * gridheight, gridwidth, gridx and gridy on the provided GridBagConstraints.
-   * @param baseGbc the GridBagConstraints to be used.
+   *
+   * @param baseGbc
+   *          the GridBagConstraints to be used.
    */
-  protected void addErrorPane(GridBagConstraints baseGbc)
+  protected void addErrorPane(final GridBagConstraints baseGbc)
   {
     addErrorPane(this, baseGbc);
   }
 
   /**
-   * Adds an error pane to the provided container.
-   * Is up to the caller to set the proper gridheight, gridwidth, gridx and
-   * gridy on the provided GridBagConstraints.
-   * @param baseGbc the GridBagConstraints to be used.
-   * @param p the container.
+   * Adds an error pane to the provided container. Is up to the caller to set
+   * the proper gridheight, gridwidth, gridx and gridy on the provided
+   * GridBagConstraints.
+   *
+   * @param baseGbc
+   *          the GridBagConstraints to be used.
+   * @param p
+   *          the container.
    */
-  protected void addErrorPane(Container p, GridBagConstraints baseGbc)
+  protected void addErrorPane(final Container p, final GridBagConstraints baseGbc)
   {
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = baseGbc.gridx;
@@ -379,7 +394,7 @@ implements ConfigChangeListener
     htmlEditor.addActionListener(new ActionListener()
     {
       @Override
-      public void actionPerformed(ActionEvent ev)
+      public void actionPerformed(final ActionEvent ev)
       {
         if (AUTHENTICATE.toString().equals(ev.getActionCommand()))
         {
@@ -397,14 +412,20 @@ implements ConfigChangeListener
   /**
    * Commodity method used to add lines, where each line contains a label, a
    * component and an inline help label.
-   * @param labels the labels.
-   * @param comps the components.
-   * @param inlineHelp the inline help labels.
-   * @param panel the panel where we will add the lines.
-   * @param gbc the grid bag constraints.
+   *
+   * @param labels
+   *          the labels.
+   * @param comps
+   *          the components.
+   * @param inlineHelp
+   *          the inline help labels.
+   * @param panel
+   *          the panel where we will add the lines.
+   * @param gbc
+   *          the grid bag constraints.
    */
-  protected void add(JLabel[] labels, Component[] comps, JLabel[] inlineHelp,
-      Container panel, GridBagConstraints gbc)
+  protected void add(final JLabel[] labels, final Component[] comps, final JLabel[] inlineHelp, final Container panel,
+      final GridBagConstraints gbc)
   {
     int i = 0;
     for (Component comp : comps)
@@ -423,68 +444,74 @@ implements ConfigChangeListener
       if (inlineHelp[i] != null)
       {
         gbc.insets.top = 3;
-        gbc.gridy ++;
+        gbc.gridy++;
         panel.add(inlineHelp[i], gbc);
       }
       gbc.insets.top = 10;
-      gbc.gridy ++;
+      gbc.gridy++;
       i++;
     }
   }
 
   /**
    * Enables the OK button in the parent dialog.
-   * @param enable whether to enable or disable the button.
+   *
+   * @param enable
+   *          whether to enable or disable the button.
    */
-  protected void setEnabledOK(boolean enable)
+  protected void setEnabledOK(final boolean enable)
   {
     Window w = Utilities.getParentDialog(this);
     if (w instanceof GenericDialog)
     {
-      ((GenericDialog)w).setEnabledOK(enable);
+      ((GenericDialog) w).setEnabledOK(enable);
     }
     else if (w instanceof GenericFrame)
     {
-      ((GenericFrame)w).setEnabledOK(enable);
+      ((GenericFrame) w).setEnabledOK(enable);
     }
     enableOK = enable;
   }
 
   /**
    * Enables the Cancel button in the parent dialog.
-   * @param enable whether to enable or disable the button.
+   *
+   * @param enable
+   *          whether to enable or disable the button.
    */
-  protected void setEnabledCancel(boolean enable)
+  protected void setEnabledCancel(final boolean enable)
   {
     Window w = Utilities.getParentDialog(this);
     if (w instanceof GenericDialog)
     {
-      ((GenericDialog)w).setEnabledCancel(enable);
+      ((GenericDialog) w).setEnabledCancel(enable);
     }
     else if (w instanceof GenericFrame)
     {
-      ((GenericFrame)w).setEnabledCancel(enable);
+      ((GenericFrame) w).setEnabledCancel(enable);
     }
     enableCancel = enable;
   }
 
   /**
-   * Updates the font type and color of the component to be invalid and
-   * primary.
-   * @param comp the component to update.
+   * Updates the font type and color of the component to be invalid and primary.
+   *
+   * @param comp
+   *          the component to update.
    */
-  protected void setPrimaryInvalid(JComponent comp)
+  protected void setPrimaryInvalid(final JComponent comp)
   {
     comp.setFont(ColorAndFontConstants.primaryInvalidFont);
     comp.setForeground(ColorAndFontConstants.invalidFontColor);
   }
 
   /**
-   * Updates the font type and color of the component to be valid and
-   * primary.
-   * @param comp the component to update.
+   * Updates the font type and color of the component to be valid and primary.
+   *
+   * @param comp
+   *          the component to update.
    */
-  protected void setPrimaryValid(JComponent comp)
+  protected void setPrimaryValid(final JComponent comp)
   {
     comp.setForeground(ColorAndFontConstants.validFontColor);
     comp.setFont(ColorAndFontConstants.primaryFont);
@@ -493,20 +520,23 @@ implements ConfigChangeListener
   /**
    * Updates the font type and color of the component to be invalid and
    * secondary.
-   * @param comp the component to update.
+   *
+   * @param comp
+   *          the component to update.
    */
-  protected void setSecondaryInvalid(JComponent comp)
+  protected void setSecondaryInvalid(final JComponent comp)
   {
     comp.setForeground(ColorAndFontConstants.invalidFontColor);
     comp.setFont(ColorAndFontConstants.invalidFont);
   }
 
   /**
-   * Updates the font type and color of the component to be valid and
-   * secondary.
-   * @param comp the component to update.
+   * Updates the font type and color of the component to be valid and secondary.
+   *
+   * @param comp
+   *          the component to update.
    */
-  protected void setSecondaryValid(JComponent comp)
+  protected void setSecondaryValid(final JComponent comp)
   {
     comp.setForeground(ColorAndFontConstants.validFontColor);
     comp.setFont(ColorAndFontConstants.defaultFont);
@@ -514,7 +544,6 @@ implements ConfigChangeListener
 
   /**
    * Packs the parent dialog.
-   *
    */
   protected void packParentDialog()
   {
@@ -532,46 +561,46 @@ implements ConfigChangeListener
   }
 
   /**
-   * Notification that the ok button has been clicked, the panel is in charge
-   * of doing whatever is required (close the dialog, launch a task, etc.).
-   *
+   * Notification that the ok button has been clicked, the panel is in charge of
+   * doing whatever is required (close the dialog, launch a task, etc.).
    */
   public abstract void okClicked();
 
   /**
    * Adds a configuration element created listener.
-   * @param listener the listener.
+   *
+   * @param listener
+   *          the listener.
    */
-  public void addConfigurationElementCreatedListener(
-      ConfigurationElementCreatedListener listener)
+  public void addConfigurationElementCreatedListener(final ConfigurationElementCreatedListener listener)
   {
     getConfigurationElementCreatedListeners().add(listener);
   }
 
   /**
    * Removes a configuration element created listener.
-   * @param listener the listener.
+   *
+   * @param listener
+   *          the listener.
    */
-  public void removeConfigurationElementCreatedListener(
-      ConfigurationElementCreatedListener listener)
+  public void removeConfigurationElementCreatedListener(final ConfigurationElementCreatedListener listener)
   {
     getConfigurationElementCreatedListeners().remove(listener);
   }
 
   /**
    * Returns the list of configuration listeners.
+   *
    * @return the list of configuration listeners.
    */
-  protected List<ConfigurationElementCreatedListener>
-  getConfigurationElementCreatedListeners()
+  protected List<ConfigurationElementCreatedListener> getConfigurationElementCreatedListeners()
   {
     return confListeners;
   }
 
   /**
-   * Notification that cancel was clicked, the panel is in charge
-   * of doing whatever is required (close the dialog, etc.).
-   *
+   * Notification that cancel was clicked, the panel is in charge of doing
+   * whatever is required (close the dialog, etc.).
    */
   public void cancelClicked()
   {
@@ -585,8 +614,9 @@ implements ConfigChangeListener
 
   /**
    * Whether the dialog should be disposed when the user closes it.
+   *
    * @return <CODE>true</CODE> if the dialog should be disposed when the user
-   * closes it or <CODE>true</CODE> otherwise.
+   *         closes it or <CODE>true</CODE> otherwise.
    */
   public boolean isDisposeOnClose()
   {
@@ -595,18 +625,19 @@ implements ConfigChangeListener
 
   /**
    * Sets whether the dialog should be disposed when the user closes it or not.
-   * @param disposeOnClose <CODE>true</CODE> if the dialog should be disposed
-   * when the user closes it or <CODE>true</CODE> otherwise.
+   *
+   * @param disposeOnClose
+   *          <CODE>true</CODE> if the dialog should be disposed when the user
+   *          closes it or <CODE>true</CODE> otherwise.
    */
-  public void setDisposeOnClose(boolean disposeOnClose)
+  public void setDisposeOnClose(final boolean disposeOnClose)
   {
     this.disposeOnClose = disposeOnClose;
   }
 
   /**
-   * Notification that close was clicked, the panel is in charge
-   * of doing whatever is required (close the dialog, etc.).
-   *
+   * Notification that close was clicked, the panel is in charge of doing
+   * whatever is required (close the dialog, etc.).
    */
   public void closeClicked()
   {
@@ -620,36 +651,41 @@ implements ConfigChangeListener
 
   /**
    * Displays a dialog with the provided list of error messages.
-   * @param errors the error messages.
+   *
+   * @param errors
+   *          the error messages.
    */
-  protected void displayErrorDialog(Collection<LocalizableMessage> errors)
+  protected void displayErrorDialog(final Collection<LocalizableMessage> errors)
   {
     Utilities.displayErrorDialog(Utilities.getParentDialog(this), errors);
   }
 
   /**
    * Displays a confirmation message.
-   * @param title the title/summary of the message.
-   * @param msg the description of the confirmation.
+   *
+   * @param title
+   *          the title/summary of the message.
+   * @param msg
+   *          the description of the confirmation.
    * @return <CODE>true</CODE> if the user confirms and <CODE>false</CODE>
-   * otherwise.
+   *         otherwise.
    */
-  protected boolean displayConfirmationDialog(LocalizableMessage title, LocalizableMessage msg)
+  protected boolean displayConfirmationDialog(final LocalizableMessage title, final LocalizableMessage msg)
   {
-    return Utilities.displayConfirmationDialog(Utilities.getParentDialog(this),
-        title, msg);
+    return Utilities.displayConfirmationDialog(Utilities.getParentDialog(this), title, msg);
   }
 
-
   /**
-   * If the index must be rebuilt, asks the user for confirmation.  If the user
-   * confirms launches a task that will rebuild the indexes.  The progress will
+   * If the index must be rebuilt, asks the user for confirmation. If the user
+   * confirms launches a task that will rebuild the indexes. The progress will
    * be displayed in the provided progress dialog.
-   * @param index the index.
-   * @param progressDialog the progress dialog.
+   *
+   * @param index
+   *          the index.
+   * @param progressDialog
+   *          the progress dialog.
    */
-  protected void rebuildIndexIfNecessary(AbstractIndexDescriptor index,
-      ProgressDialog progressDialog)
+  protected void rebuildIndexIfNecessary(final AbstractIndexDescriptor index, final ProgressDialog progressDialog)
   {
     progressDialog.setTaskIsOver(false);
     boolean rebuildIndexes;
@@ -657,21 +693,18 @@ implements ConfigChangeListener
     LocalizableMessage summary = INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get();
     if (!isServerRunning())
     {
-      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog, summary,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_OFFLINE_DETAILS.get(
-              index.getName(), backendName));
+      rebuildIndexes = Utilities.displayConfirmationDialog( progressDialog, summary,
+          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_OFFLINE_DETAILS.get(index.getName(), backendName));
     }
     else if (isLocal())
     {
       rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog, summary,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
-              index.getName(), backendName, backendName));
+          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(index.getName(), backendName, backendName));
     }
     else
     {
       Utilities.displayWarningDialog(progressDialog, summary,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(
-              index.getName(), backendName));
+          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(index.getName(), backendName));
       rebuildIndexes = false;
     }
     if (rebuildIndexes)
@@ -684,9 +717,8 @@ implements ConfigChangeListener
         baseDNs.add(Utilities.unescapeUtf8(b.getDn().toString()));
       }
 
-      RebuildIndexTask newTask = new RebuildIndexTask(getInfo(),
-          progressDialog, baseDNs, indexes);
-      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+      RebuildIndexTask newTask = new RebuildIndexTask(getInfo(), progressDialog, baseDNs, indexes);
+      List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
@@ -694,14 +726,11 @@ implements ConfigChangeListener
       if (errors.size() == 0)
       {
         progressDialog.appendProgressHtml("<br><br>");
-        launchOperation(newTask,
-            INFO_CTRL_PANEL_REBUILDING_INDEXES_SUMMARY.get(backendName),
+        launchOperation(newTask, INFO_CTRL_PANEL_REBUILDING_INDEXES_SUMMARY.get(backendName),
             INFO_CTRL_PANEL_REBUILDING_INDEXES_SUCCESSFUL_SUMMARY.get(),
             INFO_CTRL_PANEL_REBUILDING_INDEXES_SUCCESSFUL_DETAILS.get(),
-            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_SUMMARY.get(),
-            null,
-            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_DETAILS,
-            progressDialog, false);
+            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_SUMMARY.get(), null,
+            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_DETAILS, progressDialog, false);
         if (progressDialog.isModal())
         {
           progressDialog.toFront();
@@ -727,14 +756,12 @@ implements ConfigChangeListener
     }
   }
 
-
   /**
    * A class used to avoid the possibility a certain type of objects in a combo
-   * box.  This is used for instance in the combo box that contains base DNs
+   * box. This is used for instance in the combo box that contains base DNs
    * where the base DNs are separated in backends, so the combo box displays
    * both the backends (~ categories) and base DNs (~ values) and we do not
    * allow to select the backends (~ categories).
-   *
    */
   protected class IgnoreItemListener implements ItemListener
   {
@@ -743,9 +770,11 @@ implements ConfigChangeListener
 
     /**
      * Constructor.
-     * @param combo the combo box.
+     *
+     * @param combo
+     *          the combo box.
      */
-    public IgnoreItemListener(JComboBox combo)
+    public IgnoreItemListener(final JComboBox combo)
     {
       this.combo = combo;
       selectedItem = combo.getSelectedItem();
@@ -755,9 +784,8 @@ implements ConfigChangeListener
       }
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void itemStateChanged(ItemEvent ev)
+    public void itemStateChanged(final ItemEvent ev)
     {
       Object o = combo.getSelectedItem();
       if (isCategory(o))
@@ -765,7 +793,7 @@ implements ConfigChangeListener
         if (selectedItem == null)
         {
           // Look for the first element that is not a category
-          for (int i=0; i<combo.getModel().getSize(); i++)
+          for (int i = 0; i < combo.getModel().getSize(); i++)
           {
             Object item = combo.getModel().getElementAt(i);
             if (item instanceof CategorizedComboBoxElement && !isCategory(item))
@@ -793,31 +821,36 @@ implements ConfigChangeListener
 
   /**
    * Returns the HTML required to render an Authenticate button in HTML.
+   *
    * @return the HTML required to render an Authenticate button in HTML.
    */
   protected String getAuthenticateHTML()
   {
-    return "<INPUT type=\"submit\" value=\""+AUTHENTICATE+"\"></INPUT>";
+    return "<INPUT type=\"submit\" value=\"" + AUTHENTICATE + "\"></INPUT>";
   }
 
   /**
    * Returns the HTML required to render an Start button in HTML.
+   *
    * @return the HTML required to render an Start button in HTML.
    */
   protected String getStartServerHTML()
   {
-    return "<INPUT type=\"submit\" value=\""+START+"\"></INPUT>";
+    return "<INPUT type=\"submit\" value=\"" + START + "\"></INPUT>";
   }
 
   /**
-   * Updates the error panel and enables/disables the OK button depending on
-   * the status of the server.
-   * @param desc the Server Descriptor.
-   * @param details the message to be displayed if authentication has not been
-   * provided and the server is running.
+   * Updates the error panel and enables/disables the OK button depending on the
+   * status of the server.
+   *
+   * @param desc
+   *          the Server Descriptor.
+   * @param details
+   *          the message to be displayed if authentication has not been
+   *          provided and the server is running.
    */
-  protected void updateErrorPaneAndOKButtonIfAuthRequired(ServerDescriptor desc,
-      LocalizableMessage details)
+  protected void updateErrorPaneAndOKButtonIfAuthRequired(
+      final ServerDescriptor desc, final LocalizableMessage details)
   {
     if (authenticationRequired(desc))
     {
@@ -825,11 +858,10 @@ implements ConfigChangeListener
       mb.append(details);
       mb.append("<br><br>").append(getAuthenticateHTML());
       LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
-      updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
-          mb.toMessage(), ColorAndFontConstants.defaultFont);
+      updateErrorPane(
+          errorPane, title, ColorAndFontConstants.errorTitleFont, mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -843,7 +875,6 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -857,11 +888,13 @@ implements ConfigChangeListener
   /**
    * Returns <CODE>true</CODE> if the server is running and the user did not
    * provide authentication and <CODE>false</CODE> otherwise.
-   * @param desc the server descriptor.
+   *
+   * @param desc
+   *          the server descriptor.
    * @return <CODE>true</CODE> if the server is running and the user did not
-   * provide authentication and <CODE>false</CODE> otherwise.
+   *         provide authentication and <CODE>false</CODE> otherwise.
    */
-  protected boolean authenticationRequired(ServerDescriptor desc)
+  protected boolean authenticationRequired(final ServerDescriptor desc)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
     return (status == ServerDescriptor.ServerStatus.STARTED && !desc.isAuthenticated())
@@ -870,12 +903,14 @@ implements ConfigChangeListener
 
   /**
    * Updates the error panel depending on the status of the server.
-   * @param desc the Server Descriptor.
-   * @param details the message to be displayed if authentication has not been
-   * provided and the server is running.
+   *
+   * @param desc
+   *          the Server Descriptor.
+   * @param details
+   *          the message to be displayed if authentication has not been
+   *          provided and the server is running.
    */
-  protected void updateErrorPaneIfAuthRequired(ServerDescriptor desc,
-      LocalizableMessage details)
+  protected void updateErrorPaneIfAuthRequired(final ServerDescriptor desc, final LocalizableMessage details)
   {
     if (authenticationRequired(desc))
     {
@@ -883,11 +918,10 @@ implements ConfigChangeListener
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(details);
       mb.append("<br><br>").append(getAuthenticateHTML());
-      updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
-          mb.toMessage(), ColorAndFontConstants.defaultFont);
+      updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont, mb.toMessage(),
+          ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -900,7 +934,6 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -911,31 +944,32 @@ implements ConfigChangeListener
   }
 
   /**
-   * Updates the error panel depending on the status of the server.  This
-   * method will display an error message in the error pane if the server is not
-   * running and another message if the server is running but authentication
-   * has not been provided.
-   * @param desc the Server Descriptor.
-   * @param detailsServerNotRunning the message to be displayed if the server is
-   * not running.
-   * @param authRequired the message to be displayed if authentication has not
-   * been provided and the server is running.
+   * Updates the error panel depending on the status of the server. This method
+   * will display an error message in the error pane if the server is not
+   * running and another message if the server is running but authentication has
+   * not been provided.
+   *
+   * @param desc
+   *          the Server Descriptor.
+   * @param detailsServerNotRunning
+   *          the message to be displayed if the server is not running.
+   * @param authRequired
+   *          the message to be displayed if authentication has not been
+   *          provided and the server is running.
    */
-  protected void updateErrorPaneIfServerRunningAndAuthRequired(
-      ServerDescriptor desc, LocalizableMessage detailsServerNotRunning,
-      LocalizableMessage authRequired)
+  protected void updateErrorPaneIfServerRunningAndAuthRequired(final ServerDescriptor desc,
+      final LocalizableMessage detailsServerNotRunning, final LocalizableMessage authRequired)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if (status != ServerDescriptor.ServerStatus.STARTED &&
-        status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
+    if (status != ServerDescriptor.ServerStatus.STARTED
+        && status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
     {
       LocalizableMessage title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(detailsServerNotRunning);
       mb.append("<br><br>").append(getStartServerHTML());
-      updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
-          mb.toMessage(),
-          ColorAndFontConstants.defaultFont);
+      updateErrorPane(
+          errorPane, title, ColorAndFontConstants.errorTitleFont, mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
         /** {@inheritDoc} */
@@ -953,11 +987,10 @@ implements ConfigChangeListener
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(authRequired);
       mb.append("<br><br>").append(getAuthenticateHTML());
-      updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
-          mb.toMessage(), ColorAndFontConstants.defaultFont);
+      updateErrorPane(
+          errorPane, title, ColorAndFontConstants.errorTitleFont, mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -970,7 +1003,6 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -981,9 +1013,8 @@ implements ConfigChangeListener
   }
 
   /**
-   * Updates the enabling/disabling of the OK button.  The code assumes that
-   * the error pane has already been updated.
-   *
+   * Updates the enabling/disabling of the OK button. The code assumes that the
+   * error pane has already been updated.
    */
   protected void checkOKButtonEnable()
   {
@@ -991,17 +1022,19 @@ implements ConfigChangeListener
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided object is a category object in
-   * a combo box.
-   * @param o the item in the combo box.
-   * @return <CODE>true</CODE> if the provided object is a category object in
-   * a combo box.
+   * Returns <CODE>true</CODE> if the provided object is a category object in a
+   * combo box.
+   *
+   * @param o
+   *          the item in the combo box.
+   * @return <CODE>true</CODE> if the provided object is a category object in a
+   *         combo box.
    */
-  protected boolean isCategory(Object o)
+  protected boolean isCategory(final Object o)
   {
     if (o instanceof CategorizedComboBoxElement)
     {
-      CategorizedComboBoxElement desc = (CategorizedComboBoxElement)o;
+      CategorizedComboBoxElement desc = (CategorizedComboBoxElement) o;
       return desc.getType() == CategorizedComboBoxElement.Type.CATEGORY;
     }
     return false;
@@ -1009,6 +1042,7 @@ implements ConfigChangeListener
 
   /**
    * Returns the control panel info object.
+   *
    * @return the control panel info object.
    */
   public ControlPanelInfo getInfo()
@@ -1018,9 +1052,11 @@ implements ConfigChangeListener
 
   /**
    * Sets the control panel info object.
-   * @param info the control panel info object.
+   *
+   * @param info
+   *          the control panel info object.
    */
-  public void setInfo(ControlPanelInfo info)
+  public void setInfo(final ControlPanelInfo info)
   {
     if (!info.equals(this.info))
     {
@@ -1030,8 +1066,7 @@ implements ConfigChangeListener
       }
       this.info = info;
       this.info.addConfigChangeListener(this);
-      if (SwingUtilities.isEventDispatchThread() &&
-          callConfigurationChangedInBackground())
+      if (SwingUtilities.isEventDispatchThread() && callConfigurationChangedInBackground())
       {
         final Color savedBackground = getBackground();
         setBackground(ColorAndFontConstants.background);
@@ -1047,16 +1082,13 @@ implements ConfigChangeListener
           public Void processBackgroundTask() throws Throwable
           {
             StaticUtils.sleep(1000);
-            configurationChanged(new ConfigurationChangeEvent(
-                StatusGenericPanel.this.info,
+            configurationChanged(new ConfigurationChangeEvent(StatusGenericPanel.this.info,
                 StatusGenericPanel.this.info.getServerDescriptor()));
             return null;
           }
 
-
           @Override
-          public void backgroundTaskCompleted(Void returnValue,
-              Throwable t)
+          public void backgroundTaskCompleted(final Void returnValue, final Throwable t)
           {
             setBackground(savedBackground);
             displayMainPanel();
@@ -1076,8 +1108,7 @@ implements ConfigChangeListener
       }
       else if (info.getServerDescriptor() != null)
       {
-        configurationChanged(new ConfigurationChangeEvent(
-          this.info, this.info.getServerDescriptor()));
+        configurationChanged(new ConfigurationChangeEvent(this.info, this.info.getServerDescriptor()));
       }
     }
   }
@@ -1090,53 +1121,68 @@ implements ConfigChangeListener
 
   /**
    * Displays a message and hides the main panel.
-   * @param msg the message to be displayed.
+   *
+   * @param msg
+   *          the message to be displayed.
    */
-  protected void displayMessage(LocalizableMessage msg)
+  protected void displayMessage(final LocalizableMessage msg)
   {
-    message.setText(Utilities.applyFont(msg.toString(),
-        ColorAndFontConstants.defaultFont));
+    message.setText(Utilities.applyFont(msg.toString(), ColorAndFontConstants.defaultFont));
     cardLayout.show(cardPanel, MESSAGE_PANEL);
     message.requestFocusInWindow();
   }
 
   /**
    * Displays an error message and hides the main panel.
-   * @param title the title of the message to be displayed.
-   * @param msg the message to be displayed.
+   *
+   * @param title
+   *          the title of the message to be displayed.
+   * @param msg
+   *          the message to be displayed.
    */
-  protected void displayErrorMessage(LocalizableMessage title, LocalizableMessage msg)
+  protected void displayErrorMessage(final LocalizableMessage title, final LocalizableMessage msg)
   {
-    updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
-        msg, ColorAndFontConstants.defaultFont);
+    updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont, msg, ColorAndFontConstants.defaultFont);
     cardLayout.show(cardPanel, MESSAGE_PANEL);
     message.requestFocusInWindow();
   }
 
   /**
    * Updates the contents of an editor pane using the error format.
-   * @param pane the editor pane to be updated.
-   * @param title the title.
-   * @param titleFont the font to be used for the title.
-   * @param details the details message.
-   * @param detailsFont the font to be used for the details.
+   *
+   * @param pane
+   *          the editor pane to be updated.
+   * @param title
+   *          the title.
+   * @param titleFont
+   *          the font to be used for the title.
+   * @param details
+   *          the details message.
+   * @param detailsFont
+   *          the font to be used for the details.
    */
-  protected void updateErrorPane(JEditorPane pane, LocalizableMessage title,
-      Font titleFont, LocalizableMessage details, Font detailsFont)
+  protected void updateErrorPane(final JEditorPane pane, final LocalizableMessage title, final Font titleFont,
+      final LocalizableMessage details, final Font detailsFont)
   {
     updatePane(pane, title, titleFont, details, detailsFont, PanelType.ERROR);
   }
 
   /**
    * Updates the contents of an editor pane using the confirmation format.
-   * @param pane the editor pane to be updated.
-   * @param title the title.
-   * @param titleFont the font to be used for the title.
-   * @param details the details message.
-   * @param detailsFont the font to be used for the details.
+   *
+   * @param pane
+   *          the editor pane to be updated.
+   * @param title
+   *          the title.
+   * @param titleFont
+   *          the font to be used for the title.
+   * @param details
+   *          the details message.
+   * @param detailsFont
+   *          the font to be used for the details.
    */
-  protected void updateConfirmationPane(JEditorPane pane, LocalizableMessage title,
-      Font titleFont, LocalizableMessage details, Font detailsFont)
+  protected void updateConfirmationPane(final JEditorPane pane, final LocalizableMessage title, final Font titleFont,
+      final LocalizableMessage details, final Font detailsFont)
   {
     updatePane(pane, title, titleFont, details, detailsFont, PanelType.CONFIRMATION);
   }
@@ -1156,34 +1202,37 @@ implements ConfigChangeListener
 
   /**
    * Updates the contents of an editor pane using the provided format.
-   * @param pane the editor pane to be updated.
-   * @param title the title.
-   * @param titleFont the font to be used for the title.
-   * @param details the details message.
-   * @param detailsFont the font to be used for the details.
-   * @param type the type of panel.
+   *
+   * @param pane
+   *          the editor pane to be updated.
+   * @param title
+   *          the title.
+   * @param titleFont
+   *          the font to be used for the title.
+   * @param details
+   *          the details message.
+   * @param detailsFont
+   *          the font to be used for the details.
+   * @param type
+   *          the type of panel.
    */
-  private void updatePane(final JEditorPane pane, LocalizableMessage title,
-      Font titleFont, LocalizableMessage details, Font detailsFont, PanelType type)
+  private void updatePane(final JEditorPane pane, final LocalizableMessage title, final Font titleFont,
+      final LocalizableMessage details, final Font detailsFont, final PanelType type)
   {
     String text;
     switch (type)
     {
     case ERROR:
-      text = Utilities.getFormattedError(title, titleFont, details,
-          detailsFont);
+      text = Utilities.getFormattedError(title, titleFont, details, detailsFont);
       break;
     case CONFIRMATION:
-      text = Utilities.getFormattedConfirmation(title, titleFont, details,
-          detailsFont);
+      text = Utilities.getFormattedConfirmation(title, titleFont, details, detailsFont);
       break;
     case WARNING:
-      text = Utilities.getFormattedWarning(title, titleFont, details,
-          detailsFont);
+      text = Utilities.getFormattedWarning(title, titleFont, details, detailsFont);
       break;
     default:
-      text = Utilities.getFormattedSuccess(title, titleFont, details,
-          detailsFont);
+      text = Utilities.getFormattedSuccess(title, titleFont, details, detailsFont);
       break;
     }
     if (!text.equals(lastDisplayedError))
@@ -1196,12 +1245,10 @@ implements ConfigChangeListener
       switch (type)
       {
       case ERROR:
-        wrappedText = Utilities.getFormattedError(wrappedTitle, titleFont,
-            wrappedDetails, detailsFont);
+        wrappedText = Utilities.getFormattedError(wrappedTitle, titleFont, wrappedDetails, detailsFont);
         break;
       default:
-        wrappedText = Utilities.getFormattedSuccess(wrappedTitle, titleFont,
-            wrappedDetails, detailsFont);
+        wrappedText = Utilities.getFormattedSuccess(wrappedTitle, titleFont, wrappedDetails, detailsFont);
         break;
       }
       wrappedPane.setText(wrappedText);
@@ -1212,13 +1259,11 @@ implements ConfigChangeListener
 
       lastDisplayedError = text;
     }
-    final Window window =
-      Utilities.getParentDialog(StatusGenericPanel.this);
+    final Window window = Utilities.getParentDialog(StatusGenericPanel.this);
     if (window != null)
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -1231,19 +1276,21 @@ implements ConfigChangeListener
 
   /**
    * Commodity method used to update the elements of a combo box that contains
-   * the different user backends.  If no backends are found the combo box will
-   * be made invisible and a label will be made visible.  This method does not
+   * the different user backends. If no backends are found the combo box will be
+   * made invisible and a label will be made visible. This method does not
    * update the label's text nor creates any layout.
-   * @param combo the combo to be updated.
-   * @param lNoBackendsFound the label that must be shown if no user backends
-   * are found.
-   * @param desc the server descriptor that contains the configuration.
+   *
+   * @param combo
+   *          the combo to be updated.
+   * @param lNoBackendsFound
+   *          the label that must be shown if no user backends are found.
+   * @param desc
+   *          the server descriptor that contains the configuration.
    */
-  protected void updateSimpleBackendComboBoxModel(final JComboBox combo,
-      final JLabel lNoBackendsFound, ServerDescriptor desc)
+  protected void updateSimpleBackendComboBoxModel(final JComboBox combo, final JLabel lNoBackendsFound,
+      final ServerDescriptor desc)
   {
-    final SortedSet<String> newElements =
-      new TreeSet<String>(new LowerCaseComparator());
+    final SortedSet<String> newElements = new TreeSet<String>(new LowerCaseComparator());
     for (BackendDescriptor backend : desc.getBackends())
     {
       if (!backend.isConfigBackend())
@@ -1251,7 +1298,7 @@ implements ConfigChangeListener
         newElements.add(backend.getBackendID());
       }
     }
-    DefaultComboBoxModel model = (DefaultComboBoxModel)combo.getModel();
+    DefaultComboBoxModel model = (DefaultComboBoxModel) combo.getModel();
     updateComboBoxModel(newElements, model);
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -1265,30 +1312,32 @@ implements ConfigChangeListener
   }
 
   /**
-   * Method that says if a backend must be displayed.  Only non-config backends
+   * Method that says if a backend must be displayed. Only non-config backends
    * are displayed.
-   * @param backend the backend.
+   *
+   * @param backend
+   *          the backend.
    * @return <CODE>true</CODE> if the backend must be displayed and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
-  protected boolean displayBackend(BackendDescriptor backend)
+  protected boolean displayBackend(final BackendDescriptor backend)
   {
     return !backend.isConfigBackend();
   }
 
   /**
    * Commodity method to update a combo box model with the backends of a server.
-   * @param model the combo box model to be updated.
-   * @param desc the server descriptor containing the configuration.
+   *
+   * @param model
+   *          the combo box model to be updated.
+   * @param desc
+   *          the server descriptor containing the configuration.
    */
-  protected void updateBaseDNComboBoxModel(DefaultComboBoxModel model,
-      ServerDescriptor desc)
+  protected void updateBaseDNComboBoxModel(final DefaultComboBoxModel model, final ServerDescriptor desc)
   {
-    LinkedHashSet<CategorizedComboBoxElement> newElements =
-      new LinkedHashSet<CategorizedComboBoxElement>();
+    Set<CategorizedComboBoxElement> newElements = new LinkedHashSet<CategorizedComboBoxElement>();
     SortedSet<String> backendIDs = new TreeSet<String>(new LowerCaseComparator());
-    HashMap<String, SortedSet<String>> hmBaseDNs =
-      new HashMap<String, SortedSet<String>>();
+    Map<String, SortedSet<String>> hmBaseDNs = new HashMap<String, SortedSet<String>>();
 
     for (BackendDescriptor backend : desc.getBackends())
     {
@@ -1305,7 +1354,7 @@ implements ConfigChangeListener
           }
           catch (Throwable t)
           {
-            throw new RuntimeException("Unexpected error: "+t, t);
+            throw new RuntimeException("Unexpected error: " + t, t);
           }
         }
         hmBaseDNs.put(backendID, baseDNs);
@@ -1314,13 +1363,11 @@ implements ConfigChangeListener
 
     for (String backendID : backendIDs)
     {
-      newElements.add(new CategorizedComboBoxElement(backendID,
-          CategorizedComboBoxElement.Type.CATEGORY));
+      newElements.add(new CategorizedComboBoxElement(backendID, CategorizedComboBoxElement.Type.CATEGORY));
       SortedSet<String> baseDNs = hmBaseDNs.get(backendID);
       for (String baseDN : baseDNs)
       {
-        newElements.add(new CategorizedComboBoxElement(baseDN,
-            CategorizedComboBoxElement.Type.REGULAR));
+        newElements.add(new CategorizedComboBoxElement(baseDN, CategorizedComboBoxElement.Type.REGULAR));
       }
     }
     updateComboBoxModel(newElements, model);
@@ -1328,25 +1375,30 @@ implements ConfigChangeListener
 
   /**
    * Updates a combo box model with a number of items.
-   * @param newElements the new items for the combo box model.
-   * @param model the combo box model to be updated.
+   *
+   * @param newElements
+   *          the new items for the combo box model.
+   * @param model
+   *          the combo box model to be updated.
    */
-  protected void updateComboBoxModel(Collection<?> newElements,
-      DefaultComboBoxModel model)
+  protected void updateComboBoxModel(final Collection<?> newElements, final DefaultComboBoxModel model)
   {
     updateComboBoxModel(newElements, model, null);
   }
 
   /**
-   * Updates a combo box model with a number of items.
-   * The method assumes that is called outside the event thread.
-   * @param newElements the new items for the combo box model.
-   * @param model the combo box model to be updated.
-   * @param comparator the object that will be used to compare the objects in
-   * the model.  If <CODE>null</CODE>, the equals method will be used.
+   * Updates a combo box model with a number of items. The method assumes that
+   * is called outside the event thread.
+   *
+   * @param newElements
+   *          the new items for the combo box model.
+   * @param model
+   *          the combo box model to be updated.
+   * @param comparator
+   *          the object that will be used to compare the objects in the model.
+   *          If <CODE>null</CODE>, the equals method will be used.
    */
-  private void updateComboBoxModel(final Collection<?> newElements,
-      final DefaultComboBoxModel model,
+  private void updateComboBoxModel(final Collection<?> newElements, final DefaultComboBoxModel model,
       final Comparator<Object> comparator)
   {
     SwingUtilities.invokeLater(new Runnable()
@@ -1362,15 +1414,18 @@ implements ConfigChangeListener
   /**
    * Updates a map, so that the keys are the base DN where the indexes are
    * defined and the values are a sorted set of indexes.
-   * @param desc the server descriptor containing the index configuration.
-   * @param hmIndexes the map to be updated.
+   *
+   * @param desc
+   *          the server descriptor containing the index configuration.
+   * @param hmIndexes
+   *          the map to be updated.
    */
-  protected void updateIndexMap(ServerDescriptor desc,
-      HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
+  protected void updateIndexMap(
+      final ServerDescriptor desc, final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
   {
     synchronized (hmIndexes)
     {
-      HashSet<String> dns = new HashSet<String>();
+      Set<String> dns = new HashSet<String>();
       for (BackendDescriptor backend : desc.getBackends())
       {
         if (backend.getType() == BackendDescriptor.Type.LOCAL_DB)
@@ -1384,14 +1439,12 @@ implements ConfigChangeListener
             }
             catch (Throwable t)
             {
-              throw new RuntimeException("Unexpected error: "+t, t);
+              throw new RuntimeException("Unexpected error: " + t, t);
             }
             dns.add(dn);
-            SortedSet<AbstractIndexDescriptor> indexes =
-              new TreeSet<AbstractIndexDescriptor>(backend.getIndexes());
+            SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<AbstractIndexDescriptor>(backend.getIndexes());
             indexes.addAll(backend.getVLVIndexes());
-            SortedSet<AbstractIndexDescriptor> currentIndexes =
-              hmIndexes.get(dn);
+            SortedSet<AbstractIndexDescriptor> currentIndexes = hmIndexes.get(dn);
             if (currentIndexes != null)
             {
               if (!currentIndexes.equals(indexes))
@@ -1416,32 +1469,31 @@ implements ConfigChangeListener
     }
   }
 
-
-
   /**
-   * Updates and addremove panel with the contents of the provided item.  The
+   * Updates and addremove panel with the contents of the provided item. The
    * selected item represents a base DN.
-   * @param hmIndexes the map that contains the indexes definitions as values
-   * and the base DNs as keys.
-   * @param selectedItem the selected item.
-   * @param addRemove the add remove panel to be updated.
+   *
+   * @param hmIndexes
+   *          the map that contains the indexes definitions as values and the
+   *          base DNs as keys.
+   * @param selectedItem
+   *          the selected item.
+   * @param addRemove
+   *          the add remove panel to be updated.
    */
-  protected void comboBoxSelected(
-      HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes,
-      CategorizedComboBoxElement selectedItem,
-      AddRemovePanel<AbstractIndexDescriptor> addRemove)
+  protected void comboBoxSelected(final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes,
+      final CategorizedComboBoxElement selectedItem, final AddRemovePanel<AbstractIndexDescriptor> addRemove)
   {
     synchronized (hmIndexes)
     {
       String selectedDn = null;
       if (selectedItem != null)
       {
-        selectedDn = (String)selectedItem.getValue();
+        selectedDn = (String) selectedItem.getValue();
       }
       if (selectedDn != null)
       {
-        SortedSet<AbstractIndexDescriptor> indexes =
-          hmIndexes.get(selectedDn);
+        SortedSet<AbstractIndexDescriptor> indexes = hmIndexes.get(selectedDn);
         if (indexes != null)
         {
           boolean availableChanged = false;
@@ -1455,8 +1507,7 @@ implements ConfigChangeListener
 
           for (AbstractIndexDescriptor index : indexes)
           {
-            if (!availableIndexes.contains(index) &&
-                !selectedIndexes.contains(index))
+            if (!availableIndexes.contains(index) && !selectedIndexes.contains(index))
             {
               availableIndexes.add(index);
               availableChanged = true;
@@ -1466,17 +1517,13 @@ implements ConfigChangeListener
           {
             availableListModel.clear();
             availableListModel.addAll(availableIndexes);
-            availableListModel.fireContentsChanged(
-                availableListModel, 0,
-                availableListModel.getSize());
+            availableListModel.fireContentsChanged(availableListModel, 0, availableListModel.getSize());
           }
           if (selectedChanged)
           {
             selectedListModel.clear();
             selectedListModel.addAll(selectedIndexes);
-            selectedListModel.fireContentsChanged(
-                selectedListModel, 0,
-                selectedListModel.getSize());
+            selectedListModel.fireContentsChanged(selectedListModel, 0, selectedListModel.getSize());
           }
         }
       }
@@ -1486,8 +1533,9 @@ implements ConfigChangeListener
   /**
    * Returns <CODE>true</CODE> if the cancel button is enabled and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the cancel button is enabled and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isEnableCancel()
   {
@@ -1497,8 +1545,9 @@ implements ConfigChangeListener
   /**
    * Returns <CODE>true</CODE> if the close button is enabled and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the close button is enabled and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isEnableClose()
   {
@@ -1508,8 +1557,9 @@ implements ConfigChangeListener
   /**
    * Returns <CODE>true</CODE> if the ok button is enabled and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the ok button is enabled and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   public boolean isEnableOK()
   {
@@ -1517,22 +1567,24 @@ implements ConfigChangeListener
   }
 
   /**
-   * Returns <CODE>true</CODE> if the server is running  and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the server is running  and
-   * <CODE>false</CODE> otherwise.
+   * Returns <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   * otherwise.
+   *
+   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   *         otherwise.
    */
   protected boolean isServerRunning()
   {
-    return getInfo().getServerDescriptor().getStatus() ==
-      ServerDescriptor.ServerStatus.STARTED;
+    return getInfo().getServerDescriptor().getStatus() == ServerDescriptor.ServerStatus.STARTED;
   }
 
   /**
    * Returns <CODE>true</CODE> if the managed server is the local installation
    * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the managed server is the local installation
-   * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   *         (where the control panel is installed) <CODE>false</CODE>
+   *         otherwise.
    */
   protected boolean isLocal()
   {
@@ -1541,96 +1593,117 @@ implements ConfigChangeListener
 
   /**
    * Launch an task.
-   * @param task the task to be launched.
-   * @param initialSummary the initial summary to be displayed in the progress
-   * dialog.
-   * @param successSummary the success summary to be displayed in the progress
-   * dialog if the task is successful.
-   * @param successDetail the success details to be displayed in the progress
-   * dialog if the task is successful.
-   * @param errorSummary the error summary to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetail error details to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetailCode error detail message to be displayed in the progress
-   * dialog if the task ended with error and we have an exit error code (for
-   * instance if the error occurred when launching a script we will have an
-   * error code).
-   * @param dialog the progress dialog.
+   *
+   * @param task
+   *          the task to be launched.
+   * @param initialSummary
+   *          the initial summary to be displayed in the progress dialog.
+   * @param successSummary
+   *          the success summary to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param successDetail
+   *          the success details to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param errorSummary
+   *          the error summary to be displayed in the progress dialog if the
+   *          task ended with error.
+   * @param errorDetail
+   *          error details to be displayed in the progress dialog if the task
+   *          ended with error.
+   * @param errorDetailCode
+   *          error detail message to be displayed in the progress dialog if the
+   *          task ended with error and we have an exit error code (for instance
+   *          if the error occurred when launching a script we will have an
+   *          error code).
+   * @param dialog
+   *          the progress dialog.
    */
-  protected void launchOperation(final Task task, LocalizableMessage initialSummary,
+  protected void launchOperation(final Task task, final LocalizableMessage initialSummary,
       final LocalizableMessage successSummary, final LocalizableMessage successDetail,
-      final LocalizableMessage errorSummary,
-      final LocalizableMessage errorDetail,
-      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
-      final ProgressDialog dialog)
+      final LocalizableMessage errorSummary, final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode, final ProgressDialog dialog)
   {
-    launchOperation(task, initialSummary, successSummary, successDetail,
-        errorSummary, errorDetail, errorDetailCode, dialog, true);
+    launchOperation(task, initialSummary, successSummary, successDetail, errorSummary, errorDetail, errorDetailCode,
+        dialog, true);
   }
 
   /**
    * Launch an task.
-   * @param task the task to be launched.
-   * @param initialSummary the initial summary to be displayed in the progress
-   * dialog.
-   * @param successSummary the success summary to be displayed in the progress
-   * dialog if the task is successful.
-   * @param successDetail the success details to be displayed in the progress
-   * dialog if the task is successful.
-   * @param errorSummary the error summary to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetail error details to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetailCode error detail message to be displayed in the progress
-   * dialog if the task ended with error and we have an exit error code (for
-   * instance if the error occurred when launching a script we will have an
-   * error code).
-   * @param dialog the progress dialog.
-   * @param resetLogs whether the contents of the progress dialog should be
-   * reset or not.
+   *
+   * @param task
+   *          the task to be launched.
+   * @param initialSummary
+   *          the initial summary to be displayed in the progress dialog.
+   * @param successSummary
+   *          the success summary to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param successDetail
+   *          the success details to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param errorSummary
+   *          the error summary to be displayed in the progress dialog if the
+   *          task ended with error.
+   * @param errorDetail
+   *          error details to be displayed in the progress dialog if the task
+   *          ended with error.
+   * @param errorDetailCode
+   *          error detail message to be displayed in the progress dialog if the
+   *          task ended with error and we have an exit error code (for instance
+   *          if the error occurred when launching a script we will have an
+   *          error code).
+   * @param dialog
+   *          the progress dialog.
+   * @param resetLogs
+   *          whether the contents of the progress dialog should be reset or
+   *          not.
    */
-  private void launchOperation(final Task task, LocalizableMessage initialSummary,
+  private void launchOperation(final Task task, final LocalizableMessage initialSummary,
       final LocalizableMessage successSummary, final LocalizableMessage successDetail,
-      final LocalizableMessage errorSummary,
-      final LocalizableMessage errorDetail,
-      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
-      final ProgressDialog dialog, boolean resetLogs)
+      final LocalizableMessage errorSummary, final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode, final ProgressDialog dialog,
+      final boolean resetLogs)
   {
-    launchOperation(task, initialSummary, successSummary, successDetail,
-        errorSummary, errorDetail, errorDetailCode, dialog, resetLogs,
-        getInfo());
+    launchOperation(task, initialSummary, successSummary, successDetail, errorSummary, errorDetail, errorDetailCode,
+        dialog, resetLogs, getInfo());
   }
 
   /**
    * Launch an task.
-   * @param task the task to be launched.
-   * @param initialSummary the initial summary to be displayed in the progress
-   * dialog.
-   * @param successSummary the success summary to be displayed in the progress
-   * dialog if the task is successful.
-   * @param successDetail the success details to be displayed in the progress
-   * dialog if the task is successful.
-   * @param errorSummary the error summary to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetail error details to be displayed in the progress
-   * dialog if the task ended with error.
-   * @param errorDetailCode error detail message to be displayed in the progress
-   * dialog if the task ended with error and we have an exit error code (for
-   * instance if the error occurred when launching a script we will have an
-   * error code).
-   * @param dialog the progress dialog.
-   * @param resetLogs whether the contents of the progress dialog should be
-   * reset or not.
-   * @param info the ControlPanelInfo.
+   *
+   * @param task
+   *          the task to be launched.
+   * @param initialSummary
+   *          the initial summary to be displayed in the progress dialog.
+   * @param successSummary
+   *          the success summary to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param successDetail
+   *          the success details to be displayed in the progress dialog if the
+   *          task is successful.
+   * @param errorSummary
+   *          the error summary to be displayed in the progress dialog if the
+   *          task ended with error.
+   * @param errorDetail
+   *          error details to be displayed in the progress dialog if the task
+   *          ended with error.
+   * @param errorDetailCode
+   *          error detail message to be displayed in the progress dialog if the
+   *          task ended with error and we have an exit error code (for instance
+   *          if the error occurred when launching a script we will have an
+   *          error code).
+   * @param dialog
+   *          the progress dialog.
+   * @param resetLogs
+   *          whether the contents of the progress dialog should be reset or
+   *          not.
+   * @param info
+   *          the ControlPanelInfo.
    */
-  public static void launchOperation(final Task task, LocalizableMessage initialSummary,
+  public static void launchOperation(final Task task, final LocalizableMessage initialSummary,
       final LocalizableMessage successSummary, final LocalizableMessage successDetail,
-      final LocalizableMessage errorSummary,
-      final LocalizableMessage errorDetail,
-      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
-      final ProgressDialog dialog, boolean resetLogs,
-      final ControlPanelInfo info)
+      final LocalizableMessage errorSummary, final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode, final ProgressDialog dialog,
+      final boolean resetLogs, final ControlPanelInfo info)
   {
     dialog.setTaskIsOver(false);
     dialog.getProgressBar().setIndeterminate(true);
@@ -1642,19 +1715,15 @@ implements ConfigChangeListener
     String cmdLine = task.getCommandLineToDisplay();
     if (cmdLine != null)
     {
-      dialog.appendProgressHtml(Utilities.applyFont(
-          INFO_CTRL_PANEL_EQUIVALENT_COMMAND_LINE.get()+"<br><b>"+cmdLine+
-          "</b><br><br>",
-          ColorAndFontConstants.progressFont));
+      dialog.appendProgressHtml(Utilities.applyFont(INFO_CTRL_PANEL_EQUIVALENT_COMMAND_LINE.get() + "<br><b>" + cmdLine
+          + "</b><br><br>", ColorAndFontConstants.progressFont));
     }
     dialog.setEnabledClose(false);
-    dialog.setSummary(LocalizableMessage.raw(
-        Utilities.applyFont(initialSummary.toString(),
-            ColorAndFontConstants.defaultFont)));
+    dialog.setSummary(LocalizableMessage.raw(Utilities.applyFont(initialSummary.toString(),
+        ColorAndFontConstants.defaultFont)));
     dialog.getProgressBar().setVisible(true);
     BackgroundTask<Task> worker = new BackgroundTask<Task>()
     {
-      /** {@inheritDoc} */
       @Override
       public Task processBackgroundTask() throws Throwable
       {
@@ -1666,16 +1735,15 @@ implements ConfigChangeListener
         return task;
       }
 
-      /** {@inheritDoc} */
       @Override
-      public void backgroundTaskCompleted(Task returnValue, Throwable t)
+      public void backgroundTaskCompleted(final Task returnValue, Throwable t)
       {
         String summaryMsg;
         if (task.getState() == Task.State.FINISHED_SUCCESSFULLY)
         {
-          summaryMsg = Utilities.getFormattedSuccess(successSummary,
-              ColorAndFontConstants.errorTitleFont,
-              successDetail, ColorAndFontConstants.defaultFont);
+          summaryMsg =
+              Utilities.getFormattedSuccess(successSummary, ColorAndFontConstants.errorTitleFont, successDetail,
+                  ColorAndFontConstants.defaultFont);
         }
         else
         {
@@ -1686,13 +1754,13 @@ implements ConfigChangeListener
 
           if (t != null)
           {
-            logger.warn(LocalizableMessage.raw("Error occurred running task: "+t, t));
+            logger.warn(LocalizableMessage.raw("Error occurred running task: " + t, t));
             if (task.getReturnCode() != null && errorDetailCode != null)
             {
               String sThrowable;
               if (t instanceof OpenDsException)
               {
-                sThrowable = ((OpenDsException)t).getMessageObject().toString();
+                sThrowable = ((OpenDsException) t).getMessageObject().toString();
               }
               else if (t.getMessage() != null)
               {
@@ -1705,18 +1773,18 @@ implements ConfigChangeListener
               LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append("  ").append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
-              summaryMsg = Utilities.getFormattedError(errorSummary,
-                  ColorAndFontConstants.errorTitleFont,
-                  mb.toMessage(), ColorAndFontConstants.defaultFont);
+              summaryMsg =
+                  Utilities.getFormattedError(errorSummary, ColorAndFontConstants.errorTitleFont, mb.toMessage(),
+                      ColorAndFontConstants.defaultFont);
             }
             else if (errorDetail != null)
             {
               LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetail);
               mb.append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t));
-              summaryMsg = Utilities.getFormattedError(errorSummary,
-                  ColorAndFontConstants.errorTitleFont,
-                  mb.toMessage(), ColorAndFontConstants.defaultFont);
+              summaryMsg =
+                  Utilities.getFormattedError(errorSummary, ColorAndFontConstants.errorTitleFont, mb.toMessage(),
+                      ColorAndFontConstants.defaultFont);
             }
             else
             {
@@ -1725,16 +1793,15 @@ implements ConfigChangeListener
           }
           else if (task.getReturnCode() != null && errorDetailCode != null)
           {
-            summaryMsg = Utilities.getFormattedError(errorSummary,
-                ColorAndFontConstants.errorTitleFont,
-                errorDetailCode.get(task.getReturnCode()),
-                ColorAndFontConstants.defaultFont);
+            summaryMsg =
+                Utilities.getFormattedError(errorSummary, ColorAndFontConstants.errorTitleFont, errorDetailCode
+                    .get(task.getReturnCode()), ColorAndFontConstants.defaultFont);
           }
           else if (errorDetail != null)
           {
-            summaryMsg = Utilities.getFormattedError(errorSummary,
-                ColorAndFontConstants.errorTitleFont,
-                errorDetail, ColorAndFontConstants.defaultFont);
+            summaryMsg =
+                Utilities.getFormattedError(errorSummary, ColorAndFontConstants.errorTitleFont, errorDetail,
+                    ColorAndFontConstants.defaultFont);
           }
           else
           {
@@ -1776,8 +1843,8 @@ implements ConfigChangeListener
    * @return {@code true} if the provided string value is a valid integer and if
    *         it is not updates a list of error messages with an error.
    */
-  protected boolean checkIntValue(Collection<LocalizableMessage> errors, String stringValue,
-      int minValue, int maxValue, LocalizableMessage errMsg)
+  protected boolean checkIntValue(final Collection<LocalizableMessage> errors, final String stringValue,
+      final int minValue, final int maxValue, final LocalizableMessage errMsg)
   {
     try
     {
@@ -1787,24 +1854,24 @@ implements ConfigChangeListener
         return true;
       }
     }
-    catch (NumberFormatException ignored) {}
+    catch (NumberFormatException ignored)
+    {
+    }
 
     errors.add(errMsg);
     return false;
   }
 
   /**
-   * Starts the server.  This method will launch a task and open a progress
-   * dialog that will start the server.  This method must be called from the
+   * Starts the server. This method will launch a task and open a progress
+   * dialog that will start the server. This method must be called from the
    * event thread.
    */
   protected void startServer()
   {
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-    ProgressDialog progressDialog = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_START_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
+    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
+            INFO_CTRL_PANEL_START_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StartServerTask newTask = new StartServerTask(getInfo(), progressDialog);
     for (Task task : getInfo().getTasks())
     {
@@ -1816,10 +1883,8 @@ implements ConfigChangeListener
           INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get(),
           INFO_CTRL_PANEL_STARTING_SERVER_SUCCESSFUL_SUMMARY.get(),
           INFO_CTRL_PANEL_STARTING_SERVER_SUCCESSFUL_DETAILS.get(),
-          ERR_CTRL_PANEL_STARTING_SERVER_ERROR_SUMMARY.get(),
-          null,
-          ERR_CTRL_PANEL_STARTING_SERVER_ERROR_DETAILS,
-          progressDialog);
+          ERR_CTRL_PANEL_STARTING_SERVER_ERROR_SUMMARY.get(), null,
+          ERR_CTRL_PANEL_STARTING_SERVER_ERROR_DETAILS, progressDialog);
       progressDialog.setVisible(true);
     }
     else
@@ -1829,18 +1894,15 @@ implements ConfigChangeListener
   }
 
   /**
-   * Stops the server.  This method will launch a task and open a progress
-   * dialog that will stop the server.  This method must be called from the
-   * event thread.
-   *
+   * Stops the server. This method will launch a task and open a progress dialog
+   * that will stop the server. This method must be called from the event
+   * thread.
    */
   protected void stopServer()
   {
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-    ProgressDialog progressDialog = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_STOP_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
+    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
+            INFO_CTRL_PANEL_STOP_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StopServerTask newTask = new StopServerTask(getInfo(), progressDialog);
     for (Task task : getInfo().getTasks())
     {
@@ -1849,9 +1911,8 @@ implements ConfigChangeListener
     boolean confirmed = true;
     if (errors.size() == 0)
     {
-      confirmed = displayConfirmationDialog(
-          INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_CONFIRM_STOP_SERVER_DETAILS.get());
+      confirmed = displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                                            INFO_CTRL_PANEL_CONFIRM_STOP_SERVER_DETAILS.get());
     }
     if (errors.size() == 0 && confirmed)
     {
@@ -1859,10 +1920,8 @@ implements ConfigChangeListener
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
           INFO_CTRL_PANEL_STOPPING_SERVER_SUCCESSFUL_SUMMARY.get(),
           INFO_CTRL_PANEL_STOPPING_SERVER_SUCCESSFUL_DETAILS.get(),
-          ERR_CTRL_PANEL_STOPPING_SERVER_ERROR_SUMMARY.get(),
-          null,
-          ERR_CTRL_PANEL_STOPPING_SERVER_ERROR_DETAILS,
-          progressDialog);
+          ERR_CTRL_PANEL_STOPPING_SERVER_ERROR_SUMMARY.get(), null,
+          ERR_CTRL_PANEL_STOPPING_SERVER_ERROR_DETAILS, progressDialog);
       progressDialog.setVisible(true);
     }
     if (errors.size() > 0)
@@ -1872,18 +1931,15 @@ implements ConfigChangeListener
   }
 
   /**
-   * Restarts the server.  This method will launch a task and open a progress
-   * dialog that will restart the server.  This method must be called from the
+   * Restarts the server. This method will launch a task and open a progress
+   * dialog that will restart the server. This method must be called from the
    * event thread.
-   *
    */
   protected void restartServer()
   {
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-    ProgressDialog progressDialog = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_RESTART_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
+    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
+            INFO_CTRL_PANEL_RESTART_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     RestartServerTask newTask = new RestartServerTask(getInfo(), progressDialog);
     for (Task task : getInfo().getTasks())
     {
@@ -1892,9 +1948,8 @@ implements ConfigChangeListener
     boolean confirmed = true;
     if (errors.size() == 0)
     {
-      confirmed = displayConfirmationDialog(
-          INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_CONFIRM_RESTART_SERVER_DETAILS.get());
+      confirmed = displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                                            INFO_CTRL_PANEL_CONFIRM_RESTART_SERVER_DETAILS.get());
     }
     if (errors.size() == 0 && confirmed)
     {
@@ -1902,10 +1957,8 @@ implements ConfigChangeListener
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
           INFO_CTRL_PANEL_RESTARTING_SERVER_SUCCESSFUL_SUMMARY.get(),
           INFO_CTRL_PANEL_RESTARTING_SERVER_SUCCESSFUL_DETAILS.get(),
-          ERR_CTRL_PANEL_RESTARTING_SERVER_ERROR_SUMMARY.get(),
-          null,
-          ERR_CTRL_PANEL_RESTARTING_SERVER_ERROR_DETAILS,
-          progressDialog);
+          ERR_CTRL_PANEL_RESTARTING_SERVER_ERROR_SUMMARY.get(), null,
+          ERR_CTRL_PANEL_RESTARTING_SERVER_ERROR_DETAILS, progressDialog);
       progressDialog.setVisible(true);
     }
     if (errors.size() > 0)
@@ -1928,41 +1981,40 @@ implements ConfigChangeListener
   }
 
   /**
-   * Returns the login dialog that is displayed when the method authenticate
-   * is called.
-   * @return the login dialog that is displayed when the method authenticate
-   * is called.
+   * Returns the login dialog that is displayed when the method authenticate is
+   * called.
+   *
+   * @return the login dialog that is displayed when the method authenticate is
+   *         called.
    */
   protected GenericDialog getLoginDialog()
   {
-    GenericDialog dialog = isLocal()
-        ? getLocalServerLoginDialog(getInfo())
-        : getLocalOrRemoteDialog(getInfo());
+    GenericDialog dialog = isLocal() ? getLocalServerLoginDialog(getInfo()) : getLocalOrRemoteDialog(getInfo());
     Utilities.centerGoldenMean(dialog, Utilities.getFrame(this));
     dialog.setModal(true);
     return dialog;
   }
 
   /**
-   * Tells whether an entry exists or not.  Actually it tells if we could find
-   * a given entry or not.
-   * @param dn the DN of the entry to look for.
+   * Tells whether an entry exists or not. Actually it tells if we could find a
+   * given entry or not.
+   *
+   * @param dn
+   *          the DN of the entry to look for.
    * @return <CODE>true</CODE> if the entry with the provided DN could be found
-   * and <CODE>false</CODE> otherwise.
+   *         and <CODE>false</CODE> otherwise.
    */
-  protected boolean entryExists(String dn)
+  protected boolean entryExists(final String dn)
   {
     boolean entryExists = false;
     try
     {
       SearchControls ctls = new SearchControls();
       ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] { SchemaConstants.NO_ATTRIBUTES });
+      ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =
-        getInfo().getDirContext().search(Utilities.getJNDIName(dn),
-            filter, ctls);
+          getInfo().getDirContext().search(Utilities.getJNDIName(dn), filter, ctls);
 
       try
       {
@@ -1986,38 +2038,36 @@ implements ConfigChangeListener
   /**
    * Tells whether a given entry exists and contains one of the specified object
    * classes.
-   * @param dn the DN of the entry.
-   * @param objectClasses the object classes to check.
+   *
+   * @param dn
+   *          the DN of the entry.
+   * @param objectClasses
+   *          the object classes to check.
    * @return <CODE>true</CODE> if the entry exists and contains one of the
-   * specified object classes and <CODE>false</CODE> otherwise.
+   *         specified object classes and <CODE>false</CODE> otherwise.
    */
-  protected boolean hasObjectClass(String dn, String... objectClasses)
+  protected boolean hasObjectClass(final String dn, final String... objectClasses)
   {
     try
     {
       SearchControls ctls = new SearchControls();
       ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] {
-              ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME
-          });
+      ctls.setReturningAttributes(new String[] { ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =
-        getInfo().getDirContext().search(Utilities.getJNDIName(dn),
-            filter, ctls);
+          getInfo().getDirContext().search(Utilities.getJNDIName(dn), filter, ctls);
 
       try
       {
         while (result.hasMore())
         {
           SearchResult sr = result.next();
-          Set<String> values = ConnectionUtils.getValues(sr,
-              ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+          Set<String> values = ConnectionUtils.getValues(sr, ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
           if (values != null)
           {
             for (String s : values)
             {
-              for (String objectClass: objectClasses)
+              for (String objectClass : objectClasses)
               {
                 if (s.equalsIgnoreCase(objectClass))
                 {
@@ -2043,6 +2093,7 @@ implements ConfigChangeListener
    * Returns the border to be used in the right panel of the dialog with a tree
    * on the left (for instance the schema browser, entry browser and index
    * browser).
+   *
    * @return the border to be used in the right panel.
    */
   protected Border getRightPanelBorder()
@@ -2052,32 +2103,34 @@ implements ConfigChangeListener
 
   /**
    * Returns the monitoring value in a String form to be displayed to the user.
-   * @param attr the attribute to analyze.
-   * @param monitoringEntry the monitoring entry.
+   *
+   * @param attr
+   *          the attribute to analyze.
+   * @param monitoringEntry
+   *          the monitoring entry.
    * @return the monitoring value in a String form to be displayed to the user.
    */
-  public static String getMonitoringValue(MonitoringAttributes attr,
-      CustomSearchResult monitoringEntry)
+  public static String getMonitoringValue(final MonitoringAttributes attr, final CustomSearchResult monitoringEntry)
   {
     return Utilities.getMonitoringValue(attr, monitoringEntry);
   }
 
   /**
    * Updates the monitoring information writing it to a list of labels.
-   * @param monitoringAttrs the monitoring operations whose information we want
-   * to update.
-   * @param monitoringLabels the monitoring labels to be updated.
-   * @param monitoringEntry the monitoring entry containing the information to
-   * be displayed.
+   *
+   * @param monitoringAttrs
+   *          the monitoring operations whose information we want to update.
+   * @param monitoringLabels
+   *          the monitoring labels to be updated.
+   * @param monitoringEntry
+   *          the monitoring entry containing the information to be displayed.
    */
-  protected void updateMonitoringInfo(
-      List<MonitoringAttributes> monitoringAttrs,
-      List<JLabel> monitoringLabels, CustomSearchResult monitoringEntry)
+  protected void updateMonitoringInfo(final List<MonitoringAttributes> monitoringAttrs,
+      final List<JLabel> monitoringLabels, final CustomSearchResult monitoringEntry)
   {
-    for (int i=0 ; i<monitoringAttrs.size(); i++)
+    for (int i = 0; i < monitoringAttrs.size(); i++)
     {
-      String value =
-        getMonitoringValue(monitoringAttrs.get(i), monitoringEntry);
+      String value = getMonitoringValue(monitoringAttrs.get(i), monitoringEntry);
       JLabel l = monitoringLabels.get(i);
       l.setText(value);
     }
@@ -2086,21 +2139,25 @@ implements ConfigChangeListener
   /**
    * Returns the label to be used in panels (with ':') based on the definition
    * of the monitoring attribute.
-   * @param attr the monitoring attribute.
+   *
+   * @param attr
+   *          the monitoring attribute.
    * @return the label to be used in panels (with ':') based on the definition
-   * of the monitoring attribute.
+   *         of the monitoring attribute.
    */
-  protected static LocalizableMessage getLabel(MonitoringAttributes attr)
+  protected static LocalizableMessage getLabel(final MonitoringAttributes attr)
   {
     return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(attr.getMessage());
   }
 
   /**
    * Returns the command-line arguments associated with the provided schedule.
-   * @param schedule the schedule.
+   *
+   * @param schedule
+   *          the schedule.
    * @return the command-line arguments associated with the provided schedule.
    */
-  protected List<String> getScheduleArgs(ScheduleType schedule)
+  protected List<String> getScheduleArgs(final ScheduleType schedule)
   {
     List<String> args = new ArrayList<String>(2);
     switch (schedule.getType())
@@ -2120,12 +2177,16 @@ implements ConfigChangeListener
   /**
    * Checks whether the server is running or not and depending on the schedule
    * updates the list of errors with the errors found.
-   * @param schedule the schedule.
-   * @param errors the list of errors.
-   * @param label the label to be marked as invalid if errors where encountered.
+   *
+   * @param schedule
+   *          the schedule.
+   * @param errors
+   *          the list of errors.
+   * @param label
+   *          the label to be marked as invalid if errors where encountered.
    */
-  protected void addScheduleErrors(ScheduleType schedule,
-      Collection<LocalizableMessage> errors, JLabel label)
+  protected void addScheduleErrors(final ScheduleType schedule, final Collection<LocalizableMessage> errors,
+      final JLabel label)
   {
     if (!isServerRunning())
     {
@@ -2137,33 +2198,33 @@ implements ConfigChangeListener
       }
       else if (type == ScheduleType.Type.LAUNCH_PERIODICALLY)
       {
-        errors.add(
-            ERR_CTRL_PANEL_LAUNCH_SCHEDULE_REQUIRES_SERVER_RUNNING.get());
+        errors.add(ERR_CTRL_PANEL_LAUNCH_SCHEDULE_REQUIRES_SERVER_RUNNING.get());
         setPrimaryInvalid(label);
       }
     }
   }
 
-  private String getStartTimeForTask(Date date)
+  private String getStartTimeForTask(final Date date)
   {
     return taskDateFormat.format(date);
   }
 
-
-
   /**
-   * Checks whether the provided superior object classes are compatible with
-   * the provided object class type.  If not, the method updates the provided
-   * list of error messages with a message describing the incompatibility.
-   * @param objectClassSuperiors the superior object classes.
-   * @param objectClassType the object class type.
-   * @param errors the list of error messages.
+   * Checks whether the provided superior object classes are compatible with the
+   * provided object class type. If not, the method updates the provided list of
+   * error messages with a message describing the incompatibility.
+   *
+   * @param objectClassSuperiors
+   *          the superior object classes.
+   * @param objectClassType
+   *          the object class type.
+   * @param errors
+   *          the list of error messages.
    */
-  protected void checkCompatibleSuperiors(Set<ObjectClass> objectClassSuperiors,
-      ObjectClassType objectClassType, List<LocalizableMessage> errors)
+  protected void checkCompatibleSuperiors(final Set<ObjectClass> objectClassSuperiors,
+      final ObjectClassType objectClassType, final List<LocalizableMessage> errors)
   {
-    SortedSet<String> notCompatibleClasses =
-      new TreeSet<String>(new LowerCaseComparator());
+    SortedSet<String> notCompatibleClasses = new TreeSet<String>(new LowerCaseComparator());
     for (ObjectClass oc : objectClassSuperiors)
     {
       if (oc.getObjectClassType() == ObjectClassType.ABSTRACT)
@@ -2177,22 +2238,18 @@ implements ConfigChangeListener
     }
     if (!notCompatibleClasses.isEmpty())
     {
-      String arg = Utilities.getStringFromCollection(notCompatibleClasses,
-          ", ");
+      String arg = Utilities.getStringFromCollection(notCompatibleClasses, ", ");
       if (objectClassType == ObjectClassType.STRUCTURAL)
       {
-        errors.add(
-            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_STRUCTURAL.get(arg));
+        errors.add(ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_STRUCTURAL.get(arg));
       }
       else if (objectClassType == ObjectClassType.AUXILIARY)
       {
-        errors.add(
-            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_AUXILIARY.get(arg));
+        errors.add(ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_AUXILIARY.get(arg));
       }
       else if (objectClassType == ObjectClassType.ABSTRACT)
       {
-        errors.add(
-            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_ABSTRACT.get(arg));
+        errors.add(ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_ABSTRACT.get(arg));
       }
     }
   }

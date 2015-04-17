@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 import javax.swing.DefaultComboBoxModel;
@@ -67,10 +70,8 @@ import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel that appears when the user wants to rebuild indexes.
- *
  */
-public class RebuildIndexPanel extends StatusGenericPanel
-implements IndexModifiedListener
+public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifiedListener
 {
   private static final long serialVersionUID = -4805445967165643375L;
   private JComboBox baseDNs;
@@ -80,12 +81,11 @@ implements IndexModifiedListener
   private JLabel lIndexes;
   private JLabel lNoBaseDNsFound;
 
-  private HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
-    new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
+  private final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
+      new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
 
   /**
    * Constructor of the panel.
-   *
    */
   public RebuildIndexPanel()
   {
@@ -94,20 +94,20 @@ implements IndexModifiedListener
   }
 
   /** {@inheritDoc} */
-  public void indexModified(IndexModifiedEvent ev)
+  @Override
+  public void indexModified(final IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
   /** {@inheritDoc} */
-  public void backendIndexesModified(IndexModifiedEvent ev)
+  @Override
+  public void backendIndexesModified(final IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -132,37 +132,30 @@ implements IndexModifiedListener
     baseDNs.addItemListener(listener);
     baseDNs.addItemListener(new ItemListener()
     {
-      /** {@inheritDoc} */
-      public void itemStateChanged(ItemEvent ev)
+      @Override
+      public void itemStateChanged(final ItemEvent ev)
       {
-        comboBoxSelected(hmIndexes,
-            (CategorizedComboBoxElement)baseDNs.getSelectedItem(),
-            addRemove);
+        comboBoxSelected(hmIndexes, (CategorizedComboBoxElement) baseDNs.getSelectedItem(), addRemove);
       }
     });
     listener.itemStateChanged(null);
     add(baseDNs, gbc);
-    lNoBaseDNsFound = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NO_BASE_DNS_FOUND_LABEL.get());
+    lNoBaseDNsFound = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_BASE_DNS_FOUND_LABEL.get());
     add(lNoBaseDNsFound, gbc);
     lNoBaseDNsFound.setVisible(false);
 
-    lIndexes =
-      Utilities.createPrimaryLabel(INFO_CTRL_PANEL_INDEXES_LABEL.get());
+    lIndexes = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_INDEXES_LABEL.get());
     gbc.insets.top = 10;
     gbc.insets.left = 0;
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.gridx = 0;
     gbc.gridwidth = 1;
     gbc.anchor = GridBagConstraints.NORTHWEST;
     add(lIndexes, gbc);
 
-    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(
-        AbstractIndexDescriptor.class);
-    addRemove.getAvailableLabel().setText(
-        INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
-    addRemove.getSelectedLabel().setText(
-        INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
+    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(AbstractIndexDescriptor.class);
+    addRemove.getAvailableLabel().setText(INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
+    addRemove.getSelectedLabel().setText(INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
 
     gbc.gridx = 1;
     gbc.weightx = 1.0;
@@ -173,40 +166,42 @@ implements IndexModifiedListener
     gbc.fill = GridBagConstraints.BOTH;
     add(addRemove, gbc);
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.insets.top = 3;
-    JLabel explanation = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REQUIRES_REBUILD_LEGEND.get());
+    JLabel explanation = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REQUIRES_REBUILD_LEGEND.get());
     add(explanation, gbc);
 
     addBottomGlue(gbc);
   }
 
   /** {@inheritDoc} */
-  public void setInfo(ControlPanelInfo info)
+  @Override
+  public void setInfo(final ControlPanelInfo info)
   {
     super.setInfo(info);
-    ListCellRenderer indexCellRenderer = new IndexCellRenderer(
-        addRemove.getAvailableList(), info);
+    ListCellRenderer indexCellRenderer = new IndexCellRenderer(addRemove.getAvailableList(), info);
     addRemove.getAvailableList().setCellRenderer(indexCellRenderer);
     addRemove.getSelectedList().setCellRenderer(indexCellRenderer);
     info.addIndexModifiedListener(this);
   }
 
   /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_REBUILD_INDEXES_TITLE.get();
   }
 
   /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
   /** {@inheritDoc} */
-  public void configurationChanged(ConfigurationChangeEvent ev)
+  @Override
+  public void configurationChanged(final ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
     refreshContents(desc);
@@ -214,14 +209,16 @@ implements IndexModifiedListener
 
   /**
    * Refresh the contents of the panel with the provided server descriptor.
-   * @param desc the server descriptor.
+   *
+   * @param desc
+   *          the server descriptor.
    */
   private void refreshContents(final ServerDescriptor desc)
   {
     super.updateIndexMap(desc, hmIndexes);
     filterIndexes(hmIndexes);
 
-    updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
+    updateBaseDNComboBoxModel((DefaultComboBoxModel) baseDNs.getModel(), desc);
 
     // Check that all backends
     boolean allDisabled = false;
@@ -236,18 +233,16 @@ implements IndexModifiedListener
     if (!allDisabled)
     {
       updateErrorPaneAndOKButtonIfAuthRequired(desc,
-        isLocal() ?
-            INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_DISABLE_BACKEND.get() :
-      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+              isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_DISABLE_BACKEND.get()
+                        : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         ViewPositions pos;
-        JScrollPane scroll =
-          Utilities.getContainingScroll(RebuildIndexPanel.this);
+        JScrollPane scroll = Utilities.getContainingScroll(RebuildIndexPanel.this);
         if (scroll != null)
         {
           pos = Utilities.getViewPositions(scroll);
@@ -267,7 +262,7 @@ implements IndexModifiedListener
         if (!desc.isLocal())
         {
           displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
-          INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_REBUILD_INDEX_SUMMARY.get());
+              INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_REBUILD_INDEX_SUMMARY.get());
           setEnabledOK(false);
         }
         else
@@ -280,6 +275,7 @@ implements IndexModifiedListener
   }
 
   /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -288,13 +284,13 @@ implements IndexModifiedListener
   }
 
   /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lBaseDN);
     setSecondaryValid(addRemove.getSelectedLabel());
 
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-
+    final Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     String baseDN = getSelectedBaseDN();
 
     if (baseDN == null)
@@ -310,8 +306,7 @@ implements IndexModifiedListener
       }
     }
 
-    SortableListModel<AbstractIndexDescriptor> model =
-      addRemove.getSelectedListModel();
+    SortableListModel<AbstractIndexDescriptor> model = addRemove.getSelectedListModel();
     if (model.getSize() == 0)
     {
       setSecondaryInvalid(addRemove.getSelectedLabel());
@@ -320,36 +315,32 @@ implements IndexModifiedListener
 
     if (errors.isEmpty())
     {
-      ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
-          getInfo());
-      HashSet<String> baseDNs = new HashSet<String>();
+      ProgressDialog progressDialog =
+          new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(), getInfo());
+      Set<String> baseDNs = new HashSet<String>();
       baseDNs.add(getSelectedBaseDN());
-      RebuildIndexTask newTask = new RebuildIndexTask(getInfo(), progressDialog,
-          baseDNs, addRemove.getSelectedListModel().getData());
+      RebuildIndexTask newTask =
+          new RebuildIndexTask(getInfo(), progressDialog, baseDNs, addRemove.getSelectedListModel().getData());
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
       }
       boolean confirmed = true;
 
-      if ((errors.isEmpty()) && isServerRunning())
+      if (errors.isEmpty() && isServerRunning())
       {
         String backendName = newTask.getBackends().iterator().next();
-        confirmed = displayConfirmationDialog(
-            INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-            INFO_CTRL_PANEL_CONFIRM_REBUILD_INDEX_DETAILS.get(backendName));
+        confirmed =
+            displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                INFO_CTRL_PANEL_CONFIRM_REBUILD_INDEX_DETAILS.get(backendName));
       }
-      if ((errors.isEmpty()) && confirmed)
+      if (errors.isEmpty() && confirmed)
       {
-        launchOperation(newTask,
-            INFO_CTRL_PANEL_REBUILDING_INDEXES_SUMMARY.get(baseDN),
+        launchOperation(newTask, INFO_CTRL_PANEL_REBUILDING_INDEXES_SUMMARY.get(baseDN),
             INFO_CTRL_PANEL_REBUILDING_INDEXES_SUCCESSFUL_SUMMARY.get(),
             INFO_CTRL_PANEL_REBUILDING_INDEXES_SUCCESSFUL_DETAILS.get(),
-            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_SUMMARY.get(),
-            null,
-            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_DETAILS,
-            progressDialog);
+            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_SUMMARY.get(), null,
+            ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_DETAILS, progressDialog);
         progressDialog.setVisible(true);
         Utilities.getParentDialog(this).setVisible(false);
       }
@@ -361,32 +352,29 @@ implements IndexModifiedListener
   }
 
   /** {@inheritDoc} */
-  protected boolean displayBackend(BackendDescriptor backend)
+  @Override
+  protected boolean displayBackend(final BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() &&
-    (backend.getType() == BackendDescriptor.Type.LOCAL_DB);
+    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.LOCAL_DB;
   }
 
   private String getSelectedBaseDN()
   {
     String dn = null;
-    CategorizedComboBoxElement o =
-      (CategorizedComboBoxElement)baseDNs.getSelectedItem();
+    CategorizedComboBoxElement o = (CategorizedComboBoxElement) baseDNs.getSelectedItem();
     if (o != null)
     {
-      dn = (String)o.getValue();
+      dn = (String) o.getValue();
     }
     return dn;
   }
 
-  private void filterIndexes(
-      HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
+  private void filterIndexes(final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
   {
- // Remove the indexes that are not to be added.
+    // Remove the indexes that are not to be added.
     for (SortedSet<AbstractIndexDescriptor> indexes : hmIndexes.values())
     {
-      ArrayList<AbstractIndexDescriptor> toRemove =
-        new ArrayList<AbstractIndexDescriptor>();
+      List<AbstractIndexDescriptor> toRemove = new ArrayList<AbstractIndexDescriptor>();
       for (AbstractIndexDescriptor index : indexes)
       {
         if (!mustBeDisplayed(index))
@@ -398,7 +386,7 @@ implements IndexModifiedListener
     }
   }
 
-  private boolean mustBeDisplayed(AbstractIndexDescriptor index)
+  private boolean mustBeDisplayed(final AbstractIndexDescriptor index)
   {
     boolean mustBeDisplayed = true;
     if (index instanceof IndexDescriptor)
