@@ -173,7 +173,8 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     {
       for (BackendDescriptor backend : server.getBackends())
       {
-        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB)
+        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB
+            || backend.getType() == BackendDescriptor.Type.PLUGGABLE)
         {
           dbBackends.add(backend);
           if (updateAttributes)
