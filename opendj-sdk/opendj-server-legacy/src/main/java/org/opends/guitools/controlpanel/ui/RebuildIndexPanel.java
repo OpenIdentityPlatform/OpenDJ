@@ -355,7 +355,8 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
   @Override
   protected boolean displayBackend(final BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.LOCAL_DB;
+    return !backend.isConfigBackend() && (backend.getType() == BackendDescriptor.Type.LOCAL_DB
+                                           || backend.getType() == BackendDescriptor.Type.PLUGGABLE);
   }
 
   private String getSelectedBaseDN()

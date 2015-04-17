@@ -1428,7 +1428,8 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       Set<String> dns = new HashSet<String>();
       for (BackendDescriptor backend : desc.getBackends())
       {
-        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB)
+        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB
+            || backend.getType() == BackendDescriptor.Type.PLUGGABLE)
         {
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {

@@ -383,7 +383,8 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   /** {@inheritDoc} */
   protected boolean displayBackend(BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.LOCAL_DB;
+    return !backend.isConfigBackend() && (backend.getType() == BackendDescriptor.Type.LOCAL_DB
+                                          || backend.getType() == BackendDescriptor.Type.PLUGGABLE);
   }
 
   private String getSelectedBaseDN()
