@@ -28,6 +28,8 @@ package org.opends.server.util;
 
 
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -37,6 +39,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
+import static org.opends.messages.ExtensionMessages.INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS;
 
 
 /**
@@ -60,7 +63,30 @@ public final class SelectableCertificateKeyManager
   /** The key manager that is wrapped by this key manager. */
   private final X509KeyManager keyManager;
 
+  /** Provide additional troubleshooting aid to localize a misconfigured SSL connection. */
+  private final String componentName;
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+
+  /**
+   * Creates a new instance of this key manager that will wrap the provided key
+   * manager and use the certificate with the specified alias.
+   *
+   * @param  keyManager       The key manager to be wrapped by this key manager.
+   * @param  alias            The nickname of the certificate that should be
+   *                          selected for operations involving this key manager.
+   * @param  componentName    Name of the component to which is associated this key manager
+   */
+  public SelectableCertificateKeyManager(X509KeyManager keyManager,
+                                         String alias, String componentName)
+  {
+    super();
+
+    this.keyManager = keyManager;
+    this.alias      = alias;
+    this.componentName       = componentName;
+  }
 
   /**
    * Creates a new instance of this key manager that will wrap the provided key
@@ -73,12 +99,8 @@ public final class SelectableCertificateKeyManager
   public SelectableCertificateKeyManager(X509KeyManager keyManager,
                                          String alias)
   {
-    super();
-
-    this.keyManager = keyManager;
-    this.alias      = alias;
+    this(keyManager, alias, "[unknown]");
   }
-
 
 
   /**
@@ -113,7 +135,7 @@ public final class SelectableCertificateKeyManager
         }
       }
     }
-
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
     return null;
   }
 
@@ -153,6 +175,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
     return null;
   }
 
@@ -187,6 +210,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
     return null;
   }
 
@@ -225,6 +249,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
     return null;
   }
 
@@ -302,24 +327,30 @@ public final class SelectableCertificateKeyManager
    * Wraps the provided set of key managers in selectable certificate key
    * managers using the provided alias.
    *
-   * @param  keyManagers  The set of key managers to be wrapped.
-   * @param  alias        The alias to use for selecting the desired
-   *                      certificate.
+   * @param  keyManagers      The set of key managers to be wrapped.
+   * @param  alias            The alias to use for selecting the desired
+   *                          certificate.
+   * @param  componentName    Name of the component to which is associated this key manager
    *
    * @return  A key manager array
    */
   public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers,
-                                              String alias)
+                                              String alias, String componentName)
   {
     X509ExtendedKeyManager[] newKeyManagers =
          new X509ExtendedKeyManager[keyManagers.length];
     for (int i=0; i < keyManagers.length; i++)
     {
       newKeyManagers[i] = new SelectableCertificateKeyManager(
-                                   (X509KeyManager) keyManagers[i], alias);
+                                   (X509KeyManager) keyManagers[i], alias, componentName);
     }
 
     return newKeyManagers;
+  }
+
+  public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers,
+                                              String alias) {
+    return wrap(keyManagers, alias, "[unknown]");
   }
 }
 
