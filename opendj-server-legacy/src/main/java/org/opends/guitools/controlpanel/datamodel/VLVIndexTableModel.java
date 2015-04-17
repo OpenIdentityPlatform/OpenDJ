@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
 
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 /**
@@ -114,43 +115,41 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
   }
 
   /**
-   * Returns the VLV index scope value in String format.  This is the value used
+   * Returns the VLV index scope value in String format. This is the value used
    * to make String comparisons.
-   * @param i the VLV index.
+   *
+   * @param scope
+   *          the VLV index.
    * @return the VLV index scope value in String format.
    */
-  private String getScopeStringValue(VLVIndexDescriptor i)
+  private String toUIString(final SearchScope scope)
   {
-    String s;
-    switch (i.getScope())
+    switch (scope.asEnum())
     {
     case BASE_OBJECT:
-      s = "Base Object";
-      break;
+      return INFO_CTRL_PANEL_VLV_INDEX_BASE_OBJECT_LABEL.get().toString();
     case SINGLE_LEVEL:
-      s = "Single Level";
-      break;
+      return INFO_CTRL_PANEL_VLV_INDEX_SINGLE_LEVEL_LABEL.get().toString();
+    case SUBORDINATES:
+      return INFO_CTRL_PANEL_VLV_INDEX_SUBORDINATE_SUBTREE_LABEL.get().toString();
     case WHOLE_SUBTREE:
-      s = "Whole Subtree";
-      break;
-    case SUBORDINATE_SUBTREE:
-      s = "Subordinate Subtree";
-      break;
+      return INFO_CTRL_PANEL_VLV_INDEX_WHOLE_SUBTREE_LABEL.get().toString();
     default:
-      throw new RuntimeException("Unknown scope: "+i.getScope());
+      throw new IllegalArgumentException("Unknown scope: " + scope);
     }
-    return s;
   }
 
   /**
-   * Returns the VLV index scope display value in String format.  This is the
+   * Returns the VLV index scope display value in String format. This is the
    * value to be stored in the table model.
-   * @param i the VLV index.
+   *
+   * @param i
+   *          the VLV index.
    * @return the VLV index DN value in String format.
    */
-  private String getScopeDisplayValue(VLVIndexDescriptor i)
+  private String getScopeDisplayValue(final VLVIndexDescriptor i)
   {
-    return "<html>"+getScopeStringValue(i);
+    return "<html>" + toUIString(i.getScope());
   }
 
   /**
@@ -205,7 +204,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
 
   private int compareScopes(VLVIndexDescriptor i1, VLVIndexDescriptor i2)
   {
-    return getScopeStringValue(i1).compareTo(getScopeStringValue(i2));
+    return toUIString(i1.getScope()).compareTo(toUIString(i2.getScope()));
   }
 
   private int compareFilters(VLVIndexDescriptor i1, VLVIndexDescriptor i2)

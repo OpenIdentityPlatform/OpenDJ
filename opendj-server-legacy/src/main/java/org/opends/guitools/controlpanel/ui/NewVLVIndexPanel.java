@@ -44,6 +44,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -60,7 +61,6 @@ import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -165,7 +165,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
   {
     private final Set<String> backendSet;
     private final String indexName;
-    private final Scope scope;
+    private final SearchScope searchScope;
     private final List<VLVSortOrder> sortOrder;
     private final String baseDN;
     private final String filterValue;
@@ -192,7 +192,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       sortOrder = getSortOrder();
       baseDN = getBaseDN();
       filterValue = filter.getText().trim();
-      scope = getScope();
+      searchScope = getScope();
       backendID = backendName.getText();
       ldif = getIndexLDIF(indexName);
       sortOrderStringValue = getSortOrderStringValue(sortOrder);
@@ -363,7 +363,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       index.setFilter(filter.getText().trim());
       index.setSortOrder(getSortOrderStringValue(getSortOrder()));
       index.setBaseDN(DN.valueOf(getBaseDN()));
-      index.setScope(getScope());
+      index.setScope(VLVIndexDescriptor.getLocalDBVLVIndexScope(getScope()));
       index.setMaxBlockSize(Integer.parseInt(maxBlockSize.getText().trim()));
       index.commit();
     }
@@ -405,8 +405,8 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
         {
           if (backend.getBackendID().equalsIgnoreCase(backendID))
           {
-            newIndex =
-               new VLVIndexDescriptor(indexName, backend, DN.valueOf(baseDN), scope, filterValue, sortOrder, maxBlock);
+            newIndex = new VLVIndexDescriptor(
+                indexName, backend, DN.valueOf(baseDN), searchScope, filterValue, sortOrder, maxBlock);
             getInfo().registerModifiedIndex(newIndex);
             notifyConfigurationElementCreated(newIndex);
             break;
@@ -449,7 +449,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       args.add("filter:" + filterValue);
 
       args.add("--set");
-      args.add("scope:" + scope);
+      args.add("scope:" + VLVIndexDescriptor.getLocalDBVLVIndexScope(searchScope));
 
       args.add("--set");
       args.add("sort-order:" + sortOrderStringValue);

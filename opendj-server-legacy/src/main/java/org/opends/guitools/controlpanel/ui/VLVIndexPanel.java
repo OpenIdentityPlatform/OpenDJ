@@ -60,6 +60,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -73,15 +76,12 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -456,7 +456,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       baseDN.setText(dn);
       baseDNs.setSelectedItem(OTHER_BASE_DN);
     }
-    selectScopeRadioButton(index);
+
+    selectScopeRadioButton(index.getScope());
     filter.setText(index.getFilter());
 
     // Simulate a remove to update the attribute combo box and add them again.
@@ -509,9 +510,9 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     scrollListener.updateBorder();
   }
 
-  private void selectScopeRadioButton(final VLVIndexDescriptor index)
+  private void selectScopeRadioButton(final SearchScope indexScope)
   {
-    switch (index.getScope())
+    switch (indexScope.asEnum())
     {
     case BASE_OBJECT:
       baseObject.setSelected(true);
@@ -519,11 +520,13 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     case SINGLE_LEVEL:
       singleLevel.setSelected(true);
       break;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
       subordinateSubtree.setSelected(true);
       break;
     case WHOLE_SUBTREE:
       wholeSubtree.setSelected(true);
+      break;
+    default:
       break;
     }
   }
@@ -532,7 +535,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   {
     try
     {
-      return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) || index.getScope() != getScope()
+      return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) || !index.getScope().equals(getScope())
           || !index.getFilter().equals(filter.getText().trim()) || !index.getSortOrder().equals(getSortOrder())
           || !Integer.toString(index.getMaxBlockSize()).equals(maxBlockSize.getText().trim());
     }
@@ -552,7 +555,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     private final String indexName;
     private final String baseDN;
     private final String filterValue;
-    private final Scope scope;
+    private final SearchScope searchScope;
     private final List<VLVSortOrder> sortOrder;
     private final String backendID;
     private final String sortOrderStringValue;
@@ -579,7 +582,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       sortOrder = getSortOrder();
       baseDN = getBaseDN();
       filterValue = filter.getText().trim();
-      scope = getScope();
+      searchScope = getScope();
       sortOrderStringValue = getSortOrderStringValue(sortOrder);
       ldif = getIndexLDIF(indexName);
       maxBlock = Integer.parseInt(maxBlockSize.getText());
@@ -754,9 +757,9 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         index.setFilter(filterValue);
       }
 
-      if (indexToModify.getScope() != scope)
+      if (indexToModify.getScope() != searchScope)
       {
-        index.setScope(scope);
+        index.setScope(VLVIndexDescriptor.getLocalDBVLVIndexScope(searchScope));
       }
 
       if (!indexToModify.getSortOrder().equals(sortOrder))
@@ -797,7 +800,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         updateConfiguration();
         modifiedIndex =
-            new VLVIndexDescriptor(indexName, indexToModify.getBackend(), DN.valueOf(baseDN), scope, filterValue,
+            new VLVIndexDescriptor(indexName, indexToModify.getBackend(), DN.valueOf(baseDN), searchScope, filterValue,
                 sortOrder, maxBlock);
         getInfo().registerModifiedIndex(modifiedIndex);
         state = State.FINISHED_SUCCESSFULLY;
@@ -842,10 +845,10 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         throw new RuntimeException("Unexpected error parsing DN " + getBaseDN() + ": " + odse, odse);
       }
 
-      if (indexToModify.getScope() != scope)
+      if (indexToModify.getScope() != searchScope)
       {
         args.add("--set");
-        args.add("scope:" + scope);
+        args.add("scope:" + VLVIndexDescriptor.getLocalDBVLVIndexScope(searchScope));
       }
       if (!indexToModify.getFilter().equals(filterValue))
       {

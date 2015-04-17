@@ -501,8 +501,8 @@ public class ConfigFromDirContext extends ConfigReader
         String s = index.getSortOrder();
         List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
         vlvIndexes.add(new VLVIndexDescriptor(
-            index.getName(), null, index.getBaseDN(), index.getScope(), index.getFilter(),
-            sortOrder, index.getMaxBlockSize()));
+            index.getName(), null, index.getBaseDN(), VLVIndexDescriptor.toSearchScope(index.getScope()),
+            index.getFilter(), sortOrder, index.getMaxBlockSize()));
       }
     }
     catch (OpenDsException oe)
