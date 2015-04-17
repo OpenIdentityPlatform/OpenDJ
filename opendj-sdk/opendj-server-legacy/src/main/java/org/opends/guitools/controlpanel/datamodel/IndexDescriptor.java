@@ -27,10 +27,10 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -42,7 +42,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   private static final String[] DATABASE_INDEXES = new String[] {"dn2id", "id2children", "id2subtree"};
 
-  private final SortedSet<IndexType> types = new TreeSet<IndexType>();
+  private final SortedSet<IndexTypeDescriptor> types = new TreeSet<IndexTypeDescriptor>();
   private final boolean isDatabaseIndex;
   private final int entryLimit;
   private final AttributeType attr;
@@ -64,7 +64,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    */
   public IndexDescriptor(String name, AttributeType attr,
       BackendDescriptor backend,
-      SortedSet<IndexType> types, int entryLimit)
+      Set<IndexTypeDescriptor> types, int entryLimit)
   {
     super(name, backend);
     this.attr = attr;
@@ -101,9 +101,9 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    *
    * @return the type of indexes (equality, substring, etc.).
    */
-  public SortedSet<IndexType> getTypes()
+  public SortedSet<IndexTypeDescriptor> getTypes()
   {
-    return new TreeSet<IndexType>(types);
+    return new TreeSet<IndexTypeDescriptor>(types);
   }
 
   /**
@@ -178,7 +178,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
   protected void recalculateHashCode()
   {
     final StringBuilder sb = new StringBuilder();
-    for (final IndexType t : types)
+    for (final IndexTypeDescriptor t : types)
     {
       sb.append(t).append(",");
     }
@@ -188,4 +188,5 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     }
     hashCode = (getName()+sb+entryLimit).hashCode();
   }
+
 }
