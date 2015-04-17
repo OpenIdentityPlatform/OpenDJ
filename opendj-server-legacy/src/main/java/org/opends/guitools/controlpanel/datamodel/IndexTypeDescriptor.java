@@ -31,8 +31,10 @@ import java.util.Set;
 
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 
 /** Defines the set of values for the index type. */
+@RemoveOnceLocalDBBackendIsPluggable
 public enum IndexTypeDescriptor
 {
   /**
@@ -112,7 +114,6 @@ public enum IndexTypeDescriptor
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   /**
    * Convert the index type to the equivalent
    * {@code LocalDBIndexCfgDefn.IndexType}.
@@ -162,7 +163,6 @@ public enum IndexTypeDescriptor
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   private static IndexTypeDescriptor fromLocalDBIndexType(final LocalDBIndexCfgDefn.IndexType indexType)
   {
     switch (indexType)
@@ -203,7 +203,6 @@ public enum IndexTypeDescriptor
     return indexTypeDescriptors;
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   /**
    * Convert the provided {@code Set<LocalDBIndexCfgDefn.IndexType} to a
    * {@code Set<IndexTypeDescriptor>}.
@@ -243,7 +242,6 @@ public enum IndexTypeDescriptor
     return indexTypes;
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   /**
    * Convert the provided {@code Set<IndexTypeDescriptor>} to a
    * {@code Set<LocalDBIndexCfgDefn.IndexType>}.

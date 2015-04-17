@@ -33,6 +33,7 @@ import java.util.List;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.types.DN;
 
 /**
@@ -199,7 +200,6 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   /**
    * Returns the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
    * search scope.
@@ -209,6 +209,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    * @return the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
    *         search scope.
    */
+  @RemoveOnceLocalDBBackendIsPluggable
   public static LocalDBVLVIndexCfgDefn.Scope getLocalDBVLVIndexScope(final SearchScope scope)
   {
     switch (scope.asEnum())
@@ -253,7 +254,6 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
   /**
    * Convert the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
    * {@code SearchScope}.
@@ -263,6 +263,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    * @return the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
    *         {@code SearchScope}
    */
+  @RemoveOnceLocalDBBackendIsPluggable
   public static SearchScope toSearchScope(final LocalDBVLVIndexCfgDefn.Scope scope)
   {
     switch (scope)

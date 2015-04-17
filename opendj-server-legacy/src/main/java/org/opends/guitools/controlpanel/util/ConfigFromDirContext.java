@@ -95,6 +95,7 @@ import org.opends.server.admin.std.client.RootDNCfgClient;
 import org.opends.server.admin.std.client.RootDNUserCfgClient;
 import org.opends.server.admin.std.client.SNMPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.TaskBackendCfgClient;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
@@ -534,7 +535,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
+  @RemoveOnceLocalDBBackendIsPluggable
   private void refreshLocalDBBackendConfig(final Set<IndexDescriptor> indexes,
       final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<OpenDsException> errors)
   {
