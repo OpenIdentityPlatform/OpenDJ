@@ -348,7 +348,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
     baseDN.getDocument().addDocumentListener(documentListener);
     filter.getDocument().addDocumentListener(documentListener);
-    maxBlockSize.getDocument().addDocumentListener(documentListener);
     baseDN.getDocument().addDocumentListener(documentListener);
   }
 
@@ -536,8 +535,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     try
     {
       return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) || !index.getScope().equals(getScope())
-          || !index.getFilter().equals(filter.getText().trim()) || !index.getSortOrder().equals(getSortOrder())
-          || !Integer.toString(index.getMaxBlockSize()).equals(maxBlockSize.getText().trim());
+          || !index.getFilter().equals(filter.getText().trim()) || !index.getSortOrder().equals(getSortOrder());
     }
     catch (final OpenDsException odse)
     {
@@ -561,7 +559,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     private final String sortOrderStringValue;
     private final String ldif;
     private final VLVIndexDescriptor indexToModify;
-    private final int maxBlock;
     private VLVIndexDescriptor modifiedIndex;
 
     /**
@@ -585,7 +582,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       searchScope = getScope();
       sortOrderStringValue = getSortOrderStringValue(sortOrder);
       ldif = getIndexLDIF(indexName);
-      maxBlock = Integer.parseInt(maxBlockSize.getText());
       indexToModify = index;
     }
 
@@ -799,9 +795,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       try
       {
         updateConfiguration();
-        modifiedIndex =
-            new VLVIndexDescriptor(indexName, indexToModify.getBackend(), DN.valueOf(baseDN), searchScope, filterValue,
-                sortOrder, maxBlock);
+        modifiedIndex = new VLVIndexDescriptor(
+            indexName, indexToModify.getBackend(), DN.valueOf(baseDN), searchScope, filterValue, sortOrder);
         getInfo().registerModifiedIndex(modifiedIndex);
         state = State.FINISHED_SUCCESSFULLY;
       }

@@ -172,7 +172,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     private final String backendID;
     private final String ldif;
     private final String sortOrderStringValue;
-    private final int maxBlock;
     private VLVIndexDescriptor newIndex;
 
     /**
@@ -196,7 +195,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       backendID = backendName.getText();
       ldif = getIndexLDIF(indexName);
       sortOrderStringValue = getSortOrderStringValue(sortOrder);
-      maxBlock = Integer.parseInt(maxBlockSize.getText());
     }
 
     @Override
@@ -364,7 +362,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       index.setSortOrder(getSortOrderStringValue(getSortOrder()));
       index.setBaseDN(DN.valueOf(getBaseDN()));
       index.setScope(VLVIndexDescriptor.getLocalDBVLVIndexScope(getScope()));
-      index.setMaxBlockSize(Integer.parseInt(maxBlockSize.getText().trim()));
       index.commit();
     }
 
@@ -406,7 +403,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
           if (backend.getBackendID().equalsIgnoreCase(backendID))
           {
             newIndex = new VLVIndexDescriptor(
-                indexName, backend, DN.valueOf(baseDN), searchScope, filterValue, sortOrder, maxBlock);
+                indexName, backend, DN.valueOf(baseDN), searchScope, filterValue, sortOrder);
             getInfo().registerModifiedIndex(newIndex);
             notifyConfigurationElementCreated(newIndex);
             break;
