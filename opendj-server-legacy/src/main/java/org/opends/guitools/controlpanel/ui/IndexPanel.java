@@ -57,9 +57,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
@@ -68,15 +71,12 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -409,7 +409,7 @@ public class IndexPanel extends AbstractIndexPanel
     ordering.setSelected(false);
     substring.setSelected(false);
     presence.setSelected(false);
-    for (IndexType type : index.getTypes())
+    for (IndexTypeDescriptor type : index.getTypes())
     {
       switch(type)
       {
@@ -496,7 +496,7 @@ public class IndexPanel extends AbstractIndexPanel
     private String backendName;
     private int entryLimitValue;
     private IndexDescriptor indexToModify;
-    private SortedSet<IndexType> indexTypes = new TreeSet<IndexType>();
+    private SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<IndexTypeDescriptor>();
     private IndexDescriptor modifiedIndex;
 
     /**
@@ -655,9 +655,9 @@ public class IndexPanel extends AbstractIndexPanel
       lines.add("objectClass: top");
       lines.add("ds-cfg-attribute: " + attributeName);
       lines.add("ds-cfg-index-entry-limit: " + entryLimitValue);
-      for (IndexType type : indexTypes)
+      for (IndexTypeDescriptor type : indexTypes)
       {
-        lines.add("ds-cfg-index-type: " + type);
+        lines.add("ds-cfg-index-type: " + type.toLocalDBIndexType());
       }
 
       final StringBuilder sb = new StringBuilder();
@@ -725,7 +725,7 @@ public class IndexPanel extends AbstractIndexPanel
       LocalDBIndexCfgClient index = backend.getLocalDBIndex(attributeName);
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
-        index.setIndexType(indexTypes);
+        index.setIndexType(IndexTypeDescriptor.toLocalDBIndexTypes(indexTypes));
       }
       if (entryLimitValue != index.getIndexEntryLimit())
       {
@@ -811,8 +811,8 @@ public class IndexPanel extends AbstractIndexPanel
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
         // To add
-        Set<IndexType> toAdd = new TreeSet<IndexType>();
-        for (IndexType newType : indexTypes)
+        Set<IndexTypeDescriptor> toAdd = new TreeSet<IndexTypeDescriptor>();
+        for (IndexTypeDescriptor newType : indexTypes)
         {
           if (!indexToModify.getTypes().contains(newType))
           {
@@ -820,23 +820,23 @@ public class IndexPanel extends AbstractIndexPanel
           }
         }
         // To delete
-        Set<IndexType> toDelete = new TreeSet<IndexType>();
-        for (IndexType oldType : indexToModify.getTypes())
+        Set<IndexTypeDescriptor> toDelete = new TreeSet<IndexTypeDescriptor>();
+        for (IndexTypeDescriptor oldType : indexToModify.getTypes())
         {
           if (!indexTypes.contains(oldType))
           {
             toDelete.add(oldType);
           }
         }
-        for (IndexType newType : toDelete)
+        for (IndexTypeDescriptor newType : toDelete)
         {
           args.add("--remove");
           args.add("index-type:" + newType);
         }
-        for (IndexType newType : toAdd)
+        for (IndexTypeDescriptor newType : toAdd)
         {
           args.add("--add");
-          args.add("index-type:" + newType);
+          args.add("index-type:" + newType.toLocalDBIndexType());
         }
       }
       if (entryLimitValue != indexToModify.getEntryLimit())

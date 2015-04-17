@@ -65,6 +65,7 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
@@ -75,7 +76,6 @@ import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -526,9 +526,9 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           { FilterType.EQUALITY, FilterType.SUBSTRING, FilterType.GREATER_OR_EQUAL, FilterType.LESS_OR_EQUAL,
             FilterType.PRESENT, FilterType.APPROXIMATE_MATCH, FilterType.EXTENSIBLE_MATCH };
 
-      IndexType[] indexTypes =
-          { IndexType.EQUALITY, IndexType.SUBSTRING, IndexType.ORDERING,
-            IndexType.ORDERING, IndexType.PRESENCE, IndexType.APPROXIMATE, null };
+      IndexTypeDescriptor[] indexTypes =
+          { IndexTypeDescriptor.EQUALITY, IndexTypeDescriptor.SUBSTRING, IndexTypeDescriptor.ORDERING,
+            IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE, IndexTypeDescriptor.APPROXIMATE, null };
 
       LocalizableMessage[] indexTypeNames =
           { INFO_CTRL_PANEL_VLV_INDEX_EQUALITY_TYPE.get(), INFO_CTRL_PANEL_VLV_INDEX_SUBSTRING_TYPE.get(),
@@ -541,7 +541,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           IndexDescriptor index = getIndex(filter.getAttributeType());
           if (index != null)
           {
-            IndexType type = indexTypes[i];
+            IndexTypeDescriptor type = indexTypes[i];
             if (type != null && !index.getTypes().contains(type))
             {
               msgs.add(INFO_CTRL_PANEL_MUST_UPDATE_INDEX_DEFINITION_TYPE.get(filter.getAttributeType(),

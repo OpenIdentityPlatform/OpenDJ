@@ -48,11 +48,11 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.BackupBackendCfg;
@@ -237,16 +237,16 @@ public class ConfigFromFile extends ConfigReader
             {
               final LocalDBIndexCfg index = db.getLocalDBIndex(indexName);
               indexes.add(new IndexDescriptor(index.getAttribute().getNameOrOID(), index.getAttribute(), null,
-                  index.getIndexType(), index.getIndexEntryLimit()));
+                  IndexTypeDescriptor.fromLocalDBIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
             }
           }
           catch (final ConfigException ce)
           {
             errors.add(toConfigException(ce));
           }
-          indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexType>(), -1));
-          indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexType>(), -1));
-          indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexType>(), -1));
+          indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+          indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+          indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
 
           try
           {

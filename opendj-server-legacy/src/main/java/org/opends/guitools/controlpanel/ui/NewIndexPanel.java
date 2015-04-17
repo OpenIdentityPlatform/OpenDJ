@@ -53,10 +53,13 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
@@ -64,12 +67,9 @@ import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -77,6 +77,7 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
+
 import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
@@ -382,7 +383,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     private Set<String> backendSet;
     private String attributeName;
     private int entryLimitValue;
-    private SortedSet<IndexType> indexTypes;
+    private SortedSet<IndexTypeDescriptor> indexTypes;
 
     /**
      * The constructor of the task.
@@ -533,9 +534,9 @@ public class NewIndexPanel extends AbstractIndexPanel
       lines.add("objectClass: top");
       lines.add("ds-cfg-attribute: "+attributeName);
       lines.add("ds-cfg-index-entry-limit: "+entryLimitValue);
-      for (IndexType type : indexTypes)
+      for (IndexTypeDescriptor type : indexTypes)
       {
-        lines.add("ds-cfg-index-type: " + type);
+        lines.add("ds-cfg-index-type: " + type.toLocalDBIndexType());
       }
       StringBuilder sb = new StringBuilder();
       for (String line : lines)
@@ -713,10 +714,10 @@ public class NewIndexPanel extends AbstractIndexPanel
       args.add("--index-name");
       args.add(attributeName);
 
-      for (IndexType type : indexTypes)
+      for (IndexTypeDescriptor type : indexTypes)
       {
         args.add("--set");
-        args.add("index-type:"+type);
+        args.add("index-type:"+type.toLocalDBIndexType());
       }
       args.add("--set");
       args.add("index-entry-limit:"+entryLimitValue);

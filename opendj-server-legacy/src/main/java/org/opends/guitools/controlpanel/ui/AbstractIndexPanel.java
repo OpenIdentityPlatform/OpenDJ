@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 
@@ -46,12 +46,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -168,9 +168,10 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
   /**
    * Array of index types that matches the array of checkboxes (types).
    */
-  protected IndexType[] configTypes = {IndexType.APPROXIMATE,
-      IndexType.EQUALITY, IndexType.ORDERING, IndexType.PRESENCE,
-      IndexType.SUBSTRING
+  protected IndexTypeDescriptor[] configTypes = {
+    IndexTypeDescriptor.APPROXIMATE, IndexTypeDescriptor.EQUALITY,
+    IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE,
+    IndexTypeDescriptor.SUBSTRING
   };
 
   /**
@@ -374,9 +375,9 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
    * @return a sorted set of indexes (that matches what the user selected
    * on the check boxes).
    */
-  protected SortedSet<IndexType> getTypes()
+  protected SortedSet<IndexTypeDescriptor> getTypes()
   {
-    SortedSet<IndexType> indexTypes = new TreeSet<IndexType>();
+    SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<IndexTypeDescriptor>();
     for (int i=0; i<types.length; i++)
     {
       if (types[i].isSelected())

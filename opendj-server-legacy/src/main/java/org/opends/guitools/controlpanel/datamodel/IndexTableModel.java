@@ -30,7 +30,6 @@ package org.opends.guitools.controlpanel.datamodel;
 import static org.opends.messages.AdminToolMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 
 /**
  * The table model for the indexes.  This is the table model used by the table
@@ -143,7 +142,7 @@ public class IndexTableModel extends AbstractIndexTableModel
   private String getIndexTypeString(IndexDescriptor index)
   {
     StringBuilder sb = new StringBuilder();
-    for (IndexType type : index.getTypes())
+    for (IndexTypeDescriptor type : index.getTypes())
     {
       LocalizableMessage v;
       switch (type)
