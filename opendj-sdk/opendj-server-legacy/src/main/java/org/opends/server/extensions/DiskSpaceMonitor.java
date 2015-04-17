@@ -494,6 +494,5 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
         }
       }
     }
-    DirectoryServer.deregisterMonitorProvider(this);
   }
 }
