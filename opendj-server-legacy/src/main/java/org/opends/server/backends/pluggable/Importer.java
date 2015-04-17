@@ -3953,6 +3953,7 @@ final class Importer
           {
             return true;
           }
+          reader.skip(len);
           previousPos = reader.position();
         }
       }
