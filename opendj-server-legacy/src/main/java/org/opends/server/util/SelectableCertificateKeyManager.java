@@ -348,8 +348,17 @@ public final class SelectableCertificateKeyManager
     return newKeyManagers;
   }
 
-  public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers,
-                                              String alias) {
+  /**
+   * Wraps the provided set of key managers in selectable certificate key
+   * managers using the provided alias.
+   *
+   * @param  keyManagers      The set of key managers to be wrapped.
+   * @param  alias            The alias to use for selecting the desired
+   *                          certificate.
+   *
+   * @return  A key manager array
+   */
+  public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers, String alias) {
     return wrap(keyManagers, alias, "[unknown]");
   }
 }

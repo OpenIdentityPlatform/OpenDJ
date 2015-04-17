@@ -25,9 +25,9 @@
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,26 +37,23 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ExtensionMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
 
 
 
