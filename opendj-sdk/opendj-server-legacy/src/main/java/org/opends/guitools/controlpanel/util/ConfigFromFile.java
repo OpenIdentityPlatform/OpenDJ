@@ -55,6 +55,8 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.BackendIndexCfg;
+import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.BackupBackendCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.CryptoManagerCfg;
@@ -68,6 +70,7 @@ import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
@@ -76,6 +79,7 @@ import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.admin.std.server.RootDNUserCfg;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.TaskBackendCfg;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -244,9 +248,15 @@ public class ConfigFromFile extends ConfigReader
           {
             errors.add(toConfigException(ce));
           }
-          indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-          indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-          indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+          indexes.add(new IndexDescriptor(
+              SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+          if (db.isSubordinateIndexesEnabled())
+          {
+            indexes.add(new IndexDescriptor(
+                SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+            indexes.add(new IndexDescriptor(
+                SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+          }
 
           try
           {
@@ -264,6 +274,11 @@ public class ConfigFromFile extends ConfigReader
           {
             errors.add(toConfigException(ce));
           }
+        }
+        else if (backend instanceof PluggableBackendCfg)
+        {
+          type = BackendDescriptor.Type.PLUGGABLE;
+          refreshBackendConfig(indexes, vlvIndexes, backend, errors);
         }
         else if (backend instanceof LDIFBackendCfg)
         {
@@ -306,6 +321,60 @@ public class ConfigFromFile extends ConfigReader
       {
         errors.add(toConfigException(ce));
       }
+    }
+  }
+
+  private void refreshBackendConfig(final Set<IndexDescriptor> indexes,
+      final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfg backend, final List<OpenDsException> errors)
+  {
+    final PluggableBackendCfg db = (PluggableBackendCfg) backend;
+    readBackendIndexes(indexes, errors, db);
+    readBackendVLVIndexes(vlvIndexes, errors, db);
+  }
+
+  private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<OpenDsException> errors,
+      final PluggableBackendCfg db)
+  {
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    // FIXME: Remove the two following indexes when they will be deleted
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    try
+    {
+      for (final String indexName : db.listBackendIndexes())
+      {
+        final BackendIndexCfg index = db.getBackendIndex(indexName);
+        indexes.add(new IndexDescriptor(
+            index.getAttribute().getNameOrOID(), index.getAttribute(),
+            null, IndexTypeDescriptor.fromBackendIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
+      }
+    }
+    catch (ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+  }
+
+  private void readBackendVLVIndexes(final Set<VLVIndexDescriptor> vlvIndexes,
+      final List<OpenDsException> errors, final PluggableBackendCfg db)
+  {
+    try
+    {
+      for (final String vlvIndexName : db.listBackendVLVIndexes())
+      {
+        final BackendVLVIndexCfg index = db.getBackendVLVIndex(vlvIndexName);
+        final List<VLVSortOrder> sortOrder = getVLVSortOrder(index.getSortOrder());
+        vlvIndexes.add(new VLVIndexDescriptor(
+            index.getName(), null, index.getBaseDN(), VLVIndexDescriptor.toSearchScope(index.getScope()),
+            index.getFilter(), sortOrder));
+      }
+    }
+    catch (ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
     }
   }
 
