@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -73,10 +75,8 @@ import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel that appears when the user wants to verify an index.
- *
  */
-public class VerifyIndexPanel extends StatusGenericPanel
-implements IndexModifiedListener
+public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifiedListener
 {
   private static final long serialVersionUID = 5252070109221657041L;
   private JComboBox baseDNs;
@@ -84,24 +84,16 @@ implements IndexModifiedListener
   private JRadioButton verifyKeyEntryIDs;
   private AddRemovePanel<AbstractIndexDescriptor> addRemove;
   private JComboBox keyEntryIDs;
-  private HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
-    new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
+  private Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
+      new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
 
   private JLabel lBaseDN;
   private JLabel lAction;
   private JLabel lIndex;
   private JLabel lNoBaseDNsFound;
 
-  private final String DATABASE_INDEXES =
-    INFO_CTRL_PANEL_DATABASE_INDEXES.get().toString();
-  private final String ATTRIBUTE_INDEXES =
-    INFO_CTRL_PANEL_ATTRIBUTE_INDEXES.get().toString();
-  private final String VLV_INDEXES =
-    INFO_CTRL_PANEL_VLV_INDEXES.get().toString();
-
   /**
    * Constructor of the panel.
-   *
    */
   public VerifyIndexPanel()
   {
@@ -113,8 +105,7 @@ implements IndexModifiedListener
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
-    ListCellRenderer indexCellRenderer = new IndexCellRenderer(
-        addRemove.getAvailableList(), info);
+    ListCellRenderer indexCellRenderer = new IndexCellRenderer(addRemove.getAvailableList(), info);
     addRemove.getAvailableList().setCellRenderer(indexCellRenderer);
     addRemove.getSelectedList().setCellRenderer(indexCellRenderer);
     info.addIndexModifiedListener(this);
@@ -132,9 +123,7 @@ implements IndexModifiedListener
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -159,45 +148,36 @@ implements IndexModifiedListener
     {
       public void itemStateChanged(ItemEvent ev)
       {
-        comboBoxSelected(hmIndexes,
-            (CategorizedComboBoxElement)baseDNs.getSelectedItem(),
-            addRemove);
+        comboBoxSelected(hmIndexes, (CategorizedComboBoxElement) baseDNs.getSelectedItem(), addRemove);
         updateVerifyKeyEntriesComboBox();
       }
     });
     listener.itemStateChanged(null);
     gbc.gridwidth = 2;
     add(baseDNs, gbc);
-    lNoBaseDNsFound = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NO_BASE_DNS_FOUND_LABEL.get());
+    lNoBaseDNsFound = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_BASE_DNS_FOUND_LABEL.get());
     add(lNoBaseDNsFound, gbc);
     lNoBaseDNsFound.setVisible(false);
 
-
-    lAction = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_ACTION_LABEL.get());
+    lAction = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ACTION_LABEL.get());
     gbc.insets.top = 10;
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.gridx = 0;
     gbc.gridwidth = 1;
     add(lAction, gbc);
 
-    verifyIndexContents = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_VERIFY_ENTRY_CONTEXT_ARE_INDEXES.get());
+    verifyIndexContents = Utilities.createRadioButton(INFO_CTRL_PANEL_VERIFY_ENTRY_CONTEXT_ARE_INDEXES.get());
     verifyIndexContents.setSelected(true);
     gbc.insets.left = 10;
     gbc.gridx = 1;
     gbc.gridwidth = 2;
     add(verifyIndexContents, gbc);
 
-    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(
-        AbstractIndexDescriptor.class);
-    addRemove.getAvailableLabel().setText(
-        INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
-    addRemove.getSelectedLabel().setText(
-        INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
+    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(AbstractIndexDescriptor.class);
+    addRemove.getAvailableLabel().setText(INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
+    addRemove.getSelectedLabel().setText(INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.weightx = 1.0;
     gbc.weighty = 0.0;
     gbc.gridwidth = 2;
@@ -206,25 +186,23 @@ implements IndexModifiedListener
     gbc.fill = GridBagConstraints.BOTH;
     add(addRemove, gbc);
 
-    gbc.gridy ++;
-    JLabel explanation = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REQUIRES_REBUILD_LEGEND.get());
+    gbc.gridy++;
+    JLabel explanation = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REQUIRES_REBUILD_LEGEND.get());
     gbc.insets.top = 3;
     add(explanation, gbc);
 
-    verifyKeyEntryIDs = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_VERIFY_ALL_KEYS.get());
+    verifyKeyEntryIDs = Utilities.createRadioButton(INFO_CTRL_PANEL_VERIFY_ALL_KEYS.get());
     verifyKeyEntryIDs.setSelected(true);
     gbc.insets.left = 10;
     gbc.insets.top = 10;
     gbc.gridx = 1;
     gbc.gridwidth = 2;
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.weighty = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     add(verifyKeyEntryIDs, gbc);
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.insets.left = 30;
     gbc.insets.top = 5;
     gbc.gridwidth = 1;
@@ -251,7 +229,6 @@ implements IndexModifiedListener
     verifyIndexContents.setSelected(true);
     listener = new ItemListener()
     {
-      /** {@inheritDoc} */
       public void itemStateChanged(ItemEvent ev)
       {
         addRemove.setEnabled(verifyIndexContents.isSelected());
@@ -284,15 +261,13 @@ implements IndexModifiedListener
   private void refreshContents(final ServerDescriptor desc)
   {
     updateIndexMap(desc, hmIndexes);
-    updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
+    updateBaseDNComboBoxModel((DefaultComboBoxModel) baseDNs.getModel(), desc);
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       public void run()
       {
         ViewPositions pos;
-        JScrollPane scroll =
-          Utilities.getContainingScroll(VerifyIndexPanel.this);
+        JScrollPane scroll = Utilities.getContainingScroll(VerifyIndexPanel.this);
         if (scroll != null)
         {
           pos = Utilities.getViewPositions(scroll);
@@ -301,9 +276,7 @@ implements IndexModifiedListener
         {
           pos = Utilities.getViewPositions(VerifyIndexPanel.this);
         }
-        comboBoxSelected(hmIndexes,
-            (CategorizedComboBoxElement)baseDNs.getSelectedItem(),
-            addRemove);
+        comboBoxSelected(hmIndexes, (CategorizedComboBoxElement) baseDNs.getSelectedItem(), addRemove);
         updateVerifyKeyEntriesComboBox();
         addRemove.getAvailableList().repaint();
         addRemove.getSelectedList().repaint();
@@ -312,18 +285,16 @@ implements IndexModifiedListener
         lNoBaseDNsFound.setVisible(!comboVisible);
         Utilities.updateViewPositions(pos);
 
-
         if (!desc.isLocal())
         {
           displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
-          INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_VERIFY_INDEX_SUMMARY.get());
-          setEnabledOK(false);
+                              INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_VERIFY_INDEX_SUMMARY.get());
         }
         else
         {
           displayMainPanel();
-          setEnabledOK(true);
         }
+        setEnabledOK(desc.isLocal());
       }
     });
   }
@@ -344,8 +315,7 @@ implements IndexModifiedListener
     setSecondaryValid(addRemove.getSelectedLabel());
     setSecondaryValid(lIndex);
 
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
-
+    final Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     String baseDN = getSelectedBaseDN();
 
     if (baseDN == null)
@@ -363,8 +333,7 @@ implements IndexModifiedListener
 
     if (verifyIndexContents.isSelected())
     {
-      SortableListModel<AbstractIndexDescriptor> model =
-        addRemove.getSelectedListModel();
+      SortableListModel<AbstractIndexDescriptor> model = addRemove.getSelectedListModel();
       if (model.getSize() == 0)
       {
         setSecondaryInvalid(addRemove.getSelectedLabel());
@@ -378,22 +347,16 @@ implements IndexModifiedListener
       if (index == null)
       {
         setPrimaryInvalid(lIndex);
-        if ((keyEntryIDs.getItemCount() == 0) && (baseDN != null))
-        {
-          errors.add(ERR_CTRL_PANEL_NO_INDEXES_FOR_BASEDN.get(baseDN));
-        }
-        else
-        {
-          errors.add(ERR_CTRL_PANEL_INDEX_MUST_BE_SELECTED.get());
-        }
+        final boolean indexSelected = keyEntryIDs.getItemCount() == 0 && baseDN != null;
+        errors.add(indexSelected ? ERR_CTRL_PANEL_NO_INDEXES_FOR_BASEDN.get(baseDN)
+                                 : ERR_CTRL_PANEL_INDEX_MUST_BE_SELECTED.get());
       }
     }
 
     if (errors.isEmpty())
     {
-      ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
-          getInfo());
+      ProgressDialog progressDialog =
+          new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(), getInfo());
       VerifyIndexTask newTask = new VerifyIndexTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())
       {
@@ -405,10 +368,8 @@ implements IndexModifiedListener
             INFO_CTRL_PANEL_VERIFYING_INDEXES_SUMMARY.get(baseDN),
             INFO_CTRL_PANEL_VERIFYING_INDEXES_SUCCESSFUL_SUMMARY.get(),
             INFO_CTRL_PANEL_VERIFYING_INDEXES_SUCCESSFUL_DETAILS.get(),
-            ERR_CTRL_PANEL_VERIFYING_INDEXES_ERROR_SUMMARY.get(),
-            null,
-            ERR_CTRL_PANEL_VERIFYING_INDEXES_ERROR_DETAILS,
-            progressDialog);
+            ERR_CTRL_PANEL_VERIFYING_INDEXES_ERROR_SUMMARY.get(), null,
+            ERR_CTRL_PANEL_VERIFYING_INDEXES_ERROR_DETAILS, progressDialog);
         progressDialog.setVisible(true);
         Utilities.getParentDialog(this).setVisible(false);
       }
@@ -422,18 +383,16 @@ implements IndexModifiedListener
   /** {@inheritDoc} */
   protected boolean displayBackend(BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() &&
-    (backend.getType() == BackendDescriptor.Type.LOCAL_DB);
+    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.LOCAL_DB;
   }
 
   private String getSelectedBaseDN()
   {
     String dn = null;
-    CategorizedComboBoxElement o =
-      (CategorizedComboBoxElement)baseDNs.getSelectedItem();
+    CategorizedComboBoxElement o = (CategorizedComboBoxElement) baseDNs.getSelectedItem();
     if (o != null)
     {
-      dn = (String)o.getValue();
+      dn = (String) o.getValue();
     }
     return dn;
   }
@@ -441,11 +400,10 @@ implements IndexModifiedListener
   private AbstractIndexDescriptor getSelectedIndex()
   {
     AbstractIndexDescriptor index = null;
-    CategorizedComboBoxElement o =
-      (CategorizedComboBoxElement)keyEntryIDs.getSelectedItem();
+    CategorizedComboBoxElement o = (CategorizedComboBoxElement) keyEntryIDs.getSelectedItem();
     if (o != null)
     {
-      index = (AbstractIndexDescriptor)o.getValue();
+      index = (AbstractIndexDescriptor) o.getValue();
     }
     return index;
   }
@@ -458,19 +416,15 @@ implements IndexModifiedListener
       SortedSet<AbstractIndexDescriptor> indexes = hmIndexes.get(dn);
       if (indexes != null)
       {
-        ArrayList<CategorizedComboBoxElement> newElements =
-          new ArrayList<CategorizedComboBoxElement>();
-        ArrayList<AbstractIndexDescriptor> databaseIndexes =
-          new ArrayList<AbstractIndexDescriptor>();
-        ArrayList<AbstractIndexDescriptor> attributeIndexes =
-          new ArrayList<AbstractIndexDescriptor>();
-        ArrayList<AbstractIndexDescriptor> vlvIndexes =
-          new ArrayList<AbstractIndexDescriptor>();
+        List<CategorizedComboBoxElement> newElements = new ArrayList<CategorizedComboBoxElement>();
+        List<AbstractIndexDescriptor> databaseIndexes = new ArrayList<AbstractIndexDescriptor>();
+        List<AbstractIndexDescriptor> attributeIndexes = new ArrayList<AbstractIndexDescriptor>();
+        List<AbstractIndexDescriptor> vlvIndexes = new ArrayList<AbstractIndexDescriptor>();
         for (AbstractIndexDescriptor index : indexes)
         {
           if (index instanceof IndexDescriptor)
           {
-            IndexDescriptor standardIndex = (IndexDescriptor)index;
+            IndexDescriptor standardIndex = (IndexDescriptor) index;
             if (standardIndex.isDatabaseIndex())
             {
               databaseIndexes.add(standardIndex);
@@ -482,58 +436,42 @@ implements IndexModifiedListener
           }
           else
           {
-            // VLV index
             vlvIndexes.add(index);
           }
         }
-        if (databaseIndexes.size() > 0)
-        {
-          newElements.add(new CategorizedComboBoxElement(DATABASE_INDEXES,
-              CategorizedComboBoxElement.Type.CATEGORY));
-          for (AbstractIndexDescriptor index : databaseIndexes)
-          {
-            newElements.add(new CategorizedComboBoxElement(index,
-                CategorizedComboBoxElement.Type.REGULAR));
-          }
-        }
-        if (attributeIndexes.size() > 0)
-        {
-          newElements.add(new CategorizedComboBoxElement(ATTRIBUTE_INDEXES,
-              CategorizedComboBoxElement.Type.CATEGORY));
-          for (AbstractIndexDescriptor index : attributeIndexes)
-          {
-            newElements.add(new CategorizedComboBoxElement(index,
-                CategorizedComboBoxElement.Type.REGULAR));
-          }
-        }
-        if (vlvIndexes.size() > 0)
-        {
-          newElements.add(new CategorizedComboBoxElement(VLV_INDEXES,
-              CategorizedComboBoxElement.Type.CATEGORY));
-          for (AbstractIndexDescriptor index : vlvIndexes)
-          {
-            newElements.add(new CategorizedComboBoxElement(index,
-                CategorizedComboBoxElement.Type.REGULAR));
-          }
-        }
-        updateComboBoxModel(newElements,
-            (DefaultComboBoxModel)keyEntryIDs.getModel());
+        addNewElements(databaseIndexes, INFO_CTRL_PANEL_DATABASE_INDEXES.get().toString(), newElements);
+        addNewElements(attributeIndexes, INFO_CTRL_PANEL_ATTRIBUTE_INDEXES.get().toString(), newElements);
+        addNewElements(vlvIndexes, INFO_CTRL_PANEL_VLV_INDEXES.get().toString(), newElements);
+        updateComboBoxModel(newElements, (DefaultComboBoxModel) keyEntryIDs.getModel());
       }
     }
   }
 
-  /**
-   * The task in charge of verifying the index.
-   *
-   */
+  private void addNewElements(final List<AbstractIndexDescriptor> indexes, final String label,
+      final List<CategorizedComboBoxElement> elements)
+  {
+    if (!indexes.isEmpty())
+    {
+      elements.add(new CategorizedComboBoxElement(label, CategorizedComboBoxElement.Type.CATEGORY));
+      for (AbstractIndexDescriptor index : indexes)
+      {
+        elements.add(new CategorizedComboBoxElement(index, CategorizedComboBoxElement.Type.REGULAR));
+      }
+    }
+  }
+
+  /** The task in charge of verifying the index. */
   protected class VerifyIndexTask extends IndexTask
   {
     private String baseDN;
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
     public VerifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
@@ -554,26 +492,22 @@ implements IndexModifiedListener
     }
 
     /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
-        // All the operations are incompatible if they apply to this
-        // backend.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        // All the operations are incompatible if they apply to this backend.
+        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         Task.Type type = taskToBeLaunched.getType();
-        if ((type != Task.Type.BACKUP) &&
-            (type != Task.Type.EXPORT_LDIF) &&
-            (type != Task.Type.ENABLE_WINDOWS_SERVICE) &&
-            (type != Task.Type.DISABLE_WINDOWS_SERVICE) &&
-            (backends.size() > 0))
+        if (type != Task.Type.BACKUP
+            && type != Task.Type.EXPORT_LDIF
+            && type != Task.Type.ENABLE_WINDOWS_SERVICE
+            && type != Task.Type.DISABLE_WINDOWS_SERVICE
+            && backends.size() > 0)
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }
@@ -587,8 +521,7 @@ implements IndexModifiedListener
       lastException = null;
       try
       {
-        ArrayList<String> arguments = getCommandLineArguments();
-
+        List<String> arguments = getCommandLineArguments();
         String[] args = new String[arguments.size()];
 
         arguments.toArray(args);
@@ -611,24 +544,22 @@ implements IndexModifiedListener
     }
 
     /** {@inheritDoc} */
-    protected ArrayList<String> getCommandLineArguments()
+    protected List<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      List<String> args = new ArrayList<String>();
 
       args.add("--baseDN");
       args.add(getSelectedBaseDN());
 
       if (verifyIndexContents.isSelected())
       {
-        SortableListModel<AbstractIndexDescriptor> model =
-          addRemove.getSelectedListModel();
+        SortableListModel<AbstractIndexDescriptor> model = addRemove.getSelectedListModel();
         for (AbstractIndexDescriptor index : model.getData())
         {
           args.add("--index");
           if (index instanceof VLVIndexDescriptor)
           {
-            args.add(
-                Utilities.getVLVNameInCommandLine((VLVIndexDescriptor)index));
+            args.add(Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index));
           }
           else
           {
@@ -642,8 +573,7 @@ implements IndexModifiedListener
         AbstractIndexDescriptor index = getSelectedIndex();
         if (index instanceof VLVIndexDescriptor)
         {
-          args.add(
-              Utilities.getVLVNameInCommandLine((VLVIndexDescriptor)index));
+          args.add(Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index));
         }
         else
         {
