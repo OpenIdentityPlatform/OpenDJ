@@ -61,6 +61,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -77,7 +78,6 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -251,6 +251,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     lines.add("ds-cfg-filter: " + filter.getText().trim());
     lines.add("ds-cfg-sort-order: " + getSortOrderStringValue(getSortOrder()));
     lines.add("ds-cfg-base-dn: " + getBaseDN());
+    lines.add("ds-cfg-scope: " + VLVIndexDescriptor.getLocalDBVLVIndexScope(getScope()));
     lines.add("ds-cfg-max-block-size: " + maxBlockSize.getText().trim());
     StringBuilder sb = new StringBuilder();
     for (String line : lines)
@@ -266,26 +267,26 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    *
    * @return the scope of the VLV index as it appears on the panel.
    */
-  protected Scope getScope()
+  protected SearchScope getScope()
   {
-    Scope scope;
     if (baseObject.isSelected())
     {
-      scope = Scope.BASE_OBJECT;
+      return SearchScope.BASE_OBJECT;
     }
     else if (singleLevel.isSelected())
     {
-      scope = Scope.SINGLE_LEVEL;
+      return SearchScope.SINGLE_LEVEL;
     }
     else if (subordinateSubtree.isSelected())
     {
-      scope = Scope.SUBORDINATE_SUBTREE;
+      return SearchScope.SUBORDINATES;
     }
-    else
+    else if (wholeSubtree.isSelected())
     {
-      scope = Scope.WHOLE_SUBTREE;
+      return SearchScope.WHOLE_SUBTREE;
     }
-    return scope;
+
+    throw new IllegalStateException("At least one scope should be selected");
   }
 
   /**

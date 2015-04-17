@@ -30,7 +30,9 @@ package org.opends.guitools.controlpanel.datamodel;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
+import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.types.DN;
 
 /**
@@ -39,7 +41,7 @@ import org.opends.server.types.DN;
 public class VLVIndexDescriptor extends AbstractIndexDescriptor
 {
   private final DN baseDN;
-  private final Scope scope;
+  private final SearchScope scope;
   private final String filter;
   private List<VLVSortOrder> sortOrder = Collections.emptyList();
   private final int maxBlockSize;
@@ -63,7 +65,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    * @param maxBlockSize
    *          the maximum block size of the VLV index.
    */
-  public VLVIndexDescriptor(String name, BackendDescriptor backend, DN baseDN, Scope scope, String filter,
+  public VLVIndexDescriptor(String name, BackendDescriptor backend, DN baseDN, SearchScope scope, String filter,
       List<VLVSortOrder> sortOrder, int maxBlockSize)
   {
     super(name, backend);
@@ -113,7 +115,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    *
    * @return the scope of the search indexed by the VLV index.
    */
-  public Scope getScope()
+  public SearchScope getScope()
   {
     return scope;
   }
@@ -182,6 +184,114 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
   public int getMaxBlockSize()
   {
     return maxBlockSize;
+  }
+
+  /**
+   * Returns the equivalent {@code BackendVLVIndexCfgDefn.Scope} to the provided
+   * search scope.
+   *
+   * @param scope
+   *          The {@code SearchScope} to convert.
+   * @return the equivalent {@code BackendVLVIndexCfgDefn.Scope} to the provided
+   *         search scope.
+   */
+  public static BackendVLVIndexCfgDefn.Scope getPluggableBackendVLVIndexScope(final SearchScope scope)
+  {
+    switch (scope.asEnum())
+    {
+    case BASE_OBJECT:
+      return BackendVLVIndexCfgDefn.Scope.BASE_OBJECT;
+    case SINGLE_LEVEL:
+      return BackendVLVIndexCfgDefn.Scope.SINGLE_LEVEL;
+    case SUBORDINATES:
+      return BackendVLVIndexCfgDefn.Scope.SUBORDINATE_SUBTREE;
+    case WHOLE_SUBTREE:
+      return BackendVLVIndexCfgDefn.Scope.WHOLE_SUBTREE;
+    case UNKNOWN:
+    default:
+      throw new IllegalArgumentException("Unsupported SearchScope: " + scope);
+    }
+  }
+
+  // FIXME: Remove once local-db backend will be pluggable.
+  /**
+   * Returns the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
+   * search scope.
+   *
+   * @param scope
+   *          The {@code SearchScope} to convert.
+   * @return the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
+   *         search scope.
+   */
+  public static LocalDBVLVIndexCfgDefn.Scope getLocalDBVLVIndexScope(final SearchScope scope)
+  {
+    switch (scope.asEnum())
+    {
+    case BASE_OBJECT:
+      return LocalDBVLVIndexCfgDefn.Scope.BASE_OBJECT;
+    case SINGLE_LEVEL:
+      return LocalDBVLVIndexCfgDefn.Scope.SINGLE_LEVEL;
+    case SUBORDINATES:
+      return LocalDBVLVIndexCfgDefn.Scope.SUBORDINATE_SUBTREE;
+    case WHOLE_SUBTREE:
+      return LocalDBVLVIndexCfgDefn.Scope.WHOLE_SUBTREE;
+    case UNKNOWN:
+    default:
+      throw new IllegalArgumentException("Unsupported SearchScope: " + scope);
+    }
+  }
+
+  /**
+   * Convert the provided {@code BackendVLVIndexCfgDefn.Scope} to
+   * {@code SearchScope}.
+   *
+   * @param scope
+   *          The scope to convert.
+   * @return the provided {@code BackendVLVIndexCfgDefn.Scope} to
+   *         {@code SearchScope}
+   */
+  public static SearchScope toSearchScope(final BackendVLVIndexCfgDefn.Scope scope)
+  {
+    switch (scope)
+    {
+    case BASE_OBJECT:
+      return SearchScope.BASE_OBJECT;
+    case SINGLE_LEVEL:
+      return SearchScope.SINGLE_LEVEL;
+    case SUBORDINATE_SUBTREE:
+      return SearchScope.SUBORDINATES;
+    case WHOLE_SUBTREE:
+      return SearchScope.WHOLE_SUBTREE;
+    default:
+      throw new IllegalArgumentException("Unsupported BackendVLVIndexCfgDefn.Scope: " + scope);
+    }
+  }
+
+  // FIXME: Remove once local-db backend will be pluggable.
+  /**
+   * Convert the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
+   * {@code SearchScope}.
+   *
+   * @param scope
+   *          The scope to convert.
+   * @return the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
+   *         {@code SearchScope}
+   */
+  public static SearchScope toSearchScope(final LocalDBVLVIndexCfgDefn.Scope scope)
+  {
+    switch (scope)
+    {
+    case BASE_OBJECT:
+      return SearchScope.BASE_OBJECT;
+    case SINGLE_LEVEL:
+      return SearchScope.SINGLE_LEVEL;
+    case SUBORDINATE_SUBTREE:
+      return SearchScope.SUBORDINATES;
+    case WHOLE_SUBTREE:
+      return SearchScope.WHOLE_SUBTREE;
+    default:
+      throw new IllegalArgumentException("Unsupported LocalDBVLVIndexCfgDefn.Scope: " + scope);
+    }
   }
 
 }

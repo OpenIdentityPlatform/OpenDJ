@@ -255,8 +255,9 @@ public class ConfigFromFile extends ConfigReader
               final LocalDBVLVIndexCfg index = db.getLocalDBVLVIndex(vlvIndexName);
               final String s = index.getSortOrder();
               final List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
-              vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null, index.getBaseDN(),
-                  index.getScope(), index.getFilter(), sortOrder, index.getMaxBlockSize()));
+              vlvIndexes.add(new VLVIndexDescriptor(
+                  index.getName(), null, index.getBaseDN(), VLVIndexDescriptor.toSearchScope(index.getScope()),
+                  index.getFilter(), sortOrder, index.getMaxBlockSize()));
             }
           }
           catch (final ConfigException ce)
