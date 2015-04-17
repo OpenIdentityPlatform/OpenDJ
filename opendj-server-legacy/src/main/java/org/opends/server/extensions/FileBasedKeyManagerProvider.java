@@ -36,6 +36,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -258,6 +260,24 @@ public class FileBasedKeyManagerProvider
                                    message, e);
     }
 
+    try {
+      // Troubleshooting aid; Analyse the keystore for the presence of at least one private entry.
+      boolean foundOneKeyEntry = false;
+      Enumeration<String> aliases = keyStore.aliases();
+      while (aliases.hasMoreElements()) {
+        String alias = aliases.nextElement();
+        if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class)) {
+          foundOneKeyEntry = true;
+          break;
+        }
+      }
+      if (!foundOneKeyEntry) {
+        logger.warn(INFO_NO_KEY_ENTRY_IN_KEYSTORE, keyStoreFile);
+      }
+    }
+    catch (Exception e) {
+      logger.traceException(e);
+    }
 
     try
     {
