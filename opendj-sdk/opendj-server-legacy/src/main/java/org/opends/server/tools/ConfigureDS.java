@@ -77,6 +77,7 @@ import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.std.meta.CryptoManagerCfgDefn;
 import org.opends.server.api.ConfigHandler;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
@@ -834,7 +835,6 @@ public class ConfigureDS
       backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
       backendCfgClient.commit();
 
-      //FIXME: Remove once local-db backend will be pluggable.
       if (backend instanceof LocalDBBackendCfgDefn)
       {
         addJEIndexes((LocalDBBackendCfgClient) backendCfgClient);
@@ -864,7 +864,7 @@ public class ConfigureDS
     }
   }
 
-  // FIXME: Remove once local-db backend will be pluggable.
+  @RemoveOnceLocalDBBackendIsPluggable
   private void addJEIndexes(final LocalDBBackendCfgClient jeBackendCfgClient) throws Exception
   {
     for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
