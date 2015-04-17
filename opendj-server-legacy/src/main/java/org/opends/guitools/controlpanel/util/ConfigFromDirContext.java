@@ -72,6 +72,8 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.AdministrationConnectorCfgClient;
 import org.opends.server.admin.std.client.BackendCfgClient;
+import org.opends.server.admin.std.client.BackendIndexCfgClient;
+import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
 import org.opends.server.admin.std.client.BackupBackendCfgClient;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.HTTPConnectionHandlerCfgClient;
@@ -84,6 +86,7 @@ import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
 import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
 import org.opends.server.admin.std.client.MemoryBackendCfgClient;
 import org.opends.server.admin.std.client.MonitorBackendCfgClient;
+import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
@@ -92,6 +95,7 @@ import org.opends.server.admin.std.client.RootDNCfgClient;
 import org.opends.server.admin.std.client.RootDNUserCfgClient;
 import org.opends.server.admin.std.client.SNMPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.TaskBackendCfgClient;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -423,6 +427,11 @@ public class ConfigFromDirContext extends ConfigReader
           type = BackendDescriptor.Type.LOCAL_DB;
           refreshLocalDBBackendConfig(indexes, vlvIndexes, backend, errors);
         }
+        else if (backend instanceof PluggableBackendCfgClient)
+        {
+          type = BackendDescriptor.Type.PLUGGABLE;
+          refreshBackendConfig(indexes, vlvIndexes, backend, errors);
+        }
         else if (backend instanceof LDIFBackendCfgClient)
         {
           type = BackendDescriptor.Type.LDIF;
@@ -471,15 +480,70 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
+  private void refreshBackendConfig(final Set<IndexDescriptor> indexes,
+      final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<OpenDsException> errors)
+  {
+    final PluggableBackendCfgClient db = (PluggableBackendCfgClient) backend;
+    readBackendIndexes(indexes, errors, db);
+    readBackendVLVIndexes(vlvIndexes, errors, db);
+  }
+
+  private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<OpenDsException> errors,
+      final PluggableBackendCfgClient db)
+  {
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    // FIXME: Remove the two following indexes when they will be deleted
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    try
+    {
+      for (final String indexName : db.listBackendIndexes())
+      {
+        final BackendIndexCfgClient index = db.getBackendIndex(indexName);
+        indexes.add(new IndexDescriptor(
+            index.getAttribute().getNameOrOID(), index.getAttribute(),
+            null, IndexTypeDescriptor.fromBackendIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
+      }
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(oe);
+    }
+  }
+
+  private void readBackendVLVIndexes(final Set<VLVIndexDescriptor> vlvIndexes,
+      final List<OpenDsException> errors, final PluggableBackendCfgClient db)
+  {
+    try
+    {
+      for (final String vlvIndexName : db.listBackendVLVIndexes())
+      {
+        final BackendVLVIndexCfgClient index = db.getBackendVLVIndex(vlvIndexName);
+        final List<VLVSortOrder> sortOrder = getVLVSortOrder(index.getSortOrder());
+        vlvIndexes.add(new VLVIndexDescriptor(
+            index.getName(), null, index.getBaseDN(), VLVIndexDescriptor.toSearchScope(index.getScope()),
+            index.getFilter(), sortOrder));
+      }
+    }
+    catch (OpenDsException oe)
+    {
+      errors.add(oe);
+    }
+  }
+
+  // FIXME: Remove once local-db backend will be pluggable.
   private void refreshLocalDBBackendConfig(final Set<IndexDescriptor> indexes,
       final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<OpenDsException> errors)
   {
-    LocalDBBackendCfgClient db = (LocalDBBackendCfgClient)backend;
+    LocalDBBackendCfgClient localDBBackend = (LocalDBBackendCfgClient)backend;
     try
     {
-      for (String indexName : db.listLocalDBIndexes())
+      for (String indexName : localDBBackend.listLocalDBIndexes())
       {
-        LocalDBIndexCfgClient index = db.getLocalDBIndex(indexName);
+        LocalDBIndexCfgClient index = localDBBackend.getLocalDBIndex(indexName);
         indexes.add(new IndexDescriptor(
             index.getAttribute().getNameOrOID(), index.getAttribute(),
             null, IndexTypeDescriptor.fromLocalDBIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
@@ -489,15 +553,22 @@ public class ConfigFromDirContext extends ConfigReader
     {
       errors.add(oe);
     }
-    indexes.add(new IndexDescriptor("dn2id", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-    indexes.add(new IndexDescriptor("id2children", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-    indexes.add(new IndexDescriptor("id2subtree", null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+
+    indexes.add(new IndexDescriptor(
+        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    if (localDBBackend.isSubordinateIndexesEnabled())
+    {
+      indexes.add(new IndexDescriptor(
+          SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+      indexes.add(new IndexDescriptor(
+          SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    }
 
     try
     {
-      for (String vlvIndexName : db.listLocalDBVLVIndexes())
+      for (String vlvIndexName : localDBBackend.listLocalDBVLVIndexes())
       {
-        LocalDBVLVIndexCfgClient index = db.getLocalDBVLVIndex(vlvIndexName);
+        LocalDBVLVIndexCfgClient index = localDBBackend.getLocalDBVLVIndex(vlvIndexName);
         String s = index.getSortOrder();
         List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
         vlvIndexes.add(new VLVIndexDescriptor(

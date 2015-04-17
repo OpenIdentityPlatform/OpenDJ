@@ -61,6 +61,8 @@ public class BackendDescriptor
     MONITOR,
     /** The backend is another type of backend (for instance user defined). */
     OTHER,
+    /** The backend is pluggable. */
+    PLUGGABLE,
     /** The backend is a task backend. */
     TASK
   }
