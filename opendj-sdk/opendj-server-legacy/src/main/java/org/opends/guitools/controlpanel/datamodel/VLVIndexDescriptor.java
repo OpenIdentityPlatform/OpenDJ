@@ -44,7 +44,6 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
   private final SearchScope scope;
   private final String filter;
   private List<VLVSortOrder> sortOrder = Collections.emptyList();
-  private final int maxBlockSize;
   private int hashCode;
 
   /**
@@ -62,18 +61,15 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    *          the filter or the search indexed by the VLV index.
    * @param sortOrder
    *          the sort order list of the VLV index.
-   * @param maxBlockSize
-   *          the maximum block size of the VLV index.
    */
   public VLVIndexDescriptor(String name, BackendDescriptor backend, DN baseDN, SearchScope scope, String filter,
-      List<VLVSortOrder> sortOrder, int maxBlockSize)
+      List<VLVSortOrder> sortOrder)
   {
     super(name, backend);
     this.baseDN = baseDN;
     this.scope = scope;
     this.filter = filter;
     this.sortOrder = Collections.unmodifiableList(sortOrder);
-    this.maxBlockSize = maxBlockSize;
 
     recalculateHashCode();
   }
@@ -173,17 +169,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     {
       sb.append(getBackend().getBackendID());
     }
-    hashCode = (getName()+baseDN+scope+filter+sb+maxBlockSize).hashCode();
-  }
-
-  /**
-   * Returns the maximum block size of the VLV index.
-   *
-   * @return the maximum block size of the VLV index.
-   */
-  public int getMaxBlockSize()
-  {
-    return maxBlockSize;
+    hashCode = (getName()+baseDN+scope+filter+sb).hashCode();
   }
 
   /**

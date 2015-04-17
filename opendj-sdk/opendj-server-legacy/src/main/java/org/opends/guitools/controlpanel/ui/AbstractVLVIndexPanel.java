@@ -76,8 +76,6 @@ import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -137,8 +135,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
   /** Filter text field. */
   protected final JTextField filter = Utilities.createLongTextField();
-  /** Max block size text field. */
-  protected final JTextField maxBlockSize = Utilities.createShortTextField();
   /** Attributes combo box. */
   protected final JComboBox attributes = Utilities.createComboBox();
 
@@ -188,22 +184,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   /** The list of custom attribute names. */
   private final TreeSet<String> customAttrNames = new TreeSet<String>(new LowerCaseComparator());
 
-  private final int defaultVLVEntryLimitValue;
-  {
-    DefinedDefaultBehaviorProvider<Integer> provider =
-        (DefinedDefaultBehaviorProvider<Integer>) LocalDBVLVIndexCfgDefn.getInstance()
-            .getMaxBlockSizePropertyDefinition().getDefaultBehaviorProvider();
-    defaultVLVEntryLimitValue = Integer.parseInt(provider.getDefaultValues().iterator().next());
-  }
-
-  /** Minimum value for max block size. */
-  private final int MIN_MAX_BLOCK_SIZE = LocalDBVLVIndexCfgDefn.getInstance().getMaxBlockSizePropertyDefinition()
-      .getLowerLimit();
-  /** Maximum value for max block size. */
-  private final int MAX_MAX_BLOCK_SIZE = 2147483647;
-  /** Default value for max block size. */
-  private final int DEFAULT_MAX_BLOCK_SIZE = defaultVLVEntryLimitValue;
-
   /**
    * Constructor.
    *
@@ -252,7 +232,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     lines.add("ds-cfg-sort-order: " + getSortOrderStringValue(getSortOrder()));
     lines.add("ds-cfg-base-dn: " + getBaseDN());
     lines.add("ds-cfg-scope: " + VLVIndexDescriptor.getLocalDBVLVIndexScope(getScope()));
-    lines.add("ds-cfg-max-block-size: " + maxBlockSize.getText().trim());
     StringBuilder sb = new StringBuilder();
     for (String line : lines)
     {
@@ -701,22 +680,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       setPrimaryInvalid(lSortOrder);
     }
 
-    String v = maxBlockSize.getText();
-    try
-    {
-      int n = Integer.parseInt(v);
-      if (n < MIN_MAX_BLOCK_SIZE || n > MAX_MAX_BLOCK_SIZE)
-      {
-        errors.add(ERR_CTRL_PANEL_INVALID_MAX_BLOCK_SIZE_FOR_VLV_PROVIDED.get(MIN_MAX_BLOCK_SIZE, MAX_MAX_BLOCK_SIZE));
-        setPrimaryInvalid(lMaxBlockSize);
-      }
-    }
-    catch (Throwable t)
-    {
-      errors.add(ERR_CTRL_PANEL_INVALID_MAX_BLOCK_SIZE_FOR_VLV_PROVIDED.get(MIN_MAX_BLOCK_SIZE, MAX_MAX_BLOCK_SIZE));
-      setPrimaryInvalid(lMaxBlockSize);
-    }
-
     return errors;
   }
 
@@ -901,18 +864,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     gbc.insets.top = 3;
     inlineHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_FILTER_INLINE_HELP_LABEL.get());
     c.add(inlineHelp, gbc);
-    gbc.gridy++;
-
-    gbc.insets.top = 10;
-    gbc.insets.left = 0;
-    gbc.gridx = 0;
-    gbc.gridwidth = 1;
-    c.add(lMaxBlockSize, gbc);
-    gbc.insets.left = 10;
-    gbc.gridx = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    c.add(maxBlockSize, gbc);
-    maxBlockSize.setText(String.valueOf(DEFAULT_MAX_BLOCK_SIZE));
     gbc.gridy++;
 
     gbc.insets.top = 10;
