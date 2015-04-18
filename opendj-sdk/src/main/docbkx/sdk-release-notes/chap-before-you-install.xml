@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2014 ForgeRock AS
+  !      Copyright 2014-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-before-you-install'
@@ -48,7 +48,7 @@
   </para>
   
   <para>
-   OpenDJ software requires Java 6 or 7,
+   OpenDJ software requires Java 7 or 8,
    specifically at least the Java Standard Edition runtime environment.
    To build applications with OpenDJ LDAP SDK,
    you need the corresponding Java SDK.
