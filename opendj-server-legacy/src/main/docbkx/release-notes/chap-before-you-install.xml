@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-before-you-install'
@@ -52,7 +52,7 @@
   SPARC and x86, various Linux distributions, Microsoft Windows,
   and Apple Mac OS X.</para>
   
-  <para>OpenDJ software requires Java 6 or 7, specifically at least the Java
+  <para>OpenDJ software requires Java 7 or 8, specifically at least the Java
   Standard Edition runtime environment. ForgeRock has tested most with Oracle
   Java Platform, Standard Edition.</para>
 
