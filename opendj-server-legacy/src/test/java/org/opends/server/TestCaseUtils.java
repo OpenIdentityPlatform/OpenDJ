@@ -94,14 +94,9 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public final class TestCaseUtils {
-  /**
-   * The name of the system property that specifies the server build root.
-   */
-  public static final String PROPERTY_BUILD_ROOT =
-       "org.opends.server.BuildRoot";
-
-  public static final String PROPERTY_BUILD_DIR  =
-       "org.opends.server.BuildDir";
+  /** The name of the system property that specifies the server build root. */
+  public static final String PROPERTY_BUILD_ROOT = "org.opends.server.BuildRoot";
+  public static final String PROPERTY_BUILD_DIR  = "org.opends.server.BuildDir";
 
    /**
    * The name of the system property that specifies an existing OpenDS
@@ -189,39 +184,23 @@ public final class TestCaseUtils {
 
   /**
    * This is used to store the schema as it was before starting the fake server
-   * (for example, it could have been the real schema) so test tearDown can set
-   * it back.
+   * (for example, it could have been the real schema) so test tearDown can set it back.
    */
   private static Schema schemaBeforeStartingFakeServer;
 
-  /**
-   * The LDAP port the server is bound to on start.
-   */
+  /** The LDAP port the server is bound to on start. */
   private static int serverLdapPort;
-
-  /**
-   * The Administration port the server is bound to on start.
-   */
+  /** The Administration port the server is bound to on start. */
   private static int serverAdminPort;
-
-  /**
-   * The JMX port the server is bound to on start.
-   */
+  /** The JMX port the server is bound to on start. */
   private static int serverJmxPort;
-
-  /**
-   * The LDAPS port the server is bound to on start.
-   */
+  /** The LDAPS port the server is bound to on start. */
   private static int serverLdapsPort;
 
-  /**
-   * Incremented by one each time the server has restarted.
-   */
+  /** Incremented by one each time the server has restarted. */
   private static int serverRestarts;
 
-  /**
-   * The config directory in the test environment.
-   */
+  /** The config directory in the test environment. */
   private static File testConfigDir;
 
   /**
@@ -381,24 +360,16 @@ public final class TestCaseUtils {
             new File(testConfigDir, "MakeLDIF"));
         copyDirectory(new File(snmpResourceDir, "security"),
             new File(testSnmpResourceDir, "security"));
-        copyFile(new File(testResourceDir, "server.keystore"),
-            new File(testConfigDir, "server.keystore"));
-        copyFile(new File(testResourceDir, "server.truststore"),
-            new File(testConfigDir, "server.truststore"));
-        copyFile(new File(testResourceDir, "client.keystore"),
-            new File(testConfigDir, "client.keystore"));
-        copyFile(new File(testResourceDir, "client-emailAddress.keystore"),
-            new File(testConfigDir, "client-emailAddress.keystore"));
-        copyFile(new File(testResourceDir, "client.truststore"),
-            new File(testConfigDir, "client.truststore"));
-        copyFile(new File(testResourceDir, "server-cert.p12"),
-            new File(testConfigDir, "server-cert.p12"));
-        copyFile(new File(testResourceDir, "client-cert.p12"),
-            new File(testConfigDir, "client-cert.p12"));
+        copyFileFromTo("server.keystore", testResourceDir, testConfigDir);
+        copyFileFromTo("server.truststore", testResourceDir, testConfigDir);
+        copyFileFromTo("client.keystore", testResourceDir, testConfigDir);
+        copyFileFromTo("client-emailAddress.keystore", testResourceDir, testConfigDir);
+        copyFileFromTo("client.truststore", testResourceDir, testConfigDir);
+        copyFileFromTo("server-cert.p12", testResourceDir, testConfigDir);
+        copyFileFromTo("client-cert.p12", testResourceDir, testConfigDir);
 
         // Update the install.loc file
-        File installLoc = new File(testInstallRoot + File.separator
-            + "instance.loc");
+        File installLoc = new File(testInstallRoot + File.separator + "instance.loc");
         installLoc.deleteOnExit();
         FileWriter w = new FileWriter(installLoc);
         try
@@ -1036,6 +1007,11 @@ public final class TestCaseUtils {
     dir.delete();
   }
 
+  private static void copyFileFromTo(String filename, File fromDir, File toDir) throws IOException
+  {
+    copyFile(new File(fromDir, filename), new File(toDir, filename));
+  }
+
   /**
    * Copy a file.
    *
@@ -1116,8 +1092,7 @@ public final class TestCaseUtils {
   }
 
   /**
-   * Get the number of times the server has done an incore restart during
-   * the unit tests.
+   * Get the number of times the server has done a restart during the unit tests.
    *
    * @return the number of server restarts.
    */
@@ -1148,9 +1123,7 @@ public final class TestCaseUtils {
     return new File(path, "unit-tests");
   }
 
-  /**
-   * Prevent instantiation.
-   */
+  /** Prevent instantiation. */
   private TestCaseUtils() {
     // No implementation.
   }
@@ -1524,10 +1497,12 @@ public final class TestCaseUtils {
     File f = File.createTempFile("LDAPModifyTestCase", ".txt");
     f.deleteOnExit();
 
+    final String EOL = System.getProperty("line.separator");
+
     FileWriter w = new FileWriter(f);
     for (String s : lines)
     {
-      w.write(s + System.getProperty("line.separator"));
+      w.write(s + EOL);
     }
     w.close();
 
@@ -1702,19 +1677,14 @@ public final class TestCaseUtils {
     disabledLogHandlers.clear();
   }
 
-  /**
-   * Read the contents of a file and return it as a String.
-   */
+  /** Read the contents of a file and return it as a String. */
   public static String readFile(String name) throws IOException {
     return readFile(new File(name));
   }
 
-  /**
-   * Read the contents of a file and return it as a String.
-   */
+  /** Read the contents of a file and return it as a String. */
   public static String readFile(File file) throws IOException {
-    byte[] bytes = readFileBytes(file);
-    return new String(bytes);
+    return new String(readFileBytes(file));
   }
 
   /**
@@ -1741,11 +1711,8 @@ public final class TestCaseUtils {
   }
 
 
-  /**
-   * Read the contents of a file and return it as a String.
-   */
-  private static byte[] readFileBytes(File file)
-          throws IOException {
+  /** Read the contents of a file and return it as a String. */
+  private static byte[] readFileBytes(File file) throws IOException {
     FileInputStream fis = new FileInputStream(file);
     return readInputStreamBytes(fis, true);
   }
@@ -1754,8 +1721,7 @@ public final class TestCaseUtils {
    * @param close - if true, close when finished reading.
    * @return input stream content.
    */
-  private static byte[] readInputStreamBytes(InputStream is, boolean close)
-          throws IOException {
+  private static byte[] readInputStreamBytes(InputStream is, boolean close) throws IOException {
     byte[] bytes = null;
     if (is != null) {
       ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
@@ -1778,27 +1744,18 @@ public final class TestCaseUtils {
   }
 
 
-  /**
-   * Store the contents of a String in a file.
-   */
-  public static void writeFile(File file, String contents)
-          throws IOException {
+  /** Store the contents of a String in a file. */
+  public static void writeFile(File file, String contents) throws IOException {
     writeFile(file.getAbsolutePath(), contents);
   }
 
-  /**
-   * Store the contents of a String in a file.
-   */
-  public static void writeFile(String name, String contents)
-          throws IOException {
+  /** Store the contents of a String in a file. */
+  public static void writeFile(String name, String contents) throws IOException {
     writeFile(name, contents.getBytes());
   }
 
-  /**
-   * Store the contents of a String in a file.
-   */
-  public static void writeFile(String path, byte[] contents)
-          throws IOException {
+  /** Store the contents of a String in a file. */
+  public static void writeFile(String path, byte[] contents) throws IOException {
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(path);
@@ -1807,8 +1764,6 @@ public final class TestCaseUtils {
       close(fos);
     }
   }
-
-
 
   /**
    * Invokes the dsconfig tool with the provided set of arguments.  Note that
@@ -1831,7 +1786,7 @@ public final class TestCaseUtils {
     try {
       hostName = InetAddress.getLocalHost().getHostName();
     } catch (Exception e) {
-       hostName="Unknown (" + e + ")";
+      hostName = "Unknown (" + e + ")";
     }
 
     String[] fullArgs = new String[args.length + 11];
@@ -1878,8 +1833,7 @@ public final class TestCaseUtils {
         "cn=Directory Manager",
         "password");
 
-    ManagementContext context = LDAPManagementContext
-        .createFromContext(connection);
+    ManagementContext context = LDAPManagementContext.createFromContext(connection);
     return context.getRootConfiguration();
   }
 
@@ -1894,8 +1848,7 @@ public final class TestCaseUtils {
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
 
 
-    // Re-arrange all of the elements by thread ID so that there is some logical
-    // order.
+    // Re-arrange all of the elements by thread ID so that there is some logical order.
     Map<Long, Map.Entry<Thread, StackTraceElement[]>> orderedStacks =
          new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
     for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
@@ -2034,5 +1987,4 @@ public final class TestCaseUtils {
     }
     return dump.toString();
   }
-
 }
