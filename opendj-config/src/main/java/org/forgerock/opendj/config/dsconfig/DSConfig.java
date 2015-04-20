@@ -1311,29 +1311,32 @@ public final class DSConfig extends ConsoleApplication {
      * Updates the command builder with the global options: script friendly, verbose, etc. for a given sub command. It
      * also adds systematically the no-prompt option.
      *
-     * @param <T>
-     *            SubCommand type.
      * @param subCommand
      *            The sub command handler or common.
      * @return <T> The builded command.
      */
-    <T> CommandBuilder getCommandBuilder(final T subCommand) {
+    CommandBuilder getCommandBuilder(final Object subCommand) {
         final String commandName = getScriptName();
+        final SubCommandHandler handler;
         final String subCommandName;
         if (subCommand instanceof SubCommandHandler) {
-            subCommandName = ((SubCommandHandler) subCommand).getSubCommand().getName();
+            handler = (SubCommandHandler) subCommand;
+            subCommandName = handler.getSubCommand().getName();
         } else {
+            handler = null;
             subCommandName = (String) subCommand;
         }
+
         final CommandBuilder commandBuilder = new CommandBuilder(commandName, subCommandName);
+        if (handler != null) {
+            commandBuilder.append(handler.getCommandBuilder());
+        }
         if (factory != null && factory.getContextCommandBuilder() != null) {
             commandBuilder.append(factory.getContextCommandBuilder());
         }
-
         if (verboseArgument.isPresent()) {
             commandBuilder.addArgument(verboseArgument);
         }
-
         if (scriptFriendlyArgument.isPresent()) {
             commandBuilder.addArgument(scriptFriendlyArgument);
         }
@@ -1343,7 +1346,6 @@ public final class DSConfig extends ConsoleApplication {
         if (propertiesFileArgument.isPresent()) {
             commandBuilder.addArgument(propertiesFileArgument);
         }
-
         if (noPropertiesFileArgument.isPresent()) {
             commandBuilder.addArgument(noPropertiesFileArgument);
         }
