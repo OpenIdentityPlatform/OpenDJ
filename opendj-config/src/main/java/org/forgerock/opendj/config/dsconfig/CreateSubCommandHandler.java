@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
@@ -82,6 +82,7 @@ import org.forgerock.opendj.ldap.LdapException;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.HelpCallback;
 import com.forgerock.opendj.cli.MenuBuilder;
@@ -112,8 +113,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     private static class MyPropertyProvider implements PropertyProvider {
 
         /** Decoded set of properties. */
-        private final Map<PropertyDefinition<?>, Collection<?>> properties
-            = new HashMap<PropertyDefinition<?>, Collection<?>>();
+        private final Map<PropertyDefinition<?>, Collection<?>> properties = new HashMap<>();
 
         /**
          * Create a new property provider using the provided set of property value arguments.
@@ -155,8 +155,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                     throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
                 }
 
-                // Make sure that the user is not attempting to set the naming
-                // property.
+                // Make sure that the user is not attempting to set the naming property.
                 if (pd.equals(namingPropertyDefinition)) {
                     throw ArgumentExceptionFactory.unableToSetNamingProperty(d, pd);
                 }
@@ -176,6 +175,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
 
         /** {@inheritDoc} */
+        @Override
         @SuppressWarnings("unchecked")
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {
             Collection<T> values = (Collection<T>) properties.get(d);
@@ -198,7 +198,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
 
             Collection<T> values = (Collection<T>) properties.get(pd);
             if (values == null) {
-                values = new LinkedList<T>();
+                values = new LinkedList<>();
             }
             values.add(value);
 
@@ -226,6 +226,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
 
         /** {@inheritDoc} */
+        @Override
         public void display(ConsoleApplication app) {
             app.println(INFO_DSCFG_CREATE_TYPE_HELP_HEADING.get(d.getUserFriendlyPluralName()));
 
@@ -251,14 +252,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             boolean isFirst = true;
             for (ManagedObjectDefinition<?, ?> mod : getSubTypes(d).values()) {
                 // Only display advanced types and custom types in advanced mode.
-                if (!app.isAdvancedMode()) {
-                    if (mod.hasOption(ManagedObjectOption.ADVANCED)) {
-                        continue;
-                    }
-
-                    if (CLIProfile.getInstance().isForCustomization(mod)) {
-                        continue;
-                    }
+                if (!app.isAdvancedMode()
+                        && (mod.hasOption(ManagedObjectOption.ADVANCED)
+                                || CLIProfile.getInstance().isForCustomization(mod))) {
+                    continue;
                 }
 
                 LocalizableMessage ufn = mod.getUserFriendlyName();
@@ -301,34 +298,17 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
     }
 
-    /**
-     * The value for the long option set.
-     */
+    /** The value for the long option set. */
     private static final String OPTION_DSCFG_LONG_SET = "set";
-
-    /**
-     * The value for the long option type.
-     */
+    /** The value for the long option type. */
     private static final String OPTION_DSCFG_LONG_TYPE = "type";
-
-    /**
-     * The value for the short option property.
-     */
+    /** The value for the short option property. */
     private static final Character OPTION_DSCFG_SHORT_SET = null;
-
-    /**
-     * The value for the short option type.
-     */
+    /** The value for the short option type. */
     private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
-
-    /**
-     * The value for the long option remove (this is used only internally).
-     */
+    /** The value for the long option remove (this is used only internally). */
     private static final String OPTION_DSCFG_LONG_REMOVE = "remove";
-
-    /**
-     * The value for the long option reset (this is used only internally).
-     */
+    /** The value for the long option reset (this is used only internally). */
     private static final String OPTION_DSCFG_LONG_RESET = "reset";
 
     /**
@@ -351,7 +331,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     public static <C extends ConfigurationClient, S extends Configuration> CreateSubCommandHandler<C, S> create(
             SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> r)
             throws ArgumentException {
-        return new CreateSubCommandHandler<C, S>(parser, p, r, r.getNamingPropertyDefinition(), p.child(r, "DUMMY"));
+        return new CreateSubCommandHandler<>(parser, p, r, r.getNamingPropertyDefinition(), p.child(r, "DUMMY"));
     }
 
     /**
@@ -374,7 +354,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     public static <C extends ConfigurationClient, S extends Configuration> CreateSubCommandHandler<C, S> create(
             SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p, SetRelationDefinition<C, S> r)
             throws ArgumentException {
-        return new CreateSubCommandHandler<C, S>(parser, p, r, null, p.child(r));
+        return new CreateSubCommandHandler<>(parser, p, r, null, p.child(r));
     }
 
     /**
@@ -397,7 +377,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     public static <C extends ConfigurationClient, S extends Configuration> CreateSubCommandHandler<C, S> create(
             SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p, OptionalRelationDefinition<C, S> r)
             throws ArgumentException {
-        return new CreateSubCommandHandler<C, S>(parser, p, r, null, p.child(r));
+        return new CreateSubCommandHandler<>(parser, p, r, null, p.child(r));
     }
 
     /**
@@ -471,10 +451,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
 
         // Now create the component.
+        app.println();
+        app.println();
         // FIXME: handle default value exceptions?
-        List<PropertyException> exceptions = new LinkedList<PropertyException>();
-        app.println();
-        app.println();
+        List<PropertyException> exceptions = new LinkedList<>();
         ManagedObject<? extends C> mo = createChildInteractively(app, parent, rd, mod, exceptions);
 
         // Let the user interactively configure the managed object and commit it.
@@ -634,12 +614,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         while (true) {
             // Interactively set properties if applicable.
             if (app.isInteractive()) {
-                SortedSet<PropertyDefinition<?>> properties = new TreeSet<PropertyDefinition<?>>();
+                SortedSet<PropertyDefinition<?>> properties = new TreeSet<>();
                 for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-                    if (pd.hasOption(PropertyOption.HIDDEN)) {
-                        continue;
-                    }
-                    if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+                    if (pd.hasOption(PropertyOption.HIDDEN)
+                            || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED))) {
                         continue;
                     }
                     properties.add(pd);
@@ -692,17 +670,15 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                 }
                 return MenuResult.success();
             } catch (MissingMandatoryPropertiesException e) {
-                if (app.isInteractive()) {
-                    // If interactive, give the user the chance to fix the
-                    // problems.
-                    app.errPrintln();
-                    displayMissingMandatoryPropertyException(app, e);
-                    app.errPrintln();
-                    if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-                        return MenuResult.cancel();
-                    }
-                } else {
+                if (!app.isInteractive()) {
                     throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+                }
+                // If interactive, give the user the chance to fix the problems.
+                app.errPrintln();
+                displayMissingMandatoryPropertyException(app, e);
+                app.errPrintln();
+                if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+                    return MenuResult.cancel();
                 }
             } catch (AuthorizationException e) {
                 LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
@@ -711,16 +687,15 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                 LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
                 throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
             } catch (OperationRejectedException e) {
-                if (app.isInteractive()) {
-                    // If interactive, give the user the chance to fix the problems.
-                    app.errPrintln();
-                    displayOperationRejectedException(app, e);
-                    app.errPrintln();
-                    if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-                        return MenuResult.cancel();
-                    }
-                } else {
+                if (!app.isInteractive()) {
                     throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+                }
+                // If interactive, give the user the chance to fix the problems.
+                app.errPrintln();
+                displayOperationRejectedException(app, e);
+                app.errPrintln();
+                if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+                    return MenuResult.cancel();
                 }
             } catch (LdapException e) {
                 LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
@@ -743,6 +718,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         ValidationCallback<ManagedObject<? extends C>> validator
             = new ValidationCallback<ManagedObject<? extends C>>() {
 
+                @Override
                 public ManagedObject<? extends C> validate(ConsoleApplication app, String input)
                         throws ClientException {
                     ManagedObject<? extends C> child;
@@ -833,7 +809,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             throws ClientException {
         // First get the list of available of sub-types.
         List<ManagedObjectDefinition<? extends C, ? extends S>> filteredTypes
-            = new LinkedList<ManagedObjectDefinition<? extends C, ? extends S>>(getSubTypes(d).values());
+            = new LinkedList<>(getSubTypes(d).values());
         boolean isOnlyOneType = filteredTypes.size() == 1;
 
         Iterator<ManagedObjectDefinition<? extends C, ? extends S>> i;
@@ -860,8 +836,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         } else if (filteredTypes.size() == 1) {
             ManagedObjectDefinition<? extends C, ? extends S> type = filteredTypes.iterator().next();
             if (!isOnlyOneType) {
-                // Only one option available so confirm that the user wishes to
-                // use it.
+                // Only one option available so confirm that the user wishes to use it.
                 LocalizableMessage msg = INFO_DSCFG_TYPE_PROMPT_SINGLE.get(d.getUserFriendlyName(),
                         type.getUserFriendlyName());
                 if (!app.confirmAction(msg, true)) {
@@ -870,8 +845,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             }
             return MenuResult.<ManagedObjectDefinition<? extends C, ? extends S>> success(type);
         } else {
-            MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>> builder
-                = new MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>>(app);
+            MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>> builder = new MenuBuilder<>(app);
             LocalizableMessage msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(d.getUserFriendlyName());
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
             builder.setPrompt(msg);
@@ -905,9 +879,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     /** The path of the parent managed object. */
     private final ManagedObjectPath<?, ?> path;
 
-    /**
-     * The argument which should be used to specify zero or more property values.
-     */
+    /** The argument which should be used to specify zero or more property values. */
     private final StringArgument propertySetArgument;
 
     /** The relation which should be used for creating children. */
@@ -916,18 +888,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     /** The sub-command associated with this handler. */
     private final SubCommand subCommand;
 
-    /**
-     * The argument which should be used to specify the type of managed object to be created.
-     */
+    /** The argument which should be used to specify the type of managed object to be created. */
     private final StringArgument typeArgument;
-
-    /**
-     * The set of instantiable managed object definitions and their associated type option value.
-     */
-    private final SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> types;
-
     /** The syntax of the type argument. */
     private final String typeUsage;
+
+    /** The set of instantiable managed object definitions and their associated type option value. */
+    private final SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> types;
 
     /** Common constructor. */
     private CreateSubCommandHandler(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
@@ -1002,7 +969,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {
-        LocalizableMessage ufn = relation.getUserFriendlyName();
+        final LocalizableMessage rufn = relation.getUserFriendlyName();
 
         // Get the naming argument values.
         List<String> names = getNamingArgValues(app, namingArgs);
@@ -1020,7 +987,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         try {
             result = getManagedObject(app, context, path, names);
         } catch (AuthorizationException e) {
-            LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+            LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(rufn);
             throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
         } catch (DefinitionDecodingException e) {
             LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
@@ -1031,7 +998,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
             throw new ClientException(ReturnCode.OTHER, msg, e);
         } catch (ConcurrentModificationException e) {
-            LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+            LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(rufn);
             throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
         } catch (ManagedObjectNotFoundException e) {
             LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
@@ -1045,7 +1012,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             if (!app.isMenuDrivenMode()) {
                 // User chose to cancel creation.
                 app.println();
-                app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
+                app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(rufn));
             }
             return MenuResult.quit();
         } else if (result.isCancel()) {
@@ -1061,19 +1028,19 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         Set<String> prohibitedTypes;
         if (relation instanceof SetRelationDefinition) {
             SetRelationDefinition<C, S> sr = (SetRelationDefinition<C, S>) relation;
-            prohibitedTypes = new HashSet<String>();
+            prohibitedTypes = new HashSet<>();
             try {
                 for (String child : parent.listChildren(sr)) {
                     prohibitedTypes.add(child);
                 }
             } catch (AuthorizationException e) {
-                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(rufn);
                 throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
             } catch (ConcurrentModificationException e) {
-                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(rufn);
                 throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
             } catch (LdapException e) {
-                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(rufn, e.getMessage());
                 throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
             }
         } else {
@@ -1098,7 +1065,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                     // Must be quit.
                     if (!app.isMenuDrivenMode()) {
                         app.println();
-                        app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
+                        app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(rufn));
                     }
                     return MenuResult.quit();
                 }
@@ -1119,7 +1086,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         MyPropertyProvider provider = new MyPropertyProvider(d, namingPropertyDefinition, propertyArgs);
 
         ManagedObject<? extends C> child;
-        List<PropertyException> exceptions = new LinkedList<PropertyException>();
+        List<PropertyException> exceptions = new LinkedList<>();
         boolean isNameProvidedInteractively = false;
         String providedNamingArgName = null;
         if (relation instanceof InstantiableRelationDefinition) {
@@ -1151,8 +1118,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             child = parent.createChild(orelation, d, exceptions);
         }
 
-        // FIXME: display any default behavior exceptions in verbose
-        // mode.
+        // FIXME: display any default behavior exceptions in verbose mode.
 
         // Set any properties specified on the command line.
         for (PropertyDefinition<?> pd : provider.getProperties()) {
@@ -1160,108 +1126,109 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
 
         // Now the command line changes have been made, create the managed
-        // object interacting with the user to fix any problems if
-        // required.
+        // object interacting with the user to fix any problems if required.
         MenuResult<Void> result2 = commitManagedObject(app, context, child, this);
         if (result2.isCancel()) {
             return MenuResult.cancel();
         } else if (result2.isQuit()) {
             return MenuResult.quit();
         } else {
-            if (typeArgument.hasValue()) {
-                getCommandBuilder().addArgument(typeArgument);
-            } else {
-                // Set the type provided by the user
-                StringArgument arg = new StringArgument(typeArgument.getName(), OPTION_DSCFG_SHORT_TYPE,
-                        OPTION_DSCFG_LONG_TYPE, false, false, true, INFO_TYPE_PLACEHOLDER.get(),
-                        typeArgument.getDefaultValue(), typeArgument.getPropertyName(), typeArgument.getDescription());
-                arg.addValue(getTypeName(d));
-                getCommandBuilder().addArgument(arg);
-            }
-            if (propertySetArgument.hasValue()) {
-                /*
-                 * We might have some conflicts in terms of arguments: the user might have provided some values that
-                 * were not good and then these have overwritten when asking for them interactively: filter them
-                 */
-                StringArgument filteredArg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
-                        OPTION_DSCFG_LONG_SET, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-                for (String value : propertySetArgument.getValues()) {
-                    boolean addValue = true;
-                    int index = value.indexOf(':');
-                    if (index != -1) {
-                        String propName = value.substring(0, index);
-                        for (Argument arg : getCommandBuilder().getArguments()) {
-                            for (String value2 : arg.getValues()) {
-                                String prop2Name;
-                                if (OPTION_DSCFG_LONG_SET.equals(arg.getName())
-                                        || OPTION_DSCFG_LONG_REMOVE.equals(arg.getName())) {
-                                    int index2 = value2.indexOf(':');
-                                    if (index2 != -1) {
-                                        prop2Name = value2.substring(0, index2);
-                                    } else {
-                                        prop2Name = null;
-                                    }
-                                } else if (OPTION_DSCFG_LONG_RESET.equals(arg.getName())) {
-                                    prop2Name = value2;
-                                } else {
-                                    prop2Name = null;
-                                }
-                                if (prop2Name != null && prop2Name.equalsIgnoreCase(propName)) {
-                                    addValue = false;
-                                    break;
-                                }
-                            }
-                            if (!addValue) {
-                                break;
-                            }
-                        }
-                    } else {
-                        addValue = false;
-                    }
-                    if (addValue) {
-                        filteredArg.addValue(value);
-                    }
-                }
-                if (filteredArg.hasValue()) {
-                    getCommandBuilder().addArgument(filteredArg);
-                }
-            }
-
-            /* Filter the arguments that are used internally */
-            List<Argument> argsCopy = new LinkedList<Argument>(getCommandBuilder().getArguments());
-            for (Argument arg : argsCopy) {
-                if (arg != null
-                        && (OPTION_DSCFG_LONG_RESET.equals(arg.getName()) || OPTION_DSCFG_LONG_REMOVE.equals(arg
-                                .getName()))) {
-                    getCommandBuilder().removeArgument(arg);
-                }
-            }
-
-            if (isNameProvidedInteractively) {
-                StringArgument arg = new StringArgument(providedNamingArgName, null, providedNamingArgName, false,
-                        true, INFO_NAME_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d
-                                .getUserFriendlyName()));
-                arg.addValue(child.getManagedObjectPath().getName());
-                getCommandBuilder().addArgument(arg);
-            } else {
-                for (StringArgument arg : namingArgs) {
-                    if (arg.isPresent()) {
-                        getCommandBuilder().addArgument(arg);
-                    }
-                }
-            }
+            addArgumentsToCommandBuilder(d, child, isNameProvidedInteractively, providedNamingArgName);
             return MenuResult.success(0);
         }
     }
 
+    private void addArgumentsToCommandBuilder(ManagedObjectDefinition<? extends C, ? extends S> d,
+            ManagedObject<? extends C> child, boolean isNameProvidedInteractively, String providedNamingArgName)
+            throws ArgumentException {
+        CommandBuilder commandBuilder = getCommandBuilder();
+        if (typeArgument.hasValue()) {
+            commandBuilder.addArgument(typeArgument);
+        } else {
+            // Set the type provided by the user
+            StringArgument arg = new StringArgument(typeArgument.getName(), OPTION_DSCFG_SHORT_TYPE,
+                    OPTION_DSCFG_LONG_TYPE, false, false, true, INFO_TYPE_PLACEHOLDER.get(),
+                    typeArgument.getDefaultValue(), typeArgument.getPropertyName(), typeArgument.getDescription());
+            arg.addValue(getTypeName(d));
+            commandBuilder.addArgument(arg);
+        }
+        if (propertySetArgument.hasValue()) {
+            /*
+             * We might have some conflicts in terms of arguments: the user might have provided some values that
+             * were not good and then these have overwritten when asking for them interactively: filter them
+             */
+            StringArgument filteredArg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
+                    OPTION_DSCFG_LONG_SET, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+                    INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+            for (String value : propertySetArgument.getValues()) {
+                if (canAddValue(commandBuilder, value)) {
+                    filteredArg.addValue(value);
+                }
+            }
+            if (filteredArg.hasValue()) {
+                commandBuilder.addArgument(filteredArg);
+            }
+        }
+
+        /* Filter the arguments that are used internally */
+        List<Argument> argsCopy = new LinkedList<>(commandBuilder.getArguments());
+        for (Argument arg : argsCopy) {
+            if (arg != null
+                    && (OPTION_DSCFG_LONG_RESET.equals(arg.getName())
+                            || OPTION_DSCFG_LONG_REMOVE.equals(arg.getName()))) {
+                commandBuilder.removeArgument(arg);
+            }
+        }
+
+        if (isNameProvidedInteractively) {
+            StringArgument arg = new StringArgument(providedNamingArgName, null, providedNamingArgName, false,
+                    true, INFO_NAME_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d
+                            .getUserFriendlyName()));
+            arg.addValue(child.getManagedObjectPath().getName());
+            commandBuilder.addArgument(arg);
+        } else {
+            for (StringArgument arg : namingArgs) {
+                if (arg.isPresent()) {
+                    commandBuilder.addArgument(arg);
+                }
+            }
+        }
+    }
+
+    private boolean canAddValue(CommandBuilder commandBuilder, String value) {
+        final int index = value.indexOf(':');
+        if (index == -1) {
+            return false;
+        }
+        String propName = value.substring(0, index);
+        for (Argument arg : commandBuilder.getArguments()) {
+            for (String value2 : arg.getValues()) {
+                String prop2Name = getPropName(arg.getName(), value2);
+                if (propName.equalsIgnoreCase(prop2Name)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private String getPropName(String argName, String value) {
+        if (OPTION_DSCFG_LONG_SET.equals(argName)
+                || OPTION_DSCFG_LONG_REMOVE.equals(argName)) {
+            final int index = value.indexOf(':');
+            if (index != -1) {
+                return value.substring(0, index);
+            }
+        } else if (OPTION_DSCFG_LONG_RESET.equals(argName)) {
+            return value;
+        }
+        return null;
+    }
+
     /** Set a property's initial values. */
     private <T> void setProperty(ManagedObject<?> mo, MyPropertyProvider provider, PropertyDefinition<T> pd) {
-        Collection<T> values = provider.getPropertyValues(pd);
-
-        // This cannot fail because the property values have already been
-        // validated.
-        mo.setPropertyValues(pd, values);
+        // This cannot fail because the property values have already been validated.
+        mo.setPropertyValues(pd, provider.getPropertyValues(pd));
     }
 
     /**
@@ -1277,42 +1244,36 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
     private static <T> Argument createArgument(PropertyEditorModification<T> mod) throws ArgumentException {
         StringArgument arg;
 
-        PropertyDefinition<T> propertyDefinition = mod.getPropertyDefinition();
-        String propName = propertyDefinition.getName();
-
         switch (mod.getType()) {
         case ADD:
-            arg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
-                    true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-            for (T value : mod.getModificationValues()) {
-                arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
-            }
-            break;
         case SET:
             arg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
                     true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-            for (T value : mod.getModificationValues()) {
-                arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
-            }
-            break;
+            addValues(mod, arg);
+            return arg;
         case RESET:
             arg = new StringArgument(OPTION_DSCFG_LONG_RESET, null, OPTION_DSCFG_LONG_RESET, false, true, true,
                     INFO_PROPERTY_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
-            arg.addValue(propName);
-            break;
+            arg.addValue(mod.getPropertyDefinition().getName());
+            return arg;
         case REMOVE:
             arg = new StringArgument(OPTION_DSCFG_LONG_REMOVE, null, OPTION_DSCFG_LONG_REMOVE, false, true, true,
                     INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
-            for (T value : mod.getModificationValues()) {
-                arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
-            }
-            arg = null;
-            break;
+            addValues(mod, arg);
+            return arg;
         default:
             // Bug
             throw new IllegalStateException("Unknown modification type: " + mod.getType());
         }
-        return arg;
+    }
+
+    private static <T> void addValues(PropertyEditorModification<T> mod, StringArgument arg) {
+        PropertyDefinition<T> propertyDefinition = mod.getPropertyDefinition();
+        String propName = propertyDefinition.getName();
+
+        for (T value : mod.getModificationValues()) {
+            arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
+        }
     }
 
     /**
@@ -1323,14 +1284,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
      * @return the type name for the provided ManagedObjectDefinition.
      */
     private String getTypeName(ManagedObjectDefinition<? extends C, ? extends S> d) {
-        String name = d.getName();
         for (String key : types.keySet()) {
             ManagedObjectDefinition<? extends C, ? extends S> current = types.get(key);
             if (current.equals(d)) {
-                name = key;
-                break;
+                return key;
             }
         }
-        return name;
+        return d.getName();
     }
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -73,13 +73,11 @@ public final class MenuBuilder<T> {
             List<T> values = new ArrayList<T>();
             for (MenuCallback<T> callback : callbacks) {
                 MenuResult<T> result = callback.invoke(app);
-
                 if (!result.isSuccess()) {
                     // Throw away all the other results.
                     return result;
-                } else {
-                    values.addAll(result.getValues());
                 }
+                values.addAll(result.getValues());
             }
             return MenuResult.success(values);
         }
@@ -94,10 +92,7 @@ public final class MenuBuilder<T> {
      */
     private static final class MenuImpl<T> implements Menu<T> {
 
-        /**
-         * Indicates whether the menu will allow selection of multiple
-         * numeric options.
-         */
+        /** Indicates whether the menu will allow selection of multiple numeric options. */
         private final boolean allowMultiSelect;
 
         /** The application console. */
@@ -111,7 +106,6 @@ public final class MenuBuilder<T> {
 
         /** The call-back for the optional default action. */
         private final MenuCallback<T> defaultCallback;
-
         /** The description of the optional default action. */
         private final LocalizableMessage defaultDescription;
 
@@ -258,7 +252,6 @@ public final class MenuBuilder<T> {
 
                 // Get the user's choice.
                 MenuCallback<T> choice;
-
                 if (nMaxTries != -1) {
                     choice = app.readValidatedInput(promptMsg, validator, nMaxTries);
                 } else {
@@ -268,14 +261,12 @@ public final class MenuBuilder<T> {
                 // Invoke the user's selected choice.
                 MenuResult<T> result = choice.invoke(app);
 
-                // Determine if the help needs to be displayed, display it and
-                // start again.
+                // Determine if the help needs to be displayed, display it and start again.
                 if (!result.isAgain()) {
                     return result;
-                } else {
-                    app.println();
-                    app.println();
                 }
+                app.println();
+                app.println();
             }
         }
     }
@@ -301,15 +292,16 @@ public final class MenuBuilder<T> {
             return result;
         }
 
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "(result=" + result + ")";
+        }
     }
 
     /** The multiple column display threshold. */
     private int threshold = -1;
 
-    /**
-     * Indicates whether the menu will allow selection of multiple
-     * numeric options.
-     */
+    /** Indicates whether the menu will allow selection of multiple numeric options. */
     private boolean allowMultiSelect;
 
     /** The application console. */
@@ -320,31 +312,26 @@ public final class MenuBuilder<T> {
 
     /** The char option keys (must be single-character messages). */
     private final List<LocalizableMessage> charKeys = new ArrayList<LocalizableMessage>();
-
     /** The synopsis of char options. */
     private final List<LocalizableMessage> charSynopsis = new ArrayList<LocalizableMessage>();
 
     /** Optional column headings. */
     private final List<LocalizableMessage> columnHeadings = new ArrayList<LocalizableMessage>();
-
     /** Optional column widths. */
     private final List<Integer> columnWidths = new ArrayList<Integer>();
 
     /** The call-back for the optional default action. */
     private MenuCallback<T> defaultCallback;
-
     /** The description of the optional default action. */
     private LocalizableMessage defaultDescription;
 
     /** The numeric option call-backs. */
     private final List<MenuCallback<T>> numericCallbacks = new ArrayList<MenuCallback<T>>();
-
     /** The numeric option fields. */
     private final List<List<LocalizableMessage>> numericFields = new ArrayList<List<LocalizableMessage>>();
 
     /** The menu title. */
     private LocalizableMessage title;
-
     /** The menu prompt. */
     private LocalizableMessage prompt;
 
@@ -605,24 +592,10 @@ public final class MenuBuilder<T> {
 
         // Create optional column headers.
         if (!columnHeadings.isEmpty()) {
-            nbuilder.appendHeading();
-            for (LocalizableMessage heading : columnHeadings) {
-                if (heading != null) {
-                    nbuilder.appendHeading(heading);
-                } else {
-                    nbuilder.appendHeading();
-                }
-            }
+            appendHeadings(nbuilder);
 
             if (useMultipleColumns) {
-                nbuilder.appendHeading();
-                for (LocalizableMessage heading : columnHeadings) {
-                    if (heading != null) {
-                        nbuilder.appendHeading(heading);
-                    } else {
-                        nbuilder.appendHeading();
-                    }
-                }
+                appendHeadings(nbuilder);
             }
         }
 
@@ -642,29 +615,13 @@ public final class MenuBuilder<T> {
 
         for (int i = 0, j = rows; i < rows; i++, j++) {
             nbuilder.startRow();
-            nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(i + 1));
-
-            for (LocalizableMessage field : numericFields.get(i)) {
-                if (field != null) {
-                    nbuilder.appendCell(field);
-                } else {
-                    nbuilder.appendCell();
-                }
-            }
+            appendCells(nbuilder, i);
 
             callbacks.put(String.valueOf(i + 1), numericCallbacks.get(i));
 
             // Second column.
             if (useMultipleColumns && j < sz) {
-                nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(j + 1));
-
-                for (LocalizableMessage field : numericFields.get(j)) {
-                    if (field != null) {
-                        nbuilder.appendCell(field);
-                    } else {
-                        nbuilder.appendCell();
-                    }
-                }
+                appendCells(nbuilder, j);
 
                 callbacks.put(String.valueOf(j + 1), numericCallbacks.get(j));
             }
@@ -686,10 +643,9 @@ public final class MenuBuilder<T> {
         // Configure the table printer.
         TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
 
-        if (columnHeadings.isEmpty()) {
-            printer.setDisplayHeadings(false);
-        } else {
-            printer.setDisplayHeadings(true);
+        boolean hasHeadings = !columnHeadings.isEmpty();
+        printer.setDisplayHeadings(hasHeadings);
+        if (hasHeadings) {
             printer.setHeadingSeparatorStartColumn(1);
         }
 
@@ -715,6 +671,28 @@ public final class MenuBuilder<T> {
 
         return new MenuImpl<T>(app, title, prompt, nbuilder, cbuilder, printer, callbacks, allowMultiSelect,
                 defaultCallback, defaultDescription, nMaxTries);
+    }
+
+    private void appendCells(TableBuilder nbuilder, int i) {
+        nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(i + 1));
+        for (LocalizableMessage field : numericFields.get(i)) {
+            if (field != null) {
+                nbuilder.appendCell(field);
+            } else {
+                nbuilder.appendCell();
+            }
+        }
+    }
+
+    private void appendHeadings(TableBuilder nbuilder) {
+        nbuilder.appendHeading();
+        for (LocalizableMessage heading : columnHeadings) {
+            if (heading != null) {
+                nbuilder.appendHeading(heading);
+            } else {
+                nbuilder.appendHeading();
+            }
+        }
     }
 
     /**
