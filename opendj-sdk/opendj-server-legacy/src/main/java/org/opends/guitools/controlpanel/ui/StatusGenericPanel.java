@@ -59,6 +59,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -792,16 +793,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       {
         if (selectedItem == null)
         {
-          // Look for the first element that is not a category
-          for (int i = 0; i < combo.getModel().getSize(); i++)
-          {
-            Object item = combo.getModel().getElementAt(i);
-            if (item instanceof CategorizedComboBoxElement && !isCategory(item))
-            {
-              selectedItem = item;
-              break;
-            }
-          }
+          selectedItem = firstNonCategoryItem(combo.getModel());
         }
         if (selectedItem != null)
         {
@@ -816,6 +808,19 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       {
         selectedItem = o;
       }
+    }
+
+    private Object firstNonCategoryItem(ComboBoxModel model)
+    {
+      for (int i = 0; i < model.getSize(); i++)
+      {
+        Object item = model.getElementAt(i);
+        if (item instanceof CategorizedComboBoxElement && !isCategory(item))
+        {
+          return item;
+        }
+      }
+      return null;
     }
   }
 
@@ -1219,22 +1224,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   private void updatePane(final JEditorPane pane, final LocalizableMessage title, final Font titleFont,
       final LocalizableMessage details, final Font detailsFont, final PanelType type)
   {
-    String text;
-    switch (type)
-    {
-    case ERROR:
-      text = Utilities.getFormattedError(title, titleFont, details, detailsFont);
-      break;
-    case CONFIRMATION:
-      text = Utilities.getFormattedConfirmation(title, titleFont, details, detailsFont);
-      break;
-    case WARNING:
-      text = Utilities.getFormattedWarning(title, titleFont, details, detailsFont);
-      break;
-    default:
-      text = Utilities.getFormattedSuccess(title, titleFont, details, detailsFont);
-      break;
-    }
+    String text = getText(type, title, titleFont, details, detailsFont);
     if (!text.equals(lastDisplayedError))
     {
       LocalizableMessage wrappedTitle = Utilities.wrapHTML(title, 80);
@@ -1271,6 +1261,22 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
           window.validate();
         }
       });
+    }
+  }
+
+  private String getText(
+      PanelType type, LocalizableMessage title, Font titleFont, LocalizableMessage details, Font detailsFont)
+  {
+    switch (type)
+    {
+    case ERROR:
+      return Utilities.getFormattedError(title, titleFont, details, detailsFont);
+    case CONFIRMATION:
+      return Utilities.getFormattedConfirmation(title, titleFont, details, detailsFont);
+    case WARNING:
+      return Utilities.getFormattedWarning(title, titleFont, details, detailsFont);
+    default:
+      return Utilities.getFormattedSuccess(title, titleFont, details, detailsFont);
     }
   }
 

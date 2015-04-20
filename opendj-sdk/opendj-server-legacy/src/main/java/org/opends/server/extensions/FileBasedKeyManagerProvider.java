@@ -103,8 +103,7 @@ public class FileBasedKeyManagerProvider
   public void initializeKeyManagerProvider(
       FileBasedKeyManagerProviderCfg configuration)
       throws ConfigException, InitializationException {
-    // Store the DN of the configuration entry and register as a change
-    // listener.
+    // Store the DN of the configuration entry and register as a change listener
     currentConfig = configuration;
     configEntryDN = configuration.dn();
     configuration.addFileBasedChangeListener(this);
@@ -188,18 +187,7 @@ public class FileBasedKeyManagerProvider
         throw new InitializationException(message);
       }
 
-      String pinStr;
-      try {
-        BufferedReader br = new BufferedReader(
-            new FileReader(pinFile));
-        pinStr = br.readLine();
-        br.close();
-      } catch (IOException ioe) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.
-            get(fileName, configEntryDN, getExceptionMessage(ioe));
-        throw new InitializationException(message, ioe);
-      }
-
+      String pinStr = readPinFromFile(fileName, pinFile);
       if (pinStr == null) {
         LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN);
         throw new InitializationException(message);
@@ -211,12 +199,28 @@ public class FileBasedKeyManagerProvider
     }
   }
 
+  private String readPinFromFile(String fileName, File pinFile) throws InitializationException
+  {
+    BufferedReader br = null;
+    try
+    {
+      br = new BufferedReader(new FileReader(pinFile));
+      return br.readLine();
+    }
+    catch (IOException ioe)
+    {
+      LocalizableMessage message =
+          ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, configEntryDN, getExceptionMessage(ioe));
+      throw new InitializationException(message, ioe);
+    }
+    finally
+    {
+      close(br);
+    }
+  }
 
-
-  /**
-   * Performs any finalization that may be necessary for this key
-   * manager provider.
-   */
+  /** Performs any finalization that may be necessary for this key manager provider. */
+  @Override
   public void finalizeKeyManagerProvider()
   {
     currentConfig.removeFileBasedChangeListener(this);
@@ -234,8 +238,8 @@ public class FileBasedKeyManagerProvider
    * @throws  DirectoryException  If a problem occurs while attempting to obtain
    *                              the set of key managers.
    */
-  public KeyManager[] getKeyManagers()
-         throws DirectoryException
+  @Override
+  public KeyManager[] getKeyManagers() throws DirectoryException
   {
     KeyStore keyStore;
     try
@@ -244,8 +248,14 @@ public class FileBasedKeyManagerProvider
 
       FileInputStream inputStream =
            new FileInputStream(getFileForPath(keyStoreFile));
-      keyStore.load(inputStream, keyStorePIN);
-      inputStream.close();
+      try
+      {
+        keyStore.load(inputStream, keyStorePIN);
+      }
+      finally
+      {
+        close(inputStream);
+      }
     }
     catch (Exception e)
     {
@@ -259,16 +269,8 @@ public class FileBasedKeyManagerProvider
 
     try {
       // Troubleshooting aid; Analyse the keystore for the presence of at least one private entry.
-      boolean foundOneKeyEntry = false;
-      Enumeration<String> aliases = keyStore.aliases();
-      while (aliases.hasMoreElements()) {
-        String alias = aliases.nextElement();
-        if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class)) {
-          foundOneKeyEntry = true;
-          break;
-        }
-      }
-      if (!foundOneKeyEntry) {
+      if (!findOneKeyEntry(keyStore))
+      {
         logger.warn(INFO_NO_KEY_ENTRY_IN_KEYSTORE, keyStoreFile);
       }
     }
@@ -295,7 +297,19 @@ public class FileBasedKeyManagerProvider
     }
   }
 
-
+  private boolean findOneKeyEntry(KeyStore keyStore) throws KeyStoreException
+  {
+    Enumeration<String> aliases = keyStore.aliases();
+    while (aliases.hasMoreElements())
+    {
+      String alias = aliases.nextElement();
+      if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -309,11 +323,12 @@ public class FileBasedKeyManagerProvider
 
 
   /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       FileBasedKeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
+    int startSize = unacceptableReasons.size();
     DN cfgEntryDN = configuration.dn();
 
 
@@ -325,7 +340,6 @@ public class FileBasedKeyManagerProvider
       if (!f.exists() || !f.isFile())
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, cfgEntryDN));
-        configAcceptable = false;
       }
     }
     catch (Exception e)
@@ -333,7 +347,6 @@ public class FileBasedKeyManagerProvider
       logger.traceException(e);
 
       unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
-      configAcceptable = false;
     }
 
     // Get the keystore type. If none is specified, then use the default type.
@@ -349,7 +362,6 @@ public class FileBasedKeyManagerProvider
 
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
             configuration.getKeyStoreType(), cfgEntryDN, getExceptionMessage(kse)));
-        configAcceptable = false;
       }
     }
 
@@ -373,7 +385,6 @@ public class FileBasedKeyManagerProvider
       if (pinStr == null)
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, cfgEntryDN));
-        configAcceptable = false;
       }
     }
     else if (configuration.getKeyStorePinEnvironmentVariable() != null)
@@ -384,7 +395,6 @@ public class FileBasedKeyManagerProvider
       if (pinStr == null)
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, cfgEntryDN));
-        configAcceptable = false;
       }
     }
     else if (configuration.getKeyStorePinFile() != null)
@@ -395,31 +405,13 @@ public class FileBasedKeyManagerProvider
       if (!pinFile.exists())
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, cfgEntryDN));
-        configAcceptable = false;
       }
       else
       {
-        String pinStr = null;
-        BufferedReader br = null;
-        try {
-          br = new BufferedReader(new FileReader(pinFile));
-          pinStr = br.readLine();
-        }
-        catch (IOException ioe)
-        {
-          unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
-              fileName, cfgEntryDN, getExceptionMessage(ioe)));
-          configAcceptable = false;
-        }
-        finally
-        {
-          close(br);
-        }
-
+        String pinStr = readPinFromFile(pinFile, fileName, cfgEntryDN, unacceptableReasons);
         if (pinStr == null)
         {
           unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, cfgEntryDN));
-          configAcceptable = false;
         }
       }
     }
@@ -429,16 +421,35 @@ public class FileBasedKeyManagerProvider
       if (pinStr == null)
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(cfgEntryDN, null));
-        configAcceptable = false;
       }
     }
 
-    return configAcceptable;
+    return startSize != unacceptableReasons.size();
   }
 
-
+  private String readPinFromFile(File pinFile, String fileName, DN cfgEntryDN,
+      List<LocalizableMessage> unacceptableReasons)
+  {
+    BufferedReader br = null;
+    try
+    {
+      br = new BufferedReader(new FileReader(pinFile));
+      return br.readLine();
+    }
+    catch (IOException ioe)
+    {
+      unacceptableReasons.add(
+          ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, cfgEntryDN, getExceptionMessage(ioe)));
+      return null;
+    }
+    finally
+    {
+      close(br);
+    }
+  }
 
   /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedKeyManagerProviderCfg configuration)
   {
@@ -540,23 +551,7 @@ public class FileBasedKeyManagerProvider
       }
       else
       {
-        String pinStr = null;
-        BufferedReader br = null;
-        try {
-          br = new BufferedReader(new FileReader(pinFile));
-          pinStr = br.readLine();
-        }
-        catch (IOException ioe)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
-              fileName, configEntryDN, getExceptionMessage(ioe)));
-        }
-        finally
-        {
-          close(br);
-        }
-
+        String pinStr = readPinFromFile(pinFile, fileName, ccr);
         if (pinStr == null)
         {
           ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -582,5 +577,25 @@ public class FileBasedKeyManagerProvider
     }
 
     return ccr;
+  }
+
+  private String readPinFromFile(File pinFile, String fileName, ConfigChangeResult ccr)
+  {
+    BufferedReader br = null;
+    try
+    {
+      br = new BufferedReader(new FileReader(pinFile));
+      return br.readLine();
+    }
+    catch (IOException ioe)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, configEntryDN, getExceptionMessage(ioe)));
+      return null;
+    }
+    finally
+    {
+      close(br);
+    }
   }
 }

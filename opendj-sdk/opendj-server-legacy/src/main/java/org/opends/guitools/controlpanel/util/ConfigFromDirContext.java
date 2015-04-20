@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 
 import java.net.InetAddress;
 import java.text.DateFormat;
@@ -96,7 +97,6 @@ import org.opends.server.admin.std.client.RootDNUserCfgClient;
 import org.opends.server.admin.std.client.SNMPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.TaskBackendCfgClient;
 import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
-import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -492,13 +492,10 @@ public class ConfigFromDirContext extends ConfigReader
   private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<OpenDsException> errors,
       final PluggableBackendCfgClient db)
   {
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
     // FIXME: Remove the two following indexes when they will be deleted
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(ID2CHILDREN_INDEX_NAME));
+    indexes.add(new IndexDescriptor(ID2SUBTREE_INDEX_NAME));
     try
     {
       for (final String indexName : db.listBackendIndexes())
@@ -555,14 +552,11 @@ public class ConfigFromDirContext extends ConfigReader
       errors.add(oe);
     }
 
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
     if (localDBBackend.isSubordinateIndexesEnabled())
     {
-      indexes.add(new IndexDescriptor(
-          SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-      indexes.add(new IndexDescriptor(
-          SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+      indexes.add(new IndexDescriptor(ID2CHILDREN_INDEX_NAME));
+      indexes.add(new IndexDescriptor(ID2SUBTREE_INDEX_NAME));
     }
 
     try
