@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -194,11 +194,10 @@ public final class MenuResult<T> {
      * @see #isSuccess()
      */
     public T getValue() {
-        if (values.isEmpty()) {
-            return null;
-        } else {
+        if (!values.isEmpty()) {
             return values.iterator().next();
         }
+        return null;
     }
 
     /**
@@ -257,5 +256,10 @@ public final class MenuResult<T> {
      */
     public boolean isSuccess() {
         return type == Type.SUCCESS;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(type=" + type + ", values=" + values + ")";
     }
 }

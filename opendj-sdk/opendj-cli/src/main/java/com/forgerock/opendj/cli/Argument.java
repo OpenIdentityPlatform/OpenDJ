@@ -41,44 +41,29 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * order to provide specific functionality.
  */
 public abstract class Argument implements DocDescriptionSupplement {
-    /**
-     * Indicates whether this argument should be hidden in the usage
-     * information.
-     */
+    /** Indicates whether this argument should be hidden in the usage information. */
     private boolean isHidden;
-
-    /**
-     * Indicates whether this argument may be specified more than once for
-     * multiple values.
-     */
+    /** Indicates whether this argument may be specified more than once for multiple values. */
     private boolean isMultiValued;
-
-    /**
-     * Indicates whether this argument was provided in the set of
-     * command-line arguments.
-     */
+    /** Indicates whether this argument was provided in the set of command-line arguments. */
     private boolean isPresent;
-
     /** Indicates whether this argument is required to have a value. */
     private boolean isRequired;
-
     /** Indicates whether this argument requires a value. */
     private boolean needsValue;
+    /** The default value for the argument if none other is provided. */
+    private String defaultValue;
 
     /** The single-character identifier for this argument. */
     private final Character shortIdentifier;
+    /** The long identifier for this argument. */
+    private final String longIdentifier;
 
     /** The unique ID of the description for this argument. */
     private final LocalizableMessage description;
 
     /** The set of values for this argument. */
-    private final LinkedList<String> values;
-
-    /** The default value for the argument if none other is provided. */
-    private String defaultValue;
-
-    /** The long identifier for this argument. */
-    private final String longIdentifier;
+    private final LinkedList<String> values = new LinkedList<>();
 
     /** The generic name that will be used to refer to this argument. */
     private final String name;
@@ -86,10 +71,7 @@ public abstract class Argument implements DocDescriptionSupplement {
     /** The name of the property that can be used to set the default value. */
     private String propertyName;
 
-    /**
-     * The value placeholder for this argument, which will be used in
-     * usage information.
-     */
+    /** The value placeholder for this argument, which will be used in usage information. */
     private LocalizableMessage valuePlaceholder;
 
     /**
@@ -161,7 +143,6 @@ public abstract class Argument implements DocDescriptionSupplement {
             throw new ArgumentException(ERR_ARG_NO_VALUE_PLACEHOLDER.get(name));
         }
 
-        values = new LinkedList<String>();
         isPresent = false;
         isHidden = false;
     }
@@ -244,11 +225,13 @@ public abstract class Argument implements DocDescriptionSupplement {
     private LocalizableMessage docDescriptionSupplement;
 
     /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getDocDescriptionSupplement() {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
     /** {@inheritDoc} */
+    @Override
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
     }
@@ -288,20 +271,15 @@ public abstract class Argument implements DocDescriptionSupplement {
      *             If any of the values cannot be parsed as an integer.
      */
     public LinkedList<Double> getDoubleValues() throws ArgumentException {
-        final LinkedList<Double> intList = new LinkedList<Double>();
-
-        final Iterator<String> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            final String valueString = iterator.next();
-
+        final LinkedList<Double> results = new LinkedList<>();
+        for (String valueString : values) {
             try {
-                intList.add(Double.valueOf(valueString));
+                results.add(Double.valueOf(valueString));
             } catch (final Exception e) {
-                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
+                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_DOUBLE.get(valueString, name), e);
             }
         }
-
-        return intList;
+        return results;
     }
 
     /**
@@ -339,20 +317,15 @@ public abstract class Argument implements DocDescriptionSupplement {
      *             If any of the values cannot be parsed as an integer.
      */
     public LinkedList<Integer> getIntValues() throws ArgumentException {
-        final LinkedList<Integer> intList = new LinkedList<Integer>();
-
-        final Iterator<String> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            final String valueString = iterator.next();
-
+        final LinkedList<Integer> results = new LinkedList<>();
+        for (String valueString : values) {
             try {
-                intList.add(Integer.valueOf(valueString));
+                results.add(Integer.valueOf(valueString));
             } catch (final Exception e) {
                 throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
             }
         }
-
-        return intList;
+        return results;
     }
 
     /**
@@ -409,11 +382,7 @@ public abstract class Argument implements DocDescriptionSupplement {
      *         are no values and no default value has been given.
      */
     public String getValue() {
-        if (values.isEmpty()) {
-            return defaultValue;
-        }
-
-        return values.getFirst();
+        return !values.isEmpty() ? values.getFirst() : defaultValue;
     }
 
     /**
@@ -421,8 +390,7 @@ public abstract class Argument implements DocDescriptionSupplement {
      * in the generated usage information.
      *
      * @return The value placeholder that will be displayed for this argument in
-     *         the generated usage information, or <CODE>null</CODE> if there is
-     *         none.
+     *         the generated usage information, or <CODE>null</CODE> if there is none.
      */
     public LocalizableMessage getValuePlaceholder() {
         return valuePlaceholder;
@@ -485,8 +453,7 @@ public abstract class Argument implements DocDescriptionSupplement {
      * Indicates whether this argument is required to have at least one value.
      *
      * @return <CODE>true</CODE> if this argument is required to have at least
-     *         one value, or <CODE>false</CODE> if it does not need to have a
-     *         value.
+     *         one value, or <CODE>false</CODE> if it does not need to have a value.
      */
     public boolean isRequired() {
         return isRequired;
@@ -497,8 +464,7 @@ public abstract class Argument implements DocDescriptionSupplement {
      * found is a properties file.
      *
      * @return <CODE>true</CODE> if this argument was provided in the set of
-     *         properties found is a properties file, or <CODE>false</CODE> if
-     *         not.
+     *         properties found is a properties file, or <CODE>false</CODE> if not.
      */
     public boolean isValueSetByProperty() {
         return isValueSetByProperty;
@@ -660,6 +626,7 @@ public abstract class Argument implements DocDescriptionSupplement {
             sb.append("shortID=");
             sb.append(shortIdentifier);
         }
+        sb.append(", values=").append(values);
         sb.append(")");
         return sb.toString();
     }
