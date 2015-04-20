@@ -83,14 +83,12 @@ final class EntryIDSet implements Iterable<EntryID>
     Iterator<EntryID> iterator(EntryID begin);
   }
 
-  /**
-   * Define serialization contract for EntryIDSet
-   */
+  /** Define serialization contract for EntryIDSet. */
   interface EntryIDSetCodec {
 
-    static final int INT_SIZE = 4;
+    int INT_SIZE = 4;
 
-    static final int LONG_SIZE = 8;
+    int LONG_SIZE = 8;
 
     ByteString encode(EntryIDSet idSet);
 
@@ -462,16 +460,14 @@ final class EntryIDSet implements Iterable<EntryID>
     }
   }
 
-  /**
-   * Legacy EntryIDSet codec implementation
-   */
+  /** Legacy EntryIDSet codec implementation. */
   private static final class EntryIDSetCodecV1 implements EntryIDSetCodec
   {
     @Override
     public ByteString encode(EntryIDSet idSet)
     {
-      return ByteString.wrap(append(new ByteStringBuilder(getEstimatedSize(idSet)), idSet).trimToSize()
-          .getBackingArray());
+      return ByteString.wrap(append(
+          new ByteStringBuilder(getEstimatedSize(idSet)), idSet).trimToSize().getBackingArray());
     }
 
     @Override
@@ -894,7 +890,7 @@ final class EntryIDSet implements Iterable<EntryID>
       return;
     }
 
-    final boolean thatSetOverlap = (compareForOverlap(getRange(), that.getRange()) == 0);
+    final boolean thatSetOverlap = compareForOverlap(getRange(), that.getRange()) == 0;
     if (thatSetOverlap)
     {
       concreteImpl = new DefinedImpl(intersection(concreteImpl.getIDs(), that.getIDs()));
@@ -1024,7 +1020,7 @@ final class EntryIDSet implements Iterable<EntryID>
   /**
    * @return -1 if o1 < o2, 0 if o1 overlap o2, +1 if o1 > o2
    */
-  private static final int compareForOverlap(long[] o1, long[] o2)
+  private static int compareForOverlap(long[] o1, long[] o2)
   {
     if (o1 == null && o2 == null)
     {

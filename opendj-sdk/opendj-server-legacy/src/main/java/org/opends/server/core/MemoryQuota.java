@@ -72,12 +72,9 @@ public final class MemoryQuota
     for (MemoryPoolMXBean mpool : mpools)
     {
       MemoryUsage usage = mpool.getUsage();
-      if (usage != null)
+      if (usage != null && mpool.getName().endsWith("Old Gen"))
       {
-        if (mpool.getName().endsWith("Old Gen"))
-        {
-          return usage;
-        }
+        return usage;
       }
     }
     Runtime runtime = Runtime.getRuntime();
@@ -111,11 +108,8 @@ public final class MemoryQuota
    */
   public boolean acquireMemory(long size)
   {
-    if (allowOvercommit)
-    {
-      return true;
-    }
-    return reservedMemory.tryAcquire((int)(size / ONE_MEGABYTE));
+    return allowOvercommit
+        || reservedMemory.tryAcquire((int) (size / ONE_MEGABYTE));
   }
 
   /**
