@@ -308,8 +308,6 @@ public class ConfigureDS
   }
 
   private final String[] arguments;
-  private final OutputStream outputStream;
-  private final OutputStream errorStream;
   private final PrintStream out;
   private final PrintStream err;
 
@@ -342,10 +340,8 @@ public class ConfigureDS
   private ConfigureDS(final String[] args, final OutputStream outStream, final OutputStream errStream)
   {
     arguments = args;
-    outputStream = outStream;
-    errorStream = errStream;
-    out = NullOutputStream.wrapOrNullStream(outputStream);
-    err = NullOutputStream.wrapOrNullStream(errorStream);
+    out = NullOutputStream.wrapOrNullStream(outStream);
+    err = NullOutputStream.wrapOrNullStream(errStream);
     argParser = new ArgumentParser(CLASS_NAME, INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
   }
 
