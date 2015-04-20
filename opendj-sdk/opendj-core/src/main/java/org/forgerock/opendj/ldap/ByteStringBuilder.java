@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
-
-import static org.forgerock.util.Reject.*;
 
 import java.io.DataInput;
 import java.io.EOFException;
@@ -46,9 +44,7 @@ import org.forgerock.util.Reject;
  * A mutable sequence of bytes backed by a byte array.
  */
 public final class ByteStringBuilder implements ByteSequence {
-    /**
-     *  Output stream implementation.
-     */
+    /** Output stream implementation. */
     private final class OutputStreamImpl extends OutputStream {
         @Override
         public void close() {
