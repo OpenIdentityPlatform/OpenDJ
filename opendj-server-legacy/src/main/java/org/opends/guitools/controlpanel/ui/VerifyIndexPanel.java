@@ -52,6 +52,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -71,7 +72,6 @@ import org.opends.guitools.controlpanel.ui.renderer.IndexCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel that appears when the user wants to verify an index.
@@ -92,9 +92,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   private JLabel lIndex;
   private JLabel lNoBaseDNsFound;
 
-  /**
-   * Constructor of the panel.
-   */
+  /** Constructor of the panel. */
   public VerifyIndexPanel()
   {
     super();
@@ -102,6 +100,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -112,12 +111,14 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
   /** {@inheritDoc} */
+  @Override
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
@@ -146,6 +147,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     baseDNs.addItemListener(listener);
     baseDNs.addItemListener(new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         comboBoxSelected(hmIndexes, (CategorizedComboBoxElement) baseDNs.getSelectedItem(), addRemove);
@@ -229,6 +231,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     verifyIndexContents.setSelected(true);
     listener = new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         addRemove.setEnabled(verifyIndexContents.isSelected());
@@ -241,18 +244,21 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VERIFY_INDEXES_PANEL_TITLE.get();
   }
 
   /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
   /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     refreshContents(ev.getNewDescriptor());
@@ -264,6 +270,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     updateBaseDNComboBoxModel((DefaultComboBoxModel) baseDNs.getModel(), desc);
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         ViewPositions pos;
@@ -300,6 +307,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -309,6 +317,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -381,6 +390,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** {@inheritDoc} */
+  @Override
   protected boolean displayBackend(BackendDescriptor backend)
   {
     return !backend.isConfigBackend() && (backend.getType() == BackendDescriptor.Type.LOCAL_DB
@@ -389,24 +399,14 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
 
   private String getSelectedBaseDN()
   {
-    String dn = null;
     CategorizedComboBoxElement o = (CategorizedComboBoxElement) baseDNs.getSelectedItem();
-    if (o != null)
-    {
-      dn = (String) o.getValue();
-    }
-    return dn;
+    return o != null ? (String) o.getValue() : null;
   }
 
   private AbstractIndexDescriptor getSelectedIndex()
   {
-    AbstractIndexDescriptor index = null;
     CategorizedComboBoxElement o = (CategorizedComboBoxElement) keyEntryIDs.getSelectedItem();
-    if (o != null)
-    {
-      index = (AbstractIndexDescriptor) o.getValue();
-    }
-    return index;
+    return o != null ? (AbstractIndexDescriptor) o.getValue() : null;
   }
 
   private void updateVerifyKeyEntriesComboBox()
@@ -481,18 +481,21 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     }
 
     /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.VERIFY_INDEXES;
     }
 
     /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_VERIFY_INDEX_TASK_DESCRIPTION.get(baseDN);
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
@@ -516,6 +519,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     }
 
     /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -523,19 +527,10 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       try
       {
         List<String> arguments = getCommandLineArguments();
-        String[] args = new String[arguments.size()];
+        String[] args = arguments.toArray(new String[arguments.size()]);
 
-        arguments.toArray(args);
         returnCode = executeCommandLine(getCommandLinePath(), args);
-
-        if (returnCode != 0)
-        {
-          state = State.FINISHED_WITH_ERROR;
-        }
-        else
-        {
-          state = State.FINISHED_SUCCESSFULLY;
-        }
+        state = returnCode == 0 ? State.FINISHED_SUCCESSFULLY : State.FINISHED_WITH_ERROR;
       }
       catch (Throwable t)
       {
@@ -545,6 +540,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     }
 
     /** {@inheritDoc} */
+    @Override
     protected List<String> getCommandLineArguments()
     {
       List<String> args = new ArrayList<String>();
@@ -558,28 +554,13 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
         for (AbstractIndexDescriptor index : model.getData())
         {
           args.add("--index");
-          if (index instanceof VLVIndexDescriptor)
-          {
-            args.add(Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index));
-          }
-          else
-          {
-            args.add(index.getName());
-          }
+          args.add(getName(index));
         }
       }
       else
       {
         args.add("--index");
-        AbstractIndexDescriptor index = getSelectedIndex();
-        if (index instanceof VLVIndexDescriptor)
-        {
-          args.add(Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index));
-        }
-        else
-        {
-          args.add(index.getName());
-        }
+        getName(getSelectedIndex());
         args.add("--clean");
       }
 
@@ -588,7 +569,17 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       return args;
     }
 
+    private String getName(AbstractIndexDescriptor index)
+    {
+      if (index instanceof VLVIndexDescriptor)
+      {
+        return Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index);
+      }
+      return index.getName();
+    }
+
     /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("verify-index");

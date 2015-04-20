@@ -24,9 +24,11 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
+
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -40,13 +42,25 @@ import org.opends.server.types.AttributeType;
 public class IndexDescriptor extends AbstractIndexDescriptor
 {
 
-  private static final String[] DATABASE_INDEXES = new String[] {"dn2id", "id2children", "id2subtree"};
+  private static final String[] DATABASE_INDEXES = new String[] {
+    DN2ID_INDEX_NAME, ID2CHILDREN_INDEX_NAME, ID2SUBTREE_INDEX_NAME };
 
   private final SortedSet<IndexTypeDescriptor> types = new TreeSet<IndexTypeDescriptor>();
   private final boolean isDatabaseIndex;
   private final int entryLimit;
   private final AttributeType attr;
   private int hashCode;
+
+  /**
+   * Constructor of the index descriptor.
+   *
+   * @param indexName
+   *          name of the index.
+   */
+  public IndexDescriptor(String indexName)
+  {
+    this(indexName, null, null, Collections.EMPTY_SET, -1);
+  }
 
   /**
    * Constructor of the index descriptor.
@@ -62,9 +76,8 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    * @param entryLimit
    *          the entry limit for the index.
    */
-  public IndexDescriptor(String name, AttributeType attr,
-      BackendDescriptor backend,
-      Set<IndexTypeDescriptor> types, int entryLimit)
+  public IndexDescriptor(
+      String name, AttributeType attr, BackendDescriptor backend, Set<IndexTypeDescriptor> types, int entryLimit)
   {
     super(name, backend);
     this.attr = attr;
@@ -134,7 +147,6 @@ public class IndexDescriptor extends AbstractIndexDescriptor
         return true;
       }
     }
-
     return false;
   }
 
@@ -159,9 +171,9 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 
   private boolean backendIdEqual(IndexDescriptor index)
   {
-    return getBackend() != null
-        && index.getBackend() != null
-        && getBackend().getBackendID().equals(index.getBackend().getBackendID());
+    BackendDescriptor backend1 = getBackend();
+    BackendDescriptor backend2 = index.getBackend();
+    return backend1 != null && backend2 != null && backend1.getBackendID().equals(backend2.getBackendID());
   }
 
   /**
@@ -188,5 +200,4 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     }
     hashCode = (getName()+sb+entryLimit).hashCode();
   }
-
 }

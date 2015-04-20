@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -33,11 +32,10 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -49,6 +47,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -66,7 +65,6 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.IndexCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel that appears when the user wants to rebuild indexes.
@@ -84,12 +82,9 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
   private final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
       new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
 
-  /**
-   * Constructor of the panel.
-   */
+  /** Constructor of the panel. */
   public RebuildIndexPanel()
   {
-    super();
     createLayout();
   }
 
@@ -203,8 +198,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
   @Override
   public void configurationChanged(final ConfigurationChangeEvent ev)
   {
-    ServerDescriptor desc = ev.getNewDescriptor();
-    refreshContents(desc);
+    refreshContents(ev.getNewDescriptor());
   }
 
   /**
@@ -220,17 +214,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
 
     updateBaseDNComboBoxModel((DefaultComboBoxModel) baseDNs.getModel(), desc);
 
-    // Check that all backends
-    boolean allDisabled = false;
-    for (BackendDescriptor backend : desc.getBackends())
-    {
-      if (displayBackend(backend) && backend.isEnabled())
-      {
-        allDisabled = false;
-        break;
-      }
-    }
-    if (!allDisabled)
+    if (!allDisabled(desc.getBackends()))
     {
       updateErrorPaneAndOKButtonIfAuthRequired(desc,
               isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_DISABLE_BACKEND.get()
@@ -272,6 +256,18 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
         }
       }
     });
+  }
+
+  private boolean allDisabled(Set<BackendDescriptor> backends)
+  {
+    for (BackendDescriptor backend : backends)
+    {
+      if (displayBackend(backend) && backend.isEnabled())
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** {@inheritDoc} */
@@ -361,13 +357,8 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
 
   private String getSelectedBaseDN()
   {
-    String dn = null;
     CategorizedComboBoxElement o = (CategorizedComboBoxElement) baseDNs.getSelectedItem();
-    if (o != null)
-    {
-      dn = (String) o.getValue();
-    }
-    return dn;
+    return o != null ? (String) o.getValue() : null;
   }
 
   private void filterIndexes(final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
@@ -375,32 +366,28 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     // Remove the indexes that are not to be added.
     for (SortedSet<AbstractIndexDescriptor> indexes : hmIndexes.values())
     {
-      List<AbstractIndexDescriptor> toRemove = new ArrayList<AbstractIndexDescriptor>();
-      for (AbstractIndexDescriptor index : indexes)
+      for (Iterator<AbstractIndexDescriptor> it = indexes.iterator(); it.hasNext();)
       {
-        if (!mustBeDisplayed(index))
+        if (!mustBeDisplayed(it.next()))
         {
-          toRemove.add(index);
+          it.remove();
         }
       }
-      indexes.removeAll(toRemove);
     }
   }
 
   private boolean mustBeDisplayed(final AbstractIndexDescriptor index)
   {
-    boolean mustBeDisplayed = true;
     if (index instanceof IndexDescriptor)
     {
       for (String name : RebuildIndexTask.INDEXES_NOT_TO_SPECIFY)
       {
         if (name.equalsIgnoreCase(index.getName()))
         {
-          mustBeDisplayed = false;
-          break;
+          return false;
         }
       }
     }
-    return mustBeDisplayed;
+    return true;
   }
 }

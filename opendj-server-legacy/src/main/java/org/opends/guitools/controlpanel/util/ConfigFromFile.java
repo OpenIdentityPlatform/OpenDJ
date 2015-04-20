@@ -24,10 +24,10 @@
  *      Copyright 2008-2011 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -59,7 +59,6 @@ import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.BackupBackendCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
@@ -79,7 +78,7 @@ import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.admin.std.server.RootDNUserCfg;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.TaskBackendCfg;
-import org.opends.server.backends.pluggable.SuffixContainer;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -234,46 +233,7 @@ public class ConfigFromFile extends ConfigReader
         if (backend instanceof LocalDBBackendCfg)
         {
           type = BackendDescriptor.Type.LOCAL_DB;
-          final LocalDBBackendCfg db = (LocalDBBackendCfg) backend;
-          try
-          {
-            for (final String indexName : db.listLocalDBIndexes())
-            {
-              final LocalDBIndexCfg index = db.getLocalDBIndex(indexName);
-              indexes.add(new IndexDescriptor(index.getAttribute().getNameOrOID(), index.getAttribute(), null,
-                  IndexTypeDescriptor.fromLocalDBIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
-            }
-          }
-          catch (final ConfigException ce)
-          {
-            errors.add(toConfigException(ce));
-          }
-          indexes.add(new IndexDescriptor(
-              SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-          if (db.isSubordinateIndexesEnabled())
-          {
-            indexes.add(new IndexDescriptor(
-                SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-            indexes.add(new IndexDescriptor(
-                SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-          }
-
-          try
-          {
-            for (final String vlvIndexName : db.listLocalDBVLVIndexes())
-            {
-              final LocalDBVLVIndexCfg index = db.getLocalDBVLVIndex(vlvIndexName);
-              final String s = index.getSortOrder();
-              final List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
-              vlvIndexes.add(new VLVIndexDescriptor(
-                  index.getName(), null, index.getBaseDN(), VLVIndexDescriptor.toSearchScope(index.getScope()),
-                  index.getFilter(), sortOrder));
-            }
-          }
-          catch (final ConfigException ce)
-          {
-            errors.add(toConfigException(ce));
-          }
+          refreshLocalDBBackendConfig(errors, backend, indexes, vlvIndexes);
         }
         else if (backend instanceof PluggableBackendCfg)
         {
@@ -335,13 +295,10 @@ public class ConfigFromFile extends ConfigReader
   private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<OpenDsException> errors,
       final PluggableBackendCfg db)
   {
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.DN2ID_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
     // FIXME: Remove the two following indexes when they will be deleted
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.ID2CHILDREN_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
-    indexes.add(new IndexDescriptor(
-        SuffixContainer.ID2SUBTREE_INDEX_NAME, null, null, new TreeSet<IndexTypeDescriptor>(), -1));
+    indexes.add(new IndexDescriptor(ID2CHILDREN_INDEX_NAME));
+    indexes.add(new IndexDescriptor(ID2SUBTREE_INDEX_NAME));
     try
     {
       for (final String indexName : db.listBackendIndexes())
@@ -378,34 +335,73 @@ public class ConfigFromFile extends ConfigReader
     }
   }
 
-  private boolean readIfReplicationIsSecure(final RootCfg root, final List<OpenDsException> errors)
+  @RemoveOnceLocalDBBackendIsPluggable
+  private void refreshLocalDBBackendConfig(final List<OpenDsException> errors, final BackendCfg backend,
+      final Set<IndexDescriptor> indexes, final Set<VLVIndexDescriptor> vlvIndexes)
   {
-    boolean isReplicationSecure = false;
+    final LocalDBBackendCfg db = (LocalDBBackendCfg) backend;
     try
     {
-      final CryptoManagerCfg cryptoManager = root.getCryptoManager();
-      isReplicationSecure = cryptoManager.isSSLEncryption();
+      for (final String indexName : db.listLocalDBIndexes())
+      {
+        final LocalDBIndexCfg index = db.getLocalDBIndex(indexName);
+        indexes.add(new IndexDescriptor(index.getAttribute().getNameOrOID(), index.getAttribute(), null,
+            IndexTypeDescriptor.fromLocalDBIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
+      }
     }
     catch (final ConfigException ce)
     {
       errors.add(toConfigException(ce));
     }
-    return isReplicationSecure;
+    indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
+    if (db.isSubordinateIndexesEnabled())
+    {
+      indexes.add(new IndexDescriptor(ID2CHILDREN_INDEX_NAME));
+      indexes.add(new IndexDescriptor(ID2SUBTREE_INDEX_NAME));
+    }
+
+    try
+    {
+      for (final String vlvIndexName : db.listLocalDBVLVIndexes())
+      {
+        final LocalDBVLVIndexCfg index = db.getLocalDBVLVIndex(vlvIndexName);
+        final String s = index.getSortOrder();
+        final List<VLVSortOrder> sortOrder = getVLVSortOrder(s);
+        vlvIndexes.add(new VLVIndexDescriptor(index.getName(), null, index.getBaseDN(), VLVIndexDescriptor
+            .toSearchScope(index.getScope()), index.getFilter(), sortOrder));
+      }
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+    }
+  }
+
+  private boolean readIfReplicationIsSecure(final RootCfg root, final List<OpenDsException> errors)
+  {
+    try
+    {
+      return root.getCryptoManager().isSSLEncryption();
+    }
+    catch (final ConfigException ce)
+    {
+      errors.add(toConfigException(ce));
+      return false;
+    }
   }
 
   private ReplicationSynchronizationProviderCfg readSyncProviderIfExists(final RootCfg root)
   {
     replicationPort = -1;
-    ReplicationSynchronizationProviderCfg sync = null;
     try
     {
-      sync = (ReplicationSynchronizationProviderCfg) root.getSynchronizationProvider("Multimaster Synchronization");
+      return (ReplicationSynchronizationProviderCfg) root.getSynchronizationProvider("Multimaster Synchronization");
     }
     catch (final ConfigException ce)
     {
       // Ignore this one
+      return null;
     }
-    return sync;
   }
 
   private void readReplicationConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,
