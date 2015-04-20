@@ -424,7 +424,7 @@ public class FileBasedKeyManagerProvider
       }
     }
 
-    return startSize != unacceptableReasons.size();
+    return startSize == unacceptableReasons.size();
   }
 
   private String readPinFromFile(File pinFile, String fileName, DN cfgEntryDN,
