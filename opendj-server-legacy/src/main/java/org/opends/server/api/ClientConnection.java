@@ -1107,8 +1107,8 @@ public abstract class ClientConnection
       return new HashSet<Privilege>(0);
     }
 
-    HashSet<Privilege> newPrivileges = new HashSet<Privilege>();
-    HashSet<Privilege> removePrivileges = new HashSet<Privilege>();
+    HashSet<Privilege> newPrivileges = new HashSet<>();
+    HashSet<Privilege> removePrivileges = new HashSet<>();
 
     if (isRoot)
     {
@@ -1164,10 +1164,7 @@ public abstract class ClientConnection
       }
     }
 
-    for (Privilege p : removePrivileges)
-    {
-      newPrivileges.remove(p);
-    }
+    newPrivileges.removeAll(removePrivileges);
 
     return newPrivileges;
   }
