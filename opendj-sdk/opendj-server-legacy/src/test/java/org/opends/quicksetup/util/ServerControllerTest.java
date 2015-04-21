@@ -26,7 +26,7 @@
  */
 package org.opends.quicksetup.util;
 
-import static junit.framework.Assert.*;
+import static org.testng.Assert.*;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
@@ -39,11 +39,12 @@ import org.testng.annotations.Test;
 /**
  * ServerController Tester.
  */
+@SuppressWarnings("javadoc")
 @Test(groups = {"slow"})
 public class ServerControllerTest extends QuickSetupTestCase {
 
-  ServerController controller;
-  Status status;
+  private ServerController controller;
+  private Status status;
 
   @BeforeClass
   public void setUp() throws Exception {
@@ -63,7 +64,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
     }
     assertTrue(status.isServerRunning());
     controller.stopServer();
-    assertTrue(!status.isServerRunning());
+    assertFalse(status.isServerRunning());
   }
 
   /**
@@ -75,9 +76,8 @@ public class ServerControllerTest extends QuickSetupTestCase {
     if (status.isServerRunning()) {
       controller.stopServer();
     }
-    assertTrue(!status.isServerRunning());
+    assertFalse(status.isServerRunning());
     controller.startServer();
     assertTrue(status.isServerRunning());
   }
-
 }
