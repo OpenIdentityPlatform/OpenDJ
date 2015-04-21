@@ -49,7 +49,7 @@ public class ConfigurationTest extends QuickSetupTestCase {
   @Test(enabled = false)
   public void testGetDirectoryManagerDns() throws IOException {
     Set<String> dns = config.getDirectoryManagerDns();
-    assertTrue(dns.size() > 0);
+    assertFalse(dns.isEmpty());
   }
 
   @Test(enabled = false)
@@ -87,7 +87,7 @@ public class ConfigurationTest extends QuickSetupTestCase {
 
   @Test(enabled = false)
   public void testGetDatabasePaths() throws IOException {
-    assertTrue(config.getDatabasePaths().size() > 0);
+    assertTrue(!config.getDatabasePaths().isEmpty());
   }
 
   @Test(enabled = false)

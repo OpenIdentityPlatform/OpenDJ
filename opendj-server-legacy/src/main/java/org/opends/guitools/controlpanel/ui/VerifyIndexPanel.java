@@ -383,7 +383,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -509,7 +509,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
             && type != Task.Type.EXPORT_LDIF
             && type != Task.Type.ENABLE_WINDOWS_SERVICE
             && type != Task.Type.DISABLE_WINDOWS_SERVICE
-            && backends.size() > 0)
+            && !backends.isEmpty())
         {
           incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;

@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.io.File;
@@ -969,67 +968,57 @@ public class ControlPanelInfo
   private static String getURL(ServerDescriptor server,
       ConnectionHandlerDescriptor.Protocol protocol)
   {
+    String sProtocol = toString(protocol);
+
     String url = null;
-
-    String sProtocol = null;
-    switch (protocol)
-    {
-    case LDAP:
-      sProtocol = "ldap";
-      break;
-    case LDAPS:
-      sProtocol = "ldaps";
-      break;
-    case LDAP_STARTTLS:
-      sProtocol = "ldap";
-      break;
-    case JMX:
-      sProtocol = "jmx";
-      break;
-    case JMXS:
-      sProtocol = "jmxs";
-      break;
-    }
-
     for (ConnectionHandlerDescriptor desc : server.getConnectionHandlers())
     {
       if ((desc.getState() == ConnectionHandlerDescriptor.State.ENABLED) &&
           (desc.getProtocol() == protocol))
       {
         int port = desc.getPort();
-        SortedSet<InetAddress> addresses = desc.getAddresses();
-        if (addresses.size() == 0)
+        if (port > 0)
         {
-          if (port > 0)
+          if (server.isLocal())
           {
-            if (server.isLocal())
+            SortedSet<InetAddress> addresses = desc.getAddresses();
+            if (addresses.isEmpty())
             {
               url = sProtocol +"://localhost:"+port;
             }
             else
             {
-              url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
-            }
-          }
-        }
-        else
-        {
-          if (port > 0)
-          {
-            if (server.isLocal())
-            {
               InetAddress address = addresses.first();
               url = sProtocol + "://" + getHostNameForLdapUrl(address.getHostAddress()) + ":" + port;
             }
-            else
-            {
-              url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
-            }
+          }
+          else
+          {
+            url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
           }
         }
       }
     }
     return url;
+  }
+
+  private static String toString(ConnectionHandlerDescriptor.Protocol protocol)
+  {
+    switch (protocol)
+    {
+    case LDAP:
+      return "ldap";
+    case LDAPS:
+      return "ldaps";
+    case LDAP_STARTTLS:
+      return "ldap";
+    case JMX:
+      return "jmx";
+    case JMXS:
+      return "jmxs";
+    default:
+      return null;
+    }
   }
 
   /**
@@ -1045,15 +1034,15 @@ public class ControlPanelInfo
     {
       int port = desc.getPort();
       SortedSet<InetAddress> addresses = desc.getAddresses();
-      if (addresses.size() == 0) {
-        if (port > 0) {
-          return getLDAPUrl("localhost", port, true);
+      if (port > 0) {
+        if (!addresses.isEmpty())
+        {
+          String hostAddr = addresses.first().getHostAddress();
+          return getLDAPUrl(hostAddr, port, true);
         }
-      } else {
-        if (port > 0) {
-          InetAddress address = addresses.first();
-          String a = address.getHostAddress();
-          return getLDAPUrl(a, port, true);
+        else
+        {
+          return getLDAPUrl("localhost", port, true);
         }
       }
     }

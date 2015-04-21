@@ -85,13 +85,10 @@ public abstract class IndexTask extends Task
     initializeBackendSet();
   }
 
-  /**
-   * Initialize the list of backends that are affected by this task.
-   *
-   */
+  /** Initialize the list of backends that are affected by this task. */
   private void initializeBackendSet()
   {
-    backendSet = new TreeSet<String>();
+    backendSet = new TreeSet<>();
     DN theDN = null;
     for (String baseDN : baseDNs)
     {
@@ -101,26 +98,28 @@ public abstract class IndexTask extends Task
       }
       catch (Throwable t)
       {
-        throw new IllegalArgumentException("Could not decode dn "+
-            baseDN, t);
+        throw new IllegalArgumentException("Could not decode dn " + baseDN, t);
       }
-      for (BackendDescriptor backend :
-        getInfo().getServerDescriptor().getBackends())
+      BackendDescriptor backend = findBackendByID(theDN);
+      if (backend != null) {
+        backendSet.add(backend.getBackendID());
+      }
+    }
+  }
+
+  private BackendDescriptor findBackendByID(DN dn)
+  {
+    for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
+    {
+      for (BaseDNDescriptor b : backend.getBaseDns())
       {
-        for (BaseDNDescriptor b : backend.getBaseDns())
+        if (b.getDn().equals(dn))
         {
-          if (b.getDn().equals(theDN))
-          {
-            backendSet.add(backend.getBackendID());
-            break;
-          }
-        }
-        if (backendSet.size() > 0)
-        {
-          break;
+          return backend;
         }
       }
     }
+    return null;
   }
 
   /** {@inheritDoc} */

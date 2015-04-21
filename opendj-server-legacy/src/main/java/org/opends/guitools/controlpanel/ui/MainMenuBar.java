@@ -102,7 +102,7 @@ public class MainMenuBar extends GenericMenuBar
       }
     }
     boolean confirmed = true;
-    if (runningTasks.size() > 0)
+    if (!runningTasks.isEmpty())
     {
       String allTasks = Utilities.getStringFromCollection(runningTasks, "<br>");
       LocalizableMessage title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
@@ -259,7 +259,7 @@ public class MainMenuBar extends GenericMenuBar
       }
     }
     boolean confirmed = true;
-    if (runningTasks.size() > 0)
+    if (!runningTasks.isEmpty())
     {
       String allTasks = Utilities.getStringFromCollection(runningTasks, "<br>");
       LocalizableMessage title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();

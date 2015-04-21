@@ -341,7 +341,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

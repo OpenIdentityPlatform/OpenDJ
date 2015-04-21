@@ -761,7 +761,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         }
       }
     }
-    if (javaHomeErrors.size() == 0)
+    if (javaHomeErrors.isEmpty())
     {
       final Set<String> providedArguments = new HashSet<String>();
       for (JavaArgumentsDescriptor cmd : getCurrentJavaArguments())
@@ -833,7 +833,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
                 }
               }
             }
-            if (notWorkingArgs.size() > 0)
+            if (!notWorkingArgs.isEmpty())
             {
               File javaFile = getJavaFile(new File(jvm));
               LocalizableMessage confirmationMessage;
@@ -974,7 +974,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     {
       task.canLaunch(newTask, errors);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_UPDATING_JAVA_SETTINGS_SUMMARY.get(),
@@ -1392,13 +1392,11 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           return false;
         }
       }

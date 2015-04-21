@@ -448,12 +448,11 @@ public class NewAttributePanel extends StatusGenericPanel
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get(), getInfo());
     NewSchemaElementsTask newTask = null;
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
-      LinkedHashSet<AttributeType> attributes =
-        new LinkedHashSet<AttributeType>();
+      LinkedHashSet<AttributeType> attributes = new LinkedHashSet<>();
       attributes.add(getAttribute());
-      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<ObjectClass>(0);
+      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<>(0);
       newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, attributes);
       for (Task task : getInfo().getTasks())
       {
@@ -465,7 +464,7 @@ public class NewAttributePanel extends StatusGenericPanel
         newTask.addConfigurationElementCreatedListener(listener);
       }
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       String attrName = getAttributeName();
       launchOperation(newTask,

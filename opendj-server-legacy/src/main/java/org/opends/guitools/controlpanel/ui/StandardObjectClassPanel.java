@@ -335,7 +335,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
         otherNames.add(name);
       }
     }
-    if (otherNames.size() > 0)
+    if (!otherNames.isEmpty())
     {
       n = Utilities.getStringFromCollection(otherNames, ", ");
     }

@@ -148,7 +148,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

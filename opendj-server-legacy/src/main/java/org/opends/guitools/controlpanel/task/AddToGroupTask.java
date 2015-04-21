@@ -142,7 +142,7 @@ public class AddToGroupTask extends Task
       // has not a lot of impact.
       Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
         incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         return false;
@@ -169,7 +169,7 @@ public class AddToGroupTask extends Task
       {
         final Collection<ModificationItem> modifications =
           getModifications(groupDn, dns);
-        if (modifications.size() > 0)
+        if (!modifications.isEmpty())
         {
           ModificationItem[] mods =
           new ModificationItem[modifications.size()];
@@ -281,10 +281,9 @@ public class AddToGroupTask extends Task
             dnsToAdd.add(newDn.toString());
           }
         }
-        if (dnsToAdd.size() > 0)
+        if (!dnsToAdd.isEmpty())
         {
-          Attribute attribute =
-            new BasicAttribute(memberAttr);
+          Attribute attribute = new BasicAttribute(memberAttr);
           for (String dn : dnsToAdd)
           {
             attribute.add(dn);

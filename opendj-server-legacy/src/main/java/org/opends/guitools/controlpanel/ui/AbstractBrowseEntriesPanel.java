@@ -1154,7 +1154,7 @@ implements BackendPopulatedListener
             model.addElement(newElement);
           }
           // If there are not backends, we get no indexes to set.
-          if (newElements.size() > 0)
+          if (!newElements.isEmpty())
           {
             model.addElement(COMBO_SEPARATOR);
           }

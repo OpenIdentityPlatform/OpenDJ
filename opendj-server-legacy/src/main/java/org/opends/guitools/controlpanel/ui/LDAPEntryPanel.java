@@ -566,33 +566,36 @@ implements EntryReadListener
       {
         task.canLaunch(newTask, errors);
       }
-      if ((errors.size() == 0) && newTask.hasModifications())
+
+      if (errors.isEmpty())
       {
-        String dn = entry.getName().toString();
-        launchOperation(newTask,
-            INFO_CTRL_PANEL_MODIFYING_ENTRY_SUMMARY.get(dn),
-            INFO_CTRL_PANEL_MODIFYING_ENTRY_COMPLETE.get(),
-            INFO_CTRL_PANEL_MODIFYING_ENTRY_SUCCESSFUL.get(dn),
-            ERR_CTRL_PANEL_MODIFYING_ENTRY_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_MODIFYING_ENTRY_ERROR_DETAILS.get(dn),
-            null,
-            dlg);
-        saveChanges.setEnabled(false);
-        dlg.setVisible(true);
-      }
-      else if (errors.size() == 0)
-      {
-        // Mark the panel as it has no changes.  This can happen because every
-        // time the user types something the saveChanges button is enabled
-        // (for performance reasons with huge entries).
-        saveChanges.setEnabled(false);
+        if (newTask.hasModifications()) {
+          String dn = entry.getName().toString();
+          launchOperation(newTask,
+              INFO_CTRL_PANEL_MODIFYING_ENTRY_SUMMARY.get(dn),
+              INFO_CTRL_PANEL_MODIFYING_ENTRY_COMPLETE.get(),
+              INFO_CTRL_PANEL_MODIFYING_ENTRY_SUCCESSFUL.get(dn),
+              ERR_CTRL_PANEL_MODIFYING_ENTRY_ERROR_SUMMARY.get(),
+              ERR_CTRL_PANEL_MODIFYING_ENTRY_ERROR_DETAILS.get(dn),
+              null,
+              dlg);
+          saveChanges.setEnabled(false);
+          dlg.setVisible(true);
+        }
+        else
+        {
+          // Mark the panel as it has no changes.  This can happen because every
+          // time the user types something the saveChanges button is enabled
+          // (for performance reasons with huge entries).
+          saveChanges.setEnabled(false);
+        }
       }
     }
     catch (OpenDsException ode)
     {
       errors.add(ERR_CTRL_PANEL_INVALID_ENTRY.get(ode.getMessageObject()));
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -600,7 +603,7 @@ implements EntryReadListener
 
   private void deleteEntry()
   {
-    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<>();
     // Check that the entry is correct.
     // Rely in numsubordinates and hassubordinates
     boolean isLeaf = !BrowserController.getHasSubOrdinates(searchResult);
@@ -618,7 +621,7 @@ implements EntryReadListener
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         LocalizableMessage confirmationMessage =
           isLeaf ? INFO_CTRL_PANEL_DELETE_ENTRY_CONFIRMATION_DETAILS.get(
@@ -656,7 +659,7 @@ implements EntryReadListener
           }
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

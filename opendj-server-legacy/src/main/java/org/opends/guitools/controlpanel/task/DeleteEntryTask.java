@@ -175,10 +175,9 @@ public class DeleteEntryTask extends Task
       Set<String> backends =
         new TreeSet<String>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
-        incompatibilityReasons.add(getIncompatibilityMessage(this,
-            taskToBeLaunched));
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         return false;
       }
     }
@@ -238,10 +237,9 @@ public class DeleteEntryTask extends Task
               node.getDN(), de);
         }
       }
-      if (toNotify.size() > 0)
+      if (!toNotify.isEmpty())
       {
-        final List<BrowserNodeInfo> fToNotify =
-          new ArrayList<BrowserNodeInfo>(toNotify);
+        final List<BrowserNodeInfo> fToNotify = new ArrayList<>(toNotify);
         toNotify.clear();
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -384,9 +382,9 @@ public class DeleteEntryTask extends Task
       {
         lastProgressTime = t;
         final Collection<BrowserNodeInfo> fToNotify;
-        if (toNotify.size() > 0)
+        if (!toNotify.isEmpty())
         {
-          fToNotify = new ArrayList<BrowserNodeInfo>(toNotify);
+          fToNotify = new ArrayList<>(toNotify);
           toNotify.clear();
         }
         else
@@ -467,9 +465,9 @@ public class DeleteEntryTask extends Task
       toNotify.add(controller.getNodeInfoFromPath(path));
     }
     final Collection<BrowserNodeInfo> fToNotify;
-    if (toNotify.size() > 0)
+    if (!toNotify.isEmpty())
     {
-      fToNotify = new ArrayList<BrowserNodeInfo>(toNotify);
+      fToNotify = new ArrayList<>(toNotify);
       toNotify.clear();
     }
     else

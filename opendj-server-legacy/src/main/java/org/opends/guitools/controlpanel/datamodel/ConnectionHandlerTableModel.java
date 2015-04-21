@@ -252,19 +252,7 @@ implements Comparator<ConnectionHandlerDescriptor>
   private String getAddressPortString(ConnectionHandlerDescriptor desc)
   {
     Set<InetAddress> addresses = desc.getAddresses();
-    String returnValue;
-    if (addresses.size() == 0)
-    {
-      if (desc.getPort() > 0)
-      {
-        returnValue = String.valueOf(desc.getPort());
-      }
-      else
-      {
-        returnValue = INFO_NOT_APPLICABLE_LABEL.get().toString();
-      }
-    }
-    else
+    if (!addresses.isEmpty())
     {
       StringBuilder buf = new StringBuilder();
       buf.append("<html>");
@@ -282,9 +270,14 @@ implements Comparator<ConnectionHandlerDescriptor>
           buf.append(":").append(desc.getPort());
         }
       }
-      returnValue = buf.toString();
+      return buf.toString();
     }
-    return returnValue;
+
+    if (desc.getPort() > 0)
+    {
+      return String.valueOf(desc.getPort());
+    }
+    return INFO_NOT_APPLICABLE_LABEL.get().toString();
   }
 
   private String getProtocolString(ConnectionHandlerDescriptor desc)

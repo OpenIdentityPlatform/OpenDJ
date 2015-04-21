@@ -121,7 +121,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
       setPrimaryInvalid(lPassword);
       setPrimaryInvalid(lConfirmPassword);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -134,7 +134,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUMMARY.get(),
@@ -148,7 +148,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
         dlg.setVisible(true);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

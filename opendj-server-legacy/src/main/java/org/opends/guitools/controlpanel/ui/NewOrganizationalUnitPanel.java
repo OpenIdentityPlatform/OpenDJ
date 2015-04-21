@@ -138,7 +138,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
       }
     }
 
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       try
       {

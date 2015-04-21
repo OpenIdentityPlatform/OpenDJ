@@ -187,18 +187,23 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
             }
             i ++;
           }
-          if (selected.size() > 0)
+          if (!selected.isEmpty())
           {
-            int[] indArray = new int[indices.size()];
-            i = 0;
-            for (Integer index : indices)
-            {
-              indArray[i] = index;
-              i++;
-            }
-            list.setSelectedIndices(indArray);
+            list.setSelectedIndices(toIntArray(indices));
           }
           checkVisibility();
+        }
+
+        private int[] toIntArray(Set<Integer> indices)
+        {
+          int[] result = new int[indices.size()];
+          int i = 0;
+          for (Integer index : indices)
+          {
+            result[i] = index;
+            i++;
+          }
+          return result;
         }
       });
     }
@@ -407,7 +412,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -445,7 +450,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     {
       mb.append("<br> - ").append(baseDN.getDn());
     }
-    if (indirectBackendsToDelete.size() > 0)
+    if (!indirectBackendsToDelete.isEmpty())
     {
       mb.append("<br><br>");
       mb.append(

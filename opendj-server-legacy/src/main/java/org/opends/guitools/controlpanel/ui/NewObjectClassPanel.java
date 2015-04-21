@@ -309,11 +309,10 @@ public class NewObjectClassPanel extends StatusGenericPanel
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_OBJECTCLASS_PANEL_TITLE.get(), getInfo());
     NewSchemaElementsTask newTask = null;
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
-      LinkedHashSet<AttributeType> attributes =
-        new LinkedHashSet<AttributeType>(1);
-      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<ObjectClass>();
+      LinkedHashSet<AttributeType> attributes = new LinkedHashSet<>(0);
+      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<>(1);
       ocs.add(getObjectClass());
       newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, attributes);
       for (Task task : getInfo().getTasks())
@@ -326,7 +325,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
         newTask.addConfigurationElementCreatedListener(listener);
       }
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       String ocName = getObjectClassName();
       launchOperation(newTask,

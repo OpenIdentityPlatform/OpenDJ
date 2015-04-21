@@ -181,7 +181,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       }
     }
 
-    if (backendsToDelete.size() > 0)
+    if (!backendsToDelete.isEmpty())
     {
       if (sb.length() > 0)
       {
@@ -216,10 +216,9 @@ public class DeleteBaseDNAndBackendTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      Set<String> backends =
-        new TreeSet<String>(taskToBeLaunched.getBackends());
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
         incompatibilityReasons.add(
             getIncompatibilityMessage(this, taskToBeLaunched));

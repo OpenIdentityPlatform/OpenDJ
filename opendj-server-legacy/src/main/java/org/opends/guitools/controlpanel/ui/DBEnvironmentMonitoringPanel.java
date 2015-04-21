@@ -196,7 +196,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
           break;
         }
       }
-      if (attributes.size() > 0)
+      if (!attributes.isEmpty())
       {
         setOperationsToDisplay(attributes);
         updateTableSize();
@@ -207,7 +207,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     scroll.setVisible(backendsFound && !allAttributes.isEmpty());
     noDBsFound.setVisible(!backendsFound);
     noMonitoringFound.setVisible(backendsFound && allAttributes.isEmpty());
-    showOperations.setVisible(allAttributes.size() > 0);
+    showOperations.setVisible(!allAttributes.isEmpty());
   }
 
 

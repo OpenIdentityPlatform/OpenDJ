@@ -138,9 +138,9 @@ public class ModifyEntryTask extends Task
     {
       modifications.remove(passwordModification);
     }
-    hasModifications = modifications.size() > 0 ||
-    !oldDn.equals(newEntry.getName()) ||
-    (passwordModification != null);
+    hasModifications = !modifications.isEmpty()
+        || !oldDn.equals(newEntry.getName())
+        || passwordModification != null;
   }
 
   /**
@@ -195,13 +195,11 @@ public class ModifyEntryTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      Set<String> backends =
-        new TreeSet<String>(taskToBeLaunched.getBackends());
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
-        incompatibilityReasons.add(getIncompatibilityMessage(this,
-            taskToBeLaunched));
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         return false;
       }
     }
@@ -227,7 +225,7 @@ public class ModifyEntryTask extends Task
       useAdminCtx = controller.isConfigurationNode(node);
       if (!mustRename)
       {
-        if (modifications.size() > 0) {
+        if (!modifications.isEmpty()) {
           ModificationItem[] mods =
           new ModificationItem[modifications.size()];
           modifications.toArray(mods);
@@ -303,7 +301,7 @@ public class ModifyEntryTask extends Task
         ResetUserPasswordTask newTask = new ResetUserPasswordTask(getInfo(),
             getProgressDialog(), (BasicNode)treePath.getLastPathComponent(),
             controller, sPwd.toCharArray());
-        if ((modifications.size() > 0) || mustRename)
+        if (!modifications.isEmpty() || mustRename)
         {
           getProgressDialog().appendProgressHtml("<br><br>");
         }
@@ -569,7 +567,7 @@ public class ModifyEntryTask extends Task
         {
           vs.remove(rdnValue);
         }
-        if (vs.size() > 0)
+        if (!vs.isEmpty())
         {
           modifications.add(new ModificationItem(
               DirContext.ADD_ATTRIBUTE,
@@ -595,20 +593,20 @@ public class ModifyEntryTask extends Task
         }
         else
         {
-          if (toDelete.size() > 0)
+          if (!toDelete.isEmpty())
           {
             modifications.add(new ModificationItem(
                 DirContext.REMOVE_ATTRIBUTE,
                 createAttribute(attrName, toDelete)));
           }
-          if (toAdd.size() > 0)
+          if (!toAdd.isEmpty())
           {
             List<ByteString> vs = new ArrayList<ByteString>(toAdd);
             if (rdnValue != null)
             {
               vs.remove(rdnValue);
             }
-            if (vs.size() > 0)
+            if (!vs.isEmpty())
             {
               modifications.add(new ModificationItem(
                   DirContext.ADD_ATTRIBUTE,
@@ -644,7 +642,7 @@ public class ModifyEntryTask extends Task
           }
         }
       }
-      if (!found && (oldValues.size() > 0))
+      if (!found && !oldValues.isEmpty())
       {
         modifications.add(new ModificationItem(
             DirContext.REMOVE_ATTRIBUTE,

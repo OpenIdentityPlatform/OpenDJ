@@ -368,7 +368,7 @@ public class IndexPanel extends AbstractIndexPanel
       {
         task.canLaunch(newModifyTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         String attributeName = index.getName();
         String backendName = index.getBackend().getBackendID();
@@ -383,7 +383,7 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -548,12 +548,11 @@ public class IndexPanel extends AbstractIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }

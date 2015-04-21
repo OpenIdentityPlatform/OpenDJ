@@ -422,7 +422,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -612,9 +612,9 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+        final Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
           incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;

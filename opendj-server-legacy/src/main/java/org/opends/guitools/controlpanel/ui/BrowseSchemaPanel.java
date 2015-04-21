@@ -1284,7 +1284,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         }
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

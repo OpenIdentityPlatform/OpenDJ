@@ -1025,7 +1025,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         if (displayConfirmationDialog(
             INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),

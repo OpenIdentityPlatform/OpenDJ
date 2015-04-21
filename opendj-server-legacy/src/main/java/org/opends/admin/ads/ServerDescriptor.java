@@ -682,7 +682,7 @@ public class ServerDescriptor
         if (port == -1)
         {
           adsProperties.put(adsProps[i][0], "false");
-          if (p.size() > 0)
+          if (!p.isEmpty())
           {
             port = (Integer)p.iterator().next();
           }

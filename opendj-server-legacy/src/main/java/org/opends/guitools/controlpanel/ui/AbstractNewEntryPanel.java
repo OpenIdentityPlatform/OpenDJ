@@ -161,7 +161,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
   private void handleErrorsAndLaunchTask(ArrayList<LocalizableMessage> errors)
   {
     Entry entry = null;
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       try
       {
@@ -180,7 +180,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         errors.add(ERR_CTRL_PANEL_ENTRY_ALREADY_EXISTS.get(dn));
       }
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       final ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(), Utilities.getParentDialog(this),
@@ -194,7 +194,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         {
           task.canLaunch(newTask, errors);
         }
-        if (errors.size() == 0)
+        if (errors.isEmpty())
         {
           launchOperation(newTask,
               INFO_CTRL_PANEL_CREATING_NEW_ENTRY_SUMMARY.get(),
@@ -221,7 +221,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
