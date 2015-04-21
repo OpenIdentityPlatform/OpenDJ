@@ -51,11 +51,12 @@ import org.testng.annotations.Test;
 /**
  * FileManager Tester.
  */
+@SuppressWarnings("javadoc")
 @Test(groups = {"slow"}, sequential=true)
 public class FileManagerTest extends QuickSetupTestCase {
 
-  File fmWorkspace;
-  FileManager fileManager;
+  private File fmWorkspace;
+  private FileManager fileManager;
 
   @BeforeClass
   public void setUp() throws Exception {
@@ -121,22 +122,19 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     // Make sure files we deleted above were copied from the source dir
     assertTrue(t_f2b1.exists());
-    assertTrue(childOfS.equals(contentsOf(t_f2b1)));
+    assertEquals(childOfS, contentsOf(t_f2b1));
 
     assertTrue(t_d2b.exists());
 
     assertTrue(t_f1a.exists());
-    assertTrue(childOfS.equals(contentsOf(t_f1a)));
+    assertEquals(childOfS, contentsOf(t_f1a));
 
     // Make sure files that pre-existed didn't get touched
-    assertTrue(childOfT.equals(contentsOf(t_f1b)));
-    assertTrue(childOfT.equals(contentsOf(t_f2a)));
+    assertEquals(childOfT, contentsOf(t_f1b));
+    assertEquals(childOfT, contentsOf(t_f2a));
   }
 
-  /**
-   * Tests the rename.
-   * @throws Exception
-   */
+  /** Tests the rename. */
   @Test
   public void testRenameNonExistentTarget() throws Exception {
     File src = File.createTempFile("src", null);
@@ -330,7 +328,7 @@ public class FileManagerTest extends QuickSetupTestCase {
             FileManager.DeletionPolicy.DELETE_IMMEDIATELY);
     assertTrue(dir.exists());
     // Make sure we didn't lose any kids
-    assertTrue(childCount == countSelfAndAllChildren(dir));
+    assertEquals(childCount, countSelfAndAllChildren(dir));
 
     // Test that using a filter to delete one file works
     FileFilter killChildFileFilter = new FileFilter() {
@@ -344,7 +342,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     fileManager.deleteRecursively(dir, killChildFileFilter,
             FileManager.DeletionPolicy.DELETE_IMMEDIATELY);
     assertTrue(dir.exists());
-    assertTrue((childCount -1) == countSelfAndAllChildren(dir));
+    assertEquals((childCount -1), countSelfAndAllChildren(dir));
     assertFalse(f2b1.exists());
   }
 
@@ -361,7 +359,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     assertTrue(children == null || children.length == 0);
     fileManager.copy(file, dir);
     assertTrue(file.exists());
-    assertTrue(dir.list().length == 1);
+    assertEquals(dir.list().length, 1);
   }
 
   /**
@@ -392,15 +390,13 @@ public class FileManagerTest extends QuickSetupTestCase {
     String ORIGINAL_CHILD_CONTENT = "orinld";
     writeContents(dirChild, ORIGINAL_CHILD_CONTENT);
 
-    // Try a copy without overwriting and make sure the original
-    // file didn't get replaced.
+    // Try a copy without overwriting and make sure the original file didn't get replaced.
     fileManager.copy(file, dir, false);
-    assertTrue(contentsOf(dirChild).equals(ORIGINAL_CHILD_CONTENT));
+    assertEquals(contentsOf(dirChild), ORIGINAL_CHILD_CONTENT);
 
-    // New try a copy with overwrite true and make sure the original
-    // file got replaced.
+    // New try a copy with overwrite true and make sure the original file got replaced.
     fileManager.copy(file, dir, true);
-    assertTrue(contentsOf(dirChild).equals(NEW_CHILD_CONTENT));
+    assertEquals(contentsOf(dirChild), NEW_CHILD_CONTENT);
   }
 
   /**
@@ -418,7 +414,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     File copiedSource = new File(dest, "source");
     assertTrue(copiedSource.exists());
-    assertTrue(count == countSelfAndAllChildren(copiedSource));
+    assertEquals(count, countSelfAndAllChildren(copiedSource));
   }
 
   /**
@@ -447,7 +443,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     File copiedSource = new File(dest, "source");
     assertFalse(copiedSource.exists());
-    assertTrue(countSelfAndAllChildren(dest) == 1);
+    assertEquals(countSelfAndAllChildren(dest), 1);
 
     // Test that using a filter to delete one file works
     FileFilter copyChildFileFilter = new FileFilter() {
@@ -461,11 +457,11 @@ public class FileManagerTest extends QuickSetupTestCase {
     File copiedD2b = new File(d2, "d2b");
     final File copiedF2b1 = new File(d2b, "f2b1");
     assertTrue(copiedSource.exists());
-    assertTrue(countSelfAndAllChildren(copiedSource) == 4);
+    assertEquals(countSelfAndAllChildren(copiedSource), 4);
     assertTrue(copiedD2.exists());
-    assertTrue(countSelfAndAllChildren(copiedD2) == 3);
+    assertEquals(countSelfAndAllChildren(copiedD2), 3);
     assertTrue(copiedD2b.exists());
-    assertTrue(countSelfAndAllChildren(copiedD2b) == 2);
+    assertEquals(countSelfAndAllChildren(copiedD2b), 2);
     assertTrue(copiedF2b1.exists());
   }
 
@@ -501,11 +497,11 @@ public class FileManagerTest extends QuickSetupTestCase {
     };
     // With overwrite off make sure it doesn't get replaced
     fileManager.copyRecursively(source, dest, copyChildFileFilter, false);
-    assertTrue(ORIGINAL.equals(contentsOf(copiedF2b1)));
+    assertEquals(ORIGINAL, contentsOf(copiedF2b1));
 
     // Now with overwrite make sure it gets replaced.
     fileManager.copyRecursively(source, dest, copyChildFileFilter, true);
-    assertTrue(ORIGINAL.equals(contentsOf(copiedF2b1)));
+    assertEquals(ORIGINAL, contentsOf(copiedF2b1));
   }
 
   @DataProvider(name = "differTestData")

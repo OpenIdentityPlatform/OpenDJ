@@ -71,7 +71,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == 1);
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -107,11 +107,11 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
    * @param expectedValue to compare
    */
   @Test(dataProvider = "stringLimitData")
-  public void testLowerLimit2(String limit, Long expectedValue) {
+  public void testLowerLimit2(String limit, long expectedValue) {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(limit);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == expectedValue);
+    assertEquals(spd.getLowerLimit(), expectedValue);
   }
 
   /**
@@ -122,7 +122,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == 1);
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -131,11 +131,11 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
    * @param expectedValue to compare
    */
   @Test(dataProvider = "stringLimitData")
-  public void testUpperLimit2(String limit, long expectedValue) {
+  public void testUpperLimit2(String limit, Long expectedValue) {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setUpperLimit(limit);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getUpperLimit().equals(expectedValue));
+    assertEquals(spd.getUpperLimit(), expectedValue);
   }
 
   /**

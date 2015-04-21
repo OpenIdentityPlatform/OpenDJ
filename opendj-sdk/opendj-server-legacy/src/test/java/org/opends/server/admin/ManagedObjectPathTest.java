@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.admin;
 
-
-
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import org.opends.server.DirectoryServerTestCase;
@@ -48,8 +46,6 @@ import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-
 
 /**
  * ManagedObjectPath test cases.
@@ -121,7 +117,7 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
   @Test
   public void testEmptyPathHasNoRelation() {
     ManagedObjectPath<?, ?> path = ManagedObjectPath.emptyPath();
-    assertEquals(path.getRelationDefinition(), null);
+    assertNull(path.getRelationDefinition());
   }
 
 
@@ -300,20 +296,20 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
     assertTrue(child1.matches(child2));
     assertTrue(child2.matches(child1));
 
-    assertTrue(child1.equals(child1));
-    assertTrue(child2.equals(child2));
-    assertFalse(child1.equals(child2));
-    assertFalse(child2.equals(child1));
+    assertEquals(child1, child1);
+    assertEquals(child2, child2);
+    assertNotEquals(child1, child2);
+    assertNotEquals(child2, child1);
 
     assertFalse(child1.matches(child3));
     assertFalse(child2.matches(child3));
     assertFalse(child3.matches(child1));
     assertFalse(child3.matches(child2));
 
-    assertFalse(child1.equals(child3));
-    assertFalse(child2.equals(child3));
-    assertFalse(child3.equals(child1));
-    assertFalse(child3.equals(child2));
+    assertNotEquals(child1, child3);
+    assertNotEquals(child2, child3);
+    assertNotEquals(child3, child1);
+    assertNotEquals(child3, child2);
   }
 
   /**

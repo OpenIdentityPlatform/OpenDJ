@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -446,16 +447,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "add: objectClass",
          "objectClass: extensibleObject");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -479,16 +471,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "add: objectClass",
          "objectClass: extensibleObject");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -508,16 +491,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "changetype: modify",
          "delete: attributeTypes");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -537,16 +511,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "changetype: modify",
          "replace: attributeTypes");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -573,16 +538,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -611,16 +567,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypesuccessfulnooid";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -649,16 +596,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypenospacebeforeparenthesis";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -691,16 +629,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-attrtype.ldif");
     assertFalse(schemaFile.exists());
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
     assertTrue(schemaFile.exists());
   }
@@ -747,7 +676,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -798,7 +727,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
     assertTrue(schemaFile.exists());
   }
@@ -821,16 +750,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "add: attributeTypes",
          "attributeTypes: invalidsyntax");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -854,16 +774,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.99999 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -887,16 +798,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -920,16 +822,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -953,16 +846,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -986,16 +870,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-APPROX 'xxxundefinedxxx' X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -1019,16 +894,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "USAGE xxxinvalidxxx X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -1057,16 +923,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -1096,16 +953,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
 
@@ -1129,16 +977,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN " +
               "'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1162,16 +1001,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN " +
               "'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1208,16 +1038,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1259,16 +1080,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1296,16 +1108,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypeundefined";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1333,16 +1136,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "name";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1370,16 +1164,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "uid";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1427,16 +1212,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypereferencedbynf";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1483,16 +1259,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypereferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1537,16 +1304,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveatrefbymruat";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -1580,16 +1338,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1618,16 +1367,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclasssuccessfulnooid";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1659,16 +1399,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-oc.ldif");
     assertFalse(schemaFile.exists());
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
     assertTrue(schemaFile.exists());
   }
@@ -1713,7 +1444,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1741,16 +1472,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclassmultipleconflicts";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1791,16 +1513,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremovethenaddobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1822,16 +1535,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "add: objectClasses",
          "objectClasses: invalidsyntax");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1854,16 +1558,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedSuperior' SUP undefined STRUCTURAL " +
               "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1890,16 +1585,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SUP testAddOCObsoleteSuperiorSup STRUCTURAL MUST cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1929,16 +1615,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "STRUCTURAL MUST testAddOCObsoleteRequiredAttrAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -1968,16 +1645,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "STRUCTURAL MAY testAddOCObsoleteOptionalAttrAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2000,16 +1668,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedRequired' SUP top STRUCTURAL " +
               "MUST undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2034,16 +1693,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2066,16 +1716,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedOptional' SUP top STRUCTURAL " +
               "MAY undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2100,16 +1741,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2132,16 +1764,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAbstractOCWithNonAbstractSuperior' SUP person " +
               "ABSTRACT MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2164,16 +1787,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAuxiliaryOCWithStructuralSuperior' SUP person " +
               "AUXILIARY MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2196,16 +1810,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddStructuralOCWithAuxiliarySuperior' SUP posixAccount " +
               "STRUCTURAL MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2238,16 +1843,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -2274,16 +1870,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "person";
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -2333,7 +1920,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(args), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -2372,20 +1959,20 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveobjectclassreferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
+    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+  }
+
+  private String[] standardArgs(String path)
+  {
+    return new String[] {
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-f", path
     };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2414,16 +2001,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2461,16 +2039,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-nameform.ldif");
     assertFalse(schemaFile.exists());
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
     assertTrue(schemaFile.exists());
   }
@@ -2505,16 +2074,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2549,16 +2109,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2592,16 +2143,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2636,16 +2178,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2672,16 +2205,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2714,16 +2238,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithauxiliaryoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2756,16 +2271,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithobsoleteoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2801,16 +2307,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST testAddNFWithObsoleteReqATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2845,16 +2342,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST cn MAY testAddNFWithObsoleteOptATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -2895,16 +2383,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformocconflict2";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertTrue(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2945,16 +2424,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovenameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -3001,16 +2471,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovethenaddnameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -3054,19 +2515,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "OC testRemoveNameFormReferencedByDSROC MUST cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     String nameFormName = "testremovenameformreferencedbydsrnf";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -3095,19 +2547,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleSuccessful' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     String ocName = "testaddditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -3162,7 +2605,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testreplaceditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -3199,15 +2642,6 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-dcr.ldif' " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     String ocName = "testadddcrtoaltschemafileoc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
@@ -3215,7 +2649,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-dcr.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -3264,19 +2698,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testRemoveThenAddDITContentRule' MAY sn " +
               "NOT description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     String ocName = "testremovethenaddditcontentruleoc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -3306,16 +2731,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3343,16 +2759,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxiliaryOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3380,16 +2787,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleObsoleteOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3425,16 +2823,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleConflictingOC2' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3462,16 +2851,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedAuxOC' " +
               "AUX xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3501,16 +2881,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3538,16 +2909,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxOCNotAuxOC' " +
               "AUX person X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3577,16 +2939,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ person ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3618,16 +2971,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX testAddDITContentRuleObsoleteAuxOCAuxiliary " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3655,16 +2999,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedReqAT' " +
               "MUST xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3694,16 +3029,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3731,16 +3057,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOptAT' " +
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3770,16 +3087,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3807,16 +3115,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedNotAT' " +
               "NOT xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3846,16 +3145,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT ( description $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3884,16 +3174,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqStructuralAT' " +
               "NOT cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3922,16 +3203,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqAuxiliaryAT' AUX posixAccount " +
               "NOT uid X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -3965,16 +3237,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST testAddDCRObsoleteReqATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -4008,16 +3271,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY testAddDCRObsoleteOptATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -4051,16 +3305,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT testAddDCRObsoleteNotATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -4095,19 +3340,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testRemoveDITContentRuleSuccessful' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     String ocName = "testremoveditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -4148,19 +3384,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDITStructureRuleSuccessfulNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999001;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4218,7 +3445,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999002;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4257,15 +3484,6 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-dsr.ldif' " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999010;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
@@ -4273,7 +3491,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-dsr.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
     assertTrue(schemaFile.exists());
@@ -4327,19 +3545,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testRemoveAndAddDITStructureRuleSuccessfulNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999003;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4364,19 +3573,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM xxxundefinedxxx " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999004;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4412,19 +3612,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDSRUndefinedSuperiorNF SUP 999000 " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999005;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4460,16 +3651,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDITStructureRuleObsoleteNameFormNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -4515,16 +3697,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDITStructureRuleObsoleteSuperiorNF2 SUP 999012 " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -4567,19 +3740,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testRemoveDITStructureRuleSuccessfulNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999006;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4635,19 +3799,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testRemoveSuperiorDITStructureRuleNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     int ruleID = 999007;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
 
@@ -4664,16 +3819,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testRemoveSuperiorDITStructureRuleNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    args = new String[]
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -4713,16 +3859,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4757,20 +3894,11 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
                                "98-schema-test-mru.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4822,7 +3950,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(args), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4868,16 +3996,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4916,16 +4035,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4953,16 +4063,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddMRUMRUndefined' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
   /**
@@ -4990,16 +4091,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -5029,16 +4121,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
   /**
@@ -5064,16 +4147,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertNotEquals(runModify(standardArgs(path)), 0);
   }
 
 
@@ -5106,16 +4180,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
+    assertNotEquals(runModify(standardArgs(path)), 0);
+  }
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  private int runModify(String[] args)
+  {
+    return LDAPModify.mainModify(args, false, null, null);
   }
 
   /**
@@ -5148,16 +4218,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -5197,16 +4258,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testattributetypesmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5242,16 +4294,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testobjectclassesmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(objectClassName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5295,16 +4338,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testnameformsmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5348,16 +4382,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testditcontentrulesmatchingruleoc";
     assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5425,16 +4450,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testditcontentrulesmatchingruleoc1";
     assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5486,16 +4502,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testmatchingruleusematchingruleat1";
     assertNull(DirectoryServer.getSchema().getAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 20);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
   }
 
 
@@ -5545,16 +4552,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "objectClasses: ( testissue1318oc2-oid NAME 'testIssue1381OC2' " +
               "MUST testIssue1381AT )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
   }
 
   /**
@@ -5562,10 +4560,9 @@ public class SchemaBackendTestCase extends BackendTestCase
    * are added without a space before closing parenthesis.
    */
   @Test
- public void   testAddAttributeTypeNoSpaceBeforeParenthesis() throws Exception
+  public void testAddAttributeTypeNoSpaceBeforeParenthesis() throws Exception
   {
-
-   String path = TestCaseUtils.createTempFile(
+    String path = TestCaseUtils.createTempFile(
            "dn: cn=schema",
            "changetype: modify",
            "add: attributeTypes",
@@ -5586,26 +4583,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               " caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch  " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 X-ORIGIN 'RFC 4519')");
 
-
-           String[] args =
-          {
-            "-h", "127.0.0.1",
-            "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-            "-D", "cn=Directory Manager",
-            "-w", "password",
-            "-f", path
-          };
-
-      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
-
-    }
-
-
-
-
-
-
-
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+  }
 
   /**
    * Tests to ensure that the schema subentry includes the lastmod attributes
@@ -5647,19 +4626,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
     // Sleep longer than the TimeThread delay to ensure the modifytimestamp
     // will be different.
     Thread.sleep(6000);
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
 
     schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
@@ -5670,10 +4640,13 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     ByteString newMTValue =
          schemaEntry.getAttribute(mtType).get(0).iterator().next();
-    assertFalse(oldMTValue.equals(newMTValue));
+    assertNotEquals(oldMTValue, newMTValue);
   }
 
-
+  private int runModifyWithSystemErr(String[] args)
+  {
+    return LDAPModify.mainModify(args, false, null, System.err);
+  }
 
   /**
    * Tests the ability to properly handle adding and removing a schema

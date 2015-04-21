@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class GenericBackendTestCase
   {
     DN[] baseDNs = b.getBaseDNs();
     assertNotNull(baseDNs);
-    assertFalse(baseDNs.length == 0);
+    assertNotEquals(baseDNs.length, 0);
   }
 
 

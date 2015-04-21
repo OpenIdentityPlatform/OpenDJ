@@ -396,8 +396,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
         List<Attribute> listBefore = entryBefore.getAttribute(attrType);
         List<Attribute> listAfter = entryAfter.getAttribute(attrType);
 
-        assertTrue(listAfter != null);
-
+        assertNotNull(listAfter);
         assertEquals(listBefore.size(), listAfter.size());
 
         for (Attribute attrBefore : listBefore) {

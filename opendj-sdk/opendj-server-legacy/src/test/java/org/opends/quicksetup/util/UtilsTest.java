@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup.util;
 
 import static org.testng.Assert.*;
@@ -52,7 +52,7 @@ public class UtilsTest extends DirectoryServerTestCase {
 
   @Test(dataProvider = "breakHtmlStringData")
   public void testBreakHtmlString(String s, int maxll, String expectedValue) {
-    assertTrue(Utils.breakHtmlString(s, maxll).equals(expectedValue));
+    assertEquals(Utils.breakHtmlString(s, maxll), expectedValue);
   }
 
   @DataProvider(name = "stripHtmlData")
@@ -71,7 +71,7 @@ public class UtilsTest extends DirectoryServerTestCase {
 
   @Test(enabled = false, dataProvider = "stripHtmlData")
   public void testStripHtml(String html, String expectedResult) {
-    assertTrue(expectedResult.equals(Utils.stripHtml(html)));
+    assertEquals(expectedResult, Utils.stripHtml(html));
   }
 
   @DataProvider(name = "containsHtmlData")
@@ -84,7 +84,6 @@ public class UtilsTest extends DirectoryServerTestCase {
 
   @Test(enabled = false, dataProvider = "containsHtmlData")
   public void testContainsHtml(String s, boolean expectedResult) {
-    assertTrue(expectedResult == Utils.containsHtml(s));
+    assertEquals(expectedResult, Utils.containsHtml(s));
   }
-
 }

@@ -27,25 +27,25 @@
 package org.opends.server.controls;
 
 import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.HashMap;
 import java.util.Set;
 
-import org.opends.server.types.*;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPReader;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Writer;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * Test password control.
  */
+@SuppressWarnings("javadoc")
 public class PasswordControlTest
     extends ControlsTestCase
 {
@@ -56,7 +56,6 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyErrorTypeData")
   public Object[][] createPasswordPolicyErrorTypeData()
   {
-
     HashMap<Integer, String> values = new HashMap<Integer, String>();
     values.put(0, "passwordExpired");
     values.put(1, "accountLocked");
@@ -67,9 +66,7 @@ public class PasswordControlTest
     values.put(6, "passwordTooShort");
     values.put(7, "passwordTooYoung");
     values.put(8, "passwordInHistory");
-    return new Object[][]
-    {
-    { values } };
+    return new Object[][] { { values } };
   }
 
   /**
@@ -129,13 +126,10 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyWarningTypeData")
   public Object[][] createPasswordPolicyWarningTypeData()
   {
-
     HashMap<Byte, String> values = new HashMap<Byte, String>();
     values.put((byte)0x80, "timeBeforeExpiration");
     values.put((byte)0x81, "graceAuthNsRemaining");
-    return new Object[][]
-    {
-    { values } };
+    return new Object[][] { { values } };
   }
 
   /**
@@ -166,7 +160,7 @@ public class PasswordControlTest
     // Retrieve the values
     PasswordPolicyWarningType[] vals = PasswordPolicyWarningType.values();
 
-    // Check if we have the correct munber
+    // Check if we have the correct number
     assertEquals(vals.length, exceptedValues.size());
 
     // Check if we have the correct byte value
@@ -187,17 +181,12 @@ public class PasswordControlTest
     for (int i = 0x70; i < 0x90; i++)
     {
       byte b = new Integer(i).byteValue();
-      if (keys.contains(b))
-      {
-        continue;
-      }
-      else
+      if (!keys.contains(b))
       {
         assertNull(PasswordPolicyWarningType.valueOf(b));
         PasswordPolicyWarningType val = PasswordPolicyWarningType.valueOf(b);
         assertNull(val);
       }
-
     }
   }
 
@@ -207,7 +196,6 @@ public class PasswordControlTest
   @DataProvider(name = "passwordExpiredControlData")
   public Object[][] createPasswordExpiredControlData()
   {
-
     return new Object[][] {
      { true },
      { false },
@@ -256,14 +244,10 @@ public class PasswordControlTest
     try
     {
       pec = PasswordExpiredControl.DECODER.decode(control.isCritical(), control.getValue());
-      assertTrue(false,
-          "should be allow to create a passwordExpiredControl with value");
+      fail("should be allow to create a passwordExpiredControl with value");
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
-      // Normal case
-      assertTrue(true,
-          "should be allow to create a passwordExpiredControl with value");
     }
 
     // Check toString
@@ -288,7 +272,6 @@ public class PasswordControlTest
   @DataProvider(name = "passwordExpiringControlData")
   public Object[][] createPasswordExpiringControlData()
   {
-
     return new Object[][] {
      { true,  1},
      { false, 2},
@@ -322,14 +305,10 @@ public class PasswordControlTest
     try
     {
       pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
-      assertTrue(false,
-          "shouldn't be allow to create PasswordExpiringControl without value");
+      fail("shouldn't be allowed to create PasswordExpiringControl without value");
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
-      // Normal case
-      assertTrue(true,
-          "shouldn't be allow to create PasswordExpiringControl without value");
     }
 
     control = new LDAPControl(OID_NS_PASSWORD_EXPIRING, isCritical,
@@ -337,14 +316,10 @@ public class PasswordControlTest
     try
     {
       pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
-      assertTrue(false,
-      "shouldn't be allow to create PasswordExpiringControl with a wrong value");
+      fail("shouldn't be allowed to create PasswordExpiringControl with a wrong value");
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
-      // Normal case
-      assertTrue(true,
-      "shouldn't be allow to create PasswordExpiringControl with a wrong value");
     }
 
     // Check encode/decode
@@ -366,7 +341,6 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyRequestControlData")
   public Object[][] createPasswordPolicyRequestControlData()
   {
-
     return new Object[][] {
      { true},
      { false},
@@ -409,14 +383,10 @@ public class PasswordControlTest
     try
     {
       pec = PasswordPolicyRequestControl.DECODER.decode(control.isCritical(), control.getValue());
-      assertTrue(false,
-          "should be allow to create a PasswordPolicyRequestControl with value");
+      fail("should be allow to create a PasswordPolicyRequestControl with value");
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
-      // Normal case
-      assertTrue(true,
-          "should be allow to create a PasswordPolicyRequestControl with value");
     }
 
     // Check toString
@@ -430,7 +400,6 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyResponseControl")
   public Object[][] createPasswordPolicyResponseControlData()
   {
-
     return new Object[][] {
      { true , -1},
      { false , -1},
@@ -443,8 +412,7 @@ public class PasswordControlTest
    * Test PasswordPolicyResponseControl.
    */
    @Test(dataProvider = "passwordPolicyResponseControl")
-  public void passwordPolicyResponseControlTest(
-      boolean isCritical, int warningValue)
+  public void passwordPolicyResponseControlTest(boolean isCritical, int warningValue)
       throws Exception
   {
     // Check default constructor
@@ -480,8 +448,7 @@ public class PasswordControlTest
     // PasswordPolicyErrorType errorType)
     for (PasswordPolicyErrorType errorType : PasswordPolicyErrorType.values())
     {
-      for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType
-          .values())
+      for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType.values())
       {
         pprc = new PasswordPolicyResponseControl(isCritical,
             warningType, warningValue, errorType);
@@ -495,17 +462,15 @@ public class PasswordControlTest
 
 
     // check encode/decode
-    PasswordPolicyResponseControl control ;
     ByteStringBuilder bsb = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(bsb);
     for (PasswordPolicyErrorType errorType : PasswordPolicyErrorType.values())
     {
-      for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType
-          .values())
+      for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType.values())
       {
         bsb.clear();
-        control = new PasswordPolicyResponseControl(isCritical,
-            warningType, warningValue, errorType);
+        PasswordPolicyResponseControl control = new PasswordPolicyResponseControl(
+            isCritical, warningType, warningValue, errorType);
         control.write(writer);
         LDAPControl c = LDAPReader.readControl(ASN1.getReader(bsb));
         pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
@@ -526,12 +491,10 @@ public class PasswordControlTest
         {
           c = new LDAPControl(OID_PASSWORD_POLICY_CONTROL, isCritical);
           pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
-          assertTrue(false,"the control should have a value");
+          fail("the control should have a value");
         }
-        catch (DirectoryException e)
+        catch (DirectoryException expected)
         {
-          // normal case
-          assertTrue(true,"the control should have a value");
         }
 
 
@@ -541,15 +504,8 @@ public class PasswordControlTest
             null, warningValue, errorType);
         control.write(writer);
         c = LDAPReader.readControl(ASN1.getReader(bsb));
-        try
-        {
-          pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
-          assertNull(pprc.getWarningType());
-        }
-        catch (DirectoryException e)
-        {
-          assertTrue(false,"We should be able to decode the control");
-        }
+        pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
+        assertNull(pprc.getWarningType());
 
         // check null error type
         bsb.clear();
@@ -557,15 +513,8 @@ public class PasswordControlTest
             warningType, warningValue, null);
         control.write(writer);
         c = LDAPReader.readControl(ASN1.getReader(bsb));
-        try
-        {
-          pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
-          assertNull(pprc.getErrorType());
-        }
-        catch (DirectoryException e)
-        {
-          assertTrue(false,"We should be able to decode the control");
-        }
+        pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
+        assertNull(pprc.getErrorType());
       }
     }
   }

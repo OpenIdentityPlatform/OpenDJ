@@ -27,6 +27,7 @@
 package org.opends.server.types;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -417,7 +418,7 @@ public class TestDN extends TypesTestCase {
   public void testNullDN() throws Exception {
     DN nullDN = DN.rootDN();
 
-    assertTrue(nullDN.size() == 0);
+    assertEquals(nullDN.size(), 0);
     assertEquals(nullDN.toString(), "");
   }
 
@@ -1151,11 +1152,9 @@ public class TestDN extends TypesTestCase {
     DN dn2 = DN.valueOf(second);
 
     if (result == 0) {
-      assertTrue(dn1.equals(dn2), "DN equality for <" + first
-          + "> and <" + second + ">");
+      assertEquals   (dn1, dn2, "DN equality for <" + first + "> and <" + second + ">");
     } else {
-      assertFalse(dn1.equals(dn2), "DN equality for <" + first
-          + "> and <" + second + ">");
+      assertNotEquals(dn1, dn2, "DN equality for <" + first + "> and <" + second + ">");
     }
   }
 
@@ -1171,7 +1170,7 @@ public class TestDN extends TypesTestCase {
   public void testEqualsNonDN() throws Exception {
     DN dn = DN.valueOf("dc=example,dc=com");
 
-    assertFalse(dn.equals("not a DN"));
+    assertNotEquals(dn, "not a DN");
   }
 
 
@@ -1198,15 +1197,11 @@ public class TestDN extends TypesTestCase {
     int h2 = dn2.hashCode();
 
     if (result == 0) {
-      if (h1 != h2) {
-        Assert.fail("Hash codes for <" + first + "> and <" + second
-            + "> should be the same.");
-      }
+      assertEquals(h1, h2,
+          "Hash codes for <" + first + "> and <" + second + "> should be the same.");
     } else {
-      if (h1 == h2) {
-        Assert.fail("Hash codes for <" + first + "> and <" + second
-            + "> should be the same.");
-      }
+      assertNotEquals(h1, h2,
+          "Hash codes for <" + first + "> and <" + second + "> should be the same.");
     }
   }
 

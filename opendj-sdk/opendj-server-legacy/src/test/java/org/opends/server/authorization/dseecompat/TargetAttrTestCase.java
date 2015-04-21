@@ -26,13 +26,14 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.Map;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -139,7 +140,7 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     checkAttributeVal(attrMap, "l", "Austin");
     checkAttributeVal(attrMap, "sn", "1");
@@ -147,7 +148,7 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList1);
-    Assert.assertFalse("".equals(userResults1));
+    assertNotEquals(userResults1, "");
     Map<String, String> attrMap1 = getAttrMap(userResults1);
     checkAttributeVal(attrMap1, "sn", "1");
     checkAttributeVal(attrMap1, "uid", "user.1");
@@ -157,7 +158,7 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
-    Assert.assertFalse("".equals(userResults2));
+    assertNotEquals(userResults2, "");
     Map<String, String> attrMap2 = getAttrMap(userResults2);
     checkAttributeVal(attrMap2, "l", "Austin");
     checkAttributeVal(attrMap2, "sn", "1");
@@ -178,13 +179,13 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     //The aci attribute type is operational, it should not be there.
     //The other two should be there.
-    Assert.assertFalse(attrMap.containsKey("aci"));
-    Assert.assertTrue(attrMap.containsKey("sn"));
-    Assert.assertTrue(attrMap.containsKey("uid"));
+    assertFalse(attrMap.containsKey("aci"));
+    assertTrue(attrMap.containsKey("sn"));
+    assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     //Add aci that allows both non-operational attributes and the operational
     //attribute "aci" search/read.
@@ -193,12 +194,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults1));
+    assertNotEquals(userResults1, "");
     Map<String, String> attrMap1 = getAttrMap(userResults1);
     //All three attributes should be there.
-    Assert.assertTrue(attrMap1.containsKey("aci"));
-    Assert.assertTrue(attrMap1.containsKey("sn"));
-    Assert.assertTrue(attrMap1.containsKey("uid"));
+    assertTrue(attrMap1.containsKey("aci"));
+    assertTrue(attrMap1.containsKey("sn"));
+    assertTrue(attrMap1.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     //Add ACI that only allows only aci operational attribute search/read.
     String aciLdif2=makeAddLDIF("aci", user1, opAttrAci);
@@ -206,12 +207,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
-    Assert.assertFalse("".equals(userResults2));
+    assertNotEquals(userResults2, "");
     Map<String, String> attrMap2 = getAttrMap(userResults2);
     // Only operational attribute aci should be there, the other two should not.
-    Assert.assertTrue(attrMap2.containsKey("aci"));
-    Assert.assertFalse(attrMap2.containsKey("sn"));
-    Assert.assertFalse(attrMap2.containsKey("uid"));
+    assertTrue(attrMap2.containsKey("aci"));
+    assertFalse(attrMap2.containsKey("sn"));
+    assertFalse(attrMap2.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
   }
 
@@ -229,12 +230,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     //All should be returned.
-    Assert.assertTrue(attrMap.containsKey("aci"));
-    Assert.assertTrue(attrMap.containsKey("sn"));
-    Assert.assertTrue(attrMap.containsKey("uid"));
+    assertTrue(attrMap.containsKey("aci"));
+    assertTrue(attrMap.containsKey("sn"));
+    assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
   }
 
@@ -253,12 +254,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     //Only aci should be returned.
-    Assert.assertTrue(attrMap.containsKey("aci"));
-    Assert.assertFalse(attrMap.containsKey("sn"));
-    Assert.assertFalse(attrMap.containsKey("uid"));
+    assertTrue(attrMap.containsKey("aci"));
+    assertFalse(attrMap.containsKey("sn"));
+    assertFalse(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
   }
 
@@ -277,12 +278,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     //All should be returned.
-    Assert.assertTrue(attrMap.containsKey("aci"));
-    Assert.assertTrue(attrMap.containsKey("sn"));
-    Assert.assertTrue(attrMap.containsKey("uid"));
+    assertTrue(attrMap.containsKey("aci"));
+    assertTrue(attrMap.containsKey("sn"));
+    assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
   }
 
@@ -302,12 +303,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
     //All should be returned.
-    Assert.assertTrue(attrMap.containsKey("aci"));
-    Assert.assertTrue(attrMap.containsKey("sn"));
-    Assert.assertTrue(attrMap.containsKey("uid"));
+    assertTrue(attrMap.containsKey("aci"));
+    assertTrue(attrMap.containsKey("sn"));
+    assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     //Add two ACIs, one with '+' and the other with '*'.
     String aciLdif1=makeAddLDIF("aci", user1, allOpAttrAci1, userAttrAci);
@@ -315,12 +316,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
-    Assert.assertFalse("".equals(userResults1));
+    assertNotEquals(userResults1, "");
     Map<String, String> attrMap1 = getAttrMap(userResults1);
     //All should be returned.
-    Assert.assertTrue(attrMap1.containsKey("aci"));
-    Assert.assertTrue(attrMap1.containsKey("sn"));
-    Assert.assertTrue(attrMap1.containsKey("uid"));
+    assertTrue(attrMap1.containsKey("aci"));
+    assertTrue(attrMap1.containsKey("sn"));
+    assertTrue(attrMap1.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
         //Add two ACIs, one with '+' and the other with '*'.
     String aciLdif2=makeAddLDIF("aci", user1, notAllOpAttrAci1, userAttrAci);
@@ -328,12 +329,12 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
-    Assert.assertFalse("".equals(userResults2));
+    assertNotEquals(userResults2, "");
     Map<String, String> attrMap2 = getAttrMap(userResults2);
     //Only non-operation should be returned.
-    Assert.assertFalse(attrMap2.containsKey("aci"));
-    Assert.assertTrue(attrMap2.containsKey("sn"));
-    Assert.assertTrue(attrMap2.containsKey("uid"));
+    assertFalse(attrMap2.containsKey("aci"));
+    assertTrue(attrMap2.containsKey("sn"));
+    assertTrue(attrMap2.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
   }
 
@@ -349,11 +350,11 @@ public class TargetAttrTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
-    Assert.assertFalse("".equals(userResults));
+    assertNotEquals(userResults, "");
     Map<String, String> attrMap = getAttrMap(userResults);
-    Assert.assertTrue(attrMap.containsKey("l"));
-    Assert.assertTrue(attrMap.containsKey("sn"));
-    Assert.assertTrue(attrMap.containsKey("uid"));
+    assertTrue(attrMap.containsKey("l"));
+    assertTrue(attrMap.containsKey("sn"));
+    assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     String aciLdif1=makeAddLDIF("aci", user1, grp1AttrAci);
     LDIFModify(aciLdif1, DIR_MGR_DN, PWD);
@@ -361,14 +362,14 @@ public class TargetAttrTestCase extends AciTestCase {
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
     //This search should return nothing since the URL has a bogus DN.
-    Assert.assertTrue("".equals(userResults1));
+    assertEquals("", userResults1);
   }
 
   private void
   checkAttributeVal(Map<String, String> attrMap, String attr,
                       String val) throws Exception {
     String mapVal=attrMap.get(attr);
-    Assert.assertTrue(mapVal.equals(val));
+    assertEquals(mapVal, val);
   }
 
   /** New tests to really unit test the isApplicable method. */
@@ -415,7 +416,6 @@ public class TargetAttrTestCase extends AciTestCase {
     if (attrType == null) {
       attrType = DirectoryServer.getDefaultAttributeType(attribute);
     }
-    boolean res = TargetAttr.isApplicable(attrType, targetAttr);
-    Assert.assertEquals(res, expectedResult);
+    assertEquals(TargetAttr.isApplicable(attrType, targetAttr), expectedResult);
   }
 }

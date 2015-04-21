@@ -28,6 +28,7 @@ package org.opends.server.types;
 
 import java.util.ArrayList;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -483,7 +484,7 @@ public final class TestRDN extends TypesTestCase {
     RDN rdn1 = new RDN(AT_DC, AV_DC_ORG);
     RDN rdn2 = rdn1.duplicate();
 
-    assertFalse(rdn1 == rdn2);
+    assertNotSame(rdn1, rdn2);
     assertEquals(rdn1, rdn2);
   }
 
@@ -504,7 +505,7 @@ public final class TestRDN extends TypesTestCase {
     RDN rdn1 = new RDN(types, names, values);
     RDN rdn2 = rdn1.duplicate();
 
-    assertFalse(rdn1 == rdn2);
+    assertNotSame(rdn1, rdn2);
     assertEquals(rdn1, rdn2);
   }
 
@@ -564,11 +565,11 @@ public final class TestRDN extends TypesTestCase {
     RDN rdn2 = RDN.decode(second);
 
     if (result == 0) {
-      assertTrue(rdn1.equals(rdn2), "RDN equality for <" + first
-          + "> and <" + second + ">");
+      assertEquals(rdn1, rdn2,
+          "RDN equality for <" + first + "> and <" + second + ">");
     } else {
-      assertFalse(rdn1.equals(rdn2), "RDN equality for <" + first
-          + "> and <" + second + ">");
+      assertNotEquals(rdn1, rdn2,
+          "RDN equality for <" + first + "> and <" + second + ">");
     }
   }
 
@@ -596,15 +597,11 @@ public final class TestRDN extends TypesTestCase {
     int h2 = rdn2.hashCode();
 
     if (result == 0) {
-      if (h1 != h2) {
-        fail("Hash codes for <" + first + "> and <" + second
-            + "> should be the same.");
-      }
+      assertEquals(h1, h2, "Hash codes for <" + first + "> and <" + second
+          + "> should be the same.");
     } else {
-      if (h1 == h2) {
-        fail("Hash codes for <" + first + "> and <" + second
-            + "> should be the same.");
-      }
+      assertNotEquals(h1, h2, "Hash codes for <" + first + "> and <" + second
+          + "> should be the same.");
     }
   }
 
@@ -637,38 +634,31 @@ public final class TestRDN extends TypesTestCase {
       rc = 1;
     }
 
-    assertEquals(rc, result, "Comparison for <" + first + "> and <"
-        + second + ">.");
+    assertEquals(rc, result, "Comparison for <" + first + "> and <" + second + ">.");
   }
 
 
 
   /**
    * Tests the equals method with a null argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
    */
   @Test
   public void testEqualityNull() {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
-    assertFalse(rdn.equals(null));
+    assertNotEquals(rdn, null);
   }
 
 
 
   /**
    * Tests the equals method with a non-RDN argument.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
    */
   @Test
   public void testEqualityNonRDN() {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
-    assertFalse(rdn.equals("this isn't an RDN"));
+    assertNotEquals(rdn, "this isn't an RDN");
   }
 }
 

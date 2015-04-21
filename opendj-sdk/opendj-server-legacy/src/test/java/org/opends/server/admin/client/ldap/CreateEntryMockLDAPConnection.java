@@ -26,7 +26,7 @@
  */
 package org.opends.server.admin.client.ldap;
 
-
+import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,9 +41,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.util.Reject;
-import org.testng.Assert;
-
-
 
 /**
  * A mock LDAP connection which is used to verify that an add
@@ -100,7 +97,7 @@ public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
    * Asserts that the entry was created.
    */
   public void assertEntryIsCreated() {
-    Assert.assertTrue(alreadyAdded);
+    assertTrue(alreadyAdded);
   }
 
 
@@ -109,25 +106,20 @@ public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
   @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {
-    Assert.assertFalse(alreadyAdded);
-    Assert.assertEquals(dn, expectedDN);
+    assertFalse(alreadyAdded);
+    assertEquals(dn, expectedDN);
 
-    Map<String, List<String>> expected = new HashMap<String, List<String>>(
-        this.attributes);
+    Map<String, List<String>> expected = new HashMap<>(this.attributes);
     NamingEnumeration<? extends Attribute> ne = attributes.getAll();
     while (ne.hasMore()) {
       Attribute attribute = ne.next();
       String attrID = attribute.getID();
       List<String> values = expected.remove(attrID);
-      if (values == null) {
-        Assert.fail("Unexpected attribute " + attrID);
-      }
+      assertNotNull(values, "Unexpected attribute " + attrID);
       assertAttributeEquals(attribute, values);
     }
 
-    if (!expected.isEmpty()) {
-      Assert.fail("Missing expected attributes: " + expected.keySet());
-    }
+    assertTrue(expected.isEmpty(), "Missing expected attributes: " + expected.keySet());
 
     alreadyAdded = true;
   }

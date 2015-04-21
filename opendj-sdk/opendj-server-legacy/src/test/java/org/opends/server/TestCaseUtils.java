@@ -71,12 +71,10 @@ import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
+import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -1986,5 +1984,29 @@ public final class TestCaseUtils {
         dump.append("\n\n");
     }
     return dump.toString();
+  }
+
+  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object)} once we upgrade to testng >= 6.1. */
+  public static void assertNotEquals(Object actual1, Object actual2)
+  {
+    assertNotEquals(actual1, actual2, null);
+  }
+
+  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object, String)} once we upgrade to testng >= 6.1. */
+  public static void assertNotEquals(Object actual1, Object actual2, String message)
+  {
+    boolean fail = false;
+    try
+    {
+      Assert.assertEquals(actual1, actual2);
+      fail = true;
+    }
+    catch (AssertionError e)
+    {
+    }
+    if (fail)
+    {
+      Assert.fail(message);
+    }
   }
 }

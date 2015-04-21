@@ -26,6 +26,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -96,19 +97,19 @@ public class AlternateRootDN extends AciTestCase {
     String adminDNResults =
             LDAPSearchParams(adminDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(adminDNResults));
+    assertNotEquals(adminDNResults, "");
     Map<String, String> attrMap = getAttrMap(adminDNResults);
     Assert.assertTrue(attrMap.containsKey(ATTR_USER_PASSWORD));
     String adminRootDNResults =
             LDAPSearchParams(adminRootDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(adminRootDNResults));
+    assertNotEquals(adminRootDNResults, "");
     Map<String, String> attrMap1 = getAttrMap(adminRootDNResults);
     Assert.assertTrue(attrMap1.containsKey(ATTR_USER_PASSWORD));
     String rootDNResults =
             LDAPSearchParams(rootDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(rootDNResults));
+    assertNotEquals(rootDNResults, "");
     Map<String, String> attrMap2 = getAttrMap(rootDNResults);
     Assert.assertTrue(attrMap2.containsKey(ATTR_USER_PASSWORD));
     deleteAttrFromEntry(user1, "aci");
@@ -133,19 +134,19 @@ public class AlternateRootDN extends AciTestCase {
     String adminDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(adminDNResults));
+    assertNotEquals(adminDNResults, "");
     Map<String, String> attrMap = getAttrMap(adminDNResults);
     Assert.assertTrue(attrMap.containsKey(ATTR_USER_PASSWORD));
     String adminRootDNResults =
             LDAPSearchParams(user3, PWD, adminRootDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(adminRootDNResults));
+    assertNotEquals(adminRootDNResults, "");
     Map<String, String> attrMap1 = getAttrMap(adminRootDNResults);
     Assert.assertTrue(attrMap1.containsKey(ATTR_USER_PASSWORD));
     String rootDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse("".equals(rootDNResults));
+    assertNotEquals(rootDNResults, "");
     Map<String, String> attrMap2 = getAttrMap(rootDNResults);
     Assert.assertTrue(attrMap2.containsKey(ATTR_USER_PASSWORD));
     deleteAttrFromEntry(user1, "aci");

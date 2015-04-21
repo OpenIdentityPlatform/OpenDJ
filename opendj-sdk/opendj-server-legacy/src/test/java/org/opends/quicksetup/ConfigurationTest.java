@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import static org.testng.Assert.*;
@@ -35,10 +35,11 @@ import java.util.Set;
 /**
  * Configuration Tester.
  */
+@SuppressWarnings("javadoc")
 @Test(groups = {"slow"})
 public class ConfigurationTest extends QuickSetupTestCase {
 
-  Configuration config;
+  private Configuration config;
 
   @BeforeClass
   public void setUp() throws Exception {
@@ -53,7 +54,7 @@ public class ConfigurationTest extends QuickSetupTestCase {
 
   @Test(enabled = false)
   public void testGetPort() throws IOException {
-    assertTrue(TestUtilities.ldapPort.equals(config.getPort()));
+    assertEquals(TestUtilities.ldapPort, (Integer) config.getPort());
   }
 
   @Test(enabled = false)
