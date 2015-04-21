@@ -200,7 +200,7 @@ public class PropertySetTest extends AdminTestCase {
     PropertySet ps = createTestPropertySet(pp);
     Property<T> p = ps.getProperty(pd);
     SortedSet<T> ss = p.getActiveValues();
-    assertTrue(ss.size() == values.size());
+    assertEquals(ss.size(), values.size());
     for (T v : values) {
       assertTrue(ss.contains(v));
     }
@@ -325,11 +325,10 @@ public class PropertySetTest extends AdminTestCase {
     ps.setPropertyValues(pd, newValues);
 
     Set<T> ev2 = p.getEffectiveValues();
-    assertTrue(ev2.size() == newValues.size());
+    assertEquals(ev2.size(), newValues.size());
     for(T v : ev2) {
       assertTrue(newValues.contains(v));
     }
-
   }
 
   /**

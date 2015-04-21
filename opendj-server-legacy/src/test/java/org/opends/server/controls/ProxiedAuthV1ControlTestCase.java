@@ -88,7 +88,7 @@ public class ProxiedAuthV1ControlTestCase
 
     // Try an empty DN, which is acceptable.
     proxyControl = new ProxiedAuthV1Control(ByteString.valueOf(""));
-    assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
+    assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertTrue(proxyControl.getAuthorizationDN().isRootDN());
 
@@ -96,7 +96,7 @@ public class ProxiedAuthV1ControlTestCase
     // Try a valid DN, which is acceptable.
     proxyControl =
          new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
-    assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
+    assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.valueOf("uid=test,o=test"));
@@ -105,7 +105,7 @@ public class ProxiedAuthV1ControlTestCase
     // Try an invalid DN, which will be initally accepted but will fail when
     // attempting to get the authorization DN.
     proxyControl = new ProxiedAuthV1Control(ByteString.valueOf("invalid"));
-    assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
+    assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     try
     {
@@ -140,7 +140,7 @@ public class ProxiedAuthV1ControlTestCase
 
     // Try an empty DN, which is acceptable.
     proxyControl = new ProxiedAuthV1Control(DN.rootDN());
-    assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
+    assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertTrue(proxyControl.getAuthorizationDN().isRootDN());
 
@@ -148,7 +148,7 @@ public class ProxiedAuthV1ControlTestCase
     // Try a valid DN, which is acceptable.
     proxyControl =
          new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
-    assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
+    assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.valueOf("uid=test,o=test"));

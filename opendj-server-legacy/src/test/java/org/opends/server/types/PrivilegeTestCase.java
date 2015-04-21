@@ -82,6 +82,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -241,15 +242,10 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Build the array of connections we will use to perform the tests.
-    connections.put(new InternalClientConnection(new AuthenticationInfo()),
-        false);
-
+    connections.put(new InternalClientConnection(new AuthenticationInfo()), false);
     connections.put(InternalClientConnection.getRootConnection(), true);
-
-    connections.put(
-        newConn("cn=Directory Manager,cn=Root DNs,cn=config", true), true);
-    connections.put(
-        newConn("cn=Unprivileged Root,cn=Root DNs,cn=config", true), false);
+    connections.put(newConn("cn=Directory Manager,cn=Root DNs,cn=config", true), true);
+    connections.put(newConn("cn=Unprivileged Root,cn=Root DNs,cn=config", true), false);
     connections.put(newConn("cn=Proxy Root,cn=Root DNs,cn=config", true), true);
     connections.put(newConn("cn=Unprivileged User,o=test", false), false);
     connections.put(newConn("cn=Privileged User,o=test", false), true);
@@ -1465,7 +1461,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1496,7 +1492,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1527,7 +1523,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1558,7 +1554,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1589,7 +1585,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1620,7 +1616,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1651,7 +1647,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -1682,7 +1678,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1713,7 +1709,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -1744,7 +1740,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -1775,7 +1771,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1806,7 +1802,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -1837,7 +1833,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1868,7 +1864,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1899,7 +1895,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1930,7 +1926,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1961,7 +1957,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -1992,7 +1988,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -2023,7 +2019,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -2054,7 +2050,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -2085,7 +2081,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -2116,7 +2112,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -2147,7 +2143,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runSearchWithSystemErr(args), 0);
   }
 
 
@@ -2178,7 +2174,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertNotEquals(runSearch(args), 0);
   }
 
 
@@ -2209,7 +2205,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(searchArgs, false, null, null) == 0);
+    assertNotEquals(runSearch(searchArgs), 0);
 
 
     // Disable the PROXIED_AUTH privilege and verify that the operation now
@@ -2217,7 +2213,7 @@ public class PrivilegeTestCase extends TypesTestCase
     TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
       "--add", "disabled-privilege:proxied-auth");
-    assertEquals(LDAPSearch.mainSearch(searchArgs, false, null, null), 0);
+    assertEquals(runSearch(searchArgs), 0);
 
 
     // Re-enable the PROXIED_AUTH privilege and verify that the operation
@@ -2226,10 +2222,18 @@ public class PrivilegeTestCase extends TypesTestCase
       "set-global-configuration-prop",
       "--remove", "disabled-privilege:proxied-auth");
 
-    assertFalse(LDAPSearch.mainSearch(searchArgs, false, null, null) == 0);
+    assertNotEquals(runSearch(searchArgs), 0);
   }
 
+  private int runSearch(String[] args)
+  {
+    return LDAPSearch.mainSearch(args, false, null, null);
+  }
 
+  private int runSearchWithSystemErr(String[] args)
+  {
+    return LDAPSearch.mainSearch(args, false, null, System.err);
+  }
 
   /**
    * Tests the ability to update the set of privileges for a user on the fly

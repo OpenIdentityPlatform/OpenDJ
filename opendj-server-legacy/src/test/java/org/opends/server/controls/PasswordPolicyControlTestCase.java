@@ -32,12 +32,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.StaticUtils;
@@ -45,6 +46,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -84,10 +86,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -125,27 +124,7 @@ public class PasswordPolicyControlTestCase
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for (Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
 
 
       ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
@@ -163,40 +142,17 @@ public class PasswordPolicyControlTestCase
 
       message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
-      assertFalse(addResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      found = false;
-      for (Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
@@ -253,33 +209,13 @@ public class PasswordPolicyControlTestCase
 
       message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
-      assertFalse(addResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
     }
     finally
     {
@@ -287,6 +223,29 @@ public class PasswordPolicyControlTestCase
     }
   }
 
+  private boolean passwordPolicyControlExists(List<Control> controls, PasswordPolicyErrorType expectedErrorType)
+      throws DirectoryException
+  {
+    boolean found = false;
+    for(Control c : controls)
+    {
+      if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+      {
+        PasswordPolicyResponseControl pwpControl;
+        if(c instanceof LDAPControl)
+        {
+          pwpControl = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl) c).getValue());
+        }
+        else
+        {
+          pwpControl = (PasswordPolicyResponseControl)c;
+        }
+        assertEquals(pwpControl.getErrorType(), expectedErrorType);
+        found = true;
+      }
+    }
+    return found;
+  }
 
 
   /**
@@ -301,10 +260,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--add", "password-validator:Length-Based Password Validator");
+    setPasswordPolicyProp("--add", "password-validator:Length-Based Password Validator");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -342,40 +298,17 @@ public class PasswordPolicyControlTestCase
 
       message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
-      assertFalse(addResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--remove", "password-validator:Length-Based Password Validator");
+      setPasswordPolicyProp("--remove", "password-validator:Length-Based Password Validator");
 
       StaticUtils.close(s);
     }
@@ -396,10 +329,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "lockout-failure-count:3");
+    setPasswordPolicyProp("--set", "lockout-failure-count:3");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -431,7 +361,7 @@ public class PasswordPolicyControlTestCase
 
         message = r.readMessage();
         BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-        assertFalse(bindResponse.getResultCode() == LDAPResultCode.SUCCESS);
+        assertNotEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
       }
 
       bindRequest = new BindRequestProtocolOp(
@@ -446,45 +376,21 @@ public class PasswordPolicyControlTestCase
 
       message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertFalse(bindResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.ACCOUNT_LOCKED);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.ACCOUNT_LOCKED));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "lockout-failure-count:0");
+      setPasswordPolicyProp("--set", "lockout-failure-count:0");
 
       StaticUtils.close(s);
     }
   }
-
 
 
   /**
@@ -499,10 +405,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -547,40 +450,17 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       CompareResponseProtocolOp compareResponse =
            message.getCompareResponseProtocolOp();
-      assertFalse(compareResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(compareResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
@@ -600,10 +480,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
         "dn: uid=test.user,o=test",
@@ -652,40 +529,17 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       DeleteResponseProtocolOp deleteResponse =
            message.getDeleteResponseProtocolOp();
-      assertFalse(deleteResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(deleteResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
@@ -752,10 +606,7 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -847,10 +698,7 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
@@ -903,10 +751,7 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=authz.user,o=test",
@@ -964,34 +809,11 @@ public class PasswordPolicyControlTestCase
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-              PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
@@ -1012,10 +834,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "allow-user-password-changes:false");
+    setPasswordPolicyProp("--set", "allow-user-password-changes:false");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1064,46 +883,21 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
-      assertFalse(modifyResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "allow-user-password-changes:true");
+      setPasswordPolicyProp("--set", "allow-user-password-changes:true");
 
       StaticUtils.close(s);
     }
   }
-
-
 
   /**
    * Tests that an appropriate password policy response control is returned for
@@ -1118,10 +912,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "password-history-count:5");
+    setPasswordPolicyProp("--set", "password-history-count:5");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1170,40 +961,17 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
-      assertFalse(modifyResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.PASSWORD_IN_HISTORY);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_IN_HISTORY));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "password-history-count:0");
+      setPasswordPolicyProp("--set", "password-history-count:0");
 
       StaticUtils.close(s);
     }
@@ -1224,10 +992,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "password-change-requires-current-password:true");
+    setPasswordPolicyProp("--set", "password-change-requires-current-password:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1276,40 +1041,17 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
-      assertFalse(modifyResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "password-change-requires-current-password:false");
+      setPasswordPolicyProp("--set", "password-change-requires-current-password:false");
 
       StaticUtils.close(s);
     }
@@ -1330,10 +1072,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "min-password-age:24 hours");
+    setPasswordPolicyProp("--set", "min-password-age:24 hours");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1382,40 +1121,17 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
-      assertFalse(modifyResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.PASSWORD_TOO_YOUNG);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_TOO_YOUNG));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "min-password-age:0 seconds");
+      setPasswordPolicyProp("--set", "min-password-age:0 seconds");
 
       StaticUtils.close(s);
     }
@@ -1435,10 +1151,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
         "dn: uid=test.user,o=test",
@@ -1489,46 +1202,21 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       ModifyDNResponseProtocolOp modifyDNResponse =
            message.getModifyDNResponseProtocolOp();
-      assertFalse(modifyDNResponse.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(modifyDNResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
   }
-
-
 
   /**
    * Tests that an appropriate password policy response control is returned for
@@ -1542,10 +1230,7 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.dsconfig(
-        "set-password-policy-prop",
-        "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:true");
+    setPasswordPolicyProp("--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1593,43 +1278,24 @@ public class PasswordPolicyControlTestCase
       message = r.readMessage();
       SearchResultDoneProtocolOp searchDone =
            message.getSearchResultDoneProtocolOp();
-      assertFalse(searchDone.getResultCode() == LDAPResultCode.SUCCESS);
+      assertNotEquals(searchDone.getResultCode(), LDAPResultCode.SUCCESS);
 
       controls = message.getControls();
       assertNotNull(controls);
       assertFalse(controls.isEmpty());
 
-      boolean found = false;
-      for(Control c : controls)
-      {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
-        {
-          PasswordPolicyResponseControl pwpControl;
-          if(c instanceof LDAPControl)
-          {
-            pwpControl =
-                PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-          }
-          else
-          {
-            pwpControl = (PasswordPolicyResponseControl)c;
-          }
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
-          found = true;
-        }
-      }
-      assertTrue(found);
+      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
-      TestCaseUtils.dsconfig(
-          "set-password-policy-prop",
-          "--policy-name", "Default Password Policy",
-          "--set", "force-change-on-add:false");
+      setPasswordPolicyProp("--set", "force-change-on-add:false");
 
       StaticUtils.close(s);
     }
   }
-}
 
+  private void setPasswordPolicyProp(String arg, String value)
+  {
+    TestCaseUtils.dsconfig("set-password-policy-prop", "--policy-name", "Default Password Policy", arg, value);
+  }
+}

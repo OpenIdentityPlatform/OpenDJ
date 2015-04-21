@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
@@ -50,6 +48,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -184,7 +183,7 @@ public class PasswordValidatorTestCase
 
     int returnCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
                                                            null);
-    assertFalse(returnCode == 0);
+    assertNotEquals(returnCode, 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
                  ByteString.valueOf("newPassword"));
@@ -525,7 +524,7 @@ public class PasswordValidatorTestCase
     message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
-    assertFalse(modifyResponse.getResultCode() == 0);
+    assertNotEquals(modifyResponse.getResultCode(), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
                  ByteString.valueOf("newPassword"));

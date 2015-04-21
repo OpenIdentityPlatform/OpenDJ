@@ -21,20 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
-
-
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
-
-
 
 /**
  * Tests for {@link AdditionalLogItem}.
@@ -51,7 +44,7 @@ public class AdditionalLogItemTest extends TypesTestCase
     AdditionalLogItem item = AdditionalLogItem.keyOnly(getClass(), "testKey");
     assertEquals(item.getSource(), getClass());
     assertEquals(item.getKey(), "testKey");
-    assertEquals(item.getValue(), null);
+    assertNull(item.getValue());
     assertEquals(item.toString(), "testKey");
     assertEquals(item.toString(new StringBuilder()).toString(), "testKey");
   }

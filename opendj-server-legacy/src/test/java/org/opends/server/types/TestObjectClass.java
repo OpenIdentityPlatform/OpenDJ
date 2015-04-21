@@ -1599,15 +1599,14 @@ public final class TestObjectClass extends TestCommonSchemaElements {
           ObjectClass parent2,
           ObjectClassType type,
           boolean isValid) throws Exception {
-    ObjectClassBuilder builder = new ObjectClassBuilder("testType",
-        "1.2.3");
+    ObjectClassBuilder builder = new ObjectClassBuilder("testType", "1.2.3");
     builder.setObjectClassType(type);
     Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder.setSuperior(superiors);
     ObjectClass child = builder.getInstance();
-    Assert.assertTrue(child.getSuperiorClasses().size()==2);
+    Assert.assertEquals(child.getSuperiorClasses().size(), 2);
   }
 
 

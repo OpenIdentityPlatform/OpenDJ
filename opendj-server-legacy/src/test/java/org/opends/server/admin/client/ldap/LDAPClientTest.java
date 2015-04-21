@@ -543,11 +543,10 @@ public final class LDAPClientTest extends AdminTestCase {
         .getInstance(), "test child new", null);
 
     // Check pre-commit values.
-    Assert.assertEquals(child.isMandatoryBooleanProperty(), null);
+    Assert.assertNull(child.isMandatoryBooleanProperty());
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    Assert
-        .assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(), null);
+    Assert.assertNull(child.getMandatoryReadOnlyAttributeTypeProperty());
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -588,11 +587,10 @@ public final class LDAPClientTest extends AdminTestCase {
         .getInstance(), "test child new", null);
 
     // Check pre-commit values.
-    Assert.assertEquals(child.isMandatoryBooleanProperty(), null);
+    Assert.assertNull(child.isMandatoryBooleanProperty());
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    Assert
-        .assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(), null);
+    Assert.assertNull(child.getMandatoryReadOnlyAttributeTypeProperty());
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),

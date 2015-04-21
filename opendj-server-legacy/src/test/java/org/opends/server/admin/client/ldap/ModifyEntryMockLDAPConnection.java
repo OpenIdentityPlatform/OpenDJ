@@ -26,7 +26,7 @@
  */
 package org.opends.server.admin.client.ldap;
 
-
+import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,9 +41,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.util.Reject;
-import org.testng.Assert;
-
-
 
 /**
  * A mock LDAP connection which is used to verify that a modify
@@ -111,25 +108,20 @@ public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
   /** {@inheritDoc} */
   @Override
   public void modifyEntry(LdapName dn, Attributes mods) throws NamingException {
-    Assert.assertFalse(alreadyModified);
-    Assert.assertEquals(dn, expectedDN);
+    assertFalse(alreadyModified);
+    assertEquals(dn, expectedDN);
 
-    Map<String, List<String>> expected = new HashMap<String, List<String>>(
-        modifications);
+    Map<String, List<String>> expected = new HashMap<>(modifications);
     NamingEnumeration<? extends Attribute> ne = mods.getAll();
     while (ne.hasMore()) {
       Attribute mod = ne.next();
       String attrID = mod.getID();
       List<String> values = expected.remove(attrID);
-      if (values == null) {
-        Assert.fail("Unexpected modification to attribute " + attrID);
-      }
+      assertNotNull(values, "Unexpected modification to attribute " + attrID);
       assertAttributeEquals(mod, values);
     }
 
-    if (!expected.isEmpty()) {
-      Assert.fail("Missing modifications to: " + expected.keySet());
-    }
+    assertTrue(expected.isEmpty(), "Missing modifications to: " + expected.keySet());
 
     alreadyModified = true;
   }

@@ -31,13 +31,13 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
+
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
-import org.testng.Assert;
 
+@SuppressWarnings("javadoc")
 public class TargetTestCase extends AciTestCase
 {
   private static final String testUser="uid=user.3,ou=People,o=test";
@@ -444,8 +444,7 @@ public class TargetTestCase extends AciTestCase
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
                                                   DN.valueOf(entryDN));
-    assertTrue(!match, aciString + " in entry " + aciDN +
-         " incorrectly applied to " + entryDN);
+    assertFalse(match, aciString + " in entry " + aciDN + " incorrectly applied to " + entryDN);
   }
 
   /**
@@ -463,7 +462,7 @@ public class TargetTestCase extends AciTestCase
          String userResults =
             LDAPSearchParams(testUser, PWD, null,null, null,
                      testUser, filter, null);
-      Assert.assertTrue(userResults.equals(""));
+      assertEquals(userResults, "");
     }
     finally
     {

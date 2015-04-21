@@ -27,6 +27,7 @@
 package org.opends.server.controls;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -431,9 +432,8 @@ public class PersistentSearchControlTest extends ControlsTestCase
       }
       catch (DirectoryException e)
       {
-        assertFalse(type.compareTo(MODIFY_DN) == 0,
-            "couldn't decode a control with previousDN "
-                + "not null and type=modDN");
+        assertNotEquals(type.compareTo(MODIFY_DN), 0,
+            "couldn't decode a control with previousDN not null and type=modDN");
       }
     }
 
@@ -469,9 +469,8 @@ public class PersistentSearchControlTest extends ControlsTestCase
       }
       catch (DirectoryException e)
       {
-        assertFalse(type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0,
-            "couldn't decode a control with previousDN "
-                + "not null and type=modDN");
+        assertNotEquals(type.compareTo(PersistentSearchChangeType.MODIFY_DN), 0,
+            "couldn't decode a control with previousDN not null and type=modDN");
       }
     }
 

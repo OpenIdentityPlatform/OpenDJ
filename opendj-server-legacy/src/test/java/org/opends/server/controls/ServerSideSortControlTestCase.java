@@ -49,6 +49,7 @@ import org.opends.server.types.SortOrder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -514,7 +515,7 @@ public class ServerSideSortControlTestCase
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl(true, "givenName:undefinedOrderingMatch"));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
-    assertFalse(internalSearch.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
   }
 
 

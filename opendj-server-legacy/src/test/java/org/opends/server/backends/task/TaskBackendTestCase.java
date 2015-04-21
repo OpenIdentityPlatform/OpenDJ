@@ -43,6 +43,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -173,7 +174,7 @@ public class TaskBackendTestCase
     int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertFalse(resultCode == 0);
+    assertNotEquals(resultCode, 0);
     assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
@@ -322,7 +323,7 @@ public class TaskBackendTestCase
       "changetype: modify",
       "replace: description",
       "description: foo");
-    assertFalse(resultCode == 0);
+    assertNotEquals(resultCode, 0);
 
 
     // Perform a modification to cancel the task.
@@ -383,7 +384,7 @@ public class TaskBackendTestCase
       "changetype: modify",
       "add: description",
       "description: foo");
-    assertFalse(resultCode == 0);
+    assertNotEquals(resultCode, 0);
 
 
     // Perform a modification to delete that task.
@@ -500,7 +501,7 @@ public class TaskBackendTestCase
     // Make sure recurring task iteration got scheduled.
     long tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
       "cn=Scheduled Tasks,cn=tasks"), true);
-    assertTrue(tasksCountAfter == (tasksCountBefore + 1));
+    assertEquals(tasksCountAfter, tasksCountBefore + 1);
 
     // Perform a modification to update a non-state attribute.
     int resultCode =
@@ -508,7 +509,7 @@ public class TaskBackendTestCase
             "changetype: modify",
             "replace: ds-recurring-task-schedule",
             "ds-recurring-task-schedule: * * * * *");
-    assertFalse(resultCode == 0);
+    assertNotEquals(resultCode, 0);
 
     // Delete recurring task.
     resultCode =
@@ -520,7 +521,7 @@ public class TaskBackendTestCase
     // Make sure recurring task iteration got canceled and removed.
     tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
       "cn=Scheduled Tasks,cn=tasks"), true);
-    assertTrue(tasksCountAfter == tasksCountBefore);
+    assertEquals(tasksCountAfter, tasksCountBefore);
   }
 
 
