@@ -284,18 +284,14 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       totalRestartMs += restartMs;
     }
     double averageRestartSec = 0;
-    if (systemRestartTimes.size() > 0) {
+    if (!systemRestartTimes.isEmpty()) {
       averageRestartSec = totalRestartMs / (1000.0 * systemRestartTimes.size());
     }
     originalSystemErr.printf("In core restarts: %d  (took %.1fs on average)",
             TestCaseUtils.getNumServerRestarts(), averageRestartSec);
     originalSystemErr.println();
 
-//    if (doProgressThreadChange) {
-//      originalSystemErr.print(TestCaseUtils.threadStacksToString());
-//    }
-
-    if (_classesWithTestsRunInterleaved.size() > 0) {
+    if (!_classesWithTestsRunInterleaved.isEmpty()) {
       System.err.println("WARNING:  Some of the test methods for multiple classes " +
               "were run out of order (i.e. interleaved with other classes).  Either "  +
               "a class doesn't have the sequential=true annotation, which should " +
@@ -534,11 +530,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  private Set<Class<?>> _checkedForTypeAndAnnotations = new HashSet<Class<?>>();
+  private Set<Class<?>> _checkedForTypeAndAnnotations = new HashSet<>();
 
   private void enforceTestClassTypeAndAnnotations(ITestResult tr) {
-    Class<?> testClass = null;
-    testClass = tr.getMethod().getRealClass();
+    Class<?> testClass = tr.getMethod().getRealClass();
 
     // Only warn once per class.
     if (_checkedForTypeAndAnnotations.contains(testClass)) {
@@ -583,8 +578,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<Object,Object>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
     Object[] testInstances = tr.getMethod().getInstances();
-    // This will almost always have a single element.  If it doesn't, just
-    // skip it.
+    // This will almost always have a single element.  If it doesn't, just skip it.
     if (testInstances.length != 1) {
       return;
     }
@@ -713,8 +707,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     printStatusHeaderOnce();
 
     DirectoryServerTestCase testInstance = (DirectoryServerTestCase) finishedTestObject;
-    long startTime = testInstance != null ? testInstance.startTime
-        : testSuiteStartTime;
+    long startTime = testInstance != null ? testInstance.startTime : testSuiteStartTime;
     originalSystemErr.printf("[%s]  ",
         TEST_PROGESS_TIME_FORMAT.format(new Date(startTime)));
 
@@ -834,10 +827,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
    * @return a new List with base with toRemove items removed from it
    */
   private List<String> removeExactly(List<String> base, List<String> toRemove) {
-    List<String> diff = new ArrayList<String>(base);
-    for (String item : toRemove) {
-      diff.remove(item);
-    }
+    List<String> diff = new ArrayList<>(base);
+    diff.removeAll(toRemove);
     return diff;
   }
 
@@ -870,8 +861,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       results.getTimingInfo(timingOutput);
     }
 
-    timingOutput.append(EOL).append(DIVIDER_LINE).append(DIVIDER_LINE).append(
-        EOL);
+    timingOutput.append(EOL).append(DIVIDER_LINE).append(DIVIDER_LINE).append(EOL);
 
     getSlowestTestsOutput(timingOutput);
     return timingOutput;
