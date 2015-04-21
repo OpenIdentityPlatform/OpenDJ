@@ -262,7 +262,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       {
         sb.append(INFO_CTRL_OBJECTCLASS_DESCRIPTOR.get(ocDesc.getStructural()));
       }
-      if (ocDesc.getAuxiliary().size() > 0)
+      if (!ocDesc.getAuxiliary().isEmpty())
       {
         if (sb.length() > 0)
         {
@@ -583,7 +583,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         }
       }
     }
-    if (valuesToSet.size() > 0)
+    if (!valuesToSet.isEmpty())
     {
       sr.set(attrName, valuesToSet);
     }

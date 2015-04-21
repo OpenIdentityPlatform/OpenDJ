@@ -183,7 +183,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
       {
         ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
         checkSyntax(errors);
-        if (errors.size() > 0)
+        if (!errors.isEmpty())
         {
           displayErrorDialog(errors);
         }

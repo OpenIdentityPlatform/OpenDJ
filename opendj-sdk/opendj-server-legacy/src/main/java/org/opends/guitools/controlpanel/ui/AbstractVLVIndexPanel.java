@@ -366,7 +366,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           }
         }
       }
-      if (customAttrNames.size() > 0)
+      if (!customAttrNames.isEmpty())
       {
         newElements.add(new CategorizedComboBoxElement(CUSTOM_ATTRIBUTES, CategorizedComboBoxElement.Type.CATEGORY));
         for (String attrName : customAttrNames)
@@ -374,7 +374,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           newElements.add(new CategorizedComboBoxElement(attrName, CategorizedComboBoxElement.Type.REGULAR));
         }
       }
-      if (standardAttrNames.size() > 0)
+      if (!standardAttrNames.isEmpty())
       {
         newElements.add(new CategorizedComboBoxElement(STANDARD_ATTRIBUTES, CategorizedComboBoxElement.Type.CATEGORY));
         for (String attrName : standardAttrNames)

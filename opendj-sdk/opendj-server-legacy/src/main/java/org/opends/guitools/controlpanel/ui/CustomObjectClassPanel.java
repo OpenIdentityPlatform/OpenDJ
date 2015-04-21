@@ -710,7 +710,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     {
       errors.add(ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get());
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
 
@@ -843,7 +843,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     checkCompatibleSuperiors(getObjectClassSuperiors(), getObjectClassType(),
         errors);
 
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -861,7 +861,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_MODIFYING_OBJECTCLASS_SUMMARY.get(ocName),

@@ -294,18 +294,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
           Set<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(value.toString()))
           {
-            if (values.size() > 0)
+            if (!values.isEmpty())
             {
-              String firstNonEmpty = null;
-              for (String v : values)
-              {
-                v = v.trim();
-                if (v.length() > 0)
-                {
-                  firstNonEmpty = v;
-                  break;
-                }
-              }
+              String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
                 AttributeType attr = rdn.getAttributeType(i);
@@ -322,7 +313,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
             attributeValues.add(value);
           }
         }
-        if (attributeTypes.size() == 0)
+        if (attributeTypes.isEmpty())
         {
           // Check the attributes in the order that we display them and use
           // the first one.
@@ -358,11 +349,11 @@ public class TableViewEntryPanel extends ViewEntryPanel
           }
         }
         DN parent = oldDN.parent();
-        if (attributeTypes.size() > 0)
+        if (!attributeTypes.isEmpty())
         {
-          DN newDN;
           RDN newRDN = new RDN(attributeTypes, attributeNames, attributeValues);
 
+          DN newDN;
           if (parent == null)
           {
             newDN = new DN(new RDN[]{newRDN});
@@ -387,6 +378,19 @@ public class TableViewEntryPanel extends ViewEntryPanel
       throw new RuntimeException("Unexpected error: "+t, t);
     }
     return sb.toString();
+  }
+
+  private String getFirstNonEmpty(Set<String> values)
+  {
+    for (String v : values)
+    {
+      v = v.trim();
+      if (v.length() > 0)
+      {
+        return v;
+      }
+    }
+    return null;
   }
 
   private Set<String> getDisplayedStringValues(String attrName)

@@ -724,7 +724,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         progressDialog.appendProgressHtml("<br><br>");
         launchOperation(newTask, INFO_CTRL_PANEL_REBUILDING_INDEXES_SUMMARY.get(backendName),
@@ -742,7 +742,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
           progressDialog.toFront();
         }
       }
-      if (errors.size() > 0)
+      if (!errors.isEmpty())
       {
         displayErrorDialog(errors);
       }
@@ -1311,8 +1311,9 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       @Override
       public void run()
       {
-        combo.setVisible(newElements.size() > 0);
-        lNoBackendsFound.setVisible(newElements.size() == 0);
+        boolean noElems = newElements.isEmpty();
+        combo.setVisible(!noElems);
+        lNoBackendsFound.setVisible(noElems);
       }
     });
   }
@@ -1884,7 +1885,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     {
       task.canLaunch(newTask, errors);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get(),
@@ -1916,12 +1917,12 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       task.canLaunch(newTask, errors);
     }
     boolean confirmed = true;
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       confirmed = displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
                                             INFO_CTRL_PANEL_CONFIRM_STOP_SERVER_DETAILS.get());
     }
-    if (errors.size() == 0 && confirmed)
+    if (errors.isEmpty() && confirmed)
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
@@ -1931,7 +1932,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
           ERR_CTRL_PANEL_STOPPING_SERVER_ERROR_DETAILS, progressDialog);
       progressDialog.setVisible(true);
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -1953,12 +1954,12 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       task.canLaunch(newTask, errors);
     }
     boolean confirmed = true;
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       confirmed = displayConfirmationDialog(INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
                                             INFO_CTRL_PANEL_CONFIRM_RESTART_SERVER_DETAILS.get());
     }
-    if (errors.size() == 0 && confirmed)
+    if (errors.isEmpty() && confirmed)
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
@@ -1968,7 +1969,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
           ERR_CTRL_PANEL_RESTARTING_SERVER_ERROR_DETAILS, progressDialog);
       progressDialog.setVisible(true);
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

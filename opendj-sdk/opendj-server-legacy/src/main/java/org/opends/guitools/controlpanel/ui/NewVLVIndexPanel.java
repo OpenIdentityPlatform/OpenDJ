@@ -223,9 +223,9 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+        final Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
           incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           return false;

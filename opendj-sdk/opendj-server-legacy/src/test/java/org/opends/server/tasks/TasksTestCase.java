@@ -99,7 +99,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
     // Check that the task contains some log messages.
     Set<String> logMessages = parseAttribute(resultEntry, ATTR_TASK_LOG_MESSAGES).asSetOfString();
-    if (taskState != TaskState.COMPLETED_SUCCESSFULLY && logMessages.size() == 0)
+    if (taskState != TaskState.COMPLETED_SUCCESSFULLY && logMessages.isEmpty())
     {
       fail("No log messages were written to the task entry on a failed task.\n"
           + "taskState=" + taskState

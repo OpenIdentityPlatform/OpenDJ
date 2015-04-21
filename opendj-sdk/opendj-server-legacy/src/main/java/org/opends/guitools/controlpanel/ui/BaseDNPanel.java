@@ -117,7 +117,7 @@ public class BaseDNPanel extends StatusGenericPanel
   public void okClicked()
   {
     setPrimaryValid(dnLabel);
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     if ("".equals(dn.getText().trim()))
     {
@@ -135,10 +135,6 @@ public class BaseDNPanel extends StatusGenericPanel
       }
     }
 
-    if (errors.size() > 0)
-    {
-      setPrimaryInvalid(dnLabel);
-    }
     if (errors.isEmpty())
     {
       baseDn = dn.getText().trim();
@@ -146,6 +142,7 @@ public class BaseDNPanel extends StatusGenericPanel
     }
     else
     {
+      setPrimaryInvalid(dnLabel);
       displayErrorDialog(errors);
       dn.setSelectionStart(0);
       dn.setSelectionEnd(dn.getText().length());

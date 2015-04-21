@@ -1285,7 +1285,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
     }
 
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       throw new CheckEntrySyntaxException(errors);
     }
@@ -1444,12 +1444,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean hasBinaryValue(List<Object> values)
   {
-    boolean isBinary = false;
-    if (values.size() > 0)
+    if (!values.isEmpty())
     {
-      isBinary = values.iterator().next() instanceof byte[];
+      return values.iterator().next() instanceof byte[];
     }
-    return isBinary;
+    return false;
   }
 
   private boolean mustAddBrowseButton(String attrName)
@@ -1480,23 +1479,19 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   /** {@inheritDoc} */
   protected List<Object> getValues(String attrName)
   {
-    List<Object> values = new ArrayList<Object>();
-    List<EditorComponent> comps = hmEditors.get(attrName);
-    if (comps.size() > 0)
+    List<Object> values = new ArrayList<>();
+    for (EditorComponent comp : hmEditors.get(attrName))
     {
-      for (EditorComponent comp : comps)
+      if (hasValue(comp))
       {
-        if (hasValue(comp))
+        Object value = comp.getValue();
+        if (value instanceof Collection<?>)
         {
-          Object value = comp.getValue();
-          if (value instanceof Collection<?>)
-          {
-            values.addAll((Collection<?>) value);
-          }
-          else
-          {
-            values.add(value);
-          }
+          values.addAll((Collection<?>) value);
+        }
+        else
+        {
+          values.add(value);
         }
       }
     }
@@ -1506,8 +1501,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private void appendLDIFLines(StringBuilder sb, String attrName)
   {
     List<Object> values = getValues(attrName);
-
-    if (values.size() > 0)
+    if (!values.isEmpty())
     {
       appendLDIFLines(sb, attrName, values);
     }
@@ -1534,18 +1528,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           List<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(value.toString()))
           {
-            if (values.size() > 0)
+            if (!values.isEmpty())
             {
-              String firstNonEmpty = null;
-              for (String v : values)
-              {
-                v = v.trim();
-                if (v.length() > 0)
-                {
-                  firstNonEmpty = v;
-                  break;
-                }
-              }
+              String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
                 AttributeType attr = rdn.getAttributeType(i);
@@ -1562,7 +1547,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             attributeValues.add(value);
           }
         }
-        if (attributeTypes.size() == 0)
+        if (attributeTypes.isEmpty())
         {
           // Check the attributes in the order that we display them and use
           // the first one.
@@ -1577,7 +1562,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                 continue;
               }
               List<EditorComponent> comps = hmEditors.get(attrName);
-              if (comps.size() > 0)
+              if (!comps.isEmpty())
               {
                 Object o = comps.iterator().next().getValue();
                 if (o instanceof String)
@@ -1599,11 +1584,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           }
         }
         DN parent = oldDN.parent();
-        if (attributeTypes.size() > 0)
+        if (!attributeTypes.isEmpty())
         {
-          DN newDN;
           RDN newRDN = new RDN(attributeTypes, attributeNames, attributeValues);
 
+          DN newDN;
           if (parent == null)
           {
             newDN = new DN(new RDN[]{newRDN});
@@ -1628,6 +1613,19 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       throw new RuntimeException("Unexpected error: "+t, t);
     }
     return sb.toString();
+  }
+
+  private String getFirstNonEmpty(List<String> values)
+  {
+    for (String v : values)
+    {
+      v = v.trim();
+      if (v.length() > 0)
+      {
+        return v;
+      }
+    }
+    return null;
   }
 
   private void addBrowseClicked(String attrName, JTextComponent textComponent)
@@ -1830,7 +1828,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean hasValue(String attrName)
   {
-    return getValues(attrName).size() > 0;
+    return !getValues(attrName).isEmpty();
   }
 
   private boolean hasValue(EditorComponent editor)
@@ -1846,13 +1844,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     else if (value instanceof Collection<?>)
     {
-      return ((Collection<?>)value).size() > 0;
+      return !((Collection<?>)value).isEmpty();
     }
-    else if (value != null)
-    {
-      return true;
-    }
-    return false;
+    return value != null;
   }
 
   /** Calls #addBrowseClicked(). */

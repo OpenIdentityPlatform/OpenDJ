@@ -233,7 +233,7 @@ class StatusPanel extends StatusGenericPanel
     }
 
     Collection<OpenDsException> exceptions = desc.getExceptions();
-    if (exceptions.size() == 0)
+    if (exceptions.isEmpty())
     {
       boolean errorPaneVisible = false;
       if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
@@ -374,36 +374,16 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    if (rootUsers.size() > 0)
-    {
-      setText(administrativeUsers,
-          Utilities.getStringFromCollection(sortedRootUsers, "<br>"));
-    }
-    else
-    {
-      setText(administrativeUsers,
-          INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
-    }
+    String htmlText = !rootUsers.isEmpty()
+        ? Utilities.getStringFromCollection(sortedRootUsers, "<br>")
+        : INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString();
+    setText(administrativeUsers, htmlText);
+
     String install = desc.getInstallPath();
-    if (install != null)
-    {
-      setText(installPath, install);
-    }
-    else
-    {
-      setText(installPath, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
-    }
+    setText(install, installPath);
 
     String instance = desc.getInstancePath();
-
-    if (instance != null)
-    {
-      setText(instancePath, instance);
-    }
-    else
-    {
-      setText(instancePath, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
-    }
+    setText(instance, instancePath);
 
     instancePath.setVisible(!desc.sameInstallAndInstance());
     lInstancePath.setVisible(!desc.sameInstallAndInstance());
@@ -459,17 +439,8 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    boolean oneReplicated = false;
-    for (BaseDNDescriptor baseDN : baseDNs)
-    {
-      if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
-      {
-        oneReplicated = true;
-        break;
-      }
-    }
-
-    boolean hasBaseDNs = baseDNs.size() > 0;
+    boolean oneReplicated = oneReplicated(baseDNs);
+    boolean hasBaseDNs = !baseDNs.isEmpty();
 
     replicationBaseDNsTable.setVisible(oneReplicated && hasBaseDNs);
     replicationBaseDNsTable.getTableHeader().setVisible(
@@ -488,7 +459,7 @@ class StatusPanel extends StatusGenericPanel
       desc.getConnectionHandlers();
     connectionHandlerTableModel.setData(connectionHandlers);
 
-    boolean hasConnectionHandlers = connectionHandlers.size() > 0;
+    boolean hasConnectionHandlers = !connectionHandlers.isEmpty();
     connectionHandlersTable.setVisible(hasConnectionHandlers);
     connectionHandlersTable.getTableHeader().setVisible(hasConnectionHandlers);
     connectionHandlerTableEmpty.setVisible(!hasConnectionHandlers);
@@ -496,6 +467,30 @@ class StatusPanel extends StatusGenericPanel
     recalculateSizes();
 
     Utilities.updateViewPositions(pos);
+  }
+
+  private boolean oneReplicated(Set<BaseDNDescriptor> baseDNs)
+  {
+    for (BaseDNDescriptor baseDN : baseDNs)
+    {
+      if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void setText(String text, JEditorPane editorPane)
+  {
+    if (text != null)
+    {
+      setText(editorPane, text);
+    }
+    else
+    {
+      setText(editorPane, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+    }
   }
 
   private void setText(JEditorPane pane, String htmlText)

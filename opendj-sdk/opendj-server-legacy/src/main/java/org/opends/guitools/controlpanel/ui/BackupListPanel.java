@@ -400,7 +400,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
             }
           }
         }
-        if ((backups.size() == 0) && (firstThrowable != null))
+        if (backups.isEmpty() && firstThrowable != null)
         {
           throw firstThrowable;
         }
@@ -416,7 +416,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
         renderer.setParentPath(new File(parentPath));
         if (t == null)
         {
-          if (returnValue.size() > 0)
+          if (!returnValue.isEmpty())
           {
             for (BackupInfo backup : returnValue)
             {

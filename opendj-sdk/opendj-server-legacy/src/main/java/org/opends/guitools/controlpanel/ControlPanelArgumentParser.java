@@ -163,12 +163,10 @@ public class ControlPanelArgumentParser extends ArgumentParser
       errorMessages.add(message);
     }
 
-    if (errorMessages.size() > 0)
+    if (!errorMessages.isEmpty())
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(
-          Utils.getMessageFromCollection(errorMessages,
-              Constants.LINE_SEPARATOR));
-      throw new ArgumentException(message);
+      throw new ArgumentException(ERR_CANNOT_INITIALIZE_ARGS.get(
+          Utils.getMessageFromCollection(errorMessages, Constants.LINE_SEPARATOR)));
     }
   }
 

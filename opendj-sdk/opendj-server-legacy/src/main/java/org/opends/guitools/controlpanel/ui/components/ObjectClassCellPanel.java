@@ -196,7 +196,7 @@ public class ObjectClassCellPanel extends JPanel
       {
         sb.append(value.getStructural());
       }
-      if (aux.size() > 0)
+      if (!aux.isEmpty())
       {
         if (sb.length() > 0)
         {

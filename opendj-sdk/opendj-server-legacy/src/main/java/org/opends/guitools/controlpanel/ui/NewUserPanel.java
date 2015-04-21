@@ -200,7 +200,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
       errors.add(ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get());
     }
 
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       try
       {

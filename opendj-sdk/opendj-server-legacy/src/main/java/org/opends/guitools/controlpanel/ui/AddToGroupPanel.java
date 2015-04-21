@@ -401,7 +401,7 @@ public class AddToGroupPanel extends StatusGenericPanel
 
   private void handleErrorsAndLaunchTask(ArrayList<LocalizableMessage> errors)
   {
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -434,7 +434,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         {
           task.canLaunch(newTask, errors);
         }
-        if (errors.size() == 0)
+        if (errors.isEmpty())
         {
           launchOperation(newTask,
               INFO_CTRL_PANEL_ADDING_TO_GROUP_SUMMARY.get(),
@@ -454,7 +454,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

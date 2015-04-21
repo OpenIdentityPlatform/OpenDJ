@@ -188,7 +188,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           }
         }
       }
-      if (customAttrNames.size() > 0)
+      if (!customAttrNames.isEmpty())
       {
         newElements.add(new CategorizedComboBoxElement(
             CUSTOM_ATTRIBUTES,
@@ -200,7 +200,7 @@ public class NewIndexPanel extends AbstractIndexPanel
               CategorizedComboBoxElement.Type.REGULAR));
         }
       }
-      if (standardAttrNames.size() > 0)
+      if (!standardAttrNames.isEmpty())
       {
         newElements.add(new CategorizedComboBoxElement(
             STANDARD_ATTRIBUTES,
@@ -212,21 +212,6 @@ public class NewIndexPanel extends AbstractIndexPanel
               CategorizedComboBoxElement.Type.REGULAR));
         }
       }
-      // Ignore configuration attr names
-      /*
-        if (configurationAttrNames.size() > 0)
-        {
-          newElements.add(new CategorizedComboBoxDescriptor(
-              "Configuration Attributes",
-              CategorizedComboBoxDescriptor.Type.CATEGORY));
-          for (String attrName : configurationAttrNames)
-          {
-            newElements.add(new CategorizedComboBoxDescriptor(
-                attrName,
-                CategorizedComboBoxDescriptor.Type.REGULAR));
-          }
-        }
-       */
       DefaultComboBoxModel model =
         (DefaultComboBoxModel)attributes.getModel();
       updateComboBoxModel(newElements, model);
@@ -323,7 +308,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       task.canLaunch(newTask, errors);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_CREATING_NEW_INDEX_SUMMARY.get(attrName),
@@ -429,13 +414,11 @@ public class NewIndexPanel extends AbstractIndexPanel
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation
         // has not a lot of impact.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }

@@ -632,7 +632,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     {
       task.canLaunch(newTask, errors);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       boolean confirmed = displayConfirmationDialog(
           INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),

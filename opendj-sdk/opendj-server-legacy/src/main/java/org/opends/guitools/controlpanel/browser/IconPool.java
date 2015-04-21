@@ -257,7 +257,7 @@ public class IconPool {
     ImageIcon result;
 
     // Find the icon associated to the object class
-    if (objectClasses == null || objectClasses.size() == 0) {
+    if (objectClasses == null || objectClasses.isEmpty()) {
       result = getDefaultContainerIcon();
     }
     else {

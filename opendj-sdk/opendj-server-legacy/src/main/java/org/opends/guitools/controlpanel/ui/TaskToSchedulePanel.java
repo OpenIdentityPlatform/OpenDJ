@@ -312,7 +312,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
 
     updateErrorMessages(errorMessages);
 
-    if (errorMessages.size() > 0)
+    if (!errorMessages.isEmpty())
     {
       displayErrorDialog(errorMessages);
     }

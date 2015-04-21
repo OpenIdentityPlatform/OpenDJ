@@ -150,7 +150,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
       errors.add(INFO_CTRL_PANEL_INVALID_PERIOD_VALUE.get(MAX_VALUE));
     }
 
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }

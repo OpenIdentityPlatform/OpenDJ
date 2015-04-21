@@ -317,7 +317,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
         setPrimaryInvalid(useBase64);
       }
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       // Read the file or encode the base 64 content.
       BackgroundTask<BinaryValue> worker = new BackgroundTask<BinaryValue>()

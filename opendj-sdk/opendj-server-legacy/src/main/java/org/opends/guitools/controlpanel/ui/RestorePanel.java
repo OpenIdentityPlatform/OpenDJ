@@ -313,7 +313,7 @@ implements BackupCreatedListener
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
     }
@@ -395,15 +395,12 @@ implements BackupCreatedListener
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
-        // All the operations are incompatible if they apply to this
-        // backend.
-        Set<String> backends =
-          new TreeSet<String>(taskToBeLaunched.getBackends());
+        // All the operations are incompatible if they apply to this backend.
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
-          incompatibilityReasons.add(getIncompatibilityMessage(this,
-              taskToBeLaunched));
+          incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;
         }
       }

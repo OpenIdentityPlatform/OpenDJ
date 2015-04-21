@@ -387,7 +387,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
 
     ArrayList<Object> newElements = new ArrayList<Object>(sortedBackends);
-    if (sortedBackends.size() > 0)
+    if (!sortedBackends.isEmpty())
     {
       newElements.add(COMBO_SEPARATOR);
     }
@@ -737,9 +737,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this backend.
-        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
-        if (backends.size() > 0)
+        if (!backends.isEmpty())
         {
           incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
           canLaunch = false;

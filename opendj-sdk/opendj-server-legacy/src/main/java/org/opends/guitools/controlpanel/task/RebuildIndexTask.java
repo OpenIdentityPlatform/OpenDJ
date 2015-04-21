@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -39,6 +38,7 @@ import java.util.TreeSet;
 
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -46,12 +46,10 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.RebuildIndex;
 
 /**
  * The class that is used when a set of indexes must be rebuilt.
- *
  */
 public class RebuildIndexTask extends IndexTask
 {
@@ -110,15 +108,12 @@ public class RebuildIndexTask extends IndexTask
     boolean canLaunch = true;
     if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
     {
-      // All the operations are incompatible if they apply to this
-      // backend.
-      Set<String> backends =
-        new TreeSet<String>(taskToBeLaunched.getBackends());
+      // All the operations are incompatible if they apply to this backend.
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
-        incompatibilityReasons.add(getIncompatibilityMessage(this,
-            taskToBeLaunched));
+        incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         canLaunch = false;
       }
     }
@@ -138,10 +133,7 @@ public class RebuildIndexTask extends IndexTask
       for (final String baseDN : baseDNs)
       {
         ArrayList<String> arguments = getCommandLineArguments(baseDN);
-
-        String[] args = new String[arguments.size()];
-
-        arguments.toArray(args);
+        String[] args = arguments.toArray(new String[arguments.size()]);
 
         final List<String> displayArgs = getObfuscatedCommandLineArguments(
             getCommandLineArguments(baseDN));
@@ -257,7 +249,6 @@ public class RebuildIndexTask extends IndexTask
 
   private boolean rebuildAll()
   {
-    boolean rebuildAll = true;
     Set<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
     for (AbstractIndexDescriptor index : indexes)
     {
@@ -265,48 +256,45 @@ public class RebuildIndexTask extends IndexTask
     }
     for (BackendDescriptor backend : backends)
     {
-      Set<AbstractIndexDescriptor> allIndexes =
-        new HashSet<AbstractIndexDescriptor>();
+      Set<AbstractIndexDescriptor> allIndexes = new HashSet<>();
       allIndexes.addAll(backend.getIndexes());
       allIndexes.addAll(backend.getVLVIndexes());
       for (AbstractIndexDescriptor index : allIndexes)
       {
-        if (!ignoreIndex(index))
+        if (!ignoreIndex(index)
+            && !indexExists(index))
         {
-          boolean found = false;
-          for (AbstractIndexDescriptor indexToRebuild : indexes)
-          {
-            if (indexToRebuild.equals(index))
-            {
-              found = true;
-              break;
-            }
-          }
-          if (!found)
-          {
-            rebuildAll = false;
-            break;
-          }
+          return false;
         }
       }
     }
-    return rebuildAll;
+    return true;
+  }
+
+  private boolean indexExists(AbstractIndexDescriptor index)
+  {
+    for (AbstractIndexDescriptor indexToRebuild : indexes)
+    {
+      if (indexToRebuild.equals(index))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean ignoreIndex(AbstractIndexDescriptor index)
   {
-    boolean ignoreIndex = false;
     if (index instanceof IndexDescriptor)
     {
       for (String name : INDEXES_NOT_TO_SPECIFY)
       {
         if (name.equalsIgnoreCase(index.getName()))
         {
-          ignoreIndex = true;
-          break;
+          return true;
         }
       }
     }
-    return ignoreIndex;
+    return false;
   }
 }

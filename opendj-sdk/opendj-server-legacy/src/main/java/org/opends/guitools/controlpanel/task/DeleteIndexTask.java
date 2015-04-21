@@ -122,7 +122,7 @@ public class DeleteIndexTask extends Task
       // has not a lot of impact.
       final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
-      if (backends.size() > 0)
+      if (!backends.isEmpty())
       {
         incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
         canLaunch = false;

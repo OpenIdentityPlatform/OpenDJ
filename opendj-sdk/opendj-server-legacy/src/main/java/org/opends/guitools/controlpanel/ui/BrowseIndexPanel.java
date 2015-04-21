@@ -600,7 +600,7 @@ implements IndexModifiedListener
     int positionUnderRoot = 0;
     for (DefaultMutableTreeNode parent : categoryNodes)
     {
-      if (nodes.get(i).size() == 0)
+      if (nodes.get(i).isEmpty())
       {
         if (root.getIndex(parent) != -1)
         {

@@ -103,7 +103,7 @@ public class ADSContextHelper
         if (suffixes != null
             && suffixes.remove(DN.valueOf(ADSContext.getAdministrationSuffixDN())))
         {
-          if (suffixes.size() > 0)
+          if (!suffixes.isEmpty())
           {
             backend.setBaseDN(suffixes);
             backend.commit();
