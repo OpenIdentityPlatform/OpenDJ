@@ -134,16 +134,29 @@ final class ImportIDSet implements Iterable<EntryID> {
     checkNotNull(importIdSet, "importIdSet must not be null");
 
     boolean definedBeforeMerge = isDefined();
-    final long mergedSize = size() + importIdSet.size();
+    final long mergedSize = addWithoutOverflow(entryIDSet.size(), importIdSet.entryIDSet.size());
 
-    if (!importIdSet.isDefined() || mergedSize > indexEntryLimitSize) {
+    if (!definedBeforeMerge || !importIdSet.isDefined() || mergedSize > indexEntryLimitSize)
+    {
       entryIDSet = maintainCount ? newUndefinedSetWithSize(key, mergedSize) : newUndefinedSetWithKey(key);
       return definedBeforeMerge;
-    } else if (isDefined() || maintainCount){
+    }
+    else if (isDefined() || maintainCount)
+    {
       entryIDSet.addAll(importIdSet.entryIDSet);
     }
     return false;
   }
+
+  private static long addWithoutOverflow(long a, long b) {
+    /** a and b must be > 0 */
+    final boolean willAdditionOverflow = (~(a ^ b) & (a ^ (a + b))) < 0;
+    if (willAdditionOverflow) {
+      return Long.MAX_VALUE;
+    }
+    return a + b;
+  }
+
 
   /**
    * @return The current size of an import ID set.
