@@ -87,7 +87,7 @@ public class NewIndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = -3516011638125862137L;
 
-  private Component relativeComponent;
+  private final Component relativeComponent;
 
   private Schema schema;
 
@@ -95,11 +95,14 @@ public class NewIndexPanel extends AbstractIndexPanel
 
   /**
    * Constructor of the panel.
-   * @param backendName the backend where the index will be created.
-   * @param relativeComponent the component relative to which the dialog
-   * containing this panel will be centered.
+   *
+   * @param backendName
+   *          the backend where the index will be created.
+   * @param relativeComponent
+   *          the component relative to which the dialog containing this panel
+   *          will be centered.
    */
-  public NewIndexPanel(String backendName, Component relativeComponent)
+  public NewIndexPanel(final String backendName, final Component relativeComponent)
   {
     super();
     this.backendName.setText(backendName);
@@ -107,13 +110,13 @@ public class NewIndexPanel extends AbstractIndexPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_INDEX_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return attributes;
@@ -121,29 +124,30 @@ public class NewIndexPanel extends AbstractIndexPanel
 
   /**
    * Updates the contents of the panel with the provided backend.
-   * @param backend the backend where the index will be created.
+   *
+   * @param backend
+   *          the backend where the index will be created.
    */
-  public void update(BackendDescriptor backend)
+  public void update(final BackendDescriptor backend)
   {
     backendName.setText(backend.getBackendID());
   }
 
-  /** {@inheritDoc} */
-  public void configurationChanged(ConfigurationChangeEvent ev)
+  @Override
+  public void configurationChanged(final ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
 
     Schema s = desc.getSchema();
-    final boolean[] repack = {false};
-    final boolean[] error = {false};
+    final boolean[] repack = { false };
+    final boolean[] error = { false };
     if (s != null)
     {
       schema = s;
       repack[0] = attributes.getItemCount() == 0;
-      LinkedHashSet<CategorizedComboBoxElement> newElements =
-        new LinkedHashSet<CategorizedComboBoxElement>();
+      LinkedHashSet<CategorizedComboBoxElement> newElements = new LinkedHashSet<CategorizedComboBoxElement>();
 
-//    Check that the index does not exist
+      //    Check that the index does not exist
       BackendDescriptor backend = null;
       for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
       {
@@ -190,45 +194,34 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
       if (!customAttrNames.isEmpty())
       {
-        newElements.add(new CategorizedComboBoxElement(
-            CUSTOM_ATTRIBUTES,
-            CategorizedComboBoxElement.Type.CATEGORY));
+        newElements.add(new CategorizedComboBoxElement(CUSTOM_ATTRIBUTES, CategorizedComboBoxElement.Type.CATEGORY));
         for (String attrName : customAttrNames)
         {
-          newElements.add(new CategorizedComboBoxElement(
-              attrName,
-              CategorizedComboBoxElement.Type.REGULAR));
+          newElements.add(new CategorizedComboBoxElement(attrName, CategorizedComboBoxElement.Type.REGULAR));
         }
       }
       if (!standardAttrNames.isEmpty())
       {
-        newElements.add(new CategorizedComboBoxElement(
-            STANDARD_ATTRIBUTES,
-            CategorizedComboBoxElement.Type.CATEGORY));
+        newElements.add(new CategorizedComboBoxElement(STANDARD_ATTRIBUTES, CategorizedComboBoxElement.Type.CATEGORY));
         for (String attrName : standardAttrNames)
         {
-          newElements.add(new CategorizedComboBoxElement(
-              attrName,
-              CategorizedComboBoxElement.Type.REGULAR));
+          newElements.add(new CategorizedComboBoxElement(attrName, CategorizedComboBoxElement.Type.REGULAR));
         }
       }
-      DefaultComboBoxModel model =
-        (DefaultComboBoxModel)attributes.getModel();
+      DefaultComboBoxModel model = (DefaultComboBoxModel) attributes.getModel();
       updateComboBoxModel(newElements, model);
     }
     else
     {
-      updateErrorPane(errorPane,
-          ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(),
-          ColorAndFontConstants.errorTitleFont,
-          ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get(),
-          ColorAndFontConstants.defaultFont);
+      updateErrorPane(errorPane, ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(), ColorAndFontConstants.errorTitleFont,
+          ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get(), ColorAndFontConstants.defaultFont);
       repack[0] = true;
       error[0] = true;
     }
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         setEnabledOK(!error[0]);
@@ -238,28 +231,26 @@ public class NewIndexPanel extends AbstractIndexPanel
           packParentDialog();
           if (relativeComponent != null)
           {
-            Utilities.centerGoldenMean(
-                Utilities.getParentDialog(NewIndexPanel.this),
-                relativeComponent);
+            Utilities.centerGoldenMean(Utilities.getParentDialog(NewIndexPanel.this), relativeComponent);
           }
         }
       }
     });
     if (!error[0])
     {
-      updateErrorPaneAndOKButtonIfAuthRequired(desc,
-       isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_INDEX.get() :
-      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+      updateErrorPaneAndOKButtonIfAuthRequired(desc, isLocal()
+          ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_INDEX.get()
+          : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lAttribute);
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     String attrName = getAttributeName();
     if (attrName == null)
     {
@@ -271,17 +262,15 @@ public class NewIndexPanel extends AbstractIndexPanel
     try
     {
       int n = Integer.parseInt(v);
-      if ((n < MIN_ENTRY_LIMIT) || (n > MAX_ENTRY_LIMIT))
+      if (n < MIN_ENTRY_LIMIT || n > MAX_ENTRY_LIMIT)
       {
-        errors.add(ERR_INFO_CTRL_PANEL_ENTRY_LIMIT_NOT_VALID.get(
-            MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
+        errors.add(ERR_INFO_CTRL_PANEL_ENTRY_LIMIT_NOT_VALID.get(MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
         setPrimaryInvalid(lEntryLimit);
       }
     }
     catch (Throwable t)
     {
-      errors.add(ERR_INFO_CTRL_PANEL_ENTRY_LIMIT_NOT_VALID.get(
-          MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
+      errors.add(ERR_INFO_CTRL_PANEL_ENTRY_LIMIT_NOT_VALID.get(MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
       setPrimaryInvalid(lEntryLimit);
     }
 
@@ -300,9 +289,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       setPrimaryInvalid(lType);
     }
     ProgressDialog dlg = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this), INFO_CTRL_PANEL_NEW_INDEX_TITLE.get(),
-        getInfo());
+        Utilities.createFrame(), Utilities.getParentDialog(this), INFO_CTRL_PANEL_NEW_INDEX_TITLE.get(), getInfo());
     NewIndexTask newTask = new NewIndexTask(getInfo(), dlg);
     for (Task task : getInfo().getTasks())
     {
@@ -310,14 +297,12 @@ public class NewIndexPanel extends AbstractIndexPanel
     }
     if (errors.isEmpty())
     {
-      launchOperation(newTask,
-          INFO_CTRL_PANEL_CREATING_NEW_INDEX_SUMMARY.get(attrName),
+      launchOperation(newTask, INFO_CTRL_PANEL_CREATING_NEW_INDEX_SUMMARY.get(attrName),
           INFO_CTRL_PANEL_CREATING_NEW_INDEX_SUCCESSFUL_SUMMARY.get(),
           INFO_CTRL_PANEL_CREATING_NEW_INDEX_SUCCESSFUL_DETAILS.get(attrName),
           ERR_CTRL_PANEL_CREATING_NEW_INDEX_ERROR_SUMMARY.get(),
           ERR_CTRL_PANEL_CREATING_NEW_INDEX_ERROR_DETAILS.get(),
-          null,
-          dlg);
+          null, dlg);
       dlg.setVisible(true);
       Utilities.getParentDialog(this).setVisible(false);
     }
@@ -327,25 +312,22 @@ public class NewIndexPanel extends AbstractIndexPanel
     }
   }
 
-
   private String getAttributeName()
   {
     CategorizedComboBoxElement o = (CategorizedComboBoxElement) attributes.getSelectedItem();
     return o != null ? o.getValue().toString() : null;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
-
     createBasicLayout(this, gbc, false);
 
     attributes.addItemListener(new ItemListener()
     {
-      public void itemStateChanged(ItemEvent ev)
+      @Override
+      public void itemStateChanged(final ItemEvent ev)
       {
         String n = getAttributeName();
         AttributeType attr = null;
@@ -359,23 +341,23 @@ public class NewIndexPanel extends AbstractIndexPanel
     entryLimit.setText(String.valueOf(DEFAULT_ENTRY_LIMIT));
   }
 
-  /**
-   * The task in charge of creating the index.
-   *
-   */
-  protected class NewIndexTask extends Task
+  /** The task in charge of creating the index. */
+  private class NewIndexTask extends Task
   {
-    private Set<String> backendSet;
-    private String attributeName;
-    private int entryLimitValue;
-    private SortedSet<IndexTypeDescriptor> indexTypes;
+    private final Set<String> backendSet;
+    private final String attributeName;
+    private final int entryLimitValue;
+    private final SortedSet<IndexTypeDescriptor> indexTypes;
 
     /**
      * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
+     *
+     * @param info
+     *          the control panel info.
+     * @param dlg
+     *          the progress dialog that shows the progress of the task.
      */
-    public NewIndexTask(ControlPanelInfo info, ProgressDialog dlg)
+    public NewIndexTask(final ControlPanelInfo info, final ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<String>();
@@ -385,28 +367,26 @@ public class NewIndexPanel extends AbstractIndexPanel
       indexTypes = getTypes();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.NEW_INDEX;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
-      return INFO_CTRL_PANEL_NEW_INDEX_TASK_DESCRIPTION.get(
-          attributeName, backendName.getText());
+      return INFO_CTRL_PANEL_NEW_INDEX_TASK_DESCRIPTION.get(attributeName, backendName.getText());
     }
 
-    /** {@inheritDoc} */
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    @Override
+    public boolean canLaunch(final Task taskToBeLaunched, final Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -439,35 +419,30 @@ public class NewIndexPanel extends AbstractIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(),
-              ConfigReader.configFile);
+              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
         {
           SwingUtilities.invokeLater(new Runnable()
           {
-            /** {@inheritDoc} */
+            @Override
             public void run()
             {
-              List<String> args = getObfuscatedCommandLineArguments(
-                  getDSConfigCommandLineArguments());
+              List<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLineName(),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_INDEX.get());
+              printEquivalentCommandLine(
+                  getConfigCommandLineName(), args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_INDEX.get());
             }
           });
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
+          @Override
           public void run()
           {
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressWithPoints(
-                    INFO_CTRL_PANEL_CREATING_NEW_INDEX_PROGRESS.get(
-                        attributeName),
-                    ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(Utilities.getProgressWithPoints(
+                INFO_CTRL_PANEL_CREATING_NEW_INDEX_PROGRESS.get(attributeName), ColorAndFontConstants.progressFont));
           }
         });
         if (isServerRunning())
@@ -482,11 +457,10 @@ public class NewIndexPanel extends AbstractIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
+          @Override
           public void run()
           {
-            getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+            getProgressDialog().appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
           }
         });
       }
@@ -494,8 +468,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
           getInfo().startPooling();
         }
       }
@@ -503,20 +476,18 @@ public class NewIndexPanel extends AbstractIndexPanel
 
     /**
      * Returns the LDIF representation of the index to be created.
+     *
      * @return the LDIF representation of the index to be created.
      */
     private String getIndexLDIF()
     {
-      String dn = Utilities.getRDNString(
-          "ds-cfg-backend-id", backendName.getText())+",cn=Backends,cn=config";
+      String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName.getText()) + ",cn=Backends,cn=config";
       ArrayList<String> lines = new ArrayList<String>();
-      lines.add("dn: "+Utilities.getRDNString("ds-cfg-attribute",
-          attributeName)+
-          ",cn=Index,"+dn);
+      lines.add("dn: " + Utilities.getRDNString("ds-cfg-attribute", attributeName) + ",cn=Index," + dn);
       lines.add("objectClass: ds-cfg-local-db-index");
       lines.add("objectClass: top");
-      lines.add("ds-cfg-attribute: "+attributeName);
-      lines.add("ds-cfg-index-entry-limit: "+entryLimitValue);
+      lines.add("ds-cfg-attribute: " + attributeName);
+      lines.add("ds-cfg-index-entry-limit: " + entryLimitValue);
       for (IndexTypeDescriptor type : indexTypes)
       {
         lines.add("ds-cfg-index-type: " + type.toLocalDBIndexType());
@@ -547,8 +518,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
       catch (IOException ioe)
       {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       finally
       {
@@ -559,7 +529,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    private void createIndex(InitialLdapContext ctx) throws OpenDsException
+    private void createIndex(final InitialLdapContext ctx) throws OpenDsException
     {
       // Instead of adding indexes using management framework, use this approach
       // so that we have to define the additional indexes only in the method
@@ -574,8 +544,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         Attributes attrs = new BasicAttributes();
 
         BasicAttribute oc = new BasicAttribute("objectClass");
-        Iterator<ByteString> it =
-          indexEntry.getObjectClassAttribute().iterator();
+        Iterator<ByteString> it = indexEntry.getObjectClassAttribute().iterator();
         while (it.hasNext())
         {
           oc.add(it.next().toString());
@@ -597,8 +566,7 @@ public class NewIndexPanel extends AbstractIndexPanel
 
         final StringBuilder sb = new StringBuilder();
         sb.append(getConfigCommandLineName());
-        Collection<String> args =
-          getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
+        Collection<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
         for (String arg : args)
         {
           sb.append(" ").append(CommandBuilder.escapeValue(arg));
@@ -608,8 +576,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
       catch (Throwable t)
       {
-        throw new OnlineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t), t);
+        throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t), t);
       }
       finally
       {
@@ -620,14 +587,14 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
-    protected ArrayList<String> getCommandLineArguments()
+    @Override
+    protected List<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
     }
@@ -638,13 +605,11 @@ public class NewIndexPanel extends AbstractIndexPanel
       {
         return getCommandLinePath("dsconfig");
       }
-      else
-      {
-        return null;
-      }
+
+      return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -653,14 +618,12 @@ public class NewIndexPanel extends AbstractIndexPanel
       try
       {
         updateConfiguration();
-        for (BackendDescriptor backend :
-          getInfo().getServerDescriptor().getBackends())
+        for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
         {
           if (backend.getBackendID().equalsIgnoreCase(backendName.getText()))
           {
             newIndex = new IndexDescriptor(attributeName,
-                schema.getAttributeType(attributeName.toLowerCase()), backend,
-                indexTypes, entryLimitValue);
+                schema.getAttributeType(attributeName.toLowerCase()), backend, indexTypes, entryLimitValue);
             getInfo().registerModifiedIndex(newIndex);
             notifyConfigurationElementCreated(newIndex);
             break;
@@ -675,11 +638,10 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void postOperation()
     {
-      if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&
-          (newIndex != null))
+      if (lastException == null && state == State.FINISHED_SUCCESSFULLY && newIndex != null)
       {
         rebuildIndexIfNecessary(newIndex, getProgressDialog());
       }
@@ -700,10 +662,10 @@ public class NewIndexPanel extends AbstractIndexPanel
       for (IndexTypeDescriptor type : indexTypes)
       {
         args.add("--set");
-        args.add("index-type:"+type.toLocalDBIndexType());
+        args.add("index-type:" + type.toLocalDBIndexType());
       }
       args.add("--set");
-      args.add("index-entry-limit:"+entryLimitValue);
+      args.add("index-entry-limit:" + entryLimitValue);
       args.addAll(getConnectionCommandLineArguments());
       args.add(getNoPropertiesFileArgument());
       args.add("--no-prompt");
