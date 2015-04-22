@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -46,11 +45,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn;
 import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -62,82 +61,69 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   private static final long serialVersionUID = 4465529396749593707L;
 
   /** Custom attributes message. */
-  static LocalizableMessage CUSTOM_ATTRIBUTES = INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
-
+  static final LocalizableMessage CUSTOM_ATTRIBUTES = INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
   /** Standard attributes message. */
-  static LocalizableMessage STANDARD_ATTRIBUTES = INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
+  static final LocalizableMessage STANDARD_ATTRIBUTES = INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
 
   /** Minimum value for entry limit. */
   static final int MIN_ENTRY_LIMIT =
       LocalDBIndexCfgDefn.getInstance().getIndexEntryLimitPropertyDefinition().getLowerLimit();
-
   /** Maximum value for entry limit. */
   static final int MAX_ENTRY_LIMIT =
       LocalDBIndexCfgDefn.getInstance().getIndexEntryLimitPropertyDefinition().getUpperLimit();
 
   /** LocalizableMessage to be displayed to indicate that an index is not configurable. */
-  static LocalizableMessage NON_CONFIGURABLE_INDEX = INFO_CTRL_PANEL_NON_CONFIGURABLE_INDEX_LABEL.get();
-
+  static final LocalizableMessage NON_CONFIGURABLE_INDEX = INFO_CTRL_PANEL_NON_CONFIGURABLE_INDEX_LABEL.get();
   /** LocalizableMessage to be displayed to indicate that an index has been modified. */
-  static LocalizableMessage INDEX_MODIFIED = INFO_CTRL_PANEL_INDEX_MODIFIED_LABEL.get();
+  static final LocalizableMessage INDEX_MODIFIED = INFO_CTRL_PANEL_INDEX_MODIFIED_LABEL.get();
 
   /** Default value for entry limit. */
   static final int DEFAULT_ENTRY_LIMIT = 4000;
 
-  TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
+  final TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
 
   /** Attributes combo box. */
-  JComboBox attributes = Utilities.createComboBox();
+  final JComboBox attributes = Utilities.createComboBox();
 
   /** Name of the index label. */
-  JLabel name = Utilities.createDefaultLabel();
+  final JLabel name = Utilities.createDefaultLabel();
 
   /** Backends label. */
-  JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
-
+  final JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
   /** Read-only backend name label. */
-  JLabel backendName = Utilities.createDefaultLabel();
+  final JLabel backendName = Utilities.createDefaultLabel();
 
-  JLabel lAttribute = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_LABEL.get());
+  final JLabel lAttribute = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_LABEL.get());
 
-  JLabel lEntryLimit = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ENTRY_LIMIT_LABEL.get());
+  final JLabel lEntryLimit = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ENTRY_LIMIT_LABEL.get());
 
-  JTextField entryLimit = Utilities.createShortTextField();
+  final JTextField entryLimit = Utilities.createShortTextField();
 
-  JLabel lType = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_INDEX_TYPE_LABEL.get());
+  final JLabel lType = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_INDEX_TYPE_LABEL.get());
+  /** Panel containing all the index types. */
+  final JPanel typesPanel = new JPanel(new GridBagLayout());
 
   /** Approximate index type check box. */
-  JCheckBox approximate = Utilities.createCheckBox(INFO_CTRL_PANEL_APPROXIMATE_LABEL.get());
-
+  final JCheckBox approximate = Utilities.createCheckBox(INFO_CTRL_PANEL_APPROXIMATE_LABEL.get());
   /** Equality index type check box. */
-  JCheckBox equality = Utilities.createCheckBox(INFO_CTRL_PANEL_EQUALITY_LABEL.get());
-
+  final JCheckBox equality = Utilities.createCheckBox(INFO_CTRL_PANEL_EQUALITY_LABEL.get());
   /** Ordering index type check box. */
-  JCheckBox ordering = Utilities.createCheckBox(INFO_CTRL_PANEL_ORDERING_LABEL.get());
-
+  final JCheckBox ordering = Utilities.createCheckBox(INFO_CTRL_PANEL_ORDERING_LABEL.get());
   /** Presence index type check box. */
-  JCheckBox presence = Utilities.createCheckBox(INFO_CTRL_PANEL_PRESENCE_LABEL.get());
-
+  final JCheckBox presence = Utilities.createCheckBox(INFO_CTRL_PANEL_PRESENCE_LABEL.get());
   /** Substring index type check box. */
-  JCheckBox substring = Utilities.createCheckBox(INFO_CTRL_PANEL_SUBSTRING_LABEL.get());
+  final JCheckBox substring = Utilities.createCheckBox(INFO_CTRL_PANEL_SUBSTRING_LABEL.get());
+  /** Array of checkboxes. */
+  final JCheckBox[] types = { approximate, equality, ordering, presence, substring };
+  /** Array of index types that matches the array of checkboxes (types). */
+  final IndexTypeDescriptor[] configTypes = { IndexTypeDescriptor.APPROXIMATE, IndexTypeDescriptor.EQUALITY,
+    IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE, IndexTypeDescriptor.SUBSTRING };
 
-  JButton deleteIndex = Utilities.createButton(INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
-
-  JButton saveChanges = Utilities.createButton(INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());
+  final JButton deleteIndex = Utilities.createButton(INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
+  final JButton saveChanges = Utilities.createButton(INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());
 
   /** Label containing some warning information (such as the fact that the index cannot be edited). */
-  JLabel warning = Utilities.createDefaultLabel();
-
-  /** Panel containing all the index types. */
-  JPanel typesPanel = new JPanel(new GridBagLayout());
-
-  /** Array of checkboxes. */
-  JCheckBox[] types = { approximate, equality, ordering, presence, substring };
-
-  /** Array of index types that matches the array of checkboxes (types). */
-  IndexTypeDescriptor[] configTypes = { IndexTypeDescriptor.APPROXIMATE, IndexTypeDescriptor.EQUALITY,
-                                        IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE,
-                                        IndexTypeDescriptor.SUBSTRING };
+  final JLabel warning = Utilities.createDefaultLabel();
 
   /**
    * Repopulates the contents of the panel with the provided attribute type. It
@@ -294,10 +280,10 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
     gbc.gridy++;
     gbc2 = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    for (int i = 0; i < types.length; i++)
+    for (JCheckBox type : types)
     {
-      types[i].setOpaque(false);
-      typesPanel.add(types[i], gbc2);
+      type.setOpaque(false);
+      typesPanel.add(type, gbc2);
       gbc2.anchor = GridBagConstraints.WEST;
       gbc2.insets.top = 10;
     }
@@ -318,7 +304,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
    */
   SortedSet<IndexTypeDescriptor> getTypes()
   {
-    SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<IndexTypeDescriptor>();
+    SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<>();
     for (int i = 0; i < types.length; i++)
     {
       if (types[i].isSelected())
@@ -338,7 +324,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
    */
   List<LocalizableMessage> getErrors()
   {
-    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
 
@@ -347,7 +333,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
     try
     {
       int n = Integer.parseInt(newEntryLimit);
-      if (n < MIN_ENTRY_LIMIT || n > MAX_ENTRY_LIMIT)
+      if (n < MIN_ENTRY_LIMIT || MAX_ENTRY_LIMIT < n)
       {
         errors.add(ERR_CTRL_PANEL_INVALID_ENTRY_LIMIT_LABEL.get(MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
         setPrimaryInvalid(lEntryLimit);

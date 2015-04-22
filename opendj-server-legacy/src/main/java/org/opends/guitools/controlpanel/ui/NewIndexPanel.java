@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -38,7 +37,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,9 +86,7 @@ public class NewIndexPanel extends AbstractIndexPanel
   private static final long serialVersionUID = -3516011638125862137L;
 
   private final Component relativeComponent;
-
   private Schema schema;
-
   private IndexDescriptor newIndex;
 
   /**
@@ -145,38 +141,17 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       schema = s;
       repack[0] = attributes.getItemCount() == 0;
-      LinkedHashSet<CategorizedComboBoxElement> newElements = new LinkedHashSet<CategorizedComboBoxElement>();
+      LinkedHashSet<CategorizedComboBoxElement> newElements = new LinkedHashSet<>();
 
-      //    Check that the index does not exist
-      BackendDescriptor backend = null;
-      for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
-      {
-        if (b.getBackendID().equalsIgnoreCase(backendName.getText()))
-        {
-          backend = b;
-          break;
-        }
-      }
+      BackendDescriptor backend = getBackendByID(backendName.getText());
 
-      TreeSet<String> standardAttrNames = new TreeSet<String>();
-      TreeSet<String> configurationAttrNames = new TreeSet<String>();
-      TreeSet<String> customAttrNames = new TreeSet<String>();
+      TreeSet<String> standardAttrNames = new TreeSet<>();
+      TreeSet<String> configurationAttrNames = new TreeSet<>();
+      TreeSet<String> customAttrNames = new TreeSet<>();
       for (AttributeType attr : schema.getAttributeTypes().values())
       {
         String name = attr.getPrimaryName();
-        boolean defined = false;
-        if (backend != null)
-        {
-          for (IndexDescriptor index : backend.getIndexes())
-          {
-            if (index.getName().equalsIgnoreCase(name))
-            {
-              defined = true;
-              break;
-            }
-          }
-        }
-        if (!defined)
+        if (!indexExists(backend, name))
         {
           if (Utilities.isStandard(attr))
           {
@@ -244,13 +219,40 @@ public class NewIndexPanel extends AbstractIndexPanel
     }
   }
 
+  private boolean indexExists(BackendDescriptor backend, String indexName)
+  {
+    if (backend != null)
+    {
+      for (IndexDescriptor index : backend.getIndexes())
+      {
+        if (index.getName().equalsIgnoreCase(indexName))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private BackendDescriptor getBackendByID(String backendID)
+  {
+    for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
+    {
+      if (b.getBackendID().equalsIgnoreCase(backendID))
+      {
+        return b;
+      }
+    }
+    return null;
+  }
+
   @Override
   public void okClicked()
   {
     setPrimaryValid(lAttribute);
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
-    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     String attrName = getAttributeName();
     if (attrName == null)
     {
@@ -262,7 +264,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     try
     {
       int n = Integer.parseInt(v);
-      if (n < MIN_ENTRY_LIMIT || n > MAX_ENTRY_LIMIT)
+      if (n < MIN_ENTRY_LIMIT || MAX_ENTRY_LIMIT < n)
       {
         errors.add(ERR_INFO_CTRL_PANEL_ENTRY_LIMIT_NOT_VALID.get(MIN_ENTRY_LIMIT, MAX_ENTRY_LIMIT));
         setPrimaryInvalid(lEntryLimit);
@@ -274,16 +276,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       setPrimaryInvalid(lEntryLimit);
     }
 
-    boolean somethingSelected = false;
-    for (JCheckBox type : types)
-    {
-      somethingSelected = type.isSelected() && type.isVisible();
-      if (somethingSelected)
-      {
-        break;
-      }
-    }
-    if (!somethingSelected)
+    if (!isSomethingSelected())
     {
       errors.add(ERR_INFO_ONE_INDEX_TYPE_MUST_BE_SELECTED.get());
       setPrimaryInvalid(lType);
@@ -310,6 +303,19 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       displayErrorDialog(errors);
     }
+  }
+
+  private boolean isSomethingSelected()
+  {
+    for (JCheckBox type : types)
+    {
+      boolean somethingSelected = type.isSelected() && type.isVisible();
+      if (somethingSelected)
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String getAttributeName()
@@ -344,7 +350,7 @@ public class NewIndexPanel extends AbstractIndexPanel
   /** The task in charge of creating the index. */
   private class NewIndexTask extends Task
   {
-    private final Set<String> backendSet;
+    private final Set<String> backendSet = new HashSet<>();
     private final String attributeName;
     private final int entryLimitValue;
     private final SortedSet<IndexTypeDescriptor> indexTypes;
@@ -360,7 +366,6 @@ public class NewIndexPanel extends AbstractIndexPanel
     public NewIndexTask(final ControlPanelInfo info, final ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
       backendSet.add(backendName.getText());
       attributeName = getAttributeName();
       entryLimitValue = Integer.parseInt(entryLimit.getText());
@@ -482,7 +487,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     private String getIndexLDIF()
     {
       String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName.getText()) + ",cn=Backends,cn=config";
-      ArrayList<String> lines = new ArrayList<String>();
+      ArrayList<String> lines = new ArrayList<>();
       lines.add("dn: " + Utilities.getRDNString("ds-cfg-attribute", attributeName) + ",cn=Index," + dn);
       lines.add("objectClass: ds-cfg-local-db-index");
       lines.add("objectClass: top");
@@ -544,10 +549,9 @@ public class NewIndexPanel extends AbstractIndexPanel
         Attributes attrs = new BasicAttributes();
 
         BasicAttribute oc = new BasicAttribute("objectClass");
-        Iterator<ByteString> it = indexEntry.getObjectClassAttribute().iterator();
-        while (it.hasNext())
+        for (ByteString bs : indexEntry.getObjectClassAttribute())
         {
-          oc.add(it.next().toString());
+          oc.add(bs.toString());
         }
         attrs.put(oc);
 
@@ -556,10 +560,9 @@ public class NewIndexPanel extends AbstractIndexPanel
         {
           String attrName = odsAttr.getName();
           BasicAttribute attr = new BasicAttribute(attrName);
-          it = odsAttr.iterator();
-          while (it.hasNext())
+          for (ByteString bs : odsAttr)
           {
-            attr.add(it.next().toString());
+            attr.add(bs.toString());
           }
           attrs.put(attr);
         }
@@ -596,7 +599,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     @Override
     protected List<String> getCommandLineArguments()
     {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
 
     private String getConfigCommandLineName()
@@ -605,7 +608,6 @@ public class NewIndexPanel extends AbstractIndexPanel
       {
         return getCommandLinePath("dsconfig");
       }
-
       return null;
     }
 
@@ -649,7 +651,7 @@ public class NewIndexPanel extends AbstractIndexPanel
 
     private ArrayList<String> getDSConfigCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       args.add("create-local-db-index");
       args.add("--backend-name");
       args.add(backendName.getText());
