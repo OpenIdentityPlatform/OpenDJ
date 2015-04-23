@@ -25,15 +25,13 @@
  */
 package org.opends.server.backends.pluggable.spi;
 
-import java.io.Closeable;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Represents a readable transaction on a storage engine.
  */
-public interface ReadableTransaction extends Closeable
+public interface ReadableTransaction
 {
   /**
    * Reads the record's value associated to the provided key, in the tree whose name is provided.
@@ -63,7 +61,4 @@ public interface ReadableTransaction extends Closeable
    * @return the number of key/value pairs in the provided tree.
    */
   long getRecordCount(TreeName treeName);
-
-  @Override
-  public void close();
 }
