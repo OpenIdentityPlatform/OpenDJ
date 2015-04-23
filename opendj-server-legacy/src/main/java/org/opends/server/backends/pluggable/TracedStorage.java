@@ -91,9 +91,7 @@ final class TracedStorage implements Storage
     }
   }
 
-  /**
-   * Decorates an {@link ReadableTransaction} with additional trace logging.
-   */
+  /** Decorates an {@link ReadableTransaction} with additional trace logging. */
   private final class TracedReadableStorage implements ReadableTransaction
   {
     private final ReadableTransaction txn;
@@ -130,21 +128,13 @@ final class TracedStorage implements Storage
       return value;
     }
 
-    @Override
-    public void close()
-    {
-      logger.trace("Storage@%s.ReadableStorage@%s.close()", storageId(), id());
-    }
-
     private int id()
     {
       return System.identityHashCode(this);
     }
   }
 
-  /**
-   * Decorates an {@link WriteableTransaction} with additional trace logging.
-   */
+  /** Decorates an {@link WriteableTransaction} with additional trace logging. */
   private final class TracedWriteableStorage implements WriteableTransaction
   {
     private final WriteableTransaction txn;
@@ -229,12 +219,6 @@ final class TracedStorage implements Storage
       logger.trace("Storage@%s.WriteableStorage@%s.update(%s, %s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), f, isUpdated);
       return isUpdated;
-    }
-
-    @Override
-    public void close()
-    {
-      logger.trace("Storage@%s.WriteableStorage@%s.close()", storageId(), id());
     }
 
     private int id()
@@ -354,17 +338,6 @@ final class TracedStorage implements Storage
       };
     }
     storage.write(op);
-  }
-
-  @Override
-  public WriteableTransaction getWriteableTransaction()
-  {
-    final WriteableTransaction writeableStorage = storage.getWriteableTransaction();
-    if (logger.isTraceEnabled())
-    {
-      return new TracedWriteableStorage(writeableStorage);
-    }
-    return writeableStorage;
   }
 
   private String hex(final ByteSequence bytes)

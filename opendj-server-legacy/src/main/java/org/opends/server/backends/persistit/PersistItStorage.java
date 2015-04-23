@@ -27,6 +27,7 @@ package org.opends.server.backends.persistit;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
@@ -459,8 +460,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       return exchange;
     }
 
-    @Override
-    public void close()
+    private void release()
     {
       for (final Exchange ex : exchanges.values())
       {
@@ -628,7 +628,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         }
         finally
         {
-          storageImpl.close();
+          storageImpl.release();
         }
       }
       catch (final RollbackException e)
@@ -700,7 +700,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         }
         finally
         {
-          storageImpl.close();
+          storageImpl.release();
         }
       }
       catch (final RollbackException e)
@@ -717,12 +717,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
         txn.end();
       }
     }
-  }
-
-  @Override
-  public WriteableTransaction getWriteableTransaction()
-  {
-    return new StorageImpl();
   }
 
   @Override

@@ -80,13 +80,6 @@ public interface Storage extends Closeable
   void write(WriteOperation writeOperation) throws Exception;
 
   /**
-   * Returns a new writeable transaction.
-   *
-   * @return a new writeable transaction
-   */
-  WriteableTransaction getWriteableTransaction();
-
-  /**
    * Remove all files for a backend of this storage.
    *
    * @throws StorageRuntimeException if removal fails

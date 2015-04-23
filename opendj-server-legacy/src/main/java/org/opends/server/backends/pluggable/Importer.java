@@ -835,7 +835,7 @@ final class Importer
       }
       else
       {
-        doRebuildIndexes();
+        rebuildIndexes0();
       }
     }
     catch (Exception e)
@@ -861,7 +861,7 @@ final class Importer
     });
   }
 
-  private void doRebuildIndexes() throws Exception
+  private void rebuildIndexes0() throws Exception
   {
     final long startTime = System.currentTimeMillis();
     final Storage storage = rootContainer.getStorage();
@@ -1224,10 +1224,8 @@ final class Importer
   {
     for (IndexManager indexMgr : indexMgrs)
     {
-      // avoid threading issues by allocating one writeable storage per thread
-      // DB transactions are generally tied to a single thread
-      WriteableTransaction txn = this.rootContainer.getStorage().getWriteableTransaction();
-      futures.add(dbService.submit(new IndexDBWriteTask(indexMgr, txn, permits, buffers, readAheadSize)));
+      futures.add(dbService.submit(
+          new IndexDBWriteTask(rootContainer.getStorage(), indexMgr, permits, buffers, readAheadSize)));
     }
   }
 
@@ -1441,10 +1439,6 @@ final class Importer
         isCanceled = true;
         throw e;
       }
-      finally
-      {
-        txn.close();
-      }
     }
 
     void processEntry(WriteableTransaction txn, Entry entry, Suffix suffix)
@@ -1576,10 +1570,6 @@ final class Importer
         logger.error(ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR, e.getMessage());
         isCanceled = true;
         throw e;
-      }
-      finally
-      {
-        txn.close();
       }
     }
 
@@ -1779,6 +1769,7 @@ final class Importer
    */
   private final class IndexDBWriteTask implements Callable<Void>
   {
+    private final Storage storage;
     private final IndexManager indexMgr;
     private final int cacheSize;
     /** indexID => DNState map */
@@ -1796,15 +1787,14 @@ final class Importer
     private int nextBufferID;
     private int ownedPermits;
     private volatile boolean isRunning;
-    private final WriteableTransaction txn;
 
     /**
      * Creates a new index DB writer.
      *
      * @param indexMgr
      *          The index manager.
-     * @param txn
-     *          The database transaction
+     * @param storage
+     *          Where to store data
      * @param permits
      *          The semaphore used for restricting the number of buffer allocations.
      * @param maxPermits
@@ -1812,11 +1802,10 @@ final class Importer
      * @param cacheSize
      *          The buffer cache size.
      */
-    public IndexDBWriteTask(IndexManager indexMgr, WriteableTransaction txn, Semaphore permits, int maxPermits,
-        int cacheSize)
+    public IndexDBWriteTask(Storage storage, IndexManager indexMgr, Semaphore permits, int maxPermits, int cacheSize)
     {
+      this.storage = storage;
       this.indexMgr = indexMgr;
-      this.txn = txn;
       this.permits = permits;
       this.maxPermits = maxPermits;
       this.cacheSize = cacheSize;
@@ -1895,10 +1884,8 @@ final class Importer
       return buffers;
     }
 
-    /**
-     * Finishes this task.
-     */
-    public void endWriteTask()
+    /** Finishes this task. */
+    private void endWriteTask(WriteableTransaction txn)
     {
       isRunning = false;
 
@@ -1915,7 +1902,7 @@ final class Importer
         {
           for (DNState dnState : dnStateMap.values())
           {
-            dnState.flush();
+            dnState.flush(txn);
           }
           if (!isCanceled)
           {
@@ -1932,7 +1919,7 @@ final class Importer
       }
       finally
       {
-        close(bufferFile, bufferIndexFile, txn);
+        close(bufferFile, bufferIndexFile);
 
         indexMgr.getBufferFile().delete();
         indexMgr.getBufferIndexFile().delete();
@@ -1972,9 +1959,22 @@ final class Importer
     @Override
     public Void call() throws Exception
     {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          call0(txn);
+        }
+      });
+      return null;
+    }
+
+    private void call0(WriteableTransaction txn) throws Exception
+    {
       if (isCanceled)
       {
-        return null;
+        return;
       }
 
       ImportIDSet insertIDSet = null;
@@ -1989,7 +1989,7 @@ final class Importer
         {
           if (isCanceled)
           {
-            return null;
+            return;
           }
 
           while (!bufferSet.isEmpty())
@@ -1999,7 +1999,7 @@ final class Importer
             {
               if (previousRecord != null)
               {
-                addToDB(previousRecord.getIndexID(), insertIDSet, deleteIDSet);
+                addToDB(txn, previousRecord.getIndexID(), insertIDSet, deleteIDSet);
               }
 
               // this is a new record
@@ -2023,10 +2023,9 @@ final class Importer
 
           if (previousRecord != null)
           {
-            addToDB(previousRecord.getIndexID(), insertIDSet, deleteIDSet);
+            addToDB(txn, previousRecord.getIndexID(), insertIDSet, deleteIDSet);
           }
         }
-        return null;
       }
       catch (Exception e)
       {
@@ -2035,7 +2034,7 @@ final class Importer
       }
       finally
       {
-        endWriteTask();
+        endWriteTask(txn);
       }
     }
 
@@ -2050,12 +2049,13 @@ final class Importer
       return new ImportIDSet(record.getKey(), newDefinedSet(), index.getIndexEntryLimit(), index.getMaintainCount());
     }
 
-    private void addToDB(int indexID, ImportIDSet insertSet, ImportIDSet deleteSet) throws DirectoryException
+    private void addToDB(WriteableTransaction txn, int indexID, ImportIDSet insertSet, ImportIDSet deleteSet)
+        throws DirectoryException
     {
       keyCount.incrementAndGet();
       if (indexMgr.isDN2ID())
       {
-        addDN2ID(indexID, insertSet);
+        addDN2ID(txn, indexID, insertSet);
       }
       else
       {
@@ -2072,7 +2072,7 @@ final class Importer
       }
     }
 
-    private void addDN2ID(int indexID, ImportIDSet idSet) throws DirectoryException
+    private void addDN2ID(WriteableTransaction txn, int indexID, ImportIDSet idSet) throws DirectoryException
     {
       DNState dnState = dnStateMap.get(indexID);
       if (dnState == null)
@@ -2082,7 +2082,7 @@ final class Importer
       }
       if (dnState.checkParent(txn, idSet))
       {
-        dnState.writeToDN2ID(idSet);
+        dnState.writeToDN2ID(txn, idSet);
       }
     }
 
@@ -2197,7 +2197,7 @@ final class Importer
         return true;
       }
 
-      private void id2child(EntryID childID) throws DirectoryException
+      private void id2child(WriteableTransaction txn, EntryID childID) throws DirectoryException
       {
         if (parentID == null)
         {
@@ -2207,7 +2207,7 @@ final class Importer
         getId2childtreeImportIDSet().addEntryID(childID);
         if (id2childTree.size() > DN_STATE_CACHE_SIZE)
         {
-          flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
+          flushToDB(txn, id2childTree.values(), entryContainer.getID2Children(), true);
         }
       }
 
@@ -2223,7 +2223,7 @@ final class Importer
         return idSet;
       }
 
-      private void id2SubTree(ReadableTransaction txn, EntryID childID) throws DirectoryException
+      private void id2SubTree(WriteableTransaction txn, EntryID childID) throws DirectoryException
       {
         if (parentID == null)
         {
@@ -2246,7 +2246,7 @@ final class Importer
         }
         if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
         {
-          flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), true);
+          flushToDB(txn, id2subtreeTree.values(), entryContainer.getID2Subtree(), true);
         }
       }
 
@@ -2282,32 +2282,32 @@ final class Importer
         return idSet;
       }
 
-      public void writeToDN2ID(ImportIDSet idSet) throws DirectoryException
+      public void writeToDN2ID(WriteableTransaction txn, ImportIDSet idSet) throws DirectoryException
       {
         txn.put(dn2id, idSet.getKey(), entryID.toByteString());
         indexMgr.addTotDNCount(1);
         if (parentDN != null)
         {
-          id2child(entryID);
+          id2child(txn, entryID);
           id2SubTree(txn, entryID);
         }
       }
 
-      public void flush()
+      public void flush(WriteableTransaction txn)
       {
-        flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
-        flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+        flushToDB(txn, id2childTree.values(), entryContainer.getID2Children(), false);
+        flushToDB(txn, id2subtreeTree.values(), entryContainer.getID2Subtree(), false);
       }
 
-      private void flushMapToDB(Map<ByteString, ImportIDSet> map, Index index, boolean clearMap)
+      private void flushToDB(WriteableTransaction txn, Collection<ImportIDSet> idSets, Index index, boolean clearIDSets)
       {
-        for (ImportIDSet idSet : map.values())
+        for (ImportIDSet idSet : idSets)
         {
           index.importPut(txn, idSet);
         }
-        if (clearMap)
+        if (clearIDSets)
         {
-          map.clear();
+          idSets.clear();
         }
       }
     }
