@@ -449,7 +449,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>Here the security strength factor pertains to the cipher key
       strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS. For
       example, to require that the connection must have at least 128 bits
-      of encryption, specify <literal>ssf &gt;= 128</literal>.</para>
+      of encryption, specify <literal>ssf &gt;= "128"</literal>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
