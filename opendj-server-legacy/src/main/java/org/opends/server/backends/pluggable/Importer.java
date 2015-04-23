@@ -184,7 +184,7 @@ final class Importer
   private final boolean skipDNValidation;
 
   /** Temporary environment used when DN validation is done in first phase. */
-  private final TmpEnv tmpEnv;
+  private final DNCache tmpEnv;
 
   /** Root container. */
   private final RootContainer rootContainer;
@@ -2059,12 +2059,12 @@ final class Importer
       }
       else
       {
-        if (deleteSet.size() > 0 || !deleteSet.isDefined())
+        if (!deleteSet.isDefined() || deleteSet.size() > 0)
         {
           final Index index = indexIDToIndexMap.get(indexID);
           index.importRemove(txn, deleteSet);
         }
-        if (insertSet.size() > 0 || !insertSet.isDefined())
+        if (!insertSet.isDefined() || insertSet.size() > 0)
         {
           final Index index = indexIDToIndexMap.get(indexID);
           index.importPut(txn, insertSet);
@@ -3709,10 +3709,22 @@ final class Importer
    */
   public static interface DNCache
   {
+    /**
+     * Insert the specified DN into the DN cache. It will return {@code true} if the DN does not
+     * already exist in the cache and was inserted, or {@code false} if the DN exists already in the
+     * cache.
+     *
+     * @param dn
+     *          The DN to insert in the cache.
+     * @return {@code true} if the DN was inserted in the cache, or {@code false} if the DN exists
+     *         in the cache already and could not be inserted.
+     * @throws StorageRuntimeException
+     *           If an error occurs accessing the database.
+     */
+    boolean insert(DN dn);
 
     /**
-     * Returns {@code true} if the specified DN is contained in the DN cache, or
-     * {@code false} otherwise.
+     * Returns whether the specified DN is contained in the DN cache.
      *
      * @param dn
      *          The DN to check the presence of.
@@ -3722,6 +3734,14 @@ final class Importer
      *           If an error occurs reading the database.
      */
     boolean contains(DN dn) throws StorageRuntimeException;
+
+    /**
+     * Shuts the DN cache down.
+     *
+     * @throws StorageRuntimeException
+     *           If error occurs.
+     */
+    void shutdown();
   }
 
   /** Invocation handler for the {@link PluggableBackendCfg} proxy. */
@@ -3830,12 +3850,7 @@ final class Importer
       return ByteString.valueOf(hash);
     }
 
-    /**
-     * Shutdown the temporary environment.
-     *
-     * @throws StorageRuntimeException
-     *           If error occurs.
-     */
+    @Override
     public void shutdown() throws StorageRuntimeException
     {
       try
@@ -3848,19 +3863,7 @@ final class Importer
       }
     }
 
-    /**
-     * Insert the specified DN into the DN cache. It will return {@code true} if
-     * the DN does not already exist in the cache and was inserted, or
-     * {@code false} if the DN exists already in the cache.
-     *
-     * @param dn
-     *          The DN to insert in the cache.
-     * @return {@code true} if the DN was inserted in the cache, or
-     *         {@code false} if the DN exists in the cache already and could not
-     *         be inserted.
-     * @throws StorageRuntimeException
-     *           If an error occurs accessing the database.
-     */
+    @Override
     public boolean insert(DN dn) throws StorageRuntimeException
     {
       // Use a compact representation for key
@@ -3960,14 +3963,6 @@ final class Importer
       return false;
     }
 
-    /**
-     * Check if the specified DN is contained in the temporary DN cache.
-     *
-     * @param dn
-     *          A DN check for.
-     * @return {@code true} if the specified DN is in the temporary DN cache, or
-     *         {@code false} if it is not.
-     */
     @Override
     public boolean contains(final DN dn)
     {

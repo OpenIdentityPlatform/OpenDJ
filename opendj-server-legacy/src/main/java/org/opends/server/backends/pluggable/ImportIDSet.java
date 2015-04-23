@@ -101,7 +101,7 @@ final class ImportIDSet implements Iterable<EntryID> {
    */
   void addEntryID(long entryID)
   {
-    Reject.ifTrue(entryID < 0);
+    Reject.ifTrue(entryID < 0, "entryID must always be positive");
     if (isDefined() && size() + 1 > indexEntryLimitSize) {
       entryIDSet = maintainCount ? newUndefinedSetWithSize(key, size() + 1) : newUndefinedSetWithKey(key);
     } else if (isDefined() || maintainCount) {
