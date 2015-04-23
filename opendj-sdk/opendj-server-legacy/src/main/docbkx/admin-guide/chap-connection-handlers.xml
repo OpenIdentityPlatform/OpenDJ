@@ -567,7 +567,7 @@ $ <userinput>keytool \
  -trustcacerts \
  -alias server-cert \
  -file ~/Downloads/server-cert.crt \
- -keystore /path/to/opendj/config/keystore \
+ -keystore /path/to/opendj/config/truststore \
  -storepass changeit \
  -keypass changeit</userinput>
 <computeroutput>Certificate was added to keystore</computeroutput>
