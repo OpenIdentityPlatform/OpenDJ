@@ -167,7 +167,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
   }
 
   @Override
-  void doOpen(final WriteableTransaction txn) throws StorageRuntimeException
+  void open0(final ReadableTransaction txn) throws StorageRuntimeException
   {
     count.set((int) txn.getRecordCount(getName()));
   }
