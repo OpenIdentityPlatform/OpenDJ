@@ -49,13 +49,13 @@ abstract class AbstractDatabaseContainer implements DatabaseContainer
   public final void open(WriteableTransaction txn) throws StorageRuntimeException
   {
     txn.openTree(name);
-    doOpen(txn);
+    open0(txn);
   }
 
   /**
    * Override in order to perform any additional initialization after the index has opened.
    */
-  void doOpen(WriteableTransaction txn) throws StorageRuntimeException
+  void open0(ReadableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing by default.
   }
