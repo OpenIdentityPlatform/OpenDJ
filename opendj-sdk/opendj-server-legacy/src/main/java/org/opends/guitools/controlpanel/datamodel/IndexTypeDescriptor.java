@@ -26,6 +26,7 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,7 +34,10 @@ import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 
-/** Defines the set of values for the index type. */
+/**
+ * Defines the set of values for the index type and provides adaptors to convert
+ * from/to corresponding configuration classes.
+ */
 @RemoveOnceLocalDBBackendIsPluggable
 public enum IndexTypeDescriptor
 {
@@ -41,49 +45,64 @@ public enum IndexTypeDescriptor
    * This index type is used to improve the efficiency of searches using
    * approximate matching search filters.
    */
-  APPROXIMATE("approximate"),
+  APPROXIMATE(LocalDBIndexCfgDefn.IndexType.APPROXIMATE, BackendIndexCfgDefn.IndexType.APPROXIMATE,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.APPROXIMATE,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.APPROXIMATE),
 
   /**
    * This index type is used to improve the efficiency of searches using
    * equality search filters.
    */
-  EQUALITY("equality"),
+  EQUALITY(LocalDBIndexCfgDefn.IndexType.EQUALITY, BackendIndexCfgDefn.IndexType.EQUALITY,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.EQUALITY,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.EQUALITY),
 
   /**
    * This index type is used to improve the efficiency of searches using
    * extensible matching search filters.
    */
-  EXTENSIBLE("extensible"),
+  EXTENSIBLE(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE, BackendIndexCfgDefn.IndexType.EXTENSIBLE,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.EXTENSIBLE,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.EXTENSIBLE),
 
   /**
    * This index type is used to improve the efficiency of searches using
    * "greater than or equal to" or "less then or equal to" search filters.
    */
-  ORDERING("ordering"),
+  ORDERING(LocalDBIndexCfgDefn.IndexType.ORDERING, BackendIndexCfgDefn.IndexType.ORDERING,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.ORDERING,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.ORDERING),
 
   /**
    * This index type is used to improve the efficiency of searches using the
    * presence search filters.
    */
-  PRESENCE("presence"),
+  PRESENCE(LocalDBIndexCfgDefn.IndexType.PRESENCE, BackendIndexCfgDefn.IndexType.PRESENCE,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.PRESENCE,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.PRESENCE),
 
   /**
    * This index type is used to improve the efficiency of searches using
    * substring search filters.
    */
-  SUBSTRING("substring");
+  SUBSTRING(LocalDBIndexCfgDefn.IndexType.SUBSTRING, BackendIndexCfgDefn.IndexType.SUBSTRING,
+      org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING,
+      org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.SUBSTRING);
 
-  private final String name;
+  private final LocalDBIndexCfgDefn.IndexType oldConfigLocalDBIndexType;
+  private final BackendIndexCfgDefn.IndexType oldConfigBackendIndexType;
+  private final org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType localDBIndexType;
+  private final org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType backendIndexType;
 
-  private IndexTypeDescriptor(final String name)
+  private IndexTypeDescriptor(final LocalDBIndexCfgDefn.IndexType oldConfigLocalDBIndexType,
+      final BackendIndexCfgDefn.IndexType oldConfigBackendIndexType,
+      final org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType localDBIndexType,
+      final org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType backendIndexType)
   {
-    this.name = name;
-  }
-
-  @Override
-  public String toString()
-  {
-    return name;
+    this.oldConfigLocalDBIndexType = oldConfigLocalDBIndexType;
+    this.oldConfigBackendIndexType = oldConfigBackendIndexType;
+    this.localDBIndexType = localDBIndexType;
+    this.backendIndexType = backendIndexType;
   }
 
   /**
@@ -95,23 +114,7 @@ public enum IndexTypeDescriptor
    */
   public BackendIndexCfgDefn.IndexType toBackendIndexType()
   {
-    switch (this)
-    {
-    case APPROXIMATE:
-      return BackendIndexCfgDefn.IndexType.APPROXIMATE;
-    case EQUALITY:
-      return BackendIndexCfgDefn.IndexType.EQUALITY;
-    case EXTENSIBLE:
-      return BackendIndexCfgDefn.IndexType.EXTENSIBLE;
-    case ORDERING:
-      return BackendIndexCfgDefn.IndexType.ORDERING;
-    case PRESENCE:
-      return BackendIndexCfgDefn.IndexType.PRESENCE;
-    case SUBSTRING:
-      return BackendIndexCfgDefn.IndexType.SUBSTRING;
-    default:
-      throw new IllegalArgumentException("No BackendIndexCfgDefn.IndexType corresponding to: " + this);
-    }
+    return oldConfigBackendIndexType;
   }
 
   /**
@@ -123,23 +126,7 @@ public enum IndexTypeDescriptor
    */
   public LocalDBIndexCfgDefn.IndexType toLocalDBIndexType()
   {
-    switch (this)
-    {
-    case APPROXIMATE:
-      return LocalDBIndexCfgDefn.IndexType.APPROXIMATE;
-    case EQUALITY:
-      return LocalDBIndexCfgDefn.IndexType.EQUALITY;
-    case EXTENSIBLE:
-      return LocalDBIndexCfgDefn.IndexType.EXTENSIBLE;
-    case ORDERING:
-      return LocalDBIndexCfgDefn.IndexType.ORDERING;
-    case PRESENCE:
-      return LocalDBIndexCfgDefn.IndexType.PRESENCE;
-    case SUBSTRING:
-      return LocalDBIndexCfgDefn.IndexType.SUBSTRING;
-    default:
-      throw new IllegalArgumentException("No LocalDBIndexCfgDefn.IndexType corresponding to: " + this);
-    }
+    return oldConfigLocalDBIndexType;
   }
 
   private static IndexTypeDescriptor fromBackendIndexType(final BackendIndexCfgDefn.IndexType indexType)
@@ -260,6 +247,53 @@ public enum IndexTypeDescriptor
       indexTypes.add(indexTypeDescriptor.toLocalDBIndexType());
     }
     return indexTypes;
+  }
+
+  /**
+   * Convert the provided {@code Set<IndexTypeDescriptor>} to a
+   * {@code Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>}.
+   *
+   * @param indexTypeDescriptors
+   *          A set of {@code Set<IndexTypeDescriptor>}
+   * @return A set of
+   *         {@code Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>}
+   *         corresponding to the provided {@code Set<IndexTypeDescriptor>}
+   */
+  @RemoveOnceLocalDBBackendIsPluggable
+  public static Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> toNewConfigLocalDBIndexTypes(
+      final Set<IndexTypeDescriptor> indexTypeDescriptors)
+  {
+    final Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> newConfigIndexTypes =
+        new HashSet<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>();
+    for (IndexTypeDescriptor indexType : indexTypeDescriptors)
+    {
+      newConfigIndexTypes.add(indexType.localDBIndexType);
+    }
+
+    return newConfigIndexTypes;
+  }
+
+  /**
+   * Convert the provided {@code Set<IndexTypeDescriptor>} to a
+   * {@code Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType>}.
+   *
+   * @param indexTypeDescriptors
+   *          A set of {@code Set<IndexTypeDescriptor>}
+   * @return A set of
+   *         {@code Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType>}
+   *         corresponding to the provided {@code Set<IndexTypeDescriptor>}
+   */
+  public static Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType> toNewConfigBackendIndexTypes(
+      final Set<IndexTypeDescriptor> indexTypeDescriptors)
+  {
+    final Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType> newConfigIndexTypes =
+        new HashSet<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType>();
+    for (IndexTypeDescriptor indexType : indexTypeDescriptors)
+    {
+      newConfigIndexTypes.add(indexType.backendIndexType);
+    }
+
+    return newConfigIndexTypes;
   }
 
 }
