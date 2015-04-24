@@ -506,7 +506,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       final List<PropertyException> exceptions = new ArrayList<>();
       final LocalDBIndexCfgClient index = backend.createLocalDBIndex(
-          LocalDBIndexCfgDefn.getInstance(), backendName.getText(), exceptions);
+          LocalDBIndexCfgDefn.getInstance(), attributeName, exceptions);
       index.setIndexType(IndexTypeDescriptor.toLocalDBIndexTypes(indexTypes));
       if (entryLimitValue != index.getIndexEntryLimit())
       {
