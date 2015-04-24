@@ -159,7 +159,7 @@ final class Importer
   /** Root container. */
   private final RootContainer rootContainer;
   /** Import configuration. */
-  private final LDIFImportConfig importConfiguration;
+  private final LDIFImportConfig importCfg;
   private final ServerContext serverContext;
 
   /** LDIF reader. */
@@ -272,7 +272,7 @@ final class Importer
       ServerContext serverContext) throws InitializationException, StorageRuntimeException, ConfigException
   {
     this.rootContainer = rootContainer;
-    this.importConfiguration = null;
+    this.importCfg = null;
     this.serverContext = serverContext;
     this.threadCount = 1;
     this.rebuildManager = new RebuildIndexManager(rootContainer.getStorage(), rebuildConfig, cfg);
@@ -289,7 +289,7 @@ final class Importer
   /**
    * Create a new import job with the specified ldif import config.
    *
-   * @param importConfiguration
+   * @param importCfg
    *          The LDIF import configuration.
    * @param backendCfg
    *          The local DB back-end configuration.
@@ -300,33 +300,33 @@ final class Importer
    * @throws StorageRuntimeException
    *           If an error occurred when opening the DB.
    */
-  Importer(RootContainer rootContainer, LDIFImportConfig importConfiguration, PluggableBackendCfg backendCfg,
+  Importer(RootContainer rootContainer, LDIFImportConfig importCfg, PluggableBackendCfg backendCfg,
       ServerContext serverContext) throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rootContainer = rootContainer;
     this.rebuildManager = null;
-    this.importConfiguration = importConfiguration;
+    this.importCfg = importCfg;
     this.serverContext = serverContext;
 
-    if (importConfiguration.getThreadCount() == 0)
+    if (importCfg.getThreadCount() == 0)
     {
       this.threadCount = Runtime.getRuntime().availableProcessors() * 2;
     }
     else
     {
-      this.threadCount = importConfiguration.getThreadCount();
+      this.threadCount = importCfg.getThreadCount();
     }
 
     // Determine the number of indexes.
     this.indexCount = getTotalIndexCount(backendCfg);
 
-    this.clearedBackend = mustClearBackend(importConfiguration, backendCfg);
+    this.clearedBackend = mustClearBackend(importCfg, backendCfg);
     this.scratchFileWriterList = new ArrayList<>(indexCount);
 
-    this.tempDir = prepareTempDir(backendCfg, importConfiguration.getTmpDirectory());
+    this.tempDir = prepareTempDir(backendCfg, importCfg.getTmpDirectory());
     computeMemoryRequirements();
 
-    skipDNValidation = importConfiguration.getSkipDNValidation();
+    skipDNValidation = importCfg.getSkipDNValidation();
     // Set up temporary environment.
     if (!skipDNValidation)
     {
@@ -649,10 +649,10 @@ final class Importer
     List<DN> includeBranches = new ArrayList<>();
     List<DN> excludeBranches = new ArrayList<>();
 
-    if (!importConfiguration.appendToExistingData()
-        && !importConfiguration.clearBackend())
+    if (!importCfg.appendToExistingData()
+        && !importCfg.clearBackend())
     {
-      for (DN dn : importConfiguration.getExcludeBranches())
+      for (DN dn : importCfg.getExcludeBranches())
       {
         if (baseDN.equals(dn))
         {
@@ -665,9 +665,9 @@ final class Importer
         }
       }
 
-      if (!importConfiguration.getIncludeBranches().isEmpty())
+      if (!importCfg.getIncludeBranches().isEmpty())
       {
-        for (DN dn : importConfiguration.getIncludeBranches())
+        for (DN dn : importCfg.getIncludeBranches())
         {
           if (baseDN.isAncestorOf(dn))
           {
@@ -866,7 +866,7 @@ final class Importer
     try {
       try
       {
-        reader = new ImportLDIFReader(importConfiguration, rootContainer);
+        reader = new ImportLDIFReader(importCfg, rootContainer);
       }
       catch (IOException ioe)
       {
@@ -1030,8 +1030,8 @@ final class Importer
     execService.submit(new MigrateExistingTask(storage)).get();
 
     final List<Callable<Void>> tasks = new ArrayList<>(threadCount);
-    if (importConfiguration.appendToExistingData()
-        && importConfiguration.replaceExistingEntries())
+    if (importCfg.appendToExistingData()
+        && importCfg.replaceExistingEntries())
     {
       for (int i = 0; i < threadCount; i++)
       {
@@ -1239,7 +1239,7 @@ final class Importer
 
                 while (success
                     && ByteSequence.COMPARATOR.compare(key, end) < 0
-                    && !importConfiguration.isCancelled()
+                    && !importCfg.isCancelled()
                     && !isCanceled)
                 {
                   EntryID id = new EntryID(cursor.getValue());
@@ -1290,7 +1290,7 @@ final class Importer
             final List<ByteString> includeBranches = includeBranchesAsBytes(suffix);
             boolean success = cursor.next();
             while (success
-                && !importConfiguration.isCancelled()
+                && !importCfg.isCancelled()
                 && !isCanceled)
             {
               final ByteString key = cursor.getKey();
@@ -1375,7 +1375,7 @@ final class Importer
       {
         while (true)
         {
-          if (importConfiguration.isCancelled() || isCanceled)
+          if (importCfg.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
@@ -1510,7 +1510,7 @@ final class Importer
       {
         while (true)
         {
-          if (importConfiguration.isCancelled() || isCanceled)
+          if (importCfg.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
@@ -2166,7 +2166,7 @@ final class Importer
        */
       private boolean bypassCacheForAppendMode()
       {
-        return importConfiguration != null && importConfiguration.appendToExistingData();
+        return importCfg != null && importCfg.appendToExistingData();
       }
 
       EntryID get(ReadableTransaction txn, TreeName dn2id, ByteSequence dn) throws StorageRuntimeException
@@ -2492,7 +2492,7 @@ final class Importer
     @Override
     public Void call() throws Exception
     {
-      if ((importConfiguration != null && importConfiguration.isCancelled())
+      if ((importCfg != null && importCfg.isCancelled())
           || isCanceled)
       {
         isCanceled = true;
