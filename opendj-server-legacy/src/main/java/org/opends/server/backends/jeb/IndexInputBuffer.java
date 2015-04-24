@@ -51,6 +51,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  static final long UNDEFINED_SIZE = -1;
 
   private final IndexManager indexMgr;
   private final FileChannel channel;
@@ -206,7 +207,13 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     }
 
     indexID = getInt();
+    readKey();
 
+    recordState = RecordState.NEED_INSERT_ID_SET;
+  }
+
+  private void readKey() throws IOException
+  {
     ensureData(20);
     byte[] ba = cache.array();
     int p = cache.position();
@@ -221,8 +228,6 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     keyBuf.clear();
     cache.get(keyBuf.array(), 0, keyLen);
     keyBuf.limit(keyLen);
-
-    recordState = RecordState.NEED_INSERT_ID_SET;
   }
 
   private int getInt() throws IOException
@@ -261,14 +266,21 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
         p = cache.position();
       }
       len = PackedInteger.getReadLongLength(ba, p);
-      long l = PackedInteger.readLong(ba, p);
+      long entryID = PackedInteger.readLong(ba, p);
       p += len;
       cache.position(p);
 
       // idSet will be null if skipping.
       if (idSet != null)
       {
-        idSet.addEntryID(l);
+        if (entryID == UNDEFINED_SIZE)
+        {
+          idSet.setUndefined();
+        }
+        else
+        {
+          idSet.addEntryID(entryID);
+        }
       }
     }
 

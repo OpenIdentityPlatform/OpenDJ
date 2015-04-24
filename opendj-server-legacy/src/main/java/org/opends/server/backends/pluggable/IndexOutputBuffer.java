@@ -581,7 +581,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     this.indexKey = indexKey;
   }
 
-
   /**
    * Return the index key of an index buffer.
    * @return The index buffer's index key.
@@ -589,5 +588,14 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   public Importer.IndexKey getIndexKey()
   {
     return indexKey;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "("
+        + "bufferID=" + bufferID + ", " + currentRecord + ", indexKey=" + indexKey
+        + ")";
   }
 }

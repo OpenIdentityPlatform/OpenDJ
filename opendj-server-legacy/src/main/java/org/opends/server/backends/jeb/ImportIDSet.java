@@ -28,6 +28,8 @@ package org.opends.server.backends.jeb;
 
 import java.nio.ByteBuffer;
 
+import org.forgerock.util.Reject;
+
 /**
  * This class manages the set of ID that are to be eventually added to an index
  * database. It is responsible for determining if the number of IDs is above
@@ -89,7 +91,7 @@ class ImportIDSet {
   }
 
   /** Set an import ID set to undefined. */
-  private void setUndefined() {
+  void setUndefined() {
     array = null;
     isDefined = false;
   }
@@ -109,13 +111,15 @@ class ImportIDSet {
    * @param entryID The long value to add to an import ID set.
    */
   void addEntryID(long entryID) {
+    Reject.ifTrue(entryID < 0, "entryID must always be positive");
+
     if(!isDefined()) {
       if(doCount)  {
         undefinedSize++;
       }
       return;
     }
-    if (entryID < 0 || (isDefined() && count + 1 > limit))
+    if (isDefined() && count + 1 > limit)
     {
       setUndefined();
       if(doCount)  {

@@ -30,6 +30,7 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.jeb.IndexOutputBuffer.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -2417,7 +2418,8 @@ final class Importer implements DiskSpaceMonitorHandler
    */
   private final class ScratchFileWriterTask implements Callable<Void>
   {
-    private final int DRAIN_TO = 3;
+    private static final int DRAIN_TO = 3;
+
     private final IndexManager indexMgr;
     private final BlockingQueue<IndexOutputBuffer> queue;
     private final ByteArrayOutputStream insertByteStream = new ByteArrayOutputStream(2 * bufferSize);
@@ -2642,9 +2644,10 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       if (insertKeyCount > indexMgr.getLimit())
       {
+        // special handling when index entry limit has been exceeded
         insertKeyCount = 1;
         insertByteStream.reset();
-        writePackedInt(insertByteStream, -1);
+        writePackedLong(insertByteStream, IndexInputBuffer.UNDEFINED_SIZE);
       }
 
       int insertSize = writePackedInt(bufferStream, insertKeyCount);
@@ -2689,6 +2692,14 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       int writeSize = PackedInteger.getWriteIntLength(value);
       PackedInteger.writeInt(tmpArray, 0, value);
+      stream.write(tmpArray, 0, writeSize);
+      return writeSize;
+    }
+
+    private int writePackedLong(OutputStream stream, long value) throws IOException
+    {
+      int writeSize = PackedInteger.getWriteLongLength(value);
+      PackedInteger.writeLong(tmpArray, 0, value);
       stream.write(tmpArray, 0, writeSize);
       return writeSize;
     }
@@ -3404,11 +3415,11 @@ final class Importer implements DiskSpaceMonitorHandler
       for (String index : rebuildList)
       {
         final String lowerName = index.toLowerCase();
-        if ("dn2id".equals(lowerName))
+        if (DN2ID_INDEX_NAME.equals(lowerName))
         {
           indexCount += 3;
         }
-        else if ("dn2uri".equals(lowerName))
+        else if (DN2URI_INDEX_NAME.equals(lowerName))
         {
           indexCount++;
         }
@@ -3420,8 +3431,8 @@ final class Importer implements DiskSpaceMonitorHandler
           }
           indexCount++;
         }
-        else if ("id2subtree".equals(lowerName)
-            || "id2children".equals(lowerName))
+        else if (ID2SUBTREE_INDEX_NAME.equals(lowerName)
+            || ID2CHILDREN_INDEX_NAME.equals(lowerName))
         {
           throw attributeIndexNotConfigured(index);
         }
@@ -4148,8 +4159,7 @@ final class Importer implements DiskSpaceMonitorHandler
     public String toString()
     {
       return getClass().getSimpleName()
-          + "(attributeType=" + attributeType
-          + ", indexType=" + indexType
+          + "(index=" + attributeType.getNameOrOID() + "." + indexType
           + ", entryLimit=" + entryLimit
           + ")";
     }
