@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -42,6 +42,8 @@ public interface SuffixContainer extends Closeable
    * identify entries.
    */
   String DN2ID_INDEX_NAME = "dn2id";
+  /** The name of the index associating normalized DNs to URIs. */
+  String DN2URI_INDEX_NAME = "dn2uri";
   /**
    * The name of the index associating entry ids to entries. Entry ids are
    * monotonically increasing unique longs and entries are serialized versions
