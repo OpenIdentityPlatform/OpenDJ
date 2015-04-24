@@ -23,7 +23,6 @@
  *
  *      Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.HashSet;
@@ -182,7 +181,7 @@ public enum IndexTypeDescriptor
    */
   public static Set<IndexTypeDescriptor> fromBackendIndexTypes(final Set<BackendIndexCfgDefn.IndexType> indexTypes)
   {
-    final Set<IndexTypeDescriptor> indexTypeDescriptors = new LinkedHashSet<IndexTypeDescriptor>();
+    final Set<IndexTypeDescriptor> indexTypeDescriptors = new LinkedHashSet<>();
     for (final BackendIndexCfgDefn.IndexType indexType : indexTypes)
     {
       indexTypeDescriptors.add(fromBackendIndexType(indexType));
@@ -201,7 +200,7 @@ public enum IndexTypeDescriptor
    */
   public static Set<IndexTypeDescriptor> fromLocalDBIndexTypes(final Set<LocalDBIndexCfgDefn.IndexType> indexTypes)
   {
-    final Set<IndexTypeDescriptor> indexTypeDescriptors = new LinkedHashSet<IndexTypeDescriptor>();
+    final Set<IndexTypeDescriptor> indexTypeDescriptors = new LinkedHashSet<>();
     for (final LocalDBIndexCfgDefn.IndexType indexType : indexTypes)
     {
       indexTypeDescriptors.add(fromLocalDBIndexType(indexType));
@@ -221,7 +220,7 @@ public enum IndexTypeDescriptor
   public static Set<BackendIndexCfgDefn.IndexType> toBackendIndexTypes(
       final Set<IndexTypeDescriptor> indexTypeDescriptors)
   {
-    final Set<BackendIndexCfgDefn.IndexType> indexTypes = new LinkedHashSet<BackendIndexCfgDefn.IndexType>();
+    final Set<BackendIndexCfgDefn.IndexType> indexTypes = new LinkedHashSet<>();
     for (final IndexTypeDescriptor indexTypeDescriptor : indexTypeDescriptors)
     {
       indexTypes.add(indexTypeDescriptor.toBackendIndexType());
@@ -241,7 +240,7 @@ public enum IndexTypeDescriptor
   public static Set<LocalDBIndexCfgDefn.IndexType> toLocalDBIndexTypes(
       final Set<IndexTypeDescriptor> indexTypeDescriptors)
   {
-    final Set<LocalDBIndexCfgDefn.IndexType> indexTypes = new LinkedHashSet<LocalDBIndexCfgDefn.IndexType>();
+    final Set<LocalDBIndexCfgDefn.IndexType> indexTypes = new LinkedHashSet<>();
     for (final IndexTypeDescriptor indexTypeDescriptor : indexTypeDescriptors)
     {
       indexTypes.add(indexTypeDescriptor.toLocalDBIndexType());
@@ -263,13 +262,11 @@ public enum IndexTypeDescriptor
   public static Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> toNewConfigLocalDBIndexTypes(
       final Set<IndexTypeDescriptor> indexTypeDescriptors)
   {
-    final Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> newConfigIndexTypes =
-        new HashSet<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>();
+    Set<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> newConfigIndexTypes = new HashSet<>();
     for (IndexTypeDescriptor indexType : indexTypeDescriptors)
     {
       newConfigIndexTypes.add(indexType.localDBIndexType);
     }
-
     return newConfigIndexTypes;
   }
 
@@ -286,13 +283,11 @@ public enum IndexTypeDescriptor
   public static Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType> toNewConfigBackendIndexTypes(
       final Set<IndexTypeDescriptor> indexTypeDescriptors)
   {
-    final Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType> newConfigIndexTypes =
-        new HashSet<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType>();
+    Set<org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType> newConfigIndexTypes = new HashSet<>();
     for (IndexTypeDescriptor indexType : indexTypeDescriptors)
     {
       newConfigIndexTypes.add(indexType.backendIndexType);
     }
-
     return newConfigIndexTypes;
   }
 
