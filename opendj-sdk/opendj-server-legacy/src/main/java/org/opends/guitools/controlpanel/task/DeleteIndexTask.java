@@ -39,6 +39,7 @@ import java.util.TreeSet;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
@@ -46,12 +47,14 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -286,21 +289,50 @@ public class DeleteIndexTask extends Task
    * @throws OpenDsException
    *           if an error occurs.
    */
-  private void deleteIndex(InitialLdapContext ctx, AbstractIndexDescriptor index) throws OpenDsException
+  private void deleteIndex(final InitialLdapContext ctx, final AbstractIndexDescriptor index) throws OpenDsException
   {
     final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
     final RootCfgClient root = mCtx.getRootConfiguration();
-    final LocalDBBackendCfgClient backend =
-        (LocalDBBackendCfgClient) root.getBackend(index.getBackend().getBackendID());
-    if (isVLVIndex(index))
+    final BackendCfgClient backend = root.getBackend(index.getBackend().getBackendID());
+
+    if (backend instanceof LocalDBBackendCfgClient)
     {
-      backend.removeLocalDBVLVIndex(index.getName());
+      removeLocalDBIndex((LocalDBBackendCfgClient) backend, index);
     }
     else
     {
-      backend.removeLocalDBIndex(index.getName());
+      removeBackendIndex((PluggableBackendCfgClient) backend, index);
     }
     backend.commit();
+  }
+
+  private void removeBackendIndex(final PluggableBackendCfgClient backend, final AbstractIndexDescriptor index)
+      throws OpenDsException
+  {
+    final String indexName = index.getName();
+    if (isVLVIndex(index))
+    {
+      backend.removeBackendVLVIndex(indexName);
+    }
+    else
+    {
+      backend.removeBackendIndex(indexName);
+    }
+  }
+
+  @RemoveOnceLocalDBBackendIsPluggable
+  private void removeLocalDBIndex(final LocalDBBackendCfgClient backend, final AbstractIndexDescriptor index)
+      throws OpenDsException
+  {
+    final String indexName = index.getName();
+    if (isVLVIndex(index))
+    {
+      backend.removeLocalDBVLVIndex(indexName);
+    }
+    else
+    {
+      backend.removeLocalDBIndex(indexName);
+    }
   }
 
   @Override
