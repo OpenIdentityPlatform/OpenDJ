@@ -35,8 +35,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -58,7 +56,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
@@ -67,26 +65,22 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.BackendCfgClient;
+import org.opends.server.admin.std.client.BackendIndexCfgClient;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
-import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.std.client.PluggableBackendCfgClient;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.ServerConstants;
-
-import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The panel that displays an existing index (it appears on the right of the
@@ -95,6 +89,8 @@ import com.forgerock.opendj.cli.CommandBuilder;
 public class IndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = 1439500626486823366L;
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private IndexDescriptor index;
   private ScrollPaneBorderListener scrollListener;
 
@@ -612,13 +608,11 @@ public class IndexPanel extends AbstractIndexPanel
 
         if (isServerRunning())
         {
-          // Create additional indexes and display the equivalent command.
-          // Everything is done in the method createAdditionalIndexes
-          modifyIndex(getInfo().getDirContext());
+          modifyIndexOnline(getInfo().getDirContext());
         }
         else
         {
-          modifyIndex();
+          modifyIndexOffline(backendName, attributeName, indexToModify, indexTypes, entryLimitValue);
         }
 
         SwingUtilities.invokeLater(new Runnable()
@@ -641,66 +635,6 @@ public class IndexPanel extends AbstractIndexPanel
     }
 
     /**
-     * Returns the LDIF representation of the modified index.
-     *
-     * @return the LDIF representation of the modified index.
-     */
-    private String getIndexLDIF()
-    {
-      final String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName) + ",cn=Backends,cn=config";
-      final List<String> lines = new ArrayList<String>();
-      lines.add("dn: " + Utilities.getRDNString("ds-cfg-attribute", attributeName) + ",cn=Index,"+dn);
-      lines.add("objectClass: ds-cfg-local-db-index");
-      lines.add("objectClass: top");
-      lines.add("ds-cfg-attribute: " + attributeName);
-      lines.add("ds-cfg-index-entry-limit: " + entryLimitValue);
-      for (IndexTypeDescriptor type : indexTypes)
-      {
-        lines.add("ds-cfg-index-type: " + type.toLocalDBIndexType());
-      }
-
-      final StringBuilder sb = new StringBuilder();
-      for (final String line : lines)
-      {
-        sb.append(line)
-          .append(ServerConstants.EOL);
-      }
-
-      return sb.toString();
-    }
-
-    private void modifyIndex() throws OpenDsException
-    {
-      LDIFImportConfig ldifImportConfig = null;
-      try
-      {
-        String ldif = getIndexLDIF();
-
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
-        Entry newConfigEntry = reader.readEntry();
-        Entry oldEntry = DirectoryServer.getConfigEntry(newConfigEntry.getName()).getEntry();
-        DirectoryServer.getConfigHandler().replaceEntry(oldEntry, newConfigEntry, null);
-        DirectoryServer.getConfigHandler().writeUpdatedConfig();
-      }
-      catch (IOException ioe)
-      {
-        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
-      }
-      catch (ConfigException ce)
-      {
-        throw new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
-      }
-      finally
-      {
-        if (ldifImportConfig != null)
-        {
-          ldifImportConfig.close();
-        }
-      }
-    }
-
-    /**
      * Modifies index using the provided connection.
      *
      * @param ctx
@@ -708,24 +642,42 @@ public class IndexPanel extends AbstractIndexPanel
      * @throws OpenDsException
      *           if there is an error updating the server.
      */
-    private void modifyIndex(InitialLdapContext ctx) throws OpenDsException
+    private void modifyIndexOnline(final InitialLdapContext ctx) throws OpenDsException
     {
-      final StringBuilder sb = new StringBuilder();
-      sb.append(getConfigCommandLineName());
-      Collection<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
-      for (String arg : args)
+      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
+      final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName);
+      if (backend instanceof LocalDBBackendCfgClient)
       {
-        sb.append(" ").append(CommandBuilder.escapeValue(arg));
+        modifyLocalDBIndexOnline((LocalDBBackendCfgClient) backend);
+        return;
+      }
+      modifyBackendIndexOnline((PluggableBackendCfgClient) backend);
+    }
+
+    private void modifyBackendIndexOnline(final PluggableBackendCfgClient backend) throws OpenDsException
+    {
+      final BackendIndexCfgClient index = backend.getBackendIndex(attributeName);
+      if (!indexTypes.equals(indexToModify.getTypes()))
+      {
+        index.setIndexType(IndexTypeDescriptor.toBackendIndexTypes(indexTypes));
       }
 
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendName);
-      LocalDBIndexCfgClient index = backend.getLocalDBIndex(attributeName);
+      if (entryLimitValue != index.getIndexEntryLimit())
+      {
+        index.setIndexEntryLimit(entryLimitValue);
+      }
+      index.commit();
+    }
+
+    @RemoveOnceLocalDBBackendIsPluggable
+    private void modifyLocalDBIndexOnline(final LocalDBBackendCfgClient backend) throws OpenDsException
+    {
+      final LocalDBIndexCfgClient index = backend.getLocalDBIndex(attributeName);
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
         index.setIndexType(IndexTypeDescriptor.toLocalDBIndexTypes(indexTypes));
       }
+
       if (entryLimitValue != index.getIndexEntryLimit())
       {
         index.setIndexEntryLimit(entryLimitValue);

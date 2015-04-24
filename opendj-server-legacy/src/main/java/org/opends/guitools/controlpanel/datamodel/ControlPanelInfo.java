@@ -22,9 +22,15 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -40,6 +46,8 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -63,12 +71,6 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
-
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
-
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 
 /**
  * This is the classes that is shared among all the different places in the
@@ -1343,4 +1345,26 @@ public class ControlPanelInfo
     }
     return connectionWorks;
   }
+
+  /**
+   * Initialize the new configuration framework if needed.
+   *
+   * @throws org.opends.server.config.ConfigException
+   *           If error occurred during the initialization
+   */
+  public void initializeConfigurationFramework() throws org.opends.server.config.ConfigException
+  {
+    if (!ConfigurationFramework.getInstance().isInitialized())
+    {
+      try
+      {
+        ConfigurationFramework.getInstance().initialize();
+      }
+      catch (ConfigException ce)
+      {
+        throw new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
+      }
+    }
+  }
+
 }

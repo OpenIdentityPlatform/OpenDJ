@@ -31,8 +31,10 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -45,12 +47,27 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
+import org.forgerock.opendj.server.config.client.LocalDBIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn;
+import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.Installation;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
+import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.OpenDsException;
 
 /**
  * Abstract class used to refactor some code between the classes that are used
@@ -353,4 +370,94 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
 
     return errors;
   }
+
+  void createIndexOffline(final String backendName, final String attributeName,
+      final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit) throws OpenDsException
+  {
+    updateIndexOffline(backendName, null, attributeName, indexTypes, indexEntryLimit);
+  }
+
+  void modifyIndexOffline(final String backendName, final String attributeName, final IndexDescriptor indexToModify,
+      final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit) throws OpenDsException
+  {
+    updateIndexOffline(backendName, indexToModify, attributeName, indexTypes, indexEntryLimit);
+  }
+
+  private void updateIndexOffline(final String backendName, final IndexDescriptor indexToModify,
+      final String attributeName, final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit)
+      throws OpenDsException
+  {
+    getInfo().initializeConfigurationFramework();
+    try
+    {
+      final List<IOException> exceptions = new ArrayList<>();
+      final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
+              Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
+      Utilities.throwFirstFrom(exceptions);
+      final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
+      if (backend instanceof LocalDBBackendCfgClient)
+      {
+        updateLocalDBIndexOffline(
+            (LocalDBBackendCfgClient) backend, indexToModify, attributeName, indexTypes, indexEntryLimit);
+      }
+      else
+      {
+        updateBackendIndexOnline(
+            (PluggableBackendCfgClient) backend, indexToModify, attributeName, indexTypes, indexEntryLimit);
+      }
+      context.close();
+    }
+    catch (final Exception e)
+    {
+      throw new ConfigException(LocalizableMessage.raw(e.getMessage(), e));
+    }
+  }
+
+  private void updateBackendIndexOnline(final PluggableBackendCfgClient backend,
+      final IndexDescriptor indexToModify, final String attributeName, final Set<IndexTypeDescriptor> indexTypes,
+      final int indexEntryLimit) throws Exception
+  {
+    final boolean isCreation = indexToModify == null;
+    final List<PropertyException> exceptions = new ArrayList<>();
+    final BackendIndexCfgClient index = isCreation
+        ? backend.createBackendIndex(BackendIndexCfgDefn.getInstance(), attributeName, exceptions)
+        : backend.getBackendIndex(attributeName);
+
+    if (isCreation || indexTypes.equals(indexToModify.getTypes()))
+    {
+      index.setIndexType(IndexTypeDescriptor.toNewConfigBackendIndexTypes(indexTypes));
+    }
+
+    if (indexEntryLimit != index.getIndexEntryLimit())
+    {
+      index.setIndexEntryLimit(indexEntryLimit);
+    }
+    index.commit();
+    Utilities.throwFirstFrom(exceptions);
+ }
+
+  @RemoveOnceLocalDBBackendIsPluggable
+  private void updateLocalDBIndexOffline(final LocalDBBackendCfgClient backend, final IndexDescriptor indexToModify,
+      final String attributeName, final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit)
+      throws Exception
+  {
+    final boolean isCreation = indexToModify == null;
+    final List<PropertyException> exceptions = new ArrayList<>();
+    final LocalDBIndexCfgClient index = isCreation
+        ? backend.createLocalDBIndex(LocalDBIndexCfgDefn.getInstance(), attributeName, exceptions)
+        : backend.getLocalDBIndex(attributeName);
+
+    if (isCreation || indexTypes.equals(indexToModify.getTypes()))
+    {
+      index.setIndexType(IndexTypeDescriptor.toNewConfigLocalDBIndexTypes(indexTypes));
+    }
+
+    if (indexEntryLimit != index.getIndexEntryLimit())
+    {
+      index.setIndexEntryLimit(indexEntryLimit);
+    }
+    index.commit();
+    Utilities.throwFirstFrom(exceptions);
+  }
+
 }

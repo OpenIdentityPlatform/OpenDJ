@@ -2891,4 +2891,23 @@ public class Utilities
     return null;
   }
 
+  /**
+   * Throw the first exception of the list (if any).
+   *
+   * @param <E>
+   *          The exception type
+   * @param exceptions
+   *          A list of exceptions.
+   * @throws E
+   *           The first element of the provided list (if the list is not
+   *           empty).
+   */
+  public static <E extends Exception> void throwFirstFrom(List<? extends E> exceptions) throws E
+  {
+    if (!exceptions.isEmpty())
+    {
+      throw exceptions.get(0);
+    }
+  }
+
 }
