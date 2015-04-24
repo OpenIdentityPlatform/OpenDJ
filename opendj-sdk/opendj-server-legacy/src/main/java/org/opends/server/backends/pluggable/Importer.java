@@ -811,8 +811,6 @@ final class Importer
   /**
    * Rebuild the indexes using the specified root container.
    *
-   * @param rootContainer
-   *          The root container to rebuild indexes in.
    * @throws ConfigException
    *           If a configuration error occurred.
    * @throws InitializationException
@@ -895,8 +893,6 @@ final class Importer
   /**
    * Import a LDIF using the specified root container.
    *
-   * @param rootContainer
-   *          The root container to use during the import.
    * @return A LDIF result.
    * @throws Exception
    *           If the import failed
@@ -2319,11 +2315,13 @@ final class Importer
    */
   private final class ScratchFileWriterTask implements Callable<Void>
   {
-    private final int DRAIN_TO = 3;
+    private static final int DRAIN_TO = 3;
+
     private final IndexManager indexMgr;
     private final BlockingQueue<IndexOutputBuffer> queue;
     /** Stream where to output insert ImportIDSet data. */
     private final ByteArrayOutputStream insertByteStream = new ByteArrayOutputStream(2 * bufferSize);
+    private final DataOutputStream insertByteDataStream = new DataOutputStream(insertByteStream);
     /** Stream where to output delete ImportIDSet data. */
     private final ByteArrayOutputStream deleteByteStream = new ByteArrayOutputStream(2 * bufferSize);
     private final DataOutputStream bufferStream;
@@ -2530,7 +2528,7 @@ final class Importer
         // special handling when index entry limit has been exceeded
         insertKeyCount = 1;
         insertByteStream.reset();
-        insertByteStream.write(-1);
+        insertByteDataStream.writeLong(IndexInputBuffer.UNDEFINED_SIZE);
       }
 
       int insertSize = INT_SIZE;
@@ -3695,8 +3693,7 @@ final class Importer
     public String toString()
     {
       return getClass().getSimpleName()
-          + "(attributeType=" + attributeType
-          + ", indexID=" + indexID
+          + "(index=" + attributeType.getNameOrOID() + "." + indexID
           + ", entryLimit=" + entryLimit
           + ")";
     }

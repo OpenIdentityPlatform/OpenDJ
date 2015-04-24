@@ -84,8 +84,12 @@ final class ImportIDSet implements Iterable<EntryID> {
     return entryIDSet.isDefined();
   }
 
-  private void setUndefined() {
+  void setUndefined() {
     entryIDSet = newUndefinedSetWithKey(key);
+  }
+
+  private void setUndefinedWithSize(final long newSize) {
+    entryIDSet = maintainCount ? newUndefinedSetWithSize(key, newSize) : newUndefinedSetWithKey(key);
   }
 
   /**
@@ -103,7 +107,7 @@ final class ImportIDSet implements Iterable<EntryID> {
   {
     Reject.ifTrue(entryID < 0, "entryID must always be positive");
     if (isDefined() && size() + 1 > indexEntryLimitSize) {
-      entryIDSet = maintainCount ? newUndefinedSetWithSize(key, size() + 1) : newUndefinedSetWithKey(key);
+      setUndefinedWithSize(size() + 1);
     } else if (isDefined() || maintainCount) {
       entryIDSet.add(new EntryID(entryID));
     }
@@ -138,7 +142,7 @@ final class ImportIDSet implements Iterable<EntryID> {
 
     if (!definedBeforeMerge || !importIdSet.isDefined() || mergedSize > indexEntryLimitSize)
     {
-      entryIDSet = maintainCount ? newUndefinedSetWithSize(key, mergedSize) : newUndefinedSetWithKey(key);
+      setUndefinedWithSize(mergedSize);
       return definedBeforeMerge;
     }
     else if (isDefined() || maintainCount)

@@ -52,6 +52,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  static final long UNDEFINED_SIZE = -1;
 
   private final IndexManager indexMgr;
   private final FileChannel channel;
@@ -231,7 +232,14 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       // idSet will be null if skipping.
       if (idSet != null)
       {
-        idSet.addEntryID(entryID);
+        if (entryID == UNDEFINED_SIZE)
+        {
+          idSet.setUndefined();
+        }
+        else
+        {
+          idSet.addEntryID(entryID);
+        }
       }
     }
 
@@ -283,5 +291,14 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       return bufferID - o.bufferID;
     }
     return cmp;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "("
+        + ", indexMgr=" + indexMgr + "bufferID=" + bufferID + ", record=" + record + ", recordState=" + recordState
+        + ")";
   }
 }
