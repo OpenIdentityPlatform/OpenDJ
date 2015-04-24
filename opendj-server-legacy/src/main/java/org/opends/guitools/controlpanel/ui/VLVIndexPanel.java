@@ -36,8 +36,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -61,6 +59,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
@@ -72,24 +71,22 @@ import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.BackendCfgClient;
+import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
+import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.LDIFReader;
-
-import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The panel that displays an existing VLV index (it appears on the right of the
@@ -557,7 +554,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     private final List<VLVSortOrder> sortOrder;
     private final String backendID;
     private final String sortOrderStringValue;
-    private final String ldif;
     private final VLVIndexDescriptor indexToModify;
     private VLVIndexDescriptor modifiedIndex;
 
@@ -581,7 +577,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       filterValue = filter.getText().trim();
       searchScope = getScope();
       sortOrderStringValue = getSortOrderStringValue(sortOrder);
-      ldif = getIndexLDIF(indexName);
       indexToModify = index;
     }
 
@@ -664,15 +659,15 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
                     ColorAndFontConstants.progressFont));
           }
         });
+
         if (isServerRunning())
         {
-          // Create additional indexes and display the equivalent command.
-          // Everything is done in the method createAdditionalIndexes
-          modifyIndex(getInfo().getDirContext());
+          modifyVLVIndexOnline(getInfo().getDirContext());
         }
         else
         {
-          modifyIndex();
+          modifyVLVIndexOffline(backendID, indexName, indexToModify, Converters.from(DN.valueOf(baseDN)), filterValue,
+              searchScope, sortOrder);
         }
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -694,31 +689,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    private void modifyIndex() throws OpenDsException, ConfigException
-    {
-      LDIFImportConfig ldifImportConfig = null;
-      try
-      {
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        final LDIFReader reader = new LDIFReader(ldifImportConfig);
-        final Entry newConfigEntry = reader.readEntry();
-        final Entry oldEntry = DirectoryServer.getConfigEntry(newConfigEntry.getName()).getEntry();
-        DirectoryServer.getConfigHandler().replaceEntry(oldEntry, newConfigEntry, null);
-        DirectoryServer.getConfigHandler().writeUpdatedConfig();
-      }
-      catch (final IOException ioe)
-      {
-        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
-      }
-      finally
-      {
-        if (ldifImportConfig != null)
-        {
-          ldifImportConfig.close();
-        }
-      }
-    }
-
     /**
      * Modifies index using the provided connection.
      *
@@ -727,20 +697,49 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
      * @throws OpenDsException
      *           if there is an error updating the server.
      */
-    private void modifyIndex(InitialLdapContext ctx) throws OpenDsException
+    private void modifyVLVIndexOnline(InitialLdapContext ctx) throws OpenDsException
     {
-      final StringBuilder sb = new StringBuilder();
-      sb.append(getConfigCommandLineName());
-      final Collection<String> args = getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
-      for (final String arg : args)
-      {
-        sb.append(" ");
-        sb.append(CommandBuilder.escapeValue(arg));
-      }
-
       final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       final RootCfgClient root = mCtx.getRootConfiguration();
-      final LocalDBBackendCfgClient backend = (LocalDBBackendCfgClient) root.getBackend(backendID);
+      final BackendCfgClient backend = root.getBackend(backendID);
+
+      if (backend instanceof LocalDBBackendCfgClient)
+      {
+        modifyLocalDBVLVIndexOnline((LocalDBBackendCfgClient) backend);
+        return;
+      }
+      modifyBackendVLVIndexOnline((PluggableBackendCfgClient) backend);
+    }
+
+    private void modifyBackendVLVIndexOnline(final PluggableBackendCfgClient backend) throws OpenDsException
+    {
+      final BackendVLVIndexCfgClient index = backend.getBackendVLVIndex(indexName);
+      final DN b = DN.valueOf(baseDN);
+      if (!indexToModify.getBaseDN().equals(b))
+      {
+        index.setBaseDN(b);
+      }
+
+      if (!indexToModify.getFilter().equals(filterValue))
+      {
+        index.setFilter(filterValue);
+      }
+
+      if (indexToModify.getScope() != searchScope)
+      {
+        index.setScope(VLVIndexDescriptor.getBackendVLVIndexScope(searchScope));
+      }
+
+      if (!indexToModify.getSortOrder().equals(sortOrder))
+      {
+        index.setSortOrder(sortOrderStringValue);
+      }
+      index.commit();
+    }
+
+    @RemoveOnceLocalDBBackendIsPluggable
+    private void modifyLocalDBVLVIndexOnline(final LocalDBBackendCfgClient backend) throws OpenDsException
+    {
       final LocalDBVLVIndexCfgClient index = backend.getLocalDBVLVIndex(indexName);
       final DN b = DN.valueOf(baseDN);
       if (!indexToModify.getBaseDN().equals(b))

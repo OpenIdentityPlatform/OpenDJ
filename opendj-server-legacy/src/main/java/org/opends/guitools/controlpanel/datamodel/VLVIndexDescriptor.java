@@ -182,7 +182,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    * @return the equivalent {@code BackendVLVIndexCfgDefn.Scope} to the provided
    *         search scope.
    */
-  public static BackendVLVIndexCfgDefn.Scope getPluggableBackendVLVIndexScope(final SearchScope scope)
+  public static BackendVLVIndexCfgDefn.Scope getBackendVLVIndexScope(final SearchScope scope)
   {
     switch (scope.asEnum())
     {
