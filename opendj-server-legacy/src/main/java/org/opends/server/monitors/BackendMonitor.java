@@ -161,7 +161,7 @@ public class BackendMonitor
         long entryCount = -1;
         try
         {
-          entryCount = backend.numSubordinates(dn, true) + 1;
+          entryCount = backend.getNumberOfEntriesInBaseDN(dn);
         }
         catch (Exception ex)
         {

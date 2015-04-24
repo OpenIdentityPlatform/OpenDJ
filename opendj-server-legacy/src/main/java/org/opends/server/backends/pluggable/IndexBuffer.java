@@ -63,9 +63,7 @@ class IndexBuffer
 
   /**
    * A simple class representing a pair of added and deleted indexed IDs. Initially both addedIDs
-   * and deletedIDs are {@code null} indicating that that the whole record should be deleted. This
-   * state is only ever used when updating the id2children and id2subtree indexes when deleting an
-   * entry.
+   * and deletedIDs are {@code null} indicating that that the whole record should be deleted.
    */
   private static class BufferedIndexValues
   {
@@ -213,21 +211,6 @@ class IndexBuffer
       {
         vlvIndex.updateIndex(txn, bufferedVLVValues.addedSortKeys, bufferedVLVValues.deletedSortKeys);
       }
-    }
-
-    final Index id2children = entryContainer.getID2Children();
-    flushIndex(id2children, txn, bufferedIndexes.remove(id2children));
-
-    final Index id2subtree = entryContainer.getID2Subtree();
-    final TreeMap<ByteString, BufferedIndexValues> bufferedValues = bufferedIndexes.remove(id2subtree);
-    if (bufferedValues != null)
-    {
-      /*
-       * OPENDJ-1375: add keys in reverse order to be consistent with single
-       * entry processing in add/delete processing. This is necessary in order
-       * to avoid deadlocks.
-       */
-      flushIndex(id2subtree, txn, bufferedValues.descendingMap());
     }
   }
 

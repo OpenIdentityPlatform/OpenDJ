@@ -27,13 +27,12 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.util.Utils.closeSilently;
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
-import static org.opends.server.backends.pluggable.VLVIndex.encodeTargetAssertion;
-import static org.opends.server.backends.pluggable.VLVIndex.encodeVLVKey;
+import static org.opends.server.backends.pluggable.VLVIndex.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.types.AdditionalLogItem.*;
@@ -47,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -61,6 +61,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.messages.CoreMessages;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -73,10 +74,10 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
 import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
-import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -124,14 +125,14 @@ public class EntryContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** Number of EntryID to considers when building EntryIDSet from DN2ID. */
+  private static final int SCOPE_IDSET_LIMIT = 4096;
   /** The name of the entry database. */
   private static final String ID2ENTRY_DATABASE_NAME = ID2ENTRY_INDEX_NAME;
   /** The name of the DN database. */
   private static final String DN2ID_DATABASE_NAME = DN2ID_INDEX_NAME;
   /** The name of the children index database. */
-  private static final String ID2CHILDREN_DATABASE_NAME = ID2CHILDREN_INDEX_NAME;
-  /** The name of the subtree index database. */
-  private static final String ID2SUBTREE_DATABASE_NAME = ID2SUBTREE_INDEX_NAME;
+  private static final String ID2CHILDREN_COUNT_DATABASE_NAME = ID2CHILDREN_COUNT_NAME;
   /** The name of the referral database. */
   private static final String REFERRAL_DATABASE_NAME = REFERRAL_INDEX_NAME;
   /** The name of the state database. */
@@ -158,17 +159,15 @@ public class EntryContainer
   private final Storage storage;
 
   /** The DN database maps a normalized DN string to an entry ID (8 bytes). */
-  private DN2ID dn2id;
+  private final DN2ID dn2id;
   /** The entry database maps an entry ID (8 bytes) to a complete encoded entry. */
   private ID2Entry id2entry;
-  /** Index maps entry ID to an entry ID list containing its children. */
-  private Index id2children;
-  /** Index maps entry ID to an entry ID list containing its subordinates. */
-  private Index id2subtree;
+  /** Store the number of children for each entry. */
+  private final ID2Count id2childrenCount;
   /** The referral database maps a normalized DN string to labeled URIs. */
-  private DN2URI dn2uri;
+  private final DN2URI dn2uri;
   /** The state database maps a config DN to config entries. */
-  private State state;
+  private final State state;
 
   /** The set of attribute indexes. */
   private final HashMap<AttributeType, AttributeIndex> attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
@@ -455,6 +454,10 @@ public class EntryContainer
     this.storage = env;
     this.rootContainer = rootContainer;
     this.databasePrefix = baseDN.toNormalizedUrlSafeString();
+    this.id2childrenCount = new ID2Count(getIndexName(ID2CHILDREN_COUNT_DATABASE_NAME));
+    this.dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), baseDN);
+    this.dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), this);
+    this.state = new State(getIndexName(STATE_DATABASE_NAME));
 
     config.addPluggableChangeListener(this);
 
@@ -490,16 +493,9 @@ public class EntryContainer
 
       id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), entryDataConfig);
       id2entry.open(txn);
-
-      dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), this);
+      id2childrenCount.open(txn);
       dn2id.open(txn);
-
-      state = new State(getIndexName(STATE_DATABASE_NAME));
       state.open(txn);
-
-      openSubordinateIndexes(txn, config);
-
-      dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), this);
       dn2uri.open(txn);
 
       for (String idx : config.listBackendIndexes())
@@ -536,15 +532,6 @@ public class EntryContainer
       close();
       throw de;
     }
-  }
-
-  private NullIndex openNewNullIndex(WriteableTransaction txn, String name)
-  {
-    final TreeName treeName = getIndexName(name);
-    final NullIndex index = new NullIndex(treeName);
-    state.removeFlagsFromIndex(txn, treeName, IndexFlag.TRUSTED);
-    txn.deleteTree(treeName);
-    return index;
   }
 
   /**
@@ -617,20 +604,9 @@ public class EntryContainer
    *
    * @return The children database.
    */
-  Index getID2Children()
+  ID2Count getID2ChildrenCount()
   {
-    return id2children;
-  }
-
-  /**
-   * Get the subtree database used by this entry container.
-   * The entryContainer must have been opened.
-   *
-   * @return The subtree database.
-   */
-  Index getID2Subtree()
-  {
-    return id2subtree;
+    return id2childrenCount;
   }
 
   /**
@@ -711,19 +687,37 @@ public class EntryContainer
     }
   }
 
+  boolean hasSubordinates(final DN dn)
+  {
+    try
+    {
+      return storage.read(new ReadOperation<Boolean>()
+      {
+        @Override
+        public Boolean run(final ReadableTransaction txn) throws Exception
+        {
+          try (final SequentialCursor<?, ?> cursor = dn2id.openChildrenCursor(txn, dn))
+          {
+            return cursor.next();
+          }
+        }
+      });
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
+  }
+
   /**
-   * Determine the number of subordinate entries for a given entry.
+   * Determine the number of children entries for a given entry.
    *
    * @param entryDN The distinguished name of the entry.
-   * @param subtree <code>true</code> will include all the entries under the
-   *                given entries. <code>false</code> will only return the
-   *                number of entries immediately under the given entry.
-   * @return The number of subordinate entries for the given entry or -1 if
+   * @return The number of children entries for the given entry or -1 if
    *         the entry does not exist.
    * @throws StorageRuntimeException If an error occurs in the database.
    */
-  long getNumSubordinates(final DN entryDN, final boolean subtree)
-  throws StorageRuntimeException
+  long getNumberOfChildren(final DN entryDN) throws StorageRuntimeException
   {
     try
     {
@@ -732,18 +726,8 @@ public class EntryContainer
         @Override
         public Long run(ReadableTransaction txn) throws Exception
         {
-          EntryID entryID = dn2id.get(txn, entryDN);
-          if (entryID != null)
-          {
-            final Index index = subtree ? id2subtree : id2children;
-            final EntryIDSet entryIDSet = index.get(txn, entryID.toByteString());
-            long count = entryIDSet.size();
-            if (count != Long.MAX_VALUE)
-            {
-              return count;
-            }
-          }
-          return -1L;
+          final EntryID entryID = dn2id.get(txn, entryDN);
+          return entryID != null ? id2childrenCount.getCount(txn, entryID) : -1;
         }
       });
     }
@@ -897,30 +881,7 @@ public class EntryContainer
 
             if (!isBelowFilterThreshold(entryIDSet))
             {
-              // Evaluate the search scope against the id2children and id2subtree indexes
-              EntryID baseID = dn2id.get(txn, aBaseDN);
-              if (baseID == null)
-              {
-                LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN);
-                DN matchedDN = getMatchedDN(txn, aBaseDN);
-                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
-              }
-              ByteString baseIDData = baseID.toByteString();
-
-              EntryIDSet scopeSet;
-              if (searchScope == SearchScope.SINGLE_LEVEL)
-              {
-                scopeSet = id2children.get(txn, baseIDData);
-              }
-              else
-              {
-                scopeSet = id2subtree.get(txn, baseIDData);
-                if (searchScope == SearchScope.WHOLE_SUBTREE)
-                {
-                  // The id2subtree list does not include the base entry ID.
-                  scopeSet.add(baseID);
-                }
-              }
+              final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope);
               entryIDSet.retainAll(scopeSet);
               if (debugBuffer != null)
               {
@@ -1023,12 +984,67 @@ public class EntryContainer
           }
           return null;
         }
+
+        private EntryIDSet getIDSetFromScope(final ReadableTransaction txn, DN aBaseDN, SearchScope searchScope)
+            throws DirectoryException
+        {
+          final EntryIDSet scopeSet;
+          try
+          {
+            switch (searchScope.asEnum())
+            {
+            case BASE_OBJECT:
+              try (final SequentialCursor<?, EntryID> scopeCursor = dn2id.openCursor(txn, aBaseDN))
+              {
+                scopeSet = EntryIDSet.newDefinedSet(scopeCursor.getValue().longValue());
+              }
+              break;
+            case SINGLE_LEVEL:
+              try (final SequentialCursor<?, EntryID> scopeCursor = dn2id.openChildrenCursor(txn, aBaseDN))
+              {
+                scopeSet = newIDSetFromCursor(scopeCursor, false);
+              }
+              break;
+            case SUBORDINATES:
+            case WHOLE_SUBTREE:
+              try (final SequentialCursor<?, EntryID> scopeCursor = dn2id.openSubordinatesCursor(txn, aBaseDN))
+              {
+                scopeSet = newIDSetFromCursor(scopeCursor, searchScope.equals(SearchScope.WHOLE_SUBTREE));
+              }
+              break;
+            default:
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  CoreMessages.INFO_ERROR_SEARCH_SCOPE_NOT_ALLOWED.get());
+            }
+          }
+          catch (NoSuchElementException e)
+          {
+            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN),
+                getMatchedDN(txn, aBaseDN), e);
+          }
+          return scopeSet;
+        }
       });
     }
     catch (Exception e)
     {
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
+  }
+
+  private static EntryIDSet newIDSetFromCursor(SequentialCursor<?, EntryID> cursor, boolean includeCurrent)
+  {
+    final long ids[] = new long[SCOPE_IDSET_LIMIT];
+    int offset = 0;
+    if (includeCurrent) {
+      ids[offset++] = cursor.getValue().longValue();
+    }
+    for(; offset < ids.length && cursor.next() ; offset++) {
+      ids[offset] = cursor.getValue().longValue();
+    }
+    return offset == SCOPE_IDSET_LIMIT
+        ? EntryIDSet.newUndefinedSet()
+        : EntryIDSet.newDefinedSet(Arrays.copyOf(ids, offset));
   }
 
   private <E1 extends Exception, E2 extends Exception>
@@ -1515,6 +1531,7 @@ public class EntryContainer
                 DN matchedDN = getMatchedDN(txn, baseDN);
                 throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
               }
+              id2childrenCount.addDelta(txn, parentID, 1);
             }
 
             EntryID entryID = rootContainer.getNextEntryID();
@@ -1526,31 +1543,6 @@ public class EntryContainer
             final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
             indexInsertEntry(indexBuffer, entry, entryID);
 
-            // Insert into id2children and id2subtree.
-            // The database transaction locks on these records will be hotly
-            // contested so we do them last so as to hold the locks for the
-            // shortest duration.
-            if (parentDN != null)
-            {
-              final ByteString parentIDKeyBytes = parentID.toByteString();
-              indexBuffer.put(id2children, parentIDKeyBytes, entryID);
-              indexBuffer.put(id2subtree, parentIDKeyBytes, entryID);
-
-              // Iterate up through the superior entries, starting above the
-              // parent.
-              for (DN dn = getParentWithinBase(parentDN); dn != null; dn = getParentWithinBase(dn))
-              {
-                // Read the ID from dn2id.
-                EntryID nodeID = dn2id.get(txn, dn);
-                if (nodeID == null)
-                {
-                  throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(dn).toString());
-                }
-
-                // Insert into id2subtree for this node.
-                indexBuffer.put(id2subtree, nodeID.toByteString(), entryID);
-              }
-            }
             indexBuffer.flush(txn);
 
             if (addOperation != null)
@@ -1827,31 +1819,19 @@ public class EntryContainer
     // Remove from the indexes, in index config order.
     indexRemoveEntry(indexBuffer, entry, leafID);
 
-    // Remove the id2c and id2s records for this entry.
-    final ByteString leafIDKeyBytes = leafID.toByteString();
-    indexBuffer.remove(id2children, leafIDKeyBytes);
-    indexBuffer.remove(id2subtree, leafIDKeyBytes);
+    // Remove the children counter for this entry.
+    id2childrenCount.deleteCount(txn, leafID);
 
     // Iterate up through the superior entries from the target entry.
-    boolean isParent = true;
-    for (DN parentDN = getParentWithinBase(targetDN); parentDN != null;
-    parentDN = getParentWithinBase(parentDN))
+    final DN parentDN = getParentWithinBase(targetDN);
+    if (parentDN != null)
     {
-      // Read the ID from dn2id.
-      EntryID parentID = dn2id.get(txn, parentDN);
+      final EntryID parentID = dn2id.get(txn, parentDN);
       if (parentID == null)
       {
         throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN).toString());
       }
-
-      ByteString parentIDBytes = parentID.toByteString();
-      // Remove from id2children.
-      if (isParent)
-      {
-        indexBuffer.remove(id2children, parentIDBytes, leafID);
-        isParent = false;
-      }
-      indexBuffer.remove(id2subtree, parentIDBytes, leafID);
+      id2childrenCount.addDelta(txn, parentID, -1);
     }
 
     // Remove the entry from the entry cache.
@@ -1882,6 +1862,32 @@ public class EntryContainer
       return true;
     }
     return dn2id.get(txn, entryDN) != null;
+  }
+
+
+  boolean entryExists(final DN entryDN) throws StorageRuntimeException
+  {
+    final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
+    if (entryCache != null && entryCache.containsEntry(entryDN))
+    {
+      return true;
+    }
+
+    try
+    {
+      return storage.read(new ReadOperation<Boolean>()
+      {
+        @Override
+        public Boolean run(ReadableTransaction txn) throws Exception
+        {
+          return dn2id.get(txn, entryDN) != null;
+        }
+      });
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
   }
 
   /**
@@ -2346,21 +2352,12 @@ public class EntryContainer
       indexInsertEntry(buffer, newEntry, newID);
     }
 
-    // Add the new ID to id2children and id2subtree of new apex parent entry.
     if(isApexEntryMoved)
     {
-      boolean isParent = true;
-      for (DN dn = getParentWithinBase(newEntry.getName()); dn != null;
-           dn = getParentWithinBase(dn))
+      final DN parentDN = getParentWithinBase(newEntry.getName());
+      if (parentDN != null)
       {
-        EntryID parentID = dn2id.get(txn, dn);
-        ByteString parentIDKeyBytes = parentID.toByteString();
-        if(isParent)
-        {
-          buffer.put(id2children, parentIDKeyBytes, newID);
-          isParent = false;
-        }
-        buffer.put(id2subtree, parentIDKeyBytes, newID);
+        id2childrenCount.addDelta(txn, dn2id.get(txn, parentDN), 1);
       }
     }
   }
@@ -2391,32 +2388,19 @@ public class EntryContainer
 
     tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
 
-    // Remove the old ID from id2children and id2subtree of
-    // the old apex parent entry.
     if(oldSuperiorDN != null && isApexEntryMoved)
     {
-      boolean isParent = true;
-      for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        EntryID parentID = dn2id.get(txn, dn);
-        ByteString parentIDKeyBytes = parentID.toByteString();
-        if(isParent)
-        {
-          buffer.remove(id2children, parentIDKeyBytes, oldID);
-          isParent = false;
-        }
-        buffer.remove(id2subtree, parentIDKeyBytes, oldID);
-      }
+      // Since entry has moved, oldSuperiorDN has lost a child
+      id2childrenCount.addDelta(txn, dn2id.get(txn, oldSuperiorDN), -1);
+    }
+
+    if (!newID.equals(oldID))
+    {
+      id2childrenCount.addDelta(txn, newID, id2childrenCount.deleteCount(txn, oldID));
     }
 
     if (!newID.equals(oldID) || modifyDNOperation == null)
     {
-      // All the subordinates will be renumbered so we have to rebuild
-      // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = oldID.toByteString();
-      buffer.remove(id2children, oldIDKeyBytes);
-      buffer.remove(id2subtree, oldIDKeyBytes);
-
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
     }
@@ -2499,24 +2483,9 @@ public class EntryContainer
 
     tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
 
-    if(isApexEntryMoved)
-    {
-      // Remove the old ID from id2subtree of old apex superior entries.
-      for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        EntryID parentID = dn2id.get(txn, dn);
-        ByteString parentIDKeyBytes = parentID.toByteString();
-        buffer.remove(id2subtree, parentIDKeyBytes, oldID);
-      }
-    }
-
     if (!newID.equals(oldID))
     {
-      // All the subordinates will be renumbered so we have to rebuild
-      // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = oldID.toByteString();
-      buffer.remove(id2children, oldIDKeyBytes);
-      buffer.remove(id2subtree, oldIDKeyBytes);
+      id2childrenCount.deleteCount(txn, oldID);
 
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
@@ -2642,35 +2611,31 @@ public class EntryContainer
   }
 
   /**
-   * Get a count of the number of entries stored in this entry container.
+   * Get a count of the number of entries stored in this entry container including the baseDN
    *
-   * @param txn a non null database transaction
-   * @return The number of entries stored in this entry container.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param txn
+   *          a non null database transaction
+   * @return The number of entries stored in this entry container including the baseDN.
+   * @throws StorageRuntimeException
+   *           If an error occurs in the database.
    */
-  long getEntryCount(ReadableTransaction txn) throws StorageRuntimeException
+  long getNumberOfEntriesInBaseDN() throws StorageRuntimeException
   {
-    final EntryID entryID = dn2id.get(txn, baseDN);
-    if (entryID != null)
+    try
     {
-      final EntryIDSet entryIDSet = id2subtree.get(txn, entryID.toByteString());
-      long count = entryIDSet.size();
-      if(count != Long.MAX_VALUE)
+      return storage.read(new ReadOperation<Long>()
       {
-        // Add the base entry itself
-        return ++count;
-      }
-      else
-      {
-        // The count is not maintained. Fall back to the slow method
-        return id2entry.getRecordCount(txn);
-      }
+        @Override
+        public Long run(ReadableTransaction txn) throws Exception
+        {
+          final int baseDnIfExists = dn2id.get(txn, baseDN) != null ? 1 : 0;
+          return id2childrenCount.getTotalCount(txn) + baseDnIfExists;
+        }
+      });
     }
-    else
+    catch (Exception e)
     {
-      // Base entry doesn't not exist so this entry container
-      // must not have any entries
-      return 0;
+      throw new StorageRuntimeException(e);
     }
   }
 
@@ -2870,26 +2835,6 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
-          {
-            openSubordinateIndexes(txn, cfg);
-          }
-
-          if (config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
-          {
-            if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-            {
-              ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
-            }
-
-            if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-            {
-              ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
-            }
-          }
-
           DataConfig entryDataConfig = new DataConfig(cfg.isEntriesCompressed(),
               cfg.isCompactEncoding(), rootContainer.getCompressedSchema());
           id2entry.setDataConfig(entryDataConfig);
@@ -2969,11 +2914,7 @@ public class EntryContainer
     databases.add(dn2id);
     databases.add(id2entry);
     databases.add(dn2uri);
-    if (config.isSubordinateIndexesEnabled())
-    {
-      databases.add(id2children);
-      databases.add(id2subtree);
-    }
+    databases.add(id2childrenCount);
     databases.add(state);
 
     for (AttributeIndex index : attrIndexMap.values())
@@ -3031,38 +2972,6 @@ public class EntryContainer
     }
     return null;
   }
-
-  /** Opens the id2children and id2subtree indexes. */
-  private void openSubordinateIndexes(WriteableTransaction txn, PluggableBackendCfg cfg)
-  {
-    if (cfg.isSubordinateIndexesEnabled())
-    {
-      TreeName name = getIndexName(ID2CHILDREN_DATABASE_NAME);
-      id2children = new DefaultIndex(name, state, config.getIndexEntryLimit(), true, txn, this);
-      id2children.open(txn);
-      if (!id2children.isTrusted())
-      {
-        logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, name);
-      }
-
-      name = getIndexName(ID2SUBTREE_DATABASE_NAME);
-      id2subtree = new DefaultIndex(name, state, config.getIndexEntryLimit(), true, txn, this);
-      id2subtree.open(txn);
-      if (!id2subtree.isTrusted())
-      {
-        logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, name);
-      }
-    }
-    else
-    {
-      // Disabling subordinate indexes. Use a null index and ensure that
-      // future attempts to use the real indexes will fail.
-      id2children = openNewNullIndex(txn, ID2CHILDREN_DATABASE_NAME);
-      id2subtree = openNewNullIndex(txn, ID2SUBTREE_DATABASE_NAME);
-      logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
-    }
-  }
-
 
   /**
    * Checks if any modifications apply to this indexed attribute.

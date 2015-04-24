@@ -25,16 +25,14 @@
  */
 package org.opends.server.backends.pluggable.spi;
 
-import java.io.Closeable;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 
 /**
- * Cursor that iterates through records in a tree.
+ * Sequential cursor extended with navigation methods.
  * @param <K> Type of the record's key
  * @param <V> Type of the record's value
  */
-public interface Cursor<K,V> extends Closeable
+public interface Cursor<K,V> extends SequentialCursor<K, V>
 {
   /**
    * Positions the cursor to the provided key if it exists in the tree.
@@ -74,32 +72,4 @@ public interface Cursor<K,V> extends Closeable
    * @return {@code true} if the cursor could be positioned to the index, {@code false} otherwise
    */
   boolean positionToIndex(int index);
-
-  /**
-   * Moves this cursor to the next record in the tree.
-   *
-   * @return {@code true} if the cursor could move to the next record,
-   *         {@code false} if no next record exists
-   */
-  boolean next();
-
-  /**
-   * Returns the key of the record on which this cursor is currently positioned.
-   *
-   * @return the current record's key,
-   *         or {@code null} if this cursor is not positioned on any record.
-   */
-  K getKey();
-
-  /**
-   * Returns the value of the record on which this cursor is currently positioned.
-   *
-   * @return the current record's value,
-   *         or {@code null} if this cursor is not positioned on any record.
-   */
-  V getValue();
-
-  /** {@inheritDoc} */
-  @Override
-  void close();
 }

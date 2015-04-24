@@ -647,31 +647,23 @@ public class LDIFBackendTestCase
     }
   }
 
-
-
   /**
    * Tests the {@code numSubordinates} method.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testNumSubordinates()
-         throws Exception
+  public void testNumSubordinates() throws Exception
   {
     Backend<?> b = getLDIFBackend();
 
-    assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), false), 1);
-    assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), true), 26);
-    assertEquals(b.numSubordinates(
-        DN.valueOf("uid=user.1,ou=People,o=ldif"), false), 0);
-    assertEquals(b.numSubordinates(
-        DN.valueOf("uid=user.1,ou=People,o=ldif"), true), 0);
-
+    assertEquals(b.getNumberOfChildren(DN.valueOf("o=ldif")), 1);
+    assertEquals(b.getNumberOfEntriesInBaseDN(DN.valueOf("o=ldif")), 27);
+    assertEquals(b.getNumberOfChildren(DN.valueOf("uid=user.1,ou=People,o=ldif")), 0);
     try
     {
-      b.numSubordinates(DN.valueOf("ou=nonexistent,o=ldif"), false);
-      fail("Expected an exception when calling numSubordinates on a " +
-           "non-existent entry");
+      b.getNumberOfChildren(DN.valueOf("ou=nonexistent,o=ldif"));
+      fail("Expected an exception when calling numSubordinates on a " + "non-existent entry");
     }
     catch (DirectoryException de)
     {
@@ -679,7 +671,10 @@ public class LDIFBackendTestCase
     }
   }
 
-
+  @Test(expectedExceptions=DirectoryException.class)
+  public void testCannotGetNumberOfEntriesForNotBaseDN() throws Exception {
+    assertEquals(getLDIFBackend().getNumberOfEntriesInBaseDN(DN.valueOf("uid=user.1,ou=People,o=ldif")), 0);
+  }
 
   /**
    * Tests LDIF export functionality.

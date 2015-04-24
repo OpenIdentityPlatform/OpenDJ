@@ -60,10 +60,6 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
-  /**
-   * Whether to maintain a count of IDs for a key once the entry limit has exceeded.
-   */
-  private final boolean maintainCount;
 
   private final State state;
 
@@ -87,8 +83,6 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
    *          The state database to persist index state info.
    * @param indexEntryLimit
    *          The configured limit on the number of entry IDs that may be indexed by one key.
-   * @param maintainCount
-   *          Whether to maintain a count of IDs for a key once the entry limit has exceeded.
    * @param txn
    *          a non null database transaction
    * @param entryContainer
@@ -96,12 +90,11 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
    * @throws StorageRuntimeException
    *           If an error occurs in the database.
    */
-  DefaultIndex(TreeName name, State state, int indexEntryLimit, boolean maintainCount, WriteableTransaction txn,
-      EntryContainer entryContainer) throws StorageRuntimeException
+  DefaultIndex(TreeName name, State state, int indexEntryLimit, WriteableTransaction txn, EntryContainer entryContainer)
+      throws StorageRuntimeException
   {
     super(name);
     this.indexEntryLimit = indexEntryLimit;
-    this.maintainCount = maintainCount;
     this.state = state;
 
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
@@ -137,7 +130,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
-      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit, maintainCount);
+      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit);
       importIDSet.merge(idsToBeAdded);
       txn.put(getName(), key, importIDSet.valueToByteString(codec));
     }
@@ -154,7 +147,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
-      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit, maintainCount);
+      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit);
       importIDSet.remove(idsToBeRemoved);
       if (importIDSet.isDefined() && importIDSet.size() == 0)
       {
@@ -178,8 +171,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   {
     /*
      * Check the special condition where both deletedIDs and addedIDs are null. This is used when
-     * deleting entries and corresponding id2children and id2subtree records must be completely
-     * removed.
+     * deleting entries must be completely removed.
      */
     if (deletedIDs == null && addedIDs == null)
     {
@@ -203,7 +195,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
      * Avoid taking a write lock on a record which has hit all IDs because it is likely to be a
      * point of contention.
      */
-    if (!maintainCount && !get(txn, key).isDefined())
+    if (!get(txn, key).isDefined())
     {
       return;
     }
@@ -241,12 +233,12 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     });
   }
 
-  private boolean isNullOrEmpty(EntryIDSet entryIDSet)
+  private static boolean isNullOrEmpty(EntryIDSet entryIDSet)
   {
     return entryIDSet == null || entryIDSet.size() == 0;
   }
 
-  private boolean isNotEmpty(EntryIDSet entryIDSet)
+  private static boolean isNotEmpty(EntryIDSet entryIDSet)
   {
     return entryIDSet != null && entryIDSet.size() > 0;
   }
@@ -265,22 +257,13 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
         }
         if (idCountDelta + entryIDSet.size() >= indexEntryLimit)
         {
-          if (maintainCount)
-          {
-            entryIDSet = newUndefinedSetWithSize(key, entryIDSet.size() + idCountDelta);
-          }
-          else
-          {
-            entryIDSet = newUndefinedSet();
-          }
-
+          entryIDSet = newUndefinedSetWithKey(key);
           if (logger.isTraceEnabled())
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
             logger.trace("Index entry exceeded in index %s. " + "Limit: %d. ID list size: %d.\nKey:%s", getName(),
                 indexEntryLimit, idCountDelta + addedIDs.size(), builder);
-
           }
         }
         else
@@ -372,11 +355,5 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   public final boolean isTrusted()
   {
     return trusted;
-  }
-
-  @Override
-  public final boolean getMaintainCount()
-  {
-    return maintainCount;
   }
 }

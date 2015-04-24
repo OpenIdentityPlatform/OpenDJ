@@ -493,14 +493,12 @@ public class TaskBackendTestCase
 
     TaskBackend taskBackend =
       (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
-    long tasksCountBefore = taskBackend.numSubordinates(DN.valueOf(
-      "cn=Scheduled Tasks,cn=tasks"), true);
+    long tasksCountBefore = taskBackend.getNumberOfEntriesInBaseDN(DN.valueOf("cn=Scheduled Tasks,cn=tasks"));
 
     assertTrue(addRecurringTask(taskID, taskSchedule));
 
     // Make sure recurring task iteration got scheduled.
-    long tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
-      "cn=Scheduled Tasks,cn=tasks"), true);
+    long tasksCountAfter = taskBackend.getNumberOfEntriesInBaseDN(DN.valueOf("cn=Scheduled Tasks,cn=tasks"));
     assertEquals(tasksCountAfter, tasksCountBefore + 1);
 
     // Perform a modification to update a non-state attribute.
@@ -519,8 +517,7 @@ public class TaskBackendTestCase
     assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
     // Make sure recurring task iteration got canceled and removed.
-    tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
-      "cn=Scheduled Tasks,cn=tasks"), true);
+    tasksCountAfter = taskBackend.getNumberOfEntriesInBaseDN(DN.valueOf("cn=Scheduled Tasks,cn=tasks"));
     assertEquals(tasksCountAfter, tasksCountBefore);
   }
 

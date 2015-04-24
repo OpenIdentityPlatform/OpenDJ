@@ -78,7 +78,7 @@ public class NumSubordinatesVirtualAttributeProvider
 
     try
     {
-      long count = backend.numSubordinates(entry.getName(), false);
+      long count = backend.getNumberOfChildren(entry.getName());
       if(count >= 0)
       {
         return Attributes.create(rule.getAttributeType(), String.valueOf(count));
@@ -96,11 +96,11 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
+    Backend<?> backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-       return backend.numSubordinates(entry.getName(), false) >= 0;
+       return backend.getNumberOfChildren(entry.getName()) >= 0;
     }
     catch(DirectoryException de)
     {
@@ -116,7 +116,7 @@ public class NumSubordinatesVirtualAttributeProvider
     Backend<?> backend = DirectoryServer.getBackend(entry.getName());
     try
     {
-      long count = backend.numSubordinates(entry.getName(), false);
+      long count = backend.getNumberOfChildren(entry.getName());
       return count >= 0 && Long.parseLong(value.toString()) == count;
     }
     catch (NumberFormatException e)

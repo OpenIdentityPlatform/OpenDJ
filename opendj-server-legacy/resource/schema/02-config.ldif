@@ -5759,8 +5759,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
         ds-cfg-entries-compressed $
         ds-cfg-compact-encoding $
         ds-cfg-index-filter-analyzer-enabled $
-        ds-cfg-index-filter-analyzer-max-filters $
-        ds-cfg-subordinate-indexes-enabled )
+        ds-cfg-index-filter-analyzer-max-filters )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
   NAME 'ds-cfg-persistit-backend'

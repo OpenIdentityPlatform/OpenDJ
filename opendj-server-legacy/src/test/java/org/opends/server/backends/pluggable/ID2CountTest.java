@@ -27,18 +27,23 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 
-import java.util.UUID;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.PromiseImpl;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.persistit.PersistItStorage;
-import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -57,42 +62,40 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
-public class StateTest extends DirectoryServerTestCase
+public class ID2CountTest extends DirectoryServerTestCase
 {
-  private static final IndexFlag DEFAULT_FLAG = COMPACTED;
-
-  private final TreeName stateTreeName = new TreeName("base-dn", "index-id");
-  private TreeName indexTreeName;
+  private final TreeName id2CountTreeName = new TreeName("base-dn", "index-id");
+  private ExecutorService parallelExecutor;
+  private ID2Count id2Count;
   private PersistItStorage storage;
-  private State state;
 
   @BeforeClass
-  public void startServer() throws Exception {
+  public void startFakeServer() throws Exception {
     TestCaseUtils.startFakeServer();
   }
 
   @AfterClass
-  public void stopServer() throws Exception {
+  public void stopFakeServer() throws Exception {
     TestCaseUtils.shutdownFakeServer();
   }
 
   @BeforeMethod
   public void setUp() throws Exception
   {
-    indexTreeName = new TreeName("index-base-dn", "index-index-id-" + UUID.randomUUID().toString());
-
     ServerContext serverContext = mock(ServerContext.class);
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PersistItStorage(createBackendCfg(), serverContext);
     org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport();
-    importer.createTree(stateTreeName);
+    importer.createTree(id2CountTreeName);
     importer.close();
 
     storage.open();
 
-    state = new State(stateTreeName);
+    id2Count = new ID2Count(id2CountTreeName);
+
+    parallelExecutor = Executors.newFixedThreadPool(32);
   }
 
   @AfterMethod
@@ -102,78 +105,126 @@ public class StateTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void testDefaultValuesForNotExistingEntries() throws Exception
+  public void testConcurrentAddDelta() throws Exception
   {
-    assertThat(getFlags()).containsExactly(DEFAULT_FLAG);
+    final long expected = stressCounter(8192, id(1), parallelExecutor);
+    waitExecutorTermination();
+
+    assertThat(getCounter(id(1))).isEqualTo(expected);
+    assertThat(getTotalCounter()).isEqualTo(expected);
   }
 
   @Test
-  public void testCreateNewFlagHasDefaultValue() throws Exception
+  public void testConcurrentTotalCounter() throws Exception
   {
-    addFlags();
-    assertThat(getFlags()).containsExactly(DEFAULT_FLAG);
+    long totalExpected = 0;
+    for(int i = 0 ; i < 64 ; i++) {
+      totalExpected += stressCounter(128, id(i), parallelExecutor);
+    }
+    waitExecutorTermination();
+
+    assertThat(getTotalCounter()).isEqualTo(totalExpected);
   }
 
   @Test
-  public void testCreateStateTrustedIsAlsoCompacted() throws Exception
+  public void testDeleteCounterDecrementTotalCounter() throws Exception
   {
-    addFlags(TRUSTED);
-    assertThat(getFlags()).containsExactly(TRUSTED, DEFAULT_FLAG);
+    addDelta(id(0), 1024);
+    addDelta(id(1), 1024);
+    addDelta(id(2), 1024);
+    addDelta(id(3), 1024);
+    assertThat(getTotalCounter()).isEqualTo(4096);
+
+    assertThat(deleteCount(id(0))).isEqualTo(1024);
+    assertThat(getTotalCounter()).isEqualTo(3072);
+
+    assertThat(deleteCount(id(1))).isEqualTo(1024);
+    assertThat(deleteCount(id(2))).isEqualTo(1024);
+    assertThat(deleteCount(id(3))).isEqualTo(1024);
+    assertThat(getTotalCounter()).isEqualTo(0);
   }
 
   @Test
-  public void testCreateWithTrustedAndCompacted() throws Exception
+  public void testGetCounterNonExistingKey() throws Exception
   {
-    addFlags(TRUSTED, COMPACTED);
-    assertThat(getFlags()).containsExactly(TRUSTED, COMPACTED);
+      assertThat(getCounter(id(987654))).isEqualTo(0);
   }
 
-  @Test
-  public void testUpdateNotSetDefault() throws Exception
+  private void waitExecutorTermination() throws InterruptedException
   {
-    createFlagWith();
-
-    addFlags(TRUSTED);
-    assertThat(getFlags()).containsExactly(TRUSTED);
+    parallelExecutor.shutdown();
+    parallelExecutor.awaitTermination(30, TimeUnit.SECONDS);
   }
 
-  @Test
-  public void testAddFlags() throws Exception
+  private long stressCounter(final int numIterations, final EntryID key, final ExecutorService exec)
   {
-    createFlagWith(TRUSTED);
+    final Random r = new Random();
+    long expected = 0;
+    for(int i = 0 ; i < numIterations ; i++) {
+      final long delta = r.nextLong();
+      expected += delta;
 
-    addFlags(COMPACTED);
-    assertThat(getFlags()).containsExactly(TRUSTED, COMPACTED);
+      exec.submit(new Callable<Void>()
+      {
+        @Override
+        public Void call() throws Exception
+        {
+          addDelta(key, delta);
+          return null;
+        }
+      });
+    }
+    return expected;
   }
 
-  @Test
-  public void testRemoveFlags() throws Exception
-  {
-    addFlags(COMPACTED, TRUSTED);
-    assertThat(getFlags()).containsExactly(TRUSTED, COMPACTED);
-
-    removeFlags(TRUSTED);
-    assertThat(getFlags()).containsExactly(COMPACTED);
-
-    removeFlags(COMPACTED);
-    assertThat(getFlags()).containsExactly();
-  }
-
-  @Test
-  public void testDeleteRecord() throws Exception
-  {
-    addFlags(COMPACTED, TRUSTED);
-
+  private long deleteCount(final EntryID key) throws Exception {
+    final PromiseImpl<Long, NeverThrowsException> l = PromiseImpl.create();
     storage.write(new WriteOperation()
     {
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        state.deleteRecord(txn, indexTreeName);
+        l.handleResult(id2Count.deleteCount(txn, key));
       }
     });
+    return l.get();
+  }
 
-    assertThat(getFlags()).containsExactly(COMPACTED);
+  private void addDelta(final EntryID key, final long delta) throws Exception {
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        id2Count.addDelta(txn, key, delta);
+      }
+    });
+  }
+
+  private long getCounter(final EntryID key) throws Exception {
+    return storage.read(new ReadOperation<Long>()
+    {
+      @Override
+      public Long run(ReadableTransaction txn) throws Exception
+      {
+        return id2Count.getCount(txn, key);
+      }
+    });
+  }
+
+  private long getTotalCounter() throws Exception {
+    return storage.read(new ReadOperation<Long>()
+    {
+      @Override
+      public Long run(ReadableTransaction txn) throws Exception
+      {
+        return id2Count.getTotalCount(txn);
+      }
+    });
+  }
+
+  public static EntryID id(long id) {
+    return new EntryID(id);
   }
 
   private PersistitBackendCfg createBackendCfg() throws ConfigException, DirectoryException
@@ -199,49 +250,4 @@ public class StateTest extends DirectoryServerTestCase
     return backendCfg;
   }
 
-  private void createFlagWith(IndexFlag... flags) throws Exception
-  {
-    createEmptyFlag();
-    addFlags(flags);
-  }
-
-  private void createEmptyFlag() throws Exception {
-    removeFlags(DEFAULT_FLAG);
-  }
-
-  private void addFlags(final IndexFlag... flags) throws Exception
-  {
-    storage.write(new WriteOperation()
-    {
-      @Override
-      public void run(WriteableTransaction txn) throws Exception
-      {
-        state.addFlagsToIndex(txn, indexTreeName, flags);
-      }
-    });
-  }
-
-  private void removeFlags(final IndexFlag... flags) throws Exception
-  {
-    storage.write(new WriteOperation()
-    {
-      @Override
-      public void run(WriteableTransaction txn) throws Exception
-      {
-        state.removeFlagsFromIndex(txn, indexTreeName, flags);
-      }
-    });
-  }
-
-  private IndexFlag[] getFlags() throws Exception
-  {
-    return storage.read(new ReadOperation<IndexFlag[]>()
-    {
-      @Override
-      public IndexFlag[] run(ReadableTransaction txn) throws Exception
-      {
-        return state.getIndexFlags(txn, indexTreeName).toArray(new IndexFlag[0]);
-      }
-    });
-  }
 }

@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -264,10 +265,16 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
-    return -1;
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
   /** {@inheritDoc} */

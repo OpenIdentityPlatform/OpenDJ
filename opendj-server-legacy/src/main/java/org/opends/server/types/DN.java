@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -530,8 +531,6 @@ public final class DN implements Comparable<DN>, Serializable
     }
   }
 
-
-
   /**
    * Decodes the provided ASN.1 octet string as a DN.
    *
@@ -543,7 +542,7 @@ public final class DN implements Comparable<DN>, Serializable
    *                              decode the provided ASN.1 octet
    *                              string as a DN.
    */
-  public static DN decode(ByteString dnString)
+  public static DN decode(ByteSequence dnString)
          throws DirectoryException
   {
     // A null or empty DN is acceptable.

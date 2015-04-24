@@ -26,6 +26,7 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -846,29 +847,31 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
-    ConfigEntry baseEntry = configEntries.get(entryDN);
+    checkNotNull(baseDN, "baseDN must not be null");
+    final ConfigEntry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
       return -1;
     }
 
-    if(!subtree)
+    long count = 1;
+    for (ConfigEntry child : baseEntry.getChildren().values())
     {
-      return baseEntry.getChildren().size();
+      count += getNumberOfEntriesInBaseDN(child.getDN());
+      count++;
     }
-    else
-    {
-      long count = 0;
-      for(ConfigEntry child : baseEntry.getChildren().values())
-      {
-        count += numSubordinates(child.getDN(), true);
-        count ++;
-      }
-      return count;
-    }
+    return count;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
+    final ConfigEntry baseEntry = configEntries.get(parentDN);
+    return baseEntry != null ? baseEntry.getChildren().size() : -1;
   }
 
   /** {@inheritDoc} */

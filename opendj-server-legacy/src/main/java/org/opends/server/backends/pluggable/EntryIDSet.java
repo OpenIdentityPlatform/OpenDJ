@@ -276,10 +276,7 @@ final class EntryIDSet implements Iterable<EntryID>
       {
         return new long[] { entryIDs[0], entryIDs[entryIDs.length - 1] };
       }
-      else
-      {
-        return NO_ENTRY_IDS_RANGE;
-      }
+      return NO_ENTRY_IDS_RANGE;
     }
 
     @Override
@@ -295,25 +292,19 @@ final class EntryIDSet implements Iterable<EntryID>
   private static final class UndefinedImpl implements EntryIDSetImplementor
   {
     /**
-     * The number of entry IDs in the set if the size is being maintained, otherwise Long.MAX_VALUE
-     */
-    private long undefinedSize;
-
-    /**
      * The database key containing this set, if the set was constructed directly from the database.
      */
     private final ByteSequence databaseKey;
 
-    UndefinedImpl(ByteSequence key, long size)
+    UndefinedImpl(ByteSequence key)
     {
       databaseKey = checkNotNull(key, "key must not be null");
-      undefinedSize = size;
     }
 
     @Override
     public long size()
     {
-      return undefinedSize;
+      return Long.MAX_VALUE;
     }
 
     @Override
@@ -323,19 +314,10 @@ final class EntryIDSet implements Iterable<EntryID>
       {
         buffer.append("[NOT-INDEXED]");
       }
-      else if (maintainUndefinedSize())
-      {
-        buffer.append("[LIMIT-EXCEEDED:").append(undefinedSize).append("]");
-      }
       else
       {
         buffer.append("[LIMIT-EXCEEDED]");
       }
-    }
-
-    private boolean maintainUndefinedSize()
-    {
-      return undefinedSize != Long.MAX_VALUE;
     }
 
     @Override
@@ -347,20 +329,12 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public boolean add(EntryID entryID)
     {
-      if (maintainUndefinedSize())
-      {
-        undefinedSize++;
-      }
       return true;
     }
 
     @Override
     public boolean remove(EntryID entryID)
     {
-      if (maintainUndefinedSize() && undefinedSize > 0)
-      {
-        undefinedSize--;
-      }
       return true;
     }
 
@@ -373,21 +347,11 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public void addAll(EntryIDSet that)
     {
-      // Assume there are no overlap between IDs in that set with this set
-      if (maintainUndefinedSize())
-      {
-        undefinedSize += that.size();
-      }
     }
 
     @Override
     public void removeAll(EntryIDSet that)
     {
-      // Assume all IDs in the given set exists in this set.
-      if (maintainUndefinedSize())
-      {
-        undefinedSize = Math.max(0, undefinedSize - that.size());
-      }
     }
 
     @Override
@@ -481,7 +445,7 @@ final class EntryIDSet implements Iterable<EntryID>
       else if ((value.byteAt(0) & 0x80) == 0x80)
       {
         // Entry limit has exceeded and there is an encoded undefined set size.
-        return newUndefinedSetWithSize(key, decodeUndefinedSize(value));
+        return newUndefinedSetWithKey(key);
       }
       else
       {
@@ -490,19 +454,12 @@ final class EntryIDSet implements Iterable<EntryID>
       }
     }
 
-    private int getEstimatedSize(EntryIDSet idSet)
+    private static int getEstimatedSize(EntryIDSet idSet)
     {
-      if (idSet.isDefined())
-      {
-        return idSet.getIDs().length * LONG_SIZE;
-      }
-      else
-      {
-        return LONG_SIZE;
-      }
+      return idSet.isDefined() ? idSet.getIDs().length * LONG_SIZE : LONG_SIZE;
     }
 
-    private long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
+    private static long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
     {
       checkNotNull(reader, "builder must not be null");
       Reject.ifFalse(nbEntriesToDecode >= 0, "nbEntriesToDecode must be >= 0");
@@ -514,7 +471,7 @@ final class EntryIDSet implements Iterable<EntryID>
       return ids;
     }
 
-    private ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
+    private static ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
     {
       checkNotNull(idSet, "idSet must not be null");
       checkNotNull(builder, "builder must not be null");
@@ -527,17 +484,8 @@ final class EntryIDSet implements Iterable<EntryID>
         }
         return builder;
       }
-      else
-      {
-        // Set top bit.
-        return builder.append(idSet.size() | Long.MIN_VALUE);
-      }
-    }
-
-    private static long decodeUndefinedSize(ByteSequence bytes)
-    {
-      // remove top bit
-      return bytes.length() == LONG_SIZE ? bytes.asReader().getLong() & Long.MAX_VALUE : Long.MAX_VALUE;
+      // Set top bit.
+      return builder.append((byte) 0x80);
     }
   }
 
@@ -564,17 +512,15 @@ final class EntryIDSet implements Iterable<EntryID>
     {
       checkNotNull(key, "key must not be null");
       checkNotNull(value, "value must not be null");
-
-      final ByteSequenceReader reader = value.asReader();
-      if ( reader.get() == UNDEFINED_SET) {
-          return newUndefinedSetWithSize(key, reader.getLong());
-      } else {
-          reader.rewind();
-          return newDefinedSet(decodeRaw(reader, (int) reader.getCompactUnsigned()));
+      if (value.byteAt(0) == UNDEFINED_SET)
+      {
+        return newUndefinedSetWithKey(key);
       }
+      final ByteSequenceReader reader = value.asReader();
+      return newDefinedSet(decodeRaw(reader, (int) reader.getCompactUnsigned()));
     }
 
-    private ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
+    private static ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
     {
       checkNotNull(idSet, "idSet must not be null");
       checkNotNull(builder, "builder must not be null");
@@ -592,48 +538,41 @@ final class EntryIDSet implements Iterable<EntryID>
       else
       {
         builder.append(UNDEFINED_SET);
-        builder.append(idSet.size());
       }
       return builder;
     }
 
-    private int getEstimatedSize(EntryIDSet idSet)
+    private static int getEstimatedSize(EntryIDSet idSet)
     {
       checkNotNull(idSet, "idSet must not be null");
       return idSet.getIDs().length * LONG_SIZE + INT_SIZE;
     }
 
-    private long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
+    private static long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)
     {
       checkNotNull(reader, "reader must not be null");
       Reject.ifFalse(nbEntriesToDecode >= 0, "nbEntriesToDecode must be >= 0");
 
       if ( nbEntriesToDecode == 0 ) {
         return EMPTY_LONG_ARRAY;
-      } else {
-        final long ids[] = new long[nbEntriesToDecode];
-        ids[0] = reader.getCompactUnsigned();
-        for(int i = 1 ; i < nbEntriesToDecode ; i++) {
-          ids[i] = ids[i-1] + reader.getCompactUnsigned();
-        }
-        return ids;
       }
+      final long ids[] = new long[nbEntriesToDecode];
+      ids[0] = reader.getCompactUnsigned();
+      for(int i = 1 ; i < nbEntriesToDecode ; i++) {
+        ids[i] = ids[i-1] + reader.getCompactUnsigned();
+      }
+      return ids;
     }
   }
 
   static EntryIDSet newUndefinedSet()
   {
-    return new EntryIDSet(new UndefinedImpl(NO_KEY, Long.MAX_VALUE));
+    return newUndefinedSetWithKey(NO_KEY);
   }
 
   static EntryIDSet newUndefinedSetWithKey(ByteSequence key)
   {
-    return newUndefinedSetWithSize(key, Long.MAX_VALUE);
-  }
-
-  static EntryIDSet newUndefinedSetWithSize(ByteSequence key, long undefinedSize)
-  {
-    return new EntryIDSet(new UndefinedImpl(key, undefinedSize));
+    return new EntryIDSet(new UndefinedImpl(key));
   }
 
   /**
@@ -708,7 +647,7 @@ final class EntryIDSet implements Iterable<EntryID>
 
     if (containsUndefinedSet)
     {
-      return newUndefinedSetWithSize(null, count);
+      return newUndefinedSet();
     }
 
     boolean needSort = false;
@@ -742,10 +681,7 @@ final class EntryIDSet implements Iterable<EntryID>
     {
       return newDefinedSet(n1);
     }
-    else
-    {
-      return newDefinedSet(Arrays.copyOf(n1, j));
-    }
+    return newDefinedSet(Arrays.copyOf(n1, j));
   }
 
   private EntryIDSetImplementor concreteImpl;
@@ -878,7 +814,7 @@ final class EntryIDSet implements Iterable<EntryID>
         // performed by the implementation.
         concreteImpl = new DefinedImpl(that.getIDs());
       } else {
-        concreteImpl = new UndefinedImpl(NO_KEY, that.size());
+        concreteImpl = new UndefinedImpl(NO_KEY);
       }
       return;
     }
@@ -948,6 +884,12 @@ final class EntryIDSet implements Iterable<EntryID>
     return concreteImpl.getRange();
   }
 
+  static long addWithoutOverflow(long a, long b) {
+    /** a and b must be > 0 */
+    final long result = a + b;
+    return result >= 0 ? result : Long.MAX_VALUE;
+  }
+
   private static long[] mergeOverlappingEntryIDSet(long set1[], long set2[])
   {
     final long[] a, b;
@@ -989,10 +931,7 @@ final class EntryIDSet implements Iterable<EntryID>
     {
       return Arrays.copyOf(newEntryIDs, targetIndex);
     }
-    else
-    {
-      return newEntryIDs;
-    }
+    return newEntryIDs;
   }
 
   private static int copyRemainder(long[] sourceIDSet, final long[] newEntryIDs, int offset, int remainerIndex)

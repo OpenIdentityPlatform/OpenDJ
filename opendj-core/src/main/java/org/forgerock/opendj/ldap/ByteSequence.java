@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -315,6 +315,17 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      *             greater than {@code end}.
      */
     ByteSequence subSequence(int start, int end);
+
+    /**
+     * Tests if this ByteSequence starts with the specified prefix.
+     *
+     * @param prefix
+     *            The prefix.
+     * @return true if the byte sequence represented by the argument is a prefix of the byte sequence represented by
+     *         this ByteSequence; false otherwise. Note also that true will be returned if the argument is an empty
+     *         sequence or is equal to this ByteSequence object as determined by the equals(Object) method.
+     */
+    boolean startsWith(ByteSequence prefix);
 
     /**
      * Returns the Base64 encoded string representation of this byte string.

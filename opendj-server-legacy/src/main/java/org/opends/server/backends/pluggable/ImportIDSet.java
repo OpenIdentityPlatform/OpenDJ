@@ -50,20 +50,22 @@ final class ImportIDSet implements Iterable<EntryID> {
   private final ByteSequence key;
   /** The index entry limit size. */
   private final int indexEntryLimitSize;
-  /** Set to true if a count of ids above the index entry limit should be kept. */
-  private final boolean maintainCount;
 
   /**
    * Create an import ID set managing the entry limit of the provided EntryIDSet.
    *
-   * @param key The key associated to this ID set
-   * @param entryIDSet The entryIDSet that will be managed by this object
-   * @param limit The index entry limit or 0 if unlimited.
-   * @param maintainCount whether to maintain the count when size is undefined.
-   * @throws NullPointerException if key or entryIDSet is null
-   * @throws IllegalArgumentException if limit is < 0
+   * @param key
+   *          The key associated to this ID set
+   * @param entryIDSet
+   *          The entryIDSet that will be managed by this object
+   * @param limit
+   *          The index entry limit or 0 if unlimited.
+   * @throws NullPointerException
+   *           if key or entryIDSet is null
+   * @throws IllegalArgumentException
+   *           if limit is < 0
    */
-  public ImportIDSet(ByteSequence key, EntryIDSet entryIDSet, int limit, boolean maintainCount)
+  public ImportIDSet(ByteSequence key, EntryIDSet entryIDSet, int limit)
   {
     checkNotNull(key, "key must not be null");
     checkNotNull(entryIDSet, "entryIDSet must not be null");
@@ -73,7 +75,6 @@ final class ImportIDSet implements Iterable<EntryID> {
     this.entryIDSet = entryIDSet;
     // FIXME: What to do if entryIDSet.size()> limit yet ?
     this.indexEntryLimitSize = limit == 0 ? Integer.MAX_VALUE : limit;
-    this.maintainCount = maintainCount;
   }
 
   /**
@@ -86,10 +87,6 @@ final class ImportIDSet implements Iterable<EntryID> {
 
   void setUndefined() {
     entryIDSet = newUndefinedSetWithKey(key);
-  }
-
-  private void setUndefinedWithSize(final long newSize) {
-    entryIDSet = maintainCount ? newUndefinedSetWithSize(key, newSize) : newUndefinedSetWithKey(key);
   }
 
   /**
@@ -105,10 +102,13 @@ final class ImportIDSet implements Iterable<EntryID> {
    */
   void addEntryID(long entryID)
   {
-    Reject.ifTrue(entryID < 0, "entryID must always be positive");
-    if (isDefined() && size() + 1 > indexEntryLimitSize) {
-      setUndefinedWithSize(size() + 1);
-    } else if (isDefined() || maintainCount) {
+    Reject.ifTrue(entryID < 0, "entryID must be positive");
+    if (!isDefined()) {
+      return;
+    }
+    if (size() + 1 > indexEntryLimitSize) {
+      entryIDSet = newUndefinedSetWithKey(key);
+    } else {
       entryIDSet.add(new EntryID(entryID));
     }
   }
@@ -120,10 +120,9 @@ final class ImportIDSet implements Iterable<EntryID> {
   void remove(ImportIDSet importIdSet)
   {
     checkNotNull(importIdSet, "importIdSet must not be null");
-
     if (!importIdSet.isDefined()) {
       setUndefined();
-    } else if (isDefined() || maintainCount) {
+    } else if (isDefined()) {
       entryIDSet.removeAll(importIdSet.entryIDSet);
     }
   }
@@ -142,25 +141,15 @@ final class ImportIDSet implements Iterable<EntryID> {
 
     if (!definedBeforeMerge || !importIdSet.isDefined() || mergedSize > indexEntryLimitSize)
     {
-      setUndefinedWithSize(mergedSize);
+      entryIDSet = newUndefinedSetWithKey(key);
       return definedBeforeMerge;
     }
-    else if (isDefined() || maintainCount)
+    else if (isDefined())
     {
       entryIDSet.addAll(importIdSet.entryIDSet);
     }
     return false;
   }
-
-  private static long addWithoutOverflow(long a, long b) {
-    /** a and b must be > 0 */
-    final boolean willAdditionOverflow = (~(a ^ b) & (a ^ (a + b))) < 0;
-    if (willAdditionOverflow) {
-      return Long.MAX_VALUE;
-    }
-    return a + b;
-  }
-
 
   /**
    * @return The current size of an import ID set.

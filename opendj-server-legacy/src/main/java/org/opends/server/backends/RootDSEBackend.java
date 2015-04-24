@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -341,7 +342,7 @@ public class RootDSEBackend
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN, false);
+    final long ret = getNumberOfChildren(entryDN);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -351,10 +352,36 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
-    if (entryDN == null || ! entryDN.isRootDN())
+    checkNotNull(baseDN, "baseDN must not be null");
+    if (!baseDN.isRootDN())
+    {
+      return -1;
+    }
+
+    long count = 1;
+    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+    {
+      DN subBase = entry.getKey();
+      Backend<?> b = entry.getValue();
+      Entry subBaseEntry = b.getEntry(subBase);
+      if (subBaseEntry != null)
+      {
+        count++;
+        count += b.getNumberOfEntriesInBaseDN(subBase);
+      }
+    }
+
+    return count;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
+    if (!parentDN.isRootDN())
     {
       return -1;
     }
@@ -364,20 +391,9 @@ public class RootDSEBackend
     for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN subBase = entry.getKey();
-      Backend<?> b = entry.getValue();
-      Entry subBaseEntry = b.getEntry(subBase);
+      Entry subBaseEntry = entry.getValue().getEntry(subBase);
       if (subBaseEntry != null)
       {
-        if(subtree)
-        {
-          long subCount = b.numSubordinates(subBase, true);
-          if(subCount < 0)
-          {
-            return -1;
-          }
-
-          count += subCount;
-        }
         count ++;
       }
     }

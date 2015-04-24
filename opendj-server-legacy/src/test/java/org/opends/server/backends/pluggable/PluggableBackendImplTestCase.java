@@ -137,7 +137,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     when(backendCfg.getBaseDN()).thenReturn(newSortedSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
-    when(backendCfg.isSubordinateIndexesEnabled()).thenReturn(true);
 
     BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(newSortedSet(IndexType.PRESENCE, IndexType.EQUALITY));
@@ -653,8 +652,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.hasSubordinates(DN.valueOf("dc=a")), ConditionResult.UNDEFINED,
         "Subordinates query on unknown baseDN should return UNDEFINED.");
 
-    assertEquals(backend.numSubordinates(testBaseDN, false), 1);
-    assertEquals(backend.numSubordinates(testBaseDN, true), getTotalNumberOfLDIFEntries() - 1, "Wrong DIT count.");
+    assertEquals(backend.getNumberOfChildren(testBaseDN), 1);
+    assertEquals(backend.getNumberOfEntriesInBaseDN(testBaseDN), getTotalNumberOfLDIFEntries(), "Wrong DIT count.");
     assertEquals(backend.hasSubordinates(searchDN), ConditionResult.FALSE,
         "Leaf entry should not have any subordinates.");
   }
@@ -855,6 +854,11 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     backend.openBackend();
     assertEquals(backend.getEntryCount(), ldifNumberOfEntries, "Not enough entries in DIT.");
+    /** +1 for the testBaseDN itself */
+    assertEquals(backend.getNumberOfEntriesInBaseDN(testBaseDN), ldifNumberOfEntries, "Not enough entries in DIT.");
+    assertEquals(backend.getNumberOfChildren(testBaseDN), 1, "Not enough entries in DIT.");
+    /** -2 for baseDn and People entry */
+    assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), ldifNumberOfEntries - 2, "Not enough entries in DIT.");
   }
 
   @Test(dependsOnMethods = {"testImportLDIF"})

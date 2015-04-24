@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.task;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -345,12 +346,21 @@ public class TaskBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return numSubordinates(baseDN, true) + 1;
+  }
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return numSubordinates(parentDN, false);
+  }
+
+  private long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
   {
     if (entryDN == null)
     {

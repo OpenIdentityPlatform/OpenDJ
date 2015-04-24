@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -456,31 +457,39 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(final DN entryDN, final boolean subtree)
-      throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(final DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return getNumberOfSubordinates(baseDN, true) + 1;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(final DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return getNumberOfSubordinates(parentDN, false);
+  }
+
+  private long getNumberOfSubordinates(final DN entryDN, final boolean includeSubtree) throws DirectoryException
   {
     final NavigableMap<DN, MonitorProvider<?>> dit = getDIT();
     if (!dit.containsKey(entryDN))
     {
       return -1L;
     }
-    else
+    long count = 0;
+    final int childDNSize = entryDN.size() + 1;
+    for (final DN dn : dit.tailMap(entryDN, false).navigableKeySet())
     {
-      long count = 0;
-      final int childDNSize = entryDN.size() + 1;
-      for (final DN dn : dit.tailMap(entryDN, false).navigableKeySet())
+      if (!dn.isDescendantOf(entryDN))
       {
-        if (!dn.isDescendantOf(entryDN))
-        {
-          break;
-        }
-        else if (subtree || dn.size() == childDNSize)
-        {
-          count++;
-        }
+        break;
       }
-      return count;
+      else if (includeSubtree || dn.size() == childDNSize)
+      {
+        count++;
+      }
     }
+    return count;
   }
 
   /** {@inheritDoc} */

@@ -120,8 +120,7 @@ class AttributeIndex
 
     private MatchingRuleIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer)
     {
-      super(getIndexName(attributeType, indexer.getIndexID()), state, cfg.getIndexEntryLimit(), false, txn,
-          entryContainer);
+      super(getIndexName(attributeType, indexer.getIndexID()), state, cfg.getIndexEntryLimit(), txn, entryContainer);
       this.indexer = indexer;
     }
 

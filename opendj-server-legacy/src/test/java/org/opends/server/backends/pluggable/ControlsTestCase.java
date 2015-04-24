@@ -135,7 +135,6 @@ public class ControlsTestCase extends DirectoryServerTestCase
     when(backendCfg.getBaseDN()).thenReturn(newSortedSet(baseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[] { SORT_ORDER_1, SORT_ORDER_2 });
-    when(backendCfg.isSubordinateIndexesEnabled()).thenReturn(true);
 
     when(backendCfg.getDBDirectory()).thenReturn(BACKEND_NAME);
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");

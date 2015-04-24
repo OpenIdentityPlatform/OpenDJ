@@ -39,8 +39,15 @@ final class Utils
     assertThat(actual).containsAll(asList(expected));
   }
 
+  public static void assertIsEmpty(EntryIDSet actual)
+  {
+    assertIdsEquals(actual);
+  }
+
   public static void assertIdsEquals(EntryIDSet actual, long... expected)
   {
+    // needed is undefined EntryIDSet" => "needed since undefined EntryIDSet
+    assertThat(actual.isDefined());
     assertIdsEquals(actual.iterator(), expected);
   }
 

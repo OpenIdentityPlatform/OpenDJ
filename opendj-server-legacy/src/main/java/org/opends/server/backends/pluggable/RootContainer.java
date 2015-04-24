@@ -641,7 +641,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
             ec.sharedLock.lock();
             try
             {
-              entryCount += ec.getEntryCount(txn);
+              entryCount += ec.getNumberOfEntriesInBaseDN();
             }
             finally
             {
