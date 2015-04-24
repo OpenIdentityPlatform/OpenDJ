@@ -27,7 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

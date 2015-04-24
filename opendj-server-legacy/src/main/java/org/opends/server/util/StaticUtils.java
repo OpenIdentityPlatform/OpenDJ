@@ -78,9 +78,31 @@ public final class StaticUtils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The number of bytes of a Java int. A Java int is 32 bits, i.e. 4 bytes. */
+  public static final int INT_SIZE = 4;
+  /** The number of bytes of a Java long. A Java int is 64 bits, i.e. 8 bytes. */
+  public static final int LONG_SIZE = 8;
+
   /**
-   * Private constructor to prevent instantiation.
+   * Number of bytes in a Kibibyte.
+   * <p>
+   * Example usage:
+   * <pre>
+   * int _10KB = 10 * KB;
+   * <pre>
    */
+  public static final int KB = 1024;
+  /**
+   * Number of bytes in a Mebibyte.
+   * <p>
+   * Example usage:
+   * <pre>
+   * int _10MB = 10 * MB;
+   * <pre>
+   */
+  public static final int MB = KB * KB;
+
+  /** Private constructor to prevent instantiation. */
   private StaticUtils() {
     // No implementation required.
   }
