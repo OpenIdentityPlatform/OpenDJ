@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -85,10 +86,6 @@ final class EntryIDSet implements Iterable<EntryID>
 
   /** Define serialization contract for EntryIDSet. */
   interface EntryIDSetCodec {
-
-    int INT_SIZE = 4;
-
-    int LONG_SIZE = 8;
 
     ByteString encode(EntryIDSet idSet);
 

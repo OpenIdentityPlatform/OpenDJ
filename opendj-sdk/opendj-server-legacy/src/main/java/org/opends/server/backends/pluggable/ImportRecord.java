@@ -24,6 +24,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.util.StaticUtils.*;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -33,16 +35,11 @@ import org.forgerock.opendj.ldap.ByteString;
 final class ImportRecord implements Comparable<ImportRecord>
 {
 
-  /** The number of bytes of a Java int. */
-  static final int INT_SIZE = 4;
-  /** The number of bytes of a Java long. */
-  static final int LONG_SIZE = 8;
-
   /**
    * The record overhead. In addition to entryID, key length and key bytes, the record overhead
    * includes the INS/DEL bit + indexID
    */
-  private static final int REC_OVERHEAD = 1 + INT_SIZE;
+  static final int REC_OVERHEAD = 1 + INT_SIZE;
 
   static ImportRecord fromBufferAndPosition(byte[] buffer, int position)
   {

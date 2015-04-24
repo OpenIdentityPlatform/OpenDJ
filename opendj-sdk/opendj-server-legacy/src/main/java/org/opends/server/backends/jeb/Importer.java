@@ -27,9 +27,9 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
-import static org.opends.server.backends.jeb.IndexOutputBuffer.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -136,8 +136,6 @@ final class Importer implements DiskSpaceMonitorHandler
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int TIMER_INTERVAL = 10000;
-  private static final int KB = 1024;
-  private static final int MB = KB * KB;
   private static final String DEFAULT_TMP_DIR = "import-tmp";
   private static final String TMPENV_DIR = "tmp-env";
 

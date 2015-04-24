@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.server.backends.pluggable.ImportRecord.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.ByteArrayOutputStream;
 
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -59,17 +62,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
  * </p>
  */
 final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
-
-  /** The number of bytes of a Java int. */
-  static final int INT_SIZE = 4;
-  /** The number of bytes of a Java long. */
-  static final int LONG_SIZE = 8;
-
-  /**
-   * The record overhead. In addition to entryID, key length and key bytes, the
-   * record overhead includes the INS/DEL bit + indexID
-   */
-  private static final int REC_OVERHEAD = 1 + INT_SIZE;
 
   /** Buffer records are either insert records or delete records. */
   private static final byte DEL = 0, INS = 1;

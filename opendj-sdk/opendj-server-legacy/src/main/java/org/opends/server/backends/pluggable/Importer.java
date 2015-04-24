@@ -29,7 +29,6 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
-import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -131,8 +130,6 @@ final class Importer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int TIMER_INTERVAL = 10000;
-  private static final int KB = 1024;
-  private static final int MB = KB * KB;
   private static final String DEFAULT_TMP_DIR = "import-tmp";
   private static final String TMPENV_DIR = "tmp-env";
 
@@ -146,8 +143,7 @@ final class Importer
    * size for byte buffers.
    */
   private static final int READER_WRITER_BUFFER_SIZE = 8 * KB;
-  private static final int MIN_DB_CACHE_MEMORY = MAX_DB_CACHE_SIZE
-      + MAX_DB_LOG_SIZE;
+  private static final int MIN_DB_CACHE_MEMORY = MAX_DB_CACHE_SIZE + MAX_DB_LOG_SIZE;
 
   /** Max size of phase one buffer. */
   private static final int MAX_BUFFER_SIZE = 2 * MB;
@@ -160,9 +156,6 @@ final class Importer
 
   /** The DN attribute type. */
   private static final AttributeType DN_TYPE;
-
-  /** The dn2id "index ID". */
-  private static final String DN2ID = "dn2id";
 
   /** Phase one buffer count. */
   private final AtomicInteger bufferCount = new AtomicInteger(0);
@@ -1517,7 +1510,7 @@ final class Importer
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<IndexKey, IndexOutputBuffer>();
     private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
-    private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID, 1);
+    private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID_INDEX_NAME, 1);
 
     public ImportTask(final Storage storage)
     {
@@ -2616,7 +2609,7 @@ final class Importer
         {
           return;
         }
-        boolean isDN2ID = DN2ID.equals(indexKey.getIndexID());
+        boolean isDN2ID = DN2ID_INDEX_NAME.equals(indexKey.getIndexID());
         IndexManager indexMgr = new IndexManager(indexKey.getName(), isDN2ID, indexKey.getEntryLimit());
         if (isDN2ID)
         {

@@ -26,7 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.backends.jeb.Importer.indexComparator;
+import static org.opends.server.backends.jeb.Importer.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -67,9 +68,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   private enum CompareOp {
     LT, GT, LE, GE, EQ
   }
-
-  /** The size of a Java int. A Java int is 32 bits, i.e. 4 bytes. */
-  static final int INT_SIZE = 4;
 
   /**
    * The record overhead. In addition to entryID, key length and key bytes, the
