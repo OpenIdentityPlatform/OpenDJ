@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -171,7 +172,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       LocalizableMessage message = WARN_JEB_GET_ENTRY_COUNT_FAILED.get(e.getMessage());
       throw new InitializationException(message, e);
     }
@@ -184,7 +184,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
       catch (Exception e)
       {
-        logger.traceException(e);
         throw new InitializationException(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(dn, e), e);
       }
     }
@@ -318,18 +317,72 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
-    long ret = numSubordinates(entryDN, false);
-    if(ret < 0)
-    {
-      return ConditionResult.UNDEFINED;
+    EntryContainer container;
+    try {
+      container = accessBegin(null, entryDN);
     }
-    return ConditionResult.valueOf(ret != 0);
+    catch (DirectoryException de)
+    {
+      if (de.getResultCode() == ResultCode.UNDEFINED)
+      {
+        return ConditionResult.UNDEFINED;
+      }
+      throw de;
+    }
+
+    container.sharedLock.lock();
+    try
+    {
+      return ConditionResult.valueOf(container.hasSubordinates(entryDN));
+    }
+    catch (StorageRuntimeException e)
+    {
+      throw createDirectoryException(e);
+    }
+    finally
+    {
+      container.sharedLock.unlock();
+      accessEnd();
+    }
   }
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
+    checkNotNull(baseDN, "baseDN must not be null");
+    final EntryContainer ec;
+
+    try {
+      ec = accessBegin(null, baseDN);
+    }
+    catch (DirectoryException de)
+    {
+      throw de;
+    }
+
+    ec.sharedLock.lock();
+    try
+    {
+      return ec.getNumberOfEntriesInBaseDN();
+    }
+    catch (Exception e)
+    {
+      throw new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+      accessEnd();
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
     EntryContainer ec;
 
     /*
@@ -337,7 +390,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
      * error if the EntryContainer is null...
      */
     try {
-      ec = accessBegin(null, entryDN);
+      ec = accessBegin(null, parentDN);
     }
     catch (DirectoryException de)
     {
@@ -351,17 +404,31 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     ec.sharedLock.lock();
     try
     {
-      long count = ec.getNumSubordinates(entryDN, subtree);
-      if(count == Long.MAX_VALUE)
-      {
-        // The index entry limit has exceeded and there is no count maintained.
-        return -1;
-      }
-      return count;
+      return ec.getNumberOfChildren(parentDN);
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
+      throw createDirectoryException(e);
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+      accessEnd();
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean entryExists(final DN entryDN) throws DirectoryException
+  {
+    EntryContainer ec = accessBegin(null, entryDN);
+    ec.sharedLock.lock();
+    try
+    {
+      return ec.entryExists(entryDN);
+    }
+    catch (StorageRuntimeException e)
+    {
       throw createDirectoryException(e);
     }
     finally
@@ -383,7 +450,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -406,7 +472,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -430,7 +495,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -455,7 +519,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -488,7 +551,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -512,7 +574,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -552,12 +613,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (IOException ioe)
     {
-      logger.traceException(ioe);
       throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (StorageRuntimeException de)
     {
-      logger.traceException(de);
       throw createDirectoryException(de);
     }
     catch (ConfigException ce)
@@ -570,7 +629,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         throw (DirectoryException) e;
       }
-      logger.traceException(e);
       throw new DirectoryException(errorRC, e.getMessageObject(), e);
     }
     finally
@@ -619,7 +677,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
     }
     catch (DirectoryException e)
@@ -628,12 +685,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (OpenDsException e)
     {
-      logger.traceException(e);
       throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
     }
     catch (ConfigException e)
     {
-      logger.traceException(e);
       throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
     }
     finally
@@ -673,13 +728,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = getReadOnlyRootContainer();
       }
-
-      VerifyJob verifyJob = new VerifyJob(verifyConfig);
-      return verifyJob.verifyBackend(rootContainer);
+      return new VerifyJob(rootContainer, verifyConfig).verifyBackend();
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -737,28 +789,23 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (ExecutionException execEx)
     {
-      logger.traceException(execEx);
-      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
+      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()), execEx);
     }
     catch (InterruptedException intEx)
     {
-      logger.traceException(intEx);
-      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
+      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()), intEx);
     }
     catch (ConfigException ce)
     {
-      logger.traceException(ce);
-      throw new DirectoryException(errorRC, ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject(), ce);
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
-      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
+      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()), e);
     }
     catch (InitializationException e)
     {
-      logger.traceException(e);
-      throw new InitializationException(e.getMessageObject());
+      throw new InitializationException(e.getMessageObject(), e);
     }
     finally
     {
@@ -961,7 +1008,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
       throw new InitializationException(message, e);
     }

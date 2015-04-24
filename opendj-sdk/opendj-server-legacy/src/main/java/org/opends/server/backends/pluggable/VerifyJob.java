@@ -38,8 +38,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,7 +75,7 @@ class VerifyJob
   /** The verify configuration. */
   private final VerifyConfig verifyConfig;
   /** The root container used for the verify job. */
-  private RootContainer rootContainer;
+  private final RootContainer rootContainer;
 
   /** The number of milliseconds between job progress reports. */
   private final long progressInterval = 10000;
@@ -99,19 +101,15 @@ class VerifyJob
 
   /** Indicates whether the DN database is to be verified. */
   private boolean verifyDN2ID;
-  /** Indicates whether the children database is to be verified. */
-  private boolean verifyID2Children;
-  /** Indicates whether the subtree database is to be verified. */
-  private boolean verifyID2Subtree;
+  /** Indicates whether the children count database is to be verified. */
+  private boolean verifyID2ChildrenCount;
 
   /** The entry database. */
   private ID2Entry id2entry;
   /** The DN database. */
   private DN2ID dn2id;
   /** The children database. */
-  private Index id2c;
-  /** The subtree database. */
-  private Index id2s;
+  private ID2Count id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
@@ -123,8 +121,9 @@ class VerifyJob
    *
    * @param verifyConfig The verify configuration.
    */
-  VerifyJob(VerifyConfig verifyConfig)
+  VerifyJob(RootContainer rootContainer, VerifyConfig verifyConfig)
   {
+    this.rootContainer = rootContainer;
     this.verifyConfig = verifyConfig;
   }
 
@@ -136,7 +135,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the database.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
-  long verifyBackend(final RootContainer rootContainer) throws StorageRuntimeException,
+  long verifyBackend() throws StorageRuntimeException,
       DirectoryException
   {
     try
@@ -146,7 +145,7 @@ class VerifyJob
         @Override
         public Long run(ReadableTransaction txn) throws Exception
         {
-          return verifyBackend0(txn, rootContainer);
+          return verifyBackend0(txn);
         }
       });
     }
@@ -160,10 +159,8 @@ class VerifyJob
     }
   }
 
-  private long verifyBackend0(ReadableTransaction txn, RootContainer rootContainer)
-      throws StorageRuntimeException, DirectoryException
+  private long verifyBackend0(ReadableTransaction txn) throws StorageRuntimeException, DirectoryException
   {
-    this.rootContainer = rootContainer;
     EntryContainer entryContainer =
         rootContainer.getEntryContainer(verifyConfig.getBaseDN());
 
@@ -177,11 +174,7 @@ class VerifyJob
       if (completeList.isEmpty() && cleanList.isEmpty())
       {
         verifyDN2ID = true;
-        if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
-        {
-          verifyID2Children = true;
-          verifyID2Subtree = true;
-        }
+        verifyID2ChildrenCount = true;
         attrIndexList.addAll(entryContainer.getAttributeIndexes());
       }
       else
@@ -204,31 +197,9 @@ class VerifyJob
           {
             verifyDN2ID = true;
           }
-          else if ("id2children".equals(lowerName))
+          if ("id2childrencount".equals(lowerName))
           {
-            if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
-            {
-              verifyID2Children = true;
-            }
-            else
-            {
-              LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
-                  .get(rootContainer.getConfiguration().getBackendId());
-              throw new StorageRuntimeException(msg.toString());
-            }
-          }
-          else if ("id2subtree".equals(lowerName))
-          {
-            if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
-            {
-              verifyID2Subtree = true;
-            }
-            else
-            {
-              LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
-                  .get(rootContainer.getConfiguration().getBackendId());
-              throw new StorageRuntimeException(msg.toString());
-            }
+            verifyID2ChildrenCount = true;
           }
           else if(lowerName.startsWith("vlv."))
           {
@@ -275,8 +246,7 @@ class VerifyJob
       // the entry entryContainer methods.
       id2entry = entryContainer.getID2Entry();
       dn2id = entryContainer.getDN2ID();
-      id2c = entryContainer.getID2Children();
-      id2s = entryContainer.getID2Subtree();
+      id2childrenCount = entryContainer.getID2ChildrenCount();
 
       // Make a note of the time we started.
       long startTime = System.currentTimeMillis();
@@ -387,8 +357,7 @@ class VerifyJob
    */
   private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
-    try
+    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
     {
       long storedEntryCount = id2entry.getRecordCount(txn);
       while (cursor.next())
@@ -445,10 +414,6 @@ class VerifyJob
         }
       }
     }
-    finally
-    {
-      cursor.close();
-    }
   }
 
   /**
@@ -465,13 +430,9 @@ class VerifyJob
     {
       iterateDN2ID(txn);
     }
-    else if (verifyID2Children)
+    else if (verifyID2ChildrenCount)
     {
-      iterateID2Children(txn);
-    }
-    else if (verifyID2Subtree)
-    {
-      iterateID2Subtree(txn);
+      iterateID2ChildrenCount(txn);
     }
     else if (attrIndexList.size() > 0)
     {
@@ -496,34 +457,31 @@ class VerifyJob
    */
   private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
-    try
+    final Queue<ChildrenCount> childrenCounters = new LinkedList<>();
+    ChildrenCount currentNode = null;
+
+    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName()))
     {
       while (cursor.next())
       {
         keyCount++;
 
-        ByteString key = cursor.getKey();
-        ByteString value = cursor.getValue();
-
-        EntryID entryID;
+        final ByteString key = cursor.getKey();
+        final EntryID entryID;
         try
         {
-          entryID = new EntryID(value);
+          entryID =  new EntryID(cursor.getValue());
         }
         catch (Exception e)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File dn2id has malformed ID for DN <%s>:%n%s%n", key, StaticUtils.bytesToHex(value));
-          }
+          logger.trace("File dn2id has malformed ID for DN <%s>", key, e);
           continue;
         }
 
-        Entry entry;
+        currentNode = verifyID2ChildrenCount(txn, childrenCounters, key, entryID);
+
+        final Entry entry;
         try
         {
           entry = id2entry.get(txn, entryID);
@@ -538,261 +496,68 @@ class VerifyJob
         if (entry == null)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("File dn2id has DN <%s> referencing unknown ID %d%n", key, entryID);
-          }
+          logger.trace("File dn2id has DN <%s> referencing unknown ID %d%n", key, entryID);
         }
         else if (!key.equals(dnToDNKey(entry.getName(), verifyConfig.getBaseDN().size())))
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("File dn2id has DN <%s> referencing entry with wrong DN <%s>%n", key, entry.getName());
-          }
+          logger.trace("File dn2id has DN <%s> referencing entry with wrong DN <%s>%n", key, entry.getName());
         }
       }
-    }
-    finally
-    {
-      cursor.close();
+
+      while ((currentNode = childrenCounters.poll()) != null)
+      {
+        verifyID2ChildrenCount(txn, currentNode);
+      }
     }
   }
 
-  /**
-   * Iterate through the entries in ID2Children to perform a check for
-   * index cleanliness.
-   *
-   * @throws StorageRuntimeException If an error occurs in the database.
-   */
-  private void iterateID2Children(ReadableTransaction txn) throws StorageRuntimeException
+  private ChildrenCount verifyID2ChildrenCount(ReadableTransaction txn, final Queue<ChildrenCount> childrenCounters,
+      final ByteString key, final EntryID entryID)
   {
-    Cursor<ByteString, EntryIDSet> cursor = id2c.openCursor(txn);
-    try
+    while (childrenCounters.peek() != null && !DN2ID.isChild(childrenCounters.peek().baseDN, key))
     {
-      while (cursor.next())
-      {
-        keyCount++;
-
-        ByteString key = cursor.getKey();
-
-        EntryID entryID;
-        try
-        {
-          entryID = new EntryID(key);
-        }
-        catch (Exception e)
-        {
-          errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2children has malformed ID %s%n", StaticUtils.bytesToHex(key));
-          }
-          continue;
-        }
-
-        EntryIDSet entryIDSet;
-
-        try
-        {
-          entryIDSet = cursor.getValue();
-        }
-        catch (Exception e)
-        {
-          errorCount++;
-          logger.traceException(e);
-          logger.trace("File id2children has malformed ID list for ID %s", entryID);
-          continue;
-        }
-
-        updateIndexStats(entryIDSet);
-
-        if (entryIDSet.isDefined())
-        {
-          Entry entry;
-          try
-          {
-            entry = id2entry.get(txn, entryID);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-            errorCount++;
-            continue;
-          }
-
-          if (entry == null)
-          {
-            errorCount++;
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("File id2children has unknown ID %d%n", entryID);
-            }
-            continue;
-          }
-
-          for (EntryID id : entryIDSet)
-          {
-            Entry childEntry;
-            try
-            {
-              childEntry = id2entry.get(txn, id);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-              errorCount++;
-              continue;
-            }
-
-            if (childEntry == null)
-            {
-              errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("File id2children has ID %d referencing unknown ID %d%n", entryID, id);
-              }
-              continue;
-            }
-
-            if (!childEntry.getName().isDescendantOf(entry.getName()) ||
-                 childEntry.getName().size() !=
-                 entry.getName().size() + 1)
-            {
-              errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("File id2children has ID %d with DN <%s> " +
-                    "referencing ID %d with non-child DN <%s>%n",
-                    entryID, entry.getName(), id, childEntry.getName());
-              }
-            }
-          }
-        }
-      }
+      // This subtree is fully processed, pop the counter of the parent DN from the stack and verify it's value
+      verifyID2ChildrenCount(txn, childrenCounters.remove());
     }
-    finally
+    if (childrenCounters.peek() != null)
     {
-      cursor.close();
+      childrenCounters.peek().numberOfChildren++;
+    }
+    final ChildrenCount node = new ChildrenCount(key, entryID);
+    childrenCounters.add(node);
+    return node;
+  }
+
+  private void verifyID2ChildrenCount(ReadableTransaction txn, ChildrenCount parent) {
+    final long expected = parent.numberOfChildren;
+    final long currentValue = id2childrenCount.getCount(txn, parent.entryID);
+    if (expected != currentValue)
+    {
+      errorCount++;
+      logger.trace("File id2childrenCount has wrong number of children for DN <%s> (got %d, expecting %d)",
+          parent.baseDN, currentValue, expected);
     }
   }
 
-  /**
-   * Iterate through the entries in ID2Subtree to perform a check for
-   * index cleanliness.
-   *
-   * @throws StorageRuntimeException If an error occurs in the database.
-   */
-  private void iterateID2Subtree(ReadableTransaction txn) throws StorageRuntimeException
+  private void iterateID2ChildrenCount(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor<ByteString, EntryIDSet> cursor = id2s.openCursor(txn);
-    try
-    {
-      while (cursor.next())
-      {
-        keyCount++;
-
-        ByteString key = cursor.getKey();
-        EntryID entryID;
-        try
-        {
-          entryID = new EntryID(key);
-        }
-        catch (Exception e)
-        {
-          errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2subtree has malformed ID %s%n", StaticUtils.bytesToHex(key));
-          }
-          continue;
-        }
-
-        EntryIDSet entryIDSet;
-        try
-        {
-          entryIDSet = cursor.getValue();
-        }
-        catch (Exception e)
-        {
-          errorCount++;
-          logger.traceException(e);
-          logger.trace("File id2subtree has malformed ID list  for ID %s", entryID);
-          continue;
-        }
-
-        updateIndexStats(entryIDSet);
-
-        if (entryIDSet.isDefined())
-        {
-          Entry entry;
-          try
-          {
-            entry = id2entry.get(txn, entryID);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-            errorCount++;
-            continue;
-          }
-
-          if (entry == null)
-          {
-            errorCount++;
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("File id2subtree has unknown ID %d%n", entryID);
-            }
-            continue;
-          }
-
-          for (EntryID id : entryIDSet)
-          {
-            Entry subordEntry;
-            try
-            {
-              subordEntry = id2entry.get(txn, id);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-              errorCount++;
-              continue;
-            }
-
-            if (subordEntry == null)
-            {
-              errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("File id2subtree has ID %d referencing " +
-                    "unknown ID %d%n", entryID, id);
-              }
-              continue;
-            }
-
-            if (!subordEntry.getName().isDescendantOf(entry.getName()))
-            {
-              errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("File id2subtree has ID %d with DN <%s> " +
-                    "referencing ID %d with non-subordinate DN <%s>%n",
-                    entryID, entry.getName(), id, subordEntry.getName());
-              }
-            }
-          }
-        }
-      }
+    Cursor<EntryID, Long> cursor = id2childrenCount.openCursor(txn);
+    if  (!cursor.next()) {
+      return;
     }
-    finally
-    {
-      cursor.close();
+
+    EntryID currentEntryID = new EntryID(-1);
+    while(cursor.next()) {
+      if (cursor.getKey().equals(currentEntryID)) {
+        /** Sharded cursor may return the same EntryID multiple times */
+        continue;
+      }
+      currentEntryID = cursor.getKey();
+      if (!id2entry.containsEntryID(txn, currentEntryID)) {
+        logger.trace("File id2ChildrenCount reference non-existing EntryID <%d>%n", currentEntryID);
+        errorCount++;
+      }
     }
   }
 
@@ -864,8 +629,7 @@ class VerifyJob
       return;
     }
 
-    Cursor<ByteString, ByteString> cursor = txn.openCursor(vlvIndex.getName());
-    try
+    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(vlvIndex.getName()))
     {
       while (cursor.next())
       {
@@ -906,10 +670,6 @@ class VerifyJob
 
       }
     }
-    finally
-    {
-      cursor.close();
-    }
   }
 
   /**
@@ -926,8 +686,7 @@ class VerifyJob
       return;
     }
 
-    Cursor<ByteString,EntryIDSet> cursor = index.openCursor(txn);
-    try
+    try(final Cursor<ByteString,EntryIDSet> cursor = index.openCursor(txn))
     {
       while (cursor.next())
       {
@@ -1042,10 +801,6 @@ class VerifyJob
         }
       }
     }
-    finally
-    {
-      cursor.close();
-    }
   }
 
   /**
@@ -1059,14 +814,6 @@ class VerifyJob
     if (verifyDN2ID)
     {
       verifyDN2ID(txn, entryID, entry);
-    }
-    if (verifyID2Children)
-    {
-      verifyID2Children(txn, entryID, entry);
-    }
-    if (verifyID2Subtree)
-    {
-      verifyID2Subtree(txn, entryID, entry);
     }
     verifyIndex(txn, entryID, entry);
   }
@@ -1141,137 +888,6 @@ class VerifyJob
   }
 
   /**
-   * Check that the ID2Children index is complete for a given entry.
-   *
-   * @param entryID The entry ID.
-   * @param entry The entry to be checked.
-   */
-  private void verifyID2Children(ReadableTransaction txn, EntryID entryID, Entry entry)
-  {
-    DN dn = entry.getName();
-
-    DN parentDN = getParent(dn);
-    if (parentDN != null)
-    {
-      EntryID parentID = null;
-      try
-      {
-        parentID = dn2id.get(txn, parentDN);
-        if (parentID == null)
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("File dn2id is missing key %s.%n", parentDN);
-          }
-          errorCount++;
-        }
-      }
-      catch (Exception e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-          logger.trace("File dn2id has error reading key %s: %s.", parentDN, e.getMessage());
-        }
-        errorCount++;
-      }
-      if (parentID != null)
-      {
-        try
-        {
-          ConditionResult cr = indexContainsID(id2c, txn, parentID.toByteString(), entryID);
-          if (cr == ConditionResult.FALSE)
-          {
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("File id2children is missing ID %d for key %d.%n", entryID, parentID);
-            }
-            errorCount++;
-          }
-          else if (cr == ConditionResult.UNDEFINED)
-          {
-            incrEntryLimitStats(id2c, parentID.toByteString());
-          }
-        }
-        catch (StorageRuntimeException e)
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2children has error reading key %d: %s.", parentID, e.getMessage());
-          }
-          errorCount++;
-        }
-      }
-    }
-  }
-
-  /**
-   * Check that the ID2Subtree index is complete for a given entry.
-   *
-   * @param entryID The entry ID.
-   * @param entry The entry to be checked.
-   */
-  private void verifyID2Subtree(ReadableTransaction txn, EntryID entryID, Entry entry)
-  {
-    for (DN dn = getParent(entry.getName()); dn != null; dn = getParent(dn))
-    {
-      EntryID id = null;
-      try
-      {
-        id = dn2id.get(txn, dn);
-        if (id == null)
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("File dn2id is missing key %s.%n", dn);
-          }
-          errorCount++;
-        }
-      }
-      catch (Exception e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-          logger.trace("File dn2id has error reading key %s: %s.%n", dn, e.getMessage());
-        }
-        errorCount++;
-      }
-      if (id != null)
-      {
-        try
-        {
-          ConditionResult cr = indexContainsID(id2s, txn, id.toByteString(), entryID);
-          if (cr == ConditionResult.FALSE)
-          {
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("File id2subtree is missing ID %d for key %d.%n", entryID, id);
-            }
-            errorCount++;
-          }
-          else if (cr == ConditionResult.UNDEFINED)
-          {
-            incrEntryLimitStats(id2s, id.toByteString());
-          }
-        }
-        catch (StorageRuntimeException e)
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("File id2subtree has error reading key %d: %s.%n", id, e.getMessage());
-          }
-          errorCount++;
-        }
-      }
-    }
-  }
-
-  /**
    * Construct a printable string from a raw key value.
    *
    * @param indexName
@@ -1280,7 +896,7 @@ class VerifyJob
    *          The bytes of the key.
    * @return A string that may be logged or printed.
    */
-  private String keyDump(String indexName, ByteSequence key)
+  private static String keyDump(String indexName, ByteSequence key)
   {
     StringBuilder buffer = new StringBuilder(128);
     buffer.append("Index: ");
@@ -1391,7 +1007,7 @@ class VerifyJob
     }
   }
 
-  private ConditionResult indexContainsID(Index index, ReadableTransaction txn, ByteString key, EntryID entryID)
+  private static ConditionResult indexContainsID(Index index, ReadableTransaction txn, ByteString key, EntryID entryID)
   {
     EntryIDSet entryIDSet = index.get(txn, key);
     if (entryIDSet.isDefined())
@@ -1414,6 +1030,20 @@ class VerifyJob
       return null;
     }
     return dn.getParentDNInSuffix();
+  }
+
+  /**
+   * This class maintain the number of children for a given dn
+   */
+  private static final class ChildrenCount {
+    private final ByteString baseDN;
+    private final EntryID entryID;
+    private long numberOfChildren;
+
+    private ChildrenCount(ByteString dn, EntryID id) {
+      this.baseDN = dn;
+      this.entryID = id;
+    }
   }
 
   /** This class reports progress of the verify job at fixed intervals. */
@@ -1454,13 +1084,9 @@ class VerifyJob
         {
           totalCount = dn2id.getRecordCount(txn);
         }
-        else if (verifyID2Children)
+        else if (verifyID2ChildrenCount)
         {
-          totalCount = id2c.getRecordCount(txn);
-        }
-        else if (verifyID2Subtree)
-        {
-          totalCount = id2s.getRecordCount(txn);
+          totalCount = id2childrenCount.getRecordCount(txn);
         }
         else if (!attrIndexList.isEmpty())
         {
@@ -1478,7 +1104,7 @@ class VerifyJob
       }
       else
       {
-        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getEntryCount(txn);
+        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN();
       }
     }
 

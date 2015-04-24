@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -263,7 +264,7 @@ public class MemoryBackend
   public synchronized ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN, false);
+    long ret = getNumberOfSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -273,11 +274,22 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public synchronized long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return getNumberOfSubordinates(baseDN, true) + 1;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return getNumberOfSubordinates(parentDN, false);
+  }
+
+  private synchronized long getNumberOfSubordinates(DN entryDN, boolean includeSubtree) throws DirectoryException
   {
     // Try to look up the immediate children for the DN
-    Set<DN> children = childDNs.get(entryDN);
+    final Set<DN> children = childDNs.get(entryDN);
     if (children == null)
     {
       if(entryMap.get(entryDN) != null)
@@ -288,20 +300,17 @@ public class MemoryBackend
       return -1;
     }
 
-    if(!subtree)
+    if(!includeSubtree)
     {
       return children.size();
     }
-    else
+    long count = 0;
+    for (DN child : children)
     {
-      long count = 0;
-      for(DN child : children)
-      {
-        count += numSubordinates(child, true);
-        count++;
-      }
-      return count;
+      count += getNumberOfSubordinates(child, true);
+      count++;
     }
+    return count;
   }
 
   /** {@inheritDoc} */

@@ -56,6 +56,11 @@ public interface SuffixContainer extends Closeable
    */
   String ID2CHILDREN_INDEX_NAME = "id2children";
   /**
+   * The name of the index associating an entry id to the number of immediate
+   * children below it.
+   */
+  String ID2CHILDREN_COUNT_NAME = "id2childrencount";
+  /**
    * The name of the index associating an entry id to the entry id set of all
    * its subordinates, i.e. the children, grand-children, grand-grand-children,
    * ....

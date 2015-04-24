@@ -61,7 +61,6 @@ import org.opends.server.util.StaticUtils;
 import com.sleepycat.je.*;
 
 import static com.sleepycat.je.LockMode.*;
-
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -688,9 +687,10 @@ public class EntryContainer
    * Determine the number of subordinate entries for a given entry.
    *
    * @param entryDN The distinguished name of the entry.
-   * @param subtree <code>true</code> will include all the entries under the
-   *                given entries. <code>false</code> will only return the
-   *                number of entries immediately under the given entry.
+   * @param subtree <code>true</code> will include the entry and all the
+   *                entries under the given entries. <code>false</code>
+   *                will only return the number of entries immediately
+   *                under the given entry.
    * @return The number of subordinate entries for the given entry or -1 if
    *         the entry does not exist.
    * @throws DatabaseException If an error occurs in the JE database.
@@ -702,20 +702,23 @@ public class EntryContainer
     if (entryID != null)
     {
       DatabaseEntry key = new DatabaseEntry(entryIDToDatabase(entryID.longValue()));
-      EntryIDSet entryIDSet;
+      final EntryIDSet entryIDSet;
+      long count;
       if (subtree)
       {
+        count = dn2id.get(null, entryDN, LockMode.DEFAULT) != null ? 1 : 0;
         entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
       }
       else
       {
+        count = 0;
         entryIDSet = id2children.readKey(key, null, LockMode.DEFAULT);
       }
-      long count = entryIDSet.size();
-      if(count != Long.MAX_VALUE)
+      if(entryIDSet.size() == Long.MAX_VALUE)
       {
-        return count;
+        return -1;
       }
+      return count + entryIDSet.size();
     }
     return -1;
   }

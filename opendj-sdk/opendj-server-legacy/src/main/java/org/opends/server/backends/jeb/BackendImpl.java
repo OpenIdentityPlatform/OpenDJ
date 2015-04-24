@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
@@ -35,7 +36,14 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,9 +66,30 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IdentifiedException;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.RuntimeInformation;
 
 import com.sleepycat.je.DatabaseException;
@@ -384,12 +413,26 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     return ConditionResult.valueOf(ret != 0);
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    EntryContainer ec = rootContainer.getEntryContainer(baseDN);
+    if (ec == null || !ec.getBaseDN().equals(baseDN))
+    {
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN));
+    }
+    return numSubordinates(baseDN, true);
+  }
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return numSubordinates(parentDN, false);
+  }
+
+  private long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
   {
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(entryDN);

@@ -43,8 +43,6 @@ interface Index extends DatabaseContainer
 
   int getIndexEntryLimit();
 
-  boolean getMaintainCount();
-
   // Ignores trusted state.
   void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded);
 

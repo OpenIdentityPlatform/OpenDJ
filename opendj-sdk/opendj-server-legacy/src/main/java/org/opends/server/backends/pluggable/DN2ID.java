@@ -27,13 +27,20 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.backends.pluggable.CursorTransformer.*;
 
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.util.promise.Function;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
@@ -42,19 +49,40 @@ import org.opends.server.types.DN;
  */
 class DN2ID extends AbstractDatabaseContainer
 {
-  private final int prefixRDNComponents;
+  private static final Function<ByteString, Void, DirectoryException> TO_VOID_KEY =
+      new Function<ByteString, Void, DirectoryException>()
+      {
+        @Override
+        public Void apply(ByteString value) throws DirectoryException
+        {
+          return null;
+        }
+      };
+
+  private static final CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, Exception> TO_ENTRY_ID =
+      new CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, Exception>()
+      {
+        @Override
+        public EntryID transform(ByteString key, ByteString value) throws Exception
+        {
+          return new EntryID(value);
+        }
+      };
+
+  private final DN baseDN;
+
 
   /**
    * Create a DN2ID instance for the DN database in a given entryContainer.
    *
    * @param treeName The name of the DN database.
-   * @param entryContainer The entryContainer of the DN database.
+   * @param baseDN The base DN of the database.
    * @throws StorageRuntimeException If an error occurs in the database.
    */
-  DN2ID(TreeName treeName, EntryContainer entryContainer) throws StorageRuntimeException
+  DN2ID(TreeName treeName, DN baseDN) throws StorageRuntimeException
   {
     super(treeName);
-    this.prefixRDNComponents = entryContainer.getBaseDN().size();
+    this.baseDN = baseDN;
   }
 
   /**
@@ -65,11 +93,13 @@ class DN2ID extends AbstractDatabaseContainer
    * @throws StorageRuntimeException If an error occurred while attempting to insert
    * the new record.
    */
-  void put(WriteableTransaction txn, DN dn, EntryID id) throws StorageRuntimeException
+  void put(final WriteableTransaction txn, DN dn, final EntryID id) throws StorageRuntimeException
   {
-    ByteString key = dnToDNKey(dn, prefixRDNComponents);
-    ByteString value = id.toByteString();
-    txn.put(getName(), key, value);
+    txn.put(getName(), dnToKey(dn), id.toByteString());
+  }
+
+  private ByteString dnToKey(DN dn) {
+    return dnToDNKey(dn, baseDN.size());
   }
 
   /**
@@ -82,9 +112,7 @@ class DN2ID extends AbstractDatabaseContainer
    */
   boolean remove(WriteableTransaction txn, DN dn) throws StorageRuntimeException
   {
-    ByteString key = dnToDNKey(dn, prefixRDNComponents);
-
-    return txn.delete(getName(), key);
+    return txn.delete(getName(), dnToKey(dn));
   }
 
   /**
@@ -96,12 +124,153 @@ class DN2ID extends AbstractDatabaseContainer
    */
   EntryID get(ReadableTransaction txn, DN dn) throws StorageRuntimeException
   {
-    ByteString key = dnToDNKey(dn, prefixRDNComponents);
-    ByteString value = txn.read(getName(), key);
-    if (value != null)
+    final ByteString value = txn.read(getName(), dnToKey(dn));
+    return value != null ? new EntryID(value) : null;
+  }
+
+  Cursor<Void, EntryID> openCursor(ReadableTransaction txn, DN dn)
+  {
+    return transformKeysAndValues(openCursor0(txn, dn), TO_VOID_KEY, TO_ENTRY_ID);
+  }
+
+  private Cursor<ByteString, ByteString> openCursor0(ReadableTransaction txn, DN dn) {
+    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
+    cursor.positionToKey(dnToKey(dn));
+    return cursor;
+  }
+
+  SequentialCursor<Void, EntryID> openChildrenCursor(ReadableTransaction txn, DN dn)
+  {
+    return new ChildrenCursor(openCursor0(txn, dn));
+  }
+
+  SequentialCursor<Void, EntryID> openSubordinatesCursor(ReadableTransaction txn, DN dn) {
+    return new SubtreeCursor(openCursor0(txn, dn));
+  }
+
+
+  /**
+   * Check if two DN have a parent-child relationship.
+   *
+   * @param parent
+   *          The potential parent
+   * @param child
+   *          The potential child of parent
+   * @return true if child is a direct children of parent, false otherwise.
+   */
+  static boolean isChild(ByteSequence parent, ByteSequence child)
+  {
+    if (!child.startsWith(parent))
     {
-      return new EntryID(value);
+      return false;
     }
-    return null;
+    // Immediate children should only have one RDN separator past the parent length
+    for (int i = child.length(); i >= parent.length(); i--)
+    {
+      if (child.byteAt(i) == DN.NORMALIZED_RDN_SEPARATOR && i != parent.length())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Decorator overriding the next() behavior to iterate through children of the entry pointed by the given cursor at
+   * creation.
+   */
+  private static final class ChildrenCursor extends SequentialCursorForwarding {
+    private final ByteStringBuilder builder;
+    private final ByteString parentDN;
+    private boolean cursorOnParent;
+
+    ChildrenCursor(Cursor<ByteString, ByteString> delegate)
+    {
+      super(delegate);
+      builder = new ByteStringBuilder(128);
+      parentDN = delegate.isDefined() ? delegate.getKey() : null;
+      cursorOnParent = true;
+    }
+
+    @Override
+    public boolean next()
+    {
+      if (cursorOnParent) {
+        /** Go to the first children */
+        delegate.next();
+        cursorOnParent = false;
+      } else {
+        /** Go to the next sibling */
+        delegate.positionToKeyOrNext(nextSibling());
+      }
+      return isDefined() && delegate.getKey().startsWith(parentDN);
+    }
+
+    private ByteStringBuilder nextSibling()
+    {
+      return builder.clear().append(delegate.getKey()).append((byte) 0x1);
+    }
+  }
+
+  /**
+   * Decorator overriding the next() behavior to iterate through subordinates of the entry pointed by the given cursor
+   * at creation.
+   */
+  private static final class SubtreeCursor extends SequentialCursorForwarding {
+    private final ByteString baseDN;
+
+    SubtreeCursor(Cursor<ByteString, ByteString> delegate)
+    {
+      super(delegate);
+      baseDN = delegate.isDefined() ? delegate.getKey() : null;
+    }
+
+    @Override
+    public boolean next()
+    {
+      return delegate.next() && delegate.getKey().startsWith(baseDN);
+    }
+  }
+
+  /**
+   * Decorator allowing to partially overrides methods of a given cursor while keeping the default behavior for other
+   * methods.
+   */
+  private static class SequentialCursorForwarding implements SequentialCursor<Void, EntryID> {
+    final Cursor<ByteString, ByteString> delegate;
+
+    SequentialCursorForwarding(Cursor<ByteString, ByteString> delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      return delegate.isDefined();
+    }
+
+    @Override
+    public boolean next()
+    {
+      return delegate.next();
+    }
+
+    @Override
+    public Void getKey()
+    {
+      return null;
+    }
+
+    @Override
+    public EntryID getValue()
+    {
+      return new EntryID(delegate.getValue());
+    }
+
+    @Override
+    public void close()
+    {
+      delegate.close();
+    }
   }
 }

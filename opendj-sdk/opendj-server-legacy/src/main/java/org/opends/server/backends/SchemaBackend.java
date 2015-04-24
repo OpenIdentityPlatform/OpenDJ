@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -559,9 +560,17 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return 1L;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
     return 0L;
   }
 

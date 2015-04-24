@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.util.Reject.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -44,6 +45,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -361,6 +363,24 @@ class ID2Entry extends AbstractDatabaseContainer
   {
     return get0(id, txn.read(getName(), id.toByteString()));
   }
+
+  /**
+   * Check that a record entry exists in the entry database.
+   *
+   * @param txn a non null database transaction
+   * @param id The entry ID which forms the key.
+   * @return True if an entry with entryID exists
+   * @throws DirectoryException If a problem occurs while getting the entry.
+   * @throws StorageRuntimeException If an error occurs in the database.
+   */
+  public boolean containsEntryID(ReadableTransaction txn, EntryID id)
+ {
+    checkNotNull(txn, "txn must not be null");
+    checkNotNull(id, "id must not be null");
+    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
+      return cursor.positionToKey(id.toByteString());
+    }
+ }
 
   private Entry get0(EntryID id, ByteString value) throws DirectoryException
   {

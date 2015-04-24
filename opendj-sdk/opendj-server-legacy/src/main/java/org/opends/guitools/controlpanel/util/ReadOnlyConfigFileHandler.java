@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -367,10 +368,21 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-  throws DirectoryException
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return numSubordinates(parentDN, false);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return numSubordinates(baseDN, true) + 1;
+  }
+
+  private long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
   {
-    ConfigEntry baseEntry = configEntries.get(entryDN);
+    final ConfigEntry baseEntry = configEntries.get(entryDN);
     if (baseEntry == null)
     {
       return -1;
@@ -380,16 +392,13 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
     {
       return baseEntry.getChildren().size();
     }
-    else
+    long count = 0;
+    for (ConfigEntry child : baseEntry.getChildren().values())
     {
-      long count = 0;
-      for(ConfigEntry child : baseEntry.getChildren().values())
-      {
-        count += numSubordinates(child.getDN(), true);
-        count ++;
-      }
-      return count;
+      count += numSubordinates(child.getDN(), true);
+      count++;
     }
+    return count;
   }
 
   /** {@inheritDoc} */

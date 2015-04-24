@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -745,11 +746,18 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-        ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
+    checkNotNull(baseDN, "baseDN must not be null");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
   /** {@inheritDoc} */

@@ -38,6 +38,7 @@ import java.io.FilenameFilter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -92,18 +93,23 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   {
     private ByteString currentKey;
     private ByteString currentValue;
-    private final Exchange ex;
+    private final Exchange exchange;
 
     private CursorImpl(final Exchange exchange)
     {
-      this.ex = exchange;
+      this.exchange = exchange;
     }
 
     @Override
     public void close()
     {
       // Release immediately because this exchange did not come from the txn cache
-      db.releaseExchange(ex);
+      db.releaseExchange(exchange);
+    }
+
+    @Override
+    public boolean isDefined() {
+      return exchange.getValue().isDefined();
     }
 
     @Override
@@ -111,7 +117,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       if (currentKey == null)
       {
-        currentKey = keyToBytes(ex.getKey());
+        throwIfUndefined();
+        currentKey = ByteString.wrap(exchange.getKey().reset().decodeByteArray());
       }
       return currentKey;
     }
@@ -121,7 +128,8 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       if (currentValue == null)
       {
-        currentValue = valueToBytes(ex.getValue());
+        throwIfUndefined();
+        currentValue = ByteString.wrap(exchange.getValue().getByteArray());
       }
       return currentValue;
     }
@@ -132,7 +140,7 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
       clearCurrentKeyAndValue();
       try
       {
-        return ex.next();
+        return exchange.next();
       }
       catch (final PersistitException e)
       {
@@ -144,11 +152,11 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     public boolean positionToKey(final ByteSequence key)
     {
       clearCurrentKeyAndValue();
-      bytesToKey(ex.getKey(), key);
+      bytesToKey(exchange.getKey(), key);
       try
       {
-        ex.fetch();
-        return ex.getValue().isDefined();
+        exchange.fetch();
+        return exchange.getValue().isDefined();
       }
       catch (final PersistitException e)
       {
@@ -160,11 +168,11 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     public boolean positionToKeyOrNext(final ByteSequence key)
     {
       clearCurrentKeyAndValue();
-      bytesToKey(ex.getKey(), key);
+      bytesToKey(exchange.getKey(), key);
       try
       {
-        ex.fetch();
-        return ex.getValue().isDefined() || ex.next();
+        exchange.fetch();
+        return exchange.getValue().isDefined() || exchange.next();
       }
       catch (final PersistitException e)
       {
@@ -177,12 +185,12 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       // There doesn't seem to be a way to optimize this using Persistit.
       clearCurrentKeyAndValue();
-      ex.getKey().to(Key.BEFORE);
+      exchange.getKey().to(Key.BEFORE);
       try
       {
         for (int i = 0; i <= index; i++)
         {
-          if (!ex.next())
+          if (!exchange.next())
           {
             return false;
           }
@@ -199,10 +207,10 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     public boolean positionToLastKey()
     {
       clearCurrentKeyAndValue();
-      ex.getKey().to(Key.AFTER);
+      exchange.getKey().to(Key.AFTER);
       try
       {
-        return ex.previous();
+        return exchange.previous();
       }
       catch (final PersistitException e)
       {
@@ -214,6 +222,12 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     {
       currentKey = null;
       currentValue = null;
+    }
+
+    private void throwIfUndefined() {
+      if (!isDefined()) {
+        throw new NoSuchElementException();
+      }
     }
   }
 
@@ -760,11 +774,6 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
   {
     value.clear().putByteArray(bytes.toByteArray());
     return value;
-  }
-
-  private ByteString keyToBytes(final Key key)
-  {
-    return ByteString.wrap(key.reset().decodeByteArray());
   }
 
   private ByteString valueToBytes(final Value value)

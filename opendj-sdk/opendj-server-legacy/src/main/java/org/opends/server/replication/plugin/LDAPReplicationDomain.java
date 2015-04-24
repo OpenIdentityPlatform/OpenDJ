@@ -3425,7 +3425,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
-    long numberOfEntries = backend.numSubordinates(getBaseDN(), true) + 1;
+    long numberOfEntries = backend.getNumberOfEntriesInBaseDN(getBaseDN());
     long entryCount = Math.min(numberOfEntries, 1000);
     OutputStream os;
     ReplLDIFOutputStream ros = null;
@@ -4258,7 +4258,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       throw new DirectoryException(ResultCode.OTHER, msg);
     }
 
-    return backend.numSubordinates(getBaseDN(), true) + 1;
+    return backend.getNumberOfEntriesInBaseDN(getBaseDN());
   }
 
   /** {@inheritDoc} */

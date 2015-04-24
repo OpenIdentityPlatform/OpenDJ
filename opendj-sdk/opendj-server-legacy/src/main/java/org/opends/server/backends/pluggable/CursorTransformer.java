@@ -172,6 +172,12 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     return input.positionToIndex(index);
   }
 
+  @Override
+  public boolean isDefined()
+  {
+    return input.isDefined();
+  }
+
   private void clearCache()
   {
     cachedTransformedKey = null;

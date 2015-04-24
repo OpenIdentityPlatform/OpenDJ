@@ -249,8 +249,7 @@ class Suffix
 
 
   /**
-   * Sets the trusted status of all of the indexes, vlvIndexes, id2children
-   * and id2subtree indexes.
+   * Sets the trusted status of all of the indexes and vlvIndexes.
    *
    * @param txn a non null database transaction
    * @param trusted True if the indexes should be trusted or false otherwise.
@@ -258,8 +257,6 @@ class Suffix
    */
   public void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
-    entryContainer.getID2Children().setTrusted(txn, trusted);
-    entryContainer.getID2Subtree().setTrusted(txn, trusted);
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
       setTrusted(txn, attributeIndex.getNameToIndexes().values(), trusted);

@@ -393,23 +393,33 @@ public abstract class Backend<C extends Configuration>
   public abstract ConditionResult hasSubordinates(DN entryDN) throws DirectoryException;
 
   /**
-   * Retrieves the number of subordinates for the requested entry.
+   * Retrieves the number of subordinates immediately below the requested entry.
    *
-   * @param entryDN The distinguished name of the entry.
-   *
-   * @param subtree <code>true</code> to include all entries from the
-   *                      requested entry to the lowest level in the
-   *                      tree or <code>false</code> to only include
-   *                      the entries immediately below the requested
-   *                      entry.
-   *
-   * @return The number of subordinate entries for the requested entry
-   *         or -1 if it can not be determined.
-   *
-   * @throws DirectoryException  If a problem occurs while trying to
-   *                              retrieve the entry.
+   * @param parentDN
+   *          The distinguished name of the parent.
+   * @return The number of subordinate entries for the requested entry.
+   * @throws DirectoryException
+   *           If baseDN isn't a base dn managed by this backend or if a problem occurs while trying to retrieve the
+   *           entry.
+   * @throws NullPointerException
+   *           if baseDN is null.
    */
-  public abstract long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException;
+  public abstract long getNumberOfChildren(DN parentDN) throws DirectoryException;
+
+  /**
+   * Retrieves the number of entries for the specified base DN including all entries from the requested entry to the
+   * lowest level in the tree.
+   *
+   * @param baseDN
+   *          The base distinguished name.
+   * @return The number of subordinate entries including the base dn.
+   * @throws DirectoryException
+   *           If baseDN isn't a base dn managed by this backend or if a problem occurs while trying to retrieve the
+   *           entry.
+   * @throws NullPointerException
+   *           if baseDN is null.
+   */
+  public abstract long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException;
 
   /**
    * Indicates whether an entry with the specified DN exists in the backend. The default

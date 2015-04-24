@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -425,8 +426,27 @@ public class LDIFBackend
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException
+  {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return getNumberOfSubordinates(parentDN, false);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
+  {
+    checkNotNull(baseDN, "baseDN must not be null");
+    if (!Arrays.asList(baseDNs).contains(baseDN))
+    {
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY
+          .get(baseDN));
+    }
+    final int baseDNIfExists = childDNs.containsKey(baseDN) ? 1 : 0;
+    return getNumberOfSubordinates(baseDN, true) + baseDNIfExists;
+  }
+
+  private long getNumberOfSubordinates(DN entryDN, boolean includeSubtree) throws DirectoryException
   {
     backendLock.readLock().lock();
 
@@ -441,30 +461,22 @@ public class LDIFBackend
         {
           return 0L;
         }
-        else
-        {
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-              ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY.get(entryDN));
-        }
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY
+            .get(entryDN));
       }
-      else
-      {
-        if(!subtree)
-        {
-          return childDNSet.size();
-        }
-        else
-        {
-          long count = 0;
-          for(DN childDN : childDNSet)
-          {
-            count += numSubordinates(childDN, true);
-            count ++;
-          }
-          return count;
-        }
 
+      if (!includeSubtree)
+      {
+        return childDNSet.size();
       }
+
+      long count = 0;
+      for (DN childDN : childDNSet)
+      {
+        count += getNumberOfSubordinates(childDN, true);
+        count++;
+      }
+      return count;
     }
     finally
     {

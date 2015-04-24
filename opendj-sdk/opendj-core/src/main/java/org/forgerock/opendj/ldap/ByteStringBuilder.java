@@ -44,6 +44,12 @@ import org.forgerock.util.Reject;
  * A mutable sequence of bytes backed by a byte array.
  */
 public final class ByteStringBuilder implements ByteSequence {
+
+    /**
+     * Maximum value that can be stored with a compacted representation.
+     */
+    public static final long COMPACTED_MAX_VALUE = 0xFFFFFFFFFFFFFFL;
+
     /** Output stream implementation. */
     private final class OutputStreamImpl extends OutputStream {
         @Override
@@ -230,6 +236,14 @@ public final class ByteStringBuilder implements ByteSequence {
             return new SubSequence(subOffset + start, end - start);
         }
 
+        /** {@inheritDoc} */
+        @Override
+        public boolean startsWith(ByteSequence prefix) {
+            if (prefix == null || prefix.length() > length) {
+                return false;
+            }
+            return prefix.equals(buffer, 0, prefix.length());
+        }
 
         /** {@inheritDoc} */
         @Override
@@ -1174,6 +1188,15 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
         return new SubSequence(start, end - start);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean startsWith(ByteSequence prefix) {
+        if (prefix == null || prefix.length() > length) {
+            return false;
+        }
+        return prefix.equals(buffer, 0, prefix.length());
     }
 
     /** {@inheritDoc} */

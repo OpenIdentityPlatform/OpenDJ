@@ -79,7 +79,7 @@ public class JebFormat
    */
   static ByteString dnToDNKey(DN dn, int prefixRDNs)
   {
-    final ByteStringBuilder builder = new ByteStringBuilder();
+    final ByteStringBuilder builder = new ByteStringBuilder(128);
     final int startSize = dn.size() - prefixRDNs - 1;
     for (int i = startSize; i >= 0; i--)
     {

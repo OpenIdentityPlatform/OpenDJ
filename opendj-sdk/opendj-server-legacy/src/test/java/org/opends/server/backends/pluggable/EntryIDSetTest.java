@@ -39,8 +39,6 @@ import org.testng.annotations.Test;
 @Test(groups = { "precommit", "pluggablebackend", "unit" }, sequential=true)
 public class EntryIDSetTest extends DirectoryServerTestCase
 {
-  private static final int UNDEFINED_INITIAL_SIZE = 10;
-
   private final static ByteString KEY = ByteString.valueOf("test");
 
   @Test(expectedExceptions = NullPointerException.class)
@@ -183,9 +181,9 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     assertThat(codec.decode(KEY, string).isDefined()).isFalse();
     assertThat(codec.decode(KEY, string).size()).isEqualTo(Long.MAX_VALUE);
 
-    string = codec.encode(newUndefinedSetWithSize(ByteString.valueOf("none"), 1234));
+    string = codec.encode(newUndefinedSetWithKey(ByteString.valueOf("none")));
     assertThat(codec.decode(KEY, string).isDefined()).isFalse();
-    assertThat(codec.decode(KEY, string).size()).isEqualTo(1234);
+    assertThat(codec.decode(KEY, string).size()).isEqualTo(Long.MAX_VALUE);
   }
 
   @Test(enabled = false, dataProvider = "codec")
@@ -203,82 +201,61 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test(expectedExceptions = NullPointerException.class)
   public void testUndefinedCannotCreateWithNull()
   {
-    newUndefinedSetWithSize(null, 1);
+    newUndefinedSetWithKey(null);
   }
 
   @Test
-  public void testUndefinedAdd()
+  public void testUndefinedAddDoesNothing()
   {
-    EntryIDSet undefined = newUndefinedWithInitialSize();
-
+    final EntryIDSet undefined = newUndefinedSet();
     assertThat(undefined.add(new EntryID(4))).isTrue();
-    assertThat(undefined.size()).isEqualTo(UNDEFINED_INITIAL_SIZE + 1);
+    assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
   @Test
-  public void testUndefinedAddAll()
+  public void testUndefinedAddAllDoesNothing()
   {
-    EntryIDSet undefined = newUndefinedWithInitialSize();
+    final EntryIDSet undefined = newUndefinedSet();
 
     undefined.addAll(newDefinedSet());
-    assertThat(newUndefinedWithInitialSize().size()).isEqualTo(UNDEFINED_INITIAL_SIZE);
+    assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
 
     undefined.addAll(newDefinedSet(2, 4, 6));
-    assertThat(undefined.size()).isEqualTo(UNDEFINED_INITIAL_SIZE + 3);
+    assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
   @Test
-  public void testUndefinedRemove()
+  public void testUndefinedRemoveDoesNothing()
   {
-    EntryIDSet undefined = newUndefinedWithInitialSize();
-
+    final EntryIDSet undefined = newUndefinedSet();
     assertThat(undefined.remove(new EntryID(4))).isTrue();
-    assertThat(undefined.size()).isEqualTo(UNDEFINED_INITIAL_SIZE - 1);
+    assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
   @Test
-  public void testUndefinedRemoveUnderflow()
+  public void testUndefinedDeleteAllDoesNothing()
   {
-    EntryIDSet undefined = newUndefinedSetWithSize(ByteString.valueOf("test"), 0);
-
-    assertThat(undefined.remove(new EntryID(4))).isTrue();
-    assertThat(undefined.size()).isEqualTo(0);
-  }
-
-  @Test
-  public void testUndefinedDeleteAll()
-  {
-    EntryIDSet undefined = newUndefinedWithInitialSize();
-
+    final EntryIDSet undefined = newUndefinedSet();
     undefined.removeAll(newDefinedSet(20, 21, 22));
-    assertThat(undefined.size()).isEqualTo(UNDEFINED_INITIAL_SIZE - 3);
-  }
-
-  @Test
-  public void testUndefinedDeleteAllUnderflow()
-  {
-    EntryIDSet undefined = newUndefinedSetWithSize(ByteString.valueOf("test"), 0);
-
-    undefined.removeAll(newDefinedSet(20, 21, 22));
-    assertThat(undefined.size()).isEqualTo(0);
+    assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
   @Test
   public void testUndefinedContain()
   {
-    assertThat(newUndefinedWithInitialSize().contains(new EntryID(4))).isTrue();
+    assertThat(newUndefinedSet().contains(new EntryID(4))).isTrue();
   }
 
   @Test
   public void testUndefinedIterator()
   {
-    assertThat(newUndefinedWithInitialSize().iterator().hasNext()).isFalse();
+    assertThat(newUndefinedSet().iterator().hasNext()).isFalse();
   }
 
   @Test
   public void testUndefinedIteratorWithBegin()
   {
-    assertThat(newUndefinedWithInitialSize().iterator(new EntryID(8)).hasNext()).isFalse();
+    assertThat(newUndefinedSet().iterator(new EntryID(8)).hasNext()).isFalse();
   }
 
   @Test
@@ -304,9 +281,6 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     assertThat(newUndefinedSet().isDefined()).isFalse();
     assertThat(newUndefinedSetWithKey(KEY).isDefined()).isFalse();
     assertThat(newUndefinedSetWithKey(KEY).size()).isEqualTo(Long.MAX_VALUE);
-
-    assertThat(newUndefinedSetWithSize(KEY, 42).isDefined()).isFalse();
-    assertThat(newUndefinedSetWithSize(KEY, 42).size()).isEqualTo(42);
   }
 
   @Test
@@ -340,11 +314,6 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     retained.retainAll(newDefinedSet(1, 3, 5, 7, 9));
     assertThat(retained.isDefined()).isTrue();
     assertIdsEquals(retained, 1, 3, 5, 7, 9);
-  }
-
-  private static EntryIDSet newUndefinedWithInitialSize()
-  {
-    return newUndefinedSetWithSize(ByteString.valueOf("test"), UNDEFINED_INITIAL_SIZE);
   }
 
   @DataProvider(name = "codecs")

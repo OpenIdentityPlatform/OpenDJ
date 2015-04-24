@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.BooleanSyntax.*;
@@ -328,7 +329,7 @@ public class BackupBackend
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
-    long ret = numSubordinates(entryDN, false);
+    long ret = getNumberOfSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -336,19 +337,22 @@ public class BackupBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
+    checkNotNull(baseDN, "baseDN must not be null");
+    return getNumberOfSubordinates(baseDN, true) + 1;
+  }
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException
-  {
-    // If the requested entry was null, then return undefined.
-    if (entryDN == null)
-    {
-      return -1;
-    }
+  public long getNumberOfChildren(DN parentDN) throws DirectoryException {
+    checkNotNull(parentDN, "parentDN must not be null");
+    return getNumberOfSubordinates(parentDN, false);
+  }
 
+  private long getNumberOfSubordinates(DN entryDN, boolean includeSubtree) throws DirectoryException
+  {
     // If the requested entry was the backend base entry, then return
     // the number of backup directories.
     if (backupBaseDN.equals(entryDN))
@@ -366,8 +370,9 @@ public class BackupBackend
 
         // If subtree is included, count the number of entries for each
         // backup directory.
-        if (subtree)
+        if (includeSubtree)
         {
+          count++;
           try
           {
             BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
@@ -375,7 +380,8 @@ public class BackupBackend
           }
           catch (Exception e)
           {
-            return -1;
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
+                entryDN, e.getMessage()));
           }
         }
 
@@ -428,8 +434,6 @@ public class BackupBackend
       return -1;
     }
   }
-
-
 
   /** {@inheritDoc} */
   @Override

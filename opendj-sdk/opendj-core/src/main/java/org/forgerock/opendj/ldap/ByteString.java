@@ -608,11 +608,13 @@ public final class ByteString implements ByteSequence {
      * @return The {@link ByteSequenceReader} which can be used to incrementally
      *         read and decode data from this byte string.
      */
+    @Override
     public ByteSequenceReader asReader() {
         return new ByteSequenceReader(this);
     }
 
     /** {@inheritDoc} */
+    @Override
     public byte byteAt(final int index) {
         if (index >= length || index < 0) {
             throw new IndexOutOfBoundsException();
@@ -621,12 +623,14 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int compareTo(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         return compareTo(this.buffer, this.offset, this.length, bytes, offset, length);
     }
 
     /** {@inheritDoc} */
+    @Override
     public int compareTo(final ByteSequence o) {
         if (this == o) {
             return 0;
@@ -635,12 +639,14 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public byte[] copyTo(final byte[] bytes) {
         copyTo(bytes, 0);
         return bytes;
     }
 
     /** {@inheritDoc} */
+    @Override
     public byte[] copyTo(final byte[] bytes, final int offset) {
         if (offset < 0) {
             throw new IndexOutOfBoundsException();
@@ -650,6 +656,7 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, offset, length);
         byteBuffer.flip();
@@ -657,6 +664,7 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
         builder.append(buffer, offset, length);
         return builder;
@@ -683,12 +691,14 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, offset, length);
         return stream;
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean equals(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         return equals(this.buffer, this.offset, this.length, bytes, offset, length);
@@ -734,11 +744,13 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int length() {
         return length;
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteString subSequence(final int start, final int end) {
         if (start < 0 || start > end || end > length) {
             throw new IndexOutOfBoundsException();
@@ -747,6 +759,16 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
+    public boolean startsWith(ByteSequence prefix) {
+        if (prefix == null || prefix.length() > length) {
+            return false;
+        }
+        return prefix.equals(buffer, 0, prefix.length());
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public String toBase64String() {
         return Base64.encode(this);
     }
@@ -872,11 +894,13 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    @Override
     public byte[] toByteArray() {
         return copyTo(new byte[length]);
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteString toByteString() {
         return this;
     }

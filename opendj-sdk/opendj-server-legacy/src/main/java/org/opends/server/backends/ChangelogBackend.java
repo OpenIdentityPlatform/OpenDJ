@@ -25,6 +25,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -395,9 +396,16 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public long numSubordinates(final DN entryDN, final boolean subtree) throws DirectoryException
+  public long getNumberOfEntriesInBaseDN(final DN baseDN) throws DirectoryException
   {
-    return -1;
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getNumberOfChildren(final DN parentDN) throws DirectoryException
+  {
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
   /**
@@ -659,7 +667,7 @@ public class ChangelogBackend extends Backend<Configuration>
   {
     try
     {
-      return numSubordinates(CHANGELOG_BASE_DN, true) + 1;
+      return getNumberOfEntriesInBaseDN(CHANGELOG_BASE_DN) + 1;
     }
     catch (DirectoryException e)
     {

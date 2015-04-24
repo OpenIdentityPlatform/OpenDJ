@@ -640,24 +640,26 @@ public class TestBackendImpl extends JebTestCase {
   public void testNumSubordinates() throws Exception
   {
     DN dn = DN.valueOf("dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 1);
-    assertEquals(backend.numSubordinates(dn, true), 13);
+    assertEquals(backend.getNumberOfChildren(dn), 1);
+    assertEquals(backend.getNumberOfEntriesInBaseDN(dn), 14);
     dn = DN.valueOf("ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 12);
-    assertEquals(backend.numSubordinates(dn, true), 12);
+    assertEquals(backend.getNumberOfChildren(dn), 12);
     dn = DN.valueOf("dc=com");
-    assertEquals(backend.numSubordinates(dn, false), -1);
-    assertEquals(backend.numSubordinates(dn, true), -1);
+    assertEquals(backend.getNumberOfChildren(dn), -1);
     dn = DN.valueOf("dc=test1,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 2);
-    assertEquals(backend.numSubordinates(dn, true), 2);
+    assertEquals(backend.getNumberOfChildren(dn), 2);
     dn = DN.valueOf("uid=user.10,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 0);
-    assertEquals(backend.numSubordinates(dn, true), 0);
+    assertEquals(backend.getNumberOfChildren(dn), 0);
     dn = DN.valueOf("uid=does not exist,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), -1);
-    assertEquals(backend.numSubordinates(dn, true), -1);
+    assertEquals(backend.getNumberOfChildren(dn), -1);
   }
+
+  @Test(expectedExceptions = DirectoryException.class)
+  public void testCannotGetNumberOfEntriesInNotBaseDN() throws Exception
+  {
+    backend.getNumberOfEntriesInBaseDN(DN.valueOf("ou=People,dc=test,dc=com"));
+  }
+
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
@@ -710,7 +712,7 @@ public class TestBackendImpl extends JebTestCase {
     assertResultsCountIs(1, debugString);
   }
 
-  private void assertResultsCountIs(int expectedCount, String debugString)
+  private static void assertResultsCountIs(int expectedCount, String debugString)
   {
     int finalStartPos = debugString.indexOf("final=") + 13;
     int finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -719,13 +721,13 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   /** Returns the debug string from a search result. */
-  private String getDebugString(List<SearchResultEntry> result)
+  private static String getDebugString(List<SearchResultEntry> result)
   {
     return result.get(0).getAttribute("debugsearchindex").get(0).toString();
   }
 
   /** Returns the results of subtree search on provided connection with provided filter. */
-  private List<SearchResultEntry> doSubtreeSearch(String filter, Set<String> attribs) throws Exception
+  private static List<SearchResultEntry> doSubtreeSearch(String filter, Set<String> attribs) throws Exception
   {
     final SearchRequest request =
         newSearchRequest("dc=test,dc=com", SearchScope.WHOLE_SUBTREE, filter).addAttribute(attribs);
@@ -813,7 +815,7 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private List<AttributeIndexer> newAttributeIndexers(AttributeType attrType, MatchingRule matchingRule)
+  private static List<AttributeIndexer> newAttributeIndexers(AttributeType attrType, MatchingRule matchingRule)
   {
     List<AttributeIndexer> indexers = new ArrayList<AttributeIndexer>();
     for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
@@ -823,14 +825,14 @@ public class TestBackendImpl extends JebTestCase {
     return indexers;
   }
 
-  private IndexingOptions getOptions()
+  private static IndexingOptions getOptions()
   {
     final IndexingOptions options = mock(IndexingOptions.class);
     when(options.substringKeySize()).thenReturn(6);
     return options;
   }
 
-  private void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index, EntryID entryID)
+  private static void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index, EntryID entryID)
   {
     for (Indexer indexer : indexers)
     {
@@ -846,8 +848,8 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry,
-      Index index, EntryID entryID, ConditionResult expected)
+  private static void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index,
+      EntryID entryID, ConditionResult expected)
   {
     for (Indexer indexer : indexers)
     {
@@ -858,8 +860,8 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private void assertIndexContainsID(Set<ByteString> addKeys, Index index,
-      EntryID entryID, ConditionResult expected)
+  private static void assertIndexContainsID(Set<ByteString> addKeys, Index index, EntryID entryID,
+      ConditionResult expected)
   {
     DatabaseEntry key = new DatabaseEntry();
     for (ByteString keyBytes : addKeys)
@@ -1298,7 +1300,7 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(resultCode, 0);
   }
 
-  private boolean findContainer(List<DatabaseContainer> databases, String lowercaseName)
+  private static boolean findContainer(List<DatabaseContainer> databases, String lowercaseName)
   {
     for (DatabaseContainer dc : databases)
     {
@@ -1334,25 +1336,20 @@ public class TestBackendImpl extends JebTestCase {
   public void testNumSubordinatesIndexEntryLimitExceeded() throws Exception
   {
     DN dn = DN.valueOf("dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 1);
-    assertEquals(backend.numSubordinates(dn, true), 14);
+    assertEquals(backend.getNumberOfChildren(dn), 1);
+    assertEquals(backend.getNumberOfEntriesInBaseDN(dn), 15);
 
     // 1 entry was deleted and 2 added for a total of 13
     dn = DN.valueOf("ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 13);
-    assertEquals(backend.numSubordinates(dn, true), 13);
+    assertEquals(backend.getNumberOfChildren(dn), 13);
     dn = DN.valueOf("dc=com");
-    assertEquals(backend.numSubordinates(dn, false), -1);
-    assertEquals(backend.numSubordinates(dn, true), -1);
+    assertEquals(backend.getNumberOfChildren(dn), -1);
     dn = DN.valueOf("dc=test1,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 2);
-    assertEquals(backend.numSubordinates(dn, true), 2);
+    assertEquals(backend.getNumberOfChildren(dn), 2);
     dn = DN.valueOf("uid=user.10,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), 0);
-    assertEquals(backend.numSubordinates(dn, true), 0);
+    assertEquals(backend.getNumberOfChildren(dn), 0);
     dn = DN.valueOf("uid=does not exist,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn, false), -1);
-    assertEquals(backend.numSubordinates(dn, true), -1);
+    assertEquals(backend.getNumberOfChildren(dn), -1);
   }
 
 
