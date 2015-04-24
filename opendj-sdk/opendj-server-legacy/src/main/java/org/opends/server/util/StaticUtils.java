@@ -89,7 +89,7 @@ public final class StaticUtils
    * Example usage:
    * <pre>
    * int _10KB = 10 * KB;
-   * <pre>
+   * </pre>
    */
   public static final int KB = 1024;
   /**
@@ -98,7 +98,7 @@ public final class StaticUtils
    * Example usage:
    * <pre>
    * int _10MB = 10 * MB;
-   * <pre>
+   * </pre>
    */
   public static final int MB = KB * KB;
 
