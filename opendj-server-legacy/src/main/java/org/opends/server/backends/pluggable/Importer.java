@@ -37,6 +37,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -130,7 +131,7 @@ final class Importer
 
   private static final int TIMER_INTERVAL = 10000;
   private static final String DEFAULT_TMP_DIR = "import-tmp";
-  private static final String TMPENV_DIR = "tmp-env";
+  private static final String DN_CACHE_DIR = "dn-cache";
 
   /** Defaults for DB cache. */
   private static final int MAX_DB_CACHE_SIZE = 8 * MB;
@@ -183,10 +184,10 @@ final class Importer
 
   /** Temp scratch directory. */
   private final File tempDir;
-  /** Temporary environment used when DN validation is done in first phase. */
-  private final DNCache tmpEnv;
-  /** Size in bytes of temporary env. */
-  private long tmpEnvCacheSize;
+  /** DN cache used when DN validation is done in first phase. */
+  private final DNCache dnCache;
+  /** Size in bytes of DN cache. */
+  private long dnCacheSize;
   /** Available memory at the start of the import. */
   private long availableMemory;
   /** Size in bytes of DB cache. */
@@ -283,7 +284,7 @@ final class Importer
     this.tempDir = prepareTempDir(cfg, rebuildConfig.getTmpDirectory());
     computeMemoryRequirements();
     this.skipDNValidation = true;
-    this.tmpEnv = null;
+    this.dnCache = null;
   }
 
   /**
@@ -327,16 +328,15 @@ final class Importer
     computeMemoryRequirements();
 
     skipDNValidation = importCfg.getSkipDNValidation();
-    // Set up temporary environment.
     if (!skipDNValidation)
     {
-      File envPath = new File(tempDir, TMPENV_DIR);
-      envPath.mkdirs();
-      this.tmpEnv = new TmpEnv(envPath);
+      final File dnCachePath = new File(tempDir, DN_CACHE_DIR);
+      dnCachePath.mkdirs();
+      this.dnCache = new DNCacheImpl(dnCachePath);
     }
     else
     {
-      this.tmpEnv = null;
+      this.dnCache = null;
     }
   }
 
@@ -441,24 +441,24 @@ final class Importer
       if (System.getProperty(PROPERTY_RUNNING_UNIT_TESTS) != null)
       {
         dbCacheSize = 500 * KB;
-        tmpEnvCacheSize = 500 * KB;
+        dnCacheSize = 500 * KB;
       }
       else if (usableMemory < (MIN_DB_CACHE_MEMORY + MIN_DB_CACHE_SIZE))
       {
         dbCacheSize = MIN_DB_CACHE_SIZE;
-        tmpEnvCacheSize = MIN_DB_CACHE_SIZE;
+        dnCacheSize = MIN_DB_CACHE_SIZE;
       }
       else if (!clearedBackend)
       {
         // Appending to existing data so reserve extra memory for the DB cache
         // since it will be needed for dn2id queries.
         dbCacheSize = usableMemory * 33 / 100;
-        tmpEnvCacheSize = usableMemory * 33 / 100;
+        dnCacheSize = usableMemory * 33 / 100;
       }
       else
       {
         dbCacheSize = MAX_DB_CACHE_SIZE;
-        tmpEnvCacheSize = usableMemory * 66 / 100;
+        dnCacheSize = usableMemory * 66 / 100;
       }
     }
     else
@@ -466,7 +466,7 @@ final class Importer
       // No DN validation: calculate memory for DB cache and buffers.
 
       // No need for DN2ID cache.
-      tmpEnvCacheSize = 0;
+      dnCacheSize = 0;
 
       if (System.getProperty(PROPERTY_RUNNING_UNIT_TESTS) != null)
       {
@@ -484,7 +484,7 @@ final class Importer
       }
     }
 
-    final long phaseOneBufferMemory = usableMemory - dbCacheSize - tmpEnvCacheSize;
+    final long phaseOneBufferMemory = usableMemory - dbCacheSize - dnCacheSize;
     final int oldThreadCount = threadCount;
     if (indexCount != 0) // Avoid / by zero
     {
@@ -510,11 +510,11 @@ final class Importer
             if (!clearedBackend)
             {
               dbCacheSize += extraMemory / 2;
-              tmpEnvCacheSize += extraMemory / 2;
+              dnCacheSize += extraMemory / 2;
             }
             else
             {
-              tmpEnvCacheSize += extraMemory;
+              dnCacheSize += extraMemory;
             }
           }
 
@@ -534,10 +534,8 @@ final class Importer
         {
           // Not enough memory.
           final long minimumPhaseOneBufferMemory = totalPhaseOneBufferCount * MIN_BUFFER_SIZE;
-          LocalizableMessage message =
-              ERR_IMPORT_LDIF_LACK_MEM.get(usableMemory,
-                  minimumPhaseOneBufferMemory + dbCacheSize + tmpEnvCacheSize);
-          throw new InitializationException(message);
+          throw new InitializationException(ERR_IMPORT_LDIF_LACK_MEM.get(
+              usableMemory, minimumPhaseOneBufferMemory + dbCacheSize + dnCacheSize));
         }
       }
     }
@@ -548,9 +546,9 @@ final class Importer
     }
 
     logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
-    if (tmpEnvCacheSize > 0)
+    if (dnCacheSize > 0)
     {
-      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM, tmpEnvCacheSize);
+      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM, dnCacheSize);
     }
     logger.info(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
   }
@@ -780,7 +778,7 @@ final class Importer
    * @throws InitializationException
    *           If an initialization error occurred.
    * @throws StorageRuntimeException
-   *           If the JEB database had an error.
+   *           If the database had an error.
    * @throws InterruptedException
    *           If an interrupted error occurred.
    * @throws ExecutionException
@@ -894,7 +892,7 @@ final class Importer
       final long phaseOneFinishTime = System.currentTimeMillis();
       if (!skipDNValidation)
       {
-        tmpEnv.shutdown();
+        dnCache.close();
       }
 
       if (isCanceled)
@@ -941,32 +939,9 @@ final class Importer
       close(reader);
       if (!skipDNValidation)
       {
-        try
-        {
-          tmpEnv.shutdown();
-        }
-        catch (Exception ignored)
-        {
-          // Do nothing.
-        }
+        close(dnCache);
       }
     }
-  }
-
-  private void recursiveDelete(File dir)
-  {
-    if (dir.listFiles() != null)
-    {
-      for (File f : dir.listFiles())
-      {
-        if (f.isDirectory())
-        {
-          recursiveDelete(f);
-        }
-        f.delete();
-      }
-    }
-    dir.delete();
   }
 
   private void switchEntryContainers(WriteableTransaction txn) throws StorageRuntimeException, InitializationException
@@ -1558,7 +1533,7 @@ final class Importer
     {
       //Perform parent checking.
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
-      if (parentDN != null && !suffix.isParentProcessed(txn, parentDN, tmpEnv, clearedBackend))
+      if (parentDN != null && !suffix.isParentProcessed(txn, parentDN, dnCache, clearedBackend))
       {
         reader.rejectEntry(entry, ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN));
         return false;
@@ -1569,13 +1544,13 @@ final class Importer
       if (!clearedBackend)
       {
         EntryID id = suffix.getDN2ID().get(txn, entryDN);
-        if (id != null || !tmpEnv.insert(entryDN))
+        if (id != null || !dnCache.insert(entryDN))
         {
           reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
           return false;
         }
       }
-      else if (!tmpEnv.insert(entryDN))
+      else if (!dnCache.insert(entryDN))
       {
         reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
         return false;
@@ -3579,11 +3554,11 @@ final class Importer
   }
 
   /**
-   * The temporary environment will be shared when multiple suffixes are being
-   * processed. This interface is used by those suffix instance to do parental
-   * checking of the DN cache.
+   * This interface is used by those suffix instance to do parental checking of the DN cache.
+   * <p>
+   * It will be shared when multiple suffixes are being processed.
    */
-  public static interface DNCache
+  public static interface DNCache extends Closeable
   {
     /**
      * Insert the specified DN into the DN cache. It will return {@code true} if the DN does not
@@ -3617,7 +3592,7 @@ final class Importer
      * @throws StorageRuntimeException
      *           If error occurs.
      */
-    void shutdown();
+    void close();
   }
 
   /** Invocation handler for the {@link PluggableBackendCfg} proxy. */
@@ -3653,28 +3628,27 @@ final class Importer
   }
 
   /**
-   * Temporary environment used to check DN's when DN validation is performed
-   * during phase one processing. It is deleted after phase one processing.
+   * Used to check DN's when DN validation is performed during phase one processing.
+   * It is deleted after phase one processing.
    */
-  private final class TmpEnv implements DNCache
+  private final class DNCacheImpl implements DNCache
   {
     private static final String DB_NAME = "dn_cache";
     private final TreeName dnCache = new TreeName("", DB_NAME);
     private final Storage storage;
 
     /**
-     * Create a temporary DB environment and database to be used as a cache of
-     * DNs when DN validation is performed in phase one processing.
+     * Create a cache of DNs when DN validation is performed in phase one processing.
      *
-     * @param envPath
-     *          The file path to create the environment under.
+     * @param dnCachePath
+     *          The file path to create the DN cache
      * @throws StorageRuntimeException
-     *           If an error occurs either creating the environment or the DN database.
+     *           If an error occurs creating the DN cache.
      */
-    private TmpEnv(File envPath) throws StorageRuntimeException
+    private DNCacheImpl(File dnCachePath) throws StorageRuntimeException
     {
       final Map<String, Object> returnValues = new HashMap<>();
-      returnValues.put("getDBDirectory", envPath.getAbsolutePath());
+      returnValues.put("getDBDirectory", dnCachePath.getAbsolutePath());
       returnValues.put("getBackendId", DB_NAME);
       returnValues.put("getDBCacheSize", 0L);
       returnValues.put("getDBCachePercent", 10);
@@ -3684,7 +3658,7 @@ final class Importer
       returnValues.put("getDiskFullThreshold", Long.valueOf(100 * MB));
       try
       {
-        returnValues.put("dn", DN.valueOf("ds-cfg-backend-id=importTmpEnvForDN,cn=Backends,cn=config"));
+        returnValues.put("dn", DN.valueOf("ds-cfg-backend-id=importDNCache,cn=Backends,cn=config"));
         storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues),
             DirectoryServer.getInstance().getServerContext());
         storage.open();
@@ -3727,7 +3701,7 @@ final class Importer
     }
 
     @Override
-    public void shutdown() throws StorageRuntimeException
+    public void close() throws StorageRuntimeException
     {
       try
       {
