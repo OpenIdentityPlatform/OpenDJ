@@ -399,7 +399,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_BACKEND_TYPE.toLowerCase(),
         OPTION_SHORT_BACKEND_TYPE, OPTION_LONG_BACKEND_TYPE,
         false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
-        LocalDBBackendCfgDefn.getInstance().getName(),
+        BackendTypeHelper.filterSchemaBackendName(LocalDBBackendCfgDefn.getInstance().getName()),
         OPTION_LONG_BACKEND_TYPE,
         INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
     );

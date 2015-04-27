@@ -25,6 +25,7 @@
  */
 package org.opends.server.tools;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -48,6 +49,63 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 public class BackendTypeHelper
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Filter the provided backend name by removing the backend suffix.
+   *
+   * @param dsCfgBackendName
+   *          The backend name
+   * @return The backend name with the '-backend' suffix filtered out
+   */
+  public static String filterSchemaBackendName(final String dsCfgBackendName)
+  {
+    final String cfgNameRegExp = "(.*)-backend.*";
+    final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
+    if (regExpMatcher.matches())
+    {
+      return regExpMatcher.group(1);
+    }
+
+    return dsCfgBackendName;
+  }
+
+  /** Adaptor to allow backend type selection in UIs. */
+  public static class BackendTypeUIAdapter
+  {
+    private final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend;
+
+    /**
+     * Create a new {@code BackendTypeUIAdapter}.
+     *
+     * @param backend
+     *          The backend to adapt
+     */
+    private BackendTypeUIAdapter(ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend)
+    {
+      this.backend = backend;
+    }
+
+    /**
+     * Return a user friendly readable name for this backend.
+     *
+     * @return A user friendly readable name for this backend.
+     */
+    @Override
+    public String toString()
+    {
+      return backend.getUserFriendlyName().toString();
+    }
+
+    /**
+     * Return the adapted backend object.
+     *
+     * @return The adapted backend object
+     */
+    public ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> getBackend()
+    {
+      return backend;
+    }
+  }
 
   private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
 
@@ -116,9 +174,9 @@ public class BackendTypeHelper
   String getPrintableBackendTypeNames()
   {
     String backendTypeNames = "";
-    for (final String backendName : getBackendTypeNames())
+    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend : getBackendTypes())
     {
-      backendTypeNames += backendName + ", ";
+      backendTypeNames += filterSchemaBackendName(backend.getName()) + ", ";
     }
 
     if (backendTypeNames.isEmpty())
@@ -130,30 +188,19 @@ public class BackendTypeHelper
   }
 
   /**
-   * Return a list of all available backend type printable names.
+   * Return a list which contains all available backend type adapted for UI.
    *
-   * @return A list of all available backend type printable names.
+   * @return a list which contains all available backend type adapted for UI
    */
-  public List<String> getBackendTypeNames()
+  public BackendTypeUIAdapter[] getBackendTypeUIAdaptors()
   {
-    final List<String> backendTypeNames = new LinkedList<>();
-    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : backends)
+    List<BackendTypeUIAdapter> adaptors = new ArrayList<>();
+    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend : getBackendTypes())
     {
-      backendTypeNames.add(filterSchemaBackendName(backendType.getName()));
+      adaptors.add(new BackendTypeUIAdapter(backend));
     }
 
-    return backendTypeNames;
+    return adaptors.toArray(new BackendTypeUIAdapter[adaptors.size()]);
   }
 
-  String filterSchemaBackendName(final String dsCfgBackendName)
-  {
-    final String cfgNameRegExp = "(.*)-backend.*";
-    final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
-    if (regExpMatcher.matches())
-    {
-      return regExpMatcher.group(1);
-    }
-
-    return dsCfgBackendName;
-  }
 }

@@ -31,6 +31,9 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.installer.AuthenticationData;
@@ -72,7 +75,7 @@ public class UserData
 
   private boolean enableWindowsService;
 
-  private String backendType;
+  private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType;
 
   private NewSuffixOptions newSuffixOptions;
 
@@ -359,7 +362,7 @@ public class UserData
    *
    * @return the new userRoot backend type.
    */
-  public String getBackendType()
+  public ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> getBackendType()
   {
     return backendType;
   }
@@ -371,7 +374,7 @@ public class UserData
    *          The new backend type. This string must be compatible with
    *          dsconfig tool.
    */
-  public void setBackendType(final String backendType)
+  public void setBackendType(ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
   {
     this.backendType = backendType;
   }
