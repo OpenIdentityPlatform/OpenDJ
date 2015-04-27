@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -70,7 +71,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
          * set relation definition.
          */
         private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
-            new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
+            new HashMap<>();
 
         /**
          * Creates a new builder which can be used to incrementally build a set
@@ -105,7 +106,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
         /** {@inheritDoc} */
         @Override
         protected SetRelationDefinition<C, S> buildInstance(Common<C, S> common) {
-            return new SetRelationDefinition<C, S>(common, pluralName, defaultManagedObjects);
+            return new SetRelationDefinition<>(common, pluralName, defaultManagedObjects);
         }
 
     }

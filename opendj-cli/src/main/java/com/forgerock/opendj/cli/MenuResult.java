@@ -55,9 +55,7 @@ import java.util.Collections;
  */
 public final class MenuResult<T> {
 
-    /**
-     * The type of result returned from the menu.
-     */
+    /** The type of result returned from the menu. */
     private static enum Type {
         /**
          * The user selected an option which did not return a result,
@@ -95,7 +93,7 @@ public final class MenuResult<T> {
      * @return Returns a new menu result indicating that the menu should be displayed again.
      */
     public static <T> MenuResult<T> again() {
-        return new MenuResult<T>(Type.AGAIN, Collections.<T> emptyList());
+        return new MenuResult<>(Type.AGAIN, Collections.<T> emptyList());
     }
 
     /**
@@ -109,7 +107,7 @@ public final class MenuResult<T> {
      *         back to the previous main menu if applicable.
      */
     public static <T> MenuResult<T> cancel() {
-        return new MenuResult<T>(Type.CANCEL, Collections.<T> emptyList());
+        return new MenuResult<>(Type.CANCEL, Collections.<T> emptyList());
     }
 
     /**
@@ -123,7 +121,7 @@ public final class MenuResult<T> {
      *         outstanding tasks.
      */
     public static <T> MenuResult<T> quit() {
-        return new MenuResult<T>(Type.QUIT, Collections.<T> emptyList());
+        return new MenuResult<>(Type.QUIT, Collections.<T> emptyList());
     }
 
     /**
@@ -154,7 +152,7 @@ public final class MenuResult<T> {
      *         retrieved using {@link #getValue()} or {@link #getValues()}.
      */
     public static <T> MenuResult<T> success(Collection<T> values) {
-        return new MenuResult<T>(Type.SUCCESS, new ArrayList<T>(values));
+        return new MenuResult<>(Type.SUCCESS, new ArrayList<>(values));
     }
 
     /**
@@ -208,7 +206,7 @@ public final class MenuResult<T> {
      * @see #isSuccess()
      */
     public Collection<T> getValues() {
-        return new ArrayList<T>(values);
+        return new ArrayList<>(values);
     }
 
     /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.server;
@@ -136,7 +136,7 @@ public final class ServerManagementContext {
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
-            List<T> values = new ArrayList<T>(stringValues.size());
+            List<T> values = new ArrayList<>(stringValues.size());
 
             for (String stringValue : stringValues) {
                 try {
@@ -226,7 +226,7 @@ public final class ServerManagementContext {
 
                 List<String> attributeValues = getAttributeValues(mod, propDef2, configEntry);
                 if (attributeValues.size() > 0) {
-                    Collection<T> pvalues = new ArrayList<T>();
+                    Collection<T> pvalues = new ArrayList<>();
                     for (String value : attributeValues) {
                         pvalues.add(ValueDecoder.decode(propDef1, value));
                     }
@@ -234,7 +234,7 @@ public final class ServerManagementContext {
                 } else {
                     // Recursively retrieve this property's default values.
                     Collection<T> tmp = find(target, propDef2);
-                    Collection<T> pvalues = new ArrayList<T>(tmp.size());
+                    Collection<T> pvalues = new ArrayList<>(tmp.size());
                     for (T value : tmp) {
                         propDef1.validateValue(value);
                         pvalues.add(value);
@@ -513,7 +513,7 @@ public final class ServerManagementContext {
                 rootObject = root;
                 if (rootObject == null) {
                     root = rootObject =
-                        new ServerManagedObject<RootCfg>(ManagedObjectPath.emptyPath(),
+                        new ServerManagedObject<>(ManagedObjectPath.emptyPath(),
                                 RootCfgDefn.getInstance(), Collections.<PropertyDefinition<?>,
                                 SortedSet<?>> emptyMap(), null, this);
                 }
@@ -552,7 +552,7 @@ public final class ServerManagementContext {
         } catch (ConfigException e) {
             return new String[0];
         }
-        List<String> names = new ArrayList<String>(children.size());
+        List<String> names = new ArrayList<>(children.size());
         for (DN child : children) {
             // Assume that RDNs are single-valued and can be trimmed.
             String name = child.rdn().getFirstAVA().getAttributeValue().toString().trim();
@@ -646,8 +646,8 @@ public final class ServerManagementContext {
         ManagedObjectDefinition<? extends C, ? extends S> mod = d.resolveManagedObjectDefinition(resolver);
 
         // Build the managed object's properties.
-        List<PropertyException> exceptions = new LinkedList<PropertyException>();
-        Map<PropertyDefinition<?>, SortedSet<?>> properties = new HashMap<PropertyDefinition<?>, SortedSet<?>>();
+        List<PropertyException> exceptions = new LinkedList<>();
+        Map<PropertyDefinition<?>, SortedSet<?>> properties = new HashMap<>();
         for (PropertyDefinition<?> propertyDef : mod.getAllPropertyDefinitions()) {
             List<String> attributeValues = getAttributeValues(mod, propertyDef, configEntry);
             try {
@@ -673,14 +673,14 @@ public final class ServerManagementContext {
             ManagedObjectPath<? super C, ? super S> path, ManagedObjectDefinition<C, S> d,
             Map<PropertyDefinition<?>, SortedSet<?>> properties, DN configDN) {
         ManagedObjectPath<C, S> newPath = path.asSubType(d);
-        return new ServerManagedObject<S>(newPath, d, properties, configDN, this);
+        return new ServerManagedObject<>(newPath, d, properties, configDN, this);
     }
 
     /** Decode a property using the provided attribute values. */
     private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef,
             List<String> attributeValues, Entry newConfigEntry) {
         PropertyException exception = null;
-        SortedSet<T> pvalues = new TreeSet<T>(propertyDef);
+        SortedSet<T> pvalues = new TreeSet<>(propertyDef);
 
         if (attributeValues.size() > 0) {
             // The property has values defined for it.
@@ -727,7 +727,7 @@ public final class ServerManagementContext {
         String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
         AttributeType type = Schema.getDefaultSchema().getAttributeType(attrID);
         Iterable<Attribute> attributes = configEntry.getAllAttributes(AttributeDescription.create(type));
-        List<String> values = new ArrayList<String>();
+        List<String> values = new ArrayList<>();
         for (Attribute attribute : attributes) {
             for (ByteString byteValue : attribute) {
                 values.add(byteValue.toString());
@@ -739,7 +739,7 @@ public final class ServerManagementContext {
     /** Get the default values for the specified property. */
     private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd,
             Entry newConfigEntry) {
-        DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
+        DefaultValueFinder<T> v = new DefaultValueFinder<>(newConfigEntry);
         return v.find(p, pd);
     }
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -247,7 +247,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
 
         ManagedObject<?> parent = result.getValue();
-        SortedMap<String, ManagedObject<?>> children = new TreeMap<String, ManagedObject<?>>();
+        SortedMap<String, ManagedObject<?>> children = new TreeMap<>();
         if (relation instanceof InstantiableRelationDefinition) {
             InstantiableRelationDefinition<?, ?> irelation = (InstantiableRelationDefinition<?, ?>) relation;
             try {

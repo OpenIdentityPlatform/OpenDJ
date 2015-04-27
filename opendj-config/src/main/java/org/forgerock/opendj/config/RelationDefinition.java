@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -110,7 +111,7 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
          */
         protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> pd, String name,
             AbstractManagedObjectDefinition<C, S> cd) {
-            this.common = new Common<C, S>(pd, name, cd);
+            this.common = new Common<>(pd, name, cd);
         }
 
         /**

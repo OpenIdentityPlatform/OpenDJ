@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -50,10 +50,10 @@ public final class TextTablePrinter extends TablePrinter {
 
         /**The real column widths taking into account size constraints but
          not including padding or separators.*/
-        private final List<Integer> columnWidths = new ArrayList<Integer>();
+        private final List<Integer> columnWidths = new ArrayList<>();
 
         /** The cells in the current row. */
-        private final List<String> currentRow = new ArrayList<String>();
+        private final List<String> currentRow = new ArrayList<>();
 
         /** Width of the table in columns. */
         private int totalColumns;
@@ -307,7 +307,7 @@ public final class TextTablePrinter extends TablePrinter {
     private boolean displayHeadings = true;
 
     /** Table indicating whether or not a column is fixed width. */
-    private final Map<Integer, Integer> fixedColumns = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> fixedColumns = new HashMap<>();
 
     /** The number of characters the table should be indented. */
     private int indentWidth;

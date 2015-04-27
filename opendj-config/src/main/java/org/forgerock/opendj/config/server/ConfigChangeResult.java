@@ -42,7 +42,7 @@ public final class ConfigChangeResult {
      * A set of messages describing the changes that were made, any
      * action that may be required, or any problems that were encountered.
      */
-    private final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    private final List<LocalizableMessage> messages = new ArrayList<>();
 
     /**
      * Indicates whether one or more of the changes requires

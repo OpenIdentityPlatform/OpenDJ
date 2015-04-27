@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -41,10 +42,8 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
      * than the standard boolean string parser and supports common true/false
      * synonyms used in configuration.
      */
-    private static final Map<String, Boolean> VALUE_MAP;
+    private static final Map<String, Boolean> VALUE_MAP = new HashMap<>();
     static {
-        VALUE_MAP = new HashMap<String, Boolean>();
-
         // We could have more possibilities but decided against in issue 1960.
         VALUE_MAP.put("false", Boolean.FALSE);
         VALUE_MAP.put("true", Boolean.TRUE);

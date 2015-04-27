@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -70,7 +71,7 @@ public final class DNBuilderTest extends AdminTestCase {
     @Test
     public void createWithSingletonRelationDefinition() throws Exception {
         SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
-            new SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
+            new SingletonRelationDefinition.Builder<>(
                 TestParentCfgDefn.getInstance(), "singleton-test-child", TestChildCfgDefn.getInstance());
         final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> relationDef = builder.getInstance();
 

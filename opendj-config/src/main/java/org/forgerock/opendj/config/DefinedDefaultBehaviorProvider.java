@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -71,7 +72,7 @@ public final class DefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProv
      *         default values.
      */
     public Collection<String> getDefaultValues() {
-        return new ArrayList<String>(values);
+        return new ArrayList<>(values);
     }
 
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -89,7 +90,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
             this.propertyName = propertyName;
             this.options = EnumSet.noneOf(PropertyOption.class);
             this.adminAction = new AdministratorAction(AdministratorAction.Type.NONE, d, propertyName);
-            this.defaultBehavior = new UndefinedDefaultBehaviorProvider<T>();
+            this.defaultBehavior = new UndefinedDefaultBehaviorProvider<>();
         }
 
         /**

@@ -70,7 +70,7 @@ public final class MenuBuilder<T> {
 
         /** {@inheritDoc} */
         public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
-            List<T> values = new ArrayList<T>();
+            List<T> values = new ArrayList<>();
             for (MenuCallback<T> callback : callbacks) {
                 MenuResult<T> result = callback.invoke(app);
                 if (!result.isSuccess()) {
@@ -170,11 +170,11 @@ public final class MenuBuilder<T> {
                         }
                     } else if (allowMultiSelect) {
                         // Use a composite call-back to collect all the results.
-                        List<MenuCallback<T>> cl = new ArrayList<MenuCallback<T>>();
+                        List<MenuCallback<T>> cl = new ArrayList<>();
                         for (String value : ninput.split(",")) {
                             // Make sure that there are no duplicates.
                             String nvalue = value.trim();
-                            Set<String> choices = new HashSet<String>();
+                            Set<String> choices = new HashSet<>();
 
                             if (choices.contains(nvalue)) {
                                 app.println();
@@ -192,7 +192,7 @@ public final class MenuBuilder<T> {
                             }
                         }
 
-                        return new CompositeCallback<T>(cl);
+                        return new CompositeCallback<>(cl);
                     } else if (!callbacks.containsKey(ninput)) {
                         app.println();
                         app.println(ERR_MENU_BAD_CHOICE_SINGLE.get());
@@ -308,17 +308,17 @@ public final class MenuBuilder<T> {
     private final ConsoleApplication app;
 
     /** The char option call-backs. */
-    private final List<MenuCallback<T>> charCallbacks = new ArrayList<MenuCallback<T>>();
+    private final List<MenuCallback<T>> charCallbacks = new ArrayList<>();
 
     /** The char option keys (must be single-character messages). */
-    private final List<LocalizableMessage> charKeys = new ArrayList<LocalizableMessage>();
+    private final List<LocalizableMessage> charKeys = new ArrayList<>();
     /** The synopsis of char options. */
-    private final List<LocalizableMessage> charSynopsis = new ArrayList<LocalizableMessage>();
+    private final List<LocalizableMessage> charSynopsis = new ArrayList<>();
 
     /** Optional column headings. */
-    private final List<LocalizableMessage> columnHeadings = new ArrayList<LocalizableMessage>();
+    private final List<LocalizableMessage> columnHeadings = new ArrayList<>();
     /** Optional column widths. */
-    private final List<Integer> columnWidths = new ArrayList<Integer>();
+    private final List<Integer> columnWidths = new ArrayList<>();
 
     /** The call-back for the optional default action. */
     private MenuCallback<T> defaultCallback;
@@ -326,9 +326,9 @@ public final class MenuBuilder<T> {
     private LocalizableMessage defaultDescription;
 
     /** The numeric option call-backs. */
-    private final List<MenuCallback<T>> numericCallbacks = new ArrayList<MenuCallback<T>>();
+    private final List<MenuCallback<T>> numericCallbacks = new ArrayList<>();
     /** The numeric option fields. */
-    private final List<List<LocalizableMessage>> numericFields = new ArrayList<List<LocalizableMessage>>();
+    private final List<List<LocalizableMessage>> numericFields = new ArrayList<>();
 
     /** The menu title. */
     private LocalizableMessage title;
@@ -444,7 +444,7 @@ public final class MenuBuilder<T> {
      */
     public int addNumberedOption(LocalizableMessage description, MenuCallback<T> callback,
             LocalizableMessage... extraFields) {
-        List<LocalizableMessage> fields = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> fields = new ArrayList<>();
         fields.add(description);
         if (extraFields != null) {
             fields.addAll(Arrays.asList(extraFields));
@@ -585,7 +585,7 @@ public final class MenuBuilder<T> {
      */
     public Menu<T> toMenu() {
         TableBuilder nbuilder = new TableBuilder();
-        Map<String, MenuCallback<T>> callbacks = new HashMap<String, MenuCallback<T>>();
+        Map<String, MenuCallback<T>> callbacks = new HashMap<>();
 
         // Determine whether multiple columns should be used for numeric options
         boolean useMultipleColumns = threshold >= 0 && numericCallbacks.size() >= threshold;
@@ -669,7 +669,7 @@ public final class MenuBuilder<T> {
             }
         }
 
-        return new MenuImpl<T>(app, title, prompt, nbuilder, cbuilder, printer, callbacks, allowMultiSelect,
+        return new MenuImpl<>(app, title, prompt, nbuilder, cbuilder, printer, callbacks, allowMultiSelect,
                 defaultCallback, defaultDescription, nMaxTries);
     }
 

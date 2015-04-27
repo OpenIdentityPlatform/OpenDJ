@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -336,7 +336,7 @@ public final class PromptingTrustManager implements X509TrustManager {
         app.println(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
         app.println();
 
-        final Map<String, TrustOption> menuOptions = new HashMap<String, TrustOption>();
+        final Map<String, TrustOption> menuOptions = new HashMap<>();
         for (final TrustOption t : TrustOption.values()) {
             menuOptions.put(t.getChoice().toString(), t);
 

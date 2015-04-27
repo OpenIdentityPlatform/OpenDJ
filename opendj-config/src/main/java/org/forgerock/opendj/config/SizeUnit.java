@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -63,10 +64,8 @@ public enum SizeUnit {
     TERA_BYTES(1000L * 1000 * 1000 * 1000, "tb", "terabytes");
 
     /** A lookup table for resolving a unit from its name. */
-    private static final Map<String, SizeUnit> NAME_TO_UNIT;
+    private static final Map<String, SizeUnit> NAME_TO_UNIT = new HashMap<>();
     static {
-        NAME_TO_UNIT = new HashMap<String, SizeUnit>();
-
         for (SizeUnit unit : SizeUnit.values()) {
             NAME_TO_UNIT.put(unit.shortName, unit);
             NAME_TO_UNIT.put(unit.longName, unit);

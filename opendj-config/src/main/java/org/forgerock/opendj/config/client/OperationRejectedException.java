@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
@@ -111,10 +112,7 @@ public class OperationRejectedException extends AdminClientException {
     /** The type of operation that caused this exception. */
     private final OperationType type;
 
-    /**
-     * The user friendly name of the component that caused this
-     * exception.
-     */
+    /** The user friendly name of the component that caused this exception. */
     private final LocalizableMessage ufn;
 
     /**
@@ -146,7 +144,7 @@ public class OperationRejectedException extends AdminClientException {
         Collection<LocalizableMessage> messages) {
         super(getDefaultMessage(messages));
 
-        this.messages = new ArrayList<LocalizableMessage>(messages);
+        this.messages = new ArrayList<>(messages);
         this.type = type;
         this.ufn = ufn;
     }

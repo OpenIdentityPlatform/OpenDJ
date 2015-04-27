@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -140,7 +140,7 @@ public final class ContainsCondition implements Condition {
     /** Creates the new private implementation. */
     private <T> void buildImpl(PropertyDefinition<T> pd) {
         T value = pd.decodeValue(propertyStringValue);
-        this.impl = new Impl<T>(pd, value);
+        this.impl = new Impl<>(pd, value);
     }
 
     /**

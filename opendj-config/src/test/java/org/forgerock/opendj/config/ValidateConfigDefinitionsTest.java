@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -62,8 +62,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
     @DataProvider
     Object[][] enumerateManageObjectDefns() throws Exception {
         TopCfgDefn topCfgDefn = TopCfgDefn.getInstance();
-        List<AbstractManagedObjectDefinition<?, ?>> allCfgDefns =
-            new ArrayList<AbstractManagedObjectDefinition<?, ?>>(topCfgDefn.getAllChildren());
+        List<AbstractManagedObjectDefinition<?, ?>> allCfgDefns = new ArrayList<>(topCfgDefn.getAllChildren());
 
         Object[][] params = new Object[allCfgDefns.size()][];
         for (int i = 0; i < params.length; i++) {
@@ -202,7 +201,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
                             + " is declared as mandatory in the schema.").append(EOL + EOL);
                 }
 
-                Set<AttributeType> allowedAttributes = new HashSet<AttributeType>(mandatoryAttributes);
+                Set<AttributeType> allowedAttributes = new HashSet<>(mandatoryAttributes);
                 allowedAttributes.addAll(configObjectClass.getOptionalAttributes());
                 if (!allowedAttributes.contains(attrType)) {
                     errors.append(

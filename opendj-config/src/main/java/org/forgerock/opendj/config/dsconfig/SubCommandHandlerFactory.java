@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -138,32 +138,24 @@ final class SubCommandHandlerFactory {
     }
 
     /** The set of all available sub-commands. */
-    private final SortedSet<SubCommandHandler> allHandlers = new TreeSet<SubCommandHandler>();
-
+    private final SortedSet<SubCommandHandler> allHandlers = new TreeSet<>();
     /** The set of create-xxx available sub-commands. */
-    private final SortedSet<CreateSubCommandHandler<?, ?>> createHandlers
-        = new TreeSet<CreateSubCommandHandler<?, ?>>();
-
+    private final SortedSet<CreateSubCommandHandler<?, ?>> createHandlers = new TreeSet<>();
     /** The set of delete-xxx available sub-commands. */
-    private final SortedSet<DeleteSubCommandHandler> deleteHandlers = new TreeSet<DeleteSubCommandHandler>();
-
-    /** Any exception that occurred whilst creating the sub-commands. */
-    private ArgumentException exception;
-
+    private final SortedSet<DeleteSubCommandHandler> deleteHandlers = new TreeSet<>();
     /** The set of get-xxx-prop available sub-commands. */
-    private final SortedSet<GetPropSubCommandHandler> getPropHandlers = new TreeSet<GetPropSubCommandHandler>();
-
+    private final SortedSet<GetPropSubCommandHandler> getPropHandlers = new TreeSet<>();
     /** The help sub-command handler. */
     private HelpSubCommandHandler helpHandler;
-
     /** The set of list-xxx available sub-commands. */
-    private final SortedSet<ListSubCommandHandler> listHandlers = new TreeSet<ListSubCommandHandler>();
+    private final SortedSet<ListSubCommandHandler> listHandlers = new TreeSet<>();
+    /** The set of set-xxx-prop available sub-commands. */
+    private final SortedSet<SetPropSubCommandHandler> setPropHandlers = new TreeSet<>();
 
     /** The sub-command argument parser. */
     private final SubCommandArgumentParser parser;
-
-    /** The set of set-xxx-prop available sub-commands. */
-    private final SortedSet<SetPropSubCommandHandler> setPropHandlers = new TreeSet<SetPropSubCommandHandler>();
+    /** Any exception that occurred whilst creating the sub-commands. */
+    private ArgumentException exception;
 
     /** The relation visitor. */
     private final Visitor visitor = new Visitor();

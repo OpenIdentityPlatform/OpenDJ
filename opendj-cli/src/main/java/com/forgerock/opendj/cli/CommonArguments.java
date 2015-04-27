@@ -714,7 +714,7 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static  MultiChoiceArgument<SearchScope> getSearchScope() throws ArgumentException {
-        final MultiChoiceArgument<SearchScope> searchScope = new MultiChoiceArgument<SearchScope>(
+        final MultiChoiceArgument<SearchScope> searchScope = new MultiChoiceArgument<>(
                 OPTION_LONG_SEARCHSCOPE, OPTION_SHORT_SEARCHSCOPE, OPTION_LONG_SEARCHSCOPE, false, true,
                 INFO_SEARCH_SCOPE_PLACEHOLDER.get(), SearchScope.values(), false,
                 INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());

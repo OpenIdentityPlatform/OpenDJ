@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -166,7 +166,7 @@ public final class ConfigurationMock {
             PropertyDefinition<T> propertyDefinition = (PropertyDefinition<T>) getPropertyDefMethod.invoke(definition);
             DefaultBehaviorProvider<T> defaultBehaviorProvider = (DefaultBehaviorProvider<T>) propertyDefinition
                     .getClass().getMethod("getDefaultBehaviorProvider").invoke(propertyDefinition);
-            MockProviderVisitor<T> visitor = new MockProviderVisitor<T>(propertyDefinition);
+            MockProviderVisitor<T> visitor = new MockProviderVisitor<>(propertyDefinition);
             Collection<T> values = defaultBehaviorProvider.accept(visitor, null);
 
             if (values == null) {
@@ -211,7 +211,7 @@ public final class ConfigurationMock {
          */
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> provider, Void p) {
-            SortedSet<T> values = new TreeSet<T>();
+            SortedSet<T> values = new TreeSet<>();
             for (String stringValue : provider.getDefaultValues()) {
                 values.add(propertyDef.decodeValue(stringValue));
             }

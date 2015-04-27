@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -137,8 +137,8 @@ public final class MultiColumnPrinter {
     private int titleAlign = CENTER;
 
     private String border;
-    private List<String[]> titleTable;
-    private List<int[]> titleSpanTable;
+    private final List<String[]> titleTable = new Vector<>();
+    private final List<int[]> titleSpanTable = new Vector<>();
     private final int[] curLength;
 
     private final ConsoleApplication app;
@@ -191,9 +191,6 @@ public final class MultiColumnPrinter {
      */
     public MultiColumnPrinter(final int numCol, final int gap, final String border, final int align,
             final ConsoleApplication app) {
-
-        titleTable = new Vector<String[]>();
-        titleSpanTable = new Vector<int[]>();
         curLength = new int[numCol];
 
         this.numCol = numCol;

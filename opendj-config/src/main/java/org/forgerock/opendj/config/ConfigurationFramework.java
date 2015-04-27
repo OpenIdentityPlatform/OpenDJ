@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -160,7 +160,7 @@ public final class ConfigurationFramework {
     }
 
     /** Set of registered Jar files. */
-    private Set<File> jarFiles = new HashSet<File>();
+    private Set<File> jarFiles = new HashSet<>();
 
     /**
      * Underlying class loader used to load classes and resources (null
@@ -205,7 +205,7 @@ public final class ConfigurationFramework {
         final File libPath = new File(instancePath, LIB_DIR);
         final File extensionsPath = new File(libPath, EXTENSIONS_DIR);
 
-        final ArrayList<File> files = new ArrayList<File>(extensions.length);
+        final ArrayList<File> files = new ArrayList<>(extensions.length);
         for (final String extension : extensions) {
             final File file = new File(extensionsPath, extension);
 
@@ -437,7 +437,7 @@ public final class ConfigurationFramework {
     public synchronized void reload() throws ConfigException {
         ensureInitialized();
         loader = null;
-        jarFiles = new HashSet<File>();
+        jarFiles = new HashSet<>();
         initialize0();
     }
 
@@ -459,7 +459,7 @@ public final class ConfigurationFramework {
 
     private void addExtension(final File... extensions) throws ConfigException {
         // First add the Jar files to the class loader.
-        final List<JarFile> jars = new LinkedList<JarFile>();
+        final List<JarFile> jars = new LinkedList<>();
         for (final File extension : extensions) {
             if (jarFiles.contains(extension)) {
                 // Skip this file as it is already loaded.
@@ -713,8 +713,7 @@ public final class ConfigurationFramework {
      */
     private void loadDefinitionClasses(final InputStream is) throws ConfigException {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        final List<AbstractManagedObjectDefinition<?, ?>> definitions =
-                new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
+        final List<AbstractManagedObjectDefinition<?, ?>> definitions = new LinkedList<>();
         while (true) {
             String className;
             try {

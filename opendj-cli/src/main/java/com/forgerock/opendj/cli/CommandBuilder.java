@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -43,8 +43,8 @@ import com.forgerock.opendj.util.OperatingSystem;
 public class CommandBuilder {
     private String commandName;
     private String subcommandName;
-    private ArrayList<Argument> args;
-    private HashSet<Argument> obfuscatedArgs;
+    private final ArrayList<Argument> args = new ArrayList<>();
+    private final HashSet<Argument> obfuscatedArgs = new HashSet<>();
 
     /**
      * The separator used to link the lines of the resulting command-lines.
@@ -81,8 +81,6 @@ public class CommandBuilder {
     public CommandBuilder(String commandName, String subcommandName) {
         this.commandName = commandName;
         this.subcommandName = subcommandName;
-        args = new ArrayList<Argument>();
-        obfuscatedArgs = new HashSet<Argument>();
     }
 
     /**
@@ -239,7 +237,7 @@ public class CommandBuilder {
     }
 
     /** Chars that require special treatment when passing them to command-line. */
-    private static final Set<Character> CHARSTOESCAPE = new TreeSet<Character>(Arrays.asList(
+    private static final Set<Character> CHARSTOESCAPE = new TreeSet<>(Arrays.asList(
         ' ', '\t', '\n', '|', ';', '<', '>', '(', ')', '$', '`', '\\', '"', '\''));
 
     /**

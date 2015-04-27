@@ -42,7 +42,7 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
     /** Description for this group of arguments. */
     private LocalizableMessage description;
     /** List of arguments belonging to this group. */
-    private List<Argument> args;
+    private final List<Argument> args = new LinkedList<>();
     /** Governs groups position within usage statement. */
     private final Integer priority;
 
@@ -58,7 +58,6 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
     public ArgumentGroup(final LocalizableMessage description, final int priority) {
         this.description = description;
         this.priority = priority;
-        this.args = new LinkedList<Argument>();
     }
 
     /** {@inheritDoc} */

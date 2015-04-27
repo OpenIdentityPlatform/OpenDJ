@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -90,7 +91,7 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
             throw new IllegalArgumentException("Unabled to decode the DN string: \"" + dnAsString + "\"");
         }
 
-        return new Reference<C, S>(path, relationDef, name);
+        return new Reference<>(path, relationDef, name);
     }
 
     /**
@@ -129,7 +130,7 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
             throw new IllegalArgumentException("Empty names are not allowed");
         }
 
-        return new Reference<C, S>(p, rd, s);
+        return new Reference<>(p, rd, s);
     }
 
     /** The name of the referenced managed object. */

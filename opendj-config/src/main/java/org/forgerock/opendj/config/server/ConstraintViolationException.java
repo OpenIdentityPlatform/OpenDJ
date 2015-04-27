@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -100,7 +101,7 @@ public class ConstraintViolationException extends DecodingException {
         super(getDefaultMessage(messages));
 
         this.managedObject = managedObject;
-        this.messages = new ArrayList<LocalizableMessage>(messages);
+        this.messages = new ArrayList<>(messages);
     }
 
     /**

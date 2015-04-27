@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.spi;
@@ -77,21 +78,18 @@ public final class PropertySet {
         public MyProperty(PropertyDefinition<T> pd, Collection<T> defaultValues, Collection<T> activeValues) {
             this.d = pd;
 
-            SortedSet<T> sortedDefaultValues = new TreeSet<T>(pd);
+            SortedSet<T> sortedDefaultValues = new TreeSet<>(pd);
             sortedDefaultValues.addAll(defaultValues);
             this.defaultValues = Collections.unmodifiableSortedSet(sortedDefaultValues);
 
-            this.activeValues = new TreeSet<T>(pd);
+            this.activeValues = new TreeSet<>(pd);
             this.activeValues.addAll(activeValues);
 
-            // Initially the pending values is the same as the active
-            // values.
-            this.pendingValues = new TreeSet<T>(this.activeValues);
+            // Initially the pending values is the same as the active values.
+            this.pendingValues = new TreeSet<>(this.activeValues);
         }
 
-        /**
-         * Makes the pending values active.
-         */
+        /** Makes the pending values active. */
         public void commit() {
             activeValues.clear();
             activeValues.addAll(pendingValues);
@@ -171,13 +169,10 @@ public final class PropertySet {
     }
 
     /** The properties. */
-    private final Map<PropertyDefinition<?>, MyProperty<?>> properties;
+    private final Map<PropertyDefinition<?>, MyProperty<?>> properties = new HashMap<>();
 
-    /**
-     * Creates a new empty property set.
-     */
+    /** Creates a new empty property set. */
     public PropertySet() {
-        this.properties = new HashMap<PropertyDefinition<?>, MyProperty<?>>();
     }
 
     /**
@@ -194,7 +189,7 @@ public final class PropertySet {
      *            The set of active values for the property.
      */
     public <T> void addProperty(PropertyDefinition<T> pd, Collection<T> defaultValues, Collection<T> activeValues) {
-        MyProperty<T> p = new MyProperty<T>(pd, defaultValues, activeValues);
+        MyProperty<T> p = new MyProperty<>(pd, defaultValues, activeValues);
         properties.put(pd, p);
     }
 

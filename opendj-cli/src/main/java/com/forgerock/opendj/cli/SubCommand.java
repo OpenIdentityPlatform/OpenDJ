@@ -44,11 +44,11 @@ public class SubCommand implements DocDescriptionSupplement {
     private boolean isHidden;
 
     /** The mapping between the short argument IDs and the arguments for this subcommand. */
-    private HashMap<Character, Argument> shortIDMap;
+    private final HashMap<Character, Argument> shortIDMap = new HashMap<>();
     /** The mapping between the long argument IDs and the arguments for this subcommand. */
-    private HashMap<String, Argument> longIDMap;
+    private final HashMap<String, Argument> longIDMap = new HashMap<>();
     /** The list of arguments associated with this subcommand. */
-    private LinkedList<Argument> arguments;
+    private final LinkedList<Argument> arguments = new LinkedList<>();
 
     /** The description for this subcommand. */
     private LocalizableMessage description;
@@ -140,9 +140,6 @@ public class SubCommand implements DocDescriptionSupplement {
         }
 
         parser.addSubCommand(this);
-        shortIDMap = new HashMap<Character, Argument>();
-        longIDMap = new HashMap<String, Argument>();
-        arguments = new LinkedList<Argument>();
     }
 
     /**

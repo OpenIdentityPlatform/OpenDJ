@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -43,7 +44,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends ConfigTestCase
     @BeforeClass
     public void setUp() {
         parentDefinition = TestParentCfgDefn.getInstance();
-        this.defaultBehaviorProvider = new RelativeInheritedDefaultBehaviorProvider<Boolean>(
+        this.defaultBehaviorProvider = new RelativeInheritedDefaultBehaviorProvider<>(
             parentDefinition,
             parentDefinition.getMandatoryBooleanPropertyPropertyDefinition().getName(),
             OFFSET);

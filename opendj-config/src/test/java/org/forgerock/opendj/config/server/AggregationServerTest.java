@@ -620,7 +620,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /** Asserts that the actual set of DNs contains the expected values. */
     private void assertSetEquals(SortedSet<String> actual, String... expected) {
         SortedSet<String> values =
-            new TreeSet<String>(TestChildCfgDefn.getInstance().getAggregationPropertyPropertyDefinition());
+            new TreeSet<>(TestChildCfgDefn.getInstance().getAggregationPropertyPropertyDefinition());
         if (expected != null) {
             for (String value : expected) {
                 values.add(value);

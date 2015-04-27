@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -46,22 +46,22 @@ public final class TableBuilder {
     private int column;
 
     /** The current with of each column. */
-    private List<Integer> columnWidths = new ArrayList<Integer>();
+    private List<Integer> columnWidths = new ArrayList<>();
 
     /** The list of column headings. */
-    private List<LocalizableMessage> header = new ArrayList<LocalizableMessage>();
+    private List<LocalizableMessage> header = new ArrayList<>();
 
     /** The current number of rows in the table. */
     private int height;
 
     /** The list of table rows. */
-    private List<List<String>> rows = new ArrayList<List<String>>();
+    private List<List<String>> rows = new ArrayList<>();
 
     /** The linked list of sort keys comparators. */
-    private List<Comparator<String>> sortComparators = new ArrayList<Comparator<String>>();
+    private List<Comparator<String>> sortComparators = new ArrayList<>();
 
     /** The linked list of sort keys. */
-    private List<Integer> sortKeys = new ArrayList<Integer>();
+    private List<Integer> sortKeys = new ArrayList<>();
 
     /** The current number of columns in the table. */
     private int width;
@@ -263,7 +263,7 @@ public final class TableBuilder {
         TableSerializer serializer = printer.getSerializer();
 
         // First sort the table.
-        List<List<String>> sortedRows = new ArrayList<List<String>>(rows);
+        List<List<String>> sortedRows = new ArrayList<>(rows);
 
         Comparator<List<String>> comparator = new Comparator<List<String>>() {
 
