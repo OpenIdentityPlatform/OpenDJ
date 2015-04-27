@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config;
 
 import java.util.Arrays;
@@ -50,9 +50,7 @@ public final class LDAPProfile {
      */
     public static abstract class Wrapper {
 
-        /**
-         * Default constructor.
-         */
+        /** Default constructor. */
         protected Wrapper() {
             // No implementation required.
         }
@@ -160,7 +158,7 @@ public final class LDAPProfile {
     }
 
     /** The list of profile wrappers. */
-    private final LinkedList<Wrapper> profiles = new LinkedList<Wrapper>();;
+    private final LinkedList<Wrapper> profiles = new LinkedList<>();
 
     /** The LDAP profile property table. */
     private final ManagedObjectDefinitionResource resource = ManagedObjectDefinitionResource.createForProfile("ldap");
@@ -295,15 +293,14 @@ public final class LDAPProfile {
      *             provided managed object definition could not be loaded.
      */
     public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d) {
-        LinkedList<String> objectClasses = new LinkedList<String>();
-        Set<String> s = new HashSet<String>();
+        LinkedList<String> objectClasses = new LinkedList<>();
+        Set<String> s = new HashSet<>();
 
         // Add the object classes from the parent hierarchy.
         while (d != null) {
             String oc = getObjectClass(d);
-            if (!s.contains(oc)) {
+            if (s.add(oc)) {
                 objectClasses.addFirst(oc);
-                s.add(oc);
             }
             d = d.getParent();
         }
@@ -316,11 +313,11 @@ public final class LDAPProfile {
     }
 
     /**
-     * Get an LDAP RDN sequence associatied with a relation.
+     * Get an LDAP RDN sequence associated with a relation.
      *
      * @param r
      *            The relation.
-     * @return Returns the LDAP RDN sequence associatied with a relation.
+     * @return Returns the LDAP RDN sequence associated with a relation.
      * @throws MissingResourceException
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.

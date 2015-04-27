@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.client.spi;
 
-import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
-import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;
+import static org.forgerock.opendj.config.PropertyException.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,29 +36,28 @@ import java.util.List;
 import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
 import org.forgerock.opendj.config.Constraint;
-import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.DefinitionDecodingException.Reason;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.PropertyNotFoundException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefinitionDecodingException.Reason;
 import org.forgerock.opendj.config.client.ClientConstraintHandler;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
@@ -67,6 +65,7 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.client.OperationRejectedException.OperationType;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 
 /**
  * An abstract management connection context driver which should form the basis
@@ -129,7 +128,7 @@ public abstract class Driver {
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
-            List<T> values = new ArrayList<T>(stringValues.size());
+            List<T> values = new ArrayList<>(stringValues.size());
 
             for (String stringValue : stringValues) {
                 try {
@@ -217,17 +216,15 @@ public abstract class Driver {
                 if (isCreate && firstPath.equals(target)) {
                     // Recursively retrieve this property's default values.
                     Collection<T> tmp = find(target, pd2);
-                    Collection<T> values = new ArrayList<T>(tmp.size());
+                    Collection<T> values = new ArrayList<>(tmp.size());
                     for (T value : tmp) {
                         pd1.validateValue(value);
                         values.add(value);
                     }
                     return values;
                 } else {
-                    // FIXME: issue 2481 - this is broken if the referenced
-                    // property
-                    // inherits its defaults from the newly created managed
-                    // object.
+                    // FIXME: issue 2481 - this is broken if the referenced property
+                    // inherits its defaults from the newly created managed object.
                     return getPropertyValues(target, pd2);
                 }
             } catch (PropertyException e) {
@@ -243,18 +240,14 @@ public abstract class Driver {
                 throw PropertyException.defaultBehaviorException(pd1, e);
             }
         }
-    };
+    }
 
-    /**
-     * Creates a new abstract driver.
-     */
+    /** Creates a new abstract driver. */
     protected Driver() {
        // Do nothing.
     }
 
-    /**
-     * Closes any context associated with this management context driver.
-     */
+    /** Closes any context associated with this management context driver. */
     public void close() {
         // do nothing by default
     }
@@ -579,7 +572,7 @@ public abstract class Driver {
      */
     protected final <P> Collection<P> findDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<P> pd,
         boolean isCreate) {
-        DefaultValueFinder<P> v = new DefaultValueFinder<P>(p, isCreate);
+        DefaultValueFinder<P> v = new DefaultValueFinder<>(p, isCreate);
         return v.find(p, pd);
     }
 
@@ -632,22 +625,8 @@ public abstract class Driver {
         // The targeted managed object is guaranteed to exist, so enforce
         // any constraints.
         AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
-        List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
-        boolean isAcceptable = true;
-
-        for (Constraint constraint : d.getAllConstraints()) {
-            for (ClientConstraintHandler handler : constraint.getClientConstraintHandlers()) {
-                ManagementContext context = getManagementContext();
-                if (!handler.isDeleteAcceptable(context, path, messages)) {
-                    isAcceptable = false;
-                }
-            }
-            if (!isAcceptable) {
-                break;
-            }
-        }
-
-        if (!isAcceptable) {
+        List<LocalizableMessage> messages = new LinkedList<>();
+        if (!isAcceptable(path, d, messages)) {
             throw new OperationRejectedException(OperationType.DELETE, d.getUserFriendlyName(), messages);
         }
 
@@ -655,4 +634,17 @@ public abstract class Driver {
         return true;
     }
 
+    private <C extends ConfigurationClient, S extends Configuration>
+    boolean isAcceptable(ManagedObjectPath<C, S> path, AbstractManagedObjectDefinition<?, ?> d,
+            List<LocalizableMessage> messages) throws LdapException {
+        for (Constraint constraint : d.getAllConstraints()) {
+            for (ClientConstraintHandler handler : constraint.getClientConstraintHandlers()) {
+                ManagementContext context = getManagementContext();
+                if (!handler.isDeleteAcceptable(context, path, messages)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

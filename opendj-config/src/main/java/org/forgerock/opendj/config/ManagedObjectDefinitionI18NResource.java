@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -42,8 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 public final class ManagedObjectDefinitionI18NResource {
 
     /** Application-wide set of instances. */
-    private static final Map<String, ManagedObjectDefinitionI18NResource> INSTANCES =
-        new HashMap<String, ManagedObjectDefinitionI18NResource>();
+    private static final Map<String, ManagedObjectDefinitionI18NResource> INSTANCES = new HashMap<>();
 
     /**
      * Gets the internationalized resource instance which can be used to
@@ -80,14 +80,13 @@ public final class ManagedObjectDefinitionI18NResource {
     }
 
     /** Mapping from definition to locale-based resource bundle. */
-    private final Map<AbstractManagedObjectDefinition<?, ?>, Map<Locale, ResourceBundle>> resources;
+    private final Map<AbstractManagedObjectDefinition<?, ?>, Map<Locale, ResourceBundle>> resources = new HashMap<>();
 
     /** The resource name prefix. */
     private final String prefix;
 
     /** Private constructor. */
     private ManagedObjectDefinitionI18NResource(String prefix) {
-        this.resources = new HashMap<AbstractManagedObjectDefinition<?, ?>, Map<Locale, ResourceBundle>>();
         this.prefix = prefix;
     }
 
@@ -247,16 +246,8 @@ public final class ManagedObjectDefinitionI18NResource {
      */
     synchronized void setResourceBundle(AbstractManagedObjectDefinition<?, ?> d, Locale locale,
         ResourceBundle resoureBundle) {
-        // First get the locale-resource mapping, creating it if
-        // necessary.
-        Map<Locale, ResourceBundle> map = resources.get(d);
-        if (map == null) {
-            map = new HashMap<Locale, ResourceBundle>();
-            resources.put(d, map);
-        }
-
         // Add the resource bundle.
-        map.put(locale, resoureBundle);
+        getMapping(d).put(locale, resoureBundle);
     }
 
     /**
@@ -269,16 +260,9 @@ public final class ManagedObjectDefinitionI18NResource {
                 + "Top configuration definition");
         }
 
-        // First get the locale-resource mapping, creating it if
-        // necessary.
-        Map<Locale, ResourceBundle> map = resources.get(d);
-        if (map == null) {
-            map = new HashMap<Locale, ResourceBundle>();
-            resources.put(d, map);
-        }
+        Map<Locale, ResourceBundle> map = getMapping(d);
 
-        // Now get the resource based on the locale, loading it if
-        // necessary.
+        // Now get the resource based on the locale, loading it if necessary.
         ResourceBundle resourceBundle = map.get(locale);
         if (resourceBundle == null) {
             String baseName = prefix + "." + d.getClass().getName();
@@ -288,5 +272,15 @@ public final class ManagedObjectDefinitionI18NResource {
         }
 
         return resourceBundle;
+    }
+
+    private Map<Locale, ResourceBundle> getMapping(AbstractManagedObjectDefinition<?, ?> d) {
+        // First get the locale-resource mapping, creating it if necessary.
+        Map<Locale, ResourceBundle> map = resources.get(d);
+        if (map == null) {
+            map = new HashMap<>();
+            resources.put(d, map);
+        }
+        return map;
     }
 }
