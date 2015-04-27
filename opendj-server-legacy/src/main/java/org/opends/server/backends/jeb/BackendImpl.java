@@ -27,21 +27,29 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
@@ -61,6 +69,7 @@ import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
@@ -90,6 +99,7 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.util.BackupManager;
 import org.opends.server.util.RuntimeInformation;
 
 import com.sleepycat.je.DatabaseException;
@@ -103,7 +113,7 @@ import com.sleepycat.je.EnvironmentFailureException;
  */
 public class BackendImpl extends Backend<LocalDBBackendCfg>
     implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
-    DiskSpaceMonitorHandler
+    DiskSpaceMonitorHandler, Backupable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -246,7 +256,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     cfg.addLocalDBChangeListener(this);
   }
 
-  private File getDirectory()
+  /** {@inheritDoc} */
+  @Override
+  public File getDirectory()
   {
     File parentDirectory = getFileForPath(cfg.getDBDirectory());
     return new File(parentDirectory, cfg.getBackendId());
@@ -949,37 +961,230 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    File parentDir = getFileForPath(cfg.getDBDirectory());
-    File backendDir = new File(parentDir, cfg.getBackendId());
-    backupManager.createBackup(backendDir, backupConfig);
+    new BackupManager(getBackendID()).createBackup(this, backupConfig);
   }
-
-
 
   /** {@inheritDoc} */
   @Override
-  public void removeBackup(BackupDirectory backupDirectory, String backupID)
-      throws DirectoryException
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    backupManager.removeBackup(backupDirectory, backupID);
+    new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
-
-
 
   /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-      throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
-    BackupManager backupManager = new BackupManager(getBackendID());
-    File parentDir = getFileForPath(cfg.getDBDirectory());
-    File backendDir = new File(parentDir, cfg.getBackendId());
-    backupManager.restoreBackup(backendDir, restoreConfig);
+    new BackupManager(getBackendID()).restoreBackup(this, restoreConfig);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public ListIterator<Path> getFilesToBackup() throws DirectoryException
+  {
+    return new JELogFilesIterator(getDirectory(), cfg.getBackendId());
+  }
 
+  /**
+   * Iterator on JE log files to backup.
+   * <p>
+   * The cleaner thread may delete some log files during the backup. The
+   * iterator is automatically renewed if at least one file has been deleted.
+   */
+  static class JELogFilesIterator implements ListIterator<Path>
+  {
+    /** Underlying iterator on files. */
+    private ListIterator<Path> iterator;
+
+    /** Root directory where all files are located. */
+    private final File rootDirectory;
+
+    private final String backendID;
+
+    /** Files to backup. Used to renew the iterator if necessary. */
+    private List<Path> files;
+
+    private String lastFileName = "";
+    private long lastFileSize;
+
+    JELogFilesIterator(File rootDirectory, String backendID) throws DirectoryException
+    {
+      this.rootDirectory = rootDirectory;
+      this.backendID = backendID;
+      setFiles(BackupManager.getFiles(rootDirectory, new JELogFileFilter(), backendID));
+    }
+
+    private void setFiles(List<Path> files) {
+      this.files = files;
+      Collections.sort(files);
+      if (!files.isEmpty())
+      {
+        Path lastFile = files.get(files.size() - 1);
+        lastFileName = lastFile.getFileName().toString();
+        lastFileSize = lastFile.toFile().length();
+      }
+      iterator = files.listIterator();
+  }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean hasNext()
+    {
+      boolean hasNext = iterator.hasNext();
+      if (!hasNext && !files.isEmpty())
+      {
+        try
+        {
+          List<Path> allFiles = BackupManager.getFiles(rootDirectory, new JELogFileFilter(), backendID);
+          List<Path> compare = new ArrayList<Path>(files);
+          compare.removeAll(allFiles);
+          if (!compare.isEmpty())
+          {
+            // at least one file was deleted, the iterator must be renewed based on last file previously available
+            List<Path> newFiles =
+                BackupManager.getFiles(rootDirectory, new JELogFileFilter(lastFileName, lastFileSize), backendID);
+            logger.info(NOTE_JEB_BACKUP_CLEANER_ACTIVITY.get(newFiles.size()));
+            if (!newFiles.isEmpty())
+            {
+              setFiles(newFiles);
+              hasNext = iterator.hasNext();
+            }
+          }
+        }
+        catch (DirectoryException e)
+        {
+          logger.error(ERR_BACKEND_LIST_FILES_TO_BACKUP.get(backendID, stackTraceToSingleLineString(e)));
+        }
+      }
+      return hasNext;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Path next()
+    {
+      if (hasNext()) {
+        return iterator.next();
+      }
+      throw new NoSuchElementException();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean hasPrevious()
+    {
+      return iterator.hasPrevious();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Path previous()
+    {
+      return iterator.previous();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public int nextIndex()
+    {
+      return iterator.nextIndex();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public int previousIndex()
+    {
+      return iterator.previousIndex();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void remove()
+    {
+      throw new UnsupportedOperationException("remove() is not implemented");
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void set(Path e)
+    {
+      throw new UnsupportedOperationException("set() is not implemented");
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void add(Path e)
+    {
+      throw new UnsupportedOperationException("add() is not implemented");
+    }
+
+  }
+
+  /**
+   * This class implements a FilenameFilter to detect a JE log file, possibly with a constraint
+   * on the file name and file size.
+   */
+  private static class JELogFileFilter implements FileFilter {
+
+    private final String latestFilename;
+    private final long latestFileSize;
+
+    /**
+     * Creates the filter for log files that are newer than provided file name
+     * or equal to provided file name and of larger size.
+     */
+    JELogFileFilter(String latestFilename, long latestFileSize) {
+      this.latestFilename = latestFilename;
+      this.latestFileSize = latestFileSize;
+    }
+
+    /** Creates the filter for any JE log file. */
+    JELogFileFilter() {
+      this("", 0);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean accept(File file)
+    {
+      String name = file.getName();
+      int cmp = name.compareTo(latestFilename);
+      return name.endsWith(".jdb") && (cmp > 0 || (cmp == 0 && file.length() > latestFileSize));
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isDirectRestore()
+  {
+    // restore is done in an intermediate directory
+    return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Path beforeRestore() throws DirectoryException
+  {
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
+  {
+    // intermediate directory content is moved to database directory
+    File targetDirectory = getDirectory();
+    recursiveDelete(targetDirectory);
+    try
+    {
+      Files.move(restoreDirectory, targetDirectory.toPath());
+    }
+    catch(IOException e)
+    {
+      LocalizableMessage msg = ERR_CANNOT_RENAME_RESTORE_DIRECTORY.get(restoreDirectory, targetDirectory.getPath());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+    }
+  }
 
   /** {@inheritDoc} */
   @Override

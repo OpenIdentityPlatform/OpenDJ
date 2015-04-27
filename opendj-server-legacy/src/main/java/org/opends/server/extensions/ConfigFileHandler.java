@@ -38,19 +38,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -65,6 +59,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.server.ConfigFileHandlerBackendCfg;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
@@ -81,7 +76,7 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.*;
-import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.BackupManager;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -94,7 +89,7 @@ import org.opends.server.util.TimeThread;
  */
 public class ConfigFileHandler
        extends ConfigHandler<ConfigFileHandlerBackendCfg>
-       implements AlertGenerator
+       implements AlertGenerator, Backupable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -1961,819 +1956,23 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public void createBackup(BackupConfig backupConfig)
-         throws DirectoryException
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    // Get the properties to use for the backup.  We don't care whether or not
-    // it's incremental, so there's no need to get that.
-    String          backupID        = backupConfig.getBackupID();
-    BackupDirectory backupDirectory = backupConfig.getBackupDirectory();
-    boolean         compress        = backupConfig.compressData();
-    boolean         encrypt         = backupConfig.encryptData();
-    boolean         hash            = backupConfig.hashData();
-    boolean         signHash        = backupConfig.signHash();
-
-
-    // Create a hash map that will hold the extra backup property information
-    // for this backup.
-    HashMap<String,String> backupProperties = new HashMap<String,String>();
-
-
-    // Get the crypto manager and use it to obtain references to the message
-    // digest and/or MAC to use for hashing and/or signing.
-    CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
-    Mac           mac             = null;
-    MessageDigest digest          = null;
-    String        macKeyID    = null;
-
-    if (hash)
-    {
-      if (signHash)
-      {
-        try
-        {
-          macKeyID = cryptoManager.getMacEngineKeyEntryID();
-          backupProperties.put(BACKUP_PROPERTY_MAC_KEY_ID, macKeyID);
-
-          mac = cryptoManager.getMacEngine(macKeyID);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_MAC.get(
-              macKeyID, stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-      else
-      {
-        String digestAlgorithm =
-            cryptoManager.getPreferredMessageDigestAlgorithm();
-        backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
-
-        try
-        {
-          digest = cryptoManager.getPreferredMessageDigest();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_DIGEST.get(
-              digestAlgorithm, stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-    }
-
-
-    // Create an output stream that will be used to write the archive file.  At
-    // its core, it will be a file output stream to put a file on the disk.  If
-    // we are to encrypt the data, then that file output stream will be wrapped
-    // in a cipher output stream.  The resulting output stream will then be
-    // wrapped by a zip output stream (which may or may not actually use
-    // compression).
-    String filename = null;
-    OutputStream outputStream;
-    try
-    {
-      filename = CONFIG_BACKUP_BASE_FILENAME + backupID;
-      File archiveFile = new File(backupDirectory.getPath() + File.separator +
-                                  filename);
-      if (archiveFile.exists())
-      {
-        int i=1;
-        while (true)
-        {
-          archiveFile = new File(backupDirectory.getPath() + File.separator +
-                                 filename  + "." + i);
-          if (archiveFile.exists())
-          {
-            i++;
-          }
-          else
-          {
-            filename = filename + "." + i;
-            break;
-          }
-        }
-      }
-
-      outputStream = new FileOutputStream(archiveFile, false);
-      backupProperties.put(BACKUP_PROPERTY_ARCHIVE_FILENAME, filename);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
-          get(filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-
-
-    // If we should encrypt the data, then wrap the output stream in a cipher
-    // output stream.
-    if (encrypt)
-    {
-      try
-      {
-        outputStream
-                = cryptoManager.getCipherOutputStream(outputStream);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Wrap the file output stream in a zip output stream.
-    ZipOutputStream zipStream = new ZipOutputStream(outputStream);
-
-    LocalizableMessage message = ERR_CONFIG_BACKUP_ZIP_COMMENT.get(
-            DynamicConstants.PRODUCT_NAME,
-            backupID);
-    zipStream.setComment(message.toString());
-
-    if (compress)
-    {
-      zipStream.setLevel(Deflater.DEFAULT_COMPRESSION);
-    }
-    else
-    {
-      zipStream.setLevel(Deflater.NO_COMPRESSION);
-    }
-
-
-    // This may seem a little weird, but in this context, we only have access to
-    // this class as a backend and not as the config handler.  We need it as a
-    // config handler to determine the path to the config file, so we can get
-    // that from the Directory Server object.
-    String configFile = null;
-    try
-    {
-      configFile =
-           ((ConfigFileHandler) DirectoryServer.getConfigHandler()).configFile;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      message = ERR_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION.
-          get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // Read the Directory Server configuration file and put it in the archive.
-    byte[] buffer = new byte[8192];
-    FileInputStream inputStream = null;
-    try
-    {
-      File f = new File(configFile);
-
-      ZipEntry zipEntry = new ZipEntry(f.getName());
-      zipStream.putNextEntry(zipEntry);
-
-      inputStream = new FileInputStream(f);
-      while (true)
-      {
-        int bytesRead = inputStream.read(buffer);
-        if (bytesRead < 0 || backupConfig.isCancelled())
-        {
-          break;
-        }
-
-        if (hash)
-        {
-          if (signHash)
-          {
-            mac.update(buffer, 0, bytesRead);
-          }
-          else
-          {
-            digest.update(buffer, 0, bytesRead);
-          }
-        }
-
-        zipStream.write(buffer, 0, bytesRead);
-      }
-
-      inputStream.close();
-      zipStream.closeEntry();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      StaticUtils.close(inputStream, zipStream);
-
-      message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE.get(
-          configFile, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // If an archive directory exists, then add its contents as well.
-    try
-    {
-      File archiveDirectory = new File(new File(configFile).getParent(),
-                                       CONFIG_ARCHIVE_DIR_NAME);
-      if (archiveDirectory.exists())
-      {
-        for (File archiveFile : archiveDirectory.listFiles())
-        {
-          ZipEntry zipEntry = new ZipEntry(CONFIG_ARCHIVE_DIR_NAME +
-                                           File.separator +
-                                           archiveFile.getName());
-          zipStream.putNextEntry(zipEntry);
-          inputStream = new FileInputStream(archiveFile);
-          while (true)
-          {
-            int bytesRead = inputStream.read(buffer);
-            if (bytesRead < 0 || backupConfig.isCancelled())
-            {
-              break;
-            }
-
-            if (hash)
-            {
-              if (signHash)
-              {
-                mac.update(buffer, 0, bytesRead);
-              }
-              else
-              {
-                digest.update(buffer, 0, bytesRead);
-              }
-            }
-
-            zipStream.write(buffer, 0, bytesRead);
-          }
-
-          inputStream.close();
-          zipStream.closeEntry();
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      StaticUtils.close(inputStream, zipStream);
-
-      message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS.get(
-          configFile, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // We're done writing the file, so close the zip stream (which should also
-    // close the underlying stream).
-    try
-    {
-      zipStream.close();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      message = ERR_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
-          filename, backupDirectory.getPath(), getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // Get the digest or MAC bytes if appropriate.
-    byte[] digestBytes = null;
-    byte[] macBytes    = null;
-    if (hash)
-    {
-      if (signHash)
-      {
-        macBytes = mac.doFinal();
-      }
-      else
-      {
-        digestBytes = digest.digest();
-      }
-    }
-
-
-    // Create the backup info structure for this backup and add it to the backup
-    // directory.
-    // FIXME -- Should I use the date from when I started or finished?
-    BackupInfo backupInfo = new BackupInfo(backupDirectory, backupID,
-                                           new Date(), false, compress,
-                                           encrypt, digestBytes, macBytes,
-                                           null, backupProperties);
-
-    try
-    {
-      backupDirectory.addBackup(backupInfo);
-      backupDirectory.writeBackupDirectoryDescriptor();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      message = ERR_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
-          backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // Remove the backup if this operation was cancelled since the
-    // backup may be incomplete
-    if (backupConfig.isCancelled())
-    {
-      removeBackup(backupDirectory, backupID);
-    }
+    new BackupManager(getBackendID()).createBackup(this, backupConfig);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void removeBackup(BackupDirectory backupDirectory,
-                           String backupID)
-         throws DirectoryException
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
-    // NYI
+    new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-         throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
-    // First, make sure that the requested backup exists.
-    BackupDirectory backupDirectory = restoreConfig.getBackupDirectory();
-    String          backupPath      = backupDirectory.getPath();
-    String          backupID        = restoreConfig.getBackupID();
-    BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
-    if (backupInfo == null)
-    {
-      LocalizableMessage message =
-          ERR_CONFIG_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-
-    // Read the backup info structure to determine the name of the file that
-    // contains the archive.  Then make sure that file exists.
-    String backupFilename =
-         backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    if (backupFilename == null)
-    {
-      LocalizableMessage message =
-          ERR_CONFIG_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    File backupFile = new File(backupPath + File.separator + backupFilename);
-    try
-    {
-      if (! backupFile.exists())
-      {
-        LocalizableMessage message =
-            ERR_CONFIG_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
-          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // If the backup is hashed, then we need to get the message digest to use
-    // to verify it.
-    byte[] unsignedHash = backupInfo.getUnsignedHash();
-    MessageDigest digest = null;
-    if (unsignedHash != null)
-    {
-      String digestAlgorithm =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
-      if (digestAlgorithm == null)
-      {
-        LocalizableMessage message = ERR_CONFIG_RESTORE_UNKNOWN_DIGEST.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
-      try
-      {
-        digest = DirectoryServer.getCryptoManager().getMessageDigest(
-                                                         digestAlgorithm);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-            ERR_CONFIG_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // If the backup is signed, then we need to get the MAC to use to verify it.
-    byte[] signedHash = backupInfo.getSignedHash();
-    Mac mac = null;
-    if (signedHash != null)
-    {
-      String macKeyID =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
-      if (macKeyID == null)
-      {
-        LocalizableMessage message = ERR_CONFIG_RESTORE_UNKNOWN_MAC.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
-      try
-      {
-        mac = DirectoryServer.getCryptoManager().getMacEngine(macKeyID);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_MAC.get(
-            backupID, macKeyID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Create the input stream that will be used to read the backup file.  At
-    // its core, it will be a file input stream.
-    InputStream inputStream;
-    try
-    {
-      inputStream = new FileInputStream(backupFile);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
-          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // If the backup is encrypted, then we need to wrap the file input stream
-    // in a cipher input stream.
-    if (backupInfo.isEncrypted())
-    {
-      try
-      {
-        inputStream = DirectoryServer.getCryptoManager()
-                                            .getCipherInputStream(inputStream);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.get(
-                backupFile.getPath(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    // Now wrap the resulting input stream in a zip stream so that we can read
-    // its contents.  We don't need to worry about whether to use compression or
-    // not because it will be handled automatically.
-    ZipInputStream zipStream = new ZipInputStream(inputStream);
-
-
-    // Determine whether we should actually do the restore, or if we should just
-    // try to verify the archive.  If we are going to actually do the restore,
-    // then create a directory and move the existing config files there so that
-    // they can be restored in case something goes wrong.
-    String configFilePath  =
-         ((ConfigFileHandler) DirectoryServer.getConfigHandler()).configFile;
-    File   configFile      = new File(configFilePath);
-    File   configDir       = configFile.getParentFile();
-    String configDirPath   = configDir.getPath();
-    String backupDirPath   = null;
-    File   configBackupDir = null;
-    boolean verifyOnly     = restoreConfig.verifyOnly();
-    if (! verifyOnly)
-    {
-      // Create a new directory to hold the current config files.
-      try
-      {
-        if (configDir.exists())
-        {
-          String configBackupDirPath = configDirPath + ".save";
-          backupDirPath = configBackupDirPath;
-          configBackupDir = new File(backupDirPath);
-          if (configBackupDir.exists())
-          {
-            int i=2;
-            while (true)
-            {
-              backupDirPath = configBackupDirPath + i;
-              configBackupDir = new File(backupDirPath);
-              if (configBackupDir.exists())
-              {
-                i++;
-              }
-              else
-              {
-                break;
-              }
-            }
-          }
-
-          configBackupDir.mkdirs();
-          moveFile(configFile, configBackupDir);
-
-          File archiveDirectory = new File(configDir, CONFIG_ARCHIVE_DIR_NAME);
-          if (archiveDirectory.exists())
-          {
-            File archiveBackupPath = new File(configBackupDir,
-                                              CONFIG_ARCHIVE_DIR_NAME);
-            archiveDirectory.renameTo(archiveBackupPath);
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG.
-            get(backupID, configDirPath, backupDirPath, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-      }
-
-
-      // Create a new directory to hold the restored config files.
-      try
-      {
-        configDir.mkdirs();
-      }
-      catch (Exception e)
-      {
-        // Try to restore the previous config directory if possible.  This will
-        // probably fail in this case, but try anyway.
-        if (configBackupDir != null)
-        {
-          try
-          {
-            configBackupDir.renameTo(configDir);
-            logger.info(NOTE_CONFIG_RESTORE_RESTORED_OLD_CONFIG, configDirPath);
-          }
-          catch (Exception e2)
-          {
-            logger.error(ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG, configBackupDir.getPath());
-          }
-        }
-
-
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY.get(
-            backupID, configDirPath, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Read through the archive file an entry at a time.  For each entry, update
-    // the digest or MAC if necessary, and if we're actually doing the restore,
-    // then write the files out into the config directory.
-    byte[] buffer = new byte[8192];
-    while (true)
-    {
-      ZipEntry zipEntry;
-      try
-      {
-        zipEntry = zipStream.getNextEntry();
-      }
-      catch (Exception e)
-      {
-        // Tell the user where the previous config was archived.
-        if (configBackupDir != null)
-        {
-          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
-        }
-
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
-            backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-
-      if (zipEntry == null)
-      {
-        break;
-      }
-
-
-      // Get the filename for the zip entry and update the digest or MAC as
-      // necessary.
-      String fileName = zipEntry.getName();
-      if (digest != null)
-      {
-        digest.update(getBytes(fileName));
-      }
-      if (mac != null)
-      {
-        mac.update(getBytes(fileName));
-      }
-
-
-      // If we're doing the restore, then create the output stream to write the
-      // file.
-      OutputStream outputStream = null;
-      if (! verifyOnly)
-      {
-        File restoreFile = new File(configDirPath + File.separator + fileName);
-        File parentDir   = restoreFile.getParentFile();
-
-        try
-        {
-          if (! parentDir.exists())
-          {
-            parentDir.mkdirs();
-          }
-
-          outputStream = new FileOutputStream(restoreFile);
-        }
-        catch (Exception e)
-        {
-          // Tell the user where the previous config was archived.
-          if (configBackupDir != null)
-          {
-            logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
-          }
-
-          LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CREATE_FILE.
-              get(backupID, restoreFile.getAbsolutePath(),
-                  stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-
-
-      // Read the contents of the file and update the digest or MAC as
-      // necessary.  If we're actually restoring it, then write it into the
-      // new config directory.
-      try
-      {
-        while (true)
-        {
-          int bytesRead = zipStream.read(buffer);
-          if (bytesRead < 0)
-          {
-            // We've reached the end of the entry.
-            break;
-          }
-
-
-          // Update the digest or MAC if appropriate.
-          if (digest != null)
-          {
-            digest.update(buffer, 0, bytesRead);
-          }
-
-          if (mac != null)
-          {
-            mac.update(buffer, 0, bytesRead);
-          }
-
-
-          //  Write the data to the output stream if appropriate.
-          if (outputStream != null)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-          }
-        }
-
-
-        // We're at the end of the file so close the output stream if we're
-        // writing it.
-        if (outputStream != null)
-        {
-          outputStream.close();
-        }
-      }
-      catch (Exception e)
-      {
-        // Tell the user where the previous config was archived.
-        if (configBackupDir != null)
-        {
-          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
-        }
-
-        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
-            backupID, fileName, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Close the zip stream since we don't need it anymore.
-    try
-    {
-      zipStream.close();
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
-          backupID, backupFile.getPath(), getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // At this point, we should be done with the contents of the ZIP file and
-    // the restore should be complete.  If we were generating a digest or MAC,
-    // then make sure it checks out.
-    if (digest != null)
-    {
-      byte[] calculatedHash = digest.digest();
-      if (Arrays.equals(calculatedHash, unsignedHash))
-      {
-        logger.info(NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID);
-      }
-      else
-      {
-        // Tell the user where the previous config was archived.
-        if (configBackupDir != null)
-        {
-          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
-        }
-
-        LocalizableMessage message =
-            ERR_CONFIG_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-
-    if (mac != null)
-    {
-      byte[] calculatedSignature = mac.doFinal();
-      if (Arrays.equals(calculatedSignature, signedHash))
-      {
-        logger.info(NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID);
-      }
-      else
-      {
-        // Tell the user where the previous config was archived.
-        if (configBackupDir != null)
-        {
-          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
-        }
-
-        LocalizableMessage message =
-            ERR_CONFIG_RESTORE_SIGNED_HASH_INVALID.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-
-
-    // If we are just verifying the archive, then we're done.
-    if (verifyOnly)
-    {
-      logger.info(NOTE_CONFIG_RESTORE_VERIFY_SUCCESSFUL, backupID, backupPath);
-      return;
-    }
-
-
-    // If we've gotten here, then the archive was restored successfully.  Get
-    // rid of the temporary copy we made of the previous config directory and
-    // exit.
-    if (configBackupDir != null)
-    {
-      recursiveDelete(configBackupDir);
-    }
-
-    logger.info(NOTE_CONFIG_RESTORE_SUCCESSFUL, backupID, backupPath);
+    new BackupManager(getBackendID()).restoreBackup(this, restoreConfig);
   }
 
   /** {@inheritDoc} */
@@ -2855,6 +2054,68 @@ public class ConfigFileHandler
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public File getDirectory()
+  {
+    return getConfigFileInBackendContext().getParentFile();
+  }
+
+  private File getConfigFileInBackendContext()
+  {
+    // This may seem a little weird, but in some context, we only have access to
+    // this class as a backend and not as the config handler.  We need it as a
+    // config handler to determine the path to the config file, so we can get
+    // that from the Directory Server object.
+    return new File(((ConfigFileHandler) DirectoryServer.getConfigHandler()).configFile);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ListIterator<Path> getFilesToBackup()
+  {
+    final List<Path> files = new ArrayList<>();
+
+    // the main config file
+    File theConfigFile = getConfigFileInBackendContext();
+    files.add(theConfigFile.toPath());
+
+    // the files in archive directory
+    File archiveDirectory = new File(getDirectory(), CONFIG_ARCHIVE_DIR_NAME);
+    if (archiveDirectory.exists())
+    {
+      for (File archiveFile : archiveDirectory.listFiles())
+      {
+        files.add(archiveFile.toPath());
+      }
+    }
+
+    return files.listIterator();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isDirectRestore()
+  {
+    return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Path beforeRestore() throws DirectoryException
+  {
+    // save current config files to a save directory
+    return BackupManager.saveCurrentFilesToDirectory(this, getBackendID());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
+  {
+    // restore was successful, delete save directory
+    StaticUtils.recursiveDelete(saveDirectory.toFile());
   }
 
 }

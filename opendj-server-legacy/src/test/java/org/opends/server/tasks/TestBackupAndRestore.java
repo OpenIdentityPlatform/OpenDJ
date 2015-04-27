@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -126,6 +126,12 @@ public class TestBackupAndRestore extends TasksTestCase
               TestCaseUtils.makeEntry(restoreTask(
                    "ds-backup-directory-path: bak" + File.separator + "userRoot")),
               TaskState.COMPLETED_SUCCESSFULLY
+         },
+         {
+               // Restore a SchemaBackend
+               TestCaseUtils.makeEntry(restoreTask(
+               "ds-backup-directory-path: bak" + File.separator + "schema")),
+               TaskState.COMPLETED_SUCCESSFULLY
          },
          {
               // Non-existent restore directory-path.

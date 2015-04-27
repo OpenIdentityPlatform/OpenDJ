@@ -26,6 +26,10 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,6 +47,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.backends.jeb.BackendImpl.JELogFilesIterator;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -63,6 +68,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -81,6 +87,7 @@ import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.Attributes.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -1405,5 +1412,112 @@ public class TestBackendImpl extends JebTestCase {
       assertEquals(searchOperation.getMatchedDN(), expectedMatchedDN);
     }
   }
+
+  @Test
+  public void testJELogFilesIterator() throws Exception
+  {
+    File rootDir = TestCaseUtils.createTemporaryDirectory("jeLogFilesIterator");
+    try
+    {
+      createLogFilesInDirectory(rootDir.toPath(), "content", 0, 3);
+      JELogFilesIterator iterator = new BackendImpl.JELogFilesIterator(rootDir, "backendID");
+
+      assertLogFilesIterator(iterator, rootDir, 0, 2);
+      assertThat(iterator.hasNext()).isFalse();
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(rootDir);
+    }
+  }
+
+  @Test
+  public void testJELogFilesIteratorWhenFileIsDeletedAndNewOneAdded() throws Exception
+  {
+    File rootDir = TestCaseUtils.createTemporaryDirectory("jeLogFilesIteratorDelete");
+    try
+    {
+      createLogFilesInDirectory(rootDir.toPath(), "content", 0, 2);
+      JELogFilesIterator iterator = new BackendImpl.JELogFilesIterator(rootDir, "backendID");
+
+      assertLogFilesIterator(iterator, rootDir, 0, 1);
+      assertThat(iterator.hasNext()).isFalse();
+
+      // delete first file log0.jdb and create a new one log2.jdb
+      new File(rootDir, "log0.jdb").delete();
+      createLogFilesInDirectory(rootDir.toPath(), "content", 2, 1);
+
+      assertLogFilesIterator(iterator, rootDir, 2, 2);
+      assertThat(iterator.hasNext()).isFalse();
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(rootDir);
+    }
+  }
+
+  @Test
+  public void testJELogFilesIteratorWhenFileIsDeletedAndLastOneHasLargerSize() throws Exception
+  {
+    File rootDir = TestCaseUtils.createTemporaryDirectory("jeLogFilesIteratorDelete2");
+    try
+    {
+      createLogFilesInDirectory(rootDir.toPath(), "content", 0, 2);
+      JELogFilesIterator iterator = new BackendImpl.JELogFilesIterator(rootDir, "backendID");
+
+      assertLogFilesIterator(iterator, rootDir, 0, 1);
+
+      // delete first file log0.jdb and update last one with larger content
+      new File(rootDir, "log0.jdb").delete();
+      new File(rootDir, "log1.jdb").delete();
+      createLogFilesInDirectory(rootDir.toPath(), "morecontent", 1, 1);
+
+      assertLogFilesIterator(iterator, rootDir, 1, 1);
+      assertThat(iterator.hasNext()).isFalse();
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(rootDir);
+    }
+  }
+
+  private void assertLogFilesIterator(JELogFilesIterator iterator, File rootDir, int from, int to)
+  {
+    for (int i = from; i <= to; i++)
+    {
+      assertThat(iterator.hasNext()).as("hasNext expected to be true for " + i).isTrue();
+      assertThat(iterator.next().toFile()).isEqualTo(new File(rootDir, "log" + i + ".jdb"));
+    }
+  }
+
+  /**
+   * Creates dummy "logN.jdb" (where N is a number) files in given directory
+   * with provided label as content for files.
+   */
+  private List<Path> createLogFilesInDirectory(Path directory, String label, int start, int numberOfFiles)
+      throws Exception
+  {
+    List<Path> files = new ArrayList<>();
+    for (int i = start; i < start+numberOfFiles; i++)
+    {
+      String filename = "log" + i + ".jdb";
+      Path file = directory.resolve(filename);
+      createFile(file, StaticUtils.getBytes(label));
+      files.add(file);
+    }
+    return files;
+  }
+
+  private void createFile(Path file, byte[] content) throws Exception {
+    OutputStream output = new FileOutputStream(file.toFile(), false);
+    try
+    {
+      output.write(content);
+    }
+    finally {
+      close(output);
+    }
+  }
+
 
 }
