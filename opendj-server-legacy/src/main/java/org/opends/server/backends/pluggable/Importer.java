@@ -179,8 +179,8 @@ final class Importer
   /** Thread count. */
   private int threadCount;
 
-  /** Set to true when validation is skipped. */
-  private final boolean skipDNValidation;
+  /** Whether DN validation should be performed. If true, then it is performed during phase one. */
+  private final boolean validateDNs;
 
   /** Temp scratch directory. */
   private final File tempDir;
@@ -283,7 +283,7 @@ final class Importer
 
     this.tempDir = prepareTempDir(cfg, rebuildConfig.getTmpDirectory());
     computeMemoryRequirements();
-    this.skipDNValidation = true;
+    this.validateDNs = false;
     this.dnCache = null;
   }
 
@@ -327,8 +327,8 @@ final class Importer
     this.tempDir = prepareTempDir(backendCfg, importCfg.getTmpDirectory());
     computeMemoryRequirements();
 
-    skipDNValidation = importCfg.getSkipDNValidation();
-    if (!skipDNValidation)
+    validateDNs = !importCfg.getSkipDNValidation();
+    if (validateDNs)
     {
       final File dnCachePath = new File(tempDir, DN_CACHE_DIR);
       dnCachePath.mkdirs();
@@ -435,9 +435,9 @@ final class Importer
     final long usableMemory = availableMemory - (indexCount * READER_WRITER_BUFFER_SIZE);
 
     // We need caching when doing DN validation or rebuilding indexes.
-    if (!skipDNValidation || rebuildManager != null)
+    if (validateDNs || rebuildManager != null)
     {
-      // No DN validation: calculate memory for DB cache, DN2ID temporary cache, and buffers.
+      // DN validation: calculate memory for DB cache, DN2ID temporary cache, and buffers.
       if (System.getProperty(PROPERTY_RUNNING_UNIT_TESTS) != null)
       {
         dbCacheSize = 500 * KB;
@@ -501,7 +501,7 @@ final class Importer
 
         if (bufferSize > MAX_BUFFER_SIZE)
         {
-          if (!skipDNValidation)
+          if (validateDNs)
           {
             // The buffers are big enough: the memory is best used for the DN2ID temp DB
             bufferSize = MAX_BUFFER_SIZE;
@@ -890,7 +890,7 @@ final class Importer
       final long startTime = System.currentTimeMillis();
       importPhaseOne();
       final long phaseOneFinishTime = System.currentTimeMillis();
-      if (!skipDNValidation)
+      if (validateDNs)
       {
         dnCache.close();
       }
@@ -937,7 +937,7 @@ final class Importer
     finally
     {
       close(reader);
-      if (!skipDNValidation)
+      if (validateDNs)
       {
         close(dnCache);
       }
@@ -1388,7 +1388,7 @@ final class Importer
 
       if (oldEntry == null)
       {
-        if (!skipDNValidation && !dnSanityCheck(txn, entryDN, entry, suffix))
+        if (validateDNs && !dnSanityCheck(txn, entryDN, entry, suffix))
         {
           suffix.removePending(entryDN);
           return;
@@ -1513,7 +1513,7 @@ final class Importer
         throws DirectoryException, StorageRuntimeException, InterruptedException
     {
       DN entryDN = entry.getName();
-      if (!skipDNValidation && !dnSanityCheck(txn, entryDN, entry, suffix))
+      if (validateDNs && !dnSanityCheck(txn, entryDN, entry, suffix))
       {
         suffix.removePending(entryDN);
         return;
@@ -3592,6 +3592,7 @@ final class Importer
      * @throws StorageRuntimeException
      *           If error occurs.
      */
+    @Override
     void close();
   }
 
