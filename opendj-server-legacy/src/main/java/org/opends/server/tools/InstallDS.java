@@ -711,7 +711,7 @@ public class InstallDS extends ConsoleApplication
     else
     {
       errorMessages.add(
-          ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(filledBackendType, backendTypeHelper.getBackendTypeNames()));
+          ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(filledBackendType, backendTypeHelper.getPrintableBackendTypeNames()));
     }
   }
 
