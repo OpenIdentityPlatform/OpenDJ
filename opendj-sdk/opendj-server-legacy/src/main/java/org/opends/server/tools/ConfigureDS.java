@@ -797,7 +797,7 @@ public class ConfigureDS
       if (backend == null)
       {
         throw new ConfigureDSException(
-            ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, backendTypeHelper.getBackendTypeNames()));
+            ERR_CONFIGDS_BACKEND_TYPE_UNKNOWN.get(backendTypeName, backendTypeHelper.getPrintableBackendTypeNames()));
       }
 
       try
