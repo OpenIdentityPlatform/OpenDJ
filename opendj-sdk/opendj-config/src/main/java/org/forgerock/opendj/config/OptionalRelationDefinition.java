@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -93,9 +94,8 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
         /** {@inheritDoc} */
         @Override
         protected OptionalRelationDefinition<C, S> buildInstance(Common<C, S> common) {
-            return new OptionalRelationDefinition<C, S>(common, defaultManagedObject);
+            return new OptionalRelationDefinition<>(common, defaultManagedObject);
         }
-
     }
 
     /**

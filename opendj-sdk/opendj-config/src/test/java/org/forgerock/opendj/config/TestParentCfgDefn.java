@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -93,7 +93,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         builder.setOption(PropertyOption.MANDATORY);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.COMPONENT_RESTART, INSTANCE,
                 "mandatory-class-property"));
-        DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<String>(
+        DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<>(
                 "org.opends.server.extensions.SomeVirtualAttributeProvider");
         builder.setDefaultBehaviorProvider(provider);
         builder.addInstanceOf("org.opends.server.api.VirtualAttributeProvider");
@@ -124,7 +124,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         builder.setOption(PropertyOption.MULTI_VALUED);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE,
                 "optional-multi-valued-dn-property"));
-        DefaultBehaviorProvider<DN> provider = new DefinedDefaultBehaviorProvider<DN>("dc=domain1,dc=com",
+        DefaultBehaviorProvider<DN> provider = new DefinedDefaultBehaviorProvider<>("dc=domain1,dc=com",
                 "dc=domain2,dc=com", "dc=domain3,dc=com");
         builder.setDefaultBehaviorProvider(provider);
         PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY = builder.getInstance();
@@ -134,7 +134,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
     /** Build the "test-children" relation definition. */
     static {
         InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
-            new InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
+            new InstantiableRelationDefinition.Builder<>(
                 INSTANCE, "multiple-children", "test-children", TestChildCfgDefn.getInstance());
         RD_TEST_CHILDREN = builder.getInstance();
         INSTANCE.registerRelationDefinition(RD_TEST_CHILDREN);
@@ -143,7 +143,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
     /** Build the "optional-test-child" relation definition. */
     static {
         OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
-            new OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
+            new OptionalRelationDefinition.Builder<>(
                 INSTANCE, "optional-test-child", TestChildCfgDefn.getInstance());
         RD_OPTIONAL_TEST_CHILD = builder.getInstance();
         INSTANCE.registerRelationDefinition(RD_OPTIONAL_TEST_CHILD);

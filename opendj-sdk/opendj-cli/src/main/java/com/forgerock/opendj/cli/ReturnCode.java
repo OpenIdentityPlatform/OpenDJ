@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -194,7 +194,7 @@ public enum ReturnCode {
     CLIENT_SIDE_CONNECT_ERROR(91);
 
     private int returnCode;
-    private static final Map<Integer, String> RETURNCODE = new HashMap<Integer, String>();
+    private static final Map<Integer, String> RETURNCODE = new HashMap<>();
     static {
         for (final ReturnCode rc : ReturnCode.values()) {
             RETURNCODE.put(rc.get(), rc.name());

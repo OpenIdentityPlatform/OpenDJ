@@ -214,7 +214,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 throw new IllegalStateException("Relation definition undefined");
             }
 
-            return new AggregationPropertyDefinition<C, S>(d, propertyName, options, adminAction, defaultBehavior,
+            return new AggregationPropertyDefinition<>(d, propertyName, options, adminAction, defaultBehavior,
                 parentPathString, rdName, targetNeedsEnablingCondition, targetIsEnabledCondition);
         }
 
@@ -407,10 +407,10 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             ServerManagedObject<?> parent = context.getManagedObject(parentPath);
 
             // Create entries in the listener tables.
-            List<ReferentialIntegrityDeleteListener> dlist = new LinkedList<ReferentialIntegrityDeleteListener>();
+            List<ReferentialIntegrityDeleteListener> dlist = new LinkedList<>();
             deleteListeners.put(managedObject.getDN(), dlist);
 
-            List<ReferentialIntegrityChangeListener> clist = new LinkedList<ReferentialIntegrityChangeListener>();
+            List<ReferentialIntegrityChangeListener> clist = new LinkedList<>();
             changeListeners.put(managedObject.getDN(), clist);
 
             for (String name : managedObject.getPropertyValues(AggregationPropertyDefinition.this)) {
@@ -633,7 +633,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         @SuppressWarnings("unchecked")
         private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findInstances(
             ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod) throws LdapException {
-            List<ManagedObject<? extends C1>> instances = new LinkedList<ManagedObject<? extends C1>>();
+            List<ManagedObject<? extends C1>> instances = new LinkedList<>();
 
             if (mod == RootCfgDefn.getInstance()) {
                 instances.add((ManagedObject<? extends C1>) context.getRootConfigurationManagedObject());
@@ -695,7 +695,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     public static <C extends ConfigurationClient, S extends Configuration> Builder<C, S> createBuilder(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-        return new Builder<C, S>(d, propertyName);
+        return new Builder<>(d, propertyName);
     }
 
     private static final Logger debugLogger = LoggerFactory.getLogger(AggregationPropertyDefinition.class);
@@ -704,15 +704,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * The active server-side referential integrity change listeners
      * associated with this property.
      */
-    private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners =
-        new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
+    private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners = new HashMap<>();
 
     /**
      * The active server-side referential integrity delete listeners
      * associated with this property.
      */
-    private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners =
-        new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
+    private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners = new HashMap<>();
 
     /**
      * The name of the managed object which is the parent of the

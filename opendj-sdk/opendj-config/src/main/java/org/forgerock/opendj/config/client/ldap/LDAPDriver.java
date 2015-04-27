@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -181,16 +181,15 @@ final class LDAPDriver extends Driver {
             AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
             ManagedObjectDefinition<? extends C, ? extends S> mod = getEntryDefinition(d, dn);
 
-            ArrayList<String> attrIds = new ArrayList<String>();
+            ArrayList<String> attrIds = new ArrayList<>();
             for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
-                String attrId = profile.getAttributeName(mod, pd);
-                attrIds.add(attrId);
+                attrIds.add(profile.getAttributeName(mod, pd));
             }
             SearchResultEntry searchResultEntry =
                     connection.readEntry(dn, attrIds.toArray(new String[0]));
 
             // Build the managed object's properties.
-            List<PropertyException> exceptions = new LinkedList<PropertyException>();
+            List<PropertyException> exceptions = new LinkedList<>();
             PropertySet newProperties = new PropertySet();
             for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
                 String attrID = profile.getAttributeName(mod, pd);
@@ -252,7 +251,7 @@ final class LDAPDriver extends Driver {
             Attribute attribute = resultEntry.getAttribute(attrID);
 
             // Decode the values.
-            SortedSet<P> values = new TreeSet<P>(propertyDef);
+            SortedSet<P> values = new TreeSet<>(propertyDef);
             if (attribute != null) {
                 for (ByteString byteValue : attribute) {
                     P value = ValueDecoder.decode(propertyDef, byteValue);
@@ -286,7 +285,7 @@ final class LDAPDriver extends Driver {
     /** {@inheritDoc} */
     @Override
     public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-        return new LDAPManagedObject<RootCfgClient>(this, RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
+        return new LDAPManagedObject<>(this, RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
             new PropertySet(), true, null);
     }
 
@@ -308,7 +307,7 @@ final class LDAPDriver extends Driver {
         // Retrieve only those entries which are sub-types of the
         // specified definition.
         Filter filter = Filter.equality("objectClass", profile.getObjectClass(d));
-        List<String> children = new ArrayList<String>();
+        List<String> children = new ArrayList<>();
         try {
             for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
@@ -322,6 +321,7 @@ final class LDAPDriver extends Driver {
                 throw e;
             }
         }
+
         return children.toArray(new String[children.size()]);
     }
 
@@ -343,7 +343,7 @@ final class LDAPDriver extends Driver {
         // Retrieve only those entries which are sub-types of the
         // specified definition.
         Filter filter = Filter.equality("objectClass", profile.getObjectClass(d));
-        List<String> children = new ArrayList<String>();
+        List<String> children = new ArrayList<>();
         try {
             for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
@@ -450,7 +450,7 @@ final class LDAPDriver extends Driver {
             InstantiableRelationDefinition<?, ?> ird = (InstantiableRelationDefinition<?, ?>) rd;
             pd = ird.getNamingPropertyDefinition();
         }
-        return new LDAPManagedObject<M>(this, d, p.asSubType(d), properties, true, pd);
+        return new LDAPManagedObject<>(this, d, p.asSubType(d), properties, true, pd);
     }
 
     /** Create a property using the provided string values. */
@@ -459,7 +459,7 @@ final class LDAPDriver extends Driver {
         PropertyException exception = null;
 
         // Get the property's active values.
-        SortedSet<P> activeValues = new TreeSet<P>(propertyDef);
+        SortedSet<P> activeValues = new TreeSet<>(propertyDef);
         if (attribute != null) {
             for (ByteString byteValue : attribute) {
                 P value = ValueDecoder.decode(propertyDef, byteValue);
@@ -513,7 +513,7 @@ final class LDAPDriver extends Driver {
             throw new DefinitionDecodingException(d, Reason.NO_TYPE_INFORMATION);
         }
 
-        final Set<String> objectClasses = new HashSet<String>();
+        final Set<String> objectClasses = new HashSet<>();
         for (ByteString byteValue : objectClassAttr) {
             objectClasses.add(byteValue.toString().toLowerCase().trim());
         }
@@ -550,7 +550,7 @@ final class LDAPDriver extends Driver {
     }
 
     private Collection<DN> listEntries(DN dn, Filter filter) throws LdapException {
-        List<DN> names = new LinkedList<DN>();
+        List<DN> names = new LinkedList<>();
         ConnectionEntryReader reader =
                 connection.search(dn.toString(), SearchScope.SINGLE_LEVEL, filter.toString());
         try {

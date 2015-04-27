@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -109,7 +110,7 @@ public final class AdminTestCaseUtils {
             isProfileRegistered = true;
         }
         SingletonRelationDefinition.Builder<C, S> builder =
-            new SingletonRelationDefinition.Builder<C, S>(RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
+            new SingletonRelationDefinition.Builder<>(RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
         ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
         return root.child(builder.getInstance());
     }

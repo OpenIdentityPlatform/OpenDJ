@@ -246,7 +246,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         while (true) {
             // Interactively set properties if applicable.
             if (app.isInteractive()) {
-                SortedSet<PropertyDefinition<?>> properties = new TreeSet<PropertyDefinition<?>>();
+                SortedSet<PropertyDefinition<?>> properties = new TreeSet<>();
                 for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
                     if (pd.hasOption(PropertyOption.HIDDEN)) {
                         continue;
@@ -678,8 +678,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
         ManagedObject<?> child = result.getValue();
         ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
-        Map<String, ModificationType> lastModTypes = new HashMap<String, ModificationType>();
-        Map<PropertyDefinition, Set> changes = new HashMap<PropertyDefinition, Set>();
+        Map<String, ModificationType> lastModTypes = new HashMap<>();
+        Map<PropertyDefinition, Set> changes = new HashMap<>();
 
         // Reset properties.
         for (String m : propertyResetArgument.getValues()) {
@@ -848,7 +848,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 }
                 break;
             case SET:
-                values = new TreeSet<T>(pd);
+                values = new TreeSet<>(pd);
                 values.add(value);
                 break;
             }

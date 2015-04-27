@@ -63,19 +63,18 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private static final String INDENT = "    ";
 
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
-    private final Map<Argument, Collection<SubCommand>> usageGroupArguments =
-        new HashMap<Argument, Collection<SubCommand>>();
+    private final Map<Argument, Collection<SubCommand>> usageGroupArguments = new HashMap<>();
 
     /** The set of global arguments defined for this parser, referenced by short ID. */
-    private final Map<Character, Argument> globalShortIDMap = new HashMap<Character, Argument>();
+    private final Map<Character, Argument> globalShortIDMap = new HashMap<>();
     /** The set of global arguments defined for this parser, referenced by long ID. */
-    private final Map<String, Argument> globalLongIDMap = new HashMap<String, Argument>();
+    private final Map<String, Argument> globalLongIDMap = new HashMap<>();
     /** The set of global arguments defined for this parser, referenced by argument name. */
-    private final Map<String, Argument> globalArgumentMap = new HashMap<String, Argument>();
+    private final Map<String, Argument> globalArgumentMap = new HashMap<>();
     /** The total set of global arguments defined for this parser. */
-    private final List<Argument> globalArgumentList = new LinkedList<Argument>();
+    private final List<Argument> globalArgumentList = new LinkedList<>();
     /** The set of subcommands defined for this parser, referenced by subcommand name. */
-    private final SortedMap<String, SubCommand> subCommands = new TreeMap<String, SubCommand>();
+    private final SortedMap<String, SubCommand> subCommands = new TreeMap<>();
 
     /**The subcommand requested by the user as part of the command-line arguments.     */
     private SubCommand subCommand;
@@ -1144,7 +1143,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
 
         // Model for a FreeMarker template.
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("locale", Locale.getDefault().getLanguage());
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("name", scriptName);
@@ -1177,14 +1176,14 @@ public class SubCommandArgumentParser extends ArgumentParser {
             return "";
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("name", scriptName);
         map.put("info", getDocSubcommandsDescriptionSupplement());
         if (scriptName.equals("dsconfig")) {
             // Break dsconfig into multiple pages, so use only the list here.
             map.put("isItemizedList", true);
         }
-        List<String> scUsageList = new ArrayList<String>();
+        List<String> scUsageList = new ArrayList<>();
         for (SubCommand subCommand : subCommands) {
             if (scriptName.equals("dsconfig")) {
                 scUsageList.add(getSubCommandListItem(scriptName, subCommand));
@@ -1206,7 +1205,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @return A DocBook XML ListItem element linking to the subcommand page.
      */
     private String getSubCommandListItem(String scriptName, SubCommand subCommand) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("id", scriptName + "-" + subCommand.getName());
         map.put("name", scriptName + " " + subCommand.getName());
         map.put("description", eolToNewPara(subCommand.getDescription()));
@@ -1224,7 +1223,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private String toRefSect2(String scriptName, SubCommand subCommand) {
         // Model for a FreeMarker template.
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("id", scriptName + "-" + subCommand.getName());
         final String name = scriptName + " " + subCommand.getName();
         map.put("name", name);
@@ -1252,7 +1251,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private void setSubCommandOptionsInfo(Map<String, Object> map, SubCommand subCommand) {
         if (!subCommand.getArguments().isEmpty()) {
-            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> options = new LinkedList<>();
             String nameOption = null;
             for (Argument a : subCommand.getArguments()) {
                 // Return a generic FQDN for localhost as the default hostname
@@ -1261,11 +1260,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     a.setDefaultValue("localhost.localdomain");
                 }
 
-                Map<String, Object> option = new HashMap<String, Object>();
+                Map<String, Object> option = new HashMap<>();
                 String optionSynopsis = getOptionSynopsis(a);
                 option.put("synopsis", optionSynopsis);
                 option.put("description", eolToNewPara(a.getDescription()));
-                Map<String, Object> info = new HashMap<String, Object>();
+                Map<String, Object> info = new HashMap<>();
                 if (subCommandUsageHandler != null) {
                     if (!doesHandleProperties(a)) {
                         nameOption = "<option>" + optionSynopsis + "</option>";
@@ -1304,7 +1303,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private void appendSubCommandPages(StringBuilder builder, String scriptName, Collection<SubCommand> subCommands) {
         for (SubCommand subCommand : subCommands) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("marker", "@@@" + scriptName + "-" + subCommand.getName() + "@@@");
             map.put("locale", Locale.getDefault().getLanguage());
             map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
@@ -1333,15 +1332,15 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private void appendSubCommandReference(StringBuilder builder,
                                            String scriptName,
                                            Collection<SubCommand> subCommands) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("marker", "@@@" + scriptName + "-subcommands-ref" + "@@@");
         map.put("name", scriptName);
         map.put("locale", Locale.getDefault().getLanguage());
         map.put("title", REF_PART_TITLE_SUBCOMMANDS.get(scriptName));
         map.put("partintro", REF_PART_INTRO_SUBCOMMANDS.get(scriptName));
-        List<Map<String, Object>> commands = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> commands = new LinkedList<>();
         for (SubCommand subCommand : subCommands) {
-            Map<String, Object> scMap = new HashMap<String, Object>();
+            Map<String, Object> scMap = new HashMap<>();
             scMap.put("id", scriptName + "-" + subCommand.getName());
             commands.add(scMap);
         }

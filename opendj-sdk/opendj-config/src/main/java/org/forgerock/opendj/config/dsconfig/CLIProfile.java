@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.config.dsconfig;
@@ -74,7 +74,7 @@ final class CLIProfile {
         if (s.trim().length() == 0) {
             return Collections.emptySet();
         }
-        return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
+        return new LinkedHashSet<>(Arrays.asList(s.split(",")));
     }
 
     /**

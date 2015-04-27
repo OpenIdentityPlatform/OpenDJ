@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.client.spi;
 
@@ -249,7 +249,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
         ConcurrentModificationException, OperationRejectedException, LdapException {
         // First make sure all mandatory properties are defined.
-        List<PropertyException> exceptions = new LinkedList<PropertyException>();
+        List<PropertyException> exceptions = new LinkedList<>();
 
         for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
             Property<?> p = getProperty(pd);
@@ -264,7 +264,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
 
         // Now enforce any constraints.
-        List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+        List<LocalizableMessage> messages = new LinkedList<>();
         boolean isAcceptable = true;
         ManagementContext context = getDriver().getManagementContext();
 
@@ -442,24 +442,23 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     /** {@inheritDoc} */
     @Override
     public final <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd) {
-        return new TreeSet<P>(getProperty(pd).getDefaultValues());
+        return new TreeSet<>(getProperty(pd).getDefaultValues());
     }
 
     /** {@inheritDoc} */
     @Override
     public final <P> P getPropertyValue(PropertyDefinition<P> pd) {
         Set<P> values = getProperty(pd).getEffectiveValues();
-        if (values.isEmpty()) {
-            return null;
-        } else {
+        if (!values.isEmpty()) {
             return values.iterator().next();
         }
+        return null;
     }
 
     /** {@inheritDoc} */
     @Override
     public final <P> SortedSet<P> getPropertyValues(PropertyDefinition<P> pd) {
-        return new TreeSet<P>(getProperty(pd).getEffectiveValues());
+        return new TreeSet<>(getProperty(pd).getEffectiveValues());
     }
 
     /** {@inheritDoc} */

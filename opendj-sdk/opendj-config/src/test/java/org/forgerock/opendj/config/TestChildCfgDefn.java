@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -107,7 +107,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         builder.setOption(PropertyOption.MANDATORY);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.COMPONENT_RESTART, INSTANCE,
                 "mandatory-class-property"));
-        DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<String>(
+        DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<>(
                 "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         builder.setDefaultBehaviorProvider(provider);
         builder.addInstanceOf("org.opends.server.api.VirtualAttributeProvider");
@@ -138,7 +138,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         builder.setOption(PropertyOption.MULTI_VALUED);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE,
                 "optional-multi-valued-dn-property1"));
-        DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<DN>(
+        DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<>(
                 TestParentCfgDefn.getInstance(), "optional-multi-valued-dn-property", 1);
         builder.setDefaultBehaviorProvider(provider);
         PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY1 = builder.getInstance();
@@ -152,7 +152,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         builder.setOption(PropertyOption.MULTI_VALUED);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE,
                 "optional-multi-valued-dn-property2"));
-        DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<DN>(
+        DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<>(
                 TestChildCfgDefn.getInstance(), "optional-multi-valued-dn-property1", 0);
         builder.setDefaultBehaviorProvider(provider);
         PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY2 = builder.getInstance();

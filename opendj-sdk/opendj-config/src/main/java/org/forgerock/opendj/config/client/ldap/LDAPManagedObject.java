@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -280,7 +280,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
     protected <M extends ConfigurationClient> ManagedObject<M> newInstance(ManagedObjectDefinition<M, ?> d,
             ManagedObjectPath<M, ?> path, PropertySet properties, boolean existsOnServer,
             PropertyDefinition<?> namingPropertyDefinition) {
-        return new LDAPManagedObject<M>(driver, d, path, properties, existsOnServer, namingPropertyDefinition);
+        return new LDAPManagedObject<>(driver, d, path, properties, existsOnServer, namingPropertyDefinition);
     }
 
     /** Encode a property into LDAP string values. */

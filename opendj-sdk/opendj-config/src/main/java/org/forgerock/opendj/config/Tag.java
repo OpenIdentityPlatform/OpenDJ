@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -45,7 +46,7 @@ import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 public final class Tag implements Comparable<Tag> {
 
     /** All the tags. */
-    private static final Map<String, Tag> TAGS = new HashMap<String, Tag>();
+    private static final Map<String, Tag> TAGS = new HashMap<>();
 
     /**
      * Defines a new tag with the specified name.

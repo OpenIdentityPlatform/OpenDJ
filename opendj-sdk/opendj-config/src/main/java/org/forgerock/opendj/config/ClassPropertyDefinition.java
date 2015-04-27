@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -48,19 +48,15 @@ import java.util.List;
  */
 public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
-    /**
-     * An interface for incrementally constructing class property definitions.
-     */
+    /** An interface for incrementally constructing class property definitions. */
     public static final class Builder extends AbstractBuilder<String, ClassPropertyDefinition> {
 
         /** List of interfaces which property values must implement. */
-        private List<String> instanceOfInterfaces;
+        private final List<String> instanceOfInterfaces = new LinkedList<>();
 
         /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
-
-            this.instanceOfInterfaces = new LinkedList<String>();
         }
 
         /**

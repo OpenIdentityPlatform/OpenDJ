@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -108,7 +108,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
     }
 
     /** The list of RDNs in big-endian order. */
-    private final LinkedList<RDN> rdns;
+    private final LinkedList<RDN> rdns = new LinkedList<>();
 
     private final LDAPProfile profile;
 
@@ -119,7 +119,6 @@ final class DNBuilder implements ManagedObjectPathSerializer {
      *            The LDAP profile which should be used to construct DNs.
      */
     private DNBuilder(LDAPProfile profile) {
-        this.rdns = new LinkedList<RDN>();
         this.profile = profile;
     }
 
@@ -158,7 +157,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
      * @return rdns in big endian order
      */
     private List<RDN> getRdnsInBigEndianOrder(DN dn) {
-        List<RDN> rdnsOfDn = new ArrayList<RDN>();
+        List<RDN> rdnsOfDn = new ArrayList<>();
         for (RDN rdn : dn) {
             rdnsOfDn.add(rdn);
         }

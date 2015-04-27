@@ -114,7 +114,7 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
         // Check that the trailing arguments were retrieved correctly and
         // in the right order.
         if (args.length > 1) {
-            List<String> scargs = new ArrayList<String>();
+            List<String> scargs = new ArrayList<>();
             for (int i = 1; i < args.length; i++) {
                 scargs.add(args[i]);
             }

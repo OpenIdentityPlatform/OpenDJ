@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -64,68 +65,46 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     /** The parent managed object definition if applicable. */
     private final AbstractManagedObjectDefinition<? super C, ? super S> parent;
 
-    /**
-     * The set of constraints associated with this managed object
-     * definition.
-     */
-    private final Collection<Constraint> constraints;
-
-    /**
-     * The set of property definitions applicable to this managed object
-     * definition.
-     */
-    private final Map<String, PropertyDefinition<?>> propertyDefinitions;
-
-    /**
-     * The set of relation definitions applicable to this managed object
-     * definition.
-     */
-    private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
-
-    /**
-     * The set of relation definitions directly referencing this managed
-     * object definition.
-     */
-    private final Set<RelationDefinition<C, S>> reverseRelationDefinitions;
+    /** The set of constraints associated with this managed object definition. */
+    private final Collection<Constraint> constraints = new LinkedList<>();
+    /** The set of property definitions applicable to this managed object definition. */
+    private final Map<String, PropertyDefinition<?>> propertyDefinitions = new HashMap<>();
+    /** The set of relation definitions applicable to this managed object definition. */
+    private final Map<String, RelationDefinition<?, ?>> relationDefinitions = new HashMap<>();
+    /** The set of relation definitions directly referencing this managed object definition. */
+    private final Set<RelationDefinition<C, S>> reverseRelationDefinitions = new HashSet<>();
 
     /**
      * The set of all property definitions associated with this managed
      * object definition including inherited property definitions.
      */
-    private final Map<String, PropertyDefinition<?>> allPropertyDefinitions;
-
+    private final Map<String, PropertyDefinition<?>> allPropertyDefinitions = new HashMap<>();
     /**
      * The set of all relation definitions associated with this managed
      * object definition including inherited relation definitions.
      */
-    private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions;
+    private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions = new HashMap<>();
 
-    /**
-     * The set of aggregation property definitions applicable to this
-     * managed object definition.
-     */
-    private final Map<String, AggregationPropertyDefinition<?, ?>> aggregationPropertyDefinitions;
+    /** The set of aggregation property definitions applicable to this managed object definition. */
+    private final Map<String, AggregationPropertyDefinition<?, ?>> aggregationPropertyDefinitions = new HashMap<>();
 
-    /**
-     * The set of aggregation property definitions directly referencing this
-     * managed object definition.
-     */
-    private final Vector<AggregationPropertyDefinition<?, ?>> reverseAggregationPropertyDefinitions;
+    /** The set of aggregation property definitions directly referencing this managed object definition. */
+    private final Vector<AggregationPropertyDefinition<?, ?>> reverseAggregationPropertyDefinitions = new Vector<>();
 
     /**
      * The set of all aggregation property definitions associated with this
      * managed object definition including inherited relation definitions.
      */
-    private final Map<String, AggregationPropertyDefinition<?, ?>> allAggregationPropertyDefinitions;
+    private final Map<String, AggregationPropertyDefinition<?, ?>> allAggregationPropertyDefinitions = new HashMap<>();
 
     /** The set of tags associated with this managed object. */
-    private final Set<Tag> allTags;
+    private final Set<Tag> allTags = new HashSet<>();
 
     /** Options applicable to this definition. */
-    private final Set<ManagedObjectOption> options;
+    private final Set<ManagedObjectOption> options = EnumSet.noneOf(ManagedObjectOption.class);
 
     /** The set of managed object definitions which inherit from this definition. */
-    private final Map<String, AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
+    private final Map<String, AbstractManagedObjectDefinition<? extends C, ? extends S>> children = new HashMap<>();
 
     /**
      * Create a new abstract managed object definition.
@@ -142,19 +121,6 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
         AbstractManagedObjectDefinition<? super C, ? super S> parent) {
         this.name = name;
         this.parent = parent;
-        this.constraints = new LinkedList<Constraint>();
-        this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
-        this.relationDefinitions = new HashMap<String, RelationDefinition<?, ?>>();
-        this.reverseRelationDefinitions = new HashSet<RelationDefinition<C, S>>();
-        this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
-        this.allRelationDefinitions = new HashMap<String, RelationDefinition<?, ?>>();
-        this.aggregationPropertyDefinitions = new HashMap<String, AggregationPropertyDefinition<?, ?>>();
-        this.reverseAggregationPropertyDefinitions = new Vector<AggregationPropertyDefinition<?, ?>>();
-        this.allAggregationPropertyDefinitions = new HashMap<String, AggregationPropertyDefinition<?, ?>>();
-        this.allTags = new HashSet<Tag>();
-        this.options = EnumSet.noneOf(ManagedObjectOption.class);
-
-        this.children = new HashMap<String, AbstractManagedObjectDefinition<? extends C, ? extends S>>();
 
         // If we have a parent definition then inherit its features.
         if (parent != null) {
@@ -169,10 +135,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
             }
 
             for (AggregationPropertyDefinition<?, ?> apd : parent.getAllAggregationPropertyDefinitions()) {
-
                 allAggregationPropertyDefinitions.put(apd.getName(), apd);
             }
-
             // Tag inheritance is performed during preprocessing.
         }
     }
@@ -186,8 +150,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *         definition.
      */
     public final Collection<AbstractManagedObjectDefinition<? extends C, ? extends S>> getAllChildren() {
-        List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list =
-            new ArrayList<AbstractManagedObjectDefinition<? extends C, ? extends S>>(children.values());
+        List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list = new ArrayList<>(children.values());
 
         for (AbstractManagedObjectDefinition<? extends C, ? extends S> child : children.values()) {
             list.addAll(child.getAllChildren());
@@ -206,9 +169,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      */
     public final Collection<Constraint> getAllConstraints() {
         // This method does not used a cached set of constraints because
-        // constraints may be updated after child definitions have been
-        // defined.
-        List<Constraint> allConstraints = new LinkedList<Constraint>();
+        // constraints may be updated after child definitions have been defined.
+        List<Constraint> allConstraints = new LinkedList<>();
 
         if (parent != null) {
             allConstraints.addAll(parent.getAllConstraints());
@@ -253,10 +215,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      */
     public final Collection<RelationDefinition<? super C, ? super S>> getAllReverseRelationDefinitions() {
         // This method does not used a cached set of relations because
-        // relations may be updated after child definitions have been
-        // defined.
-        List<RelationDefinition<? super C, ? super S>> rdlist =
-            new LinkedList<RelationDefinition<? super C, ? super S>>();
+        // relations may be updated after child definitions have been defined.
+        List<RelationDefinition<? super C, ? super S>> rdlist = new LinkedList<>();
 
         if (parent != null) {
             rdlist.addAll(parent.getAllReverseRelationDefinitions());
@@ -289,12 +249,9 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *         caller is free to modify the collection if required.
      */
     public final Collection<AggregationPropertyDefinition<?, ?>> getAllReverseAggregationPropertyDefinitions() {
-        // This method does not used a cached set of aggregation properties
-        // because
-        // aggregation properties may be updated after child definitions have
-        // been
-        // defined.
-        List<AggregationPropertyDefinition<?, ?>> apdlist = new LinkedList<AggregationPropertyDefinition<?, ?>>();
+        // This method does not used a cached set of aggregation properties because
+        // aggregation properties may be updated after child definitions have been defined.
+        List<AggregationPropertyDefinition<?, ?>> apdlist = new LinkedList<>();
 
         if (parent != null) {
             apdlist.addAll(parent.getAllReverseAggregationPropertyDefinitions());

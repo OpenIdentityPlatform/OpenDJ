@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -93,9 +94,8 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
         /** {@inheritDoc} */
         @Override
         protected SingletonRelationDefinition<C, S> buildInstance(Common<C, S> common) {
-            return new SingletonRelationDefinition<C, S>(common, defaultManagedObject);
+            return new SingletonRelationDefinition<>(common, defaultManagedObject);
         }
-
     }
 
     /**

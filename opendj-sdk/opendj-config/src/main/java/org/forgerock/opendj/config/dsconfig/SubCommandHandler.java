@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -462,11 +462,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** The list of naming arguments. */
-        private final List<StringArgument> arguments = new LinkedList<StringArgument>();
+        private final List<StringArgument> arguments = new LinkedList<>();
 
-        /**
-         * Any argument exception thrown when creating the naming arguments.
-         */
+        /** Any argument exception thrown when creating the naming arguments. */
         private ArgumentException e;
 
         /**
@@ -573,63 +571,36 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     public static final int MULTI_COLUMN_THRESHOLD = 8;
 
-    /**
-     * The value for the long option property.
-     */
+    /** The value for the long option property. */
     private static final String OPTION_DSCFG_LONG_PROPERTY = "property";
-
-    /**
-     * The value for the long option record.
-     */
+    /** The value for the long option record. */
     private static final String OPTION_DSCFG_LONG_RECORD = "record";
-
-    /**
-     * The value for the long option unit-size.
-     */
+    /** The value for the long option unit-size. */
     private static final String OPTION_DSCFG_LONG_UNIT_SIZE = "unit-size";
-
-    /**
-     * The value for the long option unit-time.
-     */
+    /** The value for the long option unit-time. */
     private static final String OPTION_DSCFG_LONG_UNIT_TIME = "unit-time";
-
-    /**
-     * The value for the short option property.
-     */
+    /** The value for the short option property. */
     private static final Character OPTION_DSCFG_SHORT_PROPERTY = null;
-
-    /**
-     * The value for the short option record.
-     */
+    /** The value for the short option record. */
     private static final char OPTION_DSCFG_SHORT_RECORD = 'E';
-
-    /**
-     * The value for the short option unit-size.
-     */
+    /** The value for the short option unit-size. */
     private static final char OPTION_DSCFG_SHORT_UNIT_SIZE = 'z';
-
-    /**
-     * The value for the short option unit-time.
-     */
+    /** The value for the short option unit-time. */
     private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'm';
 
     /**
      * The argument which should be used to specify zero or more property names.
      */
     private StringArgument propertyArgument;
-
     /** The argument which should be used to request record mode. */
     private BooleanArgument recordModeArgument;
-
-    /** The tags associated with this sub-command handler. */
-    private final Set<Tag> tags = new HashSet<Tag>();
-
     /** The argument which should be used to request specific size units. */
     private StringArgument unitSizeArgument;
-
     /** The argument which should be used to request specific time units. */
     private StringArgument unitTimeArgument;
 
+    /** The tags associated with this sub-command handler. */
+    private final Set<Tag> tags = new HashSet<>();
     /** The command builder associated with this handler. */
     private CommandBuilder commandBuilder;
 
@@ -639,9 +610,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     private boolean isCommandBuilderUseful = true;
 
-    /**
-     * Create a new sub-command handler.
-     */
+    /** Create a new sub-command handler. */
     protected SubCommandHandler() {
         // No implementation required.
     }
@@ -849,7 +818,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     protected final List<String> getNamingArgValues(ConsoleApplication app, List<StringArgument> namingArgs)
             throws ArgumentException {
-        ArrayList<String> values = new ArrayList<String>(namingArgs.size());
+        ArrayList<String> values = new ArrayList<>(namingArgs.size());
         for (final StringArgument arg : namingArgs) {
             final String value = arg.getValue();
             if (value == null && !app.isInteractive()) {
@@ -867,7 +836,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     protected final Set<String> getPropertyNames() {
         if (propertyArgument != null) {
-            return new LinkedHashSet<String>(propertyArgument.getValues());
+            return new LinkedHashSet<>(propertyArgument.getValues());
         }
         return Collections.emptySet();
     }
@@ -981,7 +950,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             System.out.println(String.format("An error occured %s", e.getMessage()));
         }
 
-        SortedMap<String, String> children = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+        SortedMap<String, String> children = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         for (String childName : childNames) {
             ManagedObject<?> child;
@@ -1069,7 +1038,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
         default: {
             // Display a menu.
-            MenuBuilder<String> builder = new MenuBuilder<String>(app);
+            MenuBuilder<String> builder = new MenuBuilder<>(app);
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
             builder.setPrompt(INFO_DSCFG_FINDER_PROMPT_MANY.get(d.getUserFriendlyName()));
 
@@ -1237,8 +1206,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     static <C extends ConfigurationClient, S extends Configuration> SortedMap<String,
         ManagedObjectDefinition<? extends C, ? extends S>> getSubTypes(
             AbstractManagedObjectDefinition<C, S> d) {
-        SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
-        map = new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
+        SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map = new TreeMap<>();
 
         // If the top-level definition is instantiable, we use the value
         // "generic" or "custom".

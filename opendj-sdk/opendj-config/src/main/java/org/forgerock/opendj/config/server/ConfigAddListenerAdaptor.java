@@ -227,7 +227,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
         }
 
         // Let the add listener decide.
-        List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+        List<LocalizableMessage> reasons = new LinkedList<>();
         if (listener.isConfigurationAddAcceptable(cachedManagedObject, reasons)) {
             return true;
         } else {

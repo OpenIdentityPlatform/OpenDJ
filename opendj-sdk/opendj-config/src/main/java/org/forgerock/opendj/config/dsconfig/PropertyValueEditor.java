@@ -233,21 +233,21 @@ final class PropertyValueEditor {
                         PropertyDefinition<?> pd2 = mod.getPropertyDefinition(propertyName);
 
                         DefaultBehaviorQuery<?> query = query(pd2);
-                        return new DefaultBehaviorQuery<T>(Type.INHERITED, query.getAliasDescription());
+                        return new DefaultBehaviorQuery<>(Type.INHERITED, query.getAliasDescription());
                     }
 
                     /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitAlias(AliasDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
-                        return new DefaultBehaviorQuery<T>(Type.ALIAS, d.getSynopsis());
+                        return new DefaultBehaviorQuery<>(Type.ALIAS, d.getSynopsis());
                     }
 
                     /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
-                        return new DefaultBehaviorQuery<T>(Type.DEFINED, null);
+                        return new DefaultBehaviorQuery<>(Type.DEFINED, null);
                     }
 
                     /** {@inheritDoc} */
@@ -259,14 +259,14 @@ final class PropertyValueEditor {
                         PropertyDefinition<?> pd2 = mod.getPropertyDefinition(propertyName);
 
                         DefaultBehaviorQuery<?> query = query(pd2);
-                        return new DefaultBehaviorQuery<T>(Type.INHERITED, query.getAliasDescription());
+                        return new DefaultBehaviorQuery<>(Type.INHERITED, query.getAliasDescription());
                     }
 
                     /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
-                        return new DefaultBehaviorQuery<T>(Type.UNDEFINED, null);
+                        return new DefaultBehaviorQuery<>(Type.UNDEFINED, null);
                     }
                 };
 
@@ -374,7 +374,7 @@ final class PropertyValueEditor {
         @Override
         public <C extends ConfigurationClient, S extends Configuration> MenuResult<Void> visitAggregation(
                 AggregationPropertyDefinition<C, S> d, Void p) {
-            MenuBuilder<String> builder = new MenuBuilder<String>(app);
+            MenuBuilder<String> builder = new MenuBuilder<>(app);
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
             InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
@@ -388,7 +388,7 @@ final class PropertyValueEditor {
             }
 
             // Create a list of possible names.
-            Set<String> values = new TreeSet<String>(d);
+            Set<String> values = new TreeSet<>(d);
             ManagedObjectPath<?, ?> path = d.getParentPath();
             try {
                 values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
@@ -408,7 +408,7 @@ final class PropertyValueEditor {
                 LocalizableMessage option = getPropertyValues(d, Collections.singleton(value));
                 builder.addNumberedOption(option, MenuResult.success(value));
             }
-            MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
+            MenuCallback<String> callback = new CreateComponentCallback<>(d);
             builder.addNumberedOption(
                     INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT.get(rd.getUserFriendlyName()), callback);
 
@@ -429,7 +429,7 @@ final class PropertyValueEditor {
                     return MenuResult.cancel();
                 } else {
                     Collection<String> newValues = result.getValues();
-                    SortedSet<String> oldValues = new TreeSet<String>(mo.getPropertyValues(d));
+                    SortedSet<String> oldValues = new TreeSet<>(mo.getPropertyValues(d));
                     mo.setPropertyValues(d, newValues);
                     isLastChoiceReset = false;
                     registerModification(d, new TreeSet<String>(newValues), oldValues);
@@ -444,7 +444,7 @@ final class PropertyValueEditor {
         /** {@inheritDoc} */
         @Override
         public MenuResult<Void> visitBoolean(BooleanPropertyDefinition d, Void p) {
-            MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
+            MenuBuilder<Boolean> builder = new MenuBuilder<>(app);
 
             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUE_SINGLE.get(d.getName()));
 
@@ -468,7 +468,7 @@ final class PropertyValueEditor {
                     return MenuResult.cancel();
                 } else {
                     Collection<Boolean> newValues = result.getValues();
-                    SortedSet<Boolean> oldValues = new TreeSet<Boolean>(mo.getPropertyValues(d));
+                    SortedSet<Boolean> oldValues = new TreeSet<>(mo.getPropertyValues(d));
                     mo.setPropertyValues(d, newValues);
                     isLastChoiceReset = false;
                     registerModification(d, new TreeSet<Boolean>(newValues), oldValues);
@@ -483,7 +483,7 @@ final class PropertyValueEditor {
         /** {@inheritDoc} */
         @Override
         public <E extends Enum<E>> MenuResult<Void> visitEnum(EnumPropertyDefinition<E> d, Void x) {
-            MenuBuilder<E> builder = new MenuBuilder<E>(app);
+            MenuBuilder<E> builder = new MenuBuilder<>(app);
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
             if (d.hasOption(PropertyOption.MULTI_VALUED)) {
@@ -493,7 +493,7 @@ final class PropertyValueEditor {
                 builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUE_SINGLE.get(d.getName()));
             }
 
-            Set<E> values = new TreeSet<E>(d);
+            Set<E> values = new TreeSet<>(d);
             values.addAll(EnumSet.allOf(d.getEnumClass()));
             for (E value : values) {
                 LocalizableMessage option = getPropertyValues(d, Collections.singleton(value));
@@ -517,7 +517,7 @@ final class PropertyValueEditor {
                     return MenuResult.cancel();
                 } else {
                     Collection<E> newValues = result.getValues();
-                    SortedSet<E> oldValues = new TreeSet<E>(mo.getPropertyValues(d));
+                    SortedSet<E> oldValues = new TreeSet<>(mo.getPropertyValues(d));
                     mo.setPropertyValues(d, newValues);
                     isLastChoiceReset = false;
                     registerModification(d, new TreeSet<E>(newValues), oldValues);
@@ -538,7 +538,7 @@ final class PropertyValueEditor {
             // Set the new property value(s).
             try {
                 SortedSet<T> values = readPropertyValues(app, mo.getManagedObjectDefinition(), d);
-                SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
+                SortedSet<T> oldValues = new TreeSet<>(mo.getPropertyValues(d));
                 mo.setPropertyValues(d, values);
                 isLastChoiceReset = false;
                 registerModification(d, values, oldValues);
@@ -613,7 +613,7 @@ final class PropertyValueEditor {
                 }
 
                 // Create a list of possible names.
-                final Set<String> values = new TreeSet<String>(d);
+                final Set<String> values = new TreeSet<>(d);
                 ManagedObjectPath<?, ?> path = d.getParentPath();
                 try {
                     values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
@@ -637,7 +637,7 @@ final class PropertyValueEditor {
 
                         @Override
                         public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
-                            MenuBuilder<String> builder = new MenuBuilder<String>(app);
+                            MenuBuilder<String> builder = new MenuBuilder<>(app);
 
                             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_ADD.get(ufpn));
                             builder.setAllowMultiSelect(true);
@@ -647,7 +647,7 @@ final class PropertyValueEditor {
                                 LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(value));
                                 builder.addNumberedOption(svalue, MenuResult.success(value));
                             }
-                            MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
+                            MenuCallback<String> callback = new CreateComponentCallback<>(d);
                             builder.addNumberedOption(
                                     INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT.get(rd.getUserFriendlyName()), callback);
 
@@ -694,7 +694,7 @@ final class PropertyValueEditor {
 
                     @Override
                     public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
-                        MenuBuilder<String> builder = new MenuBuilder<String>(app);
+                        MenuBuilder<String> builder = new MenuBuilder<>(app);
 
                         builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_REMOVE.get(ufpn));
                         builder.setAllowMultiSelect(true);
@@ -776,7 +776,7 @@ final class PropertyValueEditor {
 
                         @Override
                         public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
-                            MenuBuilder<T> builder = new MenuBuilder<T>(app);
+                            MenuBuilder<T> builder = new MenuBuilder<>(app);
 
                             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_ADD.get());
                             builder.setAllowMultiSelect(true);
@@ -830,7 +830,7 @@ final class PropertyValueEditor {
 
                     @Override
                     public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
-                        MenuBuilder<T> builder = new MenuBuilder<T>(app);
+                        MenuBuilder<T> builder = new MenuBuilder<>(app);
 
                         builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_REMOVE.get());
                         builder.setAllowMultiSelect(true);
@@ -910,9 +910,9 @@ final class PropertyValueEditor {
                     @Override
                     public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
                         app.println();
-                        SortedSet<T> previousValues = new TreeSet<T>(currentValues);
+                        SortedSet<T> previousValues = new TreeSet<>(currentValues);
                         readPropertyValues(app, mo.getManagedObjectDefinition(), d, currentValues);
-                        SortedSet<T> addedValues = new TreeSet<T>(currentValues);
+                        SortedSet<T> addedValues = new TreeSet<>(currentValues);
                         addedValues.removeAll(previousValues);
                         isLastChoiceReset = false;
                         return MenuResult.success(false);
@@ -925,7 +925,7 @@ final class PropertyValueEditor {
 
                     @Override
                     public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
-                        MenuBuilder<T> builder = new MenuBuilder<T>(app);
+                        MenuBuilder<T> builder = new MenuBuilder<>(app);
 
                         builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_REMOVE.get());
                         builder.setAllowMultiSelect(true);
@@ -1110,7 +1110,7 @@ final class PropertyValueEditor {
                 final SortedSet<T> defaultValues, final SortedSet<T> oldValues, final SortedSet<T> currentValues,
                 MenuCallback<Boolean> addCallback, MenuCallback<Boolean> removeCallback) {
             // Construct a menu of actions.
-            MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
+            MenuBuilder<Boolean> builder = new MenuBuilder<>(app);
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
             // First option is for leaving the property unchanged or
@@ -1386,7 +1386,7 @@ final class PropertyValueEditor {
         public <C extends ConfigurationClient, S extends Configuration> MenuResult<Boolean> visitAggregation(
                 AggregationPropertyDefinition<C, S> d, Void p) {
             // Construct a menu of actions.
-            MenuBuilder<String> builder = new MenuBuilder<String>(app);
+            MenuBuilder<String> builder = new MenuBuilder<>(app);
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
@@ -1402,7 +1402,7 @@ final class PropertyValueEditor {
             builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<String> cancel());
 
             // Create a list of possible names.
-            final Set<String> values = new TreeSet<String>(d);
+            final Set<String> values = new TreeSet<>(d);
             ManagedObjectPath<?, ?> path = d.getParentPath();
             InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
             try {
@@ -1435,7 +1435,7 @@ final class PropertyValueEditor {
 
                 builder.addNumberedOption(option, MenuResult.success(value));
             }
-            MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
+            MenuCallback<String> callback = new CreateComponentCallback<>(d);
             builder.addNumberedOption(INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT.get(ufn), callback);
 
             // Third option is to reset the value back to its default.
@@ -1453,7 +1453,7 @@ final class PropertyValueEditor {
         @Override
         public MenuResult<Boolean> visitBoolean(BooleanPropertyDefinition d, Void p) {
             // Construct a menu of actions.
-            MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
+            MenuBuilder<Boolean> builder = new MenuBuilder<>(app);
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
             DefaultBehaviorQuery<Boolean> query = DefaultBehaviorQuery.query(d);
@@ -1509,7 +1509,7 @@ final class PropertyValueEditor {
         @Override
         public <E extends Enum<E>> MenuResult<Boolean> visitEnum(EnumPropertyDefinition<E> d, Void p) {
             // Construct a menu of actions.
-            MenuBuilder<E> builder = new MenuBuilder<E>(app);
+            MenuBuilder<E> builder = new MenuBuilder<>(app);
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
@@ -1525,7 +1525,7 @@ final class PropertyValueEditor {
             builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<E> cancel());
 
             // Create options for changing to other values.
-            Set<E> values = new TreeSet<E>(d);
+            Set<E> values = new TreeSet<>(d);
             values.addAll(EnumSet.allOf(d.getEnumClass()));
             for (E value : values) {
                 if (value.equals(currentValue) && query.isDefined()) {
@@ -1562,7 +1562,7 @@ final class PropertyValueEditor {
             displayPropertySyntax(app, d);
 
             // Construct a menu of actions.
-            MenuBuilder<T> builder = new MenuBuilder<T>(app);
+            MenuBuilder<T> builder = new MenuBuilder<>(app);
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
             // First option is for leaving the property unchanged.
@@ -1685,9 +1685,9 @@ final class PropertyValueEditor {
                 // Both newValues and oldValues sets need to use the PropertyDefinition
                 // as their comparator. Constructing a TreeSet<T> directly with the
                 // values collection will fail if the values are e.g. InetAddresses.
-                SortedSet<T> newValues = new TreeSet<T>(d);
+                SortedSet<T> newValues = new TreeSet<>(d);
                 newValues.addAll(values);
-                SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
+                SortedSet<T> oldValues = new TreeSet<>(mo.getPropertyValues(d));
                 mo.setPropertyValues(d, values);
 
                 // If there are no values when we do a reset.
@@ -1754,7 +1754,7 @@ final class PropertyValueEditor {
             rows += sz % 2;
         }
 
-        List<T> vl = new ArrayList<T>(values);
+        List<T> vl = new ArrayList<>(values);
         for (int i = 0, j = rows; i < rows; i++, j++) {
             builder.startRow();
             builder.appendCell("*)");
@@ -1815,7 +1815,7 @@ final class PropertyValueEditor {
     /** Read new values for a property. */
     private static <T> SortedSet<T> readPropertyValues(ConsoleApplication app, ManagedObjectDefinition<?, ?> d,
             PropertyDefinition<T> pd) throws ClientException {
-        SortedSet<T> values = new TreeSet<T>(pd);
+        SortedSet<T> values = new TreeSet<>(pd);
         readPropertyValues(app, d, pd, values);
         return values;
     }
@@ -1901,11 +1901,9 @@ final class PropertyValueEditor {
     /**
      * The modifications performed: we assume that at most there is one modification per property definition.
      */
-    private final List<PropertyEditorModification<?>> mods = new ArrayList<PropertyEditorModification<?>>();
+    private final List<PropertyEditorModification<?>> mods = new ArrayList<>();
 
-    /**
-     * Whether the last type of choice made by the user in a menu is a reset.
-     */
+    /** Whether the last type of choice made by the user in a menu is a reset. */
     private boolean isLastChoiceReset;
 
     /**
@@ -1955,7 +1953,7 @@ final class PropertyValueEditor {
 
         while (true) {
             // Construct the main menu.
-            MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
+            MenuBuilder<Boolean> builder = new MenuBuilder<>(app);
 
             String ufn = mo.getManagedObjectPath().getName();
             if (ufn == null) {
@@ -2063,17 +2061,17 @@ final class PropertyValueEditor {
                 registerSetModification(pd, newValues, previousValues);
             } else {
                 // Split into two operations: remove and add
-                SortedSet<T> removedValues = new TreeSet<T>(previousValues);
+                SortedSet<T> removedValues = new TreeSet<>(previousValues);
                 removedValues.removeAll(newValues);
 
                 PropertyEditorModification<T> removeMod = PropertyEditorModification.createRemoveModification(pd,
                         removedValues, previousValues);
                 addModification(removeMod);
 
-                SortedSet<T> retainedValues = new TreeSet<T>(previousValues);
+                SortedSet<T> retainedValues = new TreeSet<>(previousValues);
                 retainedValues.retainAll(newValues);
 
-                SortedSet<T> addedValues = new TreeSet<T>(newValues);
+                SortedSet<T> addedValues = new TreeSet<>(newValues);
                 addedValues.removeAll(retainedValues);
 
                 PropertyEditorModification<T> addMod = PropertyEditorModification.createAddModification(pd,
@@ -2098,11 +2096,11 @@ final class PropertyValueEditor {
         PropertyEditorModification<?> mod = getModification(pd);
         SortedSet<T> originalValues;
         if (mod != null) {
-            originalValues = new TreeSet<T>(pd);
+            originalValues = new TreeSet<>(pd);
             castAndAddValues(originalValues, mod.getOriginalValues(), pd);
             removeModification(mod);
         } else {
-            originalValues = new TreeSet<T>(previousValues);
+            originalValues = new TreeSet<>(previousValues);
         }
 
         addModification(PropertyEditorModification.createResetModification(pd, originalValues));
@@ -2126,11 +2124,11 @@ final class PropertyValueEditor {
         PropertyEditorModification<?> mod = getModification(pd);
         SortedSet<T> originalValues;
         if (mod != null) {
-            originalValues = new TreeSet<T>(pd);
+            originalValues = new TreeSet<>(pd);
             castAndAddValues(originalValues, mod.getOriginalValues(), pd);
             removeModification(mod);
         } else {
-            originalValues = new TreeSet<T>(previousValues);
+            originalValues = new TreeSet<>(previousValues);
         }
         addModification(PropertyEditorModification.createSetModification(pd, newValues, originalValues));
     }
@@ -2154,10 +2152,10 @@ final class PropertyValueEditor {
         PropertyEditorModification<T> newMod;
         SortedSet<T> originalValues;
         if (mod != null) {
-            originalValues = new TreeSet<T>(pd);
+            originalValues = new TreeSet<>(pd);
             castAndAddValues(originalValues, mod.getOriginalValues(), pd);
             if (mod.getType() == PropertyEditorModification.Type.ADD) {
-                SortedSet<T> addedValues = new TreeSet<T>(newValues);
+                SortedSet<T> addedValues = new TreeSet<>(newValues);
                 addedValues.removeAll(originalValues);
                 newMod = PropertyEditorModification.createAddModification(pd, addedValues, originalValues);
             } else {
@@ -2166,8 +2164,8 @@ final class PropertyValueEditor {
             }
             removeModification(mod);
         } else {
-            originalValues = new TreeSet<T>(previousValues);
-            SortedSet<T> addedValues = new TreeSet<T>(newValues);
+            originalValues = new TreeSet<>(previousValues);
+            SortedSet<T> addedValues = new TreeSet<>(newValues);
             addedValues.removeAll(originalValues);
             newMod = PropertyEditorModification.createAddModification(pd, addedValues, originalValues);
         }
@@ -2193,12 +2191,12 @@ final class PropertyValueEditor {
         PropertyEditorModification<T> newMod;
         SortedSet<T> originalValues;
         if (mod != null) {
-            originalValues = new TreeSet<T>(pd);
+            originalValues = new TreeSet<>(pd);
             castAndAddValues(originalValues, mod.getOriginalValues(), pd);
             if (newValues.isEmpty()) {
                 newMod = PropertyEditorModification.createRemoveModification(pd, originalValues, originalValues);
             } else if (mod.getType() == PropertyEditorModification.Type.REMOVE) {
-                SortedSet<T> removedValues = new TreeSet<T>(originalValues);
+                SortedSet<T> removedValues = new TreeSet<>(originalValues);
                 removedValues.removeAll(newValues);
                 newMod = PropertyEditorModification.createRemoveModification(pd, removedValues, originalValues);
             } else {
@@ -2207,8 +2205,8 @@ final class PropertyValueEditor {
             }
             removeModification(mod);
         } else {
-            originalValues = new TreeSet<T>(previousValues);
-            SortedSet<T> removedValues = new TreeSet<T>(originalValues);
+            originalValues = new TreeSet<>(previousValues);
+            SortedSet<T> removedValues = new TreeSet<>(originalValues);
             removedValues.removeAll(newValues);
             newMod = PropertyEditorModification.createRemoveModification(pd, removedValues, originalValues);
         }

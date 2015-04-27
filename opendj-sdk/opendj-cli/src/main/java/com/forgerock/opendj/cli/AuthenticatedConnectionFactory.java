@@ -219,7 +219,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
     /** {@inheritDoc} */
     @Override
     public Promise<Connection, LdapException> getConnectionAsync() {
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         return parentFactory.getConnectionAsync()
             .thenAsync(
                     new AsyncFunction<Connection, BindResult, LdapException>() {

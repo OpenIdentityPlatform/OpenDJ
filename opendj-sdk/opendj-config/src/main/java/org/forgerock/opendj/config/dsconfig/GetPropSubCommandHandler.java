@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -257,7 +257,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         if (propertyNames.isEmpty()) {
             pdList = d.getAllPropertyDefinitions();
         } else {
-            pdList = new LinkedList<PropertyDefinition<?>>();
+            pdList = new LinkedList<>();
             for (String name : propertyNames) {
                 try {
                     pdList.add(d.getPropertyDefinition(name));

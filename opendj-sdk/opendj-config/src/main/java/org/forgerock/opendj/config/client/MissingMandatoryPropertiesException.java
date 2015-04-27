@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
@@ -75,16 +76,10 @@ public class MissingMandatoryPropertiesException extends OperationsException {
     /** The causes of this exception. */
     private final Collection<PropertyException> causes;
 
-    /**
-     * Indicates whether the exception occurred during managed object
-     * creation.
-     */
+    /** Indicates whether the exception occurred during managed object creation. */
     private final boolean isCreate;
 
-    /**
-     * The user friendly name of the component that caused this
-     * exception.
-     */
+    /** The user friendly name of the component that caused this exception. */
     private final LocalizableMessage ufn;
 
     /**
@@ -105,7 +100,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
         Collection<PropertyException> causes, boolean isCreate) {
         super(createMessage(causes));
 
-        this.causes = new ArrayList<PropertyException>(causes);
+        this.causes = new ArrayList<>(causes);
         this.ufn = ufn;
         this.isCreate = isCreate;
     }

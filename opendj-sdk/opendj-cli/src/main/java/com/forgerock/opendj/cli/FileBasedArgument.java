@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -54,11 +54,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * multiple lines, then only the first line will be read.
  */
 public final class FileBasedArgument extends Argument {
-    /**
-     * The mapping between filenames specified and the first lines read
-     * from those files.
-     */
-    private final LinkedHashMap<String, String> namesToValues;
+    /** The mapping between filenames specified and the first lines read from those files. */
+    private final LinkedHashMap<String, String> namesToValues = new LinkedHashMap<>();
 
     /**
      * Creates a new file-based argument with the provided information.
@@ -103,8 +100,6 @@ public final class FileBasedArgument extends Argument {
             throws ArgumentException {
         super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued, true,
                 valuePlaceholder, defaultValue, propertyName, description);
-
-        namesToValues = new LinkedHashMap<String, String>();
     }
 
     /**
@@ -138,8 +133,6 @@ public final class FileBasedArgument extends Argument {
             throws ArgumentException {
         super(name, shortIdentifier, longIdentifier, isRequired, false, true, valuePlaceholder,
                 null, null, description);
-
-        namesToValues = new LinkedHashMap<String, String>();
     }
 
     /**

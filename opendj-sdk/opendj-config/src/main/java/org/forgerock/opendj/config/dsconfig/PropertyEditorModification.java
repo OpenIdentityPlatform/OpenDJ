@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -57,8 +57,8 @@ final class PropertyEditorModification<T> {
 
     private PropertyDefinition<T> propertyDefinition;
     private Type type;
-    private SortedSet<T> values;
-    private SortedSet<T> originalValues;
+    private final SortedSet<T> values;
+    private final SortedSet<T> originalValues;
 
     /**
      * The private constructor of the PropertyEditorModification.
@@ -76,8 +76,8 @@ final class PropertyEditorModification<T> {
             SortedSet<T> originalValues) {
         this.propertyDefinition = propertyDefinition;
         this.type = type;
-        this.values = new TreeSet<T>(values);
-        this.originalValues = new TreeSet<T>(originalValues);
+        this.values = new TreeSet<>(values);
+        this.originalValues = new TreeSet<>(originalValues);
     }
 
     /**
@@ -93,7 +93,7 @@ final class PropertyEditorModification<T> {
      */
     static <T> PropertyEditorModification<T> createResetModification(PropertyDefinition<T> propertyDefinition,
             SortedSet<T> originalValues) {
-        return new PropertyEditorModification<T>(propertyDefinition, Type.RESET, new TreeSet<T>(propertyDefinition),
+        return new PropertyEditorModification<>(propertyDefinition, Type.RESET, new TreeSet<T>(propertyDefinition),
                 originalValues);
     }
 
@@ -112,7 +112,7 @@ final class PropertyEditorModification<T> {
      */
     static <T> PropertyEditorModification<T> createAddModification(PropertyDefinition<T> propertyDefinition,
             SortedSet<T> addedValues, SortedSet<T> originalValues) {
-        return new PropertyEditorModification<T>(propertyDefinition, Type.ADD, addedValues, originalValues);
+        return new PropertyEditorModification<>(propertyDefinition, Type.ADD, addedValues, originalValues);
     }
 
     /**
@@ -130,7 +130,7 @@ final class PropertyEditorModification<T> {
      */
     static <T> PropertyEditorModification<T> createSetModification(PropertyDefinition<T> propertyDefinition,
             SortedSet<T> newValues, SortedSet<T> originalValues) {
-        return new PropertyEditorModification<T>(propertyDefinition, Type.SET, newValues, originalValues);
+        return new PropertyEditorModification<>(propertyDefinition, Type.SET, newValues, originalValues);
     }
 
     /**
@@ -148,11 +148,11 @@ final class PropertyEditorModification<T> {
      */
     static <T> PropertyEditorModification<T> createRemoveModification(PropertyDefinition<T> propertyDefinition,
             SortedSet<T> removedValues, SortedSet<T> originalValues) {
-        return new PropertyEditorModification<T>(propertyDefinition, Type.REMOVE, removedValues, originalValues);
+        return new PropertyEditorModification<>(propertyDefinition, Type.REMOVE, removedValues, originalValues);
     }
 
     /**
-     * Retuns the property definition associated with this modification.
+     * Returns the property definition associated with this modification.
      *
      * @return the property definition associated with this modification.
      */

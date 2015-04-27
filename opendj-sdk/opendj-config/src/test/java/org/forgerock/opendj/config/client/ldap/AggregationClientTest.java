@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -341,9 +341,8 @@ public class AggregationClientTest extends AdminTestCase {
 
     /** Asserts that the actual set of DNs contains the expected values. */
     private void assertSetEquals(SortedSet<String> actual, String... expected) {
-        SortedSet<String> values =
-                new TreeSet<String>(TestChildCfgDefn.getInstance()
-                        .getAggregationPropertyPropertyDefinition());
+        SortedSet<String> values = new TreeSet<>(
+            TestChildCfgDefn.getInstance().getAggregationPropertyPropertyDefinition());
         if (expected != null) {
             for (String value : expected) {
                 values.add(value);

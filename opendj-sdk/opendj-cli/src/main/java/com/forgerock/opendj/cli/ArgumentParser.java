@@ -104,7 +104,7 @@ public class ArgumentParser implements ToolRefDocContainer {
     private Argument versionArgument;
 
     /** The set of unnamed trailing arguments that were provided for this parser. */
-    private final ArrayList<String> trailingArguments = new ArrayList<String>();
+    private final ArrayList<String> trailingArguments = new ArrayList<>();
 
     /**
      * Indicates whether this parser will allow additional unnamed arguments at
@@ -126,13 +126,13 @@ public class ArgumentParser implements ToolRefDocContainer {
     private VersionHandler versionHandler;
 
     /** The set of arguments defined for this parser, referenced by short ID. */
-    private final HashMap<Character, Argument> shortIDMap = new HashMap<Character, Argument>();
+    private final HashMap<Character, Argument> shortIDMap = new HashMap<>();
     /** The set of arguments defined for this parser, referenced by long ID. */
-    private final HashMap<String, Argument> longIDMap = new HashMap<String, Argument>();
+    private final HashMap<String, Argument> longIDMap = new HashMap<>();
     /** The set of arguments defined for this parser, referenced by argument name. */
-    private final HashMap<String, Argument> argumentMap = new HashMap<String, Argument>();
+    private final HashMap<String, Argument> argumentMap = new HashMap<>();
     /** The total set of arguments defined for this parser. */
-    private final LinkedList<Argument> argumentList = new LinkedList<Argument>();
+    private final LinkedList<Argument> argumentList = new LinkedList<>();
 
     /** The maximum number of unnamed trailing arguments that may be provided. */
     private final int maxTrailingArguments;
@@ -164,7 +164,7 @@ public class ArgumentParser implements ToolRefDocContainer {
     private String[] rawArguments;
 
     /** Set of argument groups. */
-    protected final Set<ArgumentGroup> argumentGroups = new TreeSet<ArgumentGroup>();
+    protected final Set<ArgumentGroup> argumentGroups = new TreeSet<>();
 
     /**
      * Group for arguments that have not been explicitly grouped. These will
@@ -756,7 +756,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<>();
         map.put("locale", Locale.getDefault().getLanguage());
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("name", scriptName);
@@ -788,16 +788,16 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return              The RefSect1 element as a String.
      */
     protected String getOptionsRefSect1(String scriptName) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("name", scriptName);
         map.put("title", REF_TITLE_OPTIONS.get());
         map.put("intro", REF_INTRO_OPTIONS.get(scriptName));
 
         Argument helpArgument = null;
         final boolean printHeaders = printUsageGroupHeaders();
-        List<Map<String, Object>> groups = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> groups = new LinkedList<>();
         for (final ArgumentGroup argGroup : argumentGroups) {
-            Map<String, Object> group = new HashMap<String, Object>();
+            Map<String, Object> group = new HashMap<>();
 
             // Add the group's description if any
             if (argGroup.containsArguments() && printHeaders) {
@@ -809,7 +809,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                 }
             }
 
-            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> options = new LinkedList<>();
             final SortedSet<Argument> args = sortArguments(argGroup.getArguments());
             for (final Argument a : args) {
                 if (a.isHidden()) {
@@ -836,9 +836,9 @@ public class ArgumentParser implements ToolRefDocContainer {
             }
         }
         if (helpArgument != null) {
-            Map<String, Object> helpGroup = new HashMap<String, Object>();
+            Map<String, Object> helpGroup = new HashMap<>();
             helpGroup.put("description", null);
-            List<Map<String, Object>> options = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> options = new LinkedList<>();
             options.add(getArgumentMap(helpArgument));
             helpGroup.put("options", options);
             groups.add(helpGroup);
@@ -871,7 +871,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return      A map containing information about an argument option
      */
     private Map<String, Object> getArgumentMap(final Argument a) {
-        Map<String, Object> option = new HashMap<String, Object>();
+        Map<String, Object> option = new HashMap<>();
         option.put("synopsis", getOptionSynopsis(a));
         option.put("description", eolToNewPara(a.getDescription()));
         String dv = a.getDefaultValue();
@@ -966,7 +966,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return              The set of arguments in sorted order.
      */
     SortedSet<Argument> sortArguments(final List<Argument> arguments) {
-        final SortedSet<Argument> result = new TreeSet<Argument>(new Comparator<Argument>() {
+        final SortedSet<Argument> result = new TreeSet<>(new Comparator<Argument>() {
 
             /** {@inheritDoc} */
             @Override

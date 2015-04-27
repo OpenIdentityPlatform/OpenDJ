@@ -162,16 +162,16 @@ public final class DSConfig extends ConsoleApplication {
                                   AbstractManagedObjectDefinition<?, ?> defn) {
             final LocalizableMessage placeholder = a.getValuePlaceholder();
 
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
 
             final LocalizableMessage name = defn.getUserFriendlyName();
             map.put("dependencies", REF_DSCFG_SUBTYPE_DEPENDENCIES.get(name, name, placeholder));
             map.put("typesIntro", REF_DSCFG_SUBTYPE_TYPES_INTRO.get(name));
 
-            List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> children = new LinkedList<>();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
 
-                Map<String, Object> child = new HashMap<String, Object>();
+                Map<String, Object> child = new HashMap<>();
 
                 child.put("name", childDefn.getName());
                 child.put("default", REF_DSCFG_CHILD_DEFAULT.get(placeholder, childDefn.getUserFriendlyName()));
@@ -205,10 +205,9 @@ public final class DSConfig extends ConsoleApplication {
 
             StringBuilder sb = new StringBuilder();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
-                final List<PropertyDefinition<?>> props =
-                    new ArrayList<PropertyDefinition<?>>(childDefn.getAllPropertyDefinitions());
+                final List<PropertyDefinition<?>> props = new ArrayList<>(childDefn.getAllPropertyDefinitions());
                 Collections.sort(props);
-                Map<String, Object> map = new HashMap<String, Object>();
+                Map<String, Object> map = new HashMap<>();
                 final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + childDefn.getName();
                 map.put("id", propPrefix);
                 map.put("title", childDefn.getUserFriendlyName());
@@ -230,8 +229,7 @@ public final class DSConfig extends ConsoleApplication {
 
         private List<AbstractManagedObjectDefinition<?, ?>> getLeafChildren(
                 AbstractManagedObjectDefinition<?, ?> defn) {
-            final ArrayList<AbstractManagedObjectDefinition<?, ?>> results =
-                    new ArrayList<AbstractManagedObjectDefinition<?, ?>>();
+            final ArrayList<AbstractManagedObjectDefinition<?, ?>> results = new ArrayList<>();
             addIfLeaf(results, defn);
             Collections.sort(results, new Comparator<AbstractManagedObjectDefinition<?, ?>>() {
                 @Override
@@ -270,11 +268,11 @@ public final class DSConfig extends ConsoleApplication {
 
         private String toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn) {
             StringBuilder b = new StringBuilder();
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
 
-            List<Map<String, Object>> properties = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> properties = new LinkedList<>();
             for (PropertyDefinition<?> prop : props) {
-                Map<String, Object> property = new HashMap<String, Object>();
+                Map<String, Object> property = new HashMap<>();
                 property.put("term", prop.getName());
                 property.put("descTitle", REF_TITLE_DESCRIPTION.get());
                 property.put("description", getDescriptionString(prop));
@@ -300,7 +298,7 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         private StringBuilder appendVarListEntry(StringBuilder b, String term, Object definition) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("term", term);
             map.put("definition", definition);
             applyTemplate(b, "dscfgVarListEntry.ftl", map);
@@ -646,7 +644,7 @@ public final class DSConfig extends ConsoleApplication {
                 userFriendlyPluralName = sr.getUserFriendlyPluralName();
             }
 
-            final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+            final MenuBuilder<Integer> builder = new MenuBuilder<>(app);
 
             builder.setTitle(INFO_DSCFG_HEADING_COMPONENT_MENU_TITLE.get(userFriendlyName));
             builder.setPrompt(INFO_DSCFG_HEADING_COMPONENT_MENU_PROMPT.get());
@@ -803,7 +801,7 @@ public final class DSConfig extends ConsoleApplication {
     private SubCommandHandlerFactory handlerFactory;
 
     /** Mapping of sub-commands to their implementations. */
-    private final Map<SubCommand, SubCommandHandler> handlers = new HashMap<SubCommand, SubCommandHandler>();
+    private final Map<SubCommand, SubCommandHandler> handlers = new HashMap<>();
 
     /** Indicates whether or not a sub-command was provided. */
     private boolean hasSubCommand = true;
@@ -1013,8 +1011,8 @@ public final class DSConfig extends ConsoleApplication {
                 }
             };
 
-            Map<Tag, SortedSet<SubCommand>> groups = new TreeMap<Tag, SortedSet<SubCommand>>();
-            SortedSet<SubCommand> allSubCommands = new TreeSet<SubCommand>(c);
+            Map<Tag, SortedSet<SubCommand>> groups = new TreeMap<>();
+            SortedSet<SubCommand> allSubCommands = new TreeSet<>(c);
             for (SubCommandHandler handler : handlerFactory.getAllSubCommandHandlers()) {
                 SubCommand sc = handler.getSubCommand();
 
@@ -1025,7 +1023,7 @@ public final class DSConfig extends ConsoleApplication {
                 for (Tag tag : handler.getTags()) {
                     SortedSet<SubCommand> group = groups.get(tag);
                     if (group == null) {
-                        group = new TreeSet<SubCommand>(c);
+                        group = new TreeSet<>(c);
                         groups.put(tag, group);
                     }
                     group.add(sc);
@@ -1187,18 +1185,13 @@ public final class DSConfig extends ConsoleApplication {
             }
         };
 
-        final Set<RelationDefinition<?, ?>> relations = new TreeSet<RelationDefinition<?, ?>>(c);
+        final Set<RelationDefinition<?, ?>> relations = new TreeSet<>(c);
 
-        final Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers
-            = new HashMap<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>>();
-        final Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers
-            = new HashMap<RelationDefinition<?, ?>, DeleteSubCommandHandler>();
-        final Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers
-            = new HashMap<RelationDefinition<?, ?>, ListSubCommandHandler>();
-        final Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers
-            = new HashMap<RelationDefinition<?, ?>, GetPropSubCommandHandler>();
-        final Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers
-            = new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
+        final Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers = new HashMap<>();
+        final Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers = new HashMap<>();
+        final Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers = new HashMap<>();
+        final Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers = new HashMap<>();
+        final Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers = new HashMap<>();
 
         for (final CreateSubCommandHandler<?, ?> ch : handlerFactory.getCreateSubCommandHandlers()) {
             relations.add(ch.getRelationDefinition());
@@ -1226,7 +1219,7 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         // Main menu.
-        final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+        final MenuBuilder<Integer> builder = new MenuBuilder<>(app);
 
         builder.setTitle(INFO_DSCFG_HEADING_MAIN_MENU_TITLE.get());
         builder.setPrompt(INFO_DSCFG_HEADING_MAIN_MENU_PROMPT.get());
@@ -1483,7 +1476,7 @@ public final class DSConfig extends ConsoleApplication {
     private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) {
         final String[] commandArgs = toCommandArgs(batchCommand);
         final int length = commandArgs.length + initialArgs.size();
-        final List<String> allArguments = new ArrayList<String>(length);
+        final List<String> allArguments = new ArrayList<>(length);
         Collections.addAll(allArguments, commandArgs);
         allArguments.addAll(initialArgs);
         return allArguments.toArray(new String[length]);
@@ -1500,7 +1493,7 @@ public final class DSConfig extends ConsoleApplication {
     private List<String> removeBatchArgs(String[] args) {
         // Build a list of initial arguments,
         // removing the batch file option + its value
-        final List<String> initialArgs = new ArrayList<String>();
+        final List<String> initialArgs = new ArrayList<>();
         Collections.addAll(initialArgs, args);
         for (Iterator<String> it = initialArgs.iterator(); it.hasNext();) {
             final String elem = it.next();

@@ -416,7 +416,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
     /** Make an entry by combining two lists. */
     static Entry makeEntryFrom(List<String> base, List<String> attrs) {
-        List<String> ldif = new ArrayList<String>(base);
+        List<String> ldif = new ArrayList<>(base);
         ldif.addAll(attrs);
         return makeEntry(ldif.toArray(new String[0]));
     }

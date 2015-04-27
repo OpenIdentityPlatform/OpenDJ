@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -54,9 +55,8 @@ public enum DurationUnit {
     WEEKS(7 * 24 * 60 * 60 * 1000, "w", "weeks");
 
     /** A lookup table for resolving a unit from its name. */
-    private static final Map<String, DurationUnit> NAME_TO_UNIT;
+    private static final Map<String, DurationUnit> NAME_TO_UNIT = new HashMap<>();
     static {
-        NAME_TO_UNIT = new HashMap<String, DurationUnit>();
 
         for (DurationUnit unit : DurationUnit.values()) {
             NAME_TO_UNIT.put(unit.shortName, unit);

@@ -98,7 +98,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
          */
         public static <T> void find(ManagedObjectPath<?, ?> path, PropertyDefinition<T> pd,
                 Collection<DN> dependencies) {
-            Visitor<T> v = new Visitor<T>(dependencies);
+            Visitor<T> v = new Visitor<>(dependencies);
             DefaultBehaviorProvider<T> db = pd.getDefaultBehaviorProvider();
             db.accept(v, path);
         }
@@ -211,7 +211,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         // This change listener should be notified when dependent entries
         // are modified. Determine the dependencies and register change
         // listeners against them.
-        this.dependencies = new HashSet<DN>();
+        this.dependencies = new HashSet<>();
         this.dependencyListener = new ConfigChangeListener() {
 
             public ConfigChangeResult applyConfigurationChange(Entry configEntry) {
@@ -353,7 +353,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         }
 
         // Let the change listener decide.
-        List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+        List<LocalizableMessage> reasons = new LinkedList<>();
         if (listener.isConfigurationChangeAcceptable(cachedManagedObject, reasons)) {
             return true;
         } else {

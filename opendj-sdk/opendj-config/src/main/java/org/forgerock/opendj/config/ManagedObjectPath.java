@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.config;
@@ -244,7 +244,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         private static <C extends ConfigurationClient, S extends Configuration> InstantiableElement<C, S> create(
             InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
             String name) {
-            return new InstantiableElement<C, S>(r, d, name);
+            return new InstantiableElement<>(r, d, name);
         }
 
         /** The name of the managed object. */
@@ -289,7 +289,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         /** Factory method. */
         private static <C extends ConfigurationClient, S extends Configuration> OptionalElement<C, S> create(
             OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
-            return new OptionalElement<C, S>(r, d);
+            return new OptionalElement<>(r, d);
         }
 
         /** The optional relation. */
@@ -324,7 +324,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         /** Factory method. */
         private static <C extends ConfigurationClient, S extends Configuration> SetElement<C, S> create(
             SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
-            return new SetElement<C, S>(r, d);
+            return new SetElement<>(r, d);
         }
 
         /** The set relation. */
@@ -358,7 +358,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         /** Factory method. */
         private static <C extends ConfigurationClient, S extends Configuration> SingletonElement<C, S> create(
             SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
-            return new SingletonElement<C, S>(r, d);
+            return new SingletonElement<>(r, d);
         }
 
         /** The singleton relation. */
@@ -443,8 +443,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
     /** Single instance of a root path. */
     private static final ManagedObjectPath<RootCfgClient, RootCfg> EMPTY_PATH =
-        new ManagedObjectPath<RootCfgClient, RootCfg>(new LinkedList<Element<?, ?>>(), null,
-            RootCfgDefn.getInstance());
+        new ManagedObjectPath<>(new LinkedList<Element<?, ?>>(), null, RootCfgDefn.getInstance());
 
     /** A regular expression used to parse path elements. */
     private static final Pattern PE_REGEXP = Pattern.compile("^\\s*relation=\\s*([^+]+)\\s*"
@@ -479,7 +478,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         }
 
         // Parse the elements.
-        LinkedList<Element<?, ?>> elements = new LinkedList<Element<?, ?>>();
+        LinkedList<Element<?, ?>> elements = new LinkedList<>();
         Element<?, ?> lastElement = null;
         AbstractManagedObjectDefinition<?, ?> definition = RootCfgDefn.getInstance();
 
@@ -560,7 +559,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      */
     private static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S> create(
         LinkedList<Element<?, ?>> elements, Element<C, S> lastElement) {
-        return new ManagedObjectPath<C, S>(elements, lastElement.getRelationDefinition(),
+        return new ManagedObjectPath<>(elements, lastElement.getRelationDefinition(),
             lastElement.getManagedObjectDefinition());
     }
 
@@ -715,9 +714,9 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         if (name.trim().length() == 0) {
             throw new IllegalArgumentException("Empty or blank managed object names are not allowed");
         }
-        LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
+        LinkedList<Element<?, ?>> celements = new LinkedList<>(elements);
         celements.add(new InstantiableElement<M, N>(r, d, name));
-        return new ManagedObjectPath<M, N>(celements, r, d);
+        return new ManagedObjectPath<>(celements, r, d);
     }
 
     /**
@@ -764,9 +763,9 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
         OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
-        LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
+        LinkedList<Element<?, ?>> celements = new LinkedList<>(elements);
         celements.add(new OptionalElement<M, N>(r, d));
-        return new ManagedObjectPath<M, N>(celements, r, d);
+        return new ManagedObjectPath<>(celements, r, d);
     }
 
     /**
@@ -809,9 +808,9 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
         SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
-        LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
+        LinkedList<Element<?, ?>> celements = new LinkedList<>(elements);
         celements.add(new SingletonElement<M, N>(r, d));
-        return new ManagedObjectPath<M, N>(celements, r, d);
+        return new ManagedObjectPath<>(celements, r, d);
     }
 
     /**
@@ -856,9 +855,9 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
         SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
-        LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
+        LinkedList<Element<?, ?>> celements = new LinkedList<>(elements);
         celements.add(new SetElement<M, N>(r, d));
-        return new ManagedObjectPath<M, N>(celements, r, d);
+        return new ManagedObjectPath<>(celements, r, d);
     }
 
     /**
@@ -1048,8 +1047,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             return emptyPath();
         }
 
-        LinkedList<Element<?, ?>> celements =
-            new LinkedList<Element<?, ?>>(elements.subList(0, elements.size() - offset));
+        LinkedList<Element<?, ?>> celements = new LinkedList<>(elements.subList(0, elements.size() - offset));
         return create(celements, celements.getLast());
     }
 

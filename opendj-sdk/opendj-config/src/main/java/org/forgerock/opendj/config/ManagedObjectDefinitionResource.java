@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -46,7 +46,7 @@ import java.util.Properties;
 public final class ManagedObjectDefinitionResource {
 
     /** Mapping from definition to property tables. */
-    private final Map<AbstractManagedObjectDefinition<?, ?>, Properties> properties;
+    private final Map<AbstractManagedObjectDefinition<?, ?>, Properties> properties = new HashMap<>();
 
     /** The resource name prefix. */
     private final String prefix;
@@ -64,7 +64,6 @@ public final class ManagedObjectDefinitionResource {
 
     /** Private constructor. */
     private ManagedObjectDefinitionResource(String prefix) {
-        this.properties = new HashMap<AbstractManagedObjectDefinition<?, ?>, Properties>();
         this.prefix = prefix;
     }
 

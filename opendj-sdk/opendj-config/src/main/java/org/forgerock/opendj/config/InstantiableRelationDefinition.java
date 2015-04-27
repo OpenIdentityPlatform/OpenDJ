@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -75,7 +76,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
          * instantiable relation definition.
          */
         private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
-            new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
+            new HashMap<>();
 
         /**
          * Creates a new builder which can be used to incrementally build an
@@ -126,7 +127,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         /** {@inheritDoc} */
         @Override
         protected InstantiableRelationDefinition<C, S> buildInstance(Common<C, S> common) {
-            return new InstantiableRelationDefinition<C, S>(common, pluralName, namingPropertyDefinition,
+            return new InstantiableRelationDefinition<>(common, pluralName, namingPropertyDefinition,
                 defaultManagedObjects);
         }
 

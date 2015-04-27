@@ -682,7 +682,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -729,7 +729,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d).parent();
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -776,7 +776,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -797,8 +797,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *            The server managed object change listener.
      */
     public void registerChangeListener(ServerManagedObjectChangeListener<? super S> listener) {
-
-        ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(serverContext, path, listener);
+        ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<>(serverContext, path, listener);
         configRepository.registerChangeListener(configDN, adaptor);
 
         // TODO : go toward this
@@ -865,7 +864,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -912,7 +911,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d).parent();
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -959,7 +958,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -994,7 +993,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     void ensureIsUsable() throws ConstraintViolationException {
         // Enforce any constraints.
         boolean isUsable = true;
-        List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+        List<LocalizableMessage> reasons = new LinkedList<>();
         for (Constraint constraint : definition.getAllConstraints()) {
             for (ServerConstraintHandler handler : constraint.getServerConstraintHandlers()) {
                 try {
