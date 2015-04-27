@@ -40,7 +40,6 @@ import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -61,6 +60,7 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.server.tools.BackendTypeHelper;
+import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 
 /**
  * This is the panel that contains the Data Options: the suffix dn, whether to
@@ -83,7 +83,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   private JButton ldifBrowseButton;
 
-  private JComboBox backendTypeComboBox;
+  private JComboBox<BackendTypeUIAdapter> backendTypeComboBox;
 
   /**
    * Constructor of the panel.
@@ -117,7 +117,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     }
     else if (FieldName.BACKEND_TYPE == fieldName)
     {
-      return backendTypeComboBox.getSelectedItem().toString();
+      return ((BackendTypeUIAdapter) backendTypeComboBox.getSelectedItem()).getBackend();
     }
     else
     {
@@ -444,7 +444,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   private void createBackendTypeComboBox()
   {
     final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
-    backendTypeComboBox = new JComboBox(new DefaultComboBoxModel(backendTypeHelper.getBackendTypeNames().toArray()));
+    backendTypeComboBox = new JComboBox<>(backendTypeHelper.getBackendTypeUIAdaptors());
   }
 
   private void createDirectoryDataChoiceRadioButton(final JLabel dataLabel)

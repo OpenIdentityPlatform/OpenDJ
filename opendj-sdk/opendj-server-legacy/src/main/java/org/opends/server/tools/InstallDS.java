@@ -56,6 +56,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -208,7 +211,7 @@ public class InstallDS extends ConsoleApplication
 
   /** Different variables we use when the user decides to provide data again. */
   private NewSuffixOptions.Type lastResetPopulateOption;
-  private String lastResetBackendType;
+  private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> lastResetBackendType;
 
   private String lastResetImportFile;
   private String lastResetRejectedFile;
@@ -704,9 +707,11 @@ public class InstallDS extends ConsoleApplication
   private void setBackendType(final UserData uData, final List<LocalizableMessage> errorMessages)
   {
     final String filledBackendType = argParser.backendTypeArg.getValue();
-    if (backendTypeHelper.retrieveBackendTypeFromName(filledBackendType) != null)
+    final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend =
+        backendTypeHelper.retrieveBackendTypeFromName(filledBackendType);
+    if (backend != null)
     {
-      uData.setBackendType(filledBackendType);
+      uData.setBackendType(backend);
     }
     else
     {
@@ -1275,13 +1280,15 @@ public class InstallDS extends ConsoleApplication
 
   }
 
-  private String getOrPromptForBackendType()
+  private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> getOrPromptForBackendType()
   {
     if (argParser.backendTypeArg.isPresent())
     {
-      if (backendTypeHelper.retrieveBackendTypeFromName(argParser.backendTypeArg.getValue().toLowerCase()) != null)
+      final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend =
+          backendTypeHelper.retrieveBackendTypeFromName(argParser.backendTypeArg.getValue().toLowerCase());
+      if ( backend != null)
       {
-        return argParser.backendTypeArg.getValue();
+        return backend;
       }
       println();
       println(ERR_INSTALLDS_NO_SUCH_BACKEND_TYPE.get(
@@ -1302,7 +1309,7 @@ public class InstallDS extends ConsoleApplication
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
 
-    return backendTypeHelper.getBackendTypeNames().get(backendTypeIndex - 1);
+    return backendTypeHelper.getBackendTypes().get(backendTypeIndex - 1);
   }
 
   private Menu<Integer> getBackendTypeMenu()
@@ -1310,9 +1317,9 @@ public class InstallDS extends ConsoleApplication
     final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
     builder.setPrompt(INFO_INSTALLDS_PROMPT_BACKEND_TYPE.get());
     int index = 1;
-    for (final String backendTypeName : backendTypeHelper.getBackendTypeNames())
+    for (final ManagedObjectDefinition<?, ?> backendType : backendTypeHelper.getBackendTypes())
     {
-      builder.addNumberedOption(LocalizableMessage.raw(backendTypeName), MenuResult.success(index++));
+      builder.addNumberedOption(backendType.getUserFriendlyName(), MenuResult.success(index++));
     }
 
     final int printableIndex = getPromptedBackendTypeIndex();
@@ -1324,7 +1331,7 @@ public class InstallDS extends ConsoleApplication
   {
     if (lastResetBackendType != null)
     {
-      return backendTypeHelper.getBackendTypeNames().indexOf(lastResetBackendType) + 1;
+      return backendTypeHelper.getBackendTypes().indexOf(lastResetBackendType) + 1;
     }
     return 1;
   }

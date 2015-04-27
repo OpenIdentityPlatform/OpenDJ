@@ -57,6 +57,7 @@ import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
@@ -1381,7 +1382,7 @@ public class Utils
 
     final DataReplicationOptions repl = userInstallData.getReplicationOptions();
     final SuffixesToReplicateOptions suf = userInstallData.getSuffixesToReplicateOptions();
-    final String backendType = userInstallData.getBackendType();
+    final String backendType = userInstallData.getBackendType().getUserFriendlyName().toString();
 
     boolean createSuffix = repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
         || repl.getType() == DataReplicationOptions.Type.STANDALONE
@@ -1639,7 +1640,7 @@ public class Utils
     if (!baseDNs.isEmpty())
     {
       cmdLine.add("--" + ArgumentConstants.OPTION_LONG_BACKEND_TYPE);
-      cmdLine.add(userData.getBackendType());
+      cmdLine.add(BackendTypeHelper.filterSchemaBackendName(userData.getBackendType().getName()));
     }
 
     for (final String baseDN : baseDNs)

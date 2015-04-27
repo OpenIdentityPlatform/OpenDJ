@@ -71,6 +71,9 @@ import javax.swing.JPanel;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
@@ -122,6 +125,7 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
@@ -873,7 +877,7 @@ public abstract class Installer extends GuiApplication {
     argList.add(getUserData().getDirectoryManagerPwd());
 
     argList.add("--" + OPTION_LONG_BACKEND_TYPE);
-    argList.add(getUserData().getBackendType());
+    argList.add(BackendTypeHelper.filterSchemaBackendName(getUserData().getBackendType().getName()));
 
     if (createNotReplicatedSuffix())
     {
@@ -3730,6 +3734,7 @@ public abstract class Installer extends GuiApplication {
    * @throws UserDataException
    *           if the data provided by the user is not valid.
    */
+  @SuppressWarnings("unchecked")
   private void updateUserDataForNewSuffixOptionsPanel(final QuickSetup ui) throws UserDataException
   {
     final List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
@@ -3740,7 +3745,8 @@ public abstract class Installer extends GuiApplication {
 
     if (dataOptions != null)
     {
-      getUserData().setBackendType(ui.getFieldStringValue(FieldName.BACKEND_TYPE));
+      getUserData().setBackendType((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>)
+          ui.getFieldValue(FieldName.BACKEND_TYPE));
       getUserData().setNewSuffixOptions(dataOptions);
     }
 
