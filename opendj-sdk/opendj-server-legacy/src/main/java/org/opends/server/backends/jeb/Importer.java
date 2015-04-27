@@ -2973,11 +2973,6 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
       suffix = new Suffix(entryContainer, null, null, null);
-      if (suffix == null)
-      {
-        throw new InitializationException(
-            ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.getBaseDN()));
-      }
     }
 
     /**
@@ -3625,7 +3620,7 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The number of entries processed.
      */
-    public long getEntriesProcess()
+    public long getEntriesProcessed()
     {
       return this.entriesProcessed.get();
     }
@@ -3700,7 +3695,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         return;
       }
-      long entriesProcessed = rebuildManager.getEntriesProcess();
+      long entriesProcessed = rebuildManager.getEntriesProcessed();
       long deltaCount = entriesProcessed - previousProcessed;
       float rate = 1000f * deltaCount / deltaTime;
       float completed = 0;
@@ -3773,17 +3768,17 @@ final class Importer implements DiskSpaceMonitorHandler
     @Override
     public void run()
     {
-      long latestCount = reader.getEntriesRead() + 0;
-      long deltaCount = latestCount - previousCount;
+      long entriesRead = reader.getEntriesRead();
+      long entriesIgnored = reader.getEntriesIgnored();
+      long entriesRejected = reader.getEntriesRejected();
+      long deltaCount = entriesRead - previousCount;
+
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
       if (deltaTime == 0)
       {
         return;
       }
-      long entriesRead = reader.getEntriesRead();
-      long entriesIgnored = reader.getEntriesIgnored();
-      long entriesRejected = reader.getEntriesRejected();
       float rate = 1000f * deltaCount / deltaTime;
       logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
       try
@@ -3846,7 +3841,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         // Unlikely to happen and not critical.
       }
-      previousCount = latestCount;
+      previousCount = entriesRead;
       previousTime = latestTime;
     }
   }
