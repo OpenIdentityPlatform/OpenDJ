@@ -25,9 +25,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.io.File;
-import java.io.FilenameFilter;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -42,6 +39,10 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RestoreConfig;
 
 /**
  * Decorates a {@link Storage} with additional trace logging.
@@ -249,18 +250,6 @@ final class TracedStorage implements Storage
   }
 
   @Override
-  public File getDirectory()
-  {
-    return storage.getDirectory();
-  }
-
-  @Override
-  public FilenameFilter getFilesToBackupFilter()
-  {
-    return storage.getFilesToBackupFilter();
-  }
-
-  @Override
   public StorageStatus getStorageStatus()
   {
     return storage.getStorageStatus();
@@ -340,6 +329,36 @@ final class TracedStorage implements Storage
     storage.write(op);
   }
 
+  @Override
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
+  {
+    storage.createBackup(backupConfig);
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("Storage@%s.createBackup(%s)", storageId(), backendId);
+    }
+  }
+
+  @Override
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
+  {
+    storage.removeBackup(backupDirectory, backupID);
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("Storage@%s.removeBackup(%s, %s)", storageId(), backupID, backendId);
+    }
+  }
+
+  @Override
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
+  {
+    storage.restoreBackup(restoreConfig);
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("Storage@%s.restoreBackup(%s)", storageId(), backendId);
+    }
+  }
+
   private String hex(final ByteSequence bytes)
   {
     return bytes != null ? bytes.toByteString().toHexString() : null;
@@ -349,4 +368,6 @@ final class TracedStorage implements Storage
   {
     return System.identityHashCode(this);
   }
+
+
 }

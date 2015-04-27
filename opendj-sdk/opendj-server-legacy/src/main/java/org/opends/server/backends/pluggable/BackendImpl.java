@@ -817,7 +817,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    new BackupManager(getBackendID()).createBackup(storage, backupConfig);
+    storage.createBackup(backupConfig);
   }
 
   /** {@inheritDoc} */
@@ -825,14 +825,14 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
-    new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
+    storage.removeBackup(backupDirectory, backupID);
   }
 
   /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
-    new BackupManager(getBackendID()).restoreBackup(storage, restoreConfig);
+    storage.restoreBackup(restoreConfig);
   }
 
   /**

@@ -29,19 +29,18 @@ package org.opends.server.backends.task;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
 import java.net.InetAddress;
-import java.security.MessageDigest;
-import java.util.*;
-import java.util.zip.Deflater;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import javax.crypto.Mac;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -56,14 +55,16 @@ import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backupable;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
-import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.BackupManager;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This class provides an implementation of a Directory Server backend that may
@@ -72,8 +73,9 @@ import org.opends.server.util.LDIFWriter;
  */
 public class TaskBackend
        extends Backend<TaskBackendCfg>
-       implements ConfigurationChangeListener<TaskBackendCfg>
+       implements ConfigurationChangeListener<TaskBackendCfg>, Backupable
 {
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
@@ -1094,633 +1096,24 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void createBackup(BackupConfig backupConfig)
-         throws DirectoryException
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    // Get the properties to use for the backup.  We don't care whether or not
-    // it's incremental, so there's no need to get that.
-    String          backupID        = backupConfig.getBackupID();
-    BackupDirectory backupDirectory = backupConfig.getBackupDirectory();
-    boolean         compress        = backupConfig.compressData();
-    boolean         encrypt         = backupConfig.encryptData();
-    boolean         hash            = backupConfig.hashData();
-    boolean         signHash        = backupConfig.signHash();
-
-
-    // Create a hash map that will hold the extra backup property information
-    // for this backup.
-    HashMap<String,String> backupProperties = new HashMap<String,String>();
-
-
-    // Get the crypto manager and use it to obtain references to the message
-    // digest and/or MAC to use for hashing and/or signing.
-    CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
-    Mac           mac             = null;
-    MessageDigest digest          = null;
-    String        digestAlgorithm = null;
-    String        macKeyID    = null;
-
-    if (hash)
-    {
-      if (signHash)
-      {
-        try
-        {
-          macKeyID = cryptoManager.getMacEngineKeyEntryID();
-          backupProperties.put(BACKUP_PROPERTY_MAC_KEY_ID, macKeyID);
-
-          mac = cryptoManager.getMacEngine(macKeyID);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_MAC.get(
-              macKeyID, stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-      else
-      {
-        digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
-        backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
-
-        try
-        {
-          digest = cryptoManager.getPreferredMessageDigest();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_DIGEST.get(
-              digestAlgorithm, stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-    }
-
-
-    // Create an output stream that will be used to write the archive file.  At
-    // its core, it will be a file output stream to put a file on the disk.  If
-    // we are to encrypt the data, then that file output stream will be wrapped
-    // in a cipher output stream.  The resulting output stream will then be
-    // wrapped by a zip output stream (which may or may not actually use
-    // compression).
-    String filename = null;
-    OutputStream outputStream;
-    try
-    {
-      filename = TASKS_BACKUP_BASE_FILENAME + backupID;
-      File archiveFile = new File(backupDirectory.getPath() + File.separator +
-                                  filename);
-      if (archiveFile.exists())
-      {
-        int i=1;
-        while (true)
-        {
-          archiveFile = new File(backupDirectory.getPath() + File.separator +
-                                 filename  + "." + i);
-          if (archiveFile.exists())
-          {
-            i++;
-          }
-          else
-          {
-            filename = filename + "." + i;
-            break;
-          }
-        }
-      }
-
-      outputStream = new FileOutputStream(archiveFile, false);
-      backupProperties.put(BACKUP_PROPERTY_ARCHIVE_FILENAME, filename);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
-          get(filename, backupDirectory.getPath(), getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-
-
-    // If we should encrypt the data, then wrap the output stream in a cipher
-    // output stream.
-    if (encrypt)
-    {
-      try
-      {
-        outputStream
-                = cryptoManager.getCipherOutputStream(outputStream);
-      }
-      catch (CryptoManagerException e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_CIPHER.get(
-                stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-
-    // Wrap the file output stream in a zip output stream.
-    ZipOutputStream zipStream = new ZipOutputStream(outputStream);
-
-    LocalizableMessage message = ERR_TASKS_BACKUP_ZIP_COMMENT.get(
-            DynamicConstants.PRODUCT_NAME,
-            backupID);
-    zipStream.setComment(String.valueOf(message));
-
-    if (compress)
-    {
-      zipStream.setLevel(Deflater.DEFAULT_COMPRESSION);
-    }
-    else
-    {
-      zipStream.setLevel(Deflater.NO_COMPRESSION);
-    }
-
-    // Take tasks file and write it to the zip stream. If we
-    // are using a hash or MAC, then calculate that as well.
-    byte[] buffer = new byte[8192];
-    File tasksFile = getFileForPath(taskBackingFile);
-    String baseName = tasksFile.getName();
-
-    // We'll put the name in the hash, too.
-    if (hash) {
-      if (signHash) {
-        mac.update(getBytes(baseName));
-      } else {
-        digest.update(getBytes(baseName));
-      }
-    }
-
-    InputStream inputStream = null;
-    try {
-      ZipEntry zipEntry = new ZipEntry(baseName);
-      zipStream.putNextEntry(zipEntry);
-
-      inputStream = new FileInputStream(tasksFile);
-      while (true) {
-        int bytesRead = inputStream.read(buffer);
-        if (bytesRead < 0 || backupConfig.isCancelled()) {
-          break;
-        }
-
-        if (hash) {
-          if (signHash) {
-            mac.update(buffer, 0, bytesRead);
-          } else {
-            digest.update(buffer, 0, bytesRead);
-          }
-        }
-
-        zipStream.write(buffer, 0, bytesRead);
-      }
-
-      zipStream.closeEntry();
-      inputStream.close();
-    } catch (Exception e) {
-      logger.traceException(e);
-      close(inputStream, zipStream);
-
-      message = ERR_TASKS_BACKUP_CANNOT_BACKUP_TASKS_FILE.get(baseName,
-        stackTraceToSingleLineString(e));
-      throw new DirectoryException(
-        DirectoryServer.getServerErrorResultCode(),
-        message, e);
-    }
-
-    // We're done writing the file, so close the zip stream (which should also
-    // close the underlying stream).
-    try
-    {
-      zipStream.close();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      message = ERR_TASKS_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
-          filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-
-    // Get the digest or MAC bytes if appropriate.
-    byte[] digestBytes = null;
-    byte[] macBytes    = null;
-    if (hash)
-    {
-      if (signHash)
-      {
-        macBytes = mac.doFinal();
-      }
-      else
-      {
-        digestBytes = digest.digest();
-      }
-    }
-
-
-    // Create the backup info structure for this backup and add it to the backup
-    // directory.
-    // FIXME -- Should I use the date from when I started or finished?
-    BackupInfo backupInfo = new BackupInfo(backupDirectory, backupID,
-                                           new Date(), false, compress,
-                                           encrypt, digestBytes, macBytes,
-                                           null, backupProperties);
-
-    try
-    {
-      backupDirectory.addBackup(backupInfo);
-      backupDirectory.writeBackupDirectoryDescriptor();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      message = ERR_TASKS_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
-          backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void removeBackup(BackupDirectory backupDirectory,
-                           String backupID)
-         throws DirectoryException
-  {
-    BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
-    if (backupInfo == null)
-    {
-      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(backupID,
-        backupDirectory.getPath());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    HashMap<String,String> backupProperties = backupInfo.getBackupProperties();
-
-    String archiveFilename =
-         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    File archiveFile = new File(backupDirectory.getPath(), archiveFilename);
-
-    try
-    {
-      backupDirectory.removeBackup(backupID);
-    }
-    catch (ConfigException e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
-
-    try
-    {
-      backupDirectory.writeBackupDirectoryDescriptor();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
-        backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // Remove the archive file.
-    archiveFile.delete();
+    new BackupManager(getBackendID()).createBackup(this, backupConfig);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-         throws DirectoryException
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
-    // First, make sure that the requested backup exists.
-    BackupDirectory backupDirectory = restoreConfig.getBackupDirectory();
-    String          backupPath      = backupDirectory.getPath();
-    String          backupID        = restoreConfig.getBackupID();
-    BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
-    boolean         verifyOnly      = restoreConfig.verifyOnly();
-
-    if (backupInfo == null)
-    {
-      LocalizableMessage message =
-          ERR_TASKS_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    // Read the backup info structure to determine the name of the file that
-    // contains the archive.  Then make sure that file exists.
-    String backupFilename =
-         backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    if (backupFilename == null)
-    {
-      LocalizableMessage message =
-          ERR_TASKS_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    File backupFile = new File(backupPath + File.separator + backupFilename);
-    try
-    {
-      if (! backupFile.exists())
-      {
-        LocalizableMessage message =
-            ERR_TASKS_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
-          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // If the backup is hashed, then we need to get the message digest to use
-    // to verify it.
-    byte[] unsignedHash = backupInfo.getUnsignedHash();
-    MessageDigest digest = null;
-    if (unsignedHash != null)
-    {
-      String digestAlgorithm =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
-      if (digestAlgorithm == null)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_UNKNOWN_DIGEST.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
-      try
-      {
-        digest = DirectoryServer.getCryptoManager().getMessageDigest(
-                                                         digestAlgorithm);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-            ERR_TASKS_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    // If the backup is signed, then we need to get the MAC to use to verify it.
-    byte[] signedHash = backupInfo.getSignedHash();
-    Mac mac = null;
-    if (signedHash != null)
-    {
-      String macKeyID =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
-      if (macKeyID == null)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_UNKNOWN_MAC.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
-      try
-      {
-        mac = DirectoryServer.getCryptoManager().getMacEngine(macKeyID);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_MAC.get(
-            backupID, macKeyID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    // Create the input stream that will be used to read the backup file.  At
-    // its core, it will be a file input stream.
-    InputStream inputStream;
-    try
-    {
-      inputStream = new FileInputStream(backupFile);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
-          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // If the backup is encrypted, then we need to wrap the file input stream
-    // in a cipher input stream.
-    if (backupInfo.isEncrypted())
-    {
-      try
-      {
-        inputStream = DirectoryServer.getCryptoManager()
-                                         .getCipherInputStream(inputStream);
-      }
-      catch (CryptoManagerException e)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_CIPHER.get(
-                backupFile.getPath(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    // Now wrap the resulting input stream in a zip stream so that we can read
-    // its contents.  We don't need to worry about whether to use compression or
-    // not because it will be handled automatically.
-    ZipInputStream zipStream = new ZipInputStream(inputStream);
-
-    // Read through the archive file an entry at a time.  For each entry, update
-    // the digest or MAC if necessary.
-    byte[] buffer = new byte[8192];
-    while (true)
-    {
-      ZipEntry zipEntry;
-      try
-      {
-        zipEntry = zipStream.getNextEntry();
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
-            backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-
-      if (zipEntry == null)
-      {
-        break;
-      }
-
-      // Get the filename for the zip entry and update the digest or MAC as
-      // necessary.
-      String fileName = zipEntry.getName();
-      if (digest != null)
-      {
-        digest.update(getBytes(fileName));
-      }
-      if (mac != null)
-      {
-        mac.update(getBytes(fileName));
-      }
-
-      // If we're doing the restore, then create the output stream to write the
-      // file.
-      File tasksFile = getFileForPath(taskBackingFile);
-      String baseDirPath = tasksFile.getParent();
-      OutputStream outputStream = null;
-
-      if (!verifyOnly)
-      {
-        String filePath = baseDirPath + File.separator + fileName;
-        try
-        {
-          outputStream = new FileOutputStream(filePath);
-        }
-        catch (Exception e)
-        {
-          LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_CREATE_FILE.get(
-              backupID, filePath, stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-      }
-
-      // Read the contents of the file and update the digest or MAC as
-      // necessary.
-      try
-      {
-        while (true)
-        {
-          int bytesRead = zipStream.read(buffer);
-          if (bytesRead < 0)
-          {
-            // We've reached the end of the entry.
-            break;
-          }
-
-          // Update the digest or MAC if appropriate.
-          if (digest != null)
-          {
-            digest.update(buffer, 0, bytesRead);
-          }
-
-          if (mac != null)
-          {
-            mac.update(buffer, 0, bytesRead);
-          }
-
-          //  Write the data to the output stream if appropriate.
-          if (outputStream != null)
-          {
-            outputStream.write(buffer, 0, bytesRead);
-          }
-        }
-
-        // We're at the end of the file so close the output stream if we're
-        // writing it.
-        if (outputStream != null)
-        {
-          outputStream.close();
-        }
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
-            backupID, fileName, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
-      }
-    }
-
-    // Close the zip stream since we don't need it anymore.
-    try
-    {
-      zipStream.close();
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TASKS_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
-          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-
-    // At this point, we should be done with the contents of the ZIP file and
-    // the restore should be complete.  If we were generating a digest or MAC,
-    // then make sure it checks out.
-    if (digest != null)
-    {
-      byte[] calculatedHash = digest.digest();
-      if (Arrays.equals(calculatedHash, unsignedHash))
-      {
-        logger.info(NOTE_TASKS_RESTORE_UNSIGNED_HASH_VALID);
-      }
-      else
-      {
-        LocalizableMessage message =
-            ERR_TASKS_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-
-    if (mac != null)
-    {
-      byte[] calculatedSignature = mac.doFinal();
-      if (Arrays.equals(calculatedSignature, signedHash))
-      {
-        logger.info(NOTE_TASKS_RESTORE_SIGNED_HASH_VALID);
-      }
-      else
-      {
-        LocalizableMessage message = ERR_TASKS_RESTORE_SIGNED_HASH_INVALID.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-    }
-
-    // If we are just verifying the archive, then we're done.
-    if (verifyOnly)
-    {
-      logger.info(NOTE_TASKS_RESTORE_VERIFY_SUCCESSFUL, backupID, backupPath);
-      return;
-    }
-
-    // If we've gotten here, then the archive was restored successfully.
-    logger.info(NOTE_TASKS_RESTORE_SUCCESSFUL, backupID, backupPath);
+    new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
+  {
+    new BackupManager(getBackendID()).restoreBackup(this, restoreConfig);
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -2052,8 +1445,59 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
+  public void preloadEntryCache() throws UnsupportedOperationException
+  {
     throw new UnsupportedOperationException("Operation not supported.");
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public File getDirectory()
+  {
+    return getFileForPath(taskBackingFile).getParentFile();
+  }
+
+  private FileFilter getFilesToBackupFilter()
+  {
+    return new FileFilter()
+    {
+      @Override
+      public boolean accept(File file)
+      {
+        return file.getName().equals(getFileForPath(taskBackingFile).getName());
+      }
+    };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ListIterator<Path> getFilesToBackup() throws DirectoryException
+  {
+    return BackupManager.getFiles(getDirectory(), getFilesToBackupFilter(), getBackendID()).listIterator();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isDirectRestore()
+  {
+    return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Path beforeRestore() throws DirectoryException
+  {
+    // save current files
+    return BackupManager.saveCurrentFilesToDirectory(this, getBackendID());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
+  {
+    // restore was successful, delete the save directory
+    StaticUtils.recursiveDelete(saveDirectory.toFile());
+  }
+
 }
 

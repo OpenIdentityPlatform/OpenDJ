@@ -31,12 +31,19 @@ import static java.util.Arrays.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -48,6 +55,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -63,7 +71,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.util.BackupManager;
 
 import com.persistit.Configuration;
 import com.persistit.Configuration.BufferPoolConfiguration;
@@ -81,7 +94,7 @@ import com.persistit.exception.RollbackException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
 @SuppressWarnings("javadoc")
-public final class PersistItStorage implements Storage, ConfigurationChangeListener<PersistitBackendCfg>,
+public final class PersistItStorage implements Storage, Backupable, ConfigurationChangeListener<PersistitBackendCfg>,
   DiskSpaceMonitorHandler
 {
   private static final String VOLUME_NAME = "dj";
@@ -746,18 +759,120 @@ public final class PersistItStorage implements Storage, ConfigurationChangeListe
     return new File(parentDir, config.getBackendId());
   }
 
-  /** {@inheritDoc} */
   @Override
-  public FilenameFilter getFilesToBackupFilter()
+  public ListIterator<Path> getFilesToBackup() throws DirectoryException
   {
-    return new FilenameFilter()
+    try
     {
-      @Override
-      public boolean accept(File d, String name)
+      // FIXME: use full programmatic way of retrieving backup file once available in persistIt
+      String filesAsString = db.getManagement().execute("backup -f");
+      String[] allFiles = filesAsString.split("[\r\n]+");
+      final List<Path> files = new ArrayList<>();
+      for (String file : allFiles)
       {
-        return name.startsWith(VOLUME_NAME) && !name.endsWith(".lck");
+        files.add(Paths.get(file));
       }
-    };
+      return files.listIterator();
+    }
+    catch (RemoteException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_BACKEND_LIST_FILES_TO_BACKUP.get(config.getBackendId(), stackTraceToSingleLineString(e)));
+    }
+  }
+
+  @Override
+  public Path beforeRestore() throws DirectoryException
+  {
+    return null;
+  }
+
+  @Override
+  public boolean isDirectRestore()
+  {
+    // restore is done in an intermediate directory
+    return false;
+  }
+
+  @Override
+  public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
+  {
+    // intermediate directory content is moved to database directory
+    File targetDirectory = getDirectory();
+    recursiveDelete(targetDirectory);
+    try
+    {
+      Files.move(restoreDirectory, targetDirectory.toPath());
+    }
+    catch(IOException e)
+    {
+      LocalizableMessage msg = ERR_CANNOT_RENAME_RESTORE_DIRECTORY.get(restoreDirectory, targetDirectory.getPath());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+    }
+  }
+
+  /**
+   * Switch the database in append only mode.
+   * <p>
+   * This is a mandatory operation before performing a backup.
+   */
+  private void switchToAppendOnlyMode() throws DirectoryException
+  {
+    try
+    {
+      // FIXME: use full programmatic way of switching to this mode once available in persistIt
+      db.getManagement().execute("backup -y -a -c");
+    }
+    catch (RemoteException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_BACKEND_SWITCH_TO_APPEND_MODE.get(config.getBackendId(), stackTraceToSingleLineString(e)));
+    }
+  }
+
+  /**
+   * Terminate the append only mode of the database.
+   * <p>
+   * This should be called only when database was previously switched to append only mode.
+   */
+  private void endAppendOnlyMode() throws DirectoryException
+  {
+    try
+    {
+      // FIXME: use full programmatic way of ending append mode once available in persistIt
+      db.getManagement().execute("backup -e");
+    }
+    catch (RemoteException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_BACKEND_END_APPEND_MODE.get(config.getBackendId(), stackTraceToSingleLineString(e)));
+    }
+  }
+
+  @Override
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
+  {
+    switchToAppendOnlyMode();
+    try
+    {
+      new BackupManager(config.getBackendId()).createBackup(this, backupConfig);
+    }
+    finally
+    {
+      endAppendOnlyMode();
+    }
+  }
+
+  @Override
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
+  {
+    new BackupManager(config.getBackendId()).removeBackup(backupDirectory, backupID);
+  }
+
+  @Override
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
+  {
+    new BackupManager(config.getBackendId()).restoreBackup(this, restoreConfig);
   }
 
   /**

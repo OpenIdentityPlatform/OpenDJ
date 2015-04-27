@@ -26,8 +26,11 @@
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
-import java.io.File;
-import java.io.FilenameFilter;
+
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RestoreConfig;
 
 /**
  * This interface abstracts the underlying storage engine,
@@ -100,27 +103,40 @@ public interface Storage extends Closeable
    */
   boolean supportsBackupAndRestore();
 
-  /**
-   * Returns the file system directory in which any database files are located. This method is
-   * called when performing backup and restore operations.
-   *
-   * @return The file system directory in which any database files are located.
-   * @throws UnsupportedOperationException
-   *           If backup and restore is not supported by this storage.
-   */
-  File getDirectory();
-
-  /**
-   * Returns a filename filter which selects the files to be included in a backup. This method is
-   * called when performing backup operations.
-   *
-   * @return A filename filter which selects the files to be included in a backup.
-   * @throws UnsupportedOperationException
-   *           If backup and restore is not supported by this storage.
-   */
-  FilenameFilter getFilesToBackupFilter();
-
   /** {@inheritDoc} */
   @Override
   void close();
+
+  /**
+   * Creates a backup for this storage.
+   *
+   * @param backupConfig
+   *          The configuration to use when performing the backup.
+   * @throws DirectoryException
+   *           If a Directory Server error occurs.
+   */
+  void createBackup(BackupConfig backupConfig) throws DirectoryException;
+
+  /**
+   * Removes a backup for this storage.
+   *
+   * @param backupDirectory
+   *          The backup directory structure with which the specified backup is
+   *          associated.
+   * @param backupID
+   *          The backup ID for the backup to be removed.
+   * @throws DirectoryException
+   *           If it is not possible to remove the specified backup.
+   */
+  void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException;
+
+  /**
+   * Restores a backup for this storage.
+   *
+   * @param restoreConfig
+   *          The configuration to use when performing the restore.
+   * @throws DirectoryException
+   *           If a Directory Server error occurs.
+   */
+  void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException;
 }
