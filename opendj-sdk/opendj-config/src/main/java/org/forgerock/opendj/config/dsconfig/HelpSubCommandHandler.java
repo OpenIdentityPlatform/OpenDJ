@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -81,9 +81,7 @@ import com.forgerock.opendj.cli.TextTablePrinter;
  */
 final class HelpSubCommandHandler extends SubCommandHandler {
 
-    /**
-     * This class is used to print the default behavior of a property.
-     */
+    /** This class is used to print the default behavior of a property. */
     private static class DefaultBehaviorPrinter {
 
         /**
@@ -160,19 +158,15 @@ final class HelpSubCommandHandler extends SubCommandHandler {
          * @return Returns the user-friendly description of a property's default behavior.
          */
         public <T> LocalizableMessage print(PropertyDefinition<T> pd) {
-            DefaultVisitor<T> v = new DefaultVisitor<T>();
+            DefaultVisitor<T> v = new DefaultVisitor<>();
             return pd.getDefaultBehaviorProvider().accept(v, pd);
         }
     }
 
-    /**
-     * This class is used to print detailed syntax information about a property.
-     */
+    /** This class is used to print detailed syntax information about a property. */
     private static class SyntaxPrinter {
 
-        /**
-         * The syntax printer visitor implementation.
-         */
+        /** The syntax printer visitor implementation. */
         private static final class Visitor extends PropertyDefinitionVisitor<Void, PrintStream> {
 
             /** Private constructor. */
@@ -609,11 +603,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     /**
      * A table listing all the available types of managed object indexed on their parent type.
      */
-    private final Map<String, Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap;
+    private final Map<String, Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap = new TreeMap<>();
 
-    /**
-     * The argument which should be used to display inherited properties.
-     */
+    /** The argument which should be used to display inherited properties. */
     private BooleanArgument inheritedModeArgument;
 
     /** The sub-command associated with this handler. */
@@ -622,7 +614,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     /**
      * A table listing all the available types of managed object indexed on their tag(s).
      */
-    private final Map<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap;
+    private final Map<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap = new HashMap<>();
 
     /**
      * The argument which should be used to specify the sub-type of managed object to be retrieved.
@@ -651,9 +643,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
         // Register common arguments.
         registerPropertyNameArgument(this.subCommand);
-
-        this.categoryMap = new TreeMap<String, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
-        this.tagMap = new HashMap<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
 
         setCommandBuilderUseful(false);
     }
@@ -696,7 +685,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         // Get the sub-type mapping, creating it if necessary.
         Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes = categoryMap.get(baseName);
         if (subTypes == null) {
-            subTypes = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+            subTypes = new TreeMap<>();
             categoryMap.put(baseName, subTypes);
         }
 
@@ -706,7 +695,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         for (Tag tag : d.getAllTags()) {
             subTypes = tagMap.get(tag);
             if (subTypes == null) {
-                subTypes = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+                subTypes = new TreeMap<>();
                 tagMap.put(tag, subTypes);
             }
             subTypes.put(typeName, d);
@@ -729,7 +718,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         // Update the command builder.
         updateCommandBuilderWithSubCommand();
 
-        List<AbstractManagedObjectDefinition<?, ?>> dlist = new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
+        List<AbstractManagedObjectDefinition<?, ?>> dlist = new LinkedList<>();
         AbstractManagedObjectDefinition<?, ?> tmp = null;
 
         if (categoryName != null) {
@@ -881,18 +870,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                     continue;
                 }
 
-                Set<PropertyDefinition<?>> pds = new TreeSet<PropertyDefinition<?>>();
-                if (inheritedModeArgument.isPresent()) {
-                    pds.addAll(mod.getAllPropertyDefinitions());
-                } else {
-                    pds.addAll(mod.getPropertyDefinitions());
-
-                    // The list will still contain overridden properties.
-                    if (mod.getParent() != null) {
-                        pds.removeAll(mod.getParent().getAllPropertyDefinitions());
-                    }
-                }
-
+                Set<PropertyDefinition<?>> pds = getPropertyDefinitions(mod);
                 for (PropertyDefinition<?> pd : pds) {
                     if (pd.hasOption(PropertyOption.HIDDEN)) {
                         continue;
@@ -941,19 +919,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     private void displayVerbose(ConsoleApplication app, String categoryName, String typeName, Tag tag,
             Set<String> propertyNames) {
         // Construct line used to separate consecutive sections.
-        LocalizableMessageBuilder mb;
-
-        mb = new LocalizableMessageBuilder();
-        for (int i = 0; i < MAX_LINE_WIDTH; i++) {
-            mb.append('=');
-        }
-        LocalizableMessage c1 = mb.toMessage();
-
-        mb = new LocalizableMessageBuilder();
-        for (int i = 0; i < MAX_LINE_WIDTH; i++) {
-            mb.append('-');
-        }
-        LocalizableMessage c2 = mb.toMessage();
+        LocalizableMessage c1 = buildLine('=', MAX_LINE_WIDTH);
+        LocalizableMessage c2 = buildLine('-', MAX_LINE_WIDTH);
 
         // Display help for each managed object.
         boolean isFirstManagedObject = true;
@@ -989,17 +956,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                     continue;
                 }
 
-                Set<PropertyDefinition<?>> pds = new TreeSet<PropertyDefinition<?>>();
-                if (inheritedModeArgument.isPresent()) {
-                    pds.addAll(mod.getAllPropertyDefinitions());
-                } else {
-                    pds.addAll(mod.getPropertyDefinitions());
-
-                    // The list will still contain overridden properties.
-                    if (mod.getParent() != null) {
-                        pds.removeAll(mod.getParent().getAllPropertyDefinitions());
-                    }
-                }
+                Set<PropertyDefinition<?>> pds = getPropertyDefinitions(mod);
 
                 boolean isFirstProperty = true;
                 for (PropertyDefinition<?> pd : pds) {
@@ -1017,9 +974,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
                     if (isFirstProperty) {
                         // User has requested properties relating to this managed
-                        // object definition, so display the summary of the
-                        // managed
-                        // object.
+                        // object definition, so display the summary of the managed object.
                         if (!isFirstManagedObject) {
                             app.println();
                             app.println(c1);
@@ -1048,5 +1003,28 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 }
             }
         }
+    }
+
+    private LocalizableMessage buildLine(char c, int length) {
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
+        for (int i = 0; i < length; i++) {
+            mb.append(c);
+        }
+        return mb.toMessage();
+    }
+
+    private Set<PropertyDefinition<?>> getPropertyDefinitions(AbstractManagedObjectDefinition<?, ?> mod) {
+        Set<PropertyDefinition<?>> pds = new TreeSet<>();
+        if (inheritedModeArgument.isPresent()) {
+            pds.addAll(mod.getAllPropertyDefinitions());
+        } else {
+            pds.addAll(mod.getPropertyDefinitions());
+
+            // The list will still contain overridden properties.
+            if (mod.getParent() != null) {
+                pds.removeAll(mod.getParent().getAllPropertyDefinitions());
+            }
+        }
+        return pds;
     }
 }
