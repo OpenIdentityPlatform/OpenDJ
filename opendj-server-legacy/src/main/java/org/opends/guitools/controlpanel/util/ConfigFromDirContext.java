@@ -493,6 +493,7 @@ public class ConfigFromDirContext extends ConfigReader
       final PluggableBackendCfgClient db)
   {
     indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
+    indexes.add(new IndexDescriptor(ID2CHILDREN_COUNT_NAME));
     try
     {
       for (final String indexName : db.listBackendIndexes())

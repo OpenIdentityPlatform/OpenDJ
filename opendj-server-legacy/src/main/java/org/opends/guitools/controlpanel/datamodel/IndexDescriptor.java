@@ -43,7 +43,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
 {
 
   private static final String[] DATABASE_INDEXES = new String[] {
-    DN2ID_INDEX_NAME, ID2CHILDREN_INDEX_NAME, ID2SUBTREE_INDEX_NAME };
+    DN2ID_INDEX_NAME, ID2CHILDREN_COUNT_NAME, ID2CHILDREN_INDEX_NAME, ID2SUBTREE_INDEX_NAME };
 
   private final SortedSet<IndexTypeDescriptor> types = new TreeSet<IndexTypeDescriptor>();
   private final boolean isDatabaseIndex;
