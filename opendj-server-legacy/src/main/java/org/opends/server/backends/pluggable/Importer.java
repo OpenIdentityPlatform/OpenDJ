@@ -2639,9 +2639,7 @@ final class Importer
     }
   }
 
-  /**
-   * The rebuild index manager handles all rebuild index related processing.
-   */
+  /** The rebuild index manager handles all rebuild index related processing. */
   private class RebuildIndexManager extends ImportTask
   {
 
@@ -2669,39 +2667,17 @@ final class Importer
     /** Total entries processed. */
     private final AtomicLong entriesProcessed = new AtomicLong(0);
 
-    /**
-     * Create an instance of the rebuild index manager using the specified
-     * parameters.
-     *
-     * @param rebuildConfig
-     *          The rebuild configuration to use.
-     * @param cfg
-     *          The local DB configuration to use.
-     */
-    public RebuildIndexManager(Storage storage, RebuildConfig rebuildConfig, PluggableBackendCfg cfg)
+    RebuildIndexManager(Storage storage, RebuildConfig rebuildConfig, PluggableBackendCfg cfg)
     {
       super(storage);
       this.rebuildConfig = rebuildConfig;
       this.cfg = cfg;
     }
 
-    /**
-     * Initialize a rebuild index manager.
-     *
-     * @throws ConfigException
-     *           If an configuration error occurred.
-     * @throws InitializationException
-     *           If an initialization error occurred.
-     */
-    public void initialize() throws ConfigException, InitializationException
+    void initialize() throws ConfigException, InitializationException
     {
       entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
       suffix = new Suffix(entryContainer, null, null, null);
-      if (suffix == null)
-      {
-        throw new InitializationException(
-            ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.getBaseDN()));
-      }
     }
 
     private void printStartMessage(WriteableTransaction txn) throws StorageRuntimeException
@@ -2727,16 +2703,10 @@ final class Importer
       }
     }
 
-    /**
-     * Print stop message.
-     *
-     * @param startTime
-     *          The time the rebuild started.
-     */
-    public void printStopMessage(long startTime)
+    void printStopMessage(long rebuildStartTime)
     {
       long finishTime = System.currentTimeMillis();
-      long totalTime = finishTime - startTime;
+      long totalTime = finishTime - rebuildStartTime;
       float rate = 0;
       if (totalTime > 0)
       {
@@ -3225,7 +3195,7 @@ final class Importer
      *
      * @return The number of entries processed.
      */
-    public long getEntriesProcess()
+    long getEntriesProcessed()
     {
       return this.entriesProcessed.get();
     }
@@ -3235,7 +3205,7 @@ final class Importer
      *
      * @return The total number for entries to process.
      */
-    public long getTotalEntries()
+    long getTotalEntries()
     {
       return this.totalEntries;
     }
@@ -3278,7 +3248,7 @@ final class Importer
       {
         return;
       }
-      long entriesProcessed = rebuildManager.getEntriesProcess();
+      long entriesProcessed = rebuildManager.getEntriesProcessed();
       long deltaCount = entriesProcessed - previousProcessed;
       float rate = 1000f * deltaCount / deltaTime;
       float completed = 0;
@@ -3318,21 +3288,21 @@ final class Importer
     @Override
     public void run()
     {
-      long latestCount = reader.getEntriesRead() + 0;
-      long deltaCount = latestCount - previousCount;
+      long entriesRead = reader.getEntriesRead();
+      long entriesIgnored = reader.getEntriesIgnored();
+      long entriesRejected = reader.getEntriesRejected();
+      long deltaCount = entriesRead - previousCount;
+
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
       if (deltaTime == 0)
       {
         return;
       }
-      long entriesRead = reader.getEntriesRead();
-      long entriesIgnored = reader.getEntriesIgnored();
-      long entriesRejected = reader.getEntriesRejected();
       float rate = 1000f * deltaCount / deltaTime;
       logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
 
-      previousCount = latestCount;
+      previousCount = entriesRead;
       previousTime = latestTime;
     }
   }
@@ -3346,12 +3316,7 @@ final class Importer
     /** The time in milliseconds of the previous progress report. */
     private long previousTime;
 
-    /**
-     * Create a new import progress task.
-     *
-     * @param latestCount
-     *          The latest count of entries processed in phase one.
-     */
+    /** Create a new import progress task. */
     public SecondPhaseProgressTask()
     {
       previousTime = System.currentTimeMillis();
@@ -3638,14 +3603,6 @@ final class Importer
     private final TreeName dnCache = new TreeName("", DB_NAME);
     private final Storage storage;
 
-    /**
-     * Create a cache of DNs when DN validation is performed in phase one processing.
-     *
-     * @param dnCachePath
-     *          The file path to create the DN cache
-     * @throws StorageRuntimeException
-     *           If an error occurs creating the DN cache.
-     */
     private DNCacheImpl(File dnCachePath) throws StorageRuntimeException
     {
       final Map<String, Object> returnValues = new HashMap<>();
