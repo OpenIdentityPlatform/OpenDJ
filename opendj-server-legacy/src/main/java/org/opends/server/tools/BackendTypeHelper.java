@@ -42,120 +42,118 @@ import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 
 /**
- * Helper class for setup applications.
- *
- * It helps applications to provide a backend type choice to the user.
+ * Helper class for setup applications. It helps applications to provide a
+ * backend type choice to the user.
  */
 public class BackendTypeHelper
 {
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
+  private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
 
-    /** Creates a new backend type helper. */
-    public BackendTypeHelper()
+  /** Creates a new backend type helper. */
+  public BackendTypeHelper()
+  {
+    initializeConfigurationFramework();
+    createAvailableBackendsList();
+  }
+
+  private void initializeConfigurationFramework()
+  {
+    if (!ConfigurationFramework.getInstance().isInitialized())
     {
-      initializeConfigurationFramework();
-      createAvailableBackendsList();
-    }
-
-    private void initializeConfigurationFramework()
-    {
-      if (!ConfigurationFramework.getInstance().isInitialized())
+      try
       {
-          try
-          {
-            ConfigurationFramework.getInstance().initialize();
-          }
-          catch (ConfigException e)
-          {
-            final LocalizableMessage message = LocalizableMessage.raw(
-                "Error occured while loading the configuration framework: " + e.getLocalizedMessage());
-            logger.error(message);
-            throw new RuntimeException(message.toString());
-          }
+        ConfigurationFramework.getInstance().initialize();
+      }
+      catch (ConfigException e)
+      {
+        final LocalizableMessage message = LocalizableMessage.raw(
+            "Error occured while loading the configuration framework: " + e.getLocalizedMessage());
+        logger.error(message);
+        throw new RuntimeException(message.toString());
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void createAvailableBackendsList()
+  {
+    backends = new LinkedList<>();
+    backends.add(LocalDBBackendCfgDefn.getInstance());
+
+    for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
+    {
+      // Filtering out only the non-abstract backends to avoid users attempt to create abstract ones
+      if (backendType instanceof ManagedObjectDefinition)
+      {
+        backends.add((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
+      }
+    }
+  }
+
+  ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> retrieveBackendTypeFromName(
+      final String backendTypeStr)
+  {
+    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : getBackendTypes())
+    {
+      final String name = backendType.getName();
+      if (backendTypeStr.equalsIgnoreCase(name)
+          || backendTypeStr.equalsIgnoreCase(filterSchemaBackendName(name)))
+      {
+        return backendType;
       }
     }
 
-    @SuppressWarnings("unchecked")
-    private void createAvailableBackendsList()
-    {
-      backends = new LinkedList<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>>();
-      backends.add(LocalDBBackendCfgDefn.getInstance());
+    return null;
+  }
 
-      for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
-      {
-        // Filtering out only the non-abstract backends to avoid users attempt to create abstract ones
-        if (backendType instanceof ManagedObjectDefinition)
-        {
-            backends.add((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
-        }
-      }
+  List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> getBackendTypes()
+  {
+    return backends;
+  }
+
+  String getPrintableBackendTypeNames()
+  {
+    String backendTypeNames = "";
+    for (final String backendName : getBackendTypeNames())
+    {
+      backendTypeNames += backendName + ", ";
     }
 
-    ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> retrieveBackendTypeFromName(
-            final String backendTypeStr)
+    if (backendTypeNames.isEmpty())
     {
-      for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : getBackendTypes())
-      {
-        final String name = backendType.getName();
-        if (backendTypeStr.equalsIgnoreCase(name)
-            || backendTypeStr.equalsIgnoreCase(filterSchemaBackendName(name)))
-        {
-          return backendType;
-        }
-      }
-
-      return null;
+      return "Impossible to retrieve supported backend type list";
     }
 
-    List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> getBackendTypes()
+    return backendTypeNames.substring(0, backendTypeNames.length() - 2);
+  }
+
+  /**
+   * Return a list of all available backend type printable names.
+   *
+   * @return A list of all available backend type printable names.
+   */
+  public List<String> getBackendTypeNames()
+  {
+    final List<String> backendTypeNames = new LinkedList<>();
+    for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : backends)
     {
-      return backends;
+      backendTypeNames.add(filterSchemaBackendName(backendType.getName()));
     }
 
+    return backendTypeNames;
+  }
 
-    String getPrintableBackendTypeNames()
+  String filterSchemaBackendName(final String dsCfgBackendName)
+  {
+    final String cfgNameRegExp = "(.*)-backend.*";
+    final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
+    if (regExpMatcher.matches())
     {
-      String backendTypeNames = "";
-      for (final String backendName : getBackendTypeNames())
-      {
-        backendTypeNames += backendName + ", ";
-      }
-
-      if (backendTypeNames.isEmpty())
-      {
-        return "Impossible to retrieve supported backend type list";
-      }
-
-      return backendTypeNames.substring(0, backendTypeNames.length() - 2);
+      return regExpMatcher.group(1);
     }
 
-    /**
-     * Return a list of all available backend type printable names.
-     *
-     * @return A list of all available backend type printable names.
-     */
-    public List<String> getBackendTypeNames()
-    {
-      final List<String> backendTypeNames = new LinkedList<String>();
-      for (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType : backends)
-      {
-        backendTypeNames.add(filterSchemaBackendName(backendType.getName()));
-      }
-
-      return backendTypeNames;
-    }
-
-    String filterSchemaBackendName(final String dsCfgBackendName)
-    {
-      final String cfgNameRegExp = "(.*)-backend.*";
-      final Matcher regExpMatcher = Pattern.compile(cfgNameRegExp, Pattern.CASE_INSENSITIVE).matcher(dsCfgBackendName);
-      if (regExpMatcher.matches())
-      {
-        return regExpMatcher.group(1);
-      }
-
-      return dsCfgBackendName;
-    }
+    return dsCfgBackendName;
+  }
 }
