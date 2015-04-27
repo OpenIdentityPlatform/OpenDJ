@@ -36,6 +36,7 @@ import java.util.EnumSet;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Reject;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.CursorTransformer.ValueTransformer;
 import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
@@ -46,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.util.StaticUtils;
 
 /**
  * Represents an index implemented by a tree in which each key maps to a set of entry IDs. The key
@@ -126,11 +126,14 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   @Override
   public final void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded) throws StorageRuntimeException
   {
+    Reject.ifNull(txn, "txn must not be null");
+    Reject.ifNull(idsToBeAdded, "idsToBeAdded must not be null");
     ByteSequence key = idsToBeAdded.getKey();
     ByteString value = txn.read(getName(), key);
     if (value != null)
     {
-      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit);
+      final EntryIDSet entryIDSet = codec.decode(key, value);
+      final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
       importIDSet.merge(idsToBeAdded);
       txn.put(getName(), key, importIDSet.valueToByteString(codec));
     }
@@ -143,25 +146,26 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   @Override
   public final void importRemove(WriteableTransaction txn, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
   {
+    Reject.ifNull(txn, "txn must not be null");
+    Reject.ifNull(idsToBeRemoved, "idsToBeRemoved must not be null");
     ByteSequence key = idsToBeRemoved.getKey();
     ByteString value = txn.read(getName(), key);
-    if (value != null)
+    if (value == null)
     {
-      final ImportIDSet importIDSet = new ImportIDSet(key, codec.decode(key, value), indexEntryLimit);
-      importIDSet.remove(idsToBeRemoved);
-      if (importIDSet.isDefined() && importIDSet.size() == 0)
-      {
-        txn.delete(getName(), key);
-      }
-      else
-      {
-        txn.put(getName(), key, importIDSet.valueToByteString(codec));
-      }
+      // Should never happen -- the keys should always be there.
+      throw new IllegalStateException("Expected to have a value associated to key " + key + " for index " + getName());
+    }
+
+    final EntryIDSet entryIDSet = codec.decode(key, value);
+    final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
+    importIDSet.remove(idsToBeRemoved);
+    if (importIDSet.isDefined() && importIDSet.size() == 0)
+    {
+      txn.delete(getName(), key);
     }
     else
     {
-      // Should never happen -- the keys should always be there.
-      throw new RuntimeException();
+      txn.put(getName(), key, importIDSet.valueToByteString(codec));
     }
   }
 
@@ -178,9 +182,8 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
       boolean success = txn.delete(getName(), key);
       if (!success && logger.isTraceEnabled())
       {
-        StringBuilder builder = new StringBuilder();
-        StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
-        logger.trace("The expected key does not exist in the index %s.\nKey:%s ", getName(), builder);
+        logger.trace("The expected key does not exist in the index %s.\nKey:%s ",
+            getName(), key.toHexPlusAsciiString(4));
       }
       return;
     }
@@ -250,41 +253,22 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     {
       if (entryIDSet.isDefined() && indexEntryLimit > 0)
       {
-        long idCountDelta = addedIDs.size();
-        if (deletedIDs != null)
-        {
-          idCountDelta -= deletedIDs.size();
-        }
+        final long nbDeleted = deletedIDs != null ? deletedIDs.size() : 0;
+        final long idCountDelta = addedIDs.size() - nbDeleted;
         if (idCountDelta + entryIDSet.size() >= indexEntryLimit)
         {
           entryIDSet = newUndefinedSetWithKey(key);
           if (logger.isTraceEnabled())
           {
-            StringBuilder builder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
             logger.trace("Index entry exceeded in index %s. " + "Limit: %d. ID list size: %d.\nKey:%s", getName(),
-                indexEntryLimit, idCountDelta + addedIDs.size(), builder);
+                indexEntryLimit, idCountDelta + addedIDs.size(), key.toHexPlusAsciiString(4));
           }
-        }
-        else
-        {
-          entryIDSet.addAll(addedIDs);
-          if (deletedIDs != null)
-          {
-            entryIDSet.removeAll(deletedIDs);
-          }
+          return entryIDSet;
         }
       }
-      else
-      {
-        entryIDSet.addAll(addedIDs);
-        if (deletedIDs != null)
-        {
-          entryIDSet.removeAll(deletedIDs);
-        }
-      }
+      entryIDSet.addAll(addedIDs);
     }
-    else if (deletedIDs != null)
+    if (deletedIDs != null)
     {
       entryIDSet.removeAll(deletedIDs);
     }
@@ -295,9 +279,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   {
     if (logger.isTraceEnabled())
     {
-      StringBuilder builder = new StringBuilder();
-      StaticUtils.byteArrayToHexPlusAscii(builder, key.toByteArray(), 4);
-      logger.trace("The expected key does not exist in the index %s.\nKey:%s", getName(), builder);
+      logger.trace("The expected key does not exist in the index %s.\nKey:%s", getName(), key.toHexPlusAsciiString(4));
     }
 
     setTrusted(txn, false);
