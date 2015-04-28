@@ -991,7 +991,8 @@ public final class Rest2LDAP {
         return configureConnectionFactory(configuration, (ClassLoader) null);
     }
 
-    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration, final ClassLoader providerClassLoader) {
+    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
+                                                                final ClassLoader providerClassLoader) {
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
