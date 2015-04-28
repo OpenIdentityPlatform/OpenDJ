@@ -1026,20 +1026,17 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     FilePermission backendPermission = decodeDBDirPermissions(curCfg);
 
     // Get the backend database backendDirectory permissions and apply
-    if(FilePermission.canSetPermissions())
+    try
     {
-      try
+      if(!FilePermission.setPermissions(backendDir, backendPermission))
       {
-        if(!FilePermission.setPermissions(backendDir, backendPermission))
-        {
-          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
-        }
+        logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
       }
-      catch(Exception e)
-      {
-        // Log an warning that the permissions were not set.
-        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDir, e);
-      }
+    }
+    catch(Exception e)
+    {
+      // Log an warning that the permissions were not set.
+      logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDir, e);
     }
   }
 

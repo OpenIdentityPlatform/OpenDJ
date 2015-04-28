@@ -36,10 +36,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -48,7 +46,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.UtilityMessages.*;
 
@@ -114,27 +111,9 @@ public final class Platform
     private static Constructor<?> certKeyGenCons, X500NameCons;
 
     /** Filesystem APIs */
-    private static Method FILESYSTEMS_GETSTORES;
-    private static Method FILESYSTEMS_PATHSGET;
-
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     static
     {
-
-      try
-      {
-        // FileSystem and FileStores APIs were introduced in JDK 7.
-        FILESYSTEMS_PATHSGET = Class.forName("java.nio.file.Paths").getMethod("get", String.class, String[].class);
-        FILESYSTEMS_GETSTORES = Class.forName("java.nio.file.Files").getMethod(
-            "getFileStore", Class.forName("java.nio.file.Path"));
-      }
-      catch (Exception e)
-      {
-        FILESYSTEMS_GETSTORES = null;
-        FILESYSTEMS_PATHSGET = null;
-        logger.warn(WARN_UNABLE_TO_USE_FILESYSTEM_API.get());
-      }
 
       String x509pkg = pkgPrefix + ".x509";
       String certAndKeyGen;
@@ -331,16 +310,6 @@ public final class Platform
 
 
 
-    /**
-     * Normalize the data in the specified buffer.
-     *
-     * @param buffer
-     *          The buffer to normalize.
-     */
-    public abstract void normalize(StringBuilder buffer);
-
-
-
     private long getUsableMemoryForCaching()
     {
       long youngGenSize = 0;
@@ -396,40 +365,6 @@ public final class Platform
         return (runTime.freeMemory() + (runTime.maxMemory() - runTime
             .totalMemory())) * 40 / 100;
       }
-    }
-
-    private File getFilesystem(File directory) throws IOException
-    {
-      if (FILESYSTEMS_GETSTORES != null)
-      {
-        try
-        {
-          Object dirFStore = FILESYSTEMS_GETSTORES.invoke(null,
-              FILESYSTEMS_PATHSGET.invoke(null, directory.getAbsolutePath(), new String[0]));
-          File parentDir = directory.getParentFile();
-          /*
-           * Since there is no concept of mount point in the APIs, iterate on all parents of
-           * the given directory until the FileSystem Store changes (hint of a different
-           * device, hence a mount point) or we get to root, which works too.
-           */
-          while (parentDir != null)
-          {
-            Object parentFStore = FILESYSTEMS_GETSTORES.invoke(null,
-                FILESYSTEMS_PATHSGET.invoke(null, parentDir.getAbsolutePath(), new String[0]));
-            if (!parentFStore.equals(dirFStore))
-            {
-              return directory;
-            }
-            directory = directory.getParentFile();
-            parentDir = directory.getParentFile();
-          }
-        }
-        catch (Exception e)
-        {
-          throw new IOException(e);
-        }
-      }
-      return directory;
     }
   }
 
@@ -528,57 +463,6 @@ public final class Platform
    */
   private static class DefaultPlatformIMPL extends PlatformIMPL
   {
-    /** Normalize method. */
-    private static final Method NORMALIZE;
-    /** Normalized form method. */
-    private static final Object FORM_NFKC;
-
-    static
-    {
-      Method normalize = null;
-      Object formNFKC = null;
-      try
-      {
-        Class<?> normalizer = Class.forName("java.text.Normalizer");
-        Class<?> normalizerForm = Class.forName("java.text.Normalizer$Form");
-        normalize = normalizer.getMethod("normalize", CharSequence.class,
-            normalizerForm);
-        formNFKC = normalizerForm.getField("NFKD").get(null);
-      }
-      catch (Exception ex)
-      {
-        // Do not use Normalizer. The values are already set to null.
-      }
-      NORMALIZE = normalize;
-      FORM_NFKC = formNFKC;
-    }
-
-
-
-    @Override
-    public void normalize(StringBuilder buffer)
-    {
-      try
-      {
-        String normal = (String) NORMALIZE.invoke(null, buffer, FORM_NFKC);
-        buffer.replace(0, buffer.length(), normal);
-      }
-      catch (Exception ex)
-      {
-        // Don't do anything. buffer should be used.
-      }
-    }
-  }
-
-  /**
-   * Normalize the specified buffer.
-   *
-   * @param buffer
-   *          The buffer to normalize.
-   */
-  public static void normalize(StringBuilder buffer)
-  {
-    IMPL.normalize(buffer);
   }
 
 
@@ -624,17 +508,5 @@ public final class Platform
   public static long getUsableMemoryForCaching()
   {
     return IMPL.getUsableMemoryForCaching();
-  }
-
-  /**
-   * Returns the filesystem on which the given directory resides by its mountpoint.
-   *
-   * @param directory the directory whose filesystem is required
-   * @return the filesystem on which the given directory resides
-   * @throws IOException The exception in case information on filesystem/storage cannot be found
-   */
-  public static File getFilesystem(File directory) throws IOException
-  {
-    return IMPL.getFilesystem(directory);
   }
 }

@@ -34,7 +34,6 @@ import static org.testng.Assert.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.Platform;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -240,10 +239,7 @@ public final class TestRDN extends TypesTestCase {
   @Test(dataProvider = "testRDNs")
   public void testNormalizationToSafeUrlString(String rawRDN, String normRDN, String stringRDN) throws Exception {
     RDN rdn = RDN.decode(rawRDN);
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(normRDN);
-    Platform.normalize(buffer);
-    assertEquals(rdn.toNormalizedUrlSafeString(), buffer.toString());
+    assertEquals(rdn.toNormalizedUrlSafeString(), normRDN);
   }
 
 

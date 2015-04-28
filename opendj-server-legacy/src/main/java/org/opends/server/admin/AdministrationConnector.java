@@ -571,22 +571,19 @@ public final class AdministrationConnector implements
       }
 
       // Change the password file permission if possible
-      if (FilePermission.canSetPermissions())
+      try
       {
-        try
-        {
-          if (!FilePermission.setPermissions(new File(pinFilePath),
-              new FilePermission(0600)))
-          {
-            // Log a warning that the permissions were not set.
-            logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
-          }
-        }
-        catch (DirectoryException e)
+        if (!FilePermission.setPermissions(new File(pinFilePath),
+            new FilePermission(0600)))
         {
           // Log a warning that the permissions were not set.
           logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
         }
+      }
+      catch (DirectoryException e)
+      {
+        // Log a warning that the permissions were not set.
+        logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
       }
 
       // Delete the exported certificate

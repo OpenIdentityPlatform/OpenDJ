@@ -295,10 +295,7 @@ public class CreateRCScript
 
       w.close();
 
-      if (FilePermission.canSetPermissions())
-      {
-        FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
-      }
+      FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
     }
     catch (Exception e)
     {
