@@ -863,15 +863,39 @@ public final class Rest2LDAP {
      *            The JSON configuration.
      * @param name
      *            The name of the connection factory configuration to be parsed.
+     * @param providerClassLoader
+     *            The {@link ClassLoader} used to fetch the
+     *            {@link org.forgerock.opendj.ldap.spi.TransportProvider}.
+     *            This can be useful in OSGI environments.
+     * @return A new connection factory using the provided JSON configuration.
+     * @throws IllegalArgumentException
+     *             If the configuration is invalid.
+     */
+    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
+                                                               final String name,
+                                                               final ClassLoader providerClassLoader) {
+        final JsonValue normalizedConfiguration =
+                normalizeConnectionFactory(configuration, name, 0);
+        return configureConnectionFactory(normalizedConfiguration, providerClassLoader);
+
+    }
+
+    /**
+     * Creates a new connection factory using the named configuration in the
+     * provided JSON list of factory configurations. See the sample
+     * configuration file for a detailed description of its content.
+     *
+     * @param configuration
+     *            The JSON configuration.
+     * @param name
+     *            The name of the connection factory configuration to be parsed.
      * @return A new connection factory using the provided JSON configuration.
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
     public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
             final String name) {
-        final JsonValue normalizedConfiguration =
-                normalizeConnectionFactory(configuration, name, 0);
-        return configureConnectionFactory(normalizedConfiguration);
+        return configureConnectionFactory(configuration, name, null);
     }
 
     /**
@@ -964,6 +988,10 @@ public final class Rest2LDAP {
     }
 
     private static ConnectionFactory configureConnectionFactory(final JsonValue configuration) {
+        return configureConnectionFactory(configuration, (ClassLoader) null);
+    }
+
+    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration, final ClassLoader providerClassLoader) {
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
@@ -994,6 +1022,7 @@ public final class Rest2LDAP {
                 configuration.get("connectionSecurity").defaultTo(ConnectionSecurity.NONE).asEnum(
                         ConnectionSecurity.class);
         final LDAPOptions options = new LDAPOptions();
+        options.setProviderClassLoader(providerClassLoader);
         if (connectionSecurity != ConnectionSecurity.NONE) {
             try {
                 // Configure SSL.
