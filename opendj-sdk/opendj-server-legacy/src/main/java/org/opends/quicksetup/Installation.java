@@ -26,24 +26,25 @@
  */
 package org.opends.quicksetup;
 
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
-
-
 
 /**
  * This class represents the physical state of an OpenDJ installation. All the
@@ -58,203 +59,82 @@ public final class Installation
   /** Relative path to bootstrap-client OpenDJ jar file. */
   public static final String OPENDJ_BOOTSTRAP_CLIENT_JAR_RELATIVE_PATH = "lib/bootstrap-client.jar";
 
-  /**
-   * The relative path where all the Windows binaries (batch files) are.
-   */
+  /** The relative path where all the Windows binaries (batch files) are. */
   public static final String WINDOWS_BINARIES_PATH_RELATIVE = "bat";
-
-  /**
-   * The relative path where all the UNIX binaries (scripts) are.
-   */
+  /** The relative path where all the UNIX binaries (scripts) are. */
   public static final String UNIX_BINARIES_PATH_RELATIVE = "bin";
-
-  /**
-   * The relative path where all the MacOS X Applications are.
-   */
+  /** The relative path where all the MacOS X Applications are. */
   public static final String MAC_APPLICATIONS_PATH_RELATIVE = "bin";
-
-  /**
-   * The relative path where all the libraries (jar files) are.
-   */
-  public static final String LIBRARIES_PATH_RELATIVE =
-      SetupUtils.LIBRARIES_PATH_RELATIVE;
-
-  /**
-   * The relative path where the resources directory (to customize the product)
-   * is.
-   */
+  /** The relative path where all the libraries (jar files) are. */
+  public static final String LIBRARIES_PATH_RELATIVE = SetupUtils.LIBRARIES_PATH_RELATIVE;
+  /** The relative path where the resources directory (to customize the product) is. */
   public static final String RESOURCES_PATH_RELATIVE = "resources";
-
-  /**
-   * The relative path where customer classes are.
-   */
+  /** The relative path where customer classes are. */
   public static final String CLASSES_PATH_RELATIVE = "classes";
-
-  /**
-   * The relative path where the database files are.
-   */
+  /** The relative path where the database files are. */
   public static final String DATABASES_PATH_RELATIVE = "db";
-
-  /**
-   * The relative path where the log files are.
-   */
+  /** The relative path where the log files are. */
   public static final String LOGS_PATH_RELATIVE = "logs";
-
-  /**
-   * The relative path where the LDIF files are.
-   */
+  /** The relative path where the LDIF files are. */
   public static final String LDIFS_PATH_RELATIVE = "ldif";
-
-  /**
-   * The relative path where the backup files are.
-   */
+  /** The relative path where the backup files are. */
   public static final String BACKUPS_PATH_RELATIVE = "bak";
-
-  /**
-   * The relative path where the config files are.
-   */
+  /** The relative path where the config files are. */
   public static final String CONFIG_PATH_RELATIVE = "config";
-
-  /**
-   * The relative path where the config files are.
-   */
+  /** The relative path where the config files are. */
   public static final String HISTORY_PATH_RELATIVE = "history";
-
-  /**
-   * Path to the config/upgrade directory where upgrade base files are stored.
-   */
+  /** Path to the config/upgrade directory where upgrade base files are stored. */
   public static final String UPGRADE_PATH = "upgrade";
-
-  /**
-   * Relative path to the locks directory.
-   */
+  /** Relative path to the locks directory. */
   public static final String LOCKS_PATH_RELATIVE = "locks";
-
-  /**
-   * Relative path to the locks directory.
-   */
+  /** Relative path to the locks directory. */
   public static final String TMP_PATH_RELATIVE = "tmp";
-
-  /**
-   * The relative path to the current Configuration LDIF file.
-   */
+  /** The relative path to the current Configuration LDIF file. */
   public static final String CURRENT_CONFIG_FILE_NAME = "config.ldif";
-
-  /**
-   * The relative path to the current Configuration LDIF file.
-   */
+  /** The relative path to the current Configuration LDIF file. */
   public static final String BASE_CONFIG_FILE_PREFIX = "config.ldif.";
-
-  /**
-   * The path to the default instance.
-  public static final String DEFAULT_INSTANCE_PATH = "/var/opendj";
-   */
-
-  /**
-   * The relative path to the instance.loc file.
-   */
+  /** The relative path to the instance.loc file. */
   public static final String INSTANCE_LOCATION_PATH_RELATIVE = "instance.loc";
-
-  /**
-   * The path to the instance.loc file.
-   */
+  /** The path to the instance.loc file. */
   public static final String INSTANCE_LOCATION_PATH = "/etc/opendj/"
       + INSTANCE_LOCATION_PATH_RELATIVE;
-
-  /**
-   * The relative path to tmpl_instance.
-   */
+  /** The relative path to tmpl_instance. */
   public static final String TEMPLATE_RELATIVE_PATH = "template";
-
-  /**
-   * The relative path to buildinfo file.
-   */
+  /** The relative path to buildinfo file. */
   public static final String BUILDINFO_RELATIVE_PATH = "buildinfo";
-
-  /**
-   * The UNIX setup script file name.
-   */
+  /** The UNIX setup script file name. */
   public static final String UNIX_SETUP_FILE_NAME = "setup";
-
-  /**
-   * The Windows setup batch file name.
-   */
+  /** The Windows setup batch file name. */
   public static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
-
-  /**
-   * The UNIX uninstall script file name.
-   */
+  /** The UNIX uninstall script file name. */
   public static final String UNIX_UNINSTALL_FILE_NAME = "uninstall";
-
-  /**
-   * The Windows uninstall batch file name.
-   */
+  /** The Windows uninstall batch file name. */
   public static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
-
-  /**
-   * The UNIX upgrade script file name.
-   */
+  /** The UNIX upgrade script file name. */
   public static final String UNIX_UPGRADE_FILE_NAME = "upgrade";
-
-  /**
-   * The UNIX start script file name.
-   */
+  /** The UNIX start script file name. */
   public static final String UNIX_START_FILE_NAME = "start-ds";
-
-  /**
-   * The Windows start batch file name.
-   */
+  /** The Windows start batch file name. */
   public static final String WINDOWS_START_FILE_NAME = "start-ds.bat";
-
-  /**
-   * The UNIX stop script file name.
-   */
+  /** The UNIX stop script file name. */
   public static final String UNIX_STOP_FILE_NAME = "stop-ds";
-
-  /**
-   * The Windows stop batch file name.
-   */
+  /** The Windows stop batch file name. */
   public static final String WINDOWS_STOP_FILE_NAME = "stop-ds.bat";
-
-  /**
-   * The UNIX control panel script file name.
-   */
+  /** The UNIX control panel script file name. */
   public static final String UNIX_CONTROLPANEL_FILE_NAME = "control-panel";
-
-  /**
-   * The Windows control panel batch file name.
-   */
-  public static final String WINDOWS_CONTROLPANEL_FILE_NAME =
-      "control-panel.bat";
-
-  /**
-   * The MacOS X Java application stub name.
-   */
+  /** The Windows control panel batch file name. */
+  public static final String WINDOWS_CONTROLPANEL_FILE_NAME = "control-panel.bat";
+  /** The MacOS X Java application stub name. */
   public static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
-
-  /**
-   * The MacOS X control panel application bundle name.
-   */
+  /** The MacOS X control panel application bundle name. */
   public static final String MAC_CONTROLPANEL_FILE_NAME = "ControlPanel.app";
-
-  /**
-   * The UNIX status command line script file name.
-   */
+  /** The UNIX status command line script file name. */
   public static final String UNIX_STATUSCLI_FILE_NAME = "status";
-
-  /**
-   * The Windows status command line batch file name.
-   */
+  /** The Windows status command line batch file name. */
   public static final String WINDOWS_STATUSCLI_FILE_NAME = "status.bat";
-
-  /**
-   * The UNIX import LDIF script file name.
-   */
+  /** The UNIX import LDIF script file name. */
   public static final String UNIX_IMPORT_LDIF = "import-ldif";
-
-  /**
-   * The Windows import LDIF batch file name.
-   */
+  /** The Windows import LDIF batch file name. */
   public static final String WINDOWS_IMPORT_LDIF = "import-ldif.bat";
 
   /**
@@ -262,49 +142,25 @@ public final class Installation
    * and reversions.
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
-
-  /**
-   * The default java properties file.
-   */
+  /** The default java properties file. */
   public static final String DEFAULT_JAVA_PROPERTIES_FILE = "java.properties";
-
-  /**
-   * The default java properties file relative path.
-   */
+  /** The default java properties file relative path. */
   public static final String RELATIVE_JAVA_PROPERTIES_FILE =
       CONFIG_PATH_RELATIVE + File.separator + "java.properties";
-
-  /**
-   * The set java home and arguments properties file for Windows.
-   */
-  public static final String SET_JAVA_PROPERTIES_FILE_WINDOWS =
-      "set-java-home.bat";
-
-  /**
-   * Script utils file for UNIX systems.
-   */
+  /** The set java home and arguments properties file for Windows. */
+  public static final String SET_JAVA_PROPERTIES_FILE_WINDOWS = "set-java-home.bat";
+  /** Script utils file for UNIX systems. */
   public static final String SCRIPT_UTIL_FILE_UNIX = "_script-util.sh";
-
-  /**
-   * Script utils file for Windows.
-   */
+  /** Script utils file for Windows. */
   public static final String SCRIPT_UTIL_FILE_WINDOWS = "_script-util.bat";
-
-  /**
-   * The set java home and arguments properties file for UNIX systems.
-   */
+  /** The set java home and arguments properties file for UNIX systems. */
   public static final String SET_JAVA_PROPERTIES_FILE_UNIX = "set-java-home";
 
-  /**
-   * Directories required to be present for this installation to be considered
-   * valid.
-   */
+  /** Directories required to be present for this installation to be considered valid. */
   public static final String[] REQUIRED_DIRECTORIES = new String[] {
       CONFIG_PATH_RELATIVE, DATABASES_PATH_RELATIVE, LIBRARIES_PATH_RELATIVE };
 
-  /**
-   * The default base DN prompted to user in setup interactive mode.
-   */
+  /** The default base DN prompted to user in setup interactive mode. */
   public static final String DEFAULT_INTERACTIVE_BASE_DN = "dc=example,dc=com";
 
   /**
@@ -342,7 +198,7 @@ public final class Installation
       String[] children = rootDirectory.list();
       if (children != null)
       {
-        Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
+        Set<String> childrenSet = new HashSet<>(Arrays.asList(children));
         for (String dir : REQUIRED_DIRECTORIES)
         {
           if (!childrenSet.contains(dir))
@@ -405,17 +261,14 @@ public final class Installation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private File rootDirectory;
-
   private File instanceDirectory;
 
   private Status status;
 
   private Configuration configuration;
-
   private Configuration baseConfiguration;
 
   private BuildInformation buildInformation;
-
   private BuildInformation instanceInformation;
 
 
@@ -517,10 +370,9 @@ public final class Installation
    */
   public void setInstanceDirectory(File instanceDirectory)
   {
-
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
-    // before the actual bits have been laid down on the filesyste.
+    // before the actual bits have been laid down on the filesystem.
     this.instanceDirectory = instanceDirectory;
 
     // Obtaining build information is a fairly time consuming operation.
@@ -553,39 +405,37 @@ public final class Installation
    */
   public boolean isValid(File file)
   {
-    boolean valid = true;
     try
     {
       validateRootDirectory(file);
+      return true;
     }
     catch (IllegalArgumentException e)
     {
-      valid = false;
+      return false;
     }
-    return valid;
   }
 
 
 
   /**
    * Creates a string explaining why this is not a legitimate OpenDJ
-   * installation. Null if this is in fact a vaild installation.
+   * installation. Null if this is in fact a valid installation.
    *
    * @return localized message indicating the reason this is not an OpenDJ
    *         installation
    */
   public String getInvalidityReason()
   {
-    String reason = null;
     try
     {
       validateRootDirectory(rootDirectory);
+      return null;
     }
     catch (IllegalArgumentException e)
     {
-      reason = e.getLocalizedMessage();
+      return e.getLocalizedMessage();
     }
-    return reason;
   }
 
 
@@ -778,16 +628,8 @@ public final class Installation
    */
   public File getBinariesDirectory()
   {
-    File binPath;
-    if (isWindows())
-    {
-      binPath = new File(getRootDirectory(), WINDOWS_BINARIES_PATH_RELATIVE);
-    }
-    else
-    {
-      binPath = new File(getRootDirectory(), UNIX_BINARIES_PATH_RELATIVE);
-    }
-    return binPath;
+    String binDir = isWindows() ? WINDOWS_BINARIES_PATH_RELATIVE : UNIX_BINARIES_PATH_RELATIVE;
+    return new File(getRootDirectory(), binDir);
   }
 
 
@@ -955,21 +797,13 @@ public final class Installation
    * operating system.
    *
    * @param command
-   *          namd of the command
+   *          name of the command
    * @return File representing the command
    */
   public File getCommandFile(String command)
   {
-    File commandFile;
-    if (isWindows())
-    {
-      commandFile = new File(getBinariesDirectory(), command + ".bat");
-    }
-    else
-    {
-      commandFile = new File(getBinariesDirectory(), command);
-    }
-    return commandFile;
+    String filename = isWindows() ? command + ".bat" : command;
+    return new File(getBinariesDirectory(), filename);
   }
 
 
@@ -982,17 +816,8 @@ public final class Installation
    */
   public File getServerStartCommandFile()
   {
-    File startCommandFile;
-    if (isWindows())
-    {
-      startCommandFile = new File(getBinariesDirectory(),
-          WINDOWS_START_FILE_NAME);
-    }
-    else
-    {
-      startCommandFile = new File(getBinariesDirectory(), UNIX_START_FILE_NAME);
-    }
-    return startCommandFile;
+    String startFileName = isWindows() ? WINDOWS_START_FILE_NAME : UNIX_START_FILE_NAME;
+    return new File(getBinariesDirectory(), startFileName);
   }
 
 
@@ -1005,18 +830,8 @@ public final class Installation
    */
   public File getServerStopCommandFile()
   {
-    File stopCommandFile;
-    if (isWindows())
-    {
-      stopCommandFile = new File(getBinariesDirectory(),
-          WINDOWS_STOP_FILE_NAME);
-    }
-    else
-    {
-      stopCommandFile = new File(getBinariesDirectory(),
-          UNIX_STOP_FILE_NAME);
-    }
-    return stopCommandFile;
+    String stopFileName = isWindows() ? WINDOWS_STOP_FILE_NAME : UNIX_STOP_FILE_NAME;
+    return new File(getBinariesDirectory(), stopFileName);
   }
 
 
@@ -1077,23 +892,19 @@ public final class Installation
    */
   public File getControlPanelCommandFile()
   {
-    File controlPanelCommandFile;
     if (isWindows())
     {
-      controlPanelCommandFile = new File(getBinariesDirectory(),
-          WINDOWS_CONTROLPANEL_FILE_NAME);
+      return new File(getBinariesDirectory(), WINDOWS_CONTROLPANEL_FILE_NAME);
     }
     else if (isMacOS())
     {
-      controlPanelCommandFile = new File(getRootDirectory() + File.separator
-          + MAC_APPLICATIONS_PATH_RELATIVE, MAC_CONTROLPANEL_FILE_NAME);
+      String binDir = getRootDirectory() + File.separator + MAC_APPLICATIONS_PATH_RELATIVE;
+      return new File(binDir, MAC_CONTROLPANEL_FILE_NAME);
     }
     else
     {
-      controlPanelCommandFile = new File(getBinariesDirectory(),
-          UNIX_CONTROLPANEL_FILE_NAME);
+      return new File(getBinariesDirectory(), UNIX_CONTROLPANEL_FILE_NAME);
     }
-    return controlPanelCommandFile;
   }
 
 
@@ -1131,10 +942,9 @@ public final class Installation
   {
     if (buildInformation == null || !useCachedVersion)
     {
-      FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
+      FutureTask<BuildInformation> ft = new FutureTask<>(
           new Callable<BuildInformation>()
           {
-
             @Override
             public BuildInformation call() throws ApplicationException
             {
@@ -1188,30 +998,14 @@ public final class Installation
     {
       try
       {
-        File bif = new File(getConfigurationDirectory(),
-            BUILDINFO_RELATIVE_PATH);
-
+        File bif = new File(getConfigurationDirectory(), BUILDINFO_RELATIVE_PATH);
         if (bif.exists())
         {
-          BufferedReader reader = new BufferedReader(new FileReader(bif));
-
           // Read the first line and close the file.
-          String line;
-          try
+          try (BufferedReader reader = new BufferedReader(new FileReader(bif)))
           {
-            line = reader.readLine();
+            String line = reader.readLine();
             instanceInformation = BuildInformation.fromBuildString(line);
-          }
-          finally
-          {
-            try
-            {
-              reader.close();
-            }
-            catch (Exception e)
-            {
-              // do nothing
-            }
           }
         }
         else
@@ -1221,12 +1015,9 @@ public final class Installation
       }
       catch (Exception e)
       {
-        logger.error(LocalizableMessage.raw("error getting build information for "
-            + "current instance", e));
+        logger.error(LocalizableMessage.raw("error getting build information for current instance", e));
       }
     }
     return instanceInformation;
-
   }
-
 }
