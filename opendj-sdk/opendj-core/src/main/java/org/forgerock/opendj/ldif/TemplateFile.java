@@ -110,7 +110,7 @@ final class TemplateFile {
      * A map of the contents of various text files used during the parsing
      * process, mapped from absolute path to the array of lines in the file.
      */
-    private final Map<String, String[]> fileLines = new HashMap<String, String[]>();
+    private final Map<String, String[]> fileLines = new HashMap<>();
 
     /** The index of the next first name value that should be used. */
     private int firstNameIndex;
@@ -131,16 +131,16 @@ final class TemplateFile {
     private int nameUniquenessCounter = 1;
 
     /** The set of branch definitions for this template file. */
-    private final Map<DN, Branch> branches = new LinkedHashMap<DN, Branch>();
+    private final Map<DN, Branch> branches = new LinkedHashMap<>();
 
     /** The set of constant definitions for this template file. */
     private final Map<String, String> constants;
 
     /** The set of registered tags for this template file. */
-    private final Map<String, TemplateTag> registeredTags = new LinkedHashMap<String, TemplateTag>();
+    private final Map<String, TemplateTag> registeredTags = new LinkedHashMap<>();
 
     /** The set of template definitions for this template file. */
-    private final Map<String, Template> templates = new LinkedHashMap<String, Template>();
+    private final Map<String, Template> templates = new LinkedHashMap<>();
 
     /** The random number generator for this template file. */
     private final Random random;
@@ -422,9 +422,9 @@ final class TemplateFile {
      * Structure to hold template data during parsing of the template.
      */
     private static class TemplateData {
-        final Map<String, TemplateTag> tags = new LinkedHashMap<String, TemplateTag>();
-        final Map<DN, Branch> branches = new LinkedHashMap<DN, Branch>();
-        final Map<String, Template> templates = new LinkedHashMap<String, Template>();
+        final Map<String, TemplateTag> tags = new LinkedHashMap<>();
+        final Map<DN, Branch> branches = new LinkedHashMap<>();
+        final Map<String, Template> templates = new LinkedHashMap<>();
     }
 
     /**
@@ -607,7 +607,7 @@ final class TemplateFile {
      */
     private String[] parseLinesUntilEndOfBlock(final int startLineNumber, final String startLine,
             final String[] lines, final List<LocalizableMessage> warnings) {
-        final List<String> lineList = new ArrayList<String>();
+        final List<String> lineList = new ArrayList<>();
         String line = startLine;
         lineList.add(line);
 
@@ -761,9 +761,9 @@ final class TemplateFile {
         // that's not one of those.
         int lineCount = 1;
         Template parentTemplate = null;
-        final List<AttributeType> rdnAttributes = new ArrayList<AttributeType>();
-        final List<String> subordinatesTemplateNames = new ArrayList<String>();
-        final List<Integer> numberOfentriesPerTemplate = new ArrayList<Integer>();
+        final List<AttributeType> rdnAttributes = new ArrayList<>();
+        final List<String> subordinatesTemplateNames = new ArrayList<>();
+        final List<Integer> numberOfentriesPerTemplate = new ArrayList<>();
 
         for (; lineCount < templateLines.length; lineCount++) {
             final int lineNumber = startLineNumber + lineCount;
@@ -946,7 +946,7 @@ final class TemplateFile {
         int phase = PARSING_STATIC_TEXT;
         int previousPhase = PARSING_STATIC_TEXT;
 
-        final List<TemplateTag> tagList = new ArrayList<TemplateTag>();
+        final List<TemplateTag> tagList = new ArrayList<>();
         StringBuilder buffer = new StringBuilder();
 
         for (; pos < length; pos++) {
@@ -1084,7 +1084,7 @@ final class TemplateFile {
             }
         }
 
-        final List<String> args = new ArrayList<String>();
+        final List<String> args = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {
             args.add(tokenizer.nextToken().trim());
         }
@@ -1136,7 +1136,7 @@ final class TemplateFile {
         // is the number of characters to use from the attribute value. The
         // arguments will be delimited by colons.
         final StringTokenizer tokenizer = new StringTokenizer(tagString, ":");
-        final List<String> args = new ArrayList<String>();
+        final List<String> args = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {
             args.add(tokenizer.nextToken());
         }
@@ -1266,7 +1266,7 @@ final class TemplateFile {
      *             If a problem occurs while reading the lines.
      */
     private List<String> readLines(final BufferedReader reader) throws IOException {
-        final List<String> lines = new ArrayList<String>();
+        final List<String> lines = new ArrayList<>();
         while (true) {
             final String line = reader.readLine();
             if (line == null) {
@@ -1401,8 +1401,8 @@ final class TemplateFile {
             this.extraLines = extraLines;
 
             // The RDN template lines are based on the DN.
-            final List<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
-            rdnLines = new ArrayList<TemplateLine>();
+            final List<LocalizableMessage> warnings = new ArrayList<>();
+            rdnLines = new ArrayList<>();
             for (final AVA ava : branchDN.rdn()) {
                 final Attribute attribute = ava.toAttribute();
                 for (final ByteString value : attribute.toArray()) {
@@ -1417,7 +1417,7 @@ final class TemplateFile {
                 final Schema schema, final List<LocalizableMessage> warnings) throws DecodeException {
             final StaticTextTag tag = new StaticTextTag();
             tag.initializeForBranch(schema, templateFile, this, new String[] { value }, 0, warnings);
-            final List<TemplateTag> tags = new ArrayList<TemplateTag>();
+            final List<TemplateTag> tags = new ArrayList<>();
             tags.add(tag);
             return tags;
         }
@@ -1430,7 +1430,7 @@ final class TemplateFile {
          */
         private void completeBranchInitialization(final Map<String, Template> templates,
                             boolean generateBranches) throws DecodeException {
-            subordinateTemplates = new ArrayList<Template>();
+            subordinateTemplates = new ArrayList<>();
             for (int i = 0; i < subordinateTemplateNames.size(); i++) {
                 subordinateTemplates.add(templates.get(subordinateTemplateNames.get(i).toLowerCase()));
                 if (subordinateTemplates.get(i) == null) {
@@ -1499,7 +1499,7 @@ final class TemplateFile {
          */
         private TemplateEntry buildBranchEntry(boolean generateBranches) {
             final TemplateEntry entry = new TemplateEntry(this);
-            final List<TemplateLine> lines = new ArrayList<TemplateLine>(rdnLines);
+            final List<TemplateLine> lines = new ArrayList<>(rdnLines);
             lines.addAll(extraLines);
             for (final TemplateLine line : lines) {
                 line.generateLine(entry);
@@ -1629,7 +1629,7 @@ final class TemplateFile {
          *             the template file.
          */
         void completeTemplateInitialization(final Map<String, Template> templates) throws DecodeException {
-            subTemplates = new ArrayList<Template>();
+            subTemplates = new ArrayList<>();
             for (final String subordinateName : subTemplateNames) {
                 final Template template = templates.get(subordinateName.toLowerCase());
                 if (template == null) {
@@ -1642,8 +1642,8 @@ final class TemplateFile {
         }
 
         private void ensureAllRDNAttributesAreDefined() throws DecodeException {
-            Set<AttributeType> rdnAttrs = new HashSet<AttributeType>(rdnAttributes);
-            List<AttributeType> templateAttrs = new ArrayList<AttributeType>();
+            Set<AttributeType> rdnAttrs = new HashSet<>(rdnAttributes);
+            List<AttributeType> templateAttrs = new ArrayList<>();
             for (TemplateLine line : templateLines) {
                 templateAttrs.add(line.getAttributeType());
             }
@@ -1829,7 +1829,7 @@ final class TemplateFile {
          * A list of template values is never empty in the map, it always has
          * at least one element.
          */
-        private final LinkedHashMap<AttributeType, List<TemplateValue>> attributes;
+        private final LinkedHashMap<AttributeType, List<TemplateValue>> attributes = new LinkedHashMap<>();
 
         /**
          * The template used to generate this entry if it is associated with a
@@ -1846,7 +1846,6 @@ final class TemplateFile {
          */
         TemplateEntry(final Branch branch) {
             dn = branch.getBranchDN();
-            attributes = new LinkedHashMap<AttributeType, List<TemplateValue>>();
             template = null;
             parentDN = null;
         }
@@ -1863,7 +1862,6 @@ final class TemplateFile {
         TemplateEntry(final Template template, final DN parentDN) {
             this.template = template;
             this.parentDN = parentDN;
-            attributes = new LinkedHashMap<AttributeType, List<TemplateValue>>();
         }
 
         DN getParentDN() {
@@ -1878,7 +1876,7 @@ final class TemplateFile {
          */
         DN getDN() {
             if (dn == null) {
-                final Collection<AVA> avas = new ArrayList<AVA>();
+                final Collection<AVA> avas = new ArrayList<>();
                 for (final AttributeType attrType : template.getRDNAttributes()) {
                     final TemplateValue templateValue = getValue(attrType);
                     if (templateValue == null) {
@@ -1926,7 +1924,7 @@ final class TemplateFile {
         void addValue(TemplateValue value) {
             List<TemplateValue> values = attributes.get(value.getAttributeType());
             if (values == null) {
-                values = new ArrayList<TemplateValue>();
+                values = new ArrayList<>();
                 attributes.put(value.getAttributeType(), values);
             }
             values.add(value);

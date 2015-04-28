@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -268,7 +268,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         Assertions.assertThat(indexer.getIndexID()).isEqualTo("substring");
 
         final IndexingOptions options = newIndexingOptions();
-        final TreeSet<ByteString> keys = new TreeSet<ByteString>();
+        final TreeSet<ByteString> keys = new TreeSet<>();
         indexer.createKeys(Schema.getCoreSchema(), valueOf("ABCDE"), options, keys);
         Assertions.assertThat(keys).containsOnly((Object[]) toByteStrings("ABC", "BCD", "CDE", "DE", "E"));
     }

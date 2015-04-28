@@ -376,7 +376,7 @@ public final class LDAPSearch extends ConsoleApplication {
             argParser.addArgument(encodingStr);
 
             dereferencePolicy =
-                    new MultiChoiceArgument<DereferenceAliasesPolicy>("derefpolicy", 'a',
+                    new MultiChoiceArgument<>("derefpolicy", 'a',
                             "dereferencePolicy", false, true, INFO_DEREFERENCE_POLICE_PLACEHOLDER
                                     .get(), DereferenceAliasesPolicy.values(), false,
                             INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
@@ -451,8 +451,8 @@ public final class LDAPSearch extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        final List<Filter> filters = new LinkedList<Filter>();
-        final List<String> attributes = new LinkedList<String>();
+        final List<Filter> filters = new LinkedList<>();
+        final List<String> attributes = new LinkedList<>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
         if (filterAndAttributeStrings.size() > 0) {
             /* The list of trailing arguments should be structured as follow:
@@ -617,8 +617,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 }
             }
 
-            final ArrayList<PersistentSearchChangeType> ct =
-                    new ArrayList<PersistentSearchChangeType>(4);
+            final ArrayList<PersistentSearchChangeType> ct = new ArrayList<>(4);
             if (tokenizer.hasMoreTokens()) {
                 final StringTokenizer st = new StringTokenizer(tokenizer.nextToken(), ", ");
                 if (!st.hasMoreTokens()) {
@@ -707,7 +706,7 @@ public final class LDAPSearch extends ConsoleApplication {
 
         if (matchedValuesFilter.isPresent()) {
             final LinkedList<String> mvFilterStrings = matchedValuesFilter.getValues();
-            final List<Filter> mvFilters = new ArrayList<Filter>();
+            final List<Filter> mvFilters = new ArrayList<>();
             for (final String s : mvFilterStrings) {
                 try {
                     final Filter f = Filter.valueOf(s);

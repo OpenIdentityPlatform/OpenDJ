@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -430,8 +430,8 @@ public final class Connections {
     public static ConnectionFactory newInternalConnectionFactory(
             final RequestHandler<RequestContext> requestHandler) {
         Reject.ifNull(requestHandler);
-        return new InternalConnectionFactory<Void>(Connections
-                .<Void> newServerConnectionFactory(requestHandler), null);
+        return new InternalConnectionFactory<>(
+            Connections.<Void> newServerConnectionFactory(requestHandler), null);
     }
 
     /**
@@ -464,7 +464,7 @@ public final class Connections {
     public static <C> ConnectionFactory newInternalConnectionFactory(
             final RequestHandlerFactory<C, RequestContext> factory, final C clientContext) {
         Reject.ifNull(factory);
-        return new InternalConnectionFactory<C>(newServerConnectionFactory(factory), clientContext);
+        return new InternalConnectionFactory<>(newServerConnectionFactory(factory), clientContext);
     }
 
     /**
@@ -497,7 +497,7 @@ public final class Connections {
     public static <C> ConnectionFactory newInternalConnectionFactory(
             final ServerConnectionFactory<C, Integer> factory, final C clientContext) {
         Reject.ifNull(factory);
-        return new InternalConnectionFactory<C>(factory, clientContext);
+        return new InternalConnectionFactory<>(factory, clientContext);
     }
 
     /**
@@ -587,7 +587,7 @@ public final class Connections {
     public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
             final RequestHandler<RequestContext> requestHandler) {
         Reject.ifNull(requestHandler);
-        return new RequestHandlerFactoryAdapter<C>(new RequestHandlerFactory<C, RequestContext>() {
+        return new RequestHandlerFactoryAdapter<>(new RequestHandlerFactory<C, RequestContext>() {
             @Override
             public RequestHandler<RequestContext> handleAccept(final C clientContext) {
                 return requestHandler;
@@ -622,7 +622,7 @@ public final class Connections {
     public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
             final RequestHandlerFactory<C, RequestContext> factory) {
         Reject.ifNull(factory);
-        return new RequestHandlerFactoryAdapter<C>(factory);
+        return new RequestHandlerFactoryAdapter<>(factory);
     }
 
     /**

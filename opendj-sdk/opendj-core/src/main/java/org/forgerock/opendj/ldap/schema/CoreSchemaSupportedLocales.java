@@ -49,7 +49,7 @@ public final class CoreSchemaSupportedLocales {
      * To add support for a new locale to collation matching rules, add its name as key and the corresponding oid as
      * value.
      */
-    private static final Map<String, String> LOCALE_NAMES_TO_OIDS = new HashMap<String, String>();
+    private static final Map<String, String> LOCALE_NAMES_TO_OIDS = new HashMap<>();
 
     /**
      * Same as {@link CoreSchemaSupportedLocales#LOCALE_NAMES_TO_OIDS}, but it contains the old locale names
@@ -59,7 +59,7 @@ public final class CoreSchemaSupportedLocales {
      * but the JVM only works with the old locale names.
      * @see CoreSchemaSupportedLocales#LOCALE_NAMES_TO_OIDS
      */
-    private static final Map<String, String> JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS = new HashMap<String, String>();
+    private static final Map<String, String> JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS = new HashMap<>();
 
     static {
         LOCALE_NAMES_TO_OIDS.put("af", "1.3.6.1.4.1.42.2.27.9.4.1.1");

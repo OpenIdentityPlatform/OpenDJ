@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -56,13 +56,13 @@ abstract class SchemaElement {
         SchemaElementBuilder(final SchemaBuilder schemaBuilder) {
             this.schemaBuilder = schemaBuilder;
             this.description = "";
-            this.extraProperties = new LinkedHashMap<String, List<String>>(1);
+            this.extraProperties = new LinkedHashMap<>(1);
         }
 
         SchemaElementBuilder(final SchemaBuilder schemaBuilder, final SchemaElement copy) {
             this.schemaBuilder = schemaBuilder;
             this.description = copy.description;
-            this.extraProperties = new LinkedHashMap<String, List<String>>(copy.extraProperties);
+            this.extraProperties = new LinkedHashMap<>(copy.extraProperties);
         }
 
         /*
@@ -156,7 +156,7 @@ abstract class SchemaElement {
         T extraProperties0(final String extensionName, final String... extensionValues) {
             if (this.extraProperties.get(extensionName) != null) {
                 final List<String> tempExtraProperties =
-                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                        new ArrayList<>(this.extraProperties.get(extensionName));
                 tempExtraProperties.addAll(Arrays.asList(extensionValues));
                 this.extraProperties.put(extensionName, tempExtraProperties);
             } else {
@@ -187,7 +187,7 @@ abstract class SchemaElement {
         T removeExtraProperty0(final String extensionName, final String... extensionValues) {
             if (this.extraProperties.get(extensionName) != null && extensionValues.length > 0) {
                 final List<String> tempExtraProperties =
-                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                        new ArrayList<>(this.extraProperties.get(extensionName));
                 tempExtraProperties.removeAll(Arrays.asList(extensionValues));
                 this.extraProperties.put(extensionName, tempExtraProperties);
             } else if (this.extraProperties.get(extensionName) != null) {

@@ -391,7 +391,7 @@ public final class LDAPModify extends ConsoleApplication {
         // modifyOptions.setEncoding(encodingStr.getValue());
         // modifyOptions.setDefaultAdd(defaultAdd.isPresent());
 
-        controls = new LinkedList<Control>();
+        controls = new LinkedList<>();
         if (controlStr.isPresent()) {
             for (final String ctrlString : controlStr.getValues()) {
                 try {
@@ -433,7 +433,7 @@ public final class LDAPModify extends ConsoleApplication {
         if (preReadAttributes.isPresent()) {
             final String valueStr = preReadAttributes.getValue();
             final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-            final List<String> attributes = new LinkedList<String>();
+            final List<String> attributes = new LinkedList<>();
             while (tokenizer.hasMoreTokens()) {
                 attributes.add(tokenizer.nextToken());
             }
@@ -445,7 +445,7 @@ public final class LDAPModify extends ConsoleApplication {
         if (postReadAttributes.isPresent()) {
             final String valueStr = postReadAttributes.getValue();
             final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-            final List<String> attributes = new LinkedList<String>();
+            final List<String> attributes = new LinkedList<>();
             while (tokenizer.hasMoreTokens()) {
                 attributes.add(tokenizer.nextToken());
             }

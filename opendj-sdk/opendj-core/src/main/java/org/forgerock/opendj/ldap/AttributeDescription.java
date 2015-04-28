@@ -350,9 +350,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue() {
-                    return new WeakHashMap<Schema, Map<String, AttributeDescription>>();
+                    return new WeakHashMap<>();
                 }
-
             };
 
     /** Object class attribute description. */
@@ -913,10 +912,10 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
         // Multiple options need sorting and duplicates removed - we could
         // optimize a bit further here for 2 option attribute descriptions.
-        final List<String> options = new LinkedList<String>();
+        final List<String> options = new LinkedList<>();
         options.add(option);
 
-        final SortedSet<String> normalizedOptions = new TreeSet<String>();
+        final SortedSet<String> normalizedOptions = new TreeSet<>();
         normalizedOptions.add(normalizedOption);
 
         while (i < length) {

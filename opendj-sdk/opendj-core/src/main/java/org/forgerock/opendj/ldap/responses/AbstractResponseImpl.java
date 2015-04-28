@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -57,7 +57,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
         return null;
     }
 
-    private final List<Control> controls = new LinkedList<Control>();
+    private final List<Control> controls = new LinkedList<>();
 
     AbstractResponseImpl() {
         // No implementation required.

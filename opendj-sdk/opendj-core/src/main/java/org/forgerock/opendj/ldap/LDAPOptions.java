@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -67,8 +67,8 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
     private boolean useStartTLS;
     private long timeoutInMillis = DEFAULT_TIMEOUT;
     private long connectTimeoutInMillis = DEFAULT_CONNECT_TIMEOUT;
-    private final List<String> enabledCipherSuites = new LinkedList<String>();
-    private final List<String> enabledProtocols = new LinkedList<String>();
+    private final List<String> enabledCipherSuites = new LinkedList<>();
+    private final List<String> enabledProtocols = new LinkedList<>();
 
     /**
      * Creates a new set of connection options with default settings. SSL will

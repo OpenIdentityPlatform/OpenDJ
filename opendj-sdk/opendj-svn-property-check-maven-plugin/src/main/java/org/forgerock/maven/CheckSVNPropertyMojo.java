@@ -76,7 +76,7 @@ public class CheckSVNPropertyMojo extends AbstractMojo implements ISVNStatusHand
     /** The overall SVN Client Manager. */
     private final SVNClientManager svnClientManager = SVNClientManager.newInstance();
 
-    private final List<String> errorFilePaths = new LinkedList<String>();
+    private final List<String> errorFilePaths = new LinkedList<>();
 
     /** {@inheritDoc} **/
     public void execute() throws MojoExecutionException, MojoFailureException {

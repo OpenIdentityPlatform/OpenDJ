@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
 
@@ -128,7 +128,7 @@ public final class Iterables {
         }
     }
 
-    private static final Iterable<Object> EMPTY_ITERABLE = new EmptyIterable<Object>();
+    private static final Iterable<Object> EMPTY_ITERABLE = new EmptyIterable<>();
 
     /**
      * Returns an iterable containing the elements of {@code a}. The returned
@@ -142,7 +142,7 @@ public final class Iterables {
      * @return An iterable containing the elements of {@code a}.
      */
     public static <M> Iterable<M> arrayIterable(final M[] a) {
-        return new ArrayIterable<M>(a);
+        return new ArrayIterable<>(a);
     }
 
     /**
@@ -180,7 +180,7 @@ public final class Iterables {
      */
     public static <M, P> Iterable<M> filteredIterable(final Iterable<M> iterable,
             final Predicate<? super M, P> predicate, final P p) {
-        return new FilteredIterable<M, P>(iterable, predicate, p);
+        return new FilteredIterable<>(iterable, predicate, p);
     }
 
     /**
@@ -200,7 +200,7 @@ public final class Iterables {
      */
     public static <M> Iterable<M> filteredIterable(final Iterable<M> iterable,
             final Predicate<? super M, Void> predicate) {
-        return new FilteredIterable<M, Void>(iterable, predicate, null);
+        return new FilteredIterable<>(iterable, predicate, null);
     }
 
     /**
@@ -233,7 +233,7 @@ public final class Iterables {
      * @return An iterable containing the single element {@code value}.
      */
     public static <M> Iterable<M> singletonIterable(final M value) {
-        return new SingletonIterable<M>(value);
+        return new SingletonIterable<>(value);
     }
 
     /**
@@ -307,7 +307,7 @@ public final class Iterables {
      */
     public static <M, N> Iterable<N> transformedIterable(final Iterable<M> iterable,
             final Function<? super M, ? extends N, NeverThrowsException> function) {
-        return new TransformedIterable<M, N>(iterable, function);
+        return new TransformedIterable<>(iterable, function);
     }
 
     /**
@@ -324,7 +324,7 @@ public final class Iterables {
      *         support element removal via the {@code remove()}.
      */
     public static <M> Iterable<M> unmodifiableIterable(final Iterable<M> iterable) {
-        return new UnmodifiableIterable<M>(iterable);
+        return new UnmodifiableIterable<>(iterable);
     }
 
     /** Prevent instantiation. */

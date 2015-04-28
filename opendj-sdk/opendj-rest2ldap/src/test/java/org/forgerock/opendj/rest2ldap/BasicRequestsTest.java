@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -94,7 +94,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testQueryAll() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new LinkedList<Resource>();
+        final List<Resource> resources = new LinkedList<>();
         final QueryResult result =
                 connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
                         QueryFilter.alwaysTrue()), resources);
@@ -106,7 +106,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testQueryNone() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new LinkedList<Resource>();
+        final List<Resource> resources = new LinkedList<>();
         final QueryResult result =
                 connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
                         QueryFilter.alwaysFalse()), resources);
@@ -118,7 +118,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testQueryPageResultsCookie() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new ArrayList<Resource>();
+        final List<Resource> resources = new ArrayList<>();
 
         // Read first page.
         QueryResult result =
@@ -158,7 +158,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testQueryPageResultsIndexed() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new ArrayList<Resource>();
+        final List<Resource> resources = new ArrayList<>();
         QueryResult result =
                 connection.query(ctx(), newQueryRequest("")
                         .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
@@ -221,7 +221,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
     @Test
     public void testPatchEmpty() throws Exception {
-        final List<Request> requests = new LinkedList<Request>();
+        final List<Request> requests = new LinkedList<>();
         final Connection connection = newConnection(requests);
         final Resource resource1 = connection.patch(ctx(), newPatchRequest("/test1"));
         checkResourcesAreEqual(resource1, getTestUser1(12345));
@@ -492,7 +492,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
     @Test
     public void testUpdateNoChange() throws Exception {
-        final List<Request> requests = new LinkedList<Request>();
+        final List<Request> requests = new LinkedList<>();
         final Connection connection = newConnection(requests);
         final Resource resource1 =
                 connection.update(ctx(), newUpdateRequest("/test1", getTestUser1(12345)));

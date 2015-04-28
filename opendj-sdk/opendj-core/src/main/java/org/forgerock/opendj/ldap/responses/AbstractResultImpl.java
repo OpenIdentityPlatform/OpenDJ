@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -46,7 +46,7 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
     private Throwable cause;
     private String diagnosticMessage = "";
     private String matchedDN = "";
-    private final List<String> referralURIs = new LinkedList<String>();
+    private final List<String> referralURIs = new LinkedList<>();
     private ResultCode resultCode;
 
     AbstractResultImpl(final Result result) {

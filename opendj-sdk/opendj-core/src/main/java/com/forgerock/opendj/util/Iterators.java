@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -217,7 +217,7 @@ public final class Iterators {
         }
     }
 
-    private static final Iterator<Object> EMPTY_ITERATOR = new EmptyIterator<Object>();
+    private static final Iterator<Object> EMPTY_ITERATOR = new EmptyIterator<>();
 
     /**
      * Returns an iterator over the elements contained in {@code a}. The
@@ -231,7 +231,7 @@ public final class Iterators {
      * @return An iterator over the elements contained in {@code a}.
      */
     public static <M> Iterator<M> arrayIterator(final M[] a) {
-        return new ArrayIterator<M>(a);
+        return new ArrayIterator<>(a);
     }
 
     /**
@@ -269,7 +269,7 @@ public final class Iterators {
      */
     public static <M, P> Iterator<M> filteredIterator(final Iterator<M> iterator,
             final Predicate<? super M, P> predicate, final P p) {
-        return new FilteredIterator<M, P>(iterator, predicate, p);
+        return new FilteredIterator<>(iterator, predicate, p);
     }
 
     /**
@@ -289,7 +289,7 @@ public final class Iterators {
      */
     public static <M> Iterator<M> filteredIterator(final Iterator<M> iterator,
             final Predicate<? super M, Void> predicate) {
-        return new FilteredIterator<M, Void>(iterator, predicate, null);
+        return new FilteredIterator<>(iterator, predicate, null);
     }
 
     /**
@@ -304,7 +304,7 @@ public final class Iterators {
      * @return An iterator containing the single element {@code value}.
      */
     public static <M> Iterator<M> singletonIterator(final M value) {
-        return new SingletonIterator<M>(value);
+        return new SingletonIterator<>(value);
     }
 
     /**
@@ -326,7 +326,7 @@ public final class Iterators {
      */
     public static <M, N> Iterator<N> transformedIterator(final Iterator<M> iterator,
             final Function<? super M, ? extends N, NeverThrowsException> function) {
-        return new TransformedIterator<M, N>(iterator, function);
+        return new TransformedIterator<>(iterator, function);
     }
 
     /**
@@ -343,7 +343,7 @@ public final class Iterators {
      *         element removal via the {@code remove()}.
      */
     public static <M> Iterator<M> unmodifiableIterator(final Iterator<M> iterator) {
-        return new UnmodifiableIterator<M>(iterator);
+        return new UnmodifiableIterator<>(iterator);
     }
 
     /** Prevent instantiation. */

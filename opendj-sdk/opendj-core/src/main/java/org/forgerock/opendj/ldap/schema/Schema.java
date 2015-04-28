@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -1715,7 +1715,7 @@ public final class Schema {
         // one structural object class.
         ObjectClass structuralObjectClass = null;
         final Attribute objectClassAttribute = entry.getAttribute(objectClass());
-        final List<ObjectClass> objectClasses = new LinkedList<ObjectClass>();
+        final List<ObjectClass> objectClasses = new LinkedList<>();
         if (objectClassAttribute != null) {
             for (final ByteString v : objectClassAttribute) {
                 final String objectClassName = v.toString();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -42,7 +42,7 @@ import org.forgerock.util.Reject;
  * Modify request implementation.
  */
 final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> implements ModifyRequest {
-    private final List<Modification> changes = new LinkedList<Modification>();
+    private final List<Modification> changes = new LinkedList<>();
     private DN name;
 
     ModifyRequestImpl(final DN name) {

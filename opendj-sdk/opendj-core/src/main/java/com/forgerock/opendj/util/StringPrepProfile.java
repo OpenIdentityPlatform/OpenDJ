@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
 
@@ -39,22 +40,18 @@ import org.forgerock.util.Reject;
  * complete list of such rules, refer to Section 4.2, RFC 4517.
  */
 public final class StringPrepProfile {
-    /**
-     * A Table defining the mapped code-points as per RFC 3454.
-     */
+    /** A Table defining the mapped code-points as per RFC 3454. */
     private static final class MappingTable {
         /** Set of chars which are deleted from the incoming value. */
-        private static final HashSet<Character> MAP_2_NULL = new HashSet<Character>();
-
+        private static final HashSet<Character> MAP_2_NULL = new HashSet<>();
         /** Set of chars which are replaced by a SPACE when found. */
-        private static final HashSet<Character> MAP_2_SPACE = new HashSet<Character>();
+        private static final HashSet<Character> MAP_2_SPACE = new HashSet<>();
 
         /**
          * Table for case-folding. Map of Character and String containing
          * uppercase and lowercase value as the key-value pair.
          */
-        private static final HashMap<Character, String> CASE_MAP_TABLE =
-                new HashMap<Character, String>();
+        private static final HashMap<Character, String> CASE_MAP_TABLE = new HashMap<>();
 
         static {
             // Appendix B.1 RFC 3454.

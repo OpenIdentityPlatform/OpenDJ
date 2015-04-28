@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -97,7 +97,7 @@ final class SchemaUtils {
                 if (c == ')') {
                     values = Collections.emptyList();
                 } else {
-                    values = new ArrayList<String>();
+                    values = new ArrayList<>();
                     do {
                         reader.reset();
                         values.add(readQuotedString(reader));
@@ -145,7 +145,7 @@ final class SchemaUtils {
                 if (c == ')') {
                     values = Collections.emptyList();
                 } else {
-                    values = new LinkedList<String>();
+                    values = new LinkedList<>();
                     do {
                         reader.reset();
                         values.add(readQuotedDescriptor(reader, allowCompatChars));
@@ -407,7 +407,7 @@ final class SchemaUtils {
         try {
             final char c = reader.read();
             if (c == '(') {
-                values = new LinkedHashSet<String>();
+                values = new LinkedHashSet<>();
                 do {
                     values.add(readOID(reader, allowCompatChars));
 
@@ -518,7 +518,7 @@ final class SchemaUtils {
         try {
             final char c = reader.read();
             if (c == '(') {
-                values = new LinkedHashSet<Integer>();
+                values = new LinkedHashSet<>();
                 do {
                     values.add(readRuleID(reader));
 
@@ -595,14 +595,13 @@ final class SchemaUtils {
             final Map<String, List<String>> extraProperties) {
         if (extraProperties == null || extraProperties.isEmpty()) {
             return Collections.emptyMap();
-        } else {
-            final Map<String, List<String>> tmp =
-                    new LinkedHashMap<String, List<String>>(extraProperties.size());
-            for (final Map.Entry<String, List<String>> e : extraProperties.entrySet()) {
-                tmp.put(e.getKey(), unmodifiableCopyOfList(e.getValue()));
-            }
-            return Collections.unmodifiableMap(tmp);
         }
+
+        final Map<String, List<String>> tmp = new LinkedHashMap<>(extraProperties.size());
+        for (final Map.Entry<String, List<String>> e : extraProperties.entrySet()) {
+            tmp.put(e.getKey(), unmodifiableCopyOfList(e.getValue()));
+        }
+        return Collections.unmodifiableMap(tmp);
     }
 
     static <E> List<E> unmodifiableCopyOfList(final List<E> l) {
@@ -611,7 +610,7 @@ final class SchemaUtils {
         } else if (l.size() == 1) {
             return Collections.singletonList(l.get(0));
         } else {
-            final List<E> copy = new LinkedList<E>(l);
+            final List<E> copy = new LinkedList<>(l);
             return Collections.unmodifiableList(copy);
         }
     }
@@ -622,7 +621,7 @@ final class SchemaUtils {
         } else if (s.size() == 1) {
             return Collections.singleton(s.iterator().next());
         } else {
-            final Set<E> copy = new LinkedHashSet<E>(s);
+            final Set<E> copy = new LinkedHashSet<>(s);
             return Collections.unmodifiableSet(copy);
         }
     }

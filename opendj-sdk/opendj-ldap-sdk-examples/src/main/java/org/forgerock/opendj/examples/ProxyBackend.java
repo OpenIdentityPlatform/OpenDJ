@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -104,7 +104,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         addProxiedAuthControl(request);
 
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
@@ -128,7 +128,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         } else {
             // Authenticate using a separate bind connection pool, because
             // we don't want to change the state of the pooled connection.
-            final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+            final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
             proxiedAuthControl = null;
             bindFactory.getConnectionAsync()
                     .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
@@ -155,7 +155,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             final ResultHandler<CompareResult> resultHandler) {
         addProxiedAuthControl(request);
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, CompareResult, LdapException>() {
             @Override
             public Promise<CompareResult, LdapException> apply(Connection connection) throws LdapException {
@@ -171,7 +171,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
             public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
@@ -198,7 +198,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             // Forward all other extended operations.
             addProxiedAuthControl(request);
 
-            final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+            final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
             factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, R, LdapException>() {
                 @Override
                 public Promise<R, LdapException> apply(Connection connection) throws LdapException {
@@ -216,7 +216,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
             public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
@@ -232,7 +232,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
             public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
@@ -249,7 +249,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
             public Promise<Result, LdapException> apply(Connection connection) throws LdapException {

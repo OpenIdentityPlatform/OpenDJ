@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -659,7 +659,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         Entry e2 = new LinkedHashMapEntry("dn: uid=user.2,ou=People,dc=example,dc=com", "objectClass: person");
         // @formatter:on
 
-        Collection<Entry> collection = new ArrayList<Entry>();
+        Collection<Entry> collection = new ArrayList<>();
         collection.add(e);
         collection.add(e1);
         collection.add(e2);
@@ -714,7 +714,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         );
         // @formatter:on
 
-        final SortedMap<DN, Entry> sourceEntries = new TreeMap<DN, Entry>();
+        final SortedMap<DN, Entry> sourceEntries = new TreeMap<>();
         sourceEntries.put(DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"), e);
         sourceEntries.put(DN.valueOf("uid=user.1,ou=People,dc=example,dc=com"), e1);
         final Iterator<Entry> sourceIterator = sourceEntries.values().iterator();
@@ -764,7 +764,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "changetype: delete"
         );
         // @formatter:on
-        final java.util.List<String> actual = new ArrayList<String>();
+        final java.util.List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         try {
@@ -816,8 +816,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifCopyToChangeRecordDoesntAllowNullReader() throws Exception {
-
-        final java.util.List<String> actual = new ArrayList<String>();
+        final java.util.List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         LDIF.copyTo(null, writer);
@@ -839,7 +838,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         );
         // @formatter:on
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         try {
@@ -880,8 +879,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifCopyToEntryWriterDoesntAllowNullReader() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         LDIF.copyTo(null, writer);

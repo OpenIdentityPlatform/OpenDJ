@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -189,7 +189,7 @@ public final class MatchedValuesRequestControl implements Control {
                             throw DecodeException.error(message);
                         }
 
-                        final LinkedList<Filter> filters = new LinkedList<Filter>();
+                        final LinkedList<Filter> filters = new LinkedList<>();
                         do {
                             final Filter filter = LDAP.readFilter(reader);
                             try {
@@ -251,7 +251,7 @@ public final class MatchedValuesRequestControl implements Control {
         if (filters.size() == 1) {
             copyOfFilters = Collections.singletonList(validateFilter(filters.iterator().next()));
         } else {
-            copyOfFilters = new ArrayList<Filter>(filters.size());
+            copyOfFilters = new ArrayList<>(filters.size());
             for (final Filter filter : filters) {
                 copyOfFilters.add(validateFilter(filter));
             }
@@ -285,7 +285,7 @@ public final class MatchedValuesRequestControl implements Control {
             final String... filters) {
         Reject.ifFalse(filters.length > 0, "filters is empty");
 
-        final List<Filter> parsedFilters = new ArrayList<Filter>(filters.length);
+        final List<Filter> parsedFilters = new ArrayList<>(filters.length);
         for (final String filter : filters) {
             parsedFilters.add(validateFilter(Filter.valueOf(filter)));
         }

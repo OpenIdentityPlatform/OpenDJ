@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -178,7 +178,7 @@ public class AddressMaskTestCase extends SdkTestCase {
     private boolean match(String[] rules, String[] addrs, String[] hostNames)
             throws UnknownHostException {
         int i = 0;
-        Collection<AddressMask> m = new ArrayList<AddressMask>(rules.length);
+        Collection<AddressMask> m = new ArrayList<>(rules.length);
         for (i = 0; i < rules.length; i++) {
             m.add(AddressMask.valueOf(rules[i]));
         }

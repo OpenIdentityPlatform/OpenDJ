@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS
  *      Portions copyright 2012 ForgeRock AS.
  */
 
@@ -98,7 +98,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllOperationalAttributesTrue() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -124,7 +124,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllOperationalAttributesFalse() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -145,7 +145,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllUserAttributesTrue() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -167,7 +167,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllUserAttributesFalse() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -189,8 +189,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeAttributeDoesntAllowNull() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         try {
@@ -208,7 +207,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWrongDN() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dn = DN.valueOf("dc=example.com");
@@ -232,7 +231,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWithNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dn = DN.valueOf("dc=example,dc=com");
@@ -254,7 +253,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWithMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dn = DN.valueOf("dc=example,dc=org");
@@ -278,8 +277,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeBranchDoesntAllowNull() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         try {
@@ -298,7 +296,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testSetExcludeAttributeWithMatch() throws Exception {
         final AttributeDescription attribute = AttributeDescription.valueOf("cn");
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -325,7 +323,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testSetExcludeAttributeWithNoMatch() throws Exception {
         final AttributeDescription attribute = AttributeDescription.valueOf("vip");
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -350,7 +348,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeAttributeWithMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -376,7 +374,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeAttributeWithNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -399,7 +397,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeAttributeDoesntAllowNull() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         try {
             writer.setIncludeAttribute(null);
@@ -417,7 +415,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *             If the test failed unexpectedly.
      */    @Test
     public void testSetIncludeBranchWithNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dn = DN.valueOf("dc=example,dc=org");
@@ -440,7 +438,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeBranchWithMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dn = DN.valueOf("dc=example,dc=com");
@@ -464,7 +462,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeBranchDoesntAllowNull() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         try {
             writer.setIncludeBranch(null);
@@ -481,7 +479,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(enabled = false)
     public void testSetAddUserFriendlyComments() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final CharSequence comment = "A simple comment";
@@ -502,7 +500,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunction() throws Exception {
         final CharSequence comment = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         int wrapColumn = 15;
@@ -529,7 +527,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunctionShortComment() throws Exception {
         final CharSequence comment = "Lorem ipsum dolor";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         int wrapColumn = 30;
@@ -555,7 +553,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunctionNoEmptySpace() throws Exception {
         final CharSequence comment = "Lorem ipsumdolorsitamet,consecteturadipisicingelit";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         int wrapColumn = 15;
@@ -578,7 +576,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteChangeRecord() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -606,7 +604,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final AddRequest changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
@@ -624,7 +622,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddRequestNoBranchExcluded() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dnAdd = DN.valueOf("uid=scarter,ou=People,dc=example,dc=com");
@@ -652,7 +650,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddRequestBranchExcluded() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         final DN dnAdd = DN.valueOf("uid=scarter,ou=People,dc=example,dc=com");
@@ -677,7 +675,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddRequestJpegAttributeOk() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         final File file = File.createTempFile("sdk", ".jpeg");
         final String url = file.toURI().toURL().toString();
@@ -711,7 +709,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddBinaryRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -740,7 +738,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteAddBinaryNonAsciiRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -769,7 +767,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteDeleteRequestBranchExcluded() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         // @formatter:off
         final DeleteRequest changeRequest = (DeleteRequest) Requests.newChangeRecord(
@@ -793,7 +791,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteDeleteRequestBranchNotExcluded() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         // @formatter:off
         final DeleteRequest changeRequest = (DeleteRequest) Requests.newChangeRecord(
@@ -821,7 +819,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteDeleteRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -847,7 +845,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteDeleteRequestContainingControl() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         final DN dn = DN.valueOf("uid=scarter,ou=People,dc=example,dc=com");
 
@@ -882,8 +880,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testWriteDeleteRequestIllegalArguments() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -911,7 +908,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModdnRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -937,7 +934,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModdnRequestNewSuperior() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         // @formatter:off
         final ModifyDNRequest changeRequest = (ModifyDNRequest) Requests.newChangeRecord(
@@ -965,7 +962,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModdnRequestDeleterdnFalse() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         // @formatter:off
         final ModifyDNRequest changeRequest = (ModifyDNRequest) Requests.newChangeRecord(
@@ -992,7 +989,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1023,7 +1020,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequestUsingControl() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1052,7 +1049,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequestNoModifications() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1077,7 +1074,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequestFilterAttributesExcluded() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1108,7 +1105,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequestBranchExcludedNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1140,7 +1137,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyRequestBranchExcludedMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1169,7 +1166,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyDNRequestBranchExcludedNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1198,7 +1195,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyDNRequestBranchExcludedMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1226,7 +1223,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteModifyDNRequest() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         // @formatter:off
@@ -1252,7 +1249,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteMultipleChangeRecords() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         final ChangeRecord changeRequest = Requests.newAddRequest(getAddLDIFChangeRecord());
 
@@ -1338,7 +1335,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             "home-phone: 415/697-8899"
         );
         // @formatter:on
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
         writer.writeChangeRecord(changeRequest);
         writer.close();
@@ -1354,7 +1351,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteComment() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         writer.writeComment("TLDIFChangeRecordWriter, this is a comment.");

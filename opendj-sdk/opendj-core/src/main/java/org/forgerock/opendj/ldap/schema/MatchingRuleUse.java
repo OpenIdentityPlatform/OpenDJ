@@ -56,9 +56,9 @@ public final class MatchingRuleUse extends SchemaElement {
     /** A fluent API for incrementally constructing matching rule uses. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private boolean isObsolete;
-        private final Set<String> attributeOIDs = new LinkedHashSet<String>();
+        private final Set<String> attributeOIDs = new LinkedHashSet<>();
 
         Builder(MatchingRuleUse mru, SchemaBuilder builder) {
             super(builder, mru);
@@ -483,17 +483,15 @@ public final class MatchingRuleUse extends SchemaElement {
             throw new SchemaException(message, e);
         }
 
-        attributes = new HashSet<AttributeType>(attributeOIDs.size());
-        AttributeType attributeType;
+        attributes = new HashSet<>(attributeOIDs.size());
         for (final String attribute : attributeOIDs) {
             try {
-                attributeType = schema.getAttributeType(attribute);
+                attributes.add(schema.getAttributeType(attribute));
             } catch (final UnknownSchemaElementException e) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1.get(getNameOrOID(), attribute);
                 throw new SchemaException(message, e);
             }
-            attributes.add(attributeType);
         }
         attributes = Collections.unmodifiableSet(attributes);
     }

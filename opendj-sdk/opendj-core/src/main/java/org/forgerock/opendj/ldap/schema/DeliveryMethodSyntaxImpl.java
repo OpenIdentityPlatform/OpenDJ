@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -59,7 +60,7 @@ final class DeliveryMethodSyntaxImpl extends AbstractSyntaxImpl {
     /**
      * The set of values that may be used as delivery methods.
      */
-    private static final HashSet<String> ALLOWED_VALUES = new HashSet<String>();
+    private static final HashSet<String> ALLOWED_VALUES = new HashSet<>();
     {
         ALLOWED_VALUES.add("any");
         ALLOWED_VALUES.add("mhs");

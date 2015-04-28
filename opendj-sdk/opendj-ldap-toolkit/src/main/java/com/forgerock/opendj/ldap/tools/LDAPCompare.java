@@ -242,7 +242,7 @@ public final class LDAPCompare extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        final ArrayList<String> dnStrings = new ArrayList<String>();
+        final ArrayList<String> dnStrings = new ArrayList<>();
         final ArrayList<String> attrAndDNStrings = argParser.getTrailingArguments();
 
         if (attrAndDNStrings.isEmpty()) {

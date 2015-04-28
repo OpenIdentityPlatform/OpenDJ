@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -140,7 +140,7 @@ public final class ServerSideSortRequestControl implements Control {
                             throw DecodeException.error(message);
                         }
 
-                        final List<SortKey> keys = new LinkedList<SortKey>();
+                        final List<SortKey> keys = new LinkedList<>();
                         while (reader.hasNextElement()) {
                             reader.readStartSequence();
                             final String attrName = reader.readOctetStringAsString();
@@ -246,7 +246,7 @@ public final class ServerSideSortRequestControl implements Control {
             final String sortKeys) {
         Reject.ifNull(sortKeys);
 
-        final List<SortKey> keys = new LinkedList<SortKey>();
+        final List<SortKey> keys = new LinkedList<>();
         final StringTokenizer tokenizer = new StringTokenizer(sortKeys, ",");
         while (tokenizer.hasMoreTokens()) {
             final String token = tokenizer.nextToken().trim();

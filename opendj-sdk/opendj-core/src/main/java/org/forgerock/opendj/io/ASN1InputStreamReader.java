@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -54,8 +54,8 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
     private int lengthBytesNeeded;
     private final int maxElementSize;
     private InputStream in;
-    private final LinkedList<InputStream> streamStack;
-    private byte[] buffer;
+    private final LinkedList<InputStream> streamStack = new LinkedList<>();
+    private byte[] buffer = new byte[512];
 
     /**
      * Creates a new ASN1 reader whose source is the provided input stream and
@@ -69,15 +69,12 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
      */
     ASN1InputStreamReader(final InputStream stream, final int maxElementSize) {
         this.in = stream;
-        this.streamStack = new LinkedList<InputStream>();
-        this.buffer = new byte[512];
         this.maxElementSize = maxElementSize;
     }
 
     /** {@inheritDoc} */
     public void close() throws IOException {
-        // Calling close of SizeLimitInputStream should close the parent
-        // stream.
+        // Calling close of SizeLimitInputStream should close the parent stream.
         in.close();
         streamStack.clear();
     }

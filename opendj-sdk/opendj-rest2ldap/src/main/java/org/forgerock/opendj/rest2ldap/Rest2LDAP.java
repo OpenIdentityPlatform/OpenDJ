@@ -11,9 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
@@ -96,7 +95,7 @@ public final class Rest2LDAP {
      * A builder for incrementally constructing LDAP resource collections.
      */
     public static final class Builder {
-        private final List<Attribute> additionalLDAPAttributes = new LinkedList<Attribute>();
+        private final List<Attribute> additionalLDAPAttributes = new LinkedList<>();
         private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private DN baseDN; // TODO: support template variables.
         private AttributeDescription etagAttribute;
@@ -1083,8 +1082,7 @@ public final class Rest2LDAP {
             final JsonValue parent =
                     normalizeConnectionFactory(configuration,
                             current.get("inheritFrom").asString(), depth + 1);
-            final Map<String, Object> normalized =
-                    new LinkedHashMap<String, Object>(parent.asMap());
+            final Map<String, Object> normalized = new LinkedHashMap<>(parent.asMap());
             normalized.putAll(current.asMap());
             normalized.remove("inheritFrom");
             return new JsonValue(normalized);
@@ -1098,7 +1096,7 @@ public final class Rest2LDAP {
             final BindRequest bindRequest, final int connectionPoolSize,
             final int heartBeatIntervalSeconds, final int heartBeatTimeoutMilliSeconds,
             final LDAPOptions options) {
-        final List<ConnectionFactory> servers = new ArrayList<ConnectionFactory>(config.size());
+        final List<ConnectionFactory> servers = new ArrayList<>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();
             final int port = server.get("port").required().asInteger();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -38,7 +38,7 @@ import org.forgerock.util.Reject;
 final class SearchResultReferenceImpl extends AbstractResponseImpl<SearchResultReference> implements
         SearchResultReference {
 
-    private final List<String> uris = new LinkedList<String>();
+    private final List<String> uris = new LinkedList<>();
 
     SearchResultReferenceImpl(final SearchResultReference searchResultReference) {
         super(searchResultReference);

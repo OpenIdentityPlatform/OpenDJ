@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -58,7 +58,7 @@ final class DataSource {
         private int next;
 
         public IncrementLineFileDataSource(final String file) throws IOException {
-            lines = new ArrayList<String>();
+            lines = new ArrayList<>();
             final BufferedReader in = new BufferedReader(new FileReader(file));
             try {
                 String line;
@@ -125,7 +125,7 @@ final class DataSource {
         private final Random random;
 
         public RandomLineFileDataSource(final long seed, final String file) throws IOException {
-            lines = new ArrayList<String>();
+            lines = new ArrayList<>();
             random = new Random(seed);
             final BufferedReader in = new BufferedReader(new FileReader(file));
             try {
@@ -183,7 +183,7 @@ final class DataSource {
 
         private RandomStringDataSource(final int seed, final int length, final String charSet) {
             this.length = length;
-            final Set<Character> chars = new HashSet<Character>();
+            final Set<Character> chars = new HashSet<>();
             for (int i = 0; i < charSet.length(); i++) {
                 final char c = charSet.charAt(i);
                 if (c == '[') {

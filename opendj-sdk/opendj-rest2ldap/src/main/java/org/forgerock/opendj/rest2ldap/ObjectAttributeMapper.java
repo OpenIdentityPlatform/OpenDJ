@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -61,7 +61,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
         }
     }
 
-    private final Map<String, Mapping> mappings = new LinkedHashMap<String, Mapping>();
+    private final Map<String, Mapping> mappings = new LinkedHashMap<>();
 
     ObjectAttributeMapper() {
         // Nothing to do.
@@ -226,12 +226,8 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                                      */
                                     return null;
                                 } else {
-                                    /*
-                                     * Combine the sub-attributes into a single
-                                     * JSON object.
-                                     */
-                                    final Map<String, Object> result =
-                                            new LinkedHashMap<String, Object>(value.size());
+                                    // Combine the sub-attributes into a single JSON object.
+                                    final Map<String, Object> result = new LinkedHashMap<>(value.size());
                                     for (final Map.Entry<String, JsonValue> e : value) {
                                         result.put(e.getKey(), e.getValue().getObject());
                                     }
@@ -297,7 +293,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 case 1:
                     return value.get(0);
                 default:
-                    final List<T> attributes = new ArrayList<T>(value.size());
+                    final List<T> attributes = new ArrayList<>(value.size());
                     for (final List<T> a : value) {
                         attributes.addAll(a);
                     }
@@ -313,7 +309,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
      */
     private Map<String, Mapping> checkMapping(final JsonPointer path, final JsonValue v)
             throws ResourceException {
-        final Map<String, Mapping> missingMappings = new LinkedHashMap<String, Mapping>(mappings);
+        final Map<String, Mapping> missingMappings = new LinkedHashMap<>(mappings);
         if (v != null && !v.isNull()) {
             if (v.isMap()) {
                 for (final String attribute : v.asMap().keySet()) {

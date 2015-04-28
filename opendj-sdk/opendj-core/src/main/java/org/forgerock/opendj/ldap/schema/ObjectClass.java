@@ -62,11 +62,11 @@ public final class ObjectClass extends SchemaElement {
     /** A fluent API for incrementally constructing object classes. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private boolean isObsolete;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private String oid;
-        private final Set<String> optionalAttributes = new LinkedHashSet<String>();
-        private final Set<String> requiredAttributes = new LinkedHashSet<String>();
-        private final Set<String> superiorClasses = new LinkedHashSet<String>();
+        private final Set<String> optionalAttributes = new LinkedHashSet<>();
+        private final Set<String> requiredAttributes = new LinkedHashSet<>();
+        private final Set<String> superiorClasses = new LinkedHashSet<>();
         private ObjectClassType type;
 
         Builder(final ObjectClass oc, final SchemaBuilder builder) {
@@ -775,7 +775,7 @@ public final class ObjectClass extends SchemaElement {
         boolean derivesTop = getObjectClassType() != ObjectClassType.STRUCTURAL;
 
         if (!superiorClassOIDs.isEmpty()) {
-            superiorClasses = new HashSet<ObjectClass>(superiorClassOIDs.size());
+            superiorClasses = new HashSet<>(superiorClassOIDs.size());
             ObjectClass superiorClass;
             for (final String superClassOid : superiorClassOIDs) {
                 try {
@@ -852,7 +852,7 @@ public final class ObjectClass extends SchemaElement {
                 // Inherit all required attributes from superior class.
                 Iterator<AttributeType> i = superiorClass.getRequiredAttributes().iterator();
                 if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET) {
-                    requiredAttributes = new HashSet<AttributeType>();
+                    requiredAttributes = new HashSet<>();
                 }
                 while (i.hasNext()) {
                     requiredAttributes.add(i.next());
@@ -861,7 +861,7 @@ public final class ObjectClass extends SchemaElement {
                 // Inherit all optional attributes from superior class.
                 i = superiorClass.getRequiredAttributes().iterator();
                 if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET) {
-                    requiredAttributes = new HashSet<AttributeType>();
+                    requiredAttributes = new HashSet<>();
                 }
                 while (i.hasNext()) {
                     requiredAttributes.add(i.next());
@@ -885,7 +885,7 @@ public final class ObjectClass extends SchemaElement {
         }
 
         if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID)) {
-            declaredOptionalAttributes = new HashSet<AttributeType>(requiredAttributeOIDs.size());
+            declaredOptionalAttributes = new HashSet<>(requiredAttributeOIDs.size());
             for (final AttributeType attributeType : schema.getAttributeTypes()) {
                 if (attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS) {
                     declaredOptionalAttributes.add(attributeType);
@@ -894,8 +894,7 @@ public final class ObjectClass extends SchemaElement {
             optionalAttributes = declaredRequiredAttributes;
         } else {
             if (!requiredAttributeOIDs.isEmpty()) {
-                declaredRequiredAttributes =
-                        new HashSet<AttributeType>(requiredAttributeOIDs.size());
+                declaredRequiredAttributes = new HashSet<>(requiredAttributeOIDs.size());
                 AttributeType attributeType;
                 for (final String requiredAttribute : requiredAttributeOIDs) {
                     try {
@@ -919,8 +918,7 @@ public final class ObjectClass extends SchemaElement {
             }
 
             if (!optionalAttributeOIDs.isEmpty()) {
-                declaredOptionalAttributes =
-                        new HashSet<AttributeType>(optionalAttributeOIDs.size());
+                declaredOptionalAttributes = new HashSet<>(optionalAttributeOIDs.size());
                 AttributeType attributeType;
                 for (final String optionalAttribute : optionalAttributeOIDs) {
                     try {

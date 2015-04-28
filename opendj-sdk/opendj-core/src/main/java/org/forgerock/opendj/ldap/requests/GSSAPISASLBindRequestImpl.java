@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -87,14 +87,14 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         "No password specified for GSSAPI SASL authentication"));
             }
 
-            final Map<String, Object> state = new HashMap<String, Object>();
+            final Map<String, Object> state = new HashMap<>();
             state.put("javax.security.auth.login.name", authenticationID);
             state.put("javax.security.auth.login.password", password.toString().toCharArray());
             state.put("javax.security.auth.useSubjectCredsOnly", "true");
             state.put("java.security.krb5.realm", realm);
             state.put("java.security.krb5.kdc", kdc);
 
-            final Map<String, Object> options = new HashMap<String, Object>();
+            final Map<String, Object> options = new HashMap<>();
             options.put("tryFirstPass", "true");
             options.put("useTicketCache", "true");
             options.put("doNotPrompt", "true");
@@ -169,11 +169,8 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         Subject.doAs(subject, new PrivilegedExceptionAction<SaslClient>() {
                             @Override
                             public SaslClient run() throws LdapException {
-                                /*
-                                 * Create property map containing all the
-                                 * parameters.
-                                 */
-                                final Map<String, String> props = new HashMap<String, String>();
+                                // Create property map containing all the parameters.
+                                final Map<String, String> props = new HashMap<>();
 
                                 final List<String> qopValues = initialBindRequest.getQOPs();
                                 if (!qopValues.isEmpty()) {
@@ -292,7 +289,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     }
 
-    private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
+    private final Map<String, String> additionalAuthParams = new LinkedHashMap<>();
 
     /** Ignored if subject is non-null. */
     private String authenticationID;
@@ -304,7 +301,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     private Integer maxSendBufferSize;
 
     private byte[] password;
-    private final List<String> qopValues = new LinkedList<String>();
+    private final List<String> qopValues = new LinkedList<>();
     private String realm;
     /**
      * Don't use primitives for these so that we can distinguish between default

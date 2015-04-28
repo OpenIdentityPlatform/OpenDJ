@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -623,10 +623,10 @@ public final class Entries {
                      * attributes in order to avoid matching rule based
                      * comparisons.
                      */
-                    final Set<ByteString> oldValues = new LinkedHashSet<ByteString>(afrom);
-                    final Set<ByteString> newValues = new LinkedHashSet<ByteString>(ato);
+                    final Set<ByteString> oldValues = new LinkedHashSet<>(afrom);
+                    final Set<ByteString> newValues = new LinkedHashSet<>(ato);
 
-                    final Set<ByteString> deletedValues = new LinkedHashSet<ByteString>(oldValues);
+                    final Set<ByteString> deletedValues = new LinkedHashSet<>(oldValues);
                     deletedValues.removeAll(newValues);
                     diffDeleteValues(request, deletedValues.size() == afrom.size() ? afrom
                             : new LinkedAttribute(adfrom, deletedValues));
@@ -726,8 +726,7 @@ public final class Entries {
         if (objectClassAttribute == null) {
             return Collections.emptySet();
         } else {
-            final Set<ObjectClass> objectClasses =
-                    new HashSet<ObjectClass>(objectClassAttribute.size());
+            final Set<ObjectClass> objectClasses = new HashSet<>(objectClassAttribute.size());
             for (final ByteString v : objectClassAttribute) {
                 final String objectClassName = v.toString();
                 final ObjectClass objectClass;
@@ -1014,7 +1013,7 @@ public final class Entries {
              * Use a hash set for membership checking rather than the attribute
              * in order to avoid matching rule based comparisons.
              */
-            final Set<ByteString> oldValues = new LinkedHashSet<ByteString>(afrom);
+            final Set<ByteString> oldValues = new LinkedHashSet<>(afrom);
             return !oldValues.containsAll(ato);
         } else {
             return !afrom.equals(ato);

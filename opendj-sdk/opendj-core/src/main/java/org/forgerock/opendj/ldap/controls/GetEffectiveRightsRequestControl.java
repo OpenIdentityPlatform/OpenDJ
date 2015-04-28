@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -162,11 +162,9 @@ public final class GetEffectiveRightsRequestControl implements Control {
                                 throw DecodeException.error(message);
                             }
 
-                            // There is an sequence containing an attribute
-                            // list, try to
-                            // decode it.
+                            // There is an sequence containing an attribute list, try to decode it.
                             if (reader.hasNextElement()) {
-                                attributes = new LinkedList<AttributeType>();
+                                attributes = new LinkedList<>();
                                 reader.readStartSequence();
                                 while (reader.hasNextElement()) {
                                     // Decode as an attribute type.
@@ -273,7 +271,7 @@ public final class GetEffectiveRightsRequestControl implements Control {
 
         List<AttributeType> copyOfAttributes;
         if (attributes != null && attributes.length > 0) {
-            copyOfAttributes = new ArrayList<AttributeType>(attributes.length);
+            copyOfAttributes = new ArrayList<>(attributes.length);
             for (final String attribute : attributes) {
                 copyOfAttributes.add(Schema.getDefaultSchema().getAttributeType(attribute));
             }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -129,7 +129,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
+                        extraProperties = new HashMap<>();
                     }
                     extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
                 } else {

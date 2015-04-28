@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -139,7 +140,7 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         // Get the instance of the rule to be tested.
         final MatchingRule rule = getRule();
 
-        final List<ByteSequence> anyList = new ArrayList<ByteSequence>(anys.length);
+        final List<ByteSequence> anyList = new ArrayList<>(anys.length);
         for (final String middleSub : anys) {
             anyList.add(ByteString.valueOf(middleSub));
         }
@@ -184,7 +185,7 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
 
         final StringBuilder printableMiddleSubs = new StringBuilder();
-        final List<ByteSequence> middleList = new ArrayList<ByteSequence>(middleSubs.length);
+        final List<ByteSequence> middleList = new ArrayList<>(middleSubs.length);
         printableMiddleSubs.append("*");
         for (final String middleSub : middleSubs) {
             printableMiddleSubs.append(middleSub);

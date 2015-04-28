@@ -102,7 +102,7 @@ import org.forgerock.opendj.ldif.EntryReader;
  */
 public final class MemoryBackend implements RequestHandler<RequestContext> {
     private final DecodeOptions decodeOptions;
-    private final ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<DN, Entry>();
+    private final ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<>();
     private final Schema schema;
     private final Object writeLock = new Object();
 

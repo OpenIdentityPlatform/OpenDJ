@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -60,7 +60,7 @@ import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
  */
 final class InternalConnection extends AbstractAsynchronousConnection {
     private final ServerConnection<Integer> serverConnection;
-    private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<ConnectionEventListener>();
+    private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicInteger messageID = new AtomicInteger();
 
     /**

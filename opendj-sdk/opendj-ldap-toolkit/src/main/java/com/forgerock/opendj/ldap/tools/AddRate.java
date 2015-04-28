@@ -272,7 +272,7 @@ public class AddRate extends ConsoleApplication {
             }
         }
 
-        private final ConcurrentSkipListMap<Long, String> dnEntriesAdded = new ConcurrentSkipListMap<Long, String>();
+        private final ConcurrentSkipListMap<Long, String> dnEntriesAdded = new ConcurrentSkipListMap<>();
         private final ThreadLocal<Random> randomSeq = new ThreadLocal<Random>() {
             @Override
             protected Random initialValue() {
@@ -463,7 +463,7 @@ public class AddRate extends ConsoleApplication {
 
             /* addrate specifics arguments */
             deleteMode =
-                new MultiChoiceArgument<DeleteStrategy>("deletemode", 'C', "deleteMode", false, true,
+                new MultiChoiceArgument<>("deletemode", 'C', "deleteMode", false, true,
                     INFO_DELETEMODE_PLACEHOLDER.get(), Arrays.asList(DeleteStrategy.values()), false,
                     INFO_ADDRATE_DESCRIPTION_DELETEMODE.get());
             deleteMode.setDefaultValue(DeleteStrategy.FIFO.toString());

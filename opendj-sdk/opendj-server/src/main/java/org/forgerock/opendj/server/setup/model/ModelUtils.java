@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.server.setup.model;
@@ -37,7 +37,7 @@ final class ModelUtils {
     static final String OBFUSCATED_VALUE = "******";
 
     ArrayList<String> getSetupEquivalentCommandLine(final Model configuration) {
-        final ArrayList<String> cmdLines = new ArrayList<String>();
+        final ArrayList<String> cmdLines = new ArrayList<>();
         final ListenerSettings settings = configuration.getListenerSettings();
 
         // Starts the server ?

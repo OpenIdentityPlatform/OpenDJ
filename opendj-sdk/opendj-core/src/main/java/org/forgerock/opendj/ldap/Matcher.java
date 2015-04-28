@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -225,7 +225,7 @@ public final class Matcher {
                 return TRUE;
             }
 
-            final List<MatcherImpl> subMatchers = new ArrayList<MatcherImpl>(subFilters.size());
+            final List<MatcherImpl> subMatchers = new ArrayList<>(subFilters.size());
             for (final Filter f : subFilters) {
                 subMatchers.add(f.accept(this, schema));
             }
@@ -443,7 +443,7 @@ public final class Matcher {
                 return FALSE;
             }
 
-            final List<MatcherImpl> subMatchers = new ArrayList<MatcherImpl>(subFilters.size());
+            final List<MatcherImpl> subMatchers = new ArrayList<>(subFilters.size());
             for (final Filter f : subFilters) {
                 subMatchers.add(f.accept(this, schema));
             }

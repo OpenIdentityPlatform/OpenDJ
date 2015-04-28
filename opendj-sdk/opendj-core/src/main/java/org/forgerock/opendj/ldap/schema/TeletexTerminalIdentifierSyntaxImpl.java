@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -58,7 +59,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
      * The set of allowed fax parameter values, formatted entirely in lowercase
      * characters.
      */
-    private static final HashSet<String> ALLOWED_TTX_PARAMETERS = new HashSet<String>(5);
+    private static final HashSet<String> ALLOWED_TTX_PARAMETERS = new HashSet<>(5);
 
     static {
         ALLOWED_TTX_PARAMETERS.add("graphic");

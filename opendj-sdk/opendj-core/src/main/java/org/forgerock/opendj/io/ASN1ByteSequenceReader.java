@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -50,7 +50,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
     private int peekLength = -1;
     private final int maxElementSize;
     private ByteSequenceReader reader;
-    private final LinkedList<ByteSequenceReader> readerStack;
+    private final LinkedList<ByteSequenceReader> readerStack = new LinkedList<>();
 
     /**
      * Creates a new ASN1 reader whose source is the provided byte sequence
@@ -64,7 +64,6 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
      */
     ASN1ByteSequenceReader(final ByteSequenceReader reader, final int maxElementSize) {
         this.reader = reader;
-        this.readerStack = new LinkedList<ByteSequenceReader>();
         this.maxElementSize = maxElementSize;
     }
 

@@ -173,8 +173,8 @@ public final class LDIFSearch extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        final List<Filter> filters = new LinkedList<Filter>();
-        final List<String> attributes = new LinkedList<String>();
+        final List<Filter> filters = new LinkedList<>();
+        final List<String> attributes = new LinkedList<>();
         final List<String> trailingArguments = argParser.getTrailingArguments();
         if (trailingArguments.size() > 1) {
             final List<String> filterAndAttributeStrings =

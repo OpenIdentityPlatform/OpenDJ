@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -80,8 +80,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeAttributeDoesntAllowNull() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAttribute(null);
@@ -97,7 +96,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testSetExcludeAttributeWithMatch() throws Exception {
         final AttributeDescription attribute = AttributeDescription.valueOf("cn");
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAttribute(attribute);
@@ -122,7 +121,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testSetExcludeAttributeWithNoMatch() throws Exception {
         final AttributeDescription attribute = AttributeDescription.valueOf("vip");
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAttribute(attribute);
@@ -147,8 +146,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeBranchDoesntAllowNull() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeBranch(null);
@@ -163,8 +161,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWrongDN() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         DN dn = DN.valueOf("dc=example.com");
@@ -186,8 +183,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWithNoMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         DN dn = DN.valueOf("dc=example,dc=com");
@@ -208,8 +204,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeBranchWithMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         DN dn = DN.valueOf("dc=example,dc=org");
@@ -231,8 +226,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testsetExcludeFilterDoesntAllowNull() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeFilter(null);
@@ -248,8 +242,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeFilterWithMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final Filter filter = Filter.equality("objectclass", "vip");
         final Matcher excludeFilter = filter.matcher();
@@ -272,8 +265,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeFilterWithNoMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final Filter filter = Filter.equality("objectclass", "person");
         final Matcher excludeFilter = filter.matcher();
@@ -295,7 +287,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeAttributeDoesntAllowNull() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeAttribute(null);
         writer.close();
@@ -310,7 +302,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeAttributeWithMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeAttribute(AttributeDescription.valueOf("cn"));
         writer.setIncludeAttribute(AttributeDescription.valueOf("sn"));
@@ -332,7 +324,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeAttributeWithNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeAttribute(AttributeDescription.valueOf("manager"));
         writer.writeEntry(getStandardEntry());
@@ -355,8 +347,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeAttributeWithRepeatedAttributes() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeAttribute(AttributeDescription.valueOf("cn"));
         writer.setIncludeAttribute(AttributeDescription.valueOf("sn"));
@@ -381,8 +372,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllOperationalAttributesFalse() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         int opAttributes = 0;
 
@@ -412,8 +402,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllOperationalAttributesTrue() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAllOperationalAttributes(true);
@@ -438,8 +427,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllUserAttributesFalse() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAllUserAttributes(false);
@@ -460,8 +448,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetExcludeAllUserAttributesTrue() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         writer.setExcludeAllUserAttributes(true);
@@ -486,7 +473,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeBranchDoesntAllowNull() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeBranch(null);
         writer.close();
@@ -501,7 +488,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeBranchWithMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         DN dn = DN.valueOf("dc=example,dc=com");
@@ -525,7 +512,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeBranchWithNoMatch() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         DN dn = DN.valueOf("dc=opendj,dc=org");
@@ -548,8 +535,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeFilterWithNoMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final Filter filter = Filter.equality("objectclass", "vip");
         final Matcher includeFilter = filter.matcher();
@@ -571,8 +557,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testSetIncludeFilterWithMatch() throws Exception {
-
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final Filter filter = Filter.equality("objectclass", "person");
         final Matcher includeFilter = filter.matcher();
@@ -595,7 +580,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeFilterDoesntAllowNull() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.setIncludeFilter(null);
         writer.writeEntry(getStandardEntry());
@@ -612,7 +597,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunction() throws Exception {
         final CharSequence comment = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         int wrapColumn = 15;
@@ -639,7 +624,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunctionShortComment() throws Exception {
         final CharSequence comment = "Lorem ipsum dolor";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         int wrapColumn = 30;
@@ -665,7 +650,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     public void testWriteCommentUsingTheWrapFunctionNoEmptySpace() throws Exception {
         final CharSequence comment = "Lorem ipsumdolorsitamet,consecteturadipisicingelit";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         int wrapColumn = 15;
@@ -692,7 +677,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         final CharSequence comment1 = "This is a new comment";
         final CharSequence comment2 = "Another one";
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.writeComment(comment1);
         writer.writeComment(comment2);
@@ -712,7 +697,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(enabled = false)
     public void testSetAddUserFriendlyComments() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
 
         final CharSequence comment = "A simple comment";
@@ -732,7 +717,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testWriteEntryUsingStandardEntry() throws Exception {
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final int wrapColumn = 15;
         writer.setWrapColumn(wrapColumn);
@@ -771,7 +756,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         entry.addAttribute("typeOnly");
         entry.addAttribute("localized;lang-fr", "\u00e7edilla");
 
-        final List<String> actual = new ArrayList<String>();
+        final List<String> actual = new ArrayList<>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         writer.writeEntry(entry);
         writer.close();

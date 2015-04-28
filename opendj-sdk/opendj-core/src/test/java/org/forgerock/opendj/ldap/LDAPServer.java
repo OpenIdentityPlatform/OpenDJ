@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -229,7 +229,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
                     if (saslServer == null
                             || !saslServer.getMechanismName().equalsIgnoreCase(saslMech)) {
-                        final Map<String, String> props = new HashMap<String, String>();
+                        final Map<String, String> props = new HashMap<>();
                         props.put(Sasl.QOP, "auth-conf,auth-int,auth");
                         saslServer =
                                 Sasl.createSaslServer(saslMech, "ldap",
@@ -488,7 +488,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
     }
 
     /** The mapping between entry DNs and the corresponding entries. */
-    private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
+    private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<>();
     /** The LDAP listener. */
     private LDAPListener listener;
     /** Whether the server is running. */
@@ -498,8 +498,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
      * The mapping between the message id and the requests the server is
      * currently handling.
      */
-    private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress =
-            new ConcurrentHashMap<Integer, AbandonableRequest>();
+    private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress = new ConcurrentHashMap<>();
 
     private SSLContext sslContext;
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -1075,7 +1075,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
     private void assertConformsToSchema(final Entry entry, final Schema schema,
             final SchemaValidationPolicy policy) {
-        final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+        final List<LocalizableMessage> errorMessages = new LinkedList<>();
         assertThat(schema.validateEntry(entry, policy, errorMessages)).as(errorMessages.toString())
                 .isTrue();
     }
@@ -1086,7 +1086,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
     private void assertDoesNotConformToSchema(final Entry entry, final Schema schema,
             final SchemaValidationPolicy policy) {
-        final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+        final List<LocalizableMessage> errorMessages = new LinkedList<>();
         assertThat(schema.validateEntry(entry, policy, errorMessages)).as(errorMessages.toString())
                 .isFalse();
     }

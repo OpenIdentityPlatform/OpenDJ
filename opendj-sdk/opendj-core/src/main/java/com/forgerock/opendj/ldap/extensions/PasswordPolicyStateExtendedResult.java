@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -40,8 +41,7 @@ public final class PasswordPolicyStateExtendedResult extends
         AbstractExtendedResult<PasswordPolicyStateExtendedResult> implements
         PasswordPolicyStateOperationContainer {
     private String targetUser = "";
-    private final List<PasswordPolicyStateOperation> operations =
-            new ArrayList<PasswordPolicyStateOperation>();
+    private final List<PasswordPolicyStateOperation> operations = new ArrayList<>();
 
     /**
      * Creates a new password policy state extended result with the provided

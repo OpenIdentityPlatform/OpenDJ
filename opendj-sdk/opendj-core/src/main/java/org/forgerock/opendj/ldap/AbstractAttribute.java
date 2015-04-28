@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -284,7 +284,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
             return false;
         }
 
-        final Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(values.size());
+        final Map<ByteString, T> valuesToRetain = new HashMap<>(values.size());
         for (final T value : values) {
             valuesToRetain.put(normalizeValue(this, ByteString.valueOf(value)), value);
         }

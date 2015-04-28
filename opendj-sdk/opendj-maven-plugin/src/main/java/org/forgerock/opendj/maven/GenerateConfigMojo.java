@@ -135,8 +135,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "true")
     private Boolean isExtension;
 
-    private final Map<String, StreamSourceFactory> componentDescriptors =
-            new LinkedHashMap<String, StreamSourceFactory>();
+    private final Map<String, StreamSourceFactory> componentDescriptors = new LinkedHashMap<>();
     private TransformerFactory stylesheetFactory;
     private Templates stylesheetMetaJava;
     private Templates stylesheetServerJava;
@@ -148,7 +147,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private Templates stylesheetProfileCLI;
     private Templates stylesheetMessages;
     private Templates stylesheetManifest;
-    private final Queue<Future<?>> tasks = new LinkedList<Future<?>>();
+    private final Queue<Future<?>> tasks = new LinkedList<>();
 
     private final URIResolver resolver = new URIResolver() {
 
@@ -297,7 +296,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
             }
 
             // Generate package-info.java files.
-            final Map<String, Templates> profileMap = new LinkedHashMap<String, Templates>();
+            final Map<String, Templates> profileMap = new LinkedHashMap<>();
             profileMap.put("meta", stylesheetMetaPackageInfo);
             profileMap.put("server", stylesheetServerPackageInfo);
             profileMap.put("client", stylesheetClientPackageInfo);

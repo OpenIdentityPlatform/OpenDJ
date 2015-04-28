@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -107,7 +107,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testAddAttributeAttributeCollection(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> duplicateValues = new LinkedList<ByteString>();
+        final List<ByteString> duplicateValues = new LinkedList<>();
         assertThat(entry.addAttribute(new LinkedAttribute("sn", "sn"), duplicateValues)).isTrue();
         assertThat(entry.getAttribute(AD_SN)).hasSize(1);
         assertThat(duplicateValues).hasSize(0);
@@ -117,7 +117,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testAddAttributeAttributeCollectionValueMissing(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> duplicateValues = new LinkedList<ByteString>();
+        final List<ByteString> duplicateValues = new LinkedList<>();
         assertThat(entry.addAttribute(new LinkedAttribute("cn", "newcn"), duplicateValues))
                 .isTrue();
         assertThat(entry.getAttribute(AD_CN)).hasSize(2);
@@ -128,7 +128,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testAddAttributeAttributeCollectionValuePresent(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> duplicateValues = new LinkedList<ByteString>();
+        final List<ByteString> duplicateValues = new LinkedList<>();
         assertThat(entry.addAttribute(new LinkedAttribute("cn", "test"), duplicateValues))
                 .isFalse();
         assertThat(entry.getAttribute(AD_CN)).hasSize(1);
@@ -208,7 +208,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeCustomMissing(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute(AD_CUSTOM2), missingValues)).isFalse();
         assertThat(missingValues).isEmpty();
     }
@@ -217,7 +217,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeCustomPresent1(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute(AD_CUSTOM1), missingValues)).isTrue();
         assertThat(missingValues).isEmpty();
     }
@@ -226,7 +226,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeCustomPresent2(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute("custom1"), missingValues)).isTrue();
         assertThat(missingValues).isEmpty();
     }
@@ -235,7 +235,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeCustomValueMissing1(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(
                 entry.containsAttribute(singletonAttribute(AD_CUSTOM2, "missing"), missingValues))
                 .isFalse();
@@ -245,7 +245,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testContainsAttributeAttributeMissing(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute(AD_SN), missingValues)).isFalse();
         assertThat(missingValues).isEmpty();
     }
@@ -253,7 +253,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testContainsAttributeAttributePresent1(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute(AD_CN), missingValues)).isTrue();
         assertThat(missingValues).isEmpty();
     }
@@ -261,7 +261,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testContainsAttributeAttributePresent2(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(emptyAttribute("cn"), missingValues)).isTrue();
         assertThat(missingValues).isEmpty();
     }
@@ -270,7 +270,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeValueCustomMissing2(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(
                 entry.containsAttribute(singletonAttribute(AD_CUSTOM1, "missing"), missingValues))
                 .isFalse();
@@ -281,7 +281,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeValueCustomPresent(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(
                 entry.containsAttribute(singletonAttribute(AD_CUSTOM1, "custom1"), missingValues))
                 .isTrue();
@@ -292,7 +292,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeValueMissing1(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(singletonAttribute(AD_SN, "missing"), missingValues))
                 .isFalse();
         assertThat(missingValues).hasSize(1);
@@ -302,7 +302,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeValueMissing2(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(singletonAttribute(AD_CN, "missing"), missingValues))
                 .isFalse();
         assertThat(missingValues).hasSize(1);
@@ -312,7 +312,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testContainsAttributeAttributeValuePresent(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.containsAttribute(singletonAttribute(AD_CN, "test"), missingValues))
                 .isTrue();
         assertThat(missingValues).isEmpty();
@@ -619,7 +619,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testRemoveAttributeAttributeMissing(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.removeAttribute(emptyAttribute(AD_SN), missingValues)).isFalse();
         assertThat(missingValues).isEmpty();
     }
@@ -627,7 +627,7 @@ public final class EntryTestCase extends SdkTestCase {
     @Test(dataProvider = "EntryFactory")
     public void testRemoveAttributeAttributePresent(final EntryFactory factory) throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.removeAttribute(emptyAttribute(AD_CN), missingValues)).isTrue();
         assertThat(entry.getAttribute(AD_CN)).isNull();
         assertThat(missingValues).isEmpty();
@@ -637,7 +637,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testRemoveAttributeAttributeValueMissing1(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.removeAttribute(singletonAttribute(AD_CN, "missing"), missingValues))
                 .isFalse();
         assertThat(entry.getAttribute(AD_CN)).isNotNull();
@@ -648,7 +648,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testRemoveAttributeAttributeValueMissing2(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.removeAttribute(singletonAttribute(AD_SN, "missing"), missingValues))
                 .isFalse();
         assertThat(missingValues).hasSize(1);
@@ -658,7 +658,7 @@ public final class EntryTestCase extends SdkTestCase {
     public void testRemoveAttributeAttributeValuePresent(final EntryFactory factory)
             throws Exception {
         final Entry entry = createTestEntry(factory);
-        final List<ByteString> missingValues = new LinkedList<ByteString>();
+        final List<ByteString> missingValues = new LinkedList<>();
         assertThat(entry.removeAttribute(singletonAttribute(AD_CN, "test"), missingValues))
                 .isTrue();
         assertThat(entry.getAttribute(AD_CN)).isNull();

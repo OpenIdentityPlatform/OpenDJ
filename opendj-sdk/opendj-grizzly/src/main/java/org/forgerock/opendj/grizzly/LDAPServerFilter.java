@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -756,7 +756,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(connection);
             if (clientContext != null) {
                 final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                final ExtendedHandler<R> handler = new ExtendedHandler<R>(clientContext, messageID);
+                final ExtendedHandler<R> handler = new ExtendedHandler<>(clientContext, messageID);
                 conn.handleExtendedRequest(messageID, request, handler, handler);
             }
         }

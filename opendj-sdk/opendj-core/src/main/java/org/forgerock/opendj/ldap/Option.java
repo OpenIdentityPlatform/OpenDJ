@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -59,7 +59,7 @@ public final class Option<T> {
      *         value.
      */
     public static <T> Option<T> of(Class<T> type, T defaultValue) {
-        return new Option<T>(type, defaultValue);
+        return new Option<>(type, defaultValue);
     }
 
     private Option(Class<T> type, T defaultValue) {

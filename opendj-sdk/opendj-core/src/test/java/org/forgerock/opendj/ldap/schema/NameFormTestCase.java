@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -781,8 +781,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testCreatesANewFormUsingChainingMethods() {
-        final Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        final List<String> extra = new ArrayList<String>();
+        final Map<String, List<String>> extraProperties = new TreeMap<>();
+        final List<String> extra = new ArrayList<>();
         extra.add("EntrySchemaCheckingTestCase");
         extraProperties.put("X-ORIGIN", extra);
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -42,14 +42,14 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * Common LDIF reader/writer functionality.
  */
 abstract class AbstractLDIFStream {
-    final Set<AttributeDescription> excludeAttributes = new HashSet<AttributeDescription>();
-    final Set<DN> excludeBranches = new HashSet<DN>();
-    final List<Matcher> excludeFilters = new LinkedList<Matcher>();
+    final Set<AttributeDescription> excludeAttributes = new HashSet<>();
+    final Set<DN> excludeBranches = new HashSet<>();
+    final List<Matcher> excludeFilters = new LinkedList<>();
     boolean excludeOperationalAttributes;
     boolean excludeUserAttributes;
-    final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
-    final Set<DN> includeBranches = new HashSet<DN>();
-    final List<Matcher> includeFilters = new LinkedList<Matcher>();
+    final Set<AttributeDescription> includeAttributes = new HashSet<>();
+    final Set<DN> includeBranches = new HashSet<>();
+    final List<Matcher> includeFilters = new LinkedList<>();
 
     AbstractLDIFStream() {
         // Nothing to do.

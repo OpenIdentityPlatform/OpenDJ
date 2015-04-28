@@ -23,6 +23,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 Manuel Gaupp
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -40,7 +41,7 @@ import java.util.TreeMap;
  * Tool for generating CoreSchema.java.
  */
 final class GenerateCoreSchema {
-    private static final Set<String> ABBREVIATIONS = new HashSet<String>(Arrays.asList("SASL",
+    private static final Set<String> ABBREVIATIONS = new HashSet<>(Arrays.asList("SASL",
             "LDAP", "DN", "DIT", "RDN", "JPEG", "OID", "UUID", "IA5", "UID", "UTC", "X500", "X121",
             "C", "CN", "O", "OU", "L", "DC", "ISDN", "SN", "ST"));
 
@@ -55,7 +56,7 @@ final class GenerateCoreSchema {
 
         final Schema schema = Schema.getCoreSchema();
 
-        final SortedMap<String, Syntax> syntaxes = new TreeMap<String, Syntax>();
+        final SortedMap<String, Syntax> syntaxes = new TreeMap<>();
         for (final Syntax syntax : schema.getSyntaxes()) {
             if (isOpenDSOID(syntax.getOID())) {
                 continue;
@@ -67,7 +68,7 @@ final class GenerateCoreSchema {
             syntaxes.put(fieldName, syntax);
         }
 
-        final SortedMap<String, MatchingRule> matchingRules = new TreeMap<String, MatchingRule>();
+        final SortedMap<String, MatchingRule> matchingRules = new TreeMap<>();
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
             if (isOpenDSOID(matchingRule.getOID()) || isCollationMatchingRule(matchingRule.getOID())) {
                 continue;
@@ -78,8 +79,7 @@ final class GenerateCoreSchema {
             matchingRules.put(fieldName, matchingRule);
         }
 
-        final SortedMap<String, AttributeType> attributeTypes =
-                new TreeMap<String, AttributeType>();
+        final SortedMap<String, AttributeType> attributeTypes = new TreeMap<>();
         for (final AttributeType attributeType : schema.getAttributeTypes()) {
             if (isOpenDSOID(attributeType.getOID())) {
                 continue;
@@ -89,7 +89,7 @@ final class GenerateCoreSchema {
             attributeTypes.put(fieldName, attributeType);
         }
 
-        final SortedMap<String, ObjectClass> objectClasses = new TreeMap<String, ObjectClass>();
+        final SortedMap<String, ObjectClass> objectClasses = new TreeMap<>();
         for (final ObjectClass objectClass : schema.getObjectClasses()) {
             if (isOpenDSOID(objectClass.getOID())) {
                 continue;

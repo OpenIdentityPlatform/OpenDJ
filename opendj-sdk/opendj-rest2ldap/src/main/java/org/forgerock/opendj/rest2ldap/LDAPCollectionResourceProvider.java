@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -264,11 +264,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 public void handleResult(final DN dn) {
                     // Convert the patch operations to LDAP modifications.
                     List<Promise<List<Modification>, ResourceException>> promises =
-                            new ArrayList<Promise<List<Modification>, ResourceException>>(
-                                    request.getPatchOperations().size());
+                            new ArrayList<>(request.getPatchOperations().size());
                     for (final PatchOperation operation : request.getPatchOperations()) {
-                        final ResultHandlerFromPromise<List<Modification>> handler =
-                                new ResultHandlerFromPromise<List<Modification>>();
+                        final ResultHandlerFromPromise<List<Modification>> handler = new ResultHandlerFromPromise<>();
                         attributeMapper.patch(c, new JsonPointer(), operation, handler);
                         promises.add(handler.promise);
                     }
@@ -735,12 +733,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
-            requestedLDAPAttributes = new LinkedHashSet<String>();
+            requestedLDAPAttributes = new LinkedHashSet<>();
             attributeMapper.getLDAPAttributes(c, new JsonPointer(), new JsonPointer(),
                     requestedLDAPAttributes);
         } else {
             // Partial read.
-            requestedLDAPAttributes = new LinkedHashSet<String>(requestedAttributes.size());
+            requestedLDAPAttributes = new LinkedHashSet<>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
                 attributeMapper.getLDAPAttributes(c, new JsonPointer(), requestedAttribute,
                         requestedLDAPAttributes);
@@ -760,10 +758,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 new QueryFilterVisitor<Void, ResultHandler<Filter>>() {
                     @Override
                     public Void visitAndFilter(final ResultHandler<Filter> p, final List<QueryFilter> subFilters) {
-                        List<Promise<Filter, ResourceException>> promises =
-                                new ArrayList<Promise<Filter, ResourceException>>(subFilters.size());
+                        List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
                         for (final QueryFilter subFilter : subFilters) {
-                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<Filter>();
+                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<>();
                             subFilter.accept(this, handler);
                             promises.add(handler.promise);
                         }
@@ -891,10 +888,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
                     @Override
                     public Void visitOrFilter(final ResultHandler<Filter> p, final List<QueryFilter> subFilters) {
-                        List<Promise<Filter, ResourceException>> promises =
-                                new ArrayList<Promise<Filter, ResourceException>>(subFilters.size());
+                        List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
                         for (final QueryFilter subFilter : subFilters) {
-                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<Filter>();
+                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<>();
                             subFilter.accept(this, handler);
                             promises.add(handler.promise);
                         }

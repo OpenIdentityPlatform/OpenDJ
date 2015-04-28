@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -397,7 +397,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
                 // Use an Entry for the AttributeSequence.
                 final Entry entry = new LinkedHashMapEntry(entryDN);
                 boolean schemaValidationFailure = false;
-                final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
+                final List<LocalizableMessage> schemaErrors = new LinkedList<>();
                 while (record.iterator.hasNext()) {
                     final String ldifLine = record.iterator.next();
                     if (!readLDIFRecordAttributeValue(record, ldifLine, entry, schemaErrors)) {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -87,8 +87,8 @@ public final class Proxy {
 
         // Create load balancer.
         // --- JCite pools ---
-        final List<ConnectionFactory> factories = new LinkedList<ConnectionFactory>();
-        final List<ConnectionFactory> bindFactories = new LinkedList<ConnectionFactory>();
+        final List<ConnectionFactory> factories = new LinkedList<>();
+        final List<ConnectionFactory> bindFactories = new LinkedList<>();
         for (int i = 4; i < args.length; i += 2) {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);

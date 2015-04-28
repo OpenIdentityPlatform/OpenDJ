@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -450,7 +450,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testSearchSubtreeReturnsAllEntries() throws Exception {
         final Connection connection = getConnection();
-        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        Collection<SearchResultEntry> entries = new ArrayList<>();
         connection.search(Requests.newSearchRequest("dc=com", SearchScope.WHOLE_SUBTREE, "(objectclass=*)"), entries);
         assertThat(entries).hasSize(numberOfEntriesInBackend);
     }
@@ -458,7 +458,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testSearchSubordinatesReturnsAllEntries() throws Exception {
         final Connection connection = getConnection();
-        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        Collection<SearchResultEntry> entries = new ArrayList<>();
         connection.search(Requests.newSearchRequest("dc=com", SearchScope.SUBORDINATES, "(objectclass=*)"), entries);
         assertThat(entries).hasSize(numberOfEntriesInBackend - 1);
     }
@@ -467,7 +467,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     public void testSearchSubordinatesEntries() throws Exception {
         int numberOfUsers = 5;
         final Connection connection = getConnection();
-        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        Collection<SearchResultEntry> entries = new ArrayList<>();
         connection.search(Requests.newSearchRequest("ou=People,dc=example,dc=com", SearchScope.SUBORDINATES,
             "(objectclass=*)"), entries);
         assertThat(entries).hasSize(numberOfUsers);
@@ -476,7 +476,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testSearchSubtreeWithSizeLimit() throws Exception {
         final Connection connection = getConnection();
-        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        Collection<SearchResultEntry> entries = new ArrayList<>();
         try {
             connection.search(
                     Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)").
@@ -498,7 +498,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testSearchPagedResults() throws Exception {
         final Connection connection = getConnection();
-        final List<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        final List<SearchResultEntry> entries = new ArrayList<>();
         final SearchRequest search =
                 Requests.newSearchRequest("ou=people,dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
                         "(uid=*)");

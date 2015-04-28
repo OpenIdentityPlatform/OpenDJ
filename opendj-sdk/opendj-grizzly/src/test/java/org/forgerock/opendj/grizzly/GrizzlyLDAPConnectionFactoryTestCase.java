@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *     Copyright 2013-2014 ForgeRock AS.
+ *     Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -103,8 +103,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     private final Semaphore closeLatch = new Semaphore(0);
     private final Semaphore connectLatch = new Semaphore(0);
     private final Semaphore searchLatch = new Semaphore(0);
-    private final AtomicReference<LDAPClientContext> context =
-            new AtomicReference<LDAPClientContext>();
+    private final AtomicReference<LDAPClientContext> context = new AtomicReference<>();
     private final LDAPListener server = createServer();
     private final InetSocketAddress socketAddress = server.getSocketAddress();
     private final ConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),

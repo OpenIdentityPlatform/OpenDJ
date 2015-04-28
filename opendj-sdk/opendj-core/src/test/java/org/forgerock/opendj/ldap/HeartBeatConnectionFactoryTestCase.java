@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -391,7 +391,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     }
 
     private void mockConnectionWithInitialHeartbeatResult(final ResultCode initialHeartBeatResult) {
-        listeners = new LinkedList<ConnectionEventListener>();
+        listeners = new LinkedList<>();
         connection = mockConnection(listeners);
         when(connection.isValid()).thenReturn(true);
         mockHeartBeatResponse(connection, listeners, initialHeartBeatResult);

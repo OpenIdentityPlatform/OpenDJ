@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldif;
 
@@ -70,7 +70,7 @@ public final class EntryGenerator implements EntryReader {
     private TemplateFile templateFile;
 
     /** Warnings issued by the parsing of the template file. */
-    private final List<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
+    private final List<LocalizableMessage> warnings = new LinkedList<>();
 
     /** Indicates if the generator is closed. */
     private boolean isClosed;
@@ -118,7 +118,7 @@ public final class EntryGenerator implements EntryReader {
     private boolean generateBranches = true;
 
     /** Dictionary of constants to use in the template file. */
-    private Map<String, String> constants = new HashMap<String, String>();
+    private Map<String, String> constants = new HashMap<>();
 
     /**
      * Creates a generator using default values.

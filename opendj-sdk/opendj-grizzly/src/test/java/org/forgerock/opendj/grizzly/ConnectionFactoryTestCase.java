@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
@@ -520,8 +520,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     @Test(dataProvider = "closeNotifyConfig")
     public void testCloseNotify(final CloseNotify config) throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
-        final AtomicReference<LDAPClientContext> contextHolder =
-                new AtomicReference<LDAPClientContext>();
+        final AtomicReference<LDAPClientContext> contextHolder = new AtomicReference<>();
 
         final ServerConnectionFactory<LDAPClientContext, Integer> mockServer =
                 mock(ServerConnectionFactory.class);
@@ -622,8 +621,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testUnsolicitedNotifications() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
-        final AtomicReference<LDAPClientContext> contextHolder =
-                new AtomicReference<LDAPClientContext>();
+        final AtomicReference<LDAPClientContext> contextHolder = new AtomicReference<>();
 
         final ServerConnectionFactory<LDAPClientContext, Integer> mockServer =
                 mock(ServerConnectionFactory.class);

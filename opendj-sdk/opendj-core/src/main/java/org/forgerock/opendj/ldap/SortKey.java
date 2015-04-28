@@ -190,7 +190,7 @@ public final class SortKey {
         Reject.ifNull(schema, keys);
         Reject.ifFalse(!keys.isEmpty(), "keys must not be empty");
 
-        final List<Comparator<Entry>> comparators = new ArrayList<Comparator<Entry>>(keys.size());
+        final List<Comparator<Entry>> comparators = new ArrayList<>(keys.size());
         for (final SortKey key : keys) {
             comparators.add(key.comparator(schema));
         }
@@ -260,7 +260,7 @@ public final class SortKey {
     public static Comparator<Entry> comparator(final String sortKeys) {
         Reject.ifNull(sortKeys);
 
-        final List<Comparator<Entry>> comparators = new LinkedList<Comparator<Entry>>();
+        final List<Comparator<Entry>> comparators = new LinkedList<>();
         final StringTokenizer tokenizer = new StringTokenizer(sortKeys, ",");
         while (tokenizer.hasMoreTokens()) {
             final String token = tokenizer.nextToken().trim();

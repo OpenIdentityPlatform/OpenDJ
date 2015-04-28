@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -44,12 +44,9 @@ public abstract class AbstractDataProvider implements DataProvider {
     private static final Logger debugLogger = LoggerFactory.getLogger(AbstractDataProvider.class);
 
     /** The list of event listeners associated with this data provider. */
-    private final List<DataProviderEventListener> eventListeners =
-            new CopyOnWriteArrayList<DataProviderEventListener>();
+    private final List<DataProviderEventListener> eventListeners = new CopyOnWriteArrayList<>();
 
-    /**
-     * Creates a new abstract data provider.
-     */
+    /** Creates a new abstract data provider. */
     protected AbstractDataProvider() {
         // No implementation required.
     }

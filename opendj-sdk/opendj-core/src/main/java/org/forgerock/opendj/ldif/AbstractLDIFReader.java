@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -338,7 +338,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
     final LDIFRecord readLDIFRecord() throws IOException {
         // Read the entry lines into a buffer.
         final StringBuilder lastLineBuilder = new StringBuilder();
-        final LinkedList<String> ldifLines = new LinkedList<String>();
+        final LinkedList<String> ldifLines = new LinkedList<>();
         long recordLineNumber = 0;
         final int stateStart = 0;
         final int stateStartCommentLine = 1;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -253,54 +253,34 @@ public final class PasswordPolicyStateExtendedRequest
 
     private String targetUser = "";
 
-    private final List<PasswordPolicyStateOperation> operations =
-            new ArrayList<PasswordPolicyStateOperation>();
+    private final List<PasswordPolicyStateOperation> operations = new ArrayList<>();
 
     static final String PASSWORD_POLICY_DN_NAME = "Password Policy DN";
-
     static final String ACCOUNT_DISABLED_STATE_NAME = "Account Disabled State";
-
     static final String ACCOUNT_EXPIRATION_TIME_NAME = "Account Expiration Time";
-
     static final String SECONDS_UNTIL_ACCOUNT_EXPIRATION_NAME = "Seconds Until Account Expiration";
-
     static final String PASSWORD_CHANGED_TIME_NAME = "Password Changed Time";
-
     static final String PASSWORD_EXPIRATION_WARNED_TIME_NAME = "Password Expiration Warned Time";
-
     static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_NAME =
             "Seconds Until Password Expiration";
-
     static final String SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING_NAME =
             "Seconds Until Password Expiration Warning";
-
     static final String AUTHENTICATION_FAILURE_TIMES_NAME = "Authentication Failure Times";
-
     static final String SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK_NAME =
             "Seconds Until Authentication Failure Unlock";
-
     static final String REMAINING_AUTHENTICATION_FAILURE_COUNT_NAME =
             "Remaining Authentication Failure Count";
-
     static final String LAST_LOGIN_TIME_NAME = "Last Login Time";
-
     static final String SECONDS_UNTIL_IDLE_LOCKOUT_NAME = "Seconds Until Idle Lockout";
-
     static final String PASSWORD_RESET_STATE_NAME = "Password Reset State";
-
     static final String SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT_NAME =
             "Seconds Until Password Reset Lockout";
-
     static final String GRACE_LOGIN_USE_TIMES_NAME = "Grace Login Use Times";
-
     static final String REMAINING_GRACE_LOGIN_COUNT_NAME = "Remaining Grace Login Count";
-
     static final String PASSWORD_CHANGED_BY_REQUIRED_TIME_NAME =
             "Password Changed By Required Time";
-
     static final String SECONDS_UNTIL_REQUIRED_CHANGE_TIME_NAME =
             "Seconds Until Required Change Time";
-
     static final String PASSWORD_HISTORY_NAME = "Password History";
 
     /**
@@ -367,7 +347,7 @@ public final class PasswordPolicyStateExtendedRequest
                 // See if we have any values
                 if (reader.hasNextElement()) {
                     reader.readStartSequence();
-                    final ArrayList<ByteString> values = new ArrayList<ByteString>();
+                    final ArrayList<ByteString> values = new ArrayList<>();
                     while (reader.hasNextElement()) {
                         values.add(reader.readOctetString());
                     }
@@ -769,7 +749,7 @@ public final class PasswordPolicyStateExtendedRequest
         if (dates == null) {
             operations.add(property);
         } else {
-            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
+            final ArrayList<ByteString> times = new ArrayList<>(dates.length);
             for (final Date date : dates) {
                 times.add(toByteString(date));
             }

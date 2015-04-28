@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -77,7 +77,7 @@ public class LdapPromiseImpl<S> extends LdapPromiseWrapper<S, PromiseImpl<S, Lda
      * @return a new {@link LdapPromiseImpl}
      */
     public static <S> LdapPromiseImpl<S> newLdapPromiseImpl(int requestID) {
-        return new LdapPromiseImpl<S>(PromiseImpl.<S, LdapException> create(), requestID);
+        return new LdapPromiseImpl<>(PromiseImpl.<S, LdapException> create(), requestID);
     }
 
     @Override

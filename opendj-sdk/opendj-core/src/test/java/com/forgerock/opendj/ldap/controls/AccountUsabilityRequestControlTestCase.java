@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.controls;
 
@@ -49,8 +50,7 @@ import static org.testng.Assert.*;
 public class AccountUsabilityRequestControlTestCase extends ControlsTestCase {
     @Test
     public void testControl() throws Exception {
-        // Send this control with a search request and see that you get
-        // a valid response.
+        // Send this control with a search request and see that you get a valid response.
         final SearchRequest req =
                 Requests.newSearchRequest(DN.valueOf("uid=user.1,ou=people,o=test"),
                         SearchScope.BASE_OBJECT, Filter.objectClassPresent());
@@ -58,7 +58,7 @@ public class AccountUsabilityRequestControlTestCase extends ControlsTestCase {
                 AccountUsabilityRequestControl.newControl(false);
         req.addControl(control);
         final Connection con = TestCaseUtils.getInternalConnection();
-        final List<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        final List<SearchResultEntry> entries = new ArrayList<>();
         con.search(req, entries);
         assertTrue(entries.size() > 0);
         final SearchResultEntry entry = entries.get(0);

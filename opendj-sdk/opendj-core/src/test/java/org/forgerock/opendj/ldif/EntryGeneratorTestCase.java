@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -384,7 +384,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         // Previous behaviour showed "missingVar" on line 5.
 
         TemplateFile templateFile = new TemplateFile(schema, null, resourcePath);
-        List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> warns = new ArrayList<>();
 
         try {
             templateFile.parse(lines, warns);
@@ -428,7 +428,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     @Test(dataProvider = "validTemplates")
     public void testParsingEscapeCharInTemplate(String testName, String[] lines) throws Exception {
         TemplateFile templateFile = new TemplateFile(schema, null, resourcePath);
-        List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> warns = new ArrayList<>();
         templateFile.parse(lines, warns);
         assertThat(warns).isEmpty();
     }

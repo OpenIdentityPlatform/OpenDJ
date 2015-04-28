@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -140,7 +140,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     @Override
     public Promise<Connection, LdapException> getConnectionAsync() {
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         return parentFactory.getConnectionAsync()
             .thenAsync(
                     new AsyncFunction<Connection, BindResult, LdapException>() {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -58,7 +58,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
     EnumSyntaxImpl(final String oid, final List<String> entries) {
         Reject.ifNull(oid, entries);
         this.oid = oid;
-        final List<String> entryStrings = new ArrayList<String>(entries.size());
+        final List<String> entryStrings = new ArrayList<>(entries.size());
 
         for (final String entry : entries) {
             final String normalized = normalize(ByteString.valueOf(entry));

@@ -62,7 +62,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     /** A fluent API for incrementally constructing attribute type. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private AttributeUsage attributeUsage;
         private boolean isCollective;
         private boolean isNoUserModification;
