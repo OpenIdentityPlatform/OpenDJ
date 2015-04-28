@@ -324,10 +324,11 @@ final class Importer
     this.clearedBackend = mustClearBackend(importCfg, backendCfg);
     this.scratchFileWriterList = new ArrayList<>(indexCount);
 
+    validateDNs = !importCfg.getSkipDNValidation();
     this.tempDir = prepareTempDir(backendCfg, importCfg.getTmpDirectory());
+    // be careful: requires that a few data has been set
     computeMemoryRequirements();
 
-    validateDNs = !importCfg.getSkipDNValidation();
     if (validateDNs)
     {
       final File dnCachePath = new File(tempDir, DN_CACHE_DIR);
