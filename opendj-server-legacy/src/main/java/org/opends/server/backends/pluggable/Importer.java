@@ -2767,7 +2767,7 @@ final class Importer
     {
       setIndexesListsToBeRebuilt(txn);
       setRebuildListIndexesTrusted(txn, false);
-      clearIndexes(txn, true);
+      clearIndexesToBeRebuilt(txn);
     }
 
     private void throwIfCancelled() throws InterruptedException
@@ -2872,13 +2872,15 @@ final class Importer
       }
     }
 
-    private void clearIndexes(WriteableTransaction txn, boolean onlyDegraded) throws StorageRuntimeException
+    private void clearIndexesToBeRebuilt(WriteableTransaction txn) throws StorageRuntimeException
     {
-      // Clears all the entry's container databases which are containing the indexes
-      if (!onlyDegraded)
+      if (dn2uri != null)
       {
-        // dn2uri does not have a trusted status.
         entryContainer.clearDatabase(txn, entryContainer.getDN2URI());
+      }
+
+      if (dn2id != null)
+      {
         entryContainer.clearDatabase(txn, entryContainer.getDN2ID());
         entryContainer.clearDatabase(txn, entryContainer.getID2ChildrenCount());
       }
@@ -2886,7 +2888,7 @@ final class Importer
       for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
       {
         final Index index = mapEntry.getValue();
-        if (!onlyDegraded || !index.isTrusted())
+        if (!index.isTrusted())
         {
           entryContainer.clearDatabase(txn, index);
         }
@@ -2894,7 +2896,7 @@ final class Importer
 
       for (final VLVIndex vlvIndex : entryContainer.getVLVIndexes())
       {
-        if (!onlyDegraded || !vlvIndex.isTrusted())
+        if (!vlvIndex.isTrusted())
         {
           entryContainer.clearDatabase(txn, vlvIndex);
         }
