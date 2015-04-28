@@ -39,6 +39,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,6 +97,7 @@ import org.opends.server.util.Base64;
 
 import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -139,7 +141,6 @@ public class DSMLServlet extends HttpServlet {
 
   private static JAXBContext jaxbContext;
   private ObjectFactory objFactory;
-  private DocumentBuilder db;
   private static Schema schema;
   private MessageFactory messageFactory;
   private MessageFactory messageFactorySOAP_1_1;
@@ -241,11 +242,6 @@ public class DSMLServlet extends HttpServlet {
       objFactory = new ObjectFactory();
       messageFactorySOAP_1_1 = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
       messageFactorySOAP_1_2 = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      dbf.setXIncludeAware(false);
-      dbf.setExpandEntityReferences(false);
-      db = dbf.newDocumentBuilder();
 
       this.contentHandler = new DSMLContentHandler();
 
@@ -359,7 +355,7 @@ public class DSMLServlet extends HttpServlet {
     // fails.
     BatchResponse batchResponse = objFactory.createBatchResponse();
     List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
-    Document doc = db.newDocument();
+    Document doc = createSafeDocument();
 
     if (useSSL || useStartTLS)
     {
@@ -491,6 +487,9 @@ public class DSMLServlet extends HttpServlet {
         if (!(obj instanceof SOAPElement)) {
           continue;
         }
+        // Parse and unmarshall the SOAP object - the implementation prevents the use of a
+        // DOCTYPE and xincludes, so should be safe. There is no way to configure a more
+        // restrictive parser.
         SOAPElement se = (SOAPElement) obj;
         JAXBElement<BatchRequest> batchRequestElement = null;
         try {
@@ -605,7 +604,7 @@ public class DSMLServlet extends HttpServlet {
    * @param feature The feature string to set.
    * @param flag The value to set the feature to.
    */
-  private void safeSetFeature(XMLReader xmlReader, String feature, Boolean flag)
+  private void safeSetFeature(XMLReader xmlReader, String feature, boolean flag)
   {
     try
     {
@@ -649,19 +648,7 @@ public class DSMLServlet extends HttpServlet {
     try
     {
       // try alternative XML parsing using SAX to retrieve requestID value
-      SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-      // Ensure we are doing basic secure processing.
-      saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-      saxParserFactory.setXIncludeAware(false);
-      saxParserFactory.setNamespaceAware(true);
-
-      // Configure a safe XMLReader appropriate for SOAP.
-      XMLReader xmlReader = saxParserFactory.newSAXParser().getXMLReader();
-      safeSetFeature(xmlReader, "http://xml.org/sax/features/validation", false);
-      safeSetFeature(xmlReader, "http://xml.org/sax/features/external-general-entities", false);
-      safeSetFeature(xmlReader, "http://xml.org/sax/features/external-parameter-entities", false);
-      safeSetFeature(xmlReader, "http://xml.org/sax/features/namespaces", true);
-      safeSetFeature(xmlReader, "http://apache.org/xml/features/disallow-doctype-decl", true);
+      final XMLReader xmlReader = createSafeXMLReader();
 
       // clear previous match
       this.contentHandler.requestID = null;
@@ -879,6 +866,96 @@ public class DSMLServlet extends HttpServlet {
   }
 
   /**
+   * Safely set a feature on an DocumentBuilderFactory instance.
+   *
+   * @param factory The DocumentBuilderFactory to configure.
+   * @param feature The feature string to set.
+   * @param flag The value to set the feature to.
+   */
+  private void safeSetFeature(DocumentBuilderFactory factory, String feature, boolean flag)
+  {
+    try
+    {
+      factory.setFeature(feature, flag);
+    }
+    catch (ParserConfigurationException e) {
+      if (logFeatureWarnings.compareAndSet(false, true))
+      {
+        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory unsupported feature " + feature);
+      }
+    }
+  }
+
+  /**
+   * Create a Document object that is safe against XML External Entity (XXE) Processing
+   * attacks.
+   *
+   * @return A Document object
+   * @throws ServletException if a Document object could not be created.
+   */
+  private Document createSafeDocument()
+          throws ServletException
+  {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try
+    {
+      dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    }
+    catch (ParserConfigurationException e)
+    {
+      if (logFeatureWarnings.compareAndSet(false, true)) {
+        Logger.getLogger(PKG_NAME).log(Level.SEVERE, "DocumentBuilderFactory cannot be configured securely");
+      }
+    }
+    dbf.setXIncludeAware(false);
+    dbf.setNamespaceAware(true);
+    dbf.setValidating(true);
+    safeSetFeature(dbf, "http://apache.org/xml/features/disallow-doctype-decl", true);
+    safeSetFeature(dbf, "http://xml.org/sax/features/external-general-entities", false);
+    safeSetFeature(dbf, "http://xml.org/sax/features/external-parameter-entities", false);
+    dbf.setExpandEntityReferences(false);
+
+    final DocumentBuilder db;
+    try
+    {
+      db = dbf.newDocumentBuilder();
+    }
+    catch (ParserConfigurationException e)
+    {
+      throw new ServletException(e.getMessage());
+    }
+    db.setEntityResolver(new SafeEntityResolver());
+    return db.newDocument();
+
+  }
+
+  /**
+   * Create an XMLReader that is safe against XML External Entity (XXE) Processing attacks.
+   *
+   * @return an XMLReader
+   * @throws ParserConfigurationException if we cannot obtain a parser.
+   * @throws SAXException if we cannot obtain a parser.
+   */
+  private XMLReader createSafeXMLReader()
+          throws ParserConfigurationException, SAXException
+  {
+    final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+    // Ensure we are doing basic secure processing.
+    saxParserFactory.setXIncludeAware(false);
+    saxParserFactory.setNamespaceAware(true);
+    saxParserFactory.setValidating(false);
+
+    // Configure a safe XMLReader appropriate for SOAP.
+    final XMLReader xmlReader = saxParserFactory.newSAXParser().getXMLReader();
+    safeSetFeature(xmlReader, XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    safeSetFeature(xmlReader, "http://apache.org/xml/features/disallow-doctype-decl", true);
+    safeSetFeature(xmlReader, "http://xml.org/sax/features/external-general-entities", false);
+    safeSetFeature(xmlReader, "http://xml.org/sax/features/external-parameter-entities", false);
+    xmlReader.setEntityResolver(new SafeEntityResolver());
+    return xmlReader;
+  }
+
+  /**
    * This class is used when an XML request is malformed to retrieve the
    * requestID value using an event XML parser.
    */
@@ -894,6 +971,18 @@ public class DSMLServlet extends HttpServlet {
         requestID = attributes.getValue("requestID");
       }
       super.startElement(uri, localName, qName, attributes);
+    }
+  }
+
+  /**
+   * This is defensive - we prevent entity resolving by configuration, but
+   * just in case, we ensure that nothing resolves.
+   */
+  private class SafeEntityResolver implements EntityResolver
+  {
+    public InputSource resolveEntity(String publicId, String systemId)
+    {
+      return new InputSource(new StringReader(""));
     }
   }
 }
