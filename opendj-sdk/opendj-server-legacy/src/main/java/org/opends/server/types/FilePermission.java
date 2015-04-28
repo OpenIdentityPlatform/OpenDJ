@@ -28,15 +28,17 @@ package org.opends.server.types;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.core.DirectoryServer;
-
-import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.opends.messages.UtilityMessages.*;
 
@@ -56,11 +58,6 @@ import static org.opends.messages.UtilityMessages.*;
      mayInvoke=true)
 public class FilePermission
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
-
   /**
    * The bitmask that should be used for indicating whether a file is
    * readable by its owner.
@@ -133,172 +130,8 @@ public class FilePermission
 
 
 
-  /**
-   * Indicates if the Java 7 NIO features can be used, including
-   * enhancements to Java 6 {@link java.io.File}.
-   */
-  private static boolean useNIO;
-
-  /** The {@link java.io.File#toPath} method if it is available. */
-  private static Method toPath;
-
-  /**
-   * The {@link java.nio.files.Files#setPosixFilePermissions} method if it is
-   * available.
-   */
-  private static Method setPosixFilePermissions;
-
-  /**
-   * The {@link java.nio.file.Files#getFileAttributeView} method if it is
-   * available.
-   */
-  private static Method getFileAttributeView;
-
-  /**
-   * The {@link java.nio.file.attribute.PosixFilePermissions#fromString} method
-   * if it is available.
-   */
-  private static Method fromString;
-
-  /**
-   * The {@link java.nio.file.attribute.PosixFilePermissions#asFileAttribute}
-   * method if is available.
-   */
-  private static Method asFileAttribute;
-
-  /**
-   * The {@link java.nio.file.attribute.PosixFileAttributeView} class if it is
-   * available.
-   */
-  private static Class<?> posixView;
-
-  /**
-   * The {@link java.nio.file.attribute.AclFileAttributeView} class if it is
-   * available.
-   */
-  private static Class<?> aclView;
-
-  /** The {@link java.nio.file.LinkOption} class if it is available. */
-  private static Class<?> linkOption;
-
   /** The encoded representation for this file permission. */
   private int encodedPermission;
-
-
-
-  static
-  {
-    // Iterate through all the necessary methods and classes in Java 7
-    // for dealing with permissions.
-    try
-    {
-      useNIO = false;
-      toPath = null;
-      setPosixFilePermissions = null;
-      getFileAttributeView = null;
-      fromString = null;
-      asFileAttribute = null;
-      posixView = null;
-      aclView = null;
-      linkOption = null;
-
-      Class<?> c = Class.forName("java.io.File");
-      for (Method m : c.getMethods())
-      {
-        String name = m.getName();
-        Class<?>[] argTypes = m.getParameterTypes();
-        if (name.equals("toPath") && argTypes.length == 0)
-        {
-          toPath = m;
-        }
-      }
-      if (toPath == null)
-      {
-        throw new NoSuchMethodException("java.io.File.toPath");
-      }
-
-      c = Class.forName("java.nio.file.attribute.PosixFilePermissions");
-      for (Method m : c.getMethods())
-      {
-        String name = m.getName();
-        Class<?>[] argTypes = m.getParameterTypes();
-        if (name.equals("fromString") && argTypes.length == 1)
-        {
-          fromString = m;
-        }
-        if (name.equals("asFileAttribute") && argTypes.length == 1)
-        {
-          asFileAttribute = m;
-        }
-      }
-      if (fromString == null)
-      {
-        throw new NoSuchMethodException(
-            "java.nio.file.attribute.PosixFilePermissions.fromString");
-      }
-      if (asFileAttribute == null) {
-        throw new NoSuchMethodException(
-            "java.nio.file.attribute.PosixFilePermissions.asFileAttribute");
-      }
-
-      c = Class.forName("java.nio.file.Files");
-      for (Method m : c.getMethods())
-      {
-        String name = m.getName();
-        Class<?>[] argTypes = m.getParameterTypes();
-        if (name.equals("setPosixFilePermissions") && argTypes.length == 2)
-        {
-          setPosixFilePermissions = m;
-        }
-        if (name.equals("getFileAttributeView") && argTypes.length == 3)
-        {
-          getFileAttributeView = m;
-        }
-      }
-      if (setPosixFilePermissions == null)
-      {
-        throw new NoSuchMethodException(
-            "java.nio.file.Files.setPosixFilePermissions");
-      }
-      if (getFileAttributeView == null)
-      {
-        throw new NoSuchMethodException(
-            "java.nio.file.Files.getFileAttributeView");
-      }
-
-      posixView = Class.forName(
-          "java.nio.file.attribute.PosixFileAttributeView");
-      aclView = Class.forName("java.nio.file.attribute.AclFileAttributeView");
-      linkOption = Class.forName("java.nio.file.LinkOption");
-
-      // If we got here, then we have everything we need.
-      useNIO = true;
-    }
-    catch (NoSuchMethodException e)
-    {
-      logger.traceException(e);
-    }
-    catch (ClassNotFoundException e)
-    {
-      logger.traceException(e);
-    }
-    finally
-    {
-      // Clean up if we only had partial success.
-      if (useNIO == false)
-      {
-        toPath = null;
-        setPosixFilePermissions = null;
-        getFileAttributeView = null;
-        fromString = null;
-        asFileAttribute = null;
-        posixView = null;
-        aclView = null;
-        linkOption = null;
-      }
-    }
-
-  }
 
 
 
@@ -561,32 +394,6 @@ public class FilePermission
 
 
   /**
-   * Indicates whether the there is a mechanism available for setting
-   * permissions in the underlying filesystem on the current platform.
-   *
-   * @return  <CODE>true</CODE> if there is a mechanism available for
-   *          setting file permissions on the underlying system (e.g.,
-   *          if the server is running in a Java 6 environment, or if
-   *          this is a UNIX-based system and the use of exec is
-   *          allowed), or <CODE>false</CODE> if no such mechanism is
-   *          available.
-   */
-  public static boolean canSetPermissions()
-  {
-    if (useNIO)
-    {
-      // It's a Java 7 environment.
-      return true;
-    }
-
-    // It's a Java 6 environment, so we can always use that
-    // mechanism.
-    return true;
-  }
-
-
-
-  /**
    * Attempts to set the given permissions on the specified file.  If
    * the underlying platform does not allow the full level of
    * granularity specified in the permissions, then an attempt will be
@@ -610,313 +417,28 @@ public class FilePermission
   public static boolean setPermissions(File f, FilePermission p)
          throws FileNotFoundException, DirectoryException
   {
-    if (! f.exists())
+    if (!f.exists())
     {
-      LocalizableMessage message =
-          ERR_FILEPERM_SET_NO_SUCH_FILE.get(f.getAbsolutePath());
-      throw new FileNotFoundException(message.toString());
+      throw new FileNotFoundException(ERR_FILEPERM_SET_NO_SUCH_FILE.get(f.getAbsolutePath()).toString());
     }
-
-    // If we're running Java 7 and have NIO available, use that.
-    if (useNIO)
+    Path filePath = f.toPath();
+    PosixFileAttributeView posix = Files.getFileAttributeView(filePath, PosixFileAttributeView.class);
+    if (posix != null)
     {
-      return setUsingJava7(f, p);
-    }
-
-    // If we're running Java 6, then we'll use the methods that Java
-    // provides.
-    return setUsingJava6(f, p);
-  }
-
-
-
-  /**
-   * Attempts to set the specified permissions for the given file or
-   * directory using the Java 7 NIO API. This will set the full POSIX
-   * permissions on systems supporting POSIX filesystem semantics.
-   *
-   * @param f The file or directory to which the permissions should be applied.
-   * @param p The permissions to apply to the file or directory.
-   *
-   * @return <code>true</code> if the permissions were successfully updated, or
-   *         <code>false</code> if not.
-   *
-   */
- private static boolean setUsingJava7(File f, FilePermission p)
- {
-   try
-   {
-     // path = f.toPath();
-     Object path = toPath.invoke(f);
-
-     // posix = Files.getFileAttributeView(path, posixFileAttributeView.class);
-     Object posix = getFileAttributeView.invoke(null, path, posixView,
-         Array.newInstance(linkOption, 0));
-
-     // If a POSIX view is available, then set the permissions.
-     // NOTE:  Windows 2003, 2008 and 7 (and probably others) don't have POSIX
-     //        views.
-     if (posix != null)
-     {
-       // Build a string like "rwxr-x-w-" from p.
-       StringBuilder posixMode = new StringBuilder();
-       toPOSIXString(p, posixMode, "", "", "");
-       // perms = PosixFilePermissions.fromString(posixMode.toString());
-       Object perms = fromString.invoke(null, posixMode.toString());
-
-       // Files.setPosixFilePermissions(path, perms);
-       setPosixFilePermissions.invoke(null, path, perms);
-       return true;
-     }
-
-     // acl = Files.getFileAttributeView(path, aclFileAttributeView.class);
-     Object acl = getFileAttributeView.invoke(null, path, aclView,
-         Array.newInstance(linkOption, 0));
-
-     // If an ACL view is available, then return successfully.
-     // This is not ideal, but the intention is the administrator has set up
-     // the inherited ACLs "appropriately" so we don't need to do anything.
-     //
-     // Also ideally we would check ACLs before checking POSIX, in case we have
-     // a filesystem like ZFS that can support both.
-     if (acl != null)
-     {
-       return true;
-     }
-   }
-   catch (Exception e)
-   {
-     logger.traceException(e);
-   }
-   return false;
- }
-
-  /**
-   * Attempts to set the specified permissions for the given file
-   * using the Java 6 <CODE>FILE</CODE> API.  Only the "owner" and
-   * "other" permissions will be preserved, since Java 6 doesn't provide
-   * a way to set the group permissions directly.
-   *
-   * @param  f  The file to which the permissions should be applied.
-   * @param  p  The permissions to apply to the file.
-   *
-   * @return  <CODE>true</CODE> if the permissions were successfully
-   *          updated, or <CODE>false</CODE> if not.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to update permissions.
-   */
-  private static boolean setUsingJava6(File f, FilePermission p)
-          throws DirectoryException
-  {
-    // NOTE:  Due to a very nasty behavior of the Java 6 API, if you
-    //        want to want to grant a permission for the owner but not
-    //        for anyone else, then you *must* remove it for everyone
-    //        first, and then add it only for the owner.  Otherwise,
-    //        the other permissions will be left unchanged and if they
-    //        had it before then they will still have it.
-
-    boolean anySuccessful   = false;
-    boolean anyFailed       = false;
-    boolean exceptionThrown = false;
-
-    // Take away read permission from everyone if necessary.
-    if (p.isOwnerReadable() && (! p.isOtherReadable()))
-    {
+      StringBuilder posixMode = new StringBuilder();
+      toPOSIXString(p, posixMode, "", "", "");
+      Set<PosixFilePermission> perms = PosixFilePermissions.fromString(posixMode.toString());
       try
       {
-        if (f.setReadable(false, false))
-        {
-          anySuccessful = true;
-        }
-        else
-        {
-          if(!DirectoryServer.getOperatingSystem().equals(
-              OperatingSystem.WINDOWS))
-          {
-            // On Windows platforms, file readability permissions
-            // cannot be set to false. Do not consider this case
-            // a failure. http://java.sun.com/developer/
-            // technicalArticles/J2SE/Desktop/javase6/enhancements/
-            anyFailed = true;
-          }
-        }
+        Files.setPosixFilePermissions(filePath, perms);
       }
-      catch (Exception e)
+      catch (UnsupportedOperationException | ClassCastException | IOException | SecurityException ex)
       {
-        logger.traceException(e);
-        exceptionThrown = true;
+        throw new DirectoryException(ResultCode.OTHER, ERR_FILEPERM_SET_JAVA_EXCEPTION.get(f.getAbsolutePath()), ex);
       }
+      return true;
     }
-
-    // Grant the appropriate read permission.
-    try
-    {
-      boolean ownerOnly =
-           (p.isOwnerReadable() != p.isOtherReadable());
-
-      if (f.setReadable(p.isOwnerReadable(), ownerOnly))
-      {
-        anySuccessful = true;
-      }
-      else
-      {
-        if(!DirectoryServer.getOperatingSystem().equals(
-            OperatingSystem.WINDOWS) || p.isOwnerReadable())
-        {
-          // On Windows platforms, file readability permissions
-          // cannot be set to false. Do not consider this case
-          // a failure. http://java.sun.com/developer/
-          // technicalArticles/J2SE/Desktop/javase6/enhancements/
-          anyFailed = true;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      exceptionThrown = true;
-    }
-
-
-    // NOTE:  On Windows platforms attempting to call setWritable on a
-    //        directory always fails, regardless of parameters. Ignore
-    //        these failures.
-    boolean ignoreSetWritableFailures =
-        (DirectoryServer.getOperatingSystem().equals(
-            OperatingSystem.WINDOWS) && f.isDirectory());
-
-    // Take away write permission from everyone if necessary.
-    if (p.isOwnerWritable() && (! p.isOtherWritable()))
-    {
-      try
-      {
-        if (f.setWritable(false, false))
-        {
-          anySuccessful = true;
-        }
-        else if (!ignoreSetWritableFailures)
-        {
-          anyFailed = true;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        exceptionThrown = true;
-      }
-    }
-
-    // Grant the appropriate write permission.
-    try
-    {
-      boolean ownerOnly =
-           (p.isOwnerWritable() != p.isOtherWritable());
-
-      if (f.setWritable(p.isOwnerWritable(), ownerOnly))
-      {
-        anySuccessful = true;
-      }
-      else if (!ignoreSetWritableFailures)
-      {
-        anyFailed = true;
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      exceptionThrown = true;
-    }
-
-
-    // Take away execute permission from everyone if necessary.
-    if (p.isOwnerExecutable() && (! p.isOtherExecutable()))
-    {
-      try
-      {
-        if (f.setExecutable(false, false))
-        {
-          anySuccessful = true;
-        }
-        else
-        {
-          if(!DirectoryServer.getOperatingSystem().equals(
-              OperatingSystem.WINDOWS))
-          {
-            // On Windows platforms, file execute permissions
-            // cannot be set to false. Do not consider this case
-            // a failure. http://java.sun.com/developer/
-            // technicalArticles/J2SE/Desktop/javase6/enhancements/
-            anyFailed = true;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        exceptionThrown = true;
-      }
-    }
-
-    // Grant the appropriate execute permission.
-    try
-    {
-      boolean ownerOnly =
-           (p.isOwnerExecutable() != p.isOtherExecutable());
-
-      if (f.setExecutable(p.isOwnerExecutable(), ownerOnly))
-      {
-        anySuccessful = true;
-      }
-      else
-      {
-        if(!DirectoryServer.getOperatingSystem().equals(
-            OperatingSystem.WINDOWS) || p.isOwnerExecutable())
-        {
-          // On Windows platforms, file execute permissions
-          // cannot be set to false. Do not consider this case
-          // a failure. http://java.sun.com/developer/
-          // technicalArticles/J2SE/Desktop/javase6/enhancements/
-          anyFailed = true;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      exceptionThrown = true;
-    }
-
-
-    if (exceptionThrown)
-    {
-      // If an exception was thrown, we can't be sure whether or not
-      // any permissions were updated.
-      LocalizableMessage message =
-          ERR_FILEPERM_SET_JAVA_EXCEPTION.get(f.getAbsolutePath());
-      throw new DirectoryException(ResultCode.OTHER, message);
-    }
-    else if (anyFailed)
-    {
-      if (anySuccessful)
-      {
-        // Some of the file permissions may have been altered.
-        LocalizableMessage message = ERR_FILEPERM_SET_JAVA_FAILED_ALTERED.get(
-            f.getAbsolutePath());
-        throw new DirectoryException(ResultCode.OTHER, message);
-      }
-      else
-      {
-        // The file permissions should have been left intact.
-        LocalizableMessage message = ERR_FILEPERM_SET_JAVA_FAILED_UNALTERED.get(
-            f.getAbsolutePath());
-        throw new DirectoryException(ResultCode.OTHER, message);
-      }
-    }
-    else
-    {
-      return anySuccessful;
-    }
+    return Files.getFileAttributeView(filePath, AclFileAttributeView.class) != null;
   }
 
 

@@ -1478,18 +1478,16 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     out.flush();
     out.close();
 
-    if(FilePermission.canSetPermissions()) {
-      try {
-        if (!FilePermission.setPermissions(new File(path),
-                                           new FilePermission(0600)))
-        {
-          // Log a warning that the permissions were not set.
-          logger.warn(WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED, path);
-        }
-      } catch(DirectoryException e) {
+    try {
+      if (!FilePermission.setPermissions(new File(path),
+          new FilePermission(0600)))
+      {
         // Log a warning that the permissions were not set.
         logger.warn(WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED, path);
       }
+    } catch(DirectoryException e) {
+      // Log a warning that the permissions were not set.
+      logger.warn(WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED, path);
     }
   }
 

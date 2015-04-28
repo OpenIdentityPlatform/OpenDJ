@@ -394,7 +394,7 @@ public final class TestCaseUtils {
         }
 
         // Make the shell scripts in the bin directory executable, if possible.
-        if (OperatingSystem.isUnixBased() && FilePermission.canSetPermissions())
+        if (OperatingSystem.isUnixBased())
         {
           try
           {

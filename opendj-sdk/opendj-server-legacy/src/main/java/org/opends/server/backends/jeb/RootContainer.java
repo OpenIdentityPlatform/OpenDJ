@@ -165,20 +165,17 @@ public class RootContainer
     }
 
     // Get the backend database backendDirectory permissions and apply
-    if(FilePermission.canSetPermissions())
+    try
     {
-      try
+      if(!FilePermission.setPermissions(backendDirectory, backendPermission))
       {
-        if(!FilePermission.setPermissions(backendDirectory, backendPermission))
-        {
-          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-        }
+        logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
       }
-      catch(Exception e)
-      {
-        // Log an warning that the permissions were not set.
-        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-      }
+    }
+    catch(Exception e)
+    {
+      // Log an warning that the permissions were not set.
+      logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
     }
 
     // Open the database environment
@@ -830,22 +827,19 @@ public class RootContainer
         }
 
         // Get the backend database backendDirectory permissions and apply
-        if(FilePermission.canSetPermissions())
+        File parentDirectory = getFileForPath(config.getDBDirectory());
+        File backendDirectory = new File(parentDirectory, config.getBackendId());
+        try
         {
-          File parentDirectory = getFileForPath(config.getDBDirectory());
-          File backendDirectory = new File(parentDirectory, config.getBackendId());
-          try
+          if (!FilePermission.setPermissions(backendDirectory, backendPermission))
           {
-            if (!FilePermission.setPermissions(backendDirectory, backendPermission))
-            {
-              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-            }
+            logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
           }
-          catch(Exception e)
-          {
-            // Log an warning that the permissions were not set.
-            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-          }
+        }
+        catch(Exception e)
+        {
+          // Log an warning that the permissions were not set.
+          logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
         }
       }
 

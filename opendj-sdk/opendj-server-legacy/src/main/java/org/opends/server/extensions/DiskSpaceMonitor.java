@@ -35,6 +35,9 @@ import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_SPACE_LOW;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -60,7 +63,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.Platform;
 
 /**
  * This class provides an application-wide disk space monitoring service.
@@ -270,7 +272,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     File fsMountPoint;
     try
     {
-      fsMountPoint = Platform.getFilesystem(directory);
+      fsMountPoint = getMountPoint(directory);
     }
     catch (IOException ioe)
     {
@@ -305,6 +307,28 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
       }
       DirectoryServer.registerMonitorProvider(newDSH);
     }
+  }
+
+  private File getMountPoint(File directory) throws IOException
+  {
+    Path mountPoint = directory.getAbsoluteFile().toPath();
+    Path parentDir = mountPoint.getParent();
+    FileStore dirFileStore = Files.getFileStore(mountPoint);
+    /*
+     * Since there is no concept of mount point in the APIs, iterate on all parents of
+     * the given directory until the FileSystem Store changes (hint of a different
+     * device, hence a mount point) or we get to root, which works too.
+     */
+    while (parentDir != null)
+    {
+      if (!Files.getFileStore(parentDir).equals(dirFileStore))
+      {
+        return mountPoint.toFile();
+      }
+      mountPoint = mountPoint.getParent();
+      parentDir = parentDir.getParent();
+    }
+    return mountPoint.toFile();
   }
 
   /**
