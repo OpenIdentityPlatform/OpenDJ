@@ -1617,16 +1617,16 @@ public class BackupManager
    */
   private static int getHighestSuffixNumberForPath(final String basePath) throws IOException
   {
-    final File baseFile = new File(basePath);
+    final File baseFile = new File(basePath).getCanonicalFile();
     final File[] existingFiles = baseFile.getParentFile().listFiles();
-    final Pattern pattern = Pattern.compile(basePath + "\\d*");
+    final Pattern pattern = Pattern.compile(baseFile + "\\d*");
     int highestNumber = 0;
     for (File file : existingFiles)
     {
       final String name = file.getCanonicalPath();
       if (pattern.matcher(name).matches())
       {
-        String numberAsString = name.substring(basePath.length());
+        String numberAsString = name.substring(baseFile.getPath().length());
         int number = numberAsString.isEmpty() ? 0 : Integer.valueOf(numberAsString);
         highestNumber = number > highestNumber ? number : highestNumber;
       }
