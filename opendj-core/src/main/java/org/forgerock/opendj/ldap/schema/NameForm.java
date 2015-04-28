@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL1;
@@ -44,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 
 /**
  * This class defines a data structure for storing and interacting with a name
@@ -55,10 +55,10 @@ public final class NameForm extends SchemaElement {
     /** A fluent API for incrementally constructing name forms. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private boolean isObsolete;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private String oid;
-        private final Set<String> optionalAttributes = new LinkedHashSet<String>();
-        private final Set<String> requiredAttributes = new LinkedHashSet<String>();
+        private final Set<String> optionalAttributes = new LinkedHashSet<>();
+        private final Set<String> requiredAttributes = new LinkedHashSet<>();
         private String structuralObjectClassOID;
 
         Builder(final NameForm nf, final SchemaBuilder builder) {
@@ -589,8 +589,7 @@ public final class NameForm extends SchemaElement {
         }
     }
 
-    void validate(final Schema schema, final List<LocalizableMessage> warnings)
-            throws SchemaException {
+    void validate(final Schema schema, final List<LocalizableMessage> warnings) throws SchemaException {
         try {
             structuralClass = schema.getObjectClass(structuralClassOID);
         } catch (final UnknownSchemaElementException e) {
@@ -600,49 +599,37 @@ public final class NameForm extends SchemaElement {
             throw new SchemaException(message, e);
         }
         if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL) {
-            // This is bad because the associated structural class type is not
-            // structural.
+            // This is bad because the associated structural class type is not structural.
             final LocalizableMessage message =
                     ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL1.get(getNameOrOID(),
-                            structuralClass.getNameOrOID(), String.valueOf(structuralClass
-                                    .getObjectClassType()));
+                            structuralClass.getNameOrOID(), structuralClass.getObjectClassType());
             throw new SchemaException(message);
         }
 
-        requiredAttributes = new HashSet<AttributeType>(requiredAttributeOIDs.size());
-        AttributeType attributeType;
-        for (final String oid : requiredAttributeOIDs) {
-            try {
-                attributeType = schema.getAttributeType(oid);
-            } catch (final UnknownSchemaElementException e) {
-                // This isn't good because it means that the name form requires
-                // an attribute type that we don't know anything about.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1.get(getNameOrOID(), oid);
-                throw new SchemaException(message, e);
-            }
-            requiredAttributes.add(attributeType);
-        }
+        requiredAttributes =
+              getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1);
 
         if (!optionalAttributeOIDs.isEmpty()) {
-            optionalAttributes = new HashSet<AttributeType>(optionalAttributeOIDs.size());
-            for (final String oid : optionalAttributeOIDs) {
-                try {
-                    attributeType = schema.getAttributeType(oid);
-                } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the name form
-                    // requires an attribute type that we don't know anything
-                    // about.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1.get(getNameOrOID(),
-                                    oid);
-                    throw new SchemaException(message, e);
-                }
-                optionalAttributes.add(attributeType);
-            }
+            optionalAttributes =
+                    getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1);
         }
 
         optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
         requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
+    }
+
+    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids, Arg2<Object, Object> errorMsg)
+            throws SchemaException {
+        Set<AttributeType> attrTypes = new HashSet<>(oids.size());
+        for (final String oid : oids) {
+            try {
+                attrTypes.add(schema.getAttributeType(oid));
+            } catch (final UnknownSchemaElementException e) {
+                // This isn't good because it means that the name form requires
+                // an attribute type that we don't know anything about.
+                throw new SchemaException(errorMsg.get(getNameOrOID(), oid), e);
+            }
+        }
+        return attrTypes;
     }
 }
