@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -68,8 +68,8 @@ public class FilterTestCase extends SdkTestCase {
                 Filter.lessOrEqual("dob", ByteString.valueOf("\\test*(Value)"));
         final Filter presense = Filter.present("login");
 
-        final ArrayList<ByteString> any = new ArrayList<ByteString>(0);
-        final ArrayList<ByteString> multiAny = new ArrayList<ByteString>(1);
+        final ArrayList<ByteString> any = new ArrayList<>(0);
+        final ArrayList<ByteString> multiAny = new ArrayList<>(1);
         multiAny.add(ByteString.valueOf("\\wid*(get)"));
         multiAny.add(ByteString.valueOf("*"));
 
@@ -104,13 +104,13 @@ public class FilterTestCase extends SdkTestCase {
                 Filter.extensible("2.4.6.8.19", null, ByteString
                         .valueOf("\\John* (Doe)"), false);
 
-        final ArrayList<Filter> list1 = new ArrayList<Filter>();
+        final ArrayList<Filter> list1 = new ArrayList<>();
         list1.add(equal);
         list1.add(approx);
 
         final Filter and = Filter.and(list1);
 
-        final ArrayList<Filter> list2 = new ArrayList<Filter>();
+        final ArrayList<Filter> list2 = new ArrayList<>();
         list2.add(substring1);
         list2.add(extensible1);
         list2.add(and);

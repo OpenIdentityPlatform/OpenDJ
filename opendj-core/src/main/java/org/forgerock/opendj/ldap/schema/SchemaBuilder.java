@@ -2166,7 +2166,7 @@ public final class SchemaBuilder {
             if (attrs == null) {
                 name2AttributeTypes.put(lowerName, Collections.singletonList(attribute));
             } else if (attrs.size() == 1) {
-                attrs = new ArrayList<AttributeType>(attrs);
+                attrs = new ArrayList<>(attrs);
                 attrs.add(attribute);
                 name2AttributeTypes.put(lowerName, attrs);
             } else {
@@ -2197,7 +2197,7 @@ public final class SchemaBuilder {
             if (rules == null) {
                 name2ContentRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
-                rules = new ArrayList<DITContentRule>(rules);
+                rules = new ArrayList<>(rules);
                 rules.add(rule);
                 name2ContentRules.put(lowerName, rules);
             } else {
@@ -2228,7 +2228,7 @@ public final class SchemaBuilder {
             if (rules == null) {
                 name2StructureRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
-                rules = new ArrayList<DITStructureRule>(rules);
+                rules = new ArrayList<>(rules);
                 rules.add(rule);
                 name2StructureRules.put(lowerName, rules);
             } else {
@@ -2259,7 +2259,7 @@ public final class SchemaBuilder {
             if (uses == null) {
                 name2MatchingRuleUses.put(lowerName, Collections.singletonList(use));
             } else if (uses.size() == 1) {
-                uses = new ArrayList<MatchingRuleUse>(uses);
+                uses = new ArrayList<>(uses);
                 uses.add(use);
                 name2MatchingRuleUses.put(lowerName, uses);
             } else {
@@ -2292,7 +2292,7 @@ public final class SchemaBuilder {
             if (rules == null) {
                 name2MatchingRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
-                rules = new ArrayList<MatchingRule>(rules);
+                rules = new ArrayList<>(rules);
                 rules.add(rule);
                 name2MatchingRules.put(lowerName, rules);
             } else {
@@ -2322,7 +2322,7 @@ public final class SchemaBuilder {
             if (forms == null) {
                 name2NameForms.put(lowerName, Collections.singletonList(form));
             } else if (forms.size() == 1) {
-                forms = new ArrayList<NameForm>(forms);
+                forms = new ArrayList<>(forms);
                 forms.add(form);
                 name2NameForms.put(lowerName, forms);
             } else {
@@ -2352,7 +2352,7 @@ public final class SchemaBuilder {
             if (classes == null) {
                 name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
             } else if (classes.size() == 1) {
-                classes = new ArrayList<ObjectClass>(classes);
+                classes = new ArrayList<>(classes);
                 classes.add(oc);
                 name2ObjectClasses.put(lowerName, classes);
             } else {
@@ -2430,26 +2430,26 @@ public final class SchemaBuilder {
         if (numericOID2Syntaxes == null) {
             options = defaultSchemaOptions();
 
-            numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
-            numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
-            numericOID2MatchingRuleUses = new LinkedHashMap<String, MatchingRuleUse>();
-            numericOID2AttributeTypes = new LinkedHashMap<String, AttributeType>();
-            numericOID2ObjectClasses = new LinkedHashMap<String, ObjectClass>();
-            numericOID2NameForms = new LinkedHashMap<String, NameForm>();
-            numericOID2ContentRules = new LinkedHashMap<String, DITContentRule>();
-            id2StructureRules = new LinkedHashMap<Integer, DITStructureRule>();
+            numericOID2Syntaxes = new LinkedHashMap<>();
+            numericOID2MatchingRules = new LinkedHashMap<>();
+            numericOID2MatchingRuleUses = new LinkedHashMap<>();
+            numericOID2AttributeTypes = new LinkedHashMap<>();
+            numericOID2ObjectClasses = new LinkedHashMap<>();
+            numericOID2NameForms = new LinkedHashMap<>();
+            numericOID2ContentRules = new LinkedHashMap<>();
+            id2StructureRules = new LinkedHashMap<>();
 
-            name2MatchingRules = new LinkedHashMap<String, List<MatchingRule>>();
-            name2MatchingRuleUses = new LinkedHashMap<String, List<MatchingRuleUse>>();
-            name2AttributeTypes = new LinkedHashMap<String, List<AttributeType>>();
-            name2ObjectClasses = new LinkedHashMap<String, List<ObjectClass>>();
-            name2NameForms = new LinkedHashMap<String, List<NameForm>>();
-            name2ContentRules = new LinkedHashMap<String, List<DITContentRule>>();
-            name2StructureRules = new LinkedHashMap<String, List<DITStructureRule>>();
+            name2MatchingRules = new LinkedHashMap<>();
+            name2MatchingRuleUses = new LinkedHashMap<>();
+            name2AttributeTypes = new LinkedHashMap<>();
+            name2ObjectClasses = new LinkedHashMap<>();
+            name2NameForms = new LinkedHashMap<>();
+            name2ContentRules = new LinkedHashMap<>();
+            name2StructureRules = new LinkedHashMap<>();
 
-            objectClass2NameForms = new HashMap<String, List<NameForm>>();
-            nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
-            warnings = new LinkedList<LocalizableMessage>();
+            objectClass2NameForms = new HashMap<>();
+            nameForm2StructureRules = new HashMap<>();
+            warnings = new LinkedList<>();
         }
 
         if (copyOnWriteSchema != null) {
@@ -2624,7 +2624,7 @@ public final class SchemaBuilder {
 
         // Attribute types need special processing because they have
         // hierarchical dependencies.
-        final List<AttributeType> invalidAttributeTypes = new LinkedList<AttributeType>();
+        final List<AttributeType> invalidAttributeTypes = new LinkedList<>();
         for (final AttributeType attributeType : numericOID2AttributeTypes.values()) {
             attributeType.validate(schema, invalidAttributeTypes, warnings);
         }
@@ -2635,7 +2635,7 @@ public final class SchemaBuilder {
 
         // Object classes need special processing because they have hierarchical
         // dependencies.
-        final List<ObjectClass> invalidObjectClasses = new LinkedList<ObjectClass>();
+        final List<ObjectClass> invalidObjectClasses = new LinkedList<>();
         for (final ObjectClass objectClass : numericOID2ObjectClasses.values()) {
             objectClass.validate(schema, invalidObjectClasses, warnings);
         }
@@ -2665,7 +2665,7 @@ public final class SchemaBuilder {
                 if (forms == null) {
                     objectClass2NameForms.put(ocOID, Collections.singletonList(form));
                 } else if (forms.size() == 1) {
-                    forms = new ArrayList<NameForm>(forms);
+                    forms = new ArrayList<>(forms);
                     forms.add(form);
                     objectClass2NameForms.put(ocOID, forms);
                 } else {
@@ -2690,7 +2690,7 @@ public final class SchemaBuilder {
 
         // DIT structure rules need special processing because they have
         // hierarchical dependencies.
-        final List<DITStructureRule> invalidStructureRules = new LinkedList<DITStructureRule>();
+        final List<DITStructureRule> invalidStructureRules = new LinkedList<>();
         for (final DITStructureRule rule : id2StructureRules.values()) {
             rule.validate(schema, invalidStructureRules, warnings);
         }
@@ -2706,7 +2706,7 @@ public final class SchemaBuilder {
             if (rules == null) {
                 nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
-                rules = new ArrayList<DITStructureRule>(rules);
+                rules = new ArrayList<>(rules);
                 rules.add(rule);
                 nameForm2StructureRules.put(ocOID, rules);
             } else {

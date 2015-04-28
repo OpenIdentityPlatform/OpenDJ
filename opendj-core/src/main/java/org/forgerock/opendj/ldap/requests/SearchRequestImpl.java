@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -40,7 +40,7 @@ import org.forgerock.util.Reject;
  * Search request implementation.
  */
 final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> implements SearchRequest {
-    private final List<String> attributes = new LinkedList<String>();
+    private final List<String> attributes = new LinkedList<>();
     private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
     private Filter filter;
     private DN name;

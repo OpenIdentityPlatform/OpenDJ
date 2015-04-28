@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -139,7 +139,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
             public void handleResult(final Filter result) {
                 // Search for all referenced entries and construct a filter.
                 final SearchRequest request = createSearchRequest(result);
-                final List<Filter> subFilters = new LinkedList<Filter>();
+                final List<Filter> subFilters = new LinkedList<>();
 
                 final FailureHandler<LdapException> failureHandler = new FailureHandler<LdapException>() {
                     @Override
@@ -186,12 +186,11 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
         final ResultHandler<Attribute> h) {
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
-         * key, the perform a search for each one to find the corresponding
-         * entries.
+         * key, the perform a search for each one to find the corresponding entries.
          */
         final Attribute newLDAPAttribute = new LinkedAttribute(ldapAttributeName);
         final AtomicInteger pendingSearches = new AtomicInteger(newValues.size());
-        final AtomicReference<ResourceException> exception = new AtomicReference<ResourceException>();
+        final AtomicReference<ResourceException> exception = new AtomicReference<>();
 
         for (final Object value : newValues) {
             mapper.create(c, path, new JsonValue(value), new ResultHandler<List<Attribute>>() {
@@ -310,7 +309,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                                 return null;
                             } else {
                                 // Combine values into a single JSON array.
-                                final List<Object> result = new ArrayList<Object>(value.size());
+                                final List<Object> result = new ArrayList<>(value.size());
                                 for (final JsonValue e : value) {
                                     result.add(e.getObject());
                                 }
@@ -335,7 +334,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
 
     private void readEntry(final Context c, final JsonPointer path, final DN dn,
         final ResultHandler<JsonValue> handler) {
-        final Set<String> requestedLDAPAttributes = new LinkedHashSet<String>();
+        final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
         mapper.getLDAPAttributes(c, path, new JsonPointer(), requestedLDAPAttributes);
         c.getConnection().readEntryAsync(dn, requestedLDAPAttributes)
                 .onSuccess(new SuccessHandler<SearchResultEntry>() {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -194,7 +194,7 @@ public final class ResultCode {
         //@Checkstyle:on
     }
 
-    private static final Map<Integer, ResultCode> ELEMENTS = new LinkedHashMap<Integer, ResultCode>();
+    private static final Map<Integer, ResultCode> ELEMENTS = new LinkedHashMap<>();
 
     private static final List<ResultCode> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(new ArrayList<ResultCode>(
             ELEMENTS.values()));

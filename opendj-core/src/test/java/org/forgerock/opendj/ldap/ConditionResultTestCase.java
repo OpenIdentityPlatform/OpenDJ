@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -48,7 +48,7 @@ public class ConditionResultTestCase extends SdkTestCase {
     public Iterator<Object[]> allPermutationsUpTo4Operands() {
         final ConditionResult[] values = ConditionResult.values();
 
-        final List<Object[]> results = new ArrayList<Object[]>();
+        final List<Object[]> results = new ArrayList<>();
         results.add(new Object[] { new ConditionResult[0] });
         for (int arrayLength = 1; arrayLength <= 4; arrayLength++) {
             final ConditionResult[] template = new ConditionResult[arrayLength];

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -158,7 +158,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
         reader.mark();
         if (reader.remaining() > 0 && reader.read() == '+') {
-            final List<AVA> avas = new ArrayList<AVA>();
+            final List<AVA> avas = new ArrayList<>();
             avas.add(firstAVA);
 
             do {
@@ -477,7 +477,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     private Iterator<AVA> getSortedAvas() {
-        TreeSet<AVA> sortedAvas = new TreeSet<AVA>();
+        TreeSet<AVA> sortedAvas = new TreeSet<>();
         for (AVA ava : avas) {
             sortedAvas.add(ava);
         }

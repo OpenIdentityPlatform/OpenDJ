@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.io;
@@ -491,7 +491,7 @@ public final class LDAP {
      */
     public static <R extends ASN1Reader> LDAPReader<R> getReader(final R asn1Reader,
             final DecodeOptions options) {
-        return new LDAPReader<R>(asn1Reader, options);
+        return new LDAPReader<>(asn1Reader, options);
     }
 
     /**
@@ -506,7 +506,7 @@ public final class LDAP {
      *         ASN.1 writer.
      */
     public static <W extends ASN1Writer> LDAPWriter<W> getWriter(final W asn1Writer) {
-        return new LDAPWriter<W>(asn1Writer);
+        return new LDAPWriter<>(asn1Writer);
     }
 
     /**
@@ -691,7 +691,7 @@ public final class LDAP {
         reader.readStartSequence(LDAP.TYPE_FILTER_AND);
         try {
             if (reader.hasNextElement()) {
-                final List<Filter> subFilters = new LinkedList<Filter>();
+                final List<Filter> subFilters = new LinkedList<>();
                 do {
                     subFilters.add(readFilter(reader));
                 } while (reader.hasNextElement());
@@ -787,7 +787,7 @@ public final class LDAP {
         reader.readStartSequence(LDAP.TYPE_FILTER_OR);
         try {
             if (reader.hasNextElement()) {
-                final List<Filter> subFilters = new LinkedList<Filter>();
+                final List<Filter> subFilters = new LinkedList<>();
                 do {
                     subFilters.add(readFilter(reader));
                 } while (reader.hasNextElement());
@@ -815,7 +815,7 @@ public final class LDAP {
                 }
                 final List<ByteString> anySubstrings;
                 if (reader.hasNextElement() && (reader.peekType() == LDAP.TYPE_SUBANY)) {
-                    anySubstrings = new LinkedList<ByteString>();
+                    anySubstrings = new LinkedList<>();
                     do {
                         anySubstrings.add(reader.readOctetString(LDAP.TYPE_SUBANY));
                     } while (reader.hasNextElement() && (reader.peekType() == LDAP.TYPE_SUBANY));

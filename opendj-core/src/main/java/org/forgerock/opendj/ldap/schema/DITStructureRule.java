@@ -55,10 +55,10 @@ public final class DITStructureRule extends SchemaElement {
     /** A fluent API for incrementally constructing DIT structure rules. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private int ruleID;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private boolean isObsolete;
         private String nameFormOID;
-        private final Set<Integer> superiorRuleIDs = new LinkedHashSet<Integer>();
+        private final Set<Integer> superiorRuleIDs = new LinkedHashSet<>();
 
         Builder(final DITStructureRule structureRule, final SchemaBuilder builder) {
             super(builder);
@@ -478,18 +478,16 @@ public final class DITStructureRule extends SchemaElement {
         }
 
         if (!superiorRuleIDs.isEmpty()) {
-            superiorRules = new HashSet<DITStructureRule>(superiorRuleIDs.size());
-            DITStructureRule rule;
+            superiorRules = new HashSet<>(superiorRuleIDs.size());
             for (final Integer id : superiorRuleIDs) {
                 try {
-                    rule = schema.getDITStructureRule(id);
+                    superiorRules.add(schema.getDITStructureRule(id));
                 } catch (final UnknownSchemaElementException e) {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(getNameOrRuleID(), id);
                     failValidation(invalidSchemaElements, warnings, message);
                     return false;
                 }
-                superiorRules.add(rule);
             }
         }
         superiorRules = Collections.unmodifiableSet(superiorRules);

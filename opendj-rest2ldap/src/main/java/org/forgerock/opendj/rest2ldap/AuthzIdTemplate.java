@@ -11,9 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.i18n;
@@ -87,7 +86,7 @@ final class AuthzIdTemplate {
 
     private final String dnFormatString;
     private final String formatString;
-    private final List<String> keys = new ArrayList<String>();
+    private final List<String> keys = new ArrayList<>();
     private final Impl pimpl;
     private final String template;
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -278,7 +278,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
             final ScheduledExecutorService scheduler) {
         Reject.ifNull(factories, unit);
 
-        this.monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories.size());
+        this.monitoredFactories = new ArrayList<>(factories.size());
         int i = 0;
         for (final ConnectionFactory f : factories) {
             this.monitoredFactories.add(new MonitoredConnectionFactory(f, i++));

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -69,7 +69,7 @@ final class Utils {
                 throw new IllegalStateException();
             }
             this.latch = new AtomicInteger(size);
-            this.results = new ArrayList<V>(size);
+            this.results = new ArrayList<>(size);
             this.handler = handler;
             if (size == 0) {
                 // Invoke immediately.
@@ -148,7 +148,7 @@ final class Utils {
      *         {@code size} asynchronous operations.
      */
     static <V> ResultHandler<V> accumulate(final int size, final ResultHandler<List<V>> handler) {
-        return new AccumulatingResultHandler<V>(size, handler);
+        return new AccumulatingResultHandler<>(size, handler);
     }
 
     static Object attributeToJson(final Attribute a) {
@@ -349,9 +349,8 @@ final class Utils {
     private static <T> List<T> asList(final Collection<T> c) {
         if (c instanceof List) {
             return (List<T>) c;
-        } else {
-            return new ArrayList<T>(c);
         }
+        return new ArrayList<>(c);
     }
 
     /** Prevent instantiation. */

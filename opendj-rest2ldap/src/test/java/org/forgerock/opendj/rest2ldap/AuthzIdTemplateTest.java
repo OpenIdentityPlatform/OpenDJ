@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -124,7 +124,7 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
     }
 
     private Map<String, Object> map(String... keyValues) {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        Map<String, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < keyValues.length; i += 2) {
             map.put(keyValues[i], keyValues[i + 1]);
         }

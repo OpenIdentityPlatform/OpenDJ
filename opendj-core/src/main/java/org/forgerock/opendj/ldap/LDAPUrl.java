@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -209,7 +209,7 @@ public final class LDAPUrl {
     /**
      * Set containing characters that do not need to be encoded.
      */
-    private static final Set<Character> VALID_CHARS = new HashSet<Character>();
+    private static final Set<Character> VALID_CHARS = new HashSet<>();
 
     static {
         // Refer to RFC 3986 for more details.
@@ -597,7 +597,7 @@ public final class LDAPUrl {
 
     private List<String> parseAttributes(final String attrDesc) {
         final StringTokenizer token = new StringTokenizer(attrDesc, String.valueOf(COMMA_CHAR));
-        final List<String> parsedAttrs = new ArrayList<String>(token.countTokens());
+        final List<String> parsedAttrs = new ArrayList<>(token.countTokens());
         while (token.hasMoreElements()) {
             parsedAttrs.add(token.nextToken());
         }

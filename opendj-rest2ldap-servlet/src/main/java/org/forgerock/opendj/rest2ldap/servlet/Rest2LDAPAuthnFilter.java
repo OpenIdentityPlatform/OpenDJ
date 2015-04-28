@@ -136,7 +136,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
          * servlet if needed. However, make sure that it is closed on
          * completion.
          */
-        final AtomicReference<Connection> savedConnection = new AtomicReference<Connection>();
+        final AtomicReference<Connection> savedConnection = new AtomicReference<>();
         final ServletSynchronizer sync = syncFactory.createServletSynchronizer(req, res);
 
         sync.addAsyncListener(new Runnable() {
@@ -186,7 +186,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
             switch (authenticationMethod) {
             case SIMPLE: {
                 final Map<String, Object> authzid;
-                authzid = new LinkedHashMap<String, Object>(2);
+                authzid = new LinkedHashMap<>(2);
                 authzid.put(AUTHZID_DN, username);
                 authzid.put(AUTHZID_ID, username);
                 doBind(req, res, newSimpleBindRequest(username, password), chain, savedConnection, sync, username,
@@ -199,7 +199,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                 if (saslAuthzIdTemplate.startsWith("dn:")) {
                     final String bindDN = DN.format(saslAuthzIdTemplate.substring(3), schema, username).toString();
                     bindId = "dn:" + bindDN;
-                    authzid = new LinkedHashMap<String, Object>(2);
+                    authzid = new LinkedHashMap<>(2);
                     authzid.put(AUTHZID_DN, bindDN);
                     authzid.put(AUTHZID_ID, username);
                 } else {
@@ -233,7 +233,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                             public void handleResult(final SearchResultEntry result) {
                                 savedConnection.get().close();
                                 final String bindDN = result.getName().toString();
-                                final Map<String, Object> authzid = new LinkedHashMap<String, Object>(2);
+                                final Map<String, Object> authzid = new LinkedHashMap<>(2);
                                 authzid.put(AUTHZID_DN, bindDN);
                                 authzid.put(AUTHZID_ID, username);
                                 doBind(req, res, newSimpleBindRequest(bindDN, password), chain, savedConnection, sync,

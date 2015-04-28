@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -320,7 +320,7 @@ final class TimeBasedMatchingRulesImpl {
                     int assertMonth = buffer.getInt(16);
                     int assertYear = buffer.getInt(20);
 
-                    List<T> queries = new ArrayList<T>();
+                    List<T> queries = new ArrayList<>();
                     if (assertSecond >= 0) {
                         queries.add(createExactMatchQuery(factory, assertSecond, SECOND));
                     }

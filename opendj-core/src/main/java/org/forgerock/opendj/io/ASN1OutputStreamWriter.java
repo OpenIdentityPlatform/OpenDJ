@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -50,7 +50,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
 
     private final OutputStream rootStream;
     private OutputStream out;
-    private final ArrayList<ByteStringBuilder> streamStack;
+    private final ArrayList<ByteStringBuilder> streamStack = new ArrayList<>();
     private int stackDepth;
     private final int maxBufferSize;
 
@@ -67,7 +67,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         this.out = stream;
         this.rootStream = stream;
         this.maxBufferSize = Math.max(maxBufferSize, BUFFER_INIT_SIZE);
-        this.streamStack = new ArrayList<ByteStringBuilder>();
         this.stackDepth = -1;
     }
 

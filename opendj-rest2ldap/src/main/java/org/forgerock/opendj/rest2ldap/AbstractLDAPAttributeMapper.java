@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.util.promise.Function;
 import org.forgerock.util.promise.NeverThrowsException;
+
 /**
  * An abstract LDAP attribute mapper which provides a simple mapping from a JSON
  * value to a single LDAP attribute.
@@ -407,7 +408,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                          * delete(x) followed by add(x) is idempotent when
                          * adding/removing the same value.
                          */
-                        modifications = new ArrayList<Modification>(2);
+                        modifications = new ArrayList<>(2);
 
                         final Attribute deletedValues = new LinkedAttribute(oldLDAPAttribute);
                         deletedValues.removeAll(newLDAPAttribute);

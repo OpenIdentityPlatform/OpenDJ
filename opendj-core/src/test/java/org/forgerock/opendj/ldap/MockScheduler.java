@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -114,7 +114,7 @@ final class MockScheduler implements ScheduledExecutorService {
     }
 
     /** Saved scheduled tasks. */
-    private final List<Callable<?>> tasks = new CopyOnWriteArrayList<Callable<?>>();
+    private final List<Callable<?>> tasks = new CopyOnWriteArrayList<>();
 
     MockScheduler() {
         // Nothing to do.
@@ -249,13 +249,13 @@ final class MockScheduler implements ScheduledExecutorService {
     }
 
     private <T> ScheduledCallableFuture<T> onceOnly(final Callable<T> callable) {
-        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<T>(callable, true);
+        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<>(callable, true);
         tasks.add(wrapped);
         return wrapped;
     }
 
     private <T> ScheduledCallableFuture<T> repeated(final Callable<T> callable) {
-        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<T>(callable, false);
+        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<>(callable, false);
         tasks.add(wrapped);
         return wrapped;
     }

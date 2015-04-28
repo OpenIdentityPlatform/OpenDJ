@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -175,7 +175,7 @@ public final class LinkedAttribute extends AbstractAttribute {
                 return true;
             }
 
-            final Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(values.size());
+            final Map<ByteString, T> valuesToRetain = new HashMap<>(values.size());
             for (final T value : values) {
                 valuesToRetain.put(normalizeValue(attribute, ByteString.valueOf(value)), value);
             }
@@ -236,7 +236,7 @@ public final class LinkedAttribute extends AbstractAttribute {
                 return false;
             }
 
-            attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(2);
+            attribute.multipleValues = new LinkedHashMap<>(2);
             attribute.multipleValues.put(attribute.normalizedSingleValue, attribute.singleValue);
             attribute.multipleValues.put(normalizedValue, value);
             attribute.singleValue = null;
@@ -474,8 +474,7 @@ public final class LinkedAttribute extends AbstractAttribute {
             this.singleValue = other.singleValue;
             this.normalizedSingleValue = other.normalizedSingleValue;
             if (other.multipleValues != null) {
-                this.multipleValues =
-                        new LinkedHashMap<ByteString, ByteString>(other.multipleValues);
+                this.multipleValues = new LinkedHashMap<>(other.multipleValues);
             }
         } else {
             addAll(attribute);

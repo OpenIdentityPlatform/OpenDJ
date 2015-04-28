@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -93,7 +93,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      */
     @Test
     public void testConnectionEventListenerError() throws Exception {
-        final List<ConnectionEventListener> listeners = new LinkedList<ConnectionEventListener>();
+        final List<ConnectionEventListener> listeners = new LinkedList<>();
         final Connection mockConnection = mockConnection(listeners);
         final ConnectionFactory factory = mockConnectionFactory(mockConnection);
         final ConnectionPool pool = newFixedConnectionPool(factory, 1);
@@ -120,7 +120,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
      */
     @Test
     public void testConnectionEventListenerUnsolicitedNotification() throws Exception {
-        final List<ConnectionEventListener> listeners = new LinkedList<ConnectionEventListener>();
+        final List<ConnectionEventListener> listeners = new LinkedList<>();
         final Connection mockConnection = mockConnection(listeners);
         final ConnectionFactory factory = mockConnectionFactory(mockConnection);
         final ConnectionPool pool = newFixedConnectionPool(factory, 1);
@@ -525,8 +525,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
             }
         }).when(factory).getConnectionAsync();
 
-        List<Promise<? extends Connection, LdapException>> promises =
-                new ArrayList<Promise<? extends Connection, LdapException>>();
+        List<Promise<? extends Connection, LdapException>> promises = new ArrayList<>();
         for (int i = 0; i < poolSize + 1; i++) {
             promises.add(pool.getConnectionAsync());
         }

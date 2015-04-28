@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -82,9 +82,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                 /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, DN>> initialValue() {
-                    return new WeakHashMap<Schema, Map<String, DN>>();
+                    return new WeakHashMap<>();
                 }
-
             };
 
     /**

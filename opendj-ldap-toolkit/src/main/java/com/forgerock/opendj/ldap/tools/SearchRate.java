@@ -255,7 +255,7 @@ public final class SearchRate extends ConsoleApplication {
             argParser.addArgument(searchScope);
 
             dereferencePolicy =
-                    new MultiChoiceArgument<DereferenceAliasesPolicy>("derefpolicy", 'a',
+                    new MultiChoiceArgument<>("derefpolicy", 'a',
                             "dereferencePolicy", false, true, INFO_DEREFERENCE_POLICE_PLACEHOLDER
                                     .get(), DereferenceAliasesPolicy.values(), false,
                             INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
@@ -295,7 +295,7 @@ public final class SearchRate extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        final List<String> attributes = new LinkedList<String>();
+        final List<String> attributes = new LinkedList<>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
         if (filterAndAttributeStrings.size() > 0) {
             /* The list of trailing arguments should be structured as follow:

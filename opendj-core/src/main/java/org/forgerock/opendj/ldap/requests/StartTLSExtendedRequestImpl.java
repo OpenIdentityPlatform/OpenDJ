@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -87,10 +87,10 @@ final class StartTLSExtendedRequestImpl extends
     private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
 
     /** The list of cipher suite. */
-    private final List<String> enabledCipherSuites = new LinkedList<String>();
+    private final List<String> enabledCipherSuites = new LinkedList<>();
 
     /** The list of protocols. */
-    private final List<String> enabledProtocols = new LinkedList<String>();
+    private final List<String> enabledProtocols = new LinkedList<>();
 
     private SSLContext sslContext;
 

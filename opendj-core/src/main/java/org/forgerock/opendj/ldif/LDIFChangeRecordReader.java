@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -427,7 +427,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                     }
 
                     if (controls == null) {
-                        controls = new LinkedList<Control>();
+                        controls = new LinkedList<>();
                     }
 
                     controls.add(parseControl(entryDN, record, ldifLine, pair.value));
@@ -473,7 +473,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         // Use an Entry for the AttributeSequence.
         final Entry entry = new LinkedHashMapEntry(entryDN);
         boolean schemaValidationFailure = false;
-        final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
+        final List<LocalizableMessage> schemaErrors = new LinkedList<>();
 
         if (lastLDIFLine != null
                 // This line was read when looking for the change type.
@@ -532,9 +532,9 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
             throws DecodeException {
         final ModifyRequest modifyRequest = Requests.newModifyRequest(entryDN);
         final KeyValuePair pair = new KeyValuePair();
-        final List<ByteString> attributeValues = new ArrayList<ByteString>();
+        final List<ByteString> attributeValues = new ArrayList<>();
         boolean schemaValidationFailure = false;
-        final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
+        final List<LocalizableMessage> schemaErrors = new LinkedList<>();
 
         while (record.iterator.hasNext()) {
             String ldifLine = readLDIFRecordKeyValuePair(record, pair, false);

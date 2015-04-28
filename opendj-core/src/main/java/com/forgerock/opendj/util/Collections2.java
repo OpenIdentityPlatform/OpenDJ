@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
 
@@ -225,7 +225,7 @@ public final class Collections2 {
         @Override
         public List<N> subList(final int fromIndex, final int toIndex) {
             final List<M> subList = collection.subList(fromIndex, toIndex);
-            return new TransformedList<M, N>(subList, funcMtoN, funcNtoM);
+            return new TransformedList<>(subList, funcMtoN, funcNtoM);
         }
 
     }
@@ -255,7 +255,7 @@ public final class Collections2 {
     public static <M, N> Collection<N> transformedCollection(final Collection<M> collection,
             final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
             final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
-        return new TransformedCollection<M, N, Collection<M>>(collection, funcMtoN, funcNtoM);
+        return new TransformedCollection<>(collection, funcMtoN, funcNtoM);
     }
 
     /**
@@ -283,7 +283,7 @@ public final class Collections2 {
     public static <M, N> List<N> transformedList(final List<M> list,
             final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
             final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
-        return new TransformedList<M, N>(list, funcMtoN, funcNtoM);
+        return new TransformedList<>(list, funcMtoN, funcNtoM);
     }
 
     /** Prevent instantiation. */

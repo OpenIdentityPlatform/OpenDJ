@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -342,8 +342,8 @@ public final class RewriterProxy {
 
         private SearchResultEntry rewrite(final SearchResultEntry entry) {
             // Replace server attributes with client attributes.
-            final Set<Attribute> attrsToAdd = new HashSet<Attribute>();
-            final Set<AttributeDescription> attrsToRemove = new HashSet<AttributeDescription>();
+            final Set<Attribute> attrsToAdd = new HashSet<>();
+            final Set<AttributeDescription> attrsToRemove = new HashSet<>();
 
             for (final Attribute a : entry.getAllAttributes(serverAttributeDescription)) {
                 final AttributeDescription ad = a.getAttributeDescription();

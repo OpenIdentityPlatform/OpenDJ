@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -410,12 +410,13 @@ public final class AttributeFilter {
 
     private void allocatedRequestedAttributes() {
         if (requestedAttributes.isEmpty()) {
-            requestedAttributes = new HashMap<AttributeDescription, AttributeDescription>();
+            requestedAttributes = new HashMap<>();
         }
     }
 
     private Attribute filterAttribute(final Attribute attribute) {
-        return typesOnly ? Attributes.emptyAttribute(attribute.getAttributeDescription())
-                : attribute;
+        return typesOnly
+            ? Attributes.emptyAttribute(attribute.getAttributeDescription())
+            : attribute;
     }
 }

@@ -140,7 +140,7 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     }
 
     private List<String> getClasspathItems() throws DependencyResolutionRequiredException {
-        final List<String> classpathItems = new ArrayList<String>();
+        final List<String> classpathItems = new ArrayList<>();
 
         // add project dependencies
         for (String artifactFile : project.getRuntimeClasspathElements()) {

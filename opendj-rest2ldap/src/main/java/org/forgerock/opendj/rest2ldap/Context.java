@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -77,8 +77,7 @@ final class Context implements Closeable {
         private final CountDownLatch cachedPromiseLatch = new CountDownLatch(1);
         private final SearchRequest cachedRequest;
         private volatile Result cachedResult;
-        private final ConcurrentLinkedQueue<SearchResultHandler> waitingResultHandlers =
-                new ConcurrentLinkedQueue<SearchResultHandler>();
+        private final ConcurrentLinkedQueue<SearchResultHandler> waitingResultHandlers = new ConcurrentLinkedQueue<>();
 
         CachedRead(final SearchRequest request, final SearchResultHandler resultHandler) {
             this.cachedRequest = request;

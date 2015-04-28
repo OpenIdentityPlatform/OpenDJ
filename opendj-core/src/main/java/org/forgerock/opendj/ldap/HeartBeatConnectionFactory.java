@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -140,15 +140,13 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * the current heart beat completes.
          */
         private final Queue<Runnable> pendingBindOrStartTLSRequests =
-                new ConcurrentLinkedQueue<Runnable>();
+                new ConcurrentLinkedQueue<>();
 
         /**
          * List of pending responses for all active operations. These will be
-         * signalled if no heart beat is detected within the permitted timeout
-         * period.
+         * signaled if no heart beat is detected within the permitted timeout period.
          */
-        private final Queue<ResultHandler<?>> pendingResults =
-                new ConcurrentLinkedQueue<ResultHandler<?>>();
+        private final Queue<ResultHandler<?>> pendingResults = new ConcurrentLinkedQueue<>();
 
         /** Internal connection state. */
         private final ConnectionState state = new ConnectionState();
@@ -577,7 +575,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         }
 
         private <R extends Result> LdapPromise<R> timestampPromise(LdapPromise<R> wrappedPromise) {
-            final LdapPromiseImpl<R> outerPromise = new LdapPromiseImplWrapper<R>(wrappedPromise);
+            final LdapPromiseImpl<R> outerPromise = new LdapPromiseImplWrapper<>(wrappedPromise);
             pendingResults.add(outerPromise);
             wrappedPromise.onSuccess(new SuccessHandler<R>() {
                 @Override
@@ -831,10 +829,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
      */
     private final long timeoutMS;
 
-    /**
-     * List of valid connections to which heartbeats will be sent.
-     */
-    private final List<ConnectionImpl> validConnections = new LinkedList<ConnectionImpl>();
+    /** List of valid connections to which heartbeats will be sent. */
+    private final List<ConnectionImpl> validConnections = new LinkedList<>();
 
     HeartBeatConnectionFactory(final ConnectionFactory factory, final long interval,
             final long timeout, final TimeUnit unit, final SearchRequest heartBeat,
@@ -908,7 +904,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     public Promise<Connection, LdapException> getConnectionAsync() {
         acquireScheduler(); // Protect scheduler.
 
-        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
 
         // Request a connection and return the promise representing the heartbeat.

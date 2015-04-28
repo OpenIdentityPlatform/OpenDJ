@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -61,7 +62,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
      * The set of allowed fax parameter values, formatted entirely in lowercase
      * characters.
      */
-    public static final HashSet<String> ALLOWED_FAX_PARAMETERS = new HashSet<String>(7);
+    public static final HashSet<String> ALLOWED_FAX_PARAMETERS = new HashSet<>(7);
 
     static {
         ALLOWED_FAX_PARAMETERS.add("twodimensional");

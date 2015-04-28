@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -255,7 +255,7 @@ public class TemplateTagTestcase extends SdkTestCase {
     /** Helper method to build a template entry containing the provided values. */
     private TemplateEntry templateEntry(String... values) {
         TemplateEntry templateEntry = mock(TemplateEntry.class);
-        List<TemplateValue> templateValues = new ArrayList<TemplateValue>();
+        List<TemplateValue> templateValues = new ArrayList<>();
         for (String value : values) {
             templateValues.add(templateValue(value));
         }

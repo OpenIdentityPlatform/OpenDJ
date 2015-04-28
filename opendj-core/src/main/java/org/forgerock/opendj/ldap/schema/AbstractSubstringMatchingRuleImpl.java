@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -151,7 +151,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 return factory.createMatchAllQuery();
             }
 
-            final Collection<T> subqueries = new LinkedList<T>();
+            final Collection<T> subqueries = new LinkedList<>();
             if (normInitial != null) {
                 // relies on the fact that equality indexes are also ordered
                 subqueries.add(rangeMatch(factory, equalityIndexId, normInitial));
@@ -208,7 +208,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 // index substring length, and read those keys.
 
                 // Eliminate duplicates by putting the keys into a set.
-                final TreeSet<ByteSequence> substringKeys = new TreeSet<ByteSequence>();
+                final TreeSet<ByteSequence> substringKeys = new TreeSet<>();
 
                 // Example: The value is ABCDE and the substring length is 3.
                 // We produce the keys ABC BCD CDE.
@@ -307,7 +307,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                             .get(assertionValue, reader.pos()));
                 }
                 if (anyStrings == null) {
-                    anyStrings = new LinkedList<ByteSequence>();
+                    anyStrings = new LinkedList<>();
                 }
                 anyStrings.add(bytes);
             } else {

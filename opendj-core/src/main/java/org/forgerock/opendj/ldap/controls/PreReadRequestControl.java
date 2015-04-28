@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -132,7 +132,7 @@ public final class PreReadRequestControl implements Control {
                         if (reader.hasNextElement()) {
                             final String firstAttribute = reader.readOctetStringAsString();
                             if (reader.hasNextElement()) {
-                                attributes = new ArrayList<String>();
+                                attributes = new ArrayList<>();
                                 attributes.add(firstAttribute);
                                 do {
                                     attributes.add(reader.readOctetStringAsString());

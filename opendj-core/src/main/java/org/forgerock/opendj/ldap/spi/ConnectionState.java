@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -252,26 +252,16 @@ public final class ConnectionState {
      */
     private volatile LdapException connectionError;
 
-    /**
-     * {@code true} if the connection has failed due to a disconnect
-     * notification.
-     */
+    /** Whether the connection has failed due to a disconnect notification. */
     private boolean failedDueToDisconnect;
 
-    /**
-     * Registered event listeners.
-     */
-    private final List<ConnectionEventListener> listeners =
-            new LinkedList<ConnectionEventListener>();
+    /** Registered event listeners. */
+    private final List<ConnectionEventListener> listeners = new LinkedList<>();
 
-    /**
-     * Internal state implementation.
-     */
+    /** Internal state implementation. */
     private volatile State state = State.VALID;
 
-    /**
-     * Creates a new connection state which is initially valid.
-     */
+    /** Creates a new connection state which is initially valid. */
     public ConnectionState() {
         // Nothing to do.
     }

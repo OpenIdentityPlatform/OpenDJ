@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -713,8 +713,8 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testCreatesMatchingRulesUsingChainingMethods() {
-        final Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        final List<String> extra = new ArrayList<String>();
+        final Map<String, List<String>> extraProperties = new TreeMap<>();
+        final List<String> extra = new ArrayList<>();
         extra.add("Custom");
         extraProperties.put("X-ORIGIN", extra);
 

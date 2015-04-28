@@ -942,20 +942,20 @@ final class CoreSchemaImpl {
      */
     private static void addCollationMatchingRules(final SchemaBuilder builder) {
         // Build an intermediate map to ensure each locale name appears only once
-        final Map<String, Locale> localesCache = new TreeMap<String, Locale>();
+        final Map<String, Locale> localesCache = new TreeMap<>();
         for (Locale locale : Locale.getAvailableLocales()) {
             localesCache.put(localeName(locale), locale);
         }
 
         // Build a intermediate map to list all available oids with their locale names
         // An oid can be associated to multiple locale names
-        final Map<String, List<String>> oidsCache = new HashMap<String, List<String>>();
+        final Map<String, List<String>> oidsCache = new HashMap<>();
         for (final String localeName: localesCache.keySet()) {
             String oid = JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS.get(localeName);
             if (oid != null) {
                 List<String> names = oidsCache.get(oid);
                 if (names == null) {
-                    names = new ArrayList<String>(5);
+                    names = new ArrayList<>(5);
                     oidsCache.put(oid, names);
                 }
                 names.add(localeName);
@@ -1009,7 +1009,7 @@ final class CoreSchemaImpl {
      */
     private static String[] collationMatchingRuleNames(final List<String> localeNames, final int numSuffix,
         final String symbolicSuffix) {
-        final List<String> names = new ArrayList<String>();
+        final List<String> names = new ArrayList<>();
         for (String localeName : localeNames) {
             if (symbolicSuffix.isEmpty()) {
                 // the default rule

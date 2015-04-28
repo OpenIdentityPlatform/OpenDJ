@@ -485,7 +485,7 @@ public final class Filter {
             Reject.ifNull(subFilter);
             return new Filter(new AndImpl(Collections.singletonList(subFilter)));
         } else {
-            final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.size());
+            final List<Filter> subFiltersList = new ArrayList<>(subFilters.size());
             for (final Filter subFilter : subFilters) {
                 Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
@@ -512,7 +512,7 @@ public final class Filter {
             Reject.ifNull(subFilters[0]);
             return new Filter(new AndImpl(Collections.singletonList(subFilters[0])));
         } else {
-            final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.length);
+            final List<Filter> subFiltersList = new ArrayList<>(subFilters.length);
             for (final Filter subFilter : subFilters) {
                 Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
@@ -766,7 +766,7 @@ public final class Filter {
             Reject.ifNull(subFilter);
             return new Filter(new OrImpl(Collections.singletonList(subFilter)));
         } else {
-            final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.size());
+            final List<Filter> subFiltersList = new ArrayList<>(subFilters.size());
             for (final Filter subFilter : subFilters) {
                 Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
@@ -793,7 +793,7 @@ public final class Filter {
             Reject.ifNull(subFilters[0]);
             return new Filter(new OrImpl(Collections.singletonList(subFilters[0])));
         } else {
-            final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.length);
+            final List<Filter> subFiltersList = new ArrayList<>(subFilters.length);
             for (final Filter subFilter : subFilters) {
                 Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
@@ -857,7 +857,7 @@ public final class Filter {
             Reject.ifNull(anySubstring);
             anySubstringList = Collections.singletonList(ByteString.valueOf(anySubstring));
         } else {
-            anySubstringList = new ArrayList<ByteString>(anySubstrings.size());
+            anySubstringList = new ArrayList<>(anySubstrings.size());
             for (final Object anySubstring : anySubstrings) {
                 Reject.ifNull(anySubstring);
 
@@ -978,10 +978,9 @@ public final class Filter {
         final byte[] valueBytes = getBytes(filterString.substring(equalPos, endPos));
 
         // Find the locations of all the asterisks in the value. Also, check to
-        // see if there are any escaped values, since they will need special
-        // treatment.
+        // see if there are any escaped values, since they will need special treatment.
         boolean hasEscape = false;
-        final LinkedList<Integer> asteriskPositions = new LinkedList<Integer>();
+        final LinkedList<Integer> asteriskPositions = new LinkedList<>();
         for (int i = 0; i < valueBytes.length; i++) {
             if (valueBytes[i] == ASTERISK) {
                 asteriskPositions.add(i);
@@ -1011,9 +1010,8 @@ public final class Filter {
             subInitial = ByteString.wrap(valueBytes, 0, firstPos);
         }
 
-        // Next, process through the rest of the asterisks to get the subAny
-        // values.
-        final ArrayList<ByteString> subAny = new ArrayList<ByteString>();
+        // Next, process through the rest of the asterisks to get the subAny values.
+        final ArrayList<ByteString> subAny = new ArrayList<>();
         for (final int asteriskPos : asteriskPositions) {
             final int length = asteriskPos - firstPos - 1;
 
@@ -1502,7 +1500,7 @@ public final class Filter {
                     if (subFilters != null) {
                         subFilters.add(subFilter);
                     } else if (firstFilter != null) {
-                        subFilters = new LinkedList<Filter>();
+                        subFilters = new LinkedList<>();
                         subFilters.add(firstFilter);
                         subFilters.add(subFilter);
                         firstFilter = null;

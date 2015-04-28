@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.server.setup.cli;
 
@@ -185,7 +185,7 @@ public final class SetupCli extends ConsoleApplication {
 
         // Verifying provided informations.
         try {
-            final LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
+            final LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<>();
             checkServerPassword(errorMessages);
             checkProvidedPorts(errorMessages);
             checkImportDataArguments(errorMessages);
@@ -260,7 +260,7 @@ public final class SetupCli extends ConsoleApplication {
         showUsage = addGlobal(CommonArguments.getShowUsage());
 
         //Sub-commands && their arguments
-        final ArrayList<SubCommand> subCommandList = new ArrayList<SubCommand>(2);
+        final ArrayList<SubCommand> subCommandList = new ArrayList<>(2);
         createDirectoryServer = new SubCommand(argParser, "create-directory-server",
                 INFO_SETUP_SUBCOMMAND_CREATE_DIRECTORY_SERVER.get());
         // TODO to complete.
@@ -343,11 +343,9 @@ public final class SetupCli extends ConsoleApplication {
      *            execution of the checking.
      */
     private void checkProvidedPorts(final Collection<LocalizableMessage> errorMessages) {
-        /*
-         * Check that the provided ports do not match.
-         */
+        // Check that the provided ports do not match.
         try {
-            final Set<Integer> ports = new HashSet<Integer>();
+            final Set<Integer> ports = new HashSet<>();
             ports.add(ldapPort.getIntValue());
 
             checkPortArgument(adminConnectorPort, ports, errorMessages);

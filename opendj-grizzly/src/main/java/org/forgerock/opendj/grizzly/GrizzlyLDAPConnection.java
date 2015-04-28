@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.grizzly;
 
@@ -113,8 +113,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
     private final org.glassfish.grizzly.Connection<?> connection;
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
     private final GrizzlyLDAPConnectionFactory factory;
-    private final ConcurrentHashMap<Integer, ResultLdapPromiseImpl<?, ?>> pendingRequests =
-            new ConcurrentHashMap<Integer, ResultLdapPromiseImpl<?, ?>>();
+    private final ConcurrentHashMap<Integer, ResultLdapPromiseImpl<?, ?>> pendingRequests = new ConcurrentHashMap<>();
     private final Object stateLock = new Object();
     /** Guarded by stateLock. */
     private Result connectionInvalidReason;
@@ -240,7 +239,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             notifyErrorOccurred = isFailed;
             if (!isClosed) {
                 if (listeners == null) {
-                    listeners = new CopyOnWriteArrayList<ConnectionEventListener>();
+                    listeners = new CopyOnWriteArrayList<>();
                 }
                 listeners.add(listener);
             }

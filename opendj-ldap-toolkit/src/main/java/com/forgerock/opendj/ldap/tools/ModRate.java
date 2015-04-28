@@ -72,7 +72,7 @@ public final class ModRate extends ConsoleApplication {
                     data = DataSource.generateData(dataSources, data);
                 }
                 mr = newModifyRequest(data);
-                ResultHandler<Result> modRes = new UpdateStatsResultHandler<Result>(startTime);
+                ResultHandler<Result> modRes = new UpdateStatsResultHandler<>(startTime);
 
                 incrementIterationCount();
                 return connection.modifyAsync(mr).onSuccess(modRes).onFailure(modRes);

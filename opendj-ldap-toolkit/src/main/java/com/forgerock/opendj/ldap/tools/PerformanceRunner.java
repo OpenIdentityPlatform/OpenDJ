@@ -108,7 +108,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
          * Keys (Long in microseconds) of this map must respect this pattern: n * 500 000 + 5 000 000,
          * where n is a natural integer.
          */
-        private final ConcurrentSkipListMap<Long, AtomicLong> bigEtimes = new ConcurrentSkipListMap<Long, AtomicLong>();
+        private final ConcurrentSkipListMap<Long, AtomicLong> bigEtimes = new ConcurrentSkipListMap<>();
 
         /**
          * Initialize both index2Frequency and index2Etime arrays.
@@ -159,8 +159,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
          *         percentiles.
          */
         List<Long> getPercentile(double[] percentiles, long nbData) {
-            List<Long> responseTimes = new ArrayList<Long>();
-            Queue<Long> nbDataThresholds = new LinkedList<Long>();
+            List<Long> responseTimes = new ArrayList<>();
+            Queue<Long> nbDataThresholds = new LinkedList<>();
             long nbDataSum = nbData;
 
             for (int i = percentiles.length - 1; i >= 0; i--) {
@@ -669,7 +669,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     protected final IntegerArgument maxIterationsArgument;
     protected final IntegerArgument warmUpArgument;
 
-    private final List<Thread> workerThreads = new ArrayList<Thread>();
+    private final List<Thread> workerThreads = new ArrayList<>();
 
     PerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
         ArgumentParser argParser = options.getArgumentParser();
@@ -850,7 +850,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     }
 
     final int run(final ConnectionFactory connectionFactory) {
-        final List<Connection> connections = new ArrayList<Connection>();
+        final List<Connection> connections = new ArrayList<>();
 
         Connection connection = null;
         try {

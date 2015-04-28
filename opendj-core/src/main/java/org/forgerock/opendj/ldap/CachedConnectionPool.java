@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -121,7 +121,7 @@ final class CachedConnectionPool implements ConnectionPool {
              * attempts succeed, which is unlikely (if one fails, then they are
              * all likely to fail).
              */
-            final List<QueueElement> waitingPromises = new LinkedList<CachedConnectionPool.QueueElement>();
+            final List<QueueElement> waitingPromises = new LinkedList<>();
             synchronized (queue) {
                 while (hasWaitingPromises()) {
                     waitingPromises.add(queue.removeFirst());
@@ -198,7 +198,7 @@ final class CachedConnectionPool implements ConnectionPool {
                          * the listener may be immediately invoked so ensure
                          * that it is already in the list.
                          */
-                        listeners = new CopyOnWriteArrayList<ConnectionEventListener>();
+                        listeners = new CopyOnWriteArrayList<>();
                         listeners.add(listener);
                         connection.addConnectionEventListener(this);
                     } else {
@@ -589,7 +589,7 @@ final class CachedConnectionPool implements ConnectionPool {
                  * Obtain a list of expired connections but don't close them yet
                  * since we don't want to hold the lock too long.
                  */
-                idleConnections = new LinkedList<Connection>();
+                idleConnections = new LinkedList<>();
                 final long timeoutMillis = timeService.now() - idleTimeoutMillis;
                 int nonCoreConnectionCount = currentPoolSize() - corePoolSize;
                 for (QueueElement holder = queue.peek(); nonCoreConnectionCount > 0
@@ -704,7 +704,7 @@ final class CachedConnectionPool implements ConnectionPool {
     private final ScheduledFuture<?> idleTimeoutFuture;
     private final long idleTimeoutMillis;
     private final int maxPoolSize;
-    private final LinkedList<QueueElement> queue = new LinkedList<QueueElement>();
+    private final LinkedList<QueueElement> queue = new LinkedList<>();
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
 
     /**
@@ -756,7 +756,7 @@ final class CachedConnectionPool implements ConnectionPool {
              * Remove any connections which are waiting in the queue as these
              * can be closed immediately.
              */
-            idleConnections = new LinkedList<Connection>();
+            idleConnections = new LinkedList<>();
             while (hasWaitingConnections()) {
                 final QueueElement holder = queue.removeFirst();
                 idleConnections.add(holder.getWaitingConnection());

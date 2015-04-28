@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -77,7 +77,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
             this.realm = initialBindRequest.getRealm();
 
             // Create property map containing all the parameters.
-            final Map<String, String> props = new HashMap<String, String>();
+            final Map<String, String> props = new HashMap<>();
 
             final List<String> qopValues = initialBindRequest.getQOPs();
             if (!qopValues.isEmpty()) {
@@ -213,7 +213,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
     }
 
-    private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
+    private final Map<String, String> additionalAuthParams = new LinkedHashMap<>();
     private String authenticationID;
     private String authorizationID;
 
@@ -221,7 +221,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     private Integer maxReceiveBufferSize;
     private Integer maxSendBufferSize;
     private byte[] password;
-    private final List<String> qopValues = new LinkedList<String>();
+    private final List<String> qopValues = new LinkedList<>();
     private String realm;
     /**
      * Do not use primitives for these so that we can distinguish between default

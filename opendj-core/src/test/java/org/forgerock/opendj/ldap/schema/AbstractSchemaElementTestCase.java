@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -100,7 +101,7 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      */
     @Test
     public final void testGetExtraProperty() throws Exception {
-        final List<String> values = new ArrayList<String>();
+        final List<String> values = new ArrayList<>();
         values.add("one");
         values.add("two");
         final Map<String, List<String>> props = Collections.singletonMap("test", values);

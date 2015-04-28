@@ -96,22 +96,21 @@ public final class ConcatSchemaMojo extends AbstractMojo {
         new File(outputFilePath).getParentFile().mkdirs();
 
         // Get a sorted list of the files in the schema directory.
-        TreeSet<String> schemaFileNames = new TreeSet<String>();
+        TreeSet<String> schemaFileNames = new TreeSet<>();
         for (File f : new File(schemaDirectory).listFiles()) {
             if (f.isFile()) {
                 schemaFileNames.add(f.getName());
             }
         }
 
-        // Create a set of lists that will hold the schema elements read from the
-        // files.
-        LinkedList<String> attributeTypes = new LinkedList<String>();
-        LinkedList<String> objectClasses = new LinkedList<String>();
-        LinkedList<String> nameForms = new LinkedList<String>();
-        LinkedList<String> ditContentRules = new LinkedList<String>();
-        LinkedList<String> ditStructureRules = new LinkedList<String>();
-        LinkedList<String> matchingRuleUses = new LinkedList<String>();
-        LinkedList<String> ldapSyntaxes = new LinkedList<String>();
+        // Create a set of lists that will hold the schema elements read from the files.
+        LinkedList<String> attributeTypes = new LinkedList<>();
+        LinkedList<String> objectClasses = new LinkedList<>();
+        LinkedList<String> nameForms = new LinkedList<>();
+        LinkedList<String> ditContentRules = new LinkedList<>();
+        LinkedList<String> ditStructureRules = new LinkedList<>();
+        LinkedList<String> matchingRuleUses = new LinkedList<>();
+        LinkedList<String> ldapSyntaxes = new LinkedList<>();
         int curLineNumber = 0;
 
         // Open each of the files in order and read the elements that they contain,
@@ -119,7 +118,7 @@ public final class ConcatSchemaMojo extends AbstractMojo {
         for (String name : schemaFileNames) {
             // Read the contents of the file into a list with one schema element per
             // list element.
-            LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
+            LinkedList<StringBuilder> lines = new LinkedList<>();
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(new File(schemaDirectory, name)));
                 String line = reader.readLine();

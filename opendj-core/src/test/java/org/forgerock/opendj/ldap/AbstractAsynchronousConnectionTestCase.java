@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -336,7 +336,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
         final SearchRequest searchRequest =
                 newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
+        List<SearchResultEntry> entries = new LinkedList<>();
         assertThat(mockConnection.search(searchRequest, entries).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
         assertThat(entries.size()).isEqualTo(1);
@@ -348,7 +348,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest searchRequest =
                 newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
+        List<SearchResultEntry> entries = new LinkedList<>();
         try {
             mockConnection.search(searchRequest, entries);
             failWasExpected(LdapException.class);

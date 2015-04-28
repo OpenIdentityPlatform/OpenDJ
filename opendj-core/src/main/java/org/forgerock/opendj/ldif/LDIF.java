@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -320,7 +320,7 @@ public final class LDIF {
      *             If {@code ldifLines} was {@code null}.
      */
     public static List<Entry> makeEntries(String... ldifLines) {
-        List<Entry> entries = new ArrayList<Entry>();
+        List<Entry> entries = new ArrayList<>();
         LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
         try {
             while (reader.hasNext()) {
@@ -526,8 +526,7 @@ public final class LDIF {
 
                                 // Move the renamed entries into a separate map
                                 // in order to avoid cases where the renamed subtree overlaps.
-                                final SortedMap<byte[], byte[]> renamedEntries =
-                                        new TreeMap<byte[], byte[]>(DN_ORDER);
+                                final SortedMap<byte[], byte[]> renamedEntries = new TreeMap<>(DN_ORDER);
 
                                 // @formatter:off
                                 final Iterator<Map.Entry<byte[], byte[]>> i =
@@ -796,7 +795,7 @@ public final class LDIF {
     }
 
     private static List<byte[][]> readEntriesAsList(final EntryReader reader) throws IOException {
-        final List<byte[][]> entries = new ArrayList<byte[][]>();
+        final List<byte[][]> entries = new ArrayList<>();
 
         while (reader.hasNext()) {
             final Entry entry = reader.readEntry();
@@ -810,7 +809,7 @@ public final class LDIF {
 
     private static TreeMap<byte[], byte[]> readEntriesAsMap(final EntryReader reader)
             throws IOException {
-        final TreeMap<byte[], byte[]> entries = new TreeMap<byte[], byte[]>(DN_ORDER);
+        final TreeMap<byte[], byte[]> entries = new TreeMap<>(DN_ORDER);
 
         while (reader.hasNext()) {
             final Entry entry = reader.readEntry();
