@@ -24,14 +24,12 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static java.util.Arrays.*;
 
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
-import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.util.Reject;
 
 /**
@@ -57,12 +56,12 @@ public final class DITContentRule extends SchemaElement {
     /** A fluent API for incrementally constructing DIT content rule. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String structuralClassOID;
-        private final List<String> names = new LinkedList<String>();
+        private final List<String> names = new LinkedList<>();
         private boolean isObsolete;
-        private final Set<String> auxiliaryClassOIDs = new LinkedHashSet<String>();
-        private final Set<String> optionalAttributeOIDs = new LinkedHashSet<String>();
-        private final Set<String> prohibitedAttributeOIDs = new LinkedHashSet<String>();
-        private final Set<String> requiredAttributeOIDs = new LinkedHashSet<String>();
+        private final Set<String> auxiliaryClassOIDs = new LinkedHashSet<>();
+        private final Set<String> optionalAttributeOIDs = new LinkedHashSet<>();
+        private final Set<String> prohibitedAttributeOIDs = new LinkedHashSet<>();
+        private final Set<String> requiredAttributeOIDs = new LinkedHashSet<>();
 
         Builder(final DITContentRule contentRule, final SchemaBuilder schemaBuilder) {
             super(schemaBuilder, contentRule);
@@ -786,7 +785,7 @@ public final class DITContentRule extends SchemaElement {
         }
 
         if (!auxiliaryClassOIDs.isEmpty()) {
-            auxiliaryClasses = new HashSet<ObjectClass>(auxiliaryClassOIDs.size());
+            auxiliaryClasses = new HashSet<>(auxiliaryClassOIDs.size());
             ObjectClass objectClass;
             for (final String oid : auxiliaryClassOIDs) {
                 try {
@@ -810,54 +809,18 @@ public final class DITContentRule extends SchemaElement {
         }
 
         if (!requiredAttributeOIDs.isEmpty()) {
-            requiredAttributes = new HashSet<AttributeType>(requiredAttributeOIDs.size());
-            AttributeType attributeType;
-            for (final String oid : requiredAttributeOIDs) {
-                try {
-                    attributeType = schema.getAttributeType(oid);
-                } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content rule
-                    // requires an attribute type that we don't know anything about.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1.get(getNameOrOID(), oid);
-                    throw new SchemaException(message, e);
-                }
-                requiredAttributes.add(attributeType);
-            }
+            requiredAttributes =
+                getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1);
         }
 
         if (!optionalAttributeOIDs.isEmpty()) {
-            optionalAttributes = new HashSet<AttributeType>(optionalAttributeOIDs.size());
-            AttributeType attributeType;
-            for (final String oid : optionalAttributeOIDs) {
-                try {
-                    attributeType = schema.getAttributeType(oid);
-                } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content rule
-                    // requires an attribute type that we don't know anything about.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1.get(getNameOrOID(), oid);
-                    throw new SchemaException(message, e);
-                }
-                optionalAttributes.add(attributeType);
-            }
+            optionalAttributes =
+                getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1);
         }
 
         if (!prohibitedAttributeOIDs.isEmpty()) {
-            prohibitedAttributes = new HashSet<AttributeType>(prohibitedAttributeOIDs.size());
-            AttributeType attributeType;
-            for (final String oid : prohibitedAttributeOIDs) {
-                try {
-                    attributeType = schema.getAttributeType(oid);
-                } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content rule
-                    // requires an attribute type that we don't know anything about.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1.get(getNameOrOID(), oid);
-                    throw new SchemaException(message, e);
-                }
-                prohibitedAttributes.add(attributeType);
-            }
+            prohibitedAttributes =
+                getAttributeTypes(schema, prohibitedAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1);
         }
 
         // Make sure that none of the prohibited attributes is required by
@@ -884,5 +847,20 @@ public final class DITContentRule extends SchemaElement {
         optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
         prohibitedAttributes = Collections.unmodifiableSet(prohibitedAttributes);
         requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
+    }
+
+    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids, Arg2<Object, Object> errorMsg)
+            throws SchemaException {
+        Set<AttributeType> attrTypes = new HashSet<>(oids.size());
+        for (final String oid : oids) {
+            try {
+                attrTypes.add(schema.getAttributeType(oid));
+            } catch (final UnknownSchemaElementException e) {
+                // This isn't good because it means that the DIT content rule
+                // requires an attribute type that we don't know anything about.
+                throw new SchemaException(errorMsg.get(getNameOrOID(), oid), e);
+            }
+        }
+        return attrTypes;
     }
 }
