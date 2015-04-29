@@ -394,7 +394,7 @@ public class DSMLServlet extends HttpServlet {
         }
         catch (SOAPException e)
         {
-          throw new ServletException(e.getmessage());
+          throw new ServletException(e.getMessage());
         }
       } else if (headerName.equalsIgnoreCase("authorization") && headerVal.startsWith("Basic "))
       {
