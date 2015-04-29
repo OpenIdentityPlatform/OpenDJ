@@ -93,11 +93,11 @@ final class TracedStorage implements Storage
   }
 
   /** Decorates an {@link ReadableTransaction} with additional trace logging. */
-  private final class TracedReadableStorage implements ReadableTransaction
+  private final class TracedReadableTransaction implements ReadableTransaction
   {
     private final ReadableTransaction txn;
 
-    private TracedReadableStorage(final ReadableTransaction txn)
+    private TracedReadableTransaction(final ReadableTransaction txn)
     {
       this.txn = txn;
     }
@@ -106,7 +106,7 @@ final class TracedStorage implements Storage
     public long getRecordCount(TreeName name)
     {
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage@%s.ReadableStorage@%s.getRecordCount(%s, %s) = %d",
+      logger.trace("Storage@%s.ReadableTransaction@%s.getRecordCount(%s, %s) = %d",
           storageId(), id(), backendId, name, count);
       return count;
     }
@@ -115,7 +115,7 @@ final class TracedStorage implements Storage
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
-      logger.trace("Storage@%s.ReadableStorage@%s.openCursor(%s, %s)",
+      logger.trace("Storage@%s.ReadableTransaction@%s.openCursor(%s, %s)",
           storageId(), id(), backendId, name);
       return cursor;
     }
@@ -124,7 +124,7 @@ final class TracedStorage implements Storage
     public ByteString read(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage@%s.ReadableStorage@%s.read(%s, %s, %s) = %s",
+      logger.trace("Storage@%s.ReadableTransaction@%s.read(%s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
     }
@@ -136,11 +136,11 @@ final class TracedStorage implements Storage
   }
 
   /** Decorates an {@link WriteableTransaction} with additional trace logging. */
-  private final class TracedWriteableStorage implements WriteableTransaction
+  private final class TracedWriteableTransaction implements WriteableTransaction
   {
     private final WriteableTransaction txn;
 
-    private TracedWriteableStorage(final WriteableTransaction txn)
+    private TracedWriteableTransaction(final WriteableTransaction txn)
     {
       this.txn = txn;
     }
@@ -149,7 +149,7 @@ final class TracedStorage implements Storage
     public void put(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
       txn.put(name, key, value);
-      logger.trace("Storage@%s.WriteableStorage@%s.create(%s, %s, %s, %s)",
+      logger.trace("Storage@%s.WriteableTransaction@%s.create(%s, %s, %s, %s)",
           storageId(), id(), backendId, name, hex(key), hex(value));
     }
 
@@ -157,7 +157,7 @@ final class TracedStorage implements Storage
     public boolean delete(final TreeName name, final ByteSequence key)
     {
       final boolean isDeleted = txn.delete(name, key);
-      logger.trace("Storage@%s.WriteableStorage@%s.delete(%s, %s, %s) = %s",
+      logger.trace("Storage@%s.WriteableTransaction@%s.delete(%s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), isDeleted);
       return isDeleted;
     }
@@ -166,7 +166,7 @@ final class TracedStorage implements Storage
     public void deleteTree(final TreeName name)
     {
       txn.deleteTree(name);
-      logger.trace("Storage@%s.WriteableStorage@%s.deleteTree(%s, %s)",
+      logger.trace("Storage@%s.WriteableTransaction@%s.deleteTree(%s, %s)",
           storageId(), id(), backendId, name);
     }
 
@@ -174,7 +174,7 @@ final class TracedStorage implements Storage
     public long getRecordCount(TreeName name)
     {
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage@%s.WriteableStorage@%s.getRecordCount(%s, %s) = %d",
+      logger.trace("Storage@%s.WriteableTransaction@%s.getRecordCount(%s, %s) = %d",
           storageId(), id(), backendId, name, count);
       return count;
     }
@@ -183,7 +183,7 @@ final class TracedStorage implements Storage
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
-      logger.trace("Storage@%s.WriteableStorage@%s.openCursor(%s, %s)",
+      logger.trace("Storage@%s.WriteableTransaction@%s.openCursor(%s, %s)",
           storageId(), id(), backendId, name);
       return cursor;
     }
@@ -192,7 +192,7 @@ final class TracedStorage implements Storage
     public void openTree(final TreeName name)
     {
       txn.openTree(name);
-      logger.trace("Storage@%s.WriteableStorage@%s.openTree(%s, %s)",
+      logger.trace("Storage@%s.WriteableTransaction@%s.openTree(%s, %s)",
           storageId(), id(), backendId, name);
     }
 
@@ -200,7 +200,7 @@ final class TracedStorage implements Storage
     public ByteString read(final TreeName name, final ByteSequence key)
     {
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage@%s.WriteableStorage@%s.read(%s, %s, %s) = %s",
+      logger.trace("Storage@%s.WriteableTransaction@%s.read(%s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
     }
@@ -209,7 +209,7 @@ final class TracedStorage implements Storage
     public void renameTree(final TreeName oldName, final TreeName newName)
     {
       txn.renameTree(oldName, newName);
-      logger.trace("Storage@%s.WriteableStorage@%s.renameTree(%s, %s, %s)",
+      logger.trace("Storage@%s.WriteableTransaction@%s.renameTree(%s, %s, %s)",
           storageId(), id(), backendId, oldName, newName);
     }
 
@@ -217,7 +217,7 @@ final class TracedStorage implements Storage
     public boolean update(final TreeName name, final ByteSequence key, final UpdateFunction f)
     {
       final boolean isUpdated = txn.update(name, key, f);
-      logger.trace("Storage@%s.WriteableStorage@%s.update(%s, %s, %s, %s) = %s",
+      logger.trace("Storage@%s.WriteableTransaction@%s.update(%s, %s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), f, isUpdated);
       return isUpdated;
     }
@@ -276,7 +276,7 @@ final class TracedStorage implements Storage
         @Override
         public T run(final ReadableTransaction txn) throws Exception
         {
-          return readOperation.run(new TracedReadableStorage(txn));
+          return readOperation.run(new TracedReadableTransaction(txn));
         }
       };
     }
@@ -322,7 +322,7 @@ final class TracedStorage implements Storage
         @Override
         public void run(final WriteableTransaction txn) throws Exception
         {
-          writeOperation.run(new TracedWriteableStorage(txn));
+          writeOperation.run(new TracedWriteableTransaction(txn));
         }
       };
     }
