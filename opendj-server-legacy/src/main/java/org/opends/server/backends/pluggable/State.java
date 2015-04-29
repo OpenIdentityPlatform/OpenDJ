@@ -88,7 +88,7 @@ class State extends AbstractDatabaseContainer
     super(name);
   }
 
-  private ByteString keyForIndex(TreeName indexTreeName) throws StorageRuntimeException
+  private static ByteString keyForIndex(TreeName indexTreeName) throws StorageRuntimeException
   {
     return ByteString.wrap(StaticUtils.getBytes(indexTreeName.toString()));
   }
@@ -135,24 +135,23 @@ class State extends AbstractDatabaseContainer
     });
   }
 
-  private EnumSet<IndexFlag> decodeFlagsOrGetDefault(ByteSequence sequence) {
+  private static EnumSet<IndexFlag> decodeFlagsOrGetDefault(ByteSequence sequence) {
     if ( sequence == null ) {
       return EnumSet.copyOf(DEFAULT_FLAGS);
-    } else {
-      final EnumSet<IndexFlag> indexState = EnumSet.noneOf(IndexFlag.class);
-      final byte indexValue = sequence.byteAt(0);
-      for (IndexFlag state : IndexFlag.ALL_FLAGS)
-      {
-        if ((indexValue & state.mask) == state.mask)
-        {
-          indexState.add(state);
-        }
-      }
-      return indexState;
     }
+    final EnumSet<IndexFlag> indexState = EnumSet.noneOf(IndexFlag.class);
+    final byte indexValue = sequence.byteAt(0);
+    for (IndexFlag state : IndexFlag.ALL_FLAGS)
+    {
+      if ((indexValue & state.mask) == state.mask)
+      {
+        indexState.add(state);
+      }
+    }
+    return indexState;
   }
 
-  private ByteString encodeFlags(EnumSet<IndexFlag> flags) {
+  private static ByteString encodeFlags(EnumSet<IndexFlag> flags) {
     byte value = 0;
     for(IndexFlag flag : flags) {
       value |= flag.mask;
