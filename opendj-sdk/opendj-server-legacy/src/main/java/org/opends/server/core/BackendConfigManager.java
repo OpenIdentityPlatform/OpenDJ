@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Arrays;
@@ -39,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -53,7 +55,6 @@ import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -73,12 +74,8 @@ public class BackendConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * The mapping between configuration entry DNs and their corresponding backend
-   * implementations.
-   */
-  private final ConcurrentHashMap<DN, Backend<?>> registeredBackends = new ConcurrentHashMap<DN, Backend<?>>();
+  /** The mapping between configuration entry DNs and their corresponding backend implementations. */
+  private final ConcurrentHashMap<DN, Backend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
   private final ServerContext serverContext;
 
   /**
@@ -176,7 +173,7 @@ public class BackendConfigManager implements
         // contain a valid backend implementation, then log an error and skip it.
         String className = backendCfg.getJavaClass();
 
-        Backend<?> backend;
+        Backend<? extends BackendCfg> backend;
         try
         {
           backend = loadBackendClass(className).newInstance();
@@ -259,9 +256,7 @@ public class BackendConfigManager implements
         }
 
 
-        // Notify any backend initialization listeners.
-        for (BackendInitializationListener listener :
-             DirectoryServer.getBackendInitializationListeners())
+        for (BackendInitializationListener listener : getBackendInitializationListeners())
         {
           listener.performBackendInitializationProcessing(backend);
         }
@@ -311,8 +306,8 @@ public class BackendConfigManager implements
     Backend<?> backend = registeredBackends.get(backendDN);
     if (backend != null)
     {
-      LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>(Arrays.asList(backend.getBaseDNs()));
-      LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>(baseDNs);
+      LinkedHashSet<DN> removedDNs = new LinkedHashSet<>(Arrays.asList(backend.getBaseDNs()));
+      LinkedHashSet<DN> addedDNs = new LinkedHashSet<>(baseDNs);
       Iterator<DN> iterator = removedDNs.iterator();
       while (iterator.hasNext())
       {
@@ -398,8 +393,8 @@ public class BackendConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
-    DN                 backendDN           = cfg.dn();
-    Backend<?>         backend             = registeredBackends.get(backendDN);
+    DN backendDN = cfg.dn();
+    Backend<? extends BackendCfg> backend = registeredBackends.get(backendDN);
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if the entry contains an attribute that indicates whether the
@@ -425,8 +420,7 @@ public class BackendConfigManager implements
           registeredBackends.remove(backendDN);
           DirectoryServer.deregisterBackend(backend);
 
-          for (BackendInitializationListener listener :
-               DirectoryServer.getBackendInitializationListeners())
+          for (BackendInitializationListener listener : getBackendInitializationListeners())
           {
             listener.performBackendFinalizationProcessing(backend);
           }
@@ -571,45 +565,12 @@ public class BackendConfigManager implements
         return ccr;
       }
 
-
-      try
+      if (!initializeBackend(backend, cfg, ccr))
       {
-        initializeBackend(backend, cfg);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
-                className, backendDN, stackTraceToSingleLineString(e)));
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
-            // FIXME -- Do we need to send an admin alert?
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID,
-              stackTraceToSingleLineString(e2));
-          // FIXME -- Do we need to send an admin alert?
-        }
-
         return ccr;
       }
 
-
-      // Notify any backend initialization listeners.
-      for (BackendInitializationListener listener :
-           DirectoryServer.getBackendInitializationListeners())
+      for (BackendInitializationListener listener : getBackendInitializationListeners())
       {
         listener.performBackendInitializationProcessing(backend);
       }
@@ -682,7 +643,7 @@ public class BackendConfigManager implements
     Backend<BackendCfg> backend;
     try
     {
-      backend = (Backend<BackendCfg>)loadBackendClass(className).newInstance();
+      backend = loadBackendClass(className).newInstance();
     }
     catch (Exception e)
     {
@@ -714,15 +675,7 @@ public class BackendConfigManager implements
       }
     }
 
-    if (!backend.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
-    {
-      return false;
-    }
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration for that
-    // backend, then the backend itself will need to make that determination.
-    return true;
+    return backend.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext);
   }
 
 
@@ -740,9 +693,8 @@ public class BackendConfigManager implements
     cfg.addChangeListener(this);
 
 
-    // See if the entry contains an attribute that indicates whether the
-    // backend should be enabled.  If it does not, or if it is not set to
-    // "true", then skip it.
+    // See if the entry contains an attribute that indicates whether the backend should be enabled.
+    // If it does not, or if it is not set to "true", then skip it.
     if (!cfg.isEnabled())
     {
       // The backend is explicitly disabled.  We will log a message to
@@ -776,7 +728,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = cfg.getJavaClass();
 
-    Backend<BackendCfg> backend;
+    Backend<? extends BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -833,46 +785,15 @@ public class BackendConfigManager implements
 
 
     // Perform the necessary initialization for the backend entry.
-    try
+    if (!initializeBackend(backend, cfg, ccr))
     {
-      initializeBackend(backend, cfg);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
-              className, backendDN, stackTraceToSingleLineString(e)));
-
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
-          // FIXME -- Do we need to send an admin alert?
-        }
-      }
-      catch (Exception e2)
-      {
-        logger.traceException(e2);
-        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
-        // FIXME -- Do we need to send an admin alert?
-      }
-
       return ccr;
     }
 
-
-    // Notify any backend initialization listeners.
-    for (BackendInitializationListener listener :
-         DirectoryServer.getBackendInitializationListeners())
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
     {
       listener.performBackendInitializationProcessing(backend);
     }
-
 
     // At this point, the backend should be online.  Add it as one of the
     // registered backends for this backend config manager.
@@ -896,6 +817,44 @@ public class BackendConfigManager implements
 
     registeredBackends.put(backendDN, backend);
     return ccr;
+  }
+
+  private boolean initializeBackend(Backend<? extends BackendCfg> backend, BackendCfg cfg, ConfigChangeResult ccr)
+  {
+    try
+    {
+      initializeBackend(backend, cfg);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+          cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
+
+      String backendID = cfg.getBackendId();
+      try
+      {
+        String lockFile = LockFileManager.getBackendLockFileName(backend);
+        StringBuilder failureReason = new StringBuilder();
+        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        {
+          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
+          // FIXME -- Do we need to send an admin alert?
+        }
+      }
+      catch (Exception e2)
+      {
+        logger.traceException(e2);
+
+        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
+        // FIXME -- Do we need to send an admin alert?
+      }
+
+      return false;
+    }
+    return true;
   }
 
   @SuppressWarnings("unchecked")
@@ -988,8 +947,7 @@ public class BackendConfigManager implements
       logger.traceException(e);
     }
 
-    for (BackendInitializationListener listener :
-         DirectoryServer.getBackendInitializationListeners())
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
     {
       listener.performBackendFinalizationProcessing(backend);
     }
@@ -1026,5 +984,4 @@ public class BackendConfigManager implements
     backend.configureBackend(cfg, serverContext);
     backend.openBackend();
   }
-
 }
