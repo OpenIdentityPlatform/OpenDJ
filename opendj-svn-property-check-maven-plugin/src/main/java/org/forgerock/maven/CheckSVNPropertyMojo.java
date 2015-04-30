@@ -94,15 +94,23 @@ public class CheckSVNPropertyMojo extends AbstractMojo implements ISVNStatusHand
         }
 
         if (!errorFilePaths.isEmpty()) {
-            getLog().warn(" Potential " + svnPropertyName + " updates needed " + "for the following files:");
-            for (String filename : errorFilePaths) {
-                getLog().warn("     " + filename);
+            logWithAppropriateLevel(" Potential " + svnPropertyName + " updates needed " + "for the following files:");
+            for (String fileName : errorFilePaths) {
+                logWithAppropriateLevel("     " + fileName);
             }
 
             if (!ignoreErrors) {
                 throw new MojoExecutionException("Fix " + svnPropertyName + " problems before proceeding, or "
                         + "use '-DignoreSvnPropertyCheckErrors=true' to ignore these warnings warnings.");
             }
+        }
+    }
+
+    private void logWithAppropriateLevel(final String message) {
+        if (!ignoreErrors) {
+            getLog().error(message);
+        } else {
+            getLog().warn(message);
         }
     }
 
