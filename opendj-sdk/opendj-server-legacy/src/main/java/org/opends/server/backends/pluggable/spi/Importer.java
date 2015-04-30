@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable.spi;
 import java.io.Closeable;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Allows to run an import. For performance reasons, imports are run without transactions.
@@ -53,6 +54,28 @@ public interface Importer extends Closeable
    *          the new record's value
    */
   void put(TreeName treeName, ByteSequence key, ByteSequence value);
+
+  /**
+   * Deletes the record with the provided key, in the tree whose name is provided.
+   *
+   * @param treeName
+   *          the tree name
+   * @param key
+   *          the key of the record to delete
+   * @return {@code true} if the record could be deleted, {@code false} otherwise
+   */
+  boolean delete(TreeName treeName, ByteSequence key);
+
+  /**
+   * Reads the record's value associated to the provided key, in the tree whose name is provided.
+   *
+   * @param treeName
+   *          the tree name
+   * @param key
+   *          the record's key
+   * @return the record's value, or {@code null} if none exists
+   */
+  ByteString read(TreeName treeName, ByteSequence key);
 
   /** {@inheritDoc} */
   @Override

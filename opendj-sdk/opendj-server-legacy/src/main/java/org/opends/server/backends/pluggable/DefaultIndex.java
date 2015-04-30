@@ -42,6 +42,7 @@ import org.opends.server.backends.pluggable.CursorTransformer.ValueTransformer;
 import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -124,32 +125,32 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   }
 
   @Override
-  public final void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded) throws StorageRuntimeException
+  public final void importPut(Importer importer, ImportIDSet idsToBeAdded) throws StorageRuntimeException
   {
-    Reject.ifNull(txn, "txn must not be null");
+    Reject.ifNull(importer, "importer must not be null");
     Reject.ifNull(idsToBeAdded, "idsToBeAdded must not be null");
     ByteSequence key = idsToBeAdded.getKey();
-    ByteString value = txn.read(getName(), key);
+    ByteString value = importer.read(getName(), key);
     if (value != null)
     {
       final EntryIDSet entryIDSet = codec.decode(key, value);
       final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
       importIDSet.merge(idsToBeAdded);
-      txn.put(getName(), key, importIDSet.valueToByteString(codec));
+      importer.put(getName(), key, importIDSet.valueToByteString(codec));
     }
     else
     {
-      txn.put(getName(), key, idsToBeAdded.valueToByteString(codec));
+      importer.put(getName(), key, idsToBeAdded.valueToByteString(codec));
     }
   }
 
   @Override
-  public final void importRemove(WriteableTransaction txn, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
+  public final void importRemove(Importer importer, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
   {
-    Reject.ifNull(txn, "txn must not be null");
+    Reject.ifNull(importer, "importer must not be null");
     Reject.ifNull(idsToBeRemoved, "idsToBeRemoved must not be null");
     ByteSequence key = idsToBeRemoved.getKey();
-    ByteString value = txn.read(getName(), key);
+    ByteString value = importer.read(getName(), key);
     if (value == null)
     {
       // Should never happen -- the keys should always be there.
@@ -161,11 +162,11 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     importIDSet.remove(idsToBeRemoved);
     if (importIDSet.isDefined() && importIDSet.size() == 0)
     {
-      txn.delete(getName(), key);
+      importer.delete(getName(), key);
     }
     else
     {
-      txn.put(getName(), key, importIDSet.valueToByteString(codec));
+      importer.put(getName(), key, importIDSet.valueToByteString(codec));
     }
   }
 

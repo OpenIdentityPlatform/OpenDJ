@@ -29,6 +29,7 @@ package org.opends.server.backends.pluggable;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
@@ -44,10 +45,10 @@ interface Index extends DatabaseContainer
   int getIndexEntryLimit();
 
   // Ignores trusted state.
-  void importPut(WriteableTransaction txn, ImportIDSet idsToBeAdded);
+  void importPut(Importer importer, ImportIDSet idsToBeAdded);
 
   // Ignores trusted state.
-  void importRemove(WriteableTransaction txn, ImportIDSet idsToBeRemoved);
+  void importRemove(Importer importer, ImportIDSet idsToBeRemoved);
 
   boolean isTrusted();
 

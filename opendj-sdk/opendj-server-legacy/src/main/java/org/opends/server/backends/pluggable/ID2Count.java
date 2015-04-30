@@ -31,6 +31,7 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
@@ -90,8 +91,7 @@ final class ID2Count extends AbstractDatabaseContainer
 
   private void addToCounter(WriteableTransaction txn, EntryID entryID, final long delta)
   {
-    final long bucket = (Thread.currentThread().getId() & (SHARD_COUNT - 1));
-    final ByteSequence shardedKey = getKeyFromEntryIDAndBucket(entryID, bucket);
+    final ByteSequence shardedKey = getShardedKey(entryID);
     txn.update(getName(), shardedKey, new UpdateFunction()
     {
       @Override
@@ -101,6 +101,30 @@ final class ID2Count extends AbstractDatabaseContainer
         return ByteString.valueOf(currentValue + delta);
       }
     });
+  }
+
+  void importPut(Importer importer, EntryID entryID, long total)
+  {
+    Reject.ifTrue(entryID.longValue() >= TOTAL_COUNT_ENTRY_ID.longValue(), "EntryID overflow.");
+    importPut0(importer, entryID, total);
+  }
+
+  void importPutTotalCount(Importer importer, long total)
+  {
+    importPut0(importer, TOTAL_COUNT_ENTRY_ID, total);
+  }
+
+  private void importPut0(Importer importer, EntryID entryID, final long delta)
+  {
+    Reject.ifNull(importer, "importer must not be null");
+    final ByteSequence shardedKey = getShardedKey(entryID);
+    importer.put(getName(), shardedKey, ByteString.valueOf(delta));
+  }
+
+  private ByteSequence getShardedKey(EntryID entryID)
+  {
+    final long bucket = (Thread.currentThread().getId() & (SHARD_COUNT - 1));
+    return getKeyFromEntryIDAndBucket(entryID, bucket);
   }
 
   /**
@@ -168,5 +192,4 @@ final class ID2Count extends AbstractDatabaseContainer
 
     return counterValue;
   }
-
 }
