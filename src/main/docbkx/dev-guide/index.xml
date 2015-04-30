@@ -43,10 +43,10 @@
   </copyright>
   <authorgroup>
    <author>
-    <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
+    <personname><firstname>Mark</firstname> <surname>Craig</surname></personname>
    </author>
    <author>
-    <personname><firstname>Ludovic </firstname><surname>Poitou</surname></personname>
+    <personname><firstname>Ludovic</firstname> <surname>Poitou</surname></personname>
     <xinclude:include href="../shared/affiliation-fr.xml"/>
    </author>
   </authorgroup>
