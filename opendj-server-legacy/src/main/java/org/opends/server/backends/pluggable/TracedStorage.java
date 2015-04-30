@@ -26,6 +26,7 @@
 package org.opends.server.backends.pluggable;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -44,15 +45,11 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 
-/**
- * Decorates a {@link Storage} with additional trace logging.
- */
+/** Decorates a {@link Storage} with additional trace logging. */
 @SuppressWarnings("javadoc")
 final class TracedStorage implements Storage
 {
-  /**
-   * Decorates an {@link Importer} with additional trace logging.
-   */
+  /** Decorates an {@link Importer} with additional trace logging. */
   private final class TracedImporter implements Importer
   {
     private final Importer importer;
@@ -60,14 +57,6 @@ final class TracedStorage implements Storage
     private TracedImporter(final Importer importer)
     {
       this.importer = importer;
-    }
-
-    @Override
-    public void close()
-    {
-      importer.close();
-      logger.trace("Storage@%s.Importer@%s.close(%s)",
-          storageId(), id(), backendId);
     }
 
     @Override
@@ -84,6 +73,32 @@ final class TracedStorage implements Storage
       importer.put(name, key, value);
       logger.trace("Storage@%s.Importer@%s.put(%s, %s, %s, %s)",
           storageId(), id(), backendId, name, hex(key), hex(value));
+    }
+
+    @Override
+    public ByteString read(TreeName name, ByteSequence key)
+    {
+      final ByteString value = importer.read(name, key);
+      logger.trace("Storage@%s.Importer@%s.read(%s, %s, %s) = %s",
+          storageId(), id(), backendId, name, hex(key), hex(value));
+      return value;
+    }
+
+    @Override
+    public boolean delete(TreeName name, ByteSequence key)
+    {
+      final boolean delete = importer.delete(name, key);
+      logger.trace("Storage@%s.Importer@%s.delete(%s, %s, %s) = %b",
+          storageId(), id(), backendId, name, hex(key), delete);
+      return delete;
+    }
+
+    @Override
+    public void close()
+    {
+      importer.close();
+      logger.trace("Storage@%s.Importer@%s.close(%s)",
+          storageId(), id(), backendId);
     }
 
     private int id()
@@ -294,7 +309,7 @@ final class TracedStorage implements Storage
   }
 
   @Override
-  public Importer startImport() throws Exception
+  public Importer startImport() throws ConfigException, StorageRuntimeException
   {
     final Importer importer = storage.startImport();
     if (logger.isTraceEnabled())

@@ -27,6 +27,7 @@ package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
@@ -42,11 +43,13 @@ public interface Storage extends Closeable
    * Starts the import operation.
    *
    * @return a new Importer object which must be closed to release all resources
-   * @throws Exception
+   * @throws ConfigException
+   *           if there is a problem with the configuration
+   * @throws StorageRuntimeException
    *           if a problem occurs with the underlying storage engine
    * @see #close() to release all resources once import is finished
    */
-  Importer startImport() throws Exception;
+  Importer startImport() throws ConfigException, StorageRuntimeException;
 
   /**
    * Opens the storage engine to allow executing operations on it.
