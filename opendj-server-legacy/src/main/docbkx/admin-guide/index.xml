@@ -43,17 +43,16 @@
   </copyright>
   <authorgroup>
    <author>
-    <!-- Need to add a space after firstname for now -->
-    <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
+    <personname><firstname>Mark</firstname> <surname>Craig</surname></personname>
    </author>
    <author>
-    <personname><firstname>Nemanja </firstname><surname>Lukić</surname></personname>
+    <personname><firstname>Nemanja</firstname> <surname>Lukić</surname></personname>
    </author>
    <author>
-    <personname><firstname>Ludovic </firstname><surname>Poitou</surname></personname>
+    <personname><firstname>Ludovic</firstname> <surname>Poitou</surname></personname>
    </author>
    <author>
-    <personname><firstname>Chris </firstname><surname>Ridd</surname></personname>
+    <personname><firstname>Chris</firstname> <surname>Ridd</surname></personname>
     <xinclude:include href="../shared/affiliation-fr.xml"/>
    </author>
   </authorgroup>
