@@ -296,9 +296,7 @@ public class ConfigFromFile extends ConfigReader
       final PluggableBackendCfg db)
   {
     indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
-    // FIXME: Remove the two following indexes when they will be deleted
-    indexes.add(new IndexDescriptor(ID2CHILDREN_INDEX_NAME));
-    indexes.add(new IndexDescriptor(ID2SUBTREE_INDEX_NAME));
+    indexes.add(new IndexDescriptor(ID2CHILDREN_COUNT_NAME));
     try
     {
       for (final String indexName : db.listBackendIndexes())
