@@ -79,13 +79,12 @@ import org.opends.guitools.controlpanel.util.ViewPositions;
 public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifiedListener
 {
   private static final long serialVersionUID = 5252070109221657041L;
-  private JComboBox baseDNs;
+  private JComboBox<?> baseDNs;
   private JRadioButton verifyIndexContents;
   private JRadioButton verifyKeyEntryIDs;
   private AddRemovePanel<AbstractIndexDescriptor> addRemove;
-  private JComboBox keyEntryIDs;
-  private Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
-      new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
+  private JComboBox<?> keyEntryIDs;
+  private Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes = new HashMap<>();
 
   private JLabel lBaseDN;
   private JLabel lAction;
@@ -175,7 +174,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     gbc.gridwidth = 2;
     add(verifyIndexContents, gbc);
 
-    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(AbstractIndexDescriptor.class);
+    addRemove = new AddRemovePanel<>(AbstractIndexDescriptor.class);
     addRemove.getAvailableLabel().setText(INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
     addRemove.getSelectedLabel().setText(INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
 
@@ -324,7 +323,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     setSecondaryValid(addRemove.getSelectedLabel());
     setSecondaryValid(lIndex);
 
-    final Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final Set<LocalizableMessage> errors = new LinkedHashSet<>();
     String baseDN = getSelectedBaseDN();
 
     if (baseDN == null)
@@ -417,10 +416,10 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       SortedSet<AbstractIndexDescriptor> indexes = hmIndexes.get(dn);
       if (indexes != null)
       {
-        List<CategorizedComboBoxElement> newElements = new ArrayList<CategorizedComboBoxElement>();
-        List<AbstractIndexDescriptor> databaseIndexes = new ArrayList<AbstractIndexDescriptor>();
-        List<AbstractIndexDescriptor> attributeIndexes = new ArrayList<AbstractIndexDescriptor>();
-        List<AbstractIndexDescriptor> vlvIndexes = new ArrayList<AbstractIndexDescriptor>();
+        List<CategorizedComboBoxElement> newElements = new ArrayList<>();
+        List<AbstractIndexDescriptor> databaseIndexes = new ArrayList<>();
+        List<AbstractIndexDescriptor> attributeIndexes = new ArrayList<>();
+        List<AbstractIndexDescriptor> vlvIndexes = new ArrayList<>();
         for (AbstractIndexDescriptor index : indexes)
         {
           if (index instanceof IndexDescriptor)
@@ -502,7 +501,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this backend.
-        Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+        Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
         Task.Type type = taskToBeLaunched.getType();
         if (type != Task.Type.BACKUP
@@ -543,7 +542,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     @Override
     protected List<String> getCommandLineArguments()
     {
-      List<String> args = new ArrayList<String>();
+      List<String> args = new ArrayList<>();
 
       args.add("--baseDN");
       args.add(getSelectedBaseDN());
