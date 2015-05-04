@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -136,13 +135,14 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
   private static final int MAX_NUMBER_ENTRIES = 5000;
   private static final int MAX_NUMBER_OTHER_BASE_DNS = 10;
   private static final String[] CONTAINER_CLASSES = { "organization", "organizationalUnit" };
-  static final String[] SYSTEM_INDEXES = { "aci", "dn2id", "ds-sync-hist", "entryUUID", "id2children", "id2subtree" };
+  private static final String[] SYSTEM_INDEXES =
+    { "aci", "dn2id", "ds-sync-hist", "entryUUID", "id2children", "id2subtree" };
 
 
   private JComboBox<String> baseDNs;
 
   /** The combo box containing the different filter types. */
-  protected JComboBox<?> filterAttribute;
+  protected JComboBox<CharSequence> filterAttribute;
   /** The text field of the filter. */
   protected FilterTextField filter;
 
@@ -356,7 +356,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
           DefaultComboBoxModel model = (DefaultComboBoxModel) baseDNs.getModel();
           if (newBaseDn != null)
           {
-            Object newElement = null;
+            CategorizedComboBoxElement newElement = null;
 
             try
             {
@@ -397,10 +397,8 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
             {
               throw new RuntimeException("Unexpected error decoding dn " + newBaseDn, t);
             }
-            if (newElement != null)
-            {
-              model.setSelectedItem(newElement);
-            }
+
+            model.setSelectedItem(newElement);
           }
           else if (lastSelectedBaseDN != null)
           {
@@ -424,7 +422,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     add(lFilter, gbc);
 
     filterAttribute = Utilities.createComboBox();
-    filterAttribute.setModel(new DefaultComboBoxModel(new Object[] {
+    filterAttribute.setModel(new DefaultComboBoxModel<CharSequence>(new CharSequence[] {
       USER_FILTER, GROUP_FILTER, COMBO_SEPARATOR, "attributetobedisplayed", COMBO_SEPARATOR, LDAP_FILTER }));
     filterAttribute.setRenderer(new CustomListCellRenderer(filterAttribute));
     filterAttribute.addItemListener(new IgnoreItemListener(filterAttribute));
@@ -718,8 +716,8 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     {
       // Bug
       t.printStackTrace();
+      return false;
     }
-    return false;
   }
 
   /**
@@ -990,16 +988,14 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
 
   private static boolean displayIndex(String name)
   {
-    boolean displayIndex = true;
     for (String systemIndex : SYSTEM_INDEXES)
     {
       if (systemIndex.equalsIgnoreCase(name))
       {
-        displayIndex = false;
-        break;
+        return false;
       }
     }
-    return displayIndex;
+    return true;
   }
 
   /**
@@ -1023,26 +1019,13 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
         }
       }
     }
-    final DefaultComboBoxModel model = (DefaultComboBoxModel) filterAttribute.getModel();
-    boolean changed = newElements.size() != model.getSize() - 2;
-    if (!changed)
-    {
-      int i = 0;
-      for (String newElement : newElements)
-      {
-        changed = !newElement.equals(model.getElementAt(i));
-        if (changed)
-        {
-          break;
-        }
-        i++;
-      }
-    }
-    if (changed)
+
+    @SuppressWarnings("unchecked")
+    final DefaultComboBoxModel<CharSequence> model = (DefaultComboBoxModel<CharSequence>) filterAttribute.getModel();
+    if (hasChanged(newElements, model))
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        @SuppressWarnings("unchecked")
         @Override
         public void run()
         {
@@ -1080,7 +1063,6 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     SortedSet<String> backendIDs = new TreeSet<>();
     Map<String, SortedSet<String>> hmBaseDNs = new HashMap<>();
 
-    boolean allAdded = false;
     Map<String, BaseDNDescriptor> hmBaseDNWithEntries = new HashMap<>();
 
     BaseDNDescriptor baseDNWithEntries = null;
@@ -1121,11 +1103,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
       }
     }
 
-    if (!allAdded)
-    {
-      baseDNNewElements.add(new CategorizedComboBoxElement(ALL_BASE_DNS, CategorizedComboBoxElement.Type.REGULAR));
-      allAdded = true;
-    }
+    baseDNNewElements.add(new CategorizedComboBoxElement(ALL_BASE_DNS, CategorizedComboBoxElement.Type.REGULAR));
     for (String backendID : backendIDs)
     {
       baseDNNewElements.add(new CategorizedComboBoxElement(backendID, CategorizedComboBoxElement.Type.CATEGORY));
@@ -1141,18 +1119,13 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     }
     for (DN dn : otherBaseDns)
     {
-      if (allAdded)
-      {
-        baseDNNewElements.add(COMBO_SEPARATOR);
-      }
+      baseDNNewElements.add(COMBO_SEPARATOR);
       baseDNNewElements.add(new CategorizedComboBoxElement(
           Utilities.unescapeUtf8(dn.toString()), CategorizedComboBoxElement.Type.REGULAR));
     }
-    if (allAdded)
-    {
-      baseDNNewElements.add(COMBO_SEPARATOR);
-      baseDNNewElements.add(OTHER_BASE_DN);
-    }
+    baseDNNewElements.add(COMBO_SEPARATOR);
+    baseDNNewElements.add(OTHER_BASE_DN);
+
     if (firstTimeDisplayed && baseDNWithEntries != null)
     {
       ignoreBaseDNEvents = true;
@@ -1181,14 +1154,32 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     }
   }
 
+  private boolean hasChanged(final SortedSet<String> newElements, final DefaultComboBoxModel<CharSequence> model)
+  {
+    if (newElements.size() != model.getSize() - 2)
+    {
+      return true;
+    }
+
+    int i = 0;
+    for (String newElement : newElements)
+    {
+      if (!newElement.equals(model.getElementAt(i)))
+      {
+        return true;
+      }
+      i++;
+    }
+    return false;
+  }
+
   /**
    * Updates the contents of the error pane and the browser controller with the
    * provided ServerDescriptor. It checks that the server is running and that we
    * are authenticated, that the connection to the server has not changed, etc.
    *
    * @param desc
-   *          the server descriptor to be used to update the error pane and
-   *          browser controller.
+   *          the server descriptor to be used to update the error pane and browser controller.
    */
   private void updateBrowserControllerAndErrorPane(ServerDescriptor desc)
   {
@@ -1395,25 +1386,29 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
    */
   private String getBaseDN()
   {
-    String dn;
-    Object o = baseDNs.getSelectedItem();
-    if (o instanceof String)
-    {
-      dn = (String) o;
-    }
-    else if (o instanceof CategorizedComboBoxElement)
-    {
-      dn = ((CategorizedComboBoxElement) o).getValue().toString();
-    }
-    else
-    {
-      dn = null;
-    }
+    String dn = getBaseDN0();
     if (dn != null && dn.trim().length() == 0)
     {
       dn = ALL_BASE_DNS;
     }
     return dn;
+  }
+
+  private String getBaseDN0()
+  {
+    Object o = baseDNs.getSelectedItem();
+    if (o instanceof String)
+    {
+      return (String) o;
+    }
+    else if (o instanceof CategorizedComboBoxElement)
+    {
+      return ((CategorizedComboBoxElement) o).getValue().toString();
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -1441,89 +1436,87 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     }
     catch (NamingException ne)
     {
-      if (isCertificateException(ne))
-      {
-        ApplicationTrustManager.Cause cause = getInfo().getTrustManager().getLastRefusedCause();
-
-        logger.info(LocalizableMessage.raw("Certificate exception cause: " + cause));
-        UserDataCertificateException.Type excType = null;
-        if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-        {
-          excType = UserDataCertificateException.Type.NOT_TRUSTED;
-        }
-        else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-        {
-          excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-        }
-
-        if (excType != null)
-        {
-          String h;
-          int p;
-          try
-          {
-            URI uri = new URI(getInfo().getAdminConnectorURL());
-            h = uri.getHost();
-            p = uri.getPort();
-          }
-          catch (Throwable t)
-          {
-            logger.warn(LocalizableMessage.raw("Error parsing ldap url of ldap url.", t));
-            h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-            p = -1;
-          }
-          final UserDataCertificateException udce = new UserDataCertificateException(
-              null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, getInfo().getTrustManager().getLastRefusedChain(),
-              getInfo().getTrustManager().getLastRefusedAuthType(), excType);
-
-          if (SwingUtilities.isEventDispatchThread())
-          {
-            handleCertificateException(udce, bindDN, bindPassword);
-          }
-          else
-          {
-            final ConfigReadException[] fcre = { null };
-            final NamingException[] fne = { null };
-            try
-            {
-              SwingUtilities.invokeAndWait(new Runnable()
-              {
-                @Override
-                public void run()
-                {
-                  try
-                  {
-                    handleCertificateException(udce, bindDN, bindPassword);
-                  }
-                  catch (ConfigReadException cre)
-                  {
-                    fcre[0] = cre;
-                  }
-                  catch (NamingException ne)
-                  {
-                    fne[0] = ne;
-                  }
-                }
-              });
-            }
-            catch (Throwable t)
-            {
-              throw new IllegalArgumentException("Unexpected error: " + t, t);
-            }
-            if (fcre[0] != null)
-            {
-              throw fcre[0];
-            }
-            if (fne[0] != null)
-            {
-              throw fne[0];
-            }
-          }
-        }
-      }
-      else
+      if (!isCertificateException(ne))
       {
         throw ne;
+      }
+
+      ApplicationTrustManager.Cause cause = getInfo().getTrustManager().getLastRefusedCause();
+
+      logger.info(LocalizableMessage.raw("Certificate exception cause: " + cause));
+      UserDataCertificateException.Type excType = null;
+      if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+      {
+        excType = UserDataCertificateException.Type.NOT_TRUSTED;
+      }
+      else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+      {
+        excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+      }
+
+      if (excType != null)
+      {
+        String h;
+        int p;
+        try
+        {
+          URI uri = new URI(getInfo().getAdminConnectorURL());
+          h = uri.getHost();
+          p = uri.getPort();
+        }
+        catch (Throwable t)
+        {
+          logger.warn(LocalizableMessage.raw("Error parsing ldap url of ldap url.", t));
+          h = INFO_NOT_AVAILABLE_LABEL.get().toString();
+          p = -1;
+        }
+        final UserDataCertificateException udce = new UserDataCertificateException(
+            null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, getInfo().getTrustManager().getLastRefusedChain(),
+            getInfo().getTrustManager().getLastRefusedAuthType(), excType);
+
+        if (SwingUtilities.isEventDispatchThread())
+        {
+          handleCertificateException(udce, bindDN, bindPassword);
+        }
+        else
+        {
+          final ConfigReadException[] fcre = { null };
+          final NamingException[] fne = { null };
+          try
+          {
+            SwingUtilities.invokeAndWait(new Runnable()
+            {
+              @Override
+              public void run()
+              {
+                try
+                {
+                  handleCertificateException(udce, bindDN, bindPassword);
+                }
+                catch (ConfigReadException cre)
+                {
+                  fcre[0] = cre;
+                }
+                catch (NamingException ne)
+                {
+                  fne[0] = ne;
+                }
+              }
+            });
+          }
+          catch (Exception e)
+          {
+            throw new IllegalArgumentException("Unexpected error: " + e, e);
+          }
+          if (fcre[0] != null)
+          {
+            throw fcre[0];
+          }
+          if (fne[0] != null)
+          {
+            throw fne[0];
+          }
+        }
       }
     }
     return createdUserDataCtx;
@@ -1675,16 +1668,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     List<DN> rootSuffixes = new ArrayList<>();
     for (DN dn : allSuffixes)
     {
-      boolean isRootSuffix = true;
-      for (DN dn1 : allSuffixes)
-      {
-        if (dn1.isAncestorOf(dn) && !dn1.equals(dn))
-        {
-          isRootSuffix = false;
-          break;
-        }
-      }
-      if (isRootSuffix)
+      if (isRootSuffix(allSuffixes, dn))
       {
         rootSuffixes.add(dn);
       }
@@ -1692,19 +1676,31 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     controller.getNumSubordinateHacker().update(allSuffixes, rootSuffixes, serverHost, serverPort);
   }
 
+  private boolean isRootSuffix(List<DN> allSuffixes, DN dn)
+  {
+    for (DN suffix : allSuffixes)
+    {
+      if (suffix.isAncestorOf(dn) && !suffix.equals(dn))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * This is a class that simply checks the number of entries that the browser
    * contains and updates a counter with the new number of entries. It is
    * basically a thread that sleeps and checks whether some calculation must be
    * made: when we know that something is updated in the browser the method
-   * recalculate() is called. We could use a more sofisticated code (like use a
+   * recalculate() is called. We could use a more sophisticated code (like use a
    * wait() call that would get notified when recalculate() is called) but this
    * is not required and it might have an impact on the reactivity of the UI if
    * recalculate gets called too often. We can afford to wait 400 miliseconds
    * before updating the number of entries and with this approach there is
    * hardly no impact on the reactivity of the UI.
    */
-  protected class NumberOfEntriesUpdater extends Thread implements Runnable
+  protected class NumberOfEntriesUpdater extends Thread
   {
     private boolean recalculate;
 
