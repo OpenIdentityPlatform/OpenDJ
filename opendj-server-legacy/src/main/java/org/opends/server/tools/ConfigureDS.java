@@ -263,9 +263,9 @@ public class ConfigureDS
     DefaultIndex.withEqualityAndSubstring("cn"),
     DefaultIndex.withEqualityAndSubstring("givenName"),
     DefaultIndex.withEqualityAndSubstring("mail"),
-    DefaultIndex.withEqualityAndSubstring("member"),
     DefaultIndex.withEqualityAndSubstring("sn"),
     DefaultIndex.withEqualityAndSubstring("telephoneNumber"),
+    DefaultIndex.withEquality("member"),
     DefaultIndex.withEquality("uid"),
     DefaultIndex.withEquality("uniqueMember")
   };
