@@ -134,7 +134,8 @@ final class ImportRecord implements Comparable<ImportRecord>
     }
     if (o instanceof ImportRecord)
     {
-      return this.compareTo((ImportRecord) o) == 0;
+      ImportRecord other = (ImportRecord) o;
+      return indexID == other.getIndexID() && key.equals(other.getKey());
     }
     return false;
   }
