@@ -54,16 +54,22 @@ import java.util.logging.Handler;
 import java.util.Map;
 
 /**
- * This class is responsible for doing the following: Check whether we are
- * installing or uninstalling and which type of installation we are running.
- * Performs all the checks and validation of the data provided by the user
- * during the setup. It will launch also the installation once the user clicks
- * on 'Finish' if we are installing the product. If we are running a web start
- * installation it will start the background downloading of the jar files that
- * are required to perform the installation (OpenDS.jar, je.jar, etc.). The
- * global idea is to force the user to download just one jar file
- * (quicksetup.jar) to launch the Web Start installer. Until this class is not
- * finished the WebStart Installer will be on the ProgressStep.DOWNLOADING step.
+ * This class is responsible for doing the following:
+ * <p>
+ * <ul>
+ * <li>Check whether we are installing or uninstalling and which type of
+ * installation we are running.</li>
+ * <li>Performs all the checks and validation of the data provided by the user
+ * during the setup.</li>
+ * <li>It will launch also the installation once the user clicks on 'Finish' if
+ * we are installing the product.</li>
+ * <li>If we are running a web start installation it will start the background
+ * downloading of the jar files that are required to perform the installation
+ * (OpenDS.jar, je.jar, etc.). The global idea is to force the user to download
+ * just one jar file (quicksetup.jar) to launch the Web Start installer. Until
+ * this class is not finished the WebStart Installer will be on the
+ * ProgressStep.DOWNLOADING step.</li>
+ * </ul>
  */
 public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 {
@@ -207,12 +213,13 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * This method is used to update the progress dialog. We are receiving
-   * notifications from the installer and uninstaller (this class is a
-   * ProgressListener). However if we lots of notifications updating the
-   * progress panel every time we get a progress update can result of a lot of
-   * flickering. So the idea here is to have a minimal time between 2 updates of
-   * the progress dialog (specified by UPDATE_PERIOD).
+   * This method is used to update the progress dialog.
+   * <p>
+   * We are receiving notifications from the installer and uninstaller (this
+   * class is a ProgressListener). However if we lots of notifications updating
+   * the progress panel every time we get a progress update can result of a lot
+   * of flickering. So the idea here is to have a minimal time between 2 updates
+   * of the progress dialog (specified by UPDATE_PERIOD).
    *
    * @see #progressUpdate(org.opends.quicksetup.event.ProgressUpdateEvent)
    */
@@ -624,9 +631,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     getDialog().displayFieldInvalid(fieldName, invalid);
   }
 
-  /**
-   * A method to initialize the look and feel.
-   */
+  /** A method to initialize the look and feel. */
   private void initLookAndFeel() throws Throwable
   {
     UIFactory.initialize();
