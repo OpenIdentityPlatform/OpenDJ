@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -249,29 +247,18 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   private final class ImporterImpl implements Importer
   {
     private final Map<TreeName, Tree> trees = new HashMap<TreeName, Tree>();
-    private final Queue<Map<TreeName, Exchange>> allExchanges = new ConcurrentLinkedDeque<>();
     private final ThreadLocal<Map<TreeName, Exchange>> exchanges = new ThreadLocal<Map<TreeName, Exchange>>()
     {
       @Override
       protected Map<TreeName, Exchange> initialValue()
       {
-        final Map<TreeName, Exchange> value = new HashMap<>();
-        allExchanges.add(value);
-        return value;
+        return new HashMap<TreeName, Exchange>();
       }
     };
 
     @Override
     public void close()
     {
-      for (Map<TreeName, Exchange> map : allExchanges)
-      {
-        for (Exchange exchange : map.values())
-        {
-          db.releaseExchange(exchange);
-        }
-        map.clear();
-      }
       PersistItStorage.this.close();
     }
 
