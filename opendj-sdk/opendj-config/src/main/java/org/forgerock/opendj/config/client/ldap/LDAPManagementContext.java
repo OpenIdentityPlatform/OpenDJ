@@ -35,28 +35,142 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.ConfigurationClient;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.OptionalRelationDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.client.DriverBasedManagementContext;
+import org.forgerock.opendj.config.client.ManagedObject;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.client.spi.Driver;
 import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Reject;
 
 /**
  * An LDAP management connection context.
  */
-public final class LDAPManagementContext extends ManagementContext {
+public final class LDAPManagementContext extends DriverBasedManagementContext {
+
+    private static final class ManagementContextWrapper implements ManagementContext {
+        private final ManagementContext delegate;
+        private final List<IOException> exceptions;
+
+        private ManagementContextWrapper(ManagementContext result, List<IOException> exceptions) {
+            this.delegate = result;
+            this.exceptions = exceptions;
+        }
+
+        @Override
+        public boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
+                LdapException {
+            return delegate.managedObjectExists(path);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+                ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd) throws ManagedObjectNotFoundException,
+                LdapException {
+            return delegate.listManagedObjects(parent, rd);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+                ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+                AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
+                LdapException {
+            return delegate.listManagedObjects(parent, rd, d);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+                ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd)
+                throws ManagedObjectNotFoundException, LdapException {
+            return delegate.listManagedObjects(parent, rd);
+        }
+
+        @Override
+        public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
+            return delegate.getRootConfigurationManagedObject();
+        }
+
+        @Override
+        public RootCfgClient getRootConfiguration() {
+            return delegate.getRootConfiguration();
+        }
+
+        @Override
+        public <P> SortedSet<P> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+                throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException {
+            return delegate.getPropertyValues(path, pd);
+        }
+
+        @Override
+        public <P> P getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+                throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException {
+            return delegate.getPropertyValue(path, pd);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
+                ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
+                ManagedObjectNotFoundException, LdapException {
+            return delegate.getManagedObject(path);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+                ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
+                throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
+            return delegate.deleteManagedObject(parent, rd, name);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+                ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
+                throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
+            return delegate.deleteManagedObject(parent, rd);
+        }
+
+        @Override
+        public <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+                ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
+                throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
+            return delegate.deleteManagedObject(parent, rd, name);
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
+            if (!exceptions.isEmpty()) {
+                throw exceptions.get(0);
+            }
+        }
+    }
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -77,21 +191,7 @@ public final class LDAPManagementContext extends ManagementContext {
         return context;
     }
 
-    /**
-     * Returns a LDIF management context on the provided LDIF file.
-     *
-     * @param ldifFile
-     *            The LDIF file to manage
-     * @param profile
-     *            The LDAP profile
-     * @param exceptions
-     *            Contains {@code IOException} that may occurred during management context close.
-     *            Could be {@code null}
-     * @return A LDIF file management context
-     * @throws IOException
-     *             If problems occurs while reading the file.
-     */
-    public static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile,
+    private static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile,
             final List<IOException> exceptions) throws IOException {
         final BufferedReader configReader = new BufferedReader(new FileReader(ldifFile));
         try {
@@ -145,7 +245,8 @@ public final class LDAPManagementContext extends ManagementContext {
      */
     public static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile)
             throws IOException {
-        return newLDIFManagementContext(ldifFile, profile, null);
+        final List<IOException> exceptions = new ArrayList<>();
+        return new ManagementContextWrapper(newLDIFManagementContext(ldifFile, profile, exceptions), exceptions);
     }
 
     /** The LDAP management context driver. */

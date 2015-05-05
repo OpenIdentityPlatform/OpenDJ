@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -1103,11 +1103,10 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       final List<VLVSortOrder> sortOrder) throws OpenDsException
   {
     getInfo().initializeConfigurationFramework();
-    try
+    final File configFile = Installation.getLocal().getCurrentConfigurationFile();
+    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
     {
-      final List<IOException> exceptions = new ArrayList<>();
-      final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
-              Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
       final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
       if (backend instanceof LocalDBBackendCfgClient)
       {
@@ -1119,8 +1118,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         updateVLVBackendIndexOnline((PluggableBackendCfgClient) backend, vlvIndexName, indexToModify, baseDN, filter,
             searchScope, sortOrder);
       }
-      context.close();
-      Utilities.throwFirstFrom(exceptions);
     }
     catch (final Exception e)
     {

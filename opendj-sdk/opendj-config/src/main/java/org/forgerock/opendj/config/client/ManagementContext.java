@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.client;
 
 import java.io.Closeable;
-import java.util.Set;
 import java.util.SortedSet;
 
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
@@ -42,20 +40,13 @@ import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.SetRelationDefinition;
-import org.forgerock.opendj.config.client.spi.Driver;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 
 /**
  * Client management connection context.
  */
-public abstract class ManagementContext implements Closeable {
-
-    /**
-     * Creates a new management context.
-     */
-    protected ManagementContext() {
-        // No implementation required.
-    }
+public interface ManagementContext extends Closeable {
 
     /**
      * Deletes the named instantiable child managed object from the named parent
@@ -88,12 +79,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+    <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
-            throws ManagedObjectNotFoundException, OperationRejectedException,
-            LdapException {
-        return getDriver().deleteManagedObject(parent, rd, name);
-    }
+            throws ManagedObjectNotFoundException, OperationRejectedException, LdapException;
 
     /**
      * Deletes the optional child managed object from the named parent managed
@@ -124,11 +112,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+    <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws
-            ManagedObjectNotFoundException, OperationRejectedException, LdapException {
-        return getDriver().deleteManagedObject(parent, rd);
-    }
+            ManagedObjectNotFoundException, OperationRejectedException, LdapException;
 
     /**
      * Deletes s set child managed object from the named parent managed object.
@@ -160,11 +146,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
+    <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
-            throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
-        return getDriver().deleteManagedObject(parent, rd, name);
-    }
+            throws ManagedObjectNotFoundException, OperationRejectedException, LdapException;
 
     /**
      * Gets the named managed object.
@@ -190,17 +174,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    @SuppressWarnings("unchecked")
-    public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
+    <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
             ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, LdapException {
-        // Be careful to handle the root configuration.
-        if (path.isEmpty()) {
-            return (ManagedObject<C>) getRootConfigurationManagedObject();
-        }
-
-        return getDriver().getManagedObject(path);
-    }
+            ManagedObjectNotFoundException, LdapException;
 
     /**
      * Gets the effective value of a property in the named managed object.
@@ -228,15 +204,8 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <P> P getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
-            throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException {
-        Set<P> values = getPropertyValues(path, pd);
-        if (values.isEmpty()) {
-            return null;
-        } else {
-            return values.iterator().next();
-        }
-    }
+    <P> P getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+            throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException;
 
     /**
      * Gets the effective values of a property in the named managed object.
@@ -264,10 +233,8 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <P> SortedSet<P> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
-            throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException {
-        return getDriver().getPropertyValues(path, pd);
-    }
+    <P> SortedSet<P> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+            throws DefinitionDecodingException, LdapException, ManagedObjectNotFoundException;
 
     /**
      * Gets the root configuration client associated with this management
@@ -276,9 +243,7 @@ public abstract class ManagementContext implements Closeable {
      * @return Returns the root configuration client associated with this
      *         management context.
      */
-    public final RootCfgClient getRootConfiguration() {
-        return getRootConfigurationManagedObject().getConfiguration();
-    }
+    RootCfgClient getRootConfiguration();
 
     /**
      * Gets the root configuration managed object associated with this
@@ -287,9 +252,7 @@ public abstract class ManagementContext implements Closeable {
      * @return Returns the root configuration managed object associated with
      *         this management context.
      */
-    public final ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-        return getDriver().getRootConfigurationManagedObject();
-    }
+    ManagedObject<RootCfgClient> getRootConfigurationManagedObject();
 
     /**
      * Lists the child managed objects of the named parent managed object.
@@ -313,11 +276,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+    <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd) throws
-            ManagedObjectNotFoundException, LdapException {
-        return listManagedObjects(parent, rd, rd.getChildDefinition());
-    }
+            ManagedObjectNotFoundException, LdapException;
 
     /**
      * Lists the child managed objects of the named parent managed object which
@@ -345,12 +306,10 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+    <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
             AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws
-            ManagedObjectNotFoundException, LdapException {
-        return getDriver().listManagedObjects(parent, rd, d);
-    }
+            ManagedObjectNotFoundException, LdapException;
 
     /**
      * Lists the child managed objects of the named parent managed object.
@@ -374,11 +333,9 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
+    <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd) throws
-            ManagedObjectNotFoundException, LdapException {
-        return getDriver().listManagedObjects(parent, rd, rd.getChildDefinition());
-    }
+            ManagedObjectNotFoundException, LdapException;
 
     /**
      * Determines whether or not the named managed object exists.
@@ -392,24 +349,5 @@ public abstract class ManagementContext implements Closeable {
      * @throws LdapException
      *             If any other error occurs.
      */
-    public final boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-            LdapException {
-        return getDriver().managedObjectExists(path);
-    }
-
-    /**
-     * Gets the driver associated with this management context.
-     *
-     * @return Returns the driver associated with this management context.
-     */
-    protected abstract Driver getDriver();
-
-    /**
-     * Closes this management context.
-     */
-    @Override
-    public final void close() {
-        getDriver().close();
-    }
-
+    boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException, LdapException;
 }

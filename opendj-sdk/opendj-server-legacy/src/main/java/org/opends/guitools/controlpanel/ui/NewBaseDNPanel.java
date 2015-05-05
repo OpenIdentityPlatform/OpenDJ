@@ -1019,18 +1019,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
       try
       {
         getInfo().initializeConfigurationFramework();
-        final List<IOException> exceptions = new ArrayList<>();
-        final org.forgerock.opendj.config.client.ManagementContext context =
-            org.forgerock.opendj.config.client.ldap.LDAPManagementContext.newLDIFManagementContext(
-                Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
-        final org.forgerock.opendj.server.config.client.BackendCfgClient backend =
-            context.getRootConfiguration().getBackend(backendName);
-        final SortedSet<org.forgerock.opendj.ldap.DN> baseDNs = backend.getBaseDN();
-        baseDNs.add(org.forgerock.opendj.ldap.DN.valueOf(newBaseDN));
-        backend.setBaseDN(baseDNs);
-        backend.commit();
-        context.close();
-        Utilities.throwFirstFrom(exceptions);
+        final File config = Installation.getLocal().getCurrentConfigurationFile();
+        final LDAPProfile profile = LDAPProfile.getInstance();
+        try (org.forgerock.opendj.config.client.ManagementContext context =
+            org.forgerock.opendj.config.client.ldap.LDAPManagementContext.newLDIFManagementContext(config, profile))
+        {
+          final org.forgerock.opendj.server.config.client.BackendCfgClient backend =
+              context.getRootConfiguration().getBackend(backendName);
+          final SortedSet<org.forgerock.opendj.ldap.DN> baseDNs = backend.getBaseDN();
+          baseDNs.add(org.forgerock.opendj.ldap.DN.valueOf(newBaseDN));
+          backend.setBaseDN(baseDNs);
+          backend.commit();
+        }
       }
       catch (Exception e)
       {
