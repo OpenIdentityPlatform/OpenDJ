@@ -1108,7 +1108,6 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       final List<IOException> exceptions = new ArrayList<>();
       final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
               Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
-      Utilities.throwFirstFrom(exceptions);
       final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
       if (backend instanceof LocalDBBackendCfgClient)
       {
@@ -1121,6 +1120,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
             searchScope, sortOrder);
       }
       context.close();
+      Utilities.throwFirstFrom(exceptions);
     }
     catch (final Exception e)
     {

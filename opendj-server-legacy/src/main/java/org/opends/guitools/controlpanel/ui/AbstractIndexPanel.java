@@ -393,7 +393,6 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
       final List<IOException> exceptions = new ArrayList<>();
       final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
               Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
-      Utilities.throwFirstFrom(exceptions);
       final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
       if (backend instanceof LocalDBBackendCfgClient)
       {
@@ -406,6 +405,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
             (PluggableBackendCfgClient) backend, indexToModify, attributeName, indexTypes, indexEntryLimit);
       }
       context.close();
+      Utilities.throwFirstFrom(exceptions);
     }
     catch (final Exception e)
     {
