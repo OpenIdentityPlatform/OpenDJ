@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
@@ -84,7 +84,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -348,7 +347,7 @@ final class Importer
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      throw new InitializationException(ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
+      throw new InitializationException(ERR_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
     }
     return tempDir;
   }
@@ -543,15 +542,15 @@ final class Importer
 
     if (oldThreadCount != threadCount)
     {
-      logger.info(NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
+      logger.info(NOTE_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
     }
 
-    logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
+    logger.info(NOTE_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
     if (dnCacheSize > 0)
     {
-      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM, dnCacheSize);
+      logger.info(NOTE_IMPORT_LDIF_TMP_ENV_MEM, dnCacheSize);
     }
-    logger.info(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
+    logger.info(NOTE_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
   }
 
   /**
@@ -869,13 +868,11 @@ final class Importer
       }
       catch (IOException ioe)
       {
-        LocalizableMessage message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
-        throw new InitializationException(message, ioe);
+        throw new InitializationException(ERR_IMPORT_LDIF_READER_IO_ERROR.get(), ioe);
       }
 
-      logger.info(NOTE_JEB_IMPORT_STARTING, DirectoryServer.getVersionString(),
-              BUILD_ID, REVISION_NUMBER);
-      logger.info(NOTE_JEB_IMPORT_THREAD_COUNT, threadCount);
+      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION_NUMBER);
+      logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
 
       final Storage storage = rootContainer.getStorage();
       storage.write(new WriteOperation()
@@ -921,7 +918,7 @@ final class Importer
       recursiveDelete(tempDir);
       final long finishTime = System.currentTimeMillis();
       final long importTime = finishTime - startTime;
-      logger.info(NOTE_JEB_IMPORT_PHASE_STATS, importTime / 1000,
+      logger.info(NOTE_IMPORT_PHASE_STATS, importTime / 1000,
               (phaseOneFinishTime - startTime) / 1000,
               (phaseTwoFinishTime - phaseTwoTime) / 1000);
       float rate = 0;
@@ -929,7 +926,7 @@ final class Importer
       {
         rate = 1000f * reader.getEntriesRead() / importTime;
       }
-      logger.info(NOTE_JEB_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount.get(),
+      logger.info(NOTE_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount.get(),
           reader.getEntriesIgnored(), reader.getEntriesRejected(),
           migratedCount, importTime / 1000, rate);
       return new LDIFImportResult(reader.getEntriesRead(),
@@ -979,7 +976,7 @@ final class Importer
     }
     catch (StorageRuntimeException ex)
     {
-      throw new StorageRuntimeException(NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
+      throw new StorageRuntimeException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
     }
   }
 
@@ -1140,7 +1137,7 @@ final class Importer
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
 
-    logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
+    logger.info(NOTE_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
 
     // Start indexing tasks.
     ExecutorService dbService = Executors.newFixedThreadPool(dbThreads);
@@ -1207,13 +1204,13 @@ final class Importer
         EntryContainer entryContainer = suffix.getSrcEntryContainer();
         if (entryContainer != null && !suffix.getExcludeBranches().isEmpty())
         {
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
+          logger.info(NOTE_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
           Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
             for (DN excludedDN : suffix.getExcludeBranches())
             {
-              final ByteString key = JebFormat.dnToDNKey(excludedDN, suffix.getBaseDN().size());
+              final ByteString key = DnKeyFormat.dnToDNKey(excludedDN, suffix.getBaseDN().size());
               boolean success = cursor.positionToKeyOrNext(key);
               if (success && key.equals(cursor.getKey()))
               {
@@ -1240,7 +1237,7 @@ final class Importer
           }
           catch (Exception e)
           {
-            logger.error(ERR_JEB_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR, e.getMessage());
+            logger.error(ERR_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR, e.getMessage());
             isCanceled = true;
             throw e;
           }
@@ -1269,7 +1266,7 @@ final class Importer
         EntryContainer entryContainer = suffix.getSrcEntryContainer();
         if (entryContainer != null && !suffix.getIncludeBranches().isEmpty())
         {
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
+          logger.info(NOTE_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
           Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getDN2ID().getName());
           try
           {
@@ -1312,7 +1309,7 @@ final class Importer
           }
           catch (Exception e)
           {
-            logger.error(ERR_JEB_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR, e.getMessage());
+            logger.error(ERR_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR, e.getMessage());
             isCanceled = true;
             throw e;
           }
@@ -1331,7 +1328,7 @@ final class Importer
       {
         if (includeBranch.isDescendantOf(suffix.getBaseDN()))
         {
-          includeBranches.add(JebFormat.dnToDNKey(includeBranch, suffix.getBaseDN().size()));
+          includeBranches.add(DnKeyFormat.dnToDNKey(includeBranch, suffix.getBaseDN().size()));
         }
       }
       return includeBranches;
@@ -1380,7 +1377,7 @@ final class Importer
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR, e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR, e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -1514,7 +1511,7 @@ final class Importer
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR, e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_IMPORT_TASK_ERR, e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -1546,7 +1543,7 @@ final class Importer
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
       if (parentDN != null && !suffix.isParentProcessed(txn, parentDN, dnCache, clearedBackend))
       {
-        reader.rejectEntry(entry, ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN));
+        reader.rejectEntry(entry, ERR_IMPORT_PARENT_NOT_FOUND.get(parentDN));
         return false;
       }
       //If the backend was not cleared, then the dn2id needs to checked first
@@ -1557,13 +1554,13 @@ final class Importer
         EntryID id = suffix.getDN2ID().get(txn, entryDN);
         if (id != null || !dnCache.insert(entryDN))
         {
-          reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+          reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
           return false;
         }
       }
       else if (!dnCache.insert(entryDN))
       {
-        reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+        reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
         return false;
       }
       return true;
@@ -1689,7 +1686,7 @@ final class Importer
         throws InterruptedException
     {
       DN2ID dn2id = suffix.getDN2ID();
-      ByteString dnBytes = JebFormat.dnToDNKey(dn, suffix.getBaseDN().size());
+      ByteString dnBytes = DnKeyFormat.dnToDNKey(dn, suffix.getBaseDN().size());
       int indexID = processKey(dn2id, dnBytes, entryID, dnIndexKey, true);
       indexIDToECMap.putIfAbsent(indexID, suffix.getEntryContainer());
     }
@@ -1778,8 +1775,7 @@ final class Importer
       nextBufferID = 0;
       ownedPermits = 0;
 
-      logger.info(NOTE_JEB_IMPORT_LDIF_INDEX_STARTED, indexMgr.getBufferFileName(),
-              remainingBuffers, totalBatches);
+      logger.info(NOTE_IMPORT_LDIF_INDEX_STARTED, indexMgr.getBufferFileName(), remainingBuffers, totalBatches);
 
       indexMgr.setIndexDBWriteTask(this);
       isRunning = true;
@@ -1855,14 +1851,14 @@ final class Importer
 
           if (!isCanceled)
           {
-            logger.info(NOTE_JEB_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
+            logger.info(NOTE_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
           }
         }
         else
         {
           if (!isCanceled)
           {
-            logger.info(NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
+            logger.info(NOTE_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
           }
         }
       }
@@ -1897,7 +1893,7 @@ final class Importer
         final long kiloBytesRate = bytesReadInterval / deltaTime;
         final long kiloBytesRemaining = (bufferFileSize - tmpBytesRead) / 1024;
 
-        logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_REPORT, indexMgr.getBufferFileName(),
+        logger.info(NOTE_IMPORT_LDIF_PHASE_TWO_REPORT, indexMgr.getBufferFileName(),
             bytesReadPercent, kiloBytesRemaining, kiloBytesRate, currentBatch, totalBatches);
 
         lastBytesRead = tmpBytesRead;
@@ -1971,7 +1967,7 @@ final class Importer
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR, indexMgr.getBufferFileName(), e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_INDEX_WRITE_DB_ERR, indexMgr.getBufferFileName(), e.getMessage());
         throw e;
       }
       finally
@@ -2059,7 +2055,7 @@ final class Importer
 
       private ByteSequence getParent(ByteSequence dn)
       {
-        int parentIndex = JebFormat.findDNKeyParent(dn);
+        int parentIndex = DnKeyFormat.findDNKeyParent(dn);
         if (parentIndex < 0)
         {
           // This is the root or base DN
@@ -2298,8 +2294,7 @@ final class Importer
       }
       catch (IOException e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR,
-            indexMgr.getBufferFile().getAbsolutePath(), e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_INDEX_FILEWRITER_ERR, indexMgr.getBufferFile().getAbsolutePath(), e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -2706,17 +2701,17 @@ final class Importer
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
-        logger.info(NOTE_JEB_REBUILD_ALL_START, totalEntries);
+        logger.info(NOTE_REBUILD_ALL_START, totalEntries);
         break;
       case DEGRADED:
-        logger.info(NOTE_JEB_REBUILD_DEGRADED_START, totalEntries);
+        logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       default:
         if (!rebuildConfig.isClearDegradedState()
             && logger.isInfoEnabled())
         {
           String indexes = Utils.joinAsString(", ", rebuildConfig.getRebuildList());
-          logger.info(NOTE_JEB_REBUILD_START, indexes, totalEntries);
+          logger.info(NOTE_REBUILD_START, indexes, totalEntries);
         }
         break;
       }
@@ -2734,7 +2729,7 @@ final class Importer
 
       if (!rebuildConfig.isClearDegradedState())
       {
-        logger.info(NOTE_JEB_REBUILD_FINAL_STATUS, entriesProcessed.get(), totalTime / 1000, rate);
+        logger.info(NOTE_REBUILD_FINAL_STATUS, entriesProcessed.get(), totalTime / 1000, rate);
       }
     }
 
@@ -2763,7 +2758,7 @@ final class Importer
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.error(ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR, stackTraceToSingleLineString(e));
+        logger.error(ERR_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR, stackTraceToSingleLineString(e));
         isCanceled = true;
         throw e;
       }
@@ -2776,7 +2771,7 @@ final class Importer
     private void clearDegradedState(WriteableTransaction txn)
     {
       setIndexesListsToBeRebuilt(txn);
-      logger.info(NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
+      logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
       postRebuildIndexes(txn);
     }
 
@@ -2933,7 +2928,7 @@ final class Importer
       }
       catch (StorageRuntimeException ex)
       {
-        throw new StorageRuntimeException(NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
+        throw new StorageRuntimeException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
       }
     }
 
@@ -3037,7 +3032,7 @@ final class Importer
         {
           if (lowerName.length() < 5)
           {
-            throw new StorageRuntimeException(ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName).toString());
+            throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName).toString());
           }
           indexCount++;
         }
@@ -3111,7 +3106,7 @@ final class Importer
 
     private InitializationException attributeIndexNotConfigured(String index)
     {
-      return new InitializationException(ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
+      return new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
     }
 
     private boolean findExtensibleMatchingRule(PluggableBackendCfg cfg, String indexExRuleName) throws ConfigException
@@ -3277,8 +3272,7 @@ final class Importer
       {
         completed = 100f * entriesProcessed / rebuildManager.getTotalEntries();
       }
-      logger.info(NOTE_JEB_REBUILD_PROGRESS_REPORT, completed, entriesProcessed,
-          rebuildManager.getTotalEntries(), rate);
+      logger.info(NOTE_REBUILD_PROGRESS_REPORT, completed, entriesProcessed, rebuildManager.getTotalEntries(), rate);
 
       previousProcessed = entriesProcessed;
       previousTime = latestTime;
@@ -3321,7 +3315,7 @@ final class Importer
         return;
       }
       float rate = 1000f * deltaCount / deltaTime;
-      logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
+      logger.info(NOTE_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
 
       previousCount = entriesRead;
       previousTime = latestTime;

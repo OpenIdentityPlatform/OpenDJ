@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 /**
  * Handles the disk representation of LDAP data.
  */
-public class JebFormat
+public class DnKeyFormat
 {
 
   /** The format version used by this class to encode and decode a ByteString. */

@@ -29,7 +29,7 @@ package org.opends.server.backends.jeb;
 import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -164,7 +164,7 @@ public class DN2URI extends DatabaseContainer
       return Pair.of(labeledURI, dn);
     }
     catch (Exception e) {
-       throw new DirectoryException(ResultCode.OPERATIONS_ERROR, ERR_JEB_DATABASE_EXCEPTION.get(e));
+       throw new DirectoryException(ResultCode.OPERATIONS_ERROR, ERR_DATABASE_EXCEPTION.get(e));
     }
   }
 
@@ -510,7 +510,7 @@ public class DN2URI extends DatabaseContainer
     }
 
     // Throw a directory referral exception containing the URIs.
-    LocalizableMessage msg = NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(referralDN);
+    LocalizableMessage msg = NOTE_REFERRAL_RESULT_MESSAGE.get(referralDN);
     throw new DirectoryException(
             ResultCode.REFERRAL, msg, referralDN, URIList, null);
   }

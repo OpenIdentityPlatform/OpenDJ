@@ -327,9 +327,6 @@ Please:
     <genmsg sourceProps="${msg.prop.dir}/extension.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/ExtensionMessages.java">
     </genmsg>
-    <genmsg sourceProps="${msg.prop.dir}/jeb.properties"
-            destJava="${msg.javagen.dir}/org/opends/messages/JebMessages.java">
-    </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/log.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/LoggerMessages.java">
     </genmsg>

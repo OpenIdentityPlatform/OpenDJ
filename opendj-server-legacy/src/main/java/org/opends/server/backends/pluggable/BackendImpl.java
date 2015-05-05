@@ -28,7 +28,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -73,7 +72,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /** The configuration of this backend. */
   private PluggableBackendCfg cfg;
-  /** The root JE container to use for this backend. */
+  /** The root container to use for this backend. */
   private RootContainer rootContainer;
 
   // FIXME: this is broken. Replace with read-write lock.
@@ -168,11 +167,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     try
     {
       // Log an informational message about the number of entries.
-      logger.info(NOTE_JEB_BACKEND_STARTED, cfg.getBackendId(), getEntryCount());
+      logger.info(NOTE_BACKEND_STARTED, cfg.getBackendId(), getEntryCount());
     }
     catch (StorageRuntimeException e)
     {
-      LocalizableMessage message = WARN_JEB_GET_ENTRY_COUNT_FAILED.get(e.getMessage());
+      LocalizableMessage message = WARN_GET_ENTRY_COUNT_FAILED.get(e.getMessage());
       throw new InitializationException(message, e);
     }
 
@@ -231,7 +230,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     catch (StorageRuntimeException e)
     {
       logger.traceException(e);
-      logger.error(ERR_JEB_DATABASE_EXCEPTION, e.getMessage());
+      logger.error(ERR_DATABASE_EXCEPTION, e.getMessage());
     }
 
     // Make sure the thread counts are zero for next initialization.
@@ -540,8 +539,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       accessEnd();
       // FIXME: No reason why we cannot implement a move between containers
-      // since the containers share the same database environment.
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, WARN_JEB_FUNCTION_NOT_SUPPORTED.get());
+      // since the containers share the same "container"
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, WARN_FUNCTION_NOT_SUPPORTED.get());
     }
 
     currentContainer.sharedLock.lock();
@@ -613,7 +612,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (IOException ioe)
     {
-      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
+      throw new DirectoryException(errorRC, ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (StorageRuntimeException de)
     {
@@ -653,7 +652,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     // We can't do import while the backend is online.
     if (rootContainer != null)
     {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_IMPORT_BACKEND_ONLINE.get());
+      throw new DirectoryException(getServerErrorResultCode(), ERR_IMPORT_BACKEND_ONLINE.get());
     }
 
     try
@@ -667,8 +666,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         }
         catch (Exception e)
         {
-          LocalizableMessage m = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-          throw new DirectoryException(getServerErrorResultCode(), m, e);
+          throw new DirectoryException(getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
         }
       }
 
@@ -701,11 +699,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
           rootContainer.close();
           long finishTime = System.currentTimeMillis();
           long closeTime = (finishTime - startTime) / 1000;
-          logger.info(NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
+          logger.info(NOTE_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
           rootContainer = null;
         }
 
-        logger.info(NOTE_JEB_IMPORT_CLOSING_DATABASE);
+        logger.info(NOTE_IMPORT_CLOSING_DATABASE);
       }
       catch (StorageRuntimeException de)
       {
@@ -776,7 +774,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if (!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      throw new DirectoryException(errorRC, ERR_JEB_REBUILD_BACKEND_ONLINE.get());
+      throw new DirectoryException(errorRC, ERR_REBUILD_BACKEND_ONLINE.get());
     }
 
     try
@@ -946,7 +944,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   }
 
   /**
-   * Returns a handle to the JE root container currently used by this backend.
+   * Returns a handle to the root container currently used by this backend.
    * The rootContainer could be NULL if the backend is not initialized.
    *
    * @return The RootContainer object currently used by this backend.
@@ -957,7 +955,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   }
 
   /**
-   * Returns a new read-only handle to the JE root container for this backend.
+   * Returns a new read-only handle to the root container for this backend.
    * The caller is responsible for closing the root container after use.
    *
    * @return The read-only RootContainer object for this backend.
@@ -976,7 +974,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   /**
    * Creates a customized DirectoryException from the StorageRuntimeException
-   * thrown by JE backend.
+   * thrown by the backend.
    *
    * @param e
    *          The StorageRuntimeException to be converted.
@@ -1008,8 +1006,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (StorageRuntimeException e)
     {
-      LocalizableMessage message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
-      throw new InitializationException(message, e);
+      throw new InitializationException(ERR_OPEN_ENV_FAIL.get(e.getMessage()), e);
     }
   }
 

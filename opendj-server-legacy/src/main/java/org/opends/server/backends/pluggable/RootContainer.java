@@ -27,7 +27,6 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -106,7 +105,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       long entriesIgnored = reader.getEntriesIgnored();
       long entriesRejected = reader.getEntriesRejected();
       float rate = 1000f * deltaCount / deltaTime;
-      logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
+      logger.info(NOTE_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
 
       previousCount = latestCount;
       previousTime = latestTime;
@@ -255,11 +254,11 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
               }
               else
               {
-                reader.rejectLastEntry(WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+                reader.rejectLastEntry(WARN_IMPORT_ENTRY_EXISTS.get());
               }
               break;
             case NO_SUCH_OBJECT:
-              reader.rejectLastEntry(ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(dn.parent()));
+              reader.rejectLastEntry(ERR_IMPORT_PARENT_NOT_FOUND.get(dn.parent()));
               break;
             default:
               // Not sure why it failed.
@@ -278,7 +277,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         {
           rate = 1000f * reader.getEntriesRead() / importTime;
         }
-        logger.info(NOTE_JEB_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount, reader.getEntriesIgnored(),
+        logger.info(NOTE_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount, reader.getEntriesIgnored(),
             reader.getEntriesRejected(), 0, importTime / 1000, rate);
         return new LDIFImportResult(reader.getEntriesRead(), reader.getEntriesRejected(), reader.getEntriesIgnored());
       }
@@ -412,8 +411,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     // another to be opened.
     if (ec1 != null)
     {
-      throw new InitializationException(ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getDatabasePrefix(),
-          baseDN));
+      throw new InitializationException(ERR_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getDatabasePrefix(), baseDN));
     }
 
     this.entryContainers.put(baseDN, entryContainer);
@@ -530,7 +528,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       {
         logger.traceException(e);
 
-        logger.error(ERR_JEB_CACHE_PRELOAD, backend.getBackendID(),
+        logger.error(ERR_CACHE_PRELOAD, backend.getBackendID(),
             stackTraceToSingleLineString(e.getCause() != null ? e.getCause() : e));
       }
     }

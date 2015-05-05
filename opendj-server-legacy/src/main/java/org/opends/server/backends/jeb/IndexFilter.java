@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  *
  */
 package org.opends.server.backends.jeb;
@@ -38,7 +38,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * An index filter is used to apply a search operation to a set of indexes
@@ -260,8 +260,7 @@ public class IndexFilter
           if(monitor.isFilterUseEnabled())
           {
             monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
-                    rangeEntry.getKey().getNameOrOID()));
+                INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering", rangeEntry.getKey().getNameOrOID()));
           }
           continue;
         }
@@ -362,7 +361,7 @@ public class IndexFilter
 
     if (monitor.isFilterUseEnabled())
     {
-      monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
+      monitor.updateStats(filter, INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
           indexFilterType.toString(), filter.getAttributeType().getNameOrOID()));
     }
     return new EntryIDSet();

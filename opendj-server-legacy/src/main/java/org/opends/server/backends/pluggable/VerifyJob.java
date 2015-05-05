@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
 
 import java.util.AbstractSet;
@@ -47,7 +47,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -205,17 +204,14 @@ class VerifyJob
           {
             if(lowerName.length() < 5)
             {
-              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
-              throw new StorageRuntimeException(msg.toString());
+              throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName).toString());
             }
 
             VLVIndex vlvIndex =
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              LocalizableMessage msg =
-                  ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
-              throw new StorageRuntimeException(msg.toString());
+              throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4)).toString());
             }
 
             vlvIndexList.add(vlvIndex);
@@ -225,14 +221,12 @@ class VerifyJob
             AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new StorageRuntimeException(msg.toString());
+              throw new StorageRuntimeException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index).toString());
             }
             AttributeIndex attrIndex = entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new StorageRuntimeException(msg.toString());
+              throw new StorageRuntimeException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index).toString());
             }
             attrIndexList.add(attrIndex);
           }
@@ -290,7 +284,7 @@ class VerifyJob
 
       if (cleanMode)
       {
-        logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
+        logger.info(NOTE_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
 
         if (multiReferenceCount > 0)
         {
@@ -302,19 +296,19 @@ class VerifyJob
 
           if (logger.isDebugEnabled())
           {
-            logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
-            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
-            logger.debug(INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
-            logger.debug(INFO_JEB_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
+            logger.debug(INFO_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
+            logger.debug(INFO_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
+            logger.debug(INFO_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
+            logger.debug(INFO_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
           }
         }
       }
       else
       {
-        logger.info(NOTE_JEB_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
+        logger.info(NOTE_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
         if (entryLimitMap.size() > 0)
         {
-          logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER);
+          logger.debug(INFO_VERIFY_ENTRY_LIMIT_STATS_HEADER);
 
           for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
               entryLimitMap.entrySet())
@@ -335,7 +329,7 @@ class VerifyJob
               medianValue = values[x];
             }
 
-            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW, index, values.length, values[0],
+            logger.debug(INFO_VERIFY_ENTRY_LIMIT_STATS_ROW, index, values.length, values[0],
                     values[values.length-1], medianValue);
           }
         }
@@ -1133,7 +1127,7 @@ class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      logger.info(NOTE_JEB_VERIFY_PROGRESS_REPORT, latestCount, totalCount, errorCount, rate);
+      logger.info(NOTE_VERIFY_PROGRESS_REPORT, latestCount, totalCount, errorCount, rate);
 
       try
       {
@@ -1143,7 +1137,7 @@ class VerifyJob
         // FIXME JNR compute the cache miss rate
         float cacheMissRate = 0;
 
-        logger.debug(INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
+        logger.debug(INFO_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
       }
       catch (StorageRuntimeException e)
       {

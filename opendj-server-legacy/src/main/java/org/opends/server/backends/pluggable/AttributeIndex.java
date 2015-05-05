@@ -27,7 +27,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -779,7 +779,7 @@ class AttributeIndex
           if (index.setIndexEntryLimit(indexEntryLimit))
           {
             ccr.setAdminActionRequired(true);
-            ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+            ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
           }
         }
       }
@@ -874,15 +874,13 @@ class AttributeIndex
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
 
-      if (indexType == IndexType.SUBSTRING
-          && config.getSubstringLength() != cfg.getSubstringLength())
+      if (indexType == IndexType.SUBSTRING && config.getSubstringLength() != cfg.getSubstringLength())
       {
         ccr.setAdminActionRequired(true);
-        // FIXME: msg?
-        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.addMessage(NOTE_CONFIG_INDEX_SUBSTRING_LENGTH_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
@@ -913,7 +911,7 @@ class AttributeIndex
     if (!index.isTrusted())
     {
       ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
     return index;
   }
@@ -989,8 +987,8 @@ class AttributeIndex
     {
       if (monitor.isFilterUseEnabled())
       {
-        monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(
-            matchRuleOID, config.getAttribute().getNameOrOID()));
+        monitor.updateStats(filter,
+            INFO_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(matchRuleOID, config.getAttribute().getNameOrOID()));
       }
       return IndexQuery.createNullIndexQuery().evaluate(null);
     }

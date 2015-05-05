@@ -49,7 +49,7 @@ import com.sleepycat.je.*;
 import static com.sleepycat.je.EnvironmentConfig.*;
 import static com.sleepycat.je.OperationStatus.*;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -345,8 +345,7 @@ public class ReplicationDbEnv
     }
     catch (RuntimeException e)
     {
-      final LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
-      throw new ChangelogException(message, e);
+      throw new ChangelogException(ERR_DATABASE_EXCEPTION.get(e.getMessage()), e);
     }
     finally
     {

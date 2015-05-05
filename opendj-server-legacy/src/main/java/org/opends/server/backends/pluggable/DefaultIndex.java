@@ -27,7 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 
@@ -284,7 +284,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
     }
 
     setTrusted(txn, false);
-    logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, getName());
+    logger.error(ERR_INDEX_CORRUPT_REQUIRES_REBUILD, getName());
   }
 
   @Override

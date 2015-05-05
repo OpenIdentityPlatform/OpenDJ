@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -33,11 +33,12 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.types.AttributeType;
 
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -54,6 +55,7 @@ public final class IndexQueryFactoryImpl implements
    */
   private final Map<String, Index> indexMap;
   private final IndexingOptions indexingOptions;
+  private final AttributeType attribute;
 
   /**
    * Creates a new IndexQueryFactoryImpl object.
@@ -62,11 +64,14 @@ public final class IndexQueryFactoryImpl implements
    *          A map containing the index id and the corresponding index.
    * @param indexingOptions
    *          The options to use for indexing
+   * @param attribute
+   *          The Attribute type of this index, for error messages
    */
-  public IndexQueryFactoryImpl(Map<String, Index> indexMap, IndexingOptions indexingOptions)
+  public IndexQueryFactoryImpl(Map<String, Index> indexMap, IndexingOptions indexingOptions, AttributeType attribute)
   {
     this.indexMap = indexMap;
     this.indexingOptions = indexingOptions;
+    this.attribute = attribute;
   }
 
 
@@ -90,7 +95,7 @@ public final class IndexQueryFactoryImpl implements
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, attribute.getNameOrOID()));
             }
             return createMatchAllQuery().evaluate(debugMessage);
           }
@@ -124,7 +129,7 @@ public final class IndexQueryFactoryImpl implements
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, attribute.getNameOrOID()));
             }
             return createMatchAllQuery().evaluate(debugMessage);
           }
@@ -179,7 +184,7 @@ public final class IndexQueryFactoryImpl implements
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, attribute.getNameOrOID()));
             }
             return new EntryIDSet();
           }
@@ -198,15 +203,15 @@ public final class IndexQueryFactoryImpl implements
   {
     if (!index.isTrusted())
     {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
     }
     else if (index.isRebuildRunning())
     {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
     }
     else
     {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
     }
   }
 

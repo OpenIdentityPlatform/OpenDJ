@@ -46,10 +46,10 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
- * JebFormat Tester.
+ * DnKeyFormat Tester.
  */
 @SuppressWarnings("javadoc")
-public class TestJebFormat extends DirectoryServerTestCase {
+public class TestDnKeyFormat extends DirectoryServerTestCase {
 
   private static final String ldifString =
     "dn: uid=user.1,ou=People,dc=example,dc=com\n"
@@ -544,8 +544,8 @@ public class TestJebFormat extends DirectoryServerTestCase {
   public void testFindDnKeyParent(String dn, int expectedLength) throws Exception
   {
     ensureServerIsUpAndRunning();
-    ByteString dnKey = JebFormat.dnToDNKey(DN.valueOf(dn), 0);
-    assertThat(JebFormat.findDNKeyParent(dnKey)).isEqualTo(expectedLength);
+    ByteString dnKey = DnKeyFormat.dnToDNKey(DN.valueOf(dn), 0);
+    assertThat(DnKeyFormat.findDNKeyParent(dnKey)).isEqualTo(expectedLength);
   }
 
   private void ensureServerIsUpAndRunning() throws Exception

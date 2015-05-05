@@ -28,10 +28,10 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Utils.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
-import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -232,7 +232,7 @@ public class EntryContainer
             if (!index.isTrusted())
             {
               ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
+              ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
             }
             attrIndexMap.put(cfg.getAttribute(), index);
           }
@@ -306,10 +306,8 @@ public class EntryContainer
       }
       catch(Exception e)
       {
-        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-            cfg.getFilter(), cfg.getName(),
-            e.getLocalizedMessage());
-        unacceptableReasons.add(msg);
+        unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
+            cfg.getFilter(), cfg.getName(), e.getLocalizedMessage()));
         return false;
       }
 
@@ -336,9 +334,7 @@ public class EntryContainer
         }
         catch(Exception e)
         {
-          LocalizableMessage msg =
-            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], cfg.getName());
-          unacceptableReasons.add(msg);
+          unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], cfg.getName()));
           return false;
         }
 
@@ -346,9 +342,7 @@ public class EntryContainer
           DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-              sortAttrs[i], cfg.getName());
-          unacceptableReasons.add(msg);
+          unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));
           return false;
         }
         sortKeys[i] = new SortKey(attrType, ascending[i]);
@@ -374,7 +368,7 @@ public class EntryContainer
             if(!vlvIndex.isTrusted())
             {
               ccr.setAdminActionRequired(true);
-              ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getName()));
+              ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getName()));
             }
             vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
           }
@@ -506,7 +500,7 @@ public class EntryContainer
         index.open(txn);
         if(!index.isTrusted())
         {
-          logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
+          logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, index.getName());
         }
         attrIndexMap.put(indexCfg.getAttribute(), index);
       }
@@ -520,7 +514,7 @@ public class EntryContainer
 
         if(!vlvIndex.isTrusted())
         {
-          logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
+          logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
         }
 
         vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
@@ -782,8 +776,8 @@ public class EntryContainer
           VLVRequestControl vlvRequest = searchOperation.getRequestControl(VLVRequestControl.DECODER);
           if (vlvRequest != null && pageRequest != null)
           {
-            LocalizableMessage message = ERR_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get();
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+            throw new DirectoryException(
+                ResultCode.CONSTRAINT_VIOLATION, ERR_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get());
           }
 
           // Handle client abandon of paged results.
@@ -963,8 +957,8 @@ public class EntryContainer
             ClientConnection clientConnection = searchOperation.getClientConnection();
             if (!clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH, searchOperation))
             {
-              LocalizableMessage message = ERR_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get();
-              throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
+              throw new DirectoryException(
+                  ResultCode.INSUFFICIENT_ACCESS_RIGHTS, ERR_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get());
             }
 
             if (sortRequest != null)
@@ -975,8 +969,8 @@ public class EntryContainer
 
               if (sortRequest.isCritical())
               {
-                LocalizableMessage message = ERR_JEB_SEARCH_CANNOT_SORT_UNINDEXED.get();
-                throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message);
+                throw new DirectoryException(
+                    ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, ERR_SEARCH_CANNOT_SORT_UNINDEXED.get());
               }
             }
 
@@ -1019,7 +1013,7 @@ public class EntryContainer
           }
           catch (NoSuchElementException e)
           {
-            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN),
+            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_SEARCH_NO_SUCH_OBJECT.get(aBaseDN),
                 getMatchedDN(txn, aBaseDN), e);
           }
           return scopeSet;
@@ -1186,9 +1180,8 @@ public class EntryContainer
       catch (Exception e)
       {
         logger.traceException(e);
-        String str = pageRequest.getCookie().toHexString();
-        LocalizableMessage msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            ERR_INVALID_PAGED_RESULTS_COOKIE.get(pageRequest.getCookie().toHexString()), e);
       }
     }
     else
@@ -1215,7 +1208,7 @@ public class EntryContainer
           {
             // Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-            searchOperation.appendErrorMessage(NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+            searchOperation.appendErrorMessage(NOTE_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
             return;
           }
 
@@ -1355,10 +1348,8 @@ public class EntryContainer
       catch (Exception e)
       {
         logger.traceException(e);
-        String str = pageRequest.getCookie().toHexString();
-        LocalizableMessage msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            msg, e);
+            ERR_INVALID_PAGED_RESULTS_COOKIE.get(pageRequest.getCookie().toHexString()), e);
       }
     }
     else if (!manageDsaIT)
@@ -1373,8 +1364,7 @@ public class EntryContainer
     {
       //Lookthrough limit exceeded
       searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-      searchOperation.appendErrorMessage(
-          NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+      searchOperation.appendErrorMessage(NOTE_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
       continueSearch = false;
     }
 
@@ -1512,8 +1502,8 @@ public class EntryContainer
             // Check whether the entry already exists.
             if (dn2id.get(txn, entry.getName()) != null)
             {
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry
-                  .getName()));
+              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_ADD_ENTRY_ALREADY_EXISTS.get(
+                  entry.getName()));
             }
 
             // Check that the parent entry exists.
@@ -1527,9 +1517,8 @@ public class EntryContainer
               parentID = dn2id.get(txn, parentDN);
               if (parentID == null)
               {
-                LocalizableMessage message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(entry.getName());
-                DN matchedDN = getMatchedDN(txn, baseDN);
-                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
+                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                    ERR_ADD_NO_SUCH_OBJECT.get(entry.getName()), getMatchedDN(txn, baseDN), null);
               }
               id2childrenCount.addDelta(txn, parentID, 1);
             }
@@ -1577,8 +1566,8 @@ public class EntryContainer
             {
               msg = stackTraceToSingleLineString(e);
             }
-            LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(
+                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -1656,7 +1645,7 @@ public class EntryContainer
                 {
                   // The subtree delete control was not specified and
                   // the target entry is not a leaf.
-                  throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF
+                  throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_NOT_ALLOWED_ON_NONLEAF
                       .get(entryDN));
                 }
 
@@ -1675,9 +1664,8 @@ public class EntryContainer
 
                   if (!pluginResult.continueProcessing())
                   {
-                    LocalizableMessage message =
-                        ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(subordinateEntry.getName());
-                    throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+                    throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                        ERR_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(subordinateEntry.getName()));
                   }
                 }
 
@@ -1738,8 +1726,8 @@ public class EntryContainer
             {
               msg = stackTraceToSingleLineString(e);
             }
-            LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(
+                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -1776,7 +1764,7 @@ public class EntryContainer
       ByteString value = txn.read(dn2id.getName(), leafDNKey);
       if (value == null)
       {
-        LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(targetDN);
+        LocalizableMessage message = ERR_DELETE_NO_SUCH_OBJECT.get(targetDN);
         DN matchedDN = getMatchedDN(txn, baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
@@ -1787,9 +1775,8 @@ public class EntryContainer
     if (!txn.delete(dn2id.getName(), leafDNKey))
     {
       // Do not expect to ever come through here.
-      LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
-      DN matchedDN = getMatchedDN(txn, baseDN);
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
+      throw new DirectoryException(
+          ResultCode.NO_SUCH_OBJECT, ERR_DELETE_NO_SUCH_OBJECT.get(leafDNKey), getMatchedDN(txn, baseDN), null);
     }
 
     // Check that the entry exists in id2entry and read its contents.
@@ -1798,7 +1785,7 @@ public class EntryContainer
     if (entry == null)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID));
+          ERR_MISSING_ID2ENTRY_RECORD.get(leafID));
     }
 
     if (!manageDsaIT)
@@ -1813,7 +1800,7 @@ public class EntryContainer
     if (!id2entry.remove(txn, leafID))
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID));
+          ERR_MISSING_ID2ENTRY_RECORD.get(leafID));
     }
 
     // Remove from the indexes, in index config order.
@@ -1829,7 +1816,7 @@ public class EntryContainer
       final EntryID parentID = dn2id.get(txn, parentDN);
       if (parentID == null)
       {
-        throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN).toString());
+        throw new StorageRuntimeException(ERR_MISSING_DN2ID_RECORD.get(parentDN).toString());
       }
       id2childrenCount.addDelta(txn, parentID, -1);
     }
@@ -1992,10 +1979,8 @@ public class EntryContainer
             EntryID entryID = dn2id.get(txn, newEntry.getName());
             if (entryID == null)
             {
-              LocalizableMessage message = ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName());
-              DN matchedDN = getMatchedDN(txn, baseDN);
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                  message, matchedDN, null);
+                  ERR_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName()), getMatchedDN(txn, baseDN), null);
             }
 
             if (!isManageDsaITOperation(modifyOperation))
@@ -2068,9 +2053,8 @@ public class EntryContainer
             {
               msg = stackTraceToSingleLineString(e);
             }
-            LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                message, e);
+            throw new DirectoryException(
+                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -2136,7 +2120,7 @@ public class EntryContainer
             // Check whether the renamed entry already exists.
             if (!currentDN.equals(entry.getName()) && dn2id.get(txn, entry.getName()) != null)
             {
-              LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(entry.getName());
+              LocalizableMessage message = ERR_MODIFYDN_ALREADY_EXISTS.get(entry.getName());
               throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
             }
 
@@ -2146,15 +2130,14 @@ public class EntryContainer
               // Check for referral entries above the target entry.
               dn2uri.targetEntryReferrals(txn, currentDN, null);
 
-              LocalizableMessage message = ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN);
-              DN matchedDN = getMatchedDN(txn, baseDN);
-              throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
+              throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                  ERR_MODIFYDN_NO_SUCH_OBJECT.get(currentDN), getMatchedDN(txn, baseDN), null);
             }
 
             Entry oldApexEntry = id2entry.get(txn, oldApexID);
             if (oldApexEntry == null)
             {
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD
+              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_MISSING_ID2ENTRY_RECORD
                   .get(oldApexID));
             }
 
@@ -2174,9 +2157,8 @@ public class EntryContainer
               EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN);
               if (newSuperiorID == null)
               {
-                LocalizableMessage msg = ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN);
-                DN matchedDN = getMatchedDN(txn, baseDN);
-                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, msg, matchedDN, null);
+                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                    ERR_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN), getMatchedDN(txn, baseDN), null);
               }
 
               if (newSuperiorID.compareTo(oldApexID) > 0)
@@ -2305,8 +2287,8 @@ public class EntryContainer
             {
               msg = stackTraceToSingleLineString(e);
             }
-            LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(
+                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -2451,7 +2433,7 @@ public class EntryContainer
       if (!pluginResult.continueProcessing())
       {
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldDN, newDN));
+            ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldDN, newDN));
       }
 
       if (! modifications.isEmpty())
@@ -2460,10 +2442,8 @@ public class EntryContainer
         if (! newEntry.conformsToSchema(null, false, false, false,
             invalidReason))
         {
-          LocalizableMessage message =
-            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldDN, newDN, invalidReason);
-          throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), message);
+          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldDN, newDN, invalidReason));
         }
       }
     }
@@ -2756,8 +2736,7 @@ public class EntryContainer
       {
         msg = stackTraceToSingleLineString(e);
       }
-      LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-      throw new StorageRuntimeException(message.toString(), e);
+      throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
     }
     finally
     {
@@ -2783,8 +2762,7 @@ public class EntryContainer
         {
           msg = stackTraceToSingleLineString(e);
         }
-        LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-        throw new StorageRuntimeException(message.toString(), e);
+        throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
       }
     }
   }
@@ -3036,10 +3014,8 @@ public class EntryContainer
       // Check for referral entries above the base entry.
       dn2uri.targetEntryReferrals(txn, baseDN, searchScope);
 
-      LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN);
-      DN matchedDN = getMatchedDN(txn, baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, matchedDN, null);
+          ERR_SEARCH_NO_SUCH_OBJECT.get(baseDN), getMatchedDN(txn, baseDN), null);
     }
 
     return baseEntry;

@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
 
 import java.util.ArrayList;
@@ -86,7 +86,8 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
+                  attributeIndex.getAttributeType().getNameOrOID()));
             }
             return createMatchAllQuery().evaluate(debugMessage);
           }
@@ -122,7 +123,8 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         {
           if (debugMessage != null)
           {
-            debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+            debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
+                  attributeIndex.getAttributeType().getNameOrOID()));
           }
           return createMatchAllQuery().evaluate(debugMessage);
         }
@@ -269,7 +271,8 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
+                  attributeIndex.getAttributeType().getNameOrOID()));
             }
             return newUndefinedSet();
           }
@@ -294,11 +297,11 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
   {
     if (!index.isTrusted())
     {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
     }
     else
     {
-      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
     }
   }
 

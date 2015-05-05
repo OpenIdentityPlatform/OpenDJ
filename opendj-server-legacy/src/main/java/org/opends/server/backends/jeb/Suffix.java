@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.*;
@@ -227,7 +227,7 @@ class Suffix
     try {
       assureNotPending(dn);
     } catch (InterruptedException e) {
-      logger.error(ERR_JEB_IMPORT_LDIF_PENDING_ERR, e.getMessage());
+      logger.error(ERR_IMPORT_LDIF_PENDING_ERR, e.getMessage());
       throw e;
     }
     // Either parent is in the DN cache,

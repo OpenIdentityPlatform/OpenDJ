@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -148,7 +148,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       }
       catch (IOException ex)
       {
-        logger.error(ERR_JEB_IMPORT_BUFFER_IO_ERROR, indexMgr.getBufferFileName());
+        logger.error(ERR_IMPORT_BUFFER_IO_ERROR, indexMgr.getBufferFileName());
         throw new RuntimeException(ex);
       }
     }

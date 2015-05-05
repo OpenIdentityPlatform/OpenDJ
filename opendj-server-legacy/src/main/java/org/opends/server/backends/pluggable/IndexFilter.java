@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.util.ArrayList;
@@ -244,8 +244,7 @@ class IndexFilter
           if(monitor.isFilterUseEnabled())
           {
             monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
-                    rangeEntry.getKey().getNameOrOID()));
+                INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering", rangeEntry.getKey().getNameOrOID()));
           }
           continue;
         }
@@ -333,7 +332,7 @@ class IndexFilter
 
     if (monitor.isFilterUseEnabled())
     {
-      monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
+      monitor.updateStats(filter, INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
           indexFilterType.toString(), filter.getAttributeType().getNameOrOID()));
     }
     return newUndefinedSet();
