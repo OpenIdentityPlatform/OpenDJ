@@ -28,6 +28,7 @@ package org.opends.server.types;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,7 +78,6 @@ public class LockManagerTest extends TypesTestCase
 
   private DN dnA;
   private DN dnAB;
-
   private DN dnABC;
   private DN dnABD;
   private final ExecutorService thread1 = Executors.newSingleThreadExecutor();
@@ -273,6 +273,46 @@ public class LockManagerTest extends TypesTestCase
     assertThat(locks.getLast().refCount()).isEqualTo(1);
     assertThat(lockManager.getThreadLocalCacheRefCountFor(dn(99))).isGreaterThan(0);
     assertThat(lockManager.getLockTableRefCountFor(dn(99))).isGreaterThan(0);
+  }
+
+  @Test(description = "OPENDJ-1984")
+  public void stressTestForDeadlocks() throws Exception
+  {
+    final LockManager lockManager = new LockManager();
+    final int threadCount = Runtime.getRuntime().availableProcessors();
+    final ExecutorService threadPool = Executors.newFixedThreadPool(threadCount);
+    for (int i = 0; i < threadCount; i++)
+    {
+      threadPool.submit(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          final Random rng = new Random();
+          for (int j = 0; j < 1000000; j++)
+          {
+            try
+            {
+              /*
+               * Lock a DN whose parent is different each time in order to prevent the thread local
+               * cache being used for retrieving the parent DN lock.
+               */
+              final int uid = rng.nextInt();
+              final int deviceId = rng.nextInt();
+              final DN dn = DN.valueOf("uid=" + deviceId + ",uid=" + uid + ",dc=example,dc=com");
+              lockManager.tryWriteLockEntry(dn).unlock();
+            }
+            catch (DirectoryException e)
+            {
+              throw new RuntimeException(e);
+            }
+          }
+        }
+      });
+    }
+
+    threadPool.shutdown();
+    assertThat(threadPool.awaitTermination(60, TimeUnit.SECONDS)).as("Deadlock detected during stress test").isTrue();
   }
 
   private DN dn(final int i) throws DirectoryException
