@@ -2145,6 +2145,8 @@ final class Importer implements DiskSpaceMonitorHandler
       private final DatabaseEntry dnKey, dnValue;
       private final TreeMap<ByteBuffer, EntryID> parentIDMap;
       private final EntryContainer entryContainer;
+      private final boolean isSubordinatesEnabled;
+      // Fields below are only needed if the isSubordinatesEnabled boolean is true.
       private final Map<byte[], ImportIDSet> id2childTree;
       private final Map<byte[], ImportIDSet> id2subtreeTree;
       private final int childLimit, subTreeLimit;
@@ -2153,17 +2155,17 @@ final class Importer implements DiskSpaceMonitorHandler
       DNState(EntryContainer entryContainer)
       {
         this.entryContainer = entryContainer;
-        parentIDMap = new TreeMap<ByteBuffer, EntryID>();
-        Comparator<byte[]> childComparator =
-            entryContainer.getID2Children().getComparator();
-        id2childTree = new TreeMap<byte[], ImportIDSet>(childComparator);
+        parentIDMap = new TreeMap<>();
+
+        isSubordinatesEnabled =  backendConfiguration.isSubordinateIndexesEnabled();
+        Comparator<byte[]> childComparator = entryContainer.getID2Children().getComparator();
+        id2childTree = new TreeMap<>(childComparator);
         childLimit = entryContainer.getID2Children().getIndexEntryLimit();
-        childDoCount = entryContainer.getID2Children().getMaintainCount();
-        Comparator<byte[]> subComparator =
-            entryContainer.getID2Subtree().getComparator();
+        childDoCount = isSubordinatesEnabled && entryContainer.getID2Children().getMaintainCount();
+        Comparator<byte[]> subComparator = entryContainer.getID2Subtree().getComparator();
         subTreeLimit = entryContainer.getID2Subtree().getIndexEntryLimit();
-        subTreeDoCount = entryContainer.getID2Subtree().getMaintainCount();
-        id2subtreeTree = new TreeMap<byte[], ImportIDSet>(subComparator);
+        subTreeDoCount = isSubordinatesEnabled && entryContainer.getID2Subtree().getMaintainCount();
+        id2subtreeTree = new TreeMap<>(subComparator);
         dnKey = new DatabaseEntry();
         dnValue = new DatabaseEntry();
         lastDN = ByteBuffer.allocate(BYTE_BUFFER_CAPACITY);
@@ -2379,7 +2381,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         entryContainer.getDN2ID().put(null, dnKey, dnValue);
         indexMgr.addTotDNCount(1);
-        if (parentDN != null)
+        if (isSubordinatesEnabled && parentDN != null)
         {
           id2child(entryID);
           id2SubTree(entryID);
@@ -2404,8 +2406,10 @@ final class Importer implements DiskSpaceMonitorHandler
 
       public void flush()
       {
-        flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
-        flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+        if (isSubordinatesEnabled) {
+          flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
+          flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+        }
       }
     }
   }
