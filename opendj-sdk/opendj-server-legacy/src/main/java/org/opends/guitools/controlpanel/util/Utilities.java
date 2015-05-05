@@ -26,6 +26,14 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.types.CommonSchemaElements.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -91,6 +99,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -129,19 +139,13 @@ import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
-
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.quicksetup.Installation.*;
-import static org.opends.server.types.CommonSchemaElements.*;
-
 /**
  * A static class that provides miscellaneous functions.
  */
 public class Utilities
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private static File rootDirectory;
   private static File instanceRootDirectory;
 
@@ -2907,6 +2911,26 @@ public class Utilities
     if (!exceptions.isEmpty())
     {
       throw exceptions.get(0);
+    }
+  }
+
+  /**
+   * Initialize the configuration framework.
+   */
+  public static void initializeConfigurationFramework()
+  {
+    if (!ConfigurationFramework.getInstance().isInitialized())
+    {
+      try
+      {
+        ConfigurationFramework.getInstance().initialize();
+      }
+      catch (ConfigException e)
+      {
+        final LocalizableMessage message = ERROR_CTRL_PANEL_INITIALIZE_CONFIG_OFFLINE.get(e.getLocalizedMessage());
+        logger.error(message);
+        throw new RuntimeException(message.toString(), e);
+      }
     }
   }
 
