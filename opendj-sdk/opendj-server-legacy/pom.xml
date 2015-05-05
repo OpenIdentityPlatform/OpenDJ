@@ -376,7 +376,6 @@
                 <messageFile>org/opends/messages/core.properties</messageFile>
                 <messageFile>org/opends/messages/dsconfig.properties</messageFile>
                 <messageFile>org/opends/messages/extension.properties</messageFile>
-                <messageFile>org/opends/messages/jeb.properties</messageFile>
                 <messageFile>org/opends/messages/logger.properties</messageFile>
                 <messageFile>org/opends/messages/plugin.properties</messageFile>
                 <messageFile>org/opends/messages/protocol.properties</messageFile>

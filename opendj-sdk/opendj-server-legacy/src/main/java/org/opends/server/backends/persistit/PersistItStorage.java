@@ -30,7 +30,6 @@ import static java.util.Arrays.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -657,8 +656,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
       final long bufferCount = getBufferPoolCfg(dbCfg).computeBufferCount(db.getAvailableHeap());
       final long totalSize = bufferCount * BUFFER_SIZE / 1024;
-      logger.info(NOTE_PERSISTIT_MEMORY_CFG, config.getBackendId(),
-          bufferCount, BUFFER_SIZE, totalSize);
+      logger.info(NOTE_PERSISTIT_MEMORY_CFG, config.getBackendId(), bufferCount, BUFFER_SIZE, totalSize);
 
       db.initialize();
       volume = db.loadVolume(VOLUME_NAME);
@@ -1021,7 +1019,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     {
       if(!backendDir.mkdirs())
       {
-        addErrorMessage(ccr, ERR_JEB_CREATE_FAIL.get(backendDir.getPath()));
+        addErrorMessage(ccr, ERR_CREATE_FAIL.get(backendDir.getPath()));
       }
       if (cleanup)
       {
@@ -1030,7 +1028,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     }
     else if (!backendDir.isDirectory())
     {
-      addErrorMessage(ccr, ERR_JEB_DIRECTORY_INVALID.get(backendDir.getPath()));
+      addErrorMessage(ccr, ERR_DIRECTORY_INVALID.get(backendDir.getPath()));
     }
   }
 
@@ -1076,13 +1074,13 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     {
       if(!FilePermission.setPermissions(backendDir, backendPermission))
       {
-        logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
+        logger.warn(WARN_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
       }
     }
     catch(Exception e)
     {
       // Log an warning that the permissions were not set.
-      logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDir, e);
+      logger.warn(WARN_SET_PERMISSIONS_FAILED, backendDir, e);
     }
   }
 
@@ -1119,8 +1117,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(),
-            cfg.getDBDirectory()));
+        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(), cfg.getDBDirectory()));
       }
 
       if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
@@ -1182,8 +1179,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
     if (!backendDirectory.isDirectory())
     {
-      LocalizableMessage msg = ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
-      throw new StorageRuntimeException(msg.toString());
+      throw new StorageRuntimeException(ERR_DIRECTORY_INVALID.get(backendDirectory.getPath()).toString());
     }
 
     try
@@ -1197,8 +1193,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     catch (Exception e)
     {
       logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-      throw new StorageRuntimeException(message.toString(), e);
+      throw new StorageRuntimeException(ERR_REMOVE_FAIL.get(e.getMessage()).toString(), e);
     }
 
   }

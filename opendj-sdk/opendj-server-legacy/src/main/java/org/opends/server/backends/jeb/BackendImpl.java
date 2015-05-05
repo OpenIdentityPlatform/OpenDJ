@@ -30,7 +30,6 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -218,15 +217,13 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     try
     {
       // Log an informational message about the number of entries.
-      logger.info(NOTE_JEB_BACKEND_STARTED, cfg.getBackendId(), rootContainer.getEntryCount());
+      logger.info(NOTE_BACKEND_STARTED, cfg.getBackendId(), rootContainer.getEntryCount());
     }
     catch(DatabaseException databaseException)
     {
       logger.traceException(databaseException);
-      LocalizableMessage message =
-          WARN_JEB_GET_ENTRY_COUNT_FAILED.get(databaseException.getMessage());
       throw new InitializationException(
-                                        message, databaseException);
+          WARN_GET_ENTRY_COUNT_FAILED.get(databaseException.getMessage()), databaseException);
     }
 
     for (DN dn : cfg.getBaseDN())
@@ -299,7 +296,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     catch (DatabaseException e)
     {
       logger.traceException(e);
-      logger.error(ERR_JEB_DATABASE_EXCEPTION, e.getMessage());
+      logger.error(ERR_DATABASE_EXCEPTION, e.getMessage());
     }
 
     DirectoryServer.deregisterAlertGenerator(this);
@@ -432,7 +429,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     EntryContainer ec = rootContainer.getEntryContainer(baseDN);
     if (ec == null || !ec.getBaseDN().equals(baseDN))
     {
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_SEARCH_NO_SUCH_OBJECT.get(baseDN));
     }
     return numSubordinates(baseDN, true);
   }
@@ -611,7 +608,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     {
       // FIXME: No reason why we cannot implement a move between containers
       // since the containers share the same database environment.
-      LocalizableMessage msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
+      LocalizableMessage msg = WARN_FUNCTION_NOT_SUPPORTED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
@@ -692,7 +689,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     catch (IOException ioe)
     {
       logger.traceException(ioe);
-      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
+      throw new DirectoryException(errorRC, ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (DatabaseException de)
     {
@@ -739,7 +736,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if(!openRootContainer)
     {
-      throw new DirectoryException(errorRC, ERR_JEB_IMPORT_BACKEND_ONLINE.get());
+      throw new DirectoryException(errorRC, ERR_IMPORT_BACKEND_ONLINE.get());
     }
 
     try
@@ -804,12 +801,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
           rootContainer.close();
           long finishTime = System.currentTimeMillis();
           long closeTime = (finishTime - startTime) / 1000;
-          logger.info(NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
+          logger.info(NOTE_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
           rootContainer = null;
         }
 
         // Sync the environment to disk.
-        logger.info(NOTE_JEB_IMPORT_CLOSING_DATABASE);
+        logger.info(NOTE_IMPORT_CLOSING_DATABASE);
       }
       catch (DatabaseException de)
       {
@@ -886,7 +883,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      throw new DirectoryException(errorRC, ERR_JEB_REBUILD_BACKEND_ONLINE.get());
+      throw new DirectoryException(errorRC, ERR_REBUILD_BACKEND_ONLINE.get());
     }
 
     try
@@ -1372,7 +1369,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     if (jeMessage == null) {
       jeMessage = stackTraceToSingleLineString(e);
     }
-    LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
+    LocalizableMessage message = ERR_DATABASE_EXCEPTION.get(jeMessage);
     return new DirectoryException(
         DirectoryServer.getServerErrorResultCode(), message, e);
   }
@@ -1414,7 +1411,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
     catch (DatabaseException e) {
       logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
+      LocalizableMessage message = ERR_OPEN_ENV_FAIL.get(e.getMessage());
       throw new InitializationException(message, e);
     }
   }
@@ -1458,7 +1455,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
                 Privilege.BYPASS_LOCKDOWN, operation)))
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          WARN_JEB_OUT_OF_DISK_SPACE.get());
+          WARN_OUT_OF_DISK_SPACE.get());
     }
   }
 }

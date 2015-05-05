@@ -27,7 +27,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -146,7 +146,7 @@ public class AttributeIndex
     buildExtensibleIndexes();
 
     final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
-    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config);
+    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config, indexConfig.getAttribute());
     extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
@@ -737,7 +737,7 @@ public class AttributeIndex
           if (index.setIndexEntryLimit(indexEntryLimit))
           {
             ccr.setAdminActionRequired(true);
-            ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+            ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
           }
           if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
           {
@@ -829,7 +829,7 @@ public class AttributeIndex
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
@@ -857,7 +857,7 @@ public class AttributeIndex
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
@@ -886,7 +886,7 @@ public class AttributeIndex
     if (!index.isTrusted())
     {
       ccr.setAdminActionRequired(true);
-      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
   }
 
@@ -1054,7 +1054,7 @@ public class AttributeIndex
     {
       if (monitor.isFilterUseEnabled())
       {
-        monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(
+        monitor.updateStats(filter, INFO_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(
             matchRuleOID, indexConfig.getAttribute().getNameOrOID()));
       }
       return IndexQuery.createNullIndexQuery().evaluate(null);

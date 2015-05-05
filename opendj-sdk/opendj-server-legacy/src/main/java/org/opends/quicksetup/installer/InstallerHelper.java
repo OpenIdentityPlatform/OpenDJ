@@ -60,7 +60,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.CoreMessages;
-import org.opends.messages.JebMessages;
+import org.opends.messages.BackendMessages;
 import org.opends.messages.ReplicationMessages;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
@@ -1198,8 +1198,8 @@ public class InstallerHelper {
    */
   public String getImportProgressMessage(String msg)
   {
-    if (msg != null && (msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())
-                        || msg.contains("msgID=" + JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
+    if (msg != null && (msg.contains("msgID=" + BackendMessages.NOTE_IMPORT_FINAL_STATUS.ordinal())
+                        || msg.contains("msgID=" + BackendMessages.NOTE_IMPORT_PROGRESS_REPORT.ordinal())))
     {
       int index = msg.indexOf("msg=");
       if (index != -1)

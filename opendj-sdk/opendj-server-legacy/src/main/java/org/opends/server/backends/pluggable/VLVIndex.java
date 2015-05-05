@@ -27,7 +27,6 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -131,9 +130,8 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
     }
     catch (final Exception e)
     {
-      final LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-          config.getFilter(), getName(), stackTraceToSingleLineString(e));
-      throw new ConfigException(msg);
+      throw new ConfigException(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
+          config.getFilter(), getName(), stackTraceToSingleLineString(e)));
     }
 
     this.sortOrder = new SortOrder(parseSortKeys(config.getSortOrder()));
@@ -182,7 +180,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
     }
     catch (final Exception e)
     {
-      final LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+      final LocalizableMessage msg = ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
           cfg.getFilter(), getName(), stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
       return false;
@@ -250,7 +248,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
       }
       catch (final Exception e)
       {
-        ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(config.getFilter(), getName(),
+        ccr.addMessage(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(config.getFilter(), getName(),
             stackTraceToSingleLineString(e)));
         ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
       }
@@ -274,7 +272,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
     if (ccr.adminActionRequired())
     {
       trusted = false;
-      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
+      ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(getName()));
       try
       {
         state.removeFlagsFromIndex(txn, getName(), IndexFlag.TRUSTED);
@@ -314,13 +312,13 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
       }
       catch (final Exception e)
       {
-        throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], getName()));
+        throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], getName()));
       }
 
       final AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if (attrType == null)
       {
-        throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));
+        throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));
       }
       sortKeys[i] = new SortKey(attrType, ascending);
     }

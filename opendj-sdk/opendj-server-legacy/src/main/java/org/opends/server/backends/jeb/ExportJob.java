@@ -41,7 +41,7 @@ import java.util.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * Export a JE backend to LDIF.
@@ -166,7 +166,7 @@ public class ExportJob
       rate = 1000f*exportedCount / totalTime;
     }
 
-    logger.info(NOTE_JEB_EXPORT_FINAL_STATUS, exportedCount, skippedCount, totalTime/1000, rate);
+    logger.info(NOTE_EXPORT_FINAL_STATUS, exportedCount, skippedCount, totalTime/1000, rate);
 
   }
 
@@ -302,7 +302,7 @@ public class ExportJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      logger.info(NOTE_JEB_EXPORT_PROGRESS_REPORT, latestCount, skippedCount, rate);
+      logger.info(NOTE_EXPORT_PROGRESS_REPORT, latestCount, skippedCount, rate);
 
       previousCount = latestCount;
       previousTime = latestTime;

@@ -49,7 +49,7 @@ import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.config.EnvironmentParams;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -131,15 +131,13 @@ public class RootContainer
     {
       if(!backendDirectory.mkdirs())
       {
-        LocalizableMessage message =
-          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CREATE_FAIL.get(backendDirectory.getPath()));
       }
     }
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      throw new ConfigException(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+      throw new ConfigException(ERR_DIRECTORY_INVALID.get(backendDirectory.getPath()));
     }
 
     FilePermission backendPermission;
@@ -169,13 +167,13 @@ public class RootContainer
     {
       if(!FilePermission.setPermissions(backendDirectory, backendPermission))
       {
-        logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
+        logger.warn(WARN_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
       }
     }
     catch(Exception e)
     {
       // Log an warning that the permissions were not set.
-      logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
+      logger.warn(WARN_SET_PERMISSIONS_FAILED, backendDirectory, e);
     }
 
     // Open the database environment
@@ -260,8 +258,7 @@ public class RootContainer
     // another to be opened.
     if (ec1 != null)
     {
-      throw new InitializationException(ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
-          ec1.getDatabasePrefix(), baseDN));
+      throw new InitializationException(ERR_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getDatabasePrefix(), baseDN));
     }
 
     this.entryContainers.put(baseDN, entryContainer);
@@ -372,7 +369,7 @@ public class RootContainer
         PreloadConfig preloadConfig = new PreloadConfig();
         preloadConfig.setLoadLNs(true);
 
-        logger.info(NOTE_JEB_CACHE_PRELOAD_STARTED, backend.getBackendID());
+        logger.info(NOTE_CACHE_PRELOAD_STARTED, backend.getBackendID());
 
         boolean isInterrupted = false;
 
@@ -400,35 +397,35 @@ public class RootContainer
           if (preloadStatus != PreloadStatus.SUCCESS)
           {
             if (preloadStatus == PreloadStatus.EXCEEDED_TIME) {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_TIME, backend.getBackendID(), db.getName());
+              logger.info(NOTE_CACHE_PRELOAD_INTERRUPTED_BY_TIME, backend.getBackendID(), db.getName());
             } else if (preloadStatus == PreloadStatus.FILLED_CACHE) {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_SIZE, backend.getBackendID(), db.getName());
+              logger.info(NOTE_CACHE_PRELOAD_INTERRUPTED_BY_SIZE, backend.getBackendID(), db.getName());
             } else {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_UNKNOWN, backend.getBackendID(), db.getName());
+              logger.info(NOTE_CACHE_PRELOAD_INTERRUPTED_UNKNOWN, backend.getBackendID(), db.getName());
             }
 
             isInterrupted = true;
             break;
           }
 
-          logger.info(NOTE_JEB_CACHE_DB_PRELOADED, db.getName());
+          logger.info(NOTE_CACHE_DB_PRELOADED, db.getName());
         }
 
         if (!isInterrupted) {
-          logger.info(NOTE_JEB_CACHE_PRELOAD_DONE, backend.getBackendID());
+          logger.info(NOTE_CACHE_PRELOAD_DONE, backend.getBackendID());
         }
 
         // Log an informational message about the size of the cache.
         EnvironmentStats stats = env.getStats(new StatsConfig());
         long total = stats.getCacheTotalBytes();
 
-        logger.info(NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD, total / (1024 * 1024));
+        logger.info(NOTE_CACHE_SIZE_AFTER_PRELOAD, total / (1024 * 1024));
       }
       catch (DatabaseException e)
       {
         logger.traceException(e);
 
-        logger.error(ERR_JEB_CACHE_PRELOAD, backend.getBackendID(),
+        logger.error(ERR_CACHE_PRELOAD, backend.getBackendID(),
             stackTraceToSingleLineString(e.getCause() != null ? e.getCause() : e));
       }
     }
@@ -637,7 +634,7 @@ public class RootContainer
     {
       if(!backendDirectory.mkdirs())
       {
-        unacceptableReasons.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+        unacceptableReasons.add(ERR_CREATE_FAIL.get(backendDirectory.getPath()));
         acceptable = false;
       }
       else
@@ -648,7 +645,7 @@ public class RootContainer
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      unacceptableReasons.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+      unacceptableReasons.add(ERR_DIRECTORY_INVALID.get(backendDirectory.getPath()));
       acceptable = false;
     }
 
@@ -779,7 +776,7 @@ public class RootContainer
         {
           if(!backendDirectory.mkdirs())
           {
-            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+            ccr.addMessage(ERR_CREATE_FAIL.get(backendDirectory.getPath()));
             ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
             return ccr;
           }
@@ -787,14 +784,13 @@ public class RootContainer
         //Make sure the directory is valid.
         else if (!backendDirectory.isDirectory())
         {
-          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+          ccr.addMessage(ERR_DIRECTORY_INVALID.get(backendDirectory.getPath()));
           ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
           return ccr;
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
-                        this.config.getDBDirectory(), cfg.getDBDirectory()));
+        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(this.config.getDBDirectory(), cfg.getDBDirectory()));
       }
 
       if(!cfg.getDBDirectoryPermissions().equalsIgnoreCase(
@@ -833,13 +829,13 @@ public class RootContainer
         {
           if (!FilePermission.setPermissions(backendDirectory, backendPermission))
           {
-            logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
+            logger.warn(WARN_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
           }
         }
         catch(Exception e)
         {
           // Log an warning that the permissions were not set.
-          logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
+          logger.warn(WARN_SET_PERMISSIONS_FAILED, backendDirectory, e);
         }
       }
 

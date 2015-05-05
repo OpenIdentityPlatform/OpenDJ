@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -55,7 +55,7 @@ import com.sleepycat.je.OperationStatus;
 import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
@@ -229,7 +229,7 @@ public final class JECompressedSchema extends CompressedSchema
     {
       logger.traceException(e);
       throw new InitializationException(
-          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
+          ERR_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
     }
     finally
     {
@@ -264,7 +264,7 @@ public final class JECompressedSchema extends CompressedSchema
     {
       logger.traceException(e);
       throw new InitializationException(
-          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
+          ERR_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
     }
     finally
     {
@@ -306,8 +306,8 @@ public final class JECompressedSchema extends CompressedSchema
       }
       catch (final DatabaseException de)
       {
-        final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, de);
+        throw new DirectoryException(
+            DirectoryServer.getServerErrorResultCode(), ERR_COMPSCHEMA_CANNOT_STORE_EX.get(de.getMessage()), de);
       }
     }
     return false;

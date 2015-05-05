@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -192,16 +192,14 @@ public class VerifyJob
           {
             if(lowerName.length() < 5)
             {
-              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
-              throw new JebException(msg);
+              throw new JebException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName));
             }
 
             VLVIndex vlvIndex =
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
-              throw new JebException(msg);
+              throw new JebException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4)));
             }
 
             vlvIndexList.add(vlvIndex);
@@ -211,14 +209,12 @@ public class VerifyJob
             AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new JebException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
             }
             AttributeIndex attrIndex = entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new JebException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
             }
             attrIndexList.add(attrIndex);
           }
@@ -278,7 +274,7 @@ public class VerifyJob
 
       if (cleanMode)
       {
-        logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime / 1000, rate);
+        logger.info(NOTE_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime / 1000, rate);
 
         if (multiReferenceCount > 0)
         {
@@ -290,19 +286,19 @@ public class VerifyJob
 
           if (logger.isDebugEnabled())
           {
-            logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
-            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
-            logger.debug(INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
-            logger.debug(INFO_JEB_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
+            logger.debug(INFO_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
+            logger.debug(INFO_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
+            logger.debug(INFO_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
+            logger.debug(INFO_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
           }
         }
       }
       else
       {
-        logger.info(NOTE_JEB_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
+        logger.info(NOTE_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
         if (entryLimitMap.size() > 0)
         {
-          logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER);
+          logger.debug(INFO_VERIFY_ENTRY_LIMIT_STATS_HEADER);
 
           for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
               entryLimitMap.entrySet())
@@ -323,7 +319,7 @@ public class VerifyJob
               medianValue = values[x];
             }
 
-            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW, index, values.length, values[0],
+            logger.debug(INFO_VERIFY_ENTRY_LIMIT_STATS_ROW, index, values.length, values[0],
                     values[values.length-1], medianValue);
           }
         }
@@ -1684,7 +1680,7 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      logger.info(NOTE_JEB_VERIFY_PROGRESS_REPORT, latestCount, totalCount, errorCount, rate);
+      logger.info(NOTE_VERIFY_PROGRESS_REPORT, latestCount, totalCount, errorCount, rate);
 
       try
       {
@@ -1702,7 +1698,7 @@ public class VerifyJob
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        logger.debug(INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
+        logger.debug(INFO_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
 
         prevEnvStats = envStats;
       }

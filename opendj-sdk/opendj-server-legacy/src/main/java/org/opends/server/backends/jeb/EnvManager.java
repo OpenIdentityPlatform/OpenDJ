@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -79,8 +79,7 @@ public class EnvManager
     {
       if (!dir.isDirectory())
       {
-        LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
-        throw new JebException(message);
+        throw new JebException(ERR_DIRECTORY_INVALID.get(homeDir));
       }
       removeFiles(homeDir);
     }
@@ -93,8 +92,7 @@ public class EnvManager
       catch (Exception e)
       {
         logger.traceException(e);
-        LocalizableMessage message = ERR_JEB_CREATE_FAIL.get(e.getMessage());
-        throw new JebException(message, e);
+        throw new JebException(ERR_CREATE_FAIL.get(e.getMessage()), e);
       }
     }
   }
@@ -113,13 +111,12 @@ public class EnvManager
     File dir = new File(homeDir);
     if (!dir.exists())
     {
-      LocalizableMessage message = ERR_JEB_DIRECTORY_DOES_NOT_EXIST.get(homeDir);
+      LocalizableMessage message = ERR_DIRECTORY_DOES_NOT_EXIST.get(homeDir);
       throw new JebException(message);
     }
     if (!dir.isDirectory())
     {
-      LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
-      throw new JebException(message);
+      throw new JebException(ERR_DIRECTORY_INVALID.get(homeDir));
     }
 
     try
@@ -133,8 +130,7 @@ public class EnvManager
     catch (Exception e)
     {
       logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-      throw new JebException(message, e);
+      throw new JebException(ERR_REMOVE_FAIL.get(e.getMessage()), e);
     }
   }
 

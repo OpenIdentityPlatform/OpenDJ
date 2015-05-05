@@ -29,7 +29,7 @@ package org.opends.server.backends.jeb;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.forgerock.util.Utils.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 
 import java.io.IOException;
@@ -122,7 +122,7 @@ public class ID2Entry extends DatabaseContainer
       byte formatVersion = bytes.byteAt(0);
       if(formatVersion != JebFormat.FORMAT_VERSION)
       {
-        throw DecodeException.error(ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion));
+        throw DecodeException.error(ERR_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion));
       }
 
       // Read the ASN1 sequence.
@@ -412,8 +412,7 @@ public class ID2Entry extends DatabaseContainer
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(id));
     }
   }
 

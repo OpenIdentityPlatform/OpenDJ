@@ -44,7 +44,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * Export a JE backend to LDIF.
@@ -177,8 +177,7 @@ class ExportJob
       rate = 1000f*exportedCount / totalTime;
     }
 
-    logger.info(NOTE_JEB_EXPORT_FINAL_STATUS, exportedCount, skippedCount, totalTime/1000, rate);
-
+    logger.info(NOTE_EXPORT_FINAL_STATUS, exportedCount, skippedCount, totalTime/1000, rate);
   }
 
   /**
@@ -306,7 +305,7 @@ class ExportJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      logger.info(NOTE_JEB_EXPORT_PROGRESS_REPORT, latestCount, skippedCount, rate);
+      logger.info(NOTE_EXPORT_PROGRESS_REPORT, latestCount, skippedCount, rate);
 
       previousCount = latestCount;
       previousTime = latestTime;

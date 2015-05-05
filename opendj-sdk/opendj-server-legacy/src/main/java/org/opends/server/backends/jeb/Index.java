@@ -28,7 +28,7 @@ package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.OperationStatus.*;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 import java.util.*;
 
@@ -433,7 +433,7 @@ public class Index extends DatabaseContainer
     }
 
     setTrusted(txn, false);
-    logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
+    logger.error(ERR_INDEX_CORRUPT_REQUIRES_REBUILD, name);
   }
 
   /**

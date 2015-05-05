@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -496,9 +495,8 @@ class DN2URI extends AbstractDatabaseContainer
     }
 
     // Throw a directory referral exception containing the URIs.
-    LocalizableMessage msg = NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(referralDN);
     throw new DirectoryException(
-            ResultCode.REFERRAL, msg, referralDN, URIList, null);
+        ResultCode.REFERRAL, NOTE_REFERRAL_RESULT_MESSAGE.get(referralDN), referralDN, URIList, null);
   }
 
   /**
@@ -613,7 +611,7 @@ class DN2URI extends AbstractDatabaseContainer
           // We have found a subordinate referral.
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
-              && JebFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
+              && DnKeyFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
           {
             continue;
           }
@@ -698,6 +696,6 @@ class DN2URI extends AbstractDatabaseContainer
 
   private ByteString toKey(DN dn)
   {
-    return JebFormat.dnToDNKey(dn, prefixRDNComponents);
+    return DnKeyFormat.dnToDNKey(dn, prefixRDNComponents);
   }
 }

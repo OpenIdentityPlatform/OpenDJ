@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -49,7 +48,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
@@ -187,8 +186,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     catch (final IOException e)
     {
       logger.traceException(e);
-      throw new InitializationException(
-          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
+      throw new InitializationException(ERR_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
     }
     finally
     {
@@ -218,8 +216,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     catch (final IOException e)
     {
       logger.traceException(e);
-      throw new InitializationException(
-          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
+      throw new InitializationException(ERR_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
     }
     finally
     {
@@ -245,8 +242,8 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final Exception e)
     {
-      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
 

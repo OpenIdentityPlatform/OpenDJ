@@ -50,9 +50,8 @@ import com.sleepycat.je.dbi.MemoryBudget;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
 
-import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -462,7 +461,7 @@ public class ConfigurableEnvironment
     {
       if (MemoryBudget.getRuntimeMaxMemory() < cfg.getDBCacheSize()) {
         throw new ConfigException(
-            ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
                 cfg.getDBCacheSize(), MemoryBudget.getRuntimeMaxMemory()));
       }
       if (cfg.getDBCacheSize() < MemoryBudget.MIN_MAX_MEMORY_SIZE) {
@@ -473,7 +472,7 @@ public class ConfigurableEnvironment
       MemoryQuota memoryQuota = DirectoryServer.getInstance().getServerContext().getMemoryQuota();
       if (!memoryQuota.acquireMemory(cfg.getDBCacheSize()))
       {
-        logger.warn(ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+        logger.warn(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
             cfg.getDBCacheSize(), memoryQuota.getMaxMemory()));
       }
     }

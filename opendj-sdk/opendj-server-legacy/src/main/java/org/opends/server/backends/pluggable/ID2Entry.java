@@ -28,7 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
 import static org.forgerock.util.Utils.*;
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 
 import java.io.IOException;
@@ -123,9 +123,9 @@ class ID2Entry extends AbstractDatabaseContainer
     {
       // Get the format version.
       byte formatVersion = bytes.byteAt(0);
-      if(formatVersion != JebFormat.FORMAT_VERSION)
+      if(formatVersion != DnKeyFormat.FORMAT_VERSION)
       {
-        throw DecodeException.error(ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion));
+        throw DecodeException.error(ERR_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion));
       }
 
       // Read the ASN1 sequence.
@@ -184,7 +184,7 @@ class ID2Entry extends AbstractDatabaseContainer
       entry.encode(entryBuffer, dataConfig.getEntryEncodeConfig());
 
       // First write the DB format version byte.
-      encodedBuffer.append(JebFormat.FORMAT_VERSION);
+      encodedBuffer.append(DnKeyFormat.FORMAT_VERSION);
 
       try
       {
@@ -397,8 +397,7 @@ class ID2Entry extends AbstractDatabaseContainer
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(id));
     }
   }
 

@@ -28,7 +28,7 @@ package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
 
-import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
@@ -318,7 +318,7 @@ final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      throw new InitializationException(ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
+      throw new InitializationException(ERR_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
     }
     this.skipDNValidation = true;
     initializeDBEnv(envConfig);
@@ -372,7 +372,7 @@ final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      throw new InitializationException(ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
+      throw new InitializationException(ERR_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
     }
     skipDNValidation = importConfiguration.getSkipDNValidation();
     initializeDBEnv(envConfig);
@@ -592,16 +592,16 @@ final class Importer implements DiskSpaceMonitorHandler
 
     if (oldThreadCount != threadCount)
     {
-      logger.info(NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
+      logger.info(NOTE_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
     }
 
-    logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
+    logger.info(NOTE_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
     if (tmpEnvCacheSize > 0)
     {
-      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM, tmpEnvCacheSize);
+      logger.info(NOTE_IMPORT_LDIF_TMP_ENV_MEM, tmpEnvCacheSize);
     }
     envConfig.setConfigParam(MAX_MEMORY, Long.toString(dbCacheSize));
-    logger.info(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
+    logger.info(NOTE_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
   }
 
   /**
@@ -920,16 +920,14 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (IOException ioe)
       {
-        LocalizableMessage message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
-        throw new InitializationException(message, ioe);
+        throw new InitializationException(ERR_IMPORT_LDIF_READER_IO_ERROR.get(), ioe);
       }
 
       updateDiskMonitor(tempDir, "backend import tmp directory");
       updateDiskMonitor(backendDirectory, "backend import DB directory");
 
-      logger.info(NOTE_JEB_IMPORT_STARTING, DirectoryServer.getVersionString(),
-              BUILD_ID, REVISION_NUMBER);
-      logger.info(NOTE_JEB_IMPORT_THREAD_COUNT, threadCount);
+      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION_NUMBER);
+      logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
       initializeSuffixes();
       setIndexesTrusted(false);
 
@@ -960,7 +958,7 @@ final class Importer implements DiskSpaceMonitorHandler
       recursiveDelete(tempDir);
       final long finishTime = System.currentTimeMillis();
       final long importTime = finishTime - startTime;
-      logger.info(NOTE_JEB_IMPORT_PHASE_STATS, importTime / 1000,
+      logger.info(NOTE_IMPORT_PHASE_STATS, importTime / 1000,
               (phaseOneFinishTime - startTime) / 1000,
               (phaseTwoFinishTime - phaseTwoTime) / 1000);
       float rate = 0;
@@ -968,7 +966,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         rate = 1000f * reader.getEntriesRead() / importTime;
       }
-      logger.info(NOTE_JEB_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount.get(),
+      logger.info(NOTE_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount.get(),
           reader.getEntriesIgnored(), reader.getEntriesRejected(),
           migratedCount, importTime / 1000, rate);
       return new LDIFImportResult(reader.getEntriesRead(),
@@ -1049,7 +1047,7 @@ final class Importer implements DiskSpaceMonitorHandler
     }
     catch (DatabaseException ex)
     {
-      throw new JebException(NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()));
+      throw new JebException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()));
     }
   }
 
@@ -1199,7 +1197,7 @@ final class Importer implements DiskSpaceMonitorHandler
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
 
-    logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
+    logger.info(NOTE_IMPORT_LDIF_PHASE_TWO_MEM_REPORT, availableMemory, readAheadSize, buffers);
 
     // Start indexing tasks.
     List<Future<Void>> futures = new LinkedList<Future<Void>>();
@@ -1255,7 +1253,7 @@ final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry key = new DatabaseEntry();
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
+          logger.info(NOTE_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
           Cursor cursor = entryContainer.getDN2ID().openCursor(null, CursorConfig.READ_COMMITTED);
           Comparator<byte[]> comparator = entryContainer.getDN2ID().getComparator();
           try
@@ -1290,7 +1288,7 @@ final class Importer implements DiskSpaceMonitorHandler
           }
           catch (Exception e)
           {
-            logger.error(ERR_JEB_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR, e.getMessage());
+            logger.error(ERR_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR, e.getMessage());
             isCanceled = true;
             throw e;
           }
@@ -1320,7 +1318,7 @@ final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry key = new DatabaseEntry();
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
+          logger.info(NOTE_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
           Cursor cursor = entryContainer.getDN2ID().openCursor(null, null);
           try
           {
@@ -1361,7 +1359,7 @@ final class Importer implements DiskSpaceMonitorHandler
           }
           catch (Exception e)
           {
-            logger.error(ERR_JEB_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR, e.getMessage());
+            logger.error(ERR_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR, e.getMessage());
             isCanceled = true;
             throw e;
           }
@@ -1439,7 +1437,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR, e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR, e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -1555,7 +1553,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR, e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_IMPORT_TASK_ERR, e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -1586,7 +1584,7 @@ final class Importer implements DiskSpaceMonitorHandler
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
       if (parentDN != null && !suffix.isParentProcessed(parentDN, tmpEnv, clearedBackend))
       {
-        reader.rejectEntry(entry, ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN));
+        reader.rejectEntry(entry, ERR_IMPORT_PARENT_NOT_FOUND.get(parentDN));
         return false;
       }
       //If the backend was not cleared, then the dn2id needs to checked first
@@ -1597,13 +1595,13 @@ final class Importer implements DiskSpaceMonitorHandler
         EntryID id = suffix.getDN2ID().get(null, entryDN, LockMode.DEFAULT);
         if (id != null || !tmpEnv.insert(entryDN, keyEntry, valEntry))
         {
-          reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+          reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
           return false;
         }
       }
       else if (!tmpEnv.insert(entryDN, keyEntry, valEntry))
       {
-        reader.rejectEntry(entry, WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+        reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
         return false;
       }
       return true;
@@ -1837,8 +1835,7 @@ final class Importer implements DiskSpaceMonitorHandler
       nextBufferID = 0;
       ownedPermits = 0;
 
-      logger.info(NOTE_JEB_IMPORT_LDIF_INDEX_STARTED, indexMgr.getBufferFileName(),
-              remainingBuffers, totalBatches);
+      logger.info(NOTE_IMPORT_LDIF_INDEX_STARTED, indexMgr.getBufferFileName(), remainingBuffers, totalBatches);
 
       indexMgr.setIndexDBWriteTask(this);
       isRunning = true;
@@ -1916,14 +1913,14 @@ final class Importer implements DiskSpaceMonitorHandler
           }
           if (!isCanceled)
           {
-            logger.info(NOTE_JEB_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
+            logger.info(NOTE_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
           }
         }
         else
         {
           if (!isCanceled)
           {
-            logger.info(NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
+            logger.info(NOTE_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
           }
         }
       }
@@ -1958,7 +1955,7 @@ final class Importer implements DiskSpaceMonitorHandler
         final long kiloBytesRate = bytesReadInterval / deltaTime;
         final long kiloBytesRemaining = (bufferFileSize - tmpBytesRead) / 1024;
 
-        logger.info(NOTE_JEB_IMPORT_LDIF_PHASE_TWO_REPORT, indexMgr.getBufferFileName(),
+        logger.info(NOTE_IMPORT_LDIF_PHASE_TWO_REPORT, indexMgr.getBufferFileName(),
             bytesReadPercent, kiloBytesRemaining, kiloBytesRate, currentBatch, totalBatches);
 
         lastBytesRead = tmpBytesRead;
@@ -2077,7 +2074,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR, indexMgr.getBufferFileName(), e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_INDEX_WRITE_DB_ERR, indexMgr.getBufferFileName(), e.getMessage());
         throw e;
       }
       finally
@@ -2507,8 +2504,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (IOException e)
       {
-        logger.error(ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR,
-            indexMgr.getBufferFile().getAbsolutePath(), e.getMessage());
+        logger.error(ERR_IMPORT_LDIF_INDEX_FILEWRITER_ERR, indexMgr.getBufferFile().getAbsolutePath(), e.getMessage());
         isCanceled = true;
         throw e;
       }
@@ -2992,17 +2988,17 @@ final class Importer implements DiskSpaceMonitorHandler
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
-        logger.info(NOTE_JEB_REBUILD_ALL_START, totalEntries);
+        logger.info(NOTE_REBUILD_ALL_START, totalEntries);
         break;
       case DEGRADED:
-        logger.info(NOTE_JEB_REBUILD_DEGRADED_START, totalEntries);
+        logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       default:
         if (!rebuildConfig.isClearDegradedState()
             && logger.isInfoEnabled())
         {
           String indexes = Utils.joinAsString(", ", rebuildConfig.getRebuildList());
-          logger.info(NOTE_JEB_REBUILD_START, indexes, totalEntries);
+          logger.info(NOTE_REBUILD_START, indexes, totalEntries);
         }
         break;
       }
@@ -3026,7 +3022,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       if (!rebuildConfig.isClearDegradedState())
       {
-        logger.info(NOTE_JEB_REBUILD_FINAL_STATUS, entriesProcessed.get(), totalTime / 1000, rate);
+        logger.info(NOTE_REBUILD_FINAL_STATUS, entriesProcessed.get(), totalTime / 1000, rate);
       }
     }
 
@@ -3060,7 +3056,7 @@ final class Importer implements DiskSpaceMonitorHandler
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.error(ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR, stackTraceToSingleLineString(e));
+        logger.error(ERR_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR, stackTraceToSingleLineString(e));
         isCanceled = true;
         throw e;
       }
@@ -3103,7 +3099,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       else
       {
-        logger.info(NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
+        logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
       }
 
       setRebuildListIndexesTrusted(true);
@@ -3321,7 +3317,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       catch (DatabaseException ex)
       {
-        throw new JebException(NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()));
+        throw new JebException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()));
       }
     }
 
@@ -3424,7 +3420,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           if (lowerName.length() < 5)
           {
-            throw new JebException(ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName));
+            throw new JebException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName));
           }
           indexCount++;
         }
@@ -3498,7 +3494,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
     private InitializationException attributeIndexNotConfigured(String index)
     {
-      return new InitializationException(ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
+      return new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
     }
 
     private boolean findExtensibleMatchingRule(LocalDBBackendCfg cfg, String indexExRuleName) throws ConfigException
@@ -3707,8 +3703,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         completed = 100f * entriesProcessed / rebuildManager.getTotalEntries();
       }
-      logger.info(NOTE_JEB_REBUILD_PROGRESS_REPORT, completed, entriesProcessed,
-          rebuildManager.getTotalEntries(), rate);
+      logger.info(NOTE_REBUILD_PROGRESS_REPORT, completed, entriesProcessed, rebuildManager.getTotalEntries(), rate);
       try
       {
         Runtime runtime = Runtime.getRuntime();
@@ -3722,7 +3717,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
+        logger.info(INFO_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         prevEnvStats = envStats;
       }
       catch (DatabaseException e)
@@ -3784,7 +3779,7 @@ final class Importer implements DiskSpaceMonitorHandler
         return;
       }
       float rate = 1000f * deltaCount / deltaTime;
-      logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
+      logger.info(NOTE_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
       try
       {
         Runtime runTime = Runtime.getRuntime();
@@ -3810,7 +3805,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
+        logger.info(INFO_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         long evictPasses = environmentStats.getNEvictPasses();
         long evictNodes = environmentStats.getNNodesExplicitlyEvicted();
         long evictBinsStrip = environmentStats.getNBINsStripped();
@@ -3914,7 +3909,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
+        logger.info(INFO_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         long evictPasses = environmentStats.getNEvictPasses();
         long evictNodes = environmentStats.getNNodesExplicitlyEvicted();
         long evictBinsStrip = environmentStats.getNBINsStripped();
