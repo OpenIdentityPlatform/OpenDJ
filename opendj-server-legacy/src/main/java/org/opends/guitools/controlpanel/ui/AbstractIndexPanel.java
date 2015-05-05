@@ -31,7 +31,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -388,11 +388,10 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
       throws OpenDsException
   {
     getInfo().initializeConfigurationFramework();
-    try
+    final File configFile = Installation.getLocal().getCurrentConfigurationFile();
+    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
     {
-      final List<IOException> exceptions = new ArrayList<>();
-      final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
-              Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
       final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
       if (backend instanceof LocalDBBackendCfgClient)
       {
@@ -404,8 +403,6 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
         updateBackendIndexOnline(
             (PluggableBackendCfgClient) backend, indexToModify, attributeName, indexTypes, indexEntryLimit);
       }
-      context.close();
-      Utilities.throwFirstFrom(exceptions);
     }
     catch (final Exception e)
     {

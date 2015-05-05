@@ -25,7 +25,7 @@
  */
 package org.opends.server.tools;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -130,12 +130,12 @@ public class BackendCreationHelper
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType) throws Exception
   {
     Utilities.initializeConfigurationFramework();
-    final List<IOException> exceptions = new ArrayList<>();
-    final ManagementContext context = LDAPManagementContext.newLDIFManagementContext(
-        Installation.getLocal().getCurrentConfigurationFile(), LDAPProfile.getInstance(), exceptions);
-    createBackend(context.getRootConfiguration(), backendName, baseDNs, backendType);
-    context.close();
-    Utilities.throwFirstFrom(exceptions);
+    final File configFile = Installation.getLocal().getCurrentConfigurationFile();
+    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
+    {
+      createBackend(context.getRootConfiguration(), backendName, baseDNs, backendType);
+    }
   }
 
   /**
