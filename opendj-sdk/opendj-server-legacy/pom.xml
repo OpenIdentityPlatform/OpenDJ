@@ -1485,7 +1485,7 @@
                     <addMavenDescriptor>false</addMavenDescriptor>
                     <manifestEntries>
                       <Extension-Name>snmp-mib2605</Extension-Name>
-                      <Implementation-Version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</Implementation-Version>
+                      <Implementation-Version>${project.version}</Implementation-Version>
                       <Revision-Number>${buildRevision}</Revision-Number>
                     </manifestEntries>
                   </archive>

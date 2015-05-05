@@ -310,11 +310,9 @@ public final class DynamicConstants
   /**
    * A full version string for this product.
    */
-  public static String FULL_VERSION_STRING =
-       PRODUCT_NAME + " " + RELEASE_VERSION_STRING +
-       (((FIX_IDS != null) && (FIX_IDS.length() > 0))
-        ? "+" + FIX_IDS
-        : "");
+  public static String FULL_VERSION_STRING = PRODUCT_NAME + " " + RELEASE_VERSION_STRING
+      + (VERSION_QUALIFIER != null && !VERSION_QUALIFIER.isEmpty() ? "-" + VERSION_QUALIFIER : "")
+      + (FIX_IDS != null && !FIX_IDS.isEmpty() ? "+" + FIX_IDS : "");
 
   /**
    * A printable version string for this product.
