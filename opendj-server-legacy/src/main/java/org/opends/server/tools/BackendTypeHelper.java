@@ -31,16 +31,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 
 /**
  * Helper class for setup applications. It helps applications to provide a
@@ -48,7 +46,6 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
  */
 public class BackendTypeHelper
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Filter the provided backend name by removing the backend suffix.
@@ -105,6 +102,41 @@ public class BackendTypeHelper
     {
       return backend;
     }
+
+    /**
+     * Return the old configuration framework backend object.
+     *
+     * @return The old configuration framework backend object
+     */
+    @SuppressWarnings("unchecked")
+    public org.opends.server.admin.ManagedObjectDefinition<
+        ? extends org.opends.server.admin.std.client.BackendCfgClient,
+        ? extends org.opends.server.admin.std.server.BackendCfg> getOldConfigFrameworkBackend()
+    {
+      if (isLocalDBBackend())
+      {
+        return org.opends.server.admin.std.meta.LocalDBBackendCfgDefn.getInstance();
+      }
+
+      for (org.opends.server.admin.AbstractManagedObjectDefinition<?, ?> oldConfigBackend :
+        org.opends.server.admin.std.meta.PluggableBackendCfgDefn.getInstance().getAllChildren())
+      {
+        if (oldConfigBackend.getName().equals(getBackend().getName()))
+        {
+          return (org.opends.server.admin.ManagedObjectDefinition<
+              ? extends org.opends.server.admin.std.client.BackendCfgClient,
+              ? extends org.opends.server.admin.std.server.BackendCfg>) oldConfigBackend;
+        }
+      }
+      throw new IllegalArgumentException("Impossible to find the equivalent backend type in old config framework: "
+          + getBackend().getName());
+    }
+
+    @RemoveOnceLocalDBBackendIsPluggable
+    private boolean isLocalDBBackend()
+    {
+      return getBackend().getName().equals(LocalDBBackendCfgDefn.getInstance().getName());
+    }
   }
 
   private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
@@ -112,26 +144,8 @@ public class BackendTypeHelper
   /** Creates a new backend type helper. */
   public BackendTypeHelper()
   {
-    initializeConfigurationFramework();
+    Utilities.initializeConfigurationFramework();
     createAvailableBackendsList();
-  }
-
-  private void initializeConfigurationFramework()
-  {
-    if (!ConfigurationFramework.getInstance().isInitialized())
-    {
-      try
-      {
-        ConfigurationFramework.getInstance().initialize();
-      }
-      catch (ConfigException e)
-      {
-        final LocalizableMessage message = LocalizableMessage.raw(
-            "Error occured while loading the configuration framework: " + e.getLocalizedMessage());
-        logger.error(message);
-        throw new RuntimeException(message.toString());
-      }
-    }
   }
 
   @SuppressWarnings("unchecked")

@@ -38,7 +38,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -53,31 +52,15 @@ import java.util.Set;
 import javax.crypto.Cipher;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
-import org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.std.meta.CryptoManagerCfgDefn;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
@@ -212,9 +195,6 @@ public class ConfigureDS
   /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.tools.ConfigureDS";
 
-  /** The DN of the configuration entry defining the JE database backend. */
-  private static final String DN_JE_BACKEND = ATTR_BACKEND_ID + "=userRoot," + DN_BACKEND_BASE;
-
   /** The DN of the configuration entry defining the LDAP connection handler. */
   public static final String DN_LDAP_CONNECTION_HANDLER = "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
 
@@ -235,41 +215,6 @@ public class ConfigureDS
 
   /** The DN of the DIGEST-MD5 SASL mechanism handler. */
   public static final String DN_DIGEST_MD5_SASL_MECHANISM = "cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config";
-
-  /** Describes an attribute index which should be created during installation. */
-  private static final class DefaultIndex
-  {
-    private final String name;
-    private final boolean shouldCreateSubstringIndex;
-
-    private DefaultIndex(final String name, final boolean substringIndex)
-    {
-      this.name = name;
-      this.shouldCreateSubstringIndex = substringIndex;
-    }
-
-    private static DefaultIndex withEqualityAndSubstring(final String name)
-    {
-      return new DefaultIndex(name, true);
-    }
-
-    private static DefaultIndex withEquality(final String name)
-    {
-      return new DefaultIndex(name, false);
-    }
-  }
-
-  private static final DefaultIndex[] DEFAULT_INDEXES = {
-    DefaultIndex.withEqualityAndSubstring("cn"),
-    DefaultIndex.withEqualityAndSubstring("givenName"),
-    DefaultIndex.withEqualityAndSubstring("mail"),
-    DefaultIndex.withEqualityAndSubstring("sn"),
-    DefaultIndex.withEqualityAndSubstring("telephoneNumber"),
-    DefaultIndex.withEquality("member"),
-    DefaultIndex.withEquality("uid"),
-    DefaultIndex.withEquality("uniqueMember")
-  };
-
 
   private static int SUCCESS = 0;
   private static int ERROR = 1;
@@ -802,83 +747,13 @@ public class ConfigureDS
 
       try
       {
-          final File ldifConfigFile = Installation.getLocal().getCurrentConfigurationFile();
-          final List<IOException> exceptions = new LinkedList<IOException>();
-          final ManagementContext context =
-              LDAPManagementContext.newLDIFManagementContext(ldifConfigFile, LDAPProfile.getInstance(), exceptions);
-          createBackend(context.getRootConfiguration(), baseDNs,
-              (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend);
-          context.close();
-          if (!exceptions.isEmpty())
-          {
-            throw exceptions.get(0);
-          }
+        BackendCreationHelper.createBackendOffline(Installer.ROOT_BACKEND_NAME, baseDNs,
+            (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backend);
       }
-      catch (final Exception e)
+      catch (Exception e)
       {
         throw new ConfigureDSException(ERR_CONFIGDS_SET_BACKEND_TYPE.get(backendTypeName, e.getMessage()));
       }
-    }
-  }
-
-  private void createBackend(final RootCfgClient rootConfiguration, final List<org.forgerock.opendj.ldap.DN> baseDNs,
-      final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend) throws Exception
-  {
-      final BackendCfgClient backendCfgClient =
-          rootConfiguration.createBackend(backend, Installer.ROOT_BACKEND_NAME, null);
-      backendCfgClient.setEnabled(true);
-      backendCfgClient.setBaseDN(baseDNs);
-      backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
-      backendCfgClient.commit();
-
-      if (backend instanceof LocalDBBackendCfgDefn)
-      {
-        addJEIndexes((LocalDBBackendCfgClient) backendCfgClient);
-        return;
-      }
-
-      addBackendIndexes((PluggableBackendCfgClient) backendCfgClient);
-  }
-
-  private void addBackendIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
-  {
-    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
-    {
-      final BackendIndexCfgClient index =
-          backendCfgClient.createBackendIndex(BackendIndexCfgDefn.getInstance(), defaultIndex.name, null);
-      index.setAttribute(Schema.getCoreSchema().getAttributeType(defaultIndex.name));
-
-      final List<IndexType> indexTypes = new LinkedList<IndexType>();
-      indexTypes.add(IndexType.EQUALITY);
-      if (defaultIndex.shouldCreateSubstringIndex)
-      {
-        indexTypes.add(IndexType.SUBSTRING);
-      }
-      index.setIndexType(indexTypes);
-
-      index.commit();
-    }
-  }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private void addJEIndexes(final LocalDBBackendCfgClient jeBackendCfgClient) throws Exception
-  {
-    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
-    {
-      final LocalDBIndexCfgClient jeIndex =
-          jeBackendCfgClient.createLocalDBIndex(LocalDBIndexCfgDefn.getInstance(), defaultIndex.name, null);
-      jeIndex.setAttribute(Schema.getCoreSchema().getAttributeType(defaultIndex.name));
-
-      final List<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType> indexTypes =
-          new LinkedList<org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType>();
-      indexTypes.add(org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.EQUALITY);
-      if (defaultIndex.shouldCreateSubstringIndex)
-      {
-        indexTypes.add(org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING);
-      }
-      jeIndex.setIndexType(indexTypes);
-
-      jeIndex.commit();
     }
   }
 
