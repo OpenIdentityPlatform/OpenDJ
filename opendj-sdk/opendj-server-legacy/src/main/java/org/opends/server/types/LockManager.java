@@ -463,19 +463,39 @@ public final class LockManager
 
   private DNLockHolder acquireLockFromLockTable(final DN dn, final int dnHashCode, final LinkedList<DNLockHolder> cache)
   {
-    final LinkedList<DNLockHolder> bucket = getBucket(dnHashCode);
-    synchronized (bucket)
+    /*
+     * The lock doesn't exist yet so we'll have to create a new one referencing its parent lock. The
+     * parent lock may not yet exist in the lock table either so acquire it before locking the
+     * bucket in order to avoid deadlocks resulting from reentrant bucket locks. Note that we
+     * pre-emptively fetch the parent lock because experiments show that the requested child lock is
+     * almost never in the lock-table. Specifically, this method is only called if we are already on
+     * the slow path due to a cache miss in the thread-local cache.
+     */
+    final DN parentDN = dn.parent();
+    final DNLockHolder parentLock = parentDN != null ? acquireLockFromCache0(parentDN, cache) : null;
+    boolean parentLockWasUsed = false;
+    try
     {
-      DNLockHolder lock = removeLock(bucket, dn, dnHashCode);
-      if (lock == null)
+      final LinkedList<DNLockHolder> bucket = getBucket(dnHashCode);
+      synchronized (bucket)
       {
-        final DN parentDN = dn.parent();
-        final DNLockHolder parentLock = parentDN != null ? acquireLockFromCache0(parentDN, cache) : null;
-        lock = new DNLockHolder(parentLock, dn, dnHashCode);
+        DNLockHolder lock = removeLock(bucket, dn, dnHashCode);
+        if (lock == null)
+        {
+          lock = new DNLockHolder(parentLock, dn, dnHashCode);
+          parentLockWasUsed = true;
+        }
+        bucket.addFirst(lock); // optimize for LRU
+        lock.refCount.incrementAndGet();
+        return lock;
       }
-      bucket.addFirst(lock); // optimize for LRU
-      lock.refCount.incrementAndGet();
-      return lock;
+    }
+    finally
+    {
+      if (!parentLockWasUsed && parentLock != null)
+      {
+        dereference(parentLock);
+      }
     }
   }
 
@@ -484,17 +504,24 @@ public final class LockManager
     if (lock.refCount.decrementAndGet() <= 0)
     {
       final LinkedList<DNLockHolder> bucket = getBucket(lock.dnHashCode);
+      boolean lockWasRemoved = false;
       synchronized (bucket)
       {
         // Double check: another thread could have acquired the lock since we decremented it to zero.
         if (lock.refCount.get() <= 0)
         {
           removeLock(bucket, lock.dn, lock.dnHashCode);
-          if (lock.parent != null)
-          {
-            dereference(lock.parent);
-          }
+          lockWasRemoved = true;
         }
+      }
+
+      /*
+       * Dereference the parent outside of the bucket lock to avoid potential deadlocks due to
+       * reentrant bucket locks.
+       */
+      if (lockWasRemoved && lock.parent != null)
+      {
+        dereference(lock.parent);
       }
     }
   }
