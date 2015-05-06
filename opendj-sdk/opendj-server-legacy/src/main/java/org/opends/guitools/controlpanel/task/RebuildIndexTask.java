@@ -46,6 +46,7 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.tools.RebuildIndex;
 
 /**
@@ -58,7 +59,8 @@ public class RebuildIndexTask extends IndexTask
   /**
    * The indexes that must not be specified in the command-line.
    */
-  public static final String[] INDEXES_NOT_TO_SPECIFY = { "id2children", "id2subtree" };
+  public static final String[] INDEXES_NOT_TO_SPECIFY = { SuffixContainer.ID2CHILDREN_INDEX_NAME,
+    SuffixContainer.ID2SUBTREE_INDEX_NAME, SuffixContainer.ID2CHILDREN_COUNT_NAME };
 
   /**
    * Constructor of the task.
