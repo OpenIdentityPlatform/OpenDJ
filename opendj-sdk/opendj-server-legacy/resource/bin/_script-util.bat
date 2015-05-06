@@ -158,7 +158,7 @@ goto endJavaHomeAndArgs
 
 :noJavaFound
 echo ERROR:  Could not find a valid Java binary to be used.
-echo You must specify the path to a valid Java 7.0 update 10 or higher version.
+echo You must specify the path to a valid Java 7.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
@@ -198,7 +198,7 @@ if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
 echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 7.0 update 10 or higher version.
+echo You must specify the path to a valid Java 7.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
@@ -224,7 +224,7 @@ echo ERROR:  The detected Java version could not be used with the set of Java
 echo arguments %OPENDJ_JAVA_ARGS%.
 echo The detected Java binary is:
 echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 7.0 update 10 or higher version.
+echo You must specify the path to a valid Java 7.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
 echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
