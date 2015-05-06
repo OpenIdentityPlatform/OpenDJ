@@ -21,7 +21,7 @@ you can install OpenDJ in either of two modes:
 
 Before You Install
 ------------------
- * A Java SE 6 or later runtime environment must be installed.
+ * A Java SE 7 or later runtime environment must be installed.
  * The system must have at least 100MB of disk space and 256MB of free memory
    to run OpenDJ directory server for evaluation purposes.
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -30,6 +30,9 @@ package com.forgerock.opendj.cli;
  * This class defines a number of constants used by tools.
  */
 public final class CliConstants {
+
+    /** The minimum java specification supported string version. */
+    public static final float MINIMUM_JAVA_VERSION = 1.7F;
 
     /** Default value for LDAP connection timeout. */
     public static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 30000;

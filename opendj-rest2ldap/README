@@ -1,7 +1,7 @@
 OpenDJ REST to LDAP Gateway.
 
 This Maven project contains the OpenDJ REST to LDAP gateway support library. It
-is 100% Java based and requires Java 1.6. 
+is 100% Java based and requires Java 1.7.
 
 Complete documentation for this product may be found online
 at http://www.forgerock.com/opendj.html.

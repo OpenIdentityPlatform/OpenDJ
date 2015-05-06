@@ -22,7 +22,7 @@
 # CDDL HEADER END
 #
 #      Portions Copyright 2006-2010 Sun Microsystems Inc.
-#      Copyright 2010-2013 ForgeRock AS
+#      Copyright 2010-2015 ForgeRock AS
 
 # Determine the location to this script so that we know where we are in the
 # OpenDJ source tree.
@@ -90,7 +90,7 @@ then
   JAVA_HOME=`java -cp "${ROOT_DIR}/resource" FindJavaHome 2> /dev/null`
   if test -z "${JAVA_HOME}"
   then
-    echo "Please set JAVA_HOME to the root of a Java 6.0 installation."
+    echo "Please set JAVA_HOME to the root of a Java 7.0 installation."
     exit 1
   else
     export JAVA_HOME
@@ -186,7 +186,7 @@ echo "Signing license.jar ..."
 "${JARSIGNER}" -keystore "${CERT_KEYSTORE}" -keypass "${CERT_KEYSTORE_PIN}" \
                -storepass "${CERT_KEYSTORE_PIN}" license.jar "${CERT_ALIAS}"
 # Create the resource line to add to the jnlp script.
-LICENSEJAR="<jar href=\"lib/license.jar\" download=\"eager\"/>"               
+LICENSEJAR="<jar href=\"lib/license.jar\" download=\"eager\"/>"
 fi
 
 # Create and sign the zipped.jar file.

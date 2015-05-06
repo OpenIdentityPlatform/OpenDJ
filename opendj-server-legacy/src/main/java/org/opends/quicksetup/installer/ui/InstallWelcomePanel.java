@@ -27,9 +27,11 @@
 package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
+
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.Platform;
 
 import java.awt.Component;
 
@@ -71,6 +73,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
           INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
               DynamicConstants.SHORT_NAME,
               DynamicConstants.SHORT_NAME,
+              Platform.JAVA_MINIMUM_VERSION_NUMBER,
               DynamicConstants.DOC_REFERENCE_WIKI,
               DynamicConstants.SHORT_NAME),
           LocalizableMessage.class);

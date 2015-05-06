@@ -67,6 +67,9 @@ public final class Platform
 
   private static final PlatformIMPL IMPL;
 
+  /** The minimum java supported version. */
+  public static final String JAVA_MINIMUM_VERSION_NUMBER = "7.0";
+
   static
   {
     String vendor = System.getProperty("java.vendor");

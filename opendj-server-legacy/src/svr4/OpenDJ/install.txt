@@ -5,8 +5,8 @@ If you are reading this page, you have already installed the OpenDJ package.
 
 Before You Configure
 ------------------
-A Java SE 6.0 (version 1.6.0_10) or higher runtime environment must be installed. It is
-recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
+A Java SE 7 or higher runtime environment must be installed. It is
+recommended that your system have at least 100MB of disk space and 256MB of free memory to run
 OpenDJ for evaluation purposes. Note that you can configure OpenDJ in such a way that it requires
 substantially less, or more, disk space. For more information, see the OpenDJ System Requirements
 at https://

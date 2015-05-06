@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -408,10 +408,10 @@ public final class Utils {
      */
     public static void checkJavaVersion() throws ClientException {
         final String version = System.getProperty("java.specification.version");
-        if (Float.valueOf(version) < 1.6) {
+        if (Float.valueOf(version) < CliConstants.MINIMUM_JAVA_VERSION) {
             final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-            throw new ClientException(ReturnCode.JAVA_VERSION_INCOMPATIBLE, ERR_INCOMPATIBLE_JAVA_VERSION.get("1.6",
-                    version, javaBin), null);
+            throw new ClientException(ReturnCode.JAVA_VERSION_INCOMPATIBLE,
+                    ERR_INCOMPATIBLE_JAVA_VERSION.get(CliConstants.MINIMUM_JAVA_VERSION, version, javaBin), null);
         }
     }
 

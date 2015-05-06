@@ -1,7 +1,7 @@
 OpenDJ LDAP client tools and SDK.
 
 This Maven project contains the OpenDJ client tools, and LDAP SDK. It is 100%
-Java based and requires Java 1.6. 
+Java based and requires Java 1.7.
 
 Complete documentation for this product is available online
 from http://www.forgerock.com/

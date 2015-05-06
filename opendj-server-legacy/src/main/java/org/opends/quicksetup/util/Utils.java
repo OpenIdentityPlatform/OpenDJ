@@ -62,6 +62,7 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
+import com.forgerock.opendj.cli.ClientException;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
@@ -1256,21 +1257,15 @@ public class Utils
    */
   public static void checkJavaVersion() throws IncompatibleVersionException
   {
-    String vendor = System.getProperty("java.vendor");
-    String version = System.getProperty("java.version");
-    for (CompatibleJava i : CompatibleJava.values())
+    try
     {
-      if (i.getVendor().equalsIgnoreCase(vendor))
-      {
-        // Compare versions.
-        boolean versionCompatible = i.getVersion().compareToIgnoreCase(version) <= 0;
-        if (!versionCompatible)
-        {
-          String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-          throw new IncompatibleVersionException(ERR_INCOMPATIBLE_VERSION.get(i.getVersion(), version, javaBin), null);
-        }
-      }
+      com.forgerock.opendj.cli.Utils.checkJavaVersion();
     }
+    catch (ClientException e)
+    {
+      throw new IncompatibleVersionException(e.getMessageObject(), e);
+    }
+
     if (Utils.isWebStart())
     {
       // Check that the JNLP service exists.
