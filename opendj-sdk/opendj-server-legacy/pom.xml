@@ -1911,7 +1911,6 @@
                     <messageFileName>core</messageFileName>
                     <messageFileName>dsconfig</messageFileName>
                     <messageFileName>extension</messageFileName>
-                    <messageFileName>jeb</messageFileName>
                     <messageFileName>logger</messageFileName>
                     <messageFileName>plugin</messageFileName>
                     <messageFileName>protocol</messageFileName>
