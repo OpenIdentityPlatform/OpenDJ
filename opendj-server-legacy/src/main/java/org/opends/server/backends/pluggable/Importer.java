@@ -260,7 +260,7 @@ final class Importer
    * @param rebuildConfig
    *          The rebuild index configuration.
    * @param cfg
-   *          The local DB back-end configuration.
+   *          The backend configuration.
    * @throws InitializationException
    *           If a problem occurs during initialization.
    * @throws StorageRuntimeException
@@ -292,7 +292,7 @@ final class Importer
    * @param importCfg
    *          The LDIF import configuration.
    * @param backendCfg
-   *          The local DB back-end configuration.
+   *          The backend configuration.
    * @throws InitializationException
    *           If a problem occurs during initialization.
    * @throws ConfigException
@@ -1396,7 +1396,7 @@ final class Importer
 
       if (oldEntry == null)
       {
-        if (validateDNs && !dnSanityCheck(txn, entryDN, entry, suffix))
+        if (validateDNs && !dnSanityCheck(txn, entry, suffix))
         {
           suffix.removePending(entryDN);
           return;
@@ -1521,7 +1521,7 @@ final class Importer
         throws DirectoryException, StorageRuntimeException, InterruptedException
     {
       DN entryDN = entry.getName();
-      if (validateDNs && !dnSanityCheck(txn, entryDN, entry, suffix))
+      if (validateDNs && !dnSanityCheck(txn, entry, suffix))
       {
         suffix.removePending(entryDN);
         return;
@@ -1535,35 +1535,39 @@ final class Importer
       importCount.getAndIncrement();
     }
 
-    /** Examine the DN for duplicates and missing parents. */
-    boolean dnSanityCheck(WriteableTransaction txn, DN entryDN, Entry entry, Suffix suffix)
+    /**
+     * Examine the DN for duplicates and missing parents.
+     *
+     * @return true if the import operation can proceed with the provided entry, false otherwise
+     */
+    boolean dnSanityCheck(WriteableTransaction txn, Entry entry, Suffix suffix)
         throws StorageRuntimeException, InterruptedException
     {
       //Perform parent checking.
+      DN entryDN = entry.getName();
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
       if (parentDN != null && !suffix.isParentProcessed(txn, parentDN, dnCache, clearedBackend))
       {
         reader.rejectEntry(entry, ERR_IMPORT_PARENT_NOT_FOUND.get(parentDN));
         return false;
       }
-      //If the backend was not cleared, then the dn2id needs to checked first
-      //for DNs that might not exist in the DN cache. If the DN is not in
-      //the suffixes dn2id DB, then the dn cache is used.
-      if (!clearedBackend)
-      {
-        EntryID id = suffix.getDN2ID().get(txn, entryDN);
-        if (id != null || !dnCache.insert(entryDN))
-        {
-          reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
-          return false;
-        }
-      }
-      else if (!dnCache.insert(entryDN))
+      if (!insert(txn, entryDN, suffix, dnCache))
       {
         reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
         return false;
       }
       return true;
+    }
+
+    private boolean insert(WriteableTransaction txn, DN entryDN, Suffix suffix, DNCache dnCache)
+    {
+      //If the backend was not cleared, then first check dn2id
+      //for DNs that might not exist in the DN cache.
+      if (!clearedBackend && suffix.getDN2ID().get(txn, entryDN) != null)
+      {
+        return false;
+      }
+      return dnCache.insert(entryDN);
     }
 
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID) throws StorageRuntimeException,
@@ -2659,7 +2663,7 @@ final class Importer
 
     /** Rebuild index configuration. */
     private final RebuildConfig rebuildConfig;
-    /** Local DB backend configuration. */
+    /** Backend configuration. */
     private final PluggableBackendCfg cfg;
 
     /** Map of index keys to indexes. */
@@ -3748,6 +3752,7 @@ final class Importer
             }));
           }
         });
+        return updateResult.get();
       }
       catch (StorageRuntimeException e)
       {
@@ -3757,7 +3762,6 @@ final class Importer
       {
         throw new StorageRuntimeException(e);
       }
-      return updateResult.get();
     }
 
     /** Return true if the specified DN is in the DNs saved as a result of hash collisions. */
