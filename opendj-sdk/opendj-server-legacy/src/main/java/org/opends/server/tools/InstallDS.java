@@ -489,7 +489,7 @@ public class InstallDS extends ConsoleApplication
       logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "
           + "the set-java-home file in test only mode: " + t, t));
     }
-    // Test that we are running a compatible java 1.6 version.
+    // Test that we are running a compatible java 1.7 version.
     try
     {
       Utils.checkJavaVersion();

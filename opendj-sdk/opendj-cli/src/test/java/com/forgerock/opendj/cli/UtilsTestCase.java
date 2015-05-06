@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -39,7 +39,7 @@ public class UtilsTestCase extends CliTestCase {
     @Test(expectedExceptions = ClientException.class)
     public void testInvalidJavaVersion() throws ClientException {
         final String original = System.getProperty("java.specification.version");
-        System.setProperty("java.specification.version", "1.5");
+        System.setProperty("java.specification.version", "1.6");
         try {
             Utils.checkJavaVersion();
         } finally {
