@@ -35,12 +35,12 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
-abstract class AbstractDatabaseContainer implements DatabaseContainer
+abstract class AbstractTree implements Tree
 {
-  /** The name of the database within the entryContainer. */
+  /** The name of the tree within the entryContainer. */
   private TreeName name;
 
-  AbstractDatabaseContainer(final TreeName name)
+  AbstractTree(final TreeName name)
   {
     this.name = name;
   }

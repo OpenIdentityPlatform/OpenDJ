@@ -32,14 +32,14 @@ import org.opends.server.types.EntryEncodeConfig;
 
 /**
  * Configuration class to indicate desired compression and cryptographic options
- * for the data stored in the database.
+ * for the data stored in the tree.
  */
 final class DataConfig
 {
-  /** Indicates whether data should be compressed before writing to the database. */
+  /** Indicates whether data should be compressed before writing to the storage. */
   private boolean compressed;
 
-  /** The configuration to use when encoding entries in the database. */
+  /** The configuration to use when encoding entries in the tree. */
   private EntryEncodeConfig encodeConfig;
 
   /**
@@ -68,7 +68,7 @@ final class DataConfig
   }
 
   /**
-   * Determine whether data should be compressed before writing to the database.
+   * Determine whether data should be compressed before writing to the tree.
    * @return true if data should be compressed, false if not.
    */
   boolean isCompressed()

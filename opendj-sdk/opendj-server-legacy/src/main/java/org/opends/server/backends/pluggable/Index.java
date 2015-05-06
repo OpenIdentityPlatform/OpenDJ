@@ -38,7 +38,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * is a byte array, and is constructed from some normalized form of an attribute value (or fragment
  * of a value) appearing in the entry.
  */
-interface Index extends DatabaseContainer
+interface Index extends Tree
 {
   EntryIDSet get(ReadableTransaction txn, ByteSequence key);
 

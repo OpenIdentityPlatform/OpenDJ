@@ -35,51 +35,51 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
-interface DatabaseContainer
+interface Tree
 {
   /**
-   * Opens a database in this database container. If the provided database configuration is
-   * transactional, a transaction will be created and used to perform the open.
+   * Opens a tree. If the provided configuration is transactional,
+   * a transaction will be created and used to perform the open.
    *
    * @param txn
-   *          a non null database transaction
+   *          a non null transaction
    * @throws StorageRuntimeException
-   *           if a database error occurs while opening the index.
+   *           if an error occurs while opening the index.
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException;
 
   /**
-   * Deletes this database and all of its contents.
+   * Deletes this tree and all of its contents.
    *
    * @param txn
-   *          a non null database transaction
+   *          a non null transaction
    * @throws StorageRuntimeException
-   *           if a database error occurs while deleting the index.
+   *           if an error occurs while deleting the index.
    */
   void delete(WriteableTransaction txn) throws StorageRuntimeException;
 
   /**
-   * Returns the number of key/value pairs in this database container.
+   * Returns the number of key/value pairs in this tree.
    *
    * @param txn
-   *          a non null database transaction
+   *          a non null transaction
    * @return the number of key/value pairs in the provided tree.
    * @throws StorageRuntimeException
-   *           If an error occurs in the DB operation.
+   *           If an error occurs in the storage operation.
    */
   long getRecordCount(ReadableTransaction txn) throws StorageRuntimeException;
 
   /**
-   * Get the database name for this database container.
+   * Get the name for this tree.
    *
-   * @return database name for this database container.
+   * @return name for this tree.
    */
   TreeName getName();
 
   /**
-   * Set the database name to use for this container.
+   * Set the name to use for this tree.
    *
-   * @param name The database name to use for this container.
+   * @param name The name to use for this tree.
    */
   void setName(TreeName name);
 }

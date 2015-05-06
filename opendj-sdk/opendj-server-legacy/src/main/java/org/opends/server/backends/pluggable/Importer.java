@@ -224,7 +224,7 @@ final class Importer
 
   /** Map of DNs to Suffix objects. */
   private final Map<DN, Suffix> dnSuffixMap = new LinkedHashMap<>();
-  /** Map of indexIDs to database containers. */
+  /** Map of indexIDs to indexes. */
   private final ConcurrentHashMap<Integer, Index> indexIDToIndexMap = new ConcurrentHashMap<>();
   /** Map of indexIDs to entry containers. */
   private final ConcurrentHashMap<Integer, EntryContainer> indexIDToECMap = new ConcurrentHashMap<>();
@@ -634,7 +634,7 @@ final class Importer
     }
   }
 
-  private static int getIndexID(DatabaseContainer index)
+  private static int getIndexID(Tree index)
   {
     return System.identityHashCode(index);
   }
@@ -778,7 +778,7 @@ final class Importer
    * @throws InitializationException
    *           If an initialization error occurred.
    * @throws StorageRuntimeException
-   *           If the database had an error.
+   *           If the storage had an error.
    * @throws InterruptedException
    *           If an interrupted error occurred.
    * @throws ExecutionException
@@ -958,7 +958,7 @@ final class Importer
 
         final EntryContainer replacement = suffix.getEntryContainer();
         replacement.lock();
-        replacement.setDatabasePrefix(baseDN.toNormalizedUrlSafeString());
+        replacement.setTreePrefix(baseDN.toNormalizedUrlSafeString());
         replacement.unlock();
         rootContainer.registerEntryContainer(baseDN, replacement);
       }
@@ -1635,7 +1635,7 @@ final class Importer
       getAll(futures);
     }
 
-    int processKey(DatabaseContainer container, ByteString key, EntryID entryID,
+    int processKey(Tree container, ByteString key, EntryID entryID,
         IndexKey indexKey, boolean insert) throws InterruptedException
     {
       int sizeNeeded = IndexOutputBuffer.getRequiredSize(key.length(), entryID.longValue());
@@ -1708,7 +1708,7 @@ final class Importer
 
   /**
    * This task reads sorted records from the temporary index scratch files,
-   * processes the records and writes the results to the index database. The DN
+   * processes the records and writes the results to the index tree. The DN
    * index is treated differently then non-DN indexes.
    */
   private final class IndexDBWriteTask implements Callable<Void>
@@ -2889,13 +2889,13 @@ final class Importer
     {
       if (dn2uri != null)
       {
-        entryContainer.clearDatabase(txn, entryContainer.getDN2URI());
+        entryContainer.clearTree(txn, entryContainer.getDN2URI());
       }
 
       if (dn2id != null)
       {
-        entryContainer.clearDatabase(txn, entryContainer.getDN2ID());
-        entryContainer.clearDatabase(txn, entryContainer.getID2ChildrenCount());
+        entryContainer.clearTree(txn, entryContainer.getDN2ID());
+        entryContainer.clearTree(txn, entryContainer.getID2ChildrenCount());
       }
 
       for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
@@ -2903,7 +2903,7 @@ final class Importer
         final Index index = mapEntry.getValue();
         if (!index.isTrusted())
         {
-          entryContainer.clearDatabase(txn, index);
+          entryContainer.clearTree(txn, index);
         }
       }
 
@@ -2911,7 +2911,7 @@ final class Importer
       {
         if (!vlvIndex.isTrusted())
         {
-          entryContainer.clearDatabase(txn, vlvIndex);
+          entryContainer.clearTree(txn, vlvIndex);
         }
       }
     }
@@ -2998,7 +2998,7 @@ final class Importer
       case ALL:
         return getTotalIndexCount(cfg);
       case DEGRADED:
-        // FIXME: since the environment is not started we cannot determine which
+        // FIXME: since the storgae is not opened we cannot determine which
         // indexes are degraded. As a workaround, be conservative and assume all
         // indexes need rebuilding.
         return getTotalIndexCount(cfg);
@@ -3244,7 +3244,7 @@ final class Importer
      * Create a new rebuild index progress task.
      *
      * @throws StorageRuntimeException
-     *           If an error occurred while accessing the database.
+     *           If an error occurred while accessing the storage.
      */
     public RebuildFirstPhaseProgressTask() throws StorageRuntimeException
     {
@@ -3550,7 +3550,7 @@ final class Importer
      * @return {@code true} if the DN was inserted in the cache, or {@code false} if the DN exists
      *         in the cache already and could not be inserted.
      * @throws StorageRuntimeException
-     *           If an error occurs accessing the database.
+     *           If an error occurs accessing the storage.
      */
     boolean insert(DN dn);
 
@@ -3562,7 +3562,7 @@ final class Importer
      * @return {@code true} if the cache contains the DN, or {@code false} if it
      *         is not.
      * @throws StorageRuntimeException
-     *           If an error occurs reading the database.
+     *           If an error occurs reading the storage.
      */
     boolean contains(DN dn) throws StorageRuntimeException;
 

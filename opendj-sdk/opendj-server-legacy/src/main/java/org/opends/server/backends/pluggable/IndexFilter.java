@@ -72,13 +72,13 @@ class IndexFilter
    * how the indexed contributed to the search operation.
    */
   private final StringBuilder buffer;
-  private final DatabaseEnvironmentMonitor monitor;
+  private final BackendMonitor monitor;
 
   /**
    * Construct an index filter for a search operation.
    *
    * @param entryContainer The entry entryContainer.
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param searchOp       The search operation to be evaluated.
    * @param monitor        The monitor to gather filter usage stats.
    * @param debugBuilder If not null, a diagnostic string will be written
@@ -86,7 +86,7 @@ class IndexFilter
    *                     to this search.
    */
   IndexFilter(EntryContainer entryContainer, ReadableTransaction txn, SearchOperation searchOp,
-      StringBuilder debugBuilder, DatabaseEnvironmentMonitor monitor)
+      StringBuilder debugBuilder, BackendMonitor monitor)
   {
     this.entryContainer = entryContainer;
     this.txn = txn;

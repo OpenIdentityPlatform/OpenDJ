@@ -43,11 +43,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
- * This class represents the DN database, or dn2id, which has one record
+ * This class represents the dn2id index, which has one record
  * for each entry.  The key is the normalized entry DN and the value
  * is the entry ID.
  */
-class DN2ID extends AbstractDatabaseContainer
+class DN2ID extends AbstractTree
 {
   private static final Function<ByteString, Void, DirectoryException> TO_VOID_KEY =
       new Function<ByteString, Void, DirectoryException>()
@@ -73,11 +73,11 @@ class DN2ID extends AbstractDatabaseContainer
 
 
   /**
-   * Create a DN2ID instance for the DN database in a given entryContainer.
+   * Create a DN2ID instance for in a given entryContainer.
    *
-   * @param treeName The name of the DN database.
-   * @param baseDN The base DN of the database.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param treeName The name of the DN tree.
+   * @param baseDN The base DN of the tree.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   DN2ID(TreeName treeName, DN baseDN) throws StorageRuntimeException
   {
@@ -86,8 +86,8 @@ class DN2ID extends AbstractDatabaseContainer
   }
 
   /**
-   * Adds a new record into the DN database replacing any existing record having the same DN.
-   * @param txn a non null database transaction
+   * Adds a new record into the DN tree replacing any existing record having the same DN.
+   * @param txn a non null transaction
    * @param dn The entry DN, which is the key to the record.
    * @param id The entry ID, which is the value of the record.
    * @throws StorageRuntimeException If an error occurred while attempting to insert
@@ -103,8 +103,8 @@ class DN2ID extends AbstractDatabaseContainer
   }
 
   /**
-   * Remove a record from the DN database.
-   * @param txn a non null database transaction
+   * Remove a record from the DN tree.
+   * @param txn a non null transaction
    * @param dn The entry DN, which is the key to the record.
    * @return true if the record was removed, false if it was not removed.
    * @throws StorageRuntimeException If an error occurred while attempting to remove
@@ -117,10 +117,10 @@ class DN2ID extends AbstractDatabaseContainer
 
   /**
    * Fetch the entry ID for a given DN.
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param dn The DN for which the entry ID is desired.
-   * @return The entry ID, or null if the given DN is not in the DN database.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @return The entry ID, or null if the given DN is not in the DN tree.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   EntryID get(ReadableTransaction txn, DN dn) throws StorageRuntimeException
   {

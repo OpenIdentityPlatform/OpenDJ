@@ -116,7 +116,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
- * Storage container for LDAP entries.  Each base DN of a JE backend is given
+ * Storage container for LDAP entries.  Each base DN of a backend is given
  * its own entry container.  The entry container is the object that implements
  * the guts of the backend API methods for LDAP operations.
  */
@@ -127,21 +127,21 @@ public class EntryContainer
 
   /** Number of EntryID to considers when building EntryIDSet from DN2ID. */
   private static final int SCOPE_IDSET_LIMIT = 4096;
-  /** The name of the entry database. */
-  private static final String ID2ENTRY_DATABASE_NAME = ID2ENTRY_INDEX_NAME;
-  /** The name of the DN database. */
-  private static final String DN2ID_DATABASE_NAME = DN2ID_INDEX_NAME;
-  /** The name of the children index database. */
-  private static final String ID2CHILDREN_COUNT_DATABASE_NAME = ID2CHILDREN_COUNT_NAME;
-  /** The name of the referral database. */
-  private static final String REFERRAL_DATABASE_NAME = REFERRAL_INDEX_NAME;
-  /** The name of the state database. */
-  private static final String STATE_DATABASE_NAME = STATE_INDEX_NAME;
+  /** The name of the entry tree. */
+  private static final String ID2ENTRY_TREE_NAME = ID2ENTRY_INDEX_NAME;
+  /** The name of the DN tree. */
+  private static final String DN2ID_TREE_NAME = DN2ID_INDEX_NAME;
+  /** The name of the children index tree. */
+  private static final String ID2CHILDREN_COUNT_TREE_NAME = ID2CHILDREN_COUNT_NAME;
+  /** The name of the referral tree. */
+  private static final String REFERRAL_TREE_NAME = REFERRAL_INDEX_NAME;
+  /** The name of the state tree. */
+  private static final String STATE_TREE_NAME = STATE_INDEX_NAME;
 
   /** The attribute index configuration manager. */
-  private final AttributeJEIndexCfgManager attributeJEIndexCfgManager;
+  private final AttributeIndexCfgManager attributeIndexCfgManager;
   /** The vlv index configuration manager. */
-  private final VLVJEIndexCfgManager vlvJEIndexCfgManager;
+  private final VLVIndexCfgManager vlvIndexCfgManager;
 
   /** The backend to which this entry container belongs. */
   private final Backend<?> backend;
@@ -155,18 +155,18 @@ public class EntryContainer
   /** The backend configuration. */
   private PluggableBackendCfg config;
 
-  /** The database storage. */
+  /** The tree storage. */
   private final Storage storage;
 
-  /** The DN database maps a normalized DN string to an entry ID (8 bytes). */
+  /** The DN tree maps a normalized DN string to an entry ID (8 bytes). */
   private final DN2ID dn2id;
-  /** The entry database maps an entry ID (8 bytes) to a complete encoded entry. */
+  /** The entry tree maps an entry ID (8 bytes) to a complete encoded entry. */
   private ID2Entry id2entry;
   /** Store the number of children for each entry. */
   private final ID2Count id2childrenCount;
-  /** The referral database maps a normalized DN string to labeled URIs. */
+  /** The referral tree maps a normalized DN string to labeled URIs. */
   private final DN2URI dn2uri;
-  /** The state database maps a config DN to config entries. */
+  /** The state tree maps a config DN to config entries. */
   private final State state;
 
   /** The set of attribute indexes. */
@@ -179,13 +179,13 @@ public class EntryContainer
    * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
    * For example when a root container contains multiple suffixes.
    */
-  private final String databasePrefix;
+  private final String treePrefix;
 
   /**
    * This class is responsible for managing the configuration for attribute
    * indexes used within this entry container.
    */
-  private class AttributeJEIndexCfgManager implements
+  private class AttributeIndexCfgManager implements
   ConfigurationAddListener<BackendIndexCfg>,
   ConfigurationDeleteListener<BackendIndexCfg>
   {
@@ -291,7 +291,7 @@ public class EntryContainer
    * This class is responsible for managing the configuration for VLV indexes
    * used within this entry container.
    */
-  private class VLVJEIndexCfgManager implements
+  private class VLVIndexCfgManager implements
   ConfigurationAddListener<BackendVLVIndexCfg>,
   ConfigurationDeleteListener<BackendVLVIndexCfg>
   {
@@ -431,49 +431,49 @@ public class EntryContainer
    *
    * @param baseDN  The baseDN this entry container will be responsible for
    *                storing on disk.
-   * @param backend A reference to the JE backend that is creating this entry
+   * @param backend A reference to the backend that is creating this entry
    *                container. It is needed by the Directory Server entry cache
    *                methods.
-   * @param config The configuration of the JE backend.
-   * @param env The JE environment to create this entryContainer in.
+   * @param config The configuration of the backend.
+   * @param storage The storage for this entryContainer.
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  EntryContainer(DN baseDN, Backend<?> backend, PluggableBackendCfg config, Storage env, RootContainer rootContainer)
-      throws ConfigException
+  EntryContainer(DN baseDN, Backend<?> backend, PluggableBackendCfg config, Storage storage,
+      RootContainer rootContainer) throws ConfigException
   {
     this.backend = backend;
     this.baseDN = baseDN;
     this.config = config;
-    this.storage = env;
+    this.storage = storage;
     this.rootContainer = rootContainer;
-    this.databasePrefix = baseDN.toNormalizedUrlSafeString();
-    this.id2childrenCount = new ID2Count(getIndexName(ID2CHILDREN_COUNT_DATABASE_NAME));
-    this.dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), baseDN);
-    this.dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), this);
-    this.state = new State(getIndexName(STATE_DATABASE_NAME));
+    this.treePrefix = baseDN.toNormalizedUrlSafeString();
+    this.id2childrenCount = new ID2Count(getIndexName(ID2CHILDREN_COUNT_TREE_NAME));
+    this.dn2id = new DN2ID(getIndexName(DN2ID_TREE_NAME), baseDN);
+    this.dn2uri = new DN2URI(getIndexName(REFERRAL_TREE_NAME), this);
+    this.state = new State(getIndexName(STATE_TREE_NAME));
 
     config.addPluggableChangeListener(this);
 
-    attributeJEIndexCfgManager = new AttributeJEIndexCfgManager();
-    config.addBackendIndexAddListener(attributeJEIndexCfgManager);
-    config.addBackendIndexDeleteListener(attributeJEIndexCfgManager);
+    attributeIndexCfgManager = new AttributeIndexCfgManager();
+    config.addBackendIndexAddListener(attributeIndexCfgManager);
+    config.addBackendIndexDeleteListener(attributeIndexCfgManager);
 
-    vlvJEIndexCfgManager = new VLVJEIndexCfgManager();
-    config.addBackendVLVIndexAddListener(vlvJEIndexCfgManager);
-    config.addBackendVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    vlvIndexCfgManager = new VLVIndexCfgManager();
+    config.addBackendVLVIndexAddListener(vlvIndexCfgManager);
+    config.addBackendVLVIndexDeleteListener(vlvIndexCfgManager);
   }
 
   private TreeName getIndexName(String indexId)
   {
-    return new TreeName(databasePrefix, indexId);
+    return new TreeName(treePrefix, indexId);
   }
 
   /**
    * Opens the entryContainer for reading and writing.
    *
-   * @param txn a non null database transaction
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param txn a non null transaction
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws ConfigException if a configuration related error occurs.
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException, ConfigException
@@ -485,7 +485,7 @@ public class EntryContainer
             config.isCompactEncoding(),
             rootContainer.getCompressedSchema());
 
-      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), entryDataConfig);
+      id2entry = new ID2Entry(getIndexName(ID2ENTRY_TREE_NAME), entryDataConfig);
       id2entry.open(txn);
       id2childrenCount.open(txn);
       dn2id.open(txn);
@@ -531,7 +531,7 @@ public class EntryContainer
   /**
    * Closes the entry container.
    *
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   @Override
   public void close() throws StorageRuntimeException
@@ -541,10 +541,10 @@ public class EntryContainer
 
     // Deregister any listeners.
     config.removePluggableChangeListener(this);
-    config.removeBackendIndexAddListener(attributeJEIndexCfgManager);
-    config.removeBackendIndexDeleteListener(attributeJEIndexCfgManager);
-    config.removeBackendVLVIndexAddListener(vlvJEIndexCfgManager);
-    config.removeBackendVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeBackendIndexAddListener(attributeIndexCfgManager);
+    config.removeBackendIndexDeleteListener(attributeIndexCfgManager);
+    config.removeBackendVLVIndexAddListener(vlvIndexCfgManager);
+    config.removeBackendVLVIndexDeleteListener(vlvIndexCfgManager);
   }
 
   /**
@@ -560,10 +560,10 @@ public class EntryContainer
   }
 
   /**
-   * Get the DN database used by this entry container.
+   * Get the DN tree used by this entry container.
    * The entryContainer must have been opened.
    *
-   * @return The DN database.
+   * @return The DN tree.
    */
   DN2ID getDN2ID()
   {
@@ -571,10 +571,10 @@ public class EntryContainer
   }
 
   /**
-   * Get the entry database used by this entry container.
+   * Get the entry tree used by this entry container.
    * The entryContainer must have been opened.
    *
-   * @return The entry database.
+   * @return The entry tree.
    */
   ID2Entry getID2Entry()
   {
@@ -582,10 +582,10 @@ public class EntryContainer
   }
 
   /**
-   * Get the referral database used by this entry container.
+   * Get the referral tree used by this entry container.
    * The entryContainer must have been opened.
    *
-   * @return The referral database.
+   * @return The referral tree.
    */
   DN2URI getDN2URI()
   {
@@ -593,10 +593,10 @@ public class EntryContainer
   }
 
   /**
-   * Get the children database used by this entry container.
+   * Get the children tree used by this entry container.
    * The entryContainer must have been opened.
    *
-   * @return The children database.
+   * @return The children tree.
    */
   ID2Count getID2ChildrenCount()
   {
@@ -659,9 +659,9 @@ public class EntryContainer
    * Determine the highest entryID in the entryContainer.
    * The entryContainer must already be open.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @return The highest entry ID.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   EntryID getHighestEntryID(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -709,7 +709,7 @@ public class EntryContainer
    * @param entryDN The distinguished name of the entry.
    * @return The number of children entries for the given entry or -1 if
    *         the entry does not exist.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   long getNumberOfChildren(final DN entryDN) throws StorageRuntimeException
   {
@@ -740,7 +740,7 @@ public class EntryContainer
    * @throws DirectoryException
    *          If a problem occurs while processing the
    *          search.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void search(final SearchOperation searchOperation)
@@ -1099,9 +1099,9 @@ public class EntryContainer
    * Here we are relying on the DN key order to ensure children are
    * returned after their parents.
    * <ul>
-   * <li>iterate through a subtree range of the DN database
+   * <li>iterate through a subtree range of the DN tree
    * <li>discard non-children DNs if the search scope is single level
-   * <li>fetch the entry by ID from the entry cache or the entry database
+   * <li>fetch the entry by ID from the entry cache or the entry tree
    * <li>return the entry if it matches the filter
    * </ul>
    *
@@ -1278,7 +1278,7 @@ public class EntryContainer
   /**
    * Returns the entry corresponding to the provided entryID.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param entryID
    *          the id of the entry to retrieve
    * @return the entry corresponding to the provided entryID
@@ -1471,18 +1471,18 @@ public class EntryContainer
   }
 
   /**
-   * Adds the provided entry to this database.  This method must ensure that the
-   * entry is appropriate for the database and that no entry already exists with
+   * Adds the provided entry to this tree.  This method must ensure that the
+   * entry is appropriate for the tree and that no entry already exists with
    * the same DN.  The caller must hold a write lock on the DN of the provided
    * entry.
    *
-   * @param entry        The entry to add to this database.
+   * @param entry        The entry to add to this tree.
    * @param addOperation The add operation with which the new entry is
    *                     associated.  This may be <CODE>null</CODE> for adds
    *                     performed internally.
    * @throws DirectoryException If a problem occurs while trying to add the
    *                            entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void addEntry(final Entry entry, final AddOperation addOperation)
@@ -1579,19 +1579,19 @@ public class EntryContainer
   }
 
   /**
-   * Removes the specified entry from this database.  This method must ensure
+   * Removes the specified entry from this tree.  This method must ensure
    * that the entry exists and that it does not have any subordinate entries
-   * (unless the database supports a subtree delete operation and the client
+   * (unless the storage supports a subtree delete operation and the client
    * included the appropriate information in the request).  The caller must hold
    * a write lock on the provided entry DN.
    *
-   * @param entryDN         The DN of the entry to remove from this database.
+   * @param entryDN         The DN of the entry to remove from this tree.
    * @param deleteOperation The delete operation with which this action is
    *                        associated.  This may be <CODE>null</CODE> for
    *                        deletes performed internally.
    * @throws DirectoryException If a problem occurs while trying to remove the
    *                            entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
@@ -1793,7 +1793,7 @@ public class EntryContainer
       dn2uri.checkTargetForReferral(entry, null);
     }
 
-    // Update the referral database.
+    // Update the referral tree.
     dn2uri.deleteEntry(txn, entry);
 
     // Remove from id2entry.
@@ -1878,16 +1878,16 @@ public class EntryContainer
   }
 
   /**
-   * Fetch an entry by DN, trying the entry cache first, then the database.
+   * Fetch an entry by DN, trying the entry cache first, then the tree.
    * Retrieves the requested entry, trying the entry cache first,
-   * then the database.
+   * then the tree.
    *
    * @param entryDN The distinguished name of the entry to retrieve.
    * @return The requested entry, or <CODE>null</CODE> if the entry does not
    *         exist.
    * @throws DirectoryException If a problem occurs while trying to retrieve
    *                            the entry.
-   * @throws StorageRuntimeException An error occurred during a database operation.
+   * @throws StorageRuntimeException An error occurred during a storage operation.
    */
   Entry getEntry(final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
@@ -1960,7 +1960,7 @@ public class EntryContainer
    * @param modifyOperation The modify operation with which this action is
    *                        associated.  This may be <CODE>null</CODE> for
    *                        modifications performed internally.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
@@ -1989,7 +1989,7 @@ public class EntryContainer
               dn2uri.checkTargetForReferral(oldEntry, null);
             }
 
-            // Update the referral database.
+            // Update the referral tree.
             if (modifyOperation != null)
             {
               // In this case we know from the operation what the modifications were.
@@ -2083,7 +2083,7 @@ public class EntryContainer
    *          If this backend noticed and reacted
    *          to a request to cancel or abandon the
    *          modify DN operation.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
@@ -2299,7 +2299,7 @@ public class EntryContainer
     }
   }
 
-  /** Represents an renamed entry that was deleted from JE but yet to be added back. */
+  /** Represents an renamed entry that was deleted from but yet to be added back. */
   private static final class MovedEntry
   {
     private EntryID entryID;
@@ -2518,7 +2518,7 @@ public class EntryContainer
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be inserted into the indexes.
    * @param entryID The ID of the entry to be inserted into the indexes.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexInsertEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
@@ -2541,7 +2541,7 @@ public class EntryContainer
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be removed from the indexes.
    * @param entryID The ID of the entry to be removed from the indexes.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexRemoveEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
@@ -2567,7 +2567,7 @@ public class EntryContainer
    * @param newEntry The contents of the entry after the change.
    * @param entryID The ID of the entry that was changed.
    * @param mods The sequence of modifications made to the entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexModifications(IndexBuffer buffer, Entry oldEntry, Entry newEntry,
@@ -2594,10 +2594,10 @@ public class EntryContainer
    * Get a count of the number of entries stored in this entry container including the baseDN
    *
    * @param txn
-   *          a non null database transaction
+   *          a non null transaction
    * @return The number of entries stored in this entry container including the baseDN.
    * @throws StorageRuntimeException
-   *           If an error occurs in the database.
+   *           If an error occurs in the storage.
    */
   long getNumberOfEntriesInBaseDN() throws StorageRuntimeException
   {
@@ -2649,37 +2649,36 @@ public class EntryContainer
    * Delete this entry container from disk. The entry container should be
    * closed before calling this method.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
   void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
-    for (DatabaseContainer db : listDatabases())
+    for (Tree tree : listTrees())
     {
-      db.delete(txn);
+      tree.delete(txn);
     }
   }
 
   /**
-   * Remove a database from disk.
+   * Remove a tree from disk.
    *
-   * @param txn a non null database transaction
-   * @param database The database container to remove.
-   * @throws StorageRuntimeException If an error occurs while attempting to delete the
-   * database.
+   * @param txn a non null transaction
+   * @param tree The tree container to remove.
+   * @throws StorageRuntimeException If an error occurs while attempting to delete the tree.
    */
-  void deleteDatabase(WriteableTransaction txn, DatabaseContainer database) throws StorageRuntimeException
+  void deleteTree(WriteableTransaction txn, Tree tree) throws StorageRuntimeException
   {
-    if(database == state)
+    if(tree == state)
     {
-      // The state database can not be removed individually.
+      // The state tree can not be removed individually.
       return;
     }
-    database.delete(txn);
-    if(database instanceof Index)
+    tree.delete(txn);
+    if(tree instanceof Index)
     {
-      state.deleteRecord(txn, database.getName());
+      state.deleteRecord(txn, tree.getName());
     }
   }
 
@@ -2690,21 +2689,21 @@ public class EntryContainer
    *
    * @return The container name for the base DN.
    */
-  String getDatabasePrefix()
+  String getTreePrefix()
   {
-    return databasePrefix;
+    return treePrefix;
   }
 
   /**
-   * Sets a new database prefix for this entry container and rename all
-   * existing databases in use by this entry container.
+   * Sets a new tree prefix for this entry container and rename all
+   * existing trees in use by this entry container.
    *
-   * @param newBaseDN The new database prefix to use.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param newBaseDN The new tree prefix to use.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
+  void setTreePrefix(final String newBaseDN) throws StorageRuntimeException
   {
-    final List<DatabaseContainer> databases = listDatabases();
+    final List<Tree> allTrees = listTrees();
     try
     {
       // Rename in transaction.
@@ -2713,20 +2712,20 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          for(DatabaseContainer db : databases)
+          for(Tree tree : allTrees)
           {
-            TreeName oldName = db.getName();
+            TreeName oldName = tree.getName();
             TreeName newName = oldName.replaceBaseDN(newBaseDN);
             txn.renameTree(oldName, newName);
           }
         }
       });
       // Only rename the containers if the txn succeeded.
-      for (DatabaseContainer db : databases)
+      for (Tree tree : allTrees)
       {
-        TreeName oldName = db.getName();
+        TreeName oldName = tree.getName();
         TreeName newName = oldName.replaceBaseDN(newBaseDN);
-        db.setName(newName);
+        tree.setName(newName);
       }
     }
     catch (Exception e)
@@ -2748,9 +2747,9 @@ public class EntryContainer
           public void run(WriteableTransaction txn) throws Exception
           {
             // Open the containers backup.
-            for(DatabaseContainer db : databases)
+            for(Tree tree : allTrees)
             {
-              db.open(txn);
+              tree.open(txn);
             }
           }
         });
@@ -2861,70 +2860,69 @@ public class EntryContainer
 
   private void clear0(WriteableTransaction txn) throws StorageRuntimeException
   {
-    final List<DatabaseContainer> databases = listDatabases();
+    final List<Tree> allTrees = listTrees();
     try
     {
-      for (DatabaseContainer db : databases)
+      for (Tree tree : allTrees)
       {
-        db.delete(txn);
+        tree.delete(txn);
       }
     }
     finally
     {
-      for(DatabaseContainer db : databases)
+      for(Tree tree : allTrees)
       {
-        db.open(txn);
+        tree.open(txn);
       }
 
-      for (DatabaseContainer db : databases)
+      for (Tree tree : allTrees)
       {
-        if (db instanceof Index)
+        if (tree instanceof Index)
         {
-          ((Index) db).setTrusted(txn, true);
+          ((Index) tree).setTrusted(txn, true);
         }
       }
     }
   }
 
-  List<DatabaseContainer> listDatabases()
+  List<Tree> listTrees()
   {
-    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    databases.add(dn2id);
-    databases.add(id2entry);
-    databases.add(dn2uri);
-    databases.add(id2childrenCount);
-    databases.add(state);
+    final List<Tree> allTrees = new ArrayList<Tree>();
+    allTrees.add(dn2id);
+    allTrees.add(id2entry);
+    allTrees.add(dn2uri);
+    allTrees.add(id2childrenCount);
+    allTrees.add(state);
 
     for (AttributeIndex index : attrIndexMap.values())
     {
-      databases.addAll(index.getNameToIndexes().values());
+      allTrees.addAll(index.getNameToIndexes().values());
     }
 
-    databases.addAll(vlvIndexMap.values());
-    return databases;
+    allTrees.addAll(vlvIndexMap.values());
+    return allTrees;
   }
 
   /**
-   * Clear the contents for a database from disk.
+   * Clear the contents for a tree from disk.
    *
-   * @param txn a non null database transaction
-   * @param database The database to clear.
-   * @throws StorageRuntimeException if a database error occurs.
+   * @param txn a non null transaction
+   * @param tree The tree to clear.
+   * @throws StorageRuntimeException if a storage error occurs.
    */
-  void clearDatabase(WriteableTransaction txn, DatabaseContainer database)
-      throws StorageRuntimeException
+  void clearTree(WriteableTransaction txn, Tree tree) throws StorageRuntimeException
   {
     try
     {
-      database.delete(txn);
+      tree.delete(txn);
     }
     finally
     {
-      database.open(txn);
+      tree.open(txn);
     }
     if(logger.isTraceEnabled())
     {
-      logger.trace("Cleared the database %s", database.getName());
+      logger.trace("Cleared the tree %s", tree.getName());
     }
   }
 
@@ -3219,7 +3217,7 @@ public class EntryContainer
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    return databasePrefix;
+    return treePrefix;
   }
 
 }

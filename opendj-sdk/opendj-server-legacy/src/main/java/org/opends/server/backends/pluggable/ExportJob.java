@@ -47,7 +47,7 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.BackendMessages.*;
 
 /**
- * Export a JE backend to LDIF.
+ * Export a backend to LDIF.
  */
 class ExportJob
 {
@@ -87,7 +87,7 @@ class ExportJob
   /**
    * Export entries from the backend to an LDIF file.
    * @param rootContainer The root container to export.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws IOException If an I/O error occurs while writing an entry.
    * @throws LDIFException If an error occurs while trying to determine whether
    * to write an entry.
@@ -185,7 +185,7 @@ class ExportJob
    * one of the base DNs.
    * @param entryContainer The entry container that holds the entries to be
    *                       exported.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws IOException If an error occurs while writing an entry.
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.

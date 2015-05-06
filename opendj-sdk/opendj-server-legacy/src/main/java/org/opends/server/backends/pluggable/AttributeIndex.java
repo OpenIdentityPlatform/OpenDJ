@@ -61,7 +61,7 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * Class representing an attribute index.
- * We have a separate database for each type of indexing, which makes it easy
+ * We have a separate tree for each type of indexing, which makes it easy
  * to tell which attribute indexes are configured.  The different types of
  * indexing are equality, presence, substrings and ordering.  The keys in the
  * ordering index are ordered by setting the btree comparator to the ordering
@@ -346,14 +346,14 @@ class AttributeIndex
   private TreeName getIndexName(AttributeType attrType, String indexID)
   {
     final String attrIndexId = attrType.getNameOrOID() + "." + indexID;
-    return new TreeName(entryContainer.getDatabasePrefix(), attrIndexId);
+    return new TreeName(entryContainer.getTreePrefix(), attrIndexId);
   }
 
   /**
    * Open the attribute index.
    *
-   * @param txn a non null database transaction
-   * @throws StorageRuntimeException if a database error occurs while opening the index
+   * @param txn a non null transaction
+   * @throws StorageRuntimeException if an error occurs while opening the index
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException
   {
@@ -431,7 +431,7 @@ class AttributeIndex
    * @param buffer The index buffer to use to store the added keys
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
@@ -453,7 +453,7 @@ class AttributeIndex
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID
    * @param entry       The contents of the deleted entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
@@ -478,7 +478,7 @@ class AttributeIndex
    * @param oldEntry The entry before the modifications were applied.
    * @param newEntry The entry after the modifications were applied.
    * @throws StorageRuntimeException If an error occurs during an operation on a
-   * database.
+   * storage.
    */
   void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry) throws StorageRuntimeException
   {
@@ -513,13 +513,13 @@ class AttributeIndex
    *          If not null, a diagnostic string will be written which will help
    *          determine how the indexes contributed to this search.
    * @param monitor
-   *          The database environment monitor provider that will keep index
+   *          The backend monitor provider that will keep index
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain the filter assertion
    *         value.
    */
   private EntryIDSet evaluateIndexQuery(IndexQuery indexQuery, String indexName, SearchFilter filter,
-      StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+      StringBuilder debugBuffer, BackendMonitor monitor)
   {
     LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
     EntryIDSet results = indexQuery.evaluate(debugMessage);
@@ -561,12 +561,12 @@ class AttributeIndex
    *          If not null, a diagnostic string will be written which will help
    *          determine how the indexes contributed to this search.
    * @param monitor
-   *          The database environment monitor provider that will keep index
+   *          The backend monitor provider that will keep index
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain match both filters.
    */
   EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
-      SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+      SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     // TODO : this implementation is not optimal
     // as it implies two separate evaluations instead of a single one,
@@ -581,7 +581,7 @@ class AttributeIndex
   }
 
   private EntryIDSet evaluate(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
-      StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+      StringBuilder debugBuffer, BackendMonitor monitor)
   {
     boolean isLessOrEqual = filter.getFilterType() == FilterType.LESS_OR_EQUAL;
     IndexFilterType indexFilterType = isLessOrEqual ? IndexFilterType.LESS_OR_EQUAL : IndexFilterType.GREATER_OR_EQUAL;
@@ -597,13 +597,13 @@ class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
+   * @param monitor The backend monitor provider that will keep
    *                index filter usage statistics.
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter type.
    */
   EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
-      SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+      SearchFilter filter, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     try
     {
@@ -815,7 +815,7 @@ class AttributeIndex
             Index index = nameToIndexes.get(indexId);
             if (index != null)
             {
-              entryContainer.deleteDatabase(txn, index);
+              entryContainer.deleteTree(txn, index);
               nameToIndexes.remove(index);
             }
           }
@@ -893,7 +893,7 @@ class AttributeIndex
       try
       {
         nameToIndexes.remove(indexType.toString());
-        entryContainer.deleteDatabase(txn, index);
+        entryContainer.deleteTree(txn, index);
       }
       finally
       {
@@ -933,13 +933,13 @@ class AttributeIndex
   }
 
   /**
-   * Get the database name prefix for indexes in this attribute index.
+   * Get the tree name prefix for indexes in this attribute index.
    *
-   * @return database name for this database container.
+   * @return tree name for this container.
    */
   String getName()
   {
-    return entryContainer.getDatabasePrefix()
+    return entryContainer.getTreePrefix()
         + "_"
         + config.getAttribute().getNameOrOID();
   }
@@ -957,14 +957,13 @@ class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
+   * @param monitor The backend monitor provider that will keep
    *                index filter usage statistics.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
   EntryIDSet evaluateExtensibleFilter(IndexQueryFactory<IndexQuery> indexQueryFactory,
-      SearchFilter filter,
-      StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+      SearchFilter filter, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     //Get the Matching Rule OID of the filter.
     String matchRuleOID  = filter.getMatchingRuleID();

@@ -79,15 +79,15 @@ import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
 /**
- * This class represents a VLV index. Each database record corresponds to a single entry matching
+ * This class represents a VLV index. Each record corresponds to a single entry matching
  * the VLV criteria. Keys are a sequence of the entry's normalized attribute values corresponding to
  * the VLV sort order, followed by the entry's entry ID. Records do not have a "value" since all
  * required information is held within the key. The entry ID is included in the key as a
  * "tie-breaker" and ensures that keys correspond to one and only one entry. This ensures that all
- * database updates can be performed using lock-free operations.
+ * tree updates can be performed using lock-free operations.
  */
 @SuppressWarnings("javadoc")
-class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
+class VLVIndex extends AbstractTree implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -108,8 +108,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
   private final State state;
 
   /**
-   * A flag to indicate if this vlvIndex should be trusted to be consistent with the entries
-   * database.
+   * A flag to indicate if this vlvIndex should be trusted to be consistent with the entries tree.
    */
   private boolean trusted;
 
@@ -117,7 +116,7 @@ class VLVIndex extends AbstractDatabaseContainer implements ConfigurationChangeL
       final EntryContainer entryContainer, final WriteableTransaction txn) throws StorageRuntimeException,
       ConfigException
   {
-    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()));
+    super(new TreeName(entryContainer.getTreePrefix(), "vlv." + config.getName()));
 
     this.config = config;
     this.baseDN = config.getBaseDN();

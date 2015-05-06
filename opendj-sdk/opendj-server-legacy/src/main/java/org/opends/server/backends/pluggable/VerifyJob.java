@@ -98,16 +98,16 @@ class VerifyJob
   private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap =
        new IdentityHashMap<Index, HashMap<ByteString, Long>>();
 
-  /** Indicates whether the DN database is to be verified. */
+  /** Indicates whether dn2id is to be verified. */
   private boolean verifyDN2ID;
-  /** Indicates whether the children count database is to be verified. */
+  /** Indicates whether the children count tree is to be verified. */
   private boolean verifyID2ChildrenCount;
 
-  /** The entry database. */
+  /** The entry tree. */
   private ID2Entry id2entry;
-  /** The DN database. */
+  /** The DN tree. */
   private DN2ID dn2id;
-  /** The children database. */
+  /** The children tree. */
   private ID2Count id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
@@ -131,7 +131,7 @@ class VerifyJob
    *
    * @param rootContainer The root container that holds the entries to verify.
    * @return The error count.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
   long verifyBackend() throws StorageRuntimeException,
@@ -347,7 +347,7 @@ class VerifyJob
    * index completeness. We check that the ID for the entry is indeed
    * present in the indexes for the appropriate values.
    *
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   private void iterateID2Entry(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -415,7 +415,7 @@ class VerifyJob
    * index cleanliness. For each ID in the index we check that the
    * entry it refers to does indeed contain the expected value.
    *
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
   private void iterateIndex(ReadableTransaction txn) throws StorageRuntimeException, DirectoryException
@@ -447,7 +447,7 @@ class VerifyJob
    * Iterate through the entries in DN2ID to perform a check for
    * index cleanliness.
    *
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
@@ -612,7 +612,7 @@ class VerifyJob
    *
    * @param vlvIndex The VLV index to perform the check against.
    * @param verifyID True to verify the IDs against id2entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
   private void iterateVLVIndex(ReadableTransaction txn, VLVIndex vlvIndex, boolean verifyID)
@@ -669,8 +669,8 @@ class VerifyJob
   /**
    * Iterate through the entries in an attribute index to perform a check for
    * index cleanliness.
-   * @param index The index database to be checked.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param index The index tree to be checked.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   private void iterateAttrIndex(ReadableTransaction txn, MatchingRuleIndex index, IndexingOptions options)
       throws StorageRuntimeException
@@ -885,7 +885,7 @@ class VerifyJob
    * Construct a printable string from a raw key value.
    *
    * @param indexName
-   *          The name of the index database containing the key value.
+   *          The name of the index tree containing the key value.
    * @param key
    *          The bytes of the key.
    * @return A string that may be logged or printed.
@@ -995,7 +995,7 @@ class VerifyJob
       {
         logger.traceException(e);
 
-        logger.trace("Error reading database: %s%n%s", e.getMessage(), keyDump(index.toString(), key));
+        logger.trace("Error reading tree: %s%n%s", e.getMessage(), keyDump(index.toString(), key));
       }
       errorCount++;
     }
@@ -1065,8 +1065,7 @@ class VerifyJob
      * Create a new verify progress task.
      * @param indexIterator boolean, indicates if the task is iterating
      * through indexes or the entries.
-     * @throws StorageRuntimeException An error occurred while accessing the JE
-     * database.
+     * @throws StorageRuntimeException An error occurred while accessing the storage.
      */
     private ProgressTask(boolean indexIterator, ReadableTransaction txn) throws StorageRuntimeException
     {

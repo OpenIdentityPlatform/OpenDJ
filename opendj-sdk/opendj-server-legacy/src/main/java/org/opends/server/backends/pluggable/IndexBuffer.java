@@ -139,8 +139,7 @@ class IndexBuffer
   /**
    * Construct a new empty index buffer object.
    *
-   * @param entryContainer The database entryContainer using this
-   * index buffer.
+   * @param entryContainer The entryContainer using this index buffer.
    */
   IndexBuffer(EntryContainer entryContainer)
   {
@@ -182,11 +181,10 @@ class IndexBuffer
   }
 
   /**
-   * Flush the buffered index changes until the given transaction to
-   * the database.
+   * Flush the buffered index changes to storage.
    *
-   * @param txn a non null database transaction
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @param txn a non null transaction
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   void flush(WriteableTransaction txn) throws StorageRuntimeException, DirectoryException

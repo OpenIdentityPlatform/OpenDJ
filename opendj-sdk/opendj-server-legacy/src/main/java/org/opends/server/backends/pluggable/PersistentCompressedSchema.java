@@ -52,15 +52,15 @@ import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
- * persisted in a database.
+ * persisted in a tree.
  */
 final class PersistentCompressedSchema extends CompressedSchema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The name of the database used to store compressed attribute description definitions. */
+  /** The name of the tree used to store compressed attribute description definitions. */
   private static final String DB_NAME_AD = "compressed_attributes";
-  /** The name of the database used to store compressed object class set definitions. */
+  /** The name of the tree used to store compressed object class set definitions. */
   private static final String DB_NAME_OC = "compressed_object_classes";
 
   /** The compressed attribute description schema tree. */
@@ -68,7 +68,7 @@ final class PersistentCompressedSchema extends CompressedSchema
   /** The compressed object class set schema tree. */
   private static final TreeName ocTreeName = new TreeName("compressed_schema", DB_NAME_OC);
 
-  /** The storage in which the databases are held. */
+  /** The storage in which the trees are held. */
   private Storage storage;
 
   private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
@@ -79,15 +79,14 @@ final class PersistentCompressedSchema extends CompressedSchema
 
 
   /**
-   * Creates a new instance of this JE compressed schema manager.
+   * Creates a new instance of this compressed schema manager.
    *
    * @param storage
-   *          A reference to the database environment in which the databases
-   *          will be held.
-   * @param txn a non null database transaction
+   *          A reference to the storage in which the trees will be held.
+   * @param txn a non null transaction
    * @throws StorageRuntimeException
-   *           If a database problem occurs while loading the compressed schema
-   *           definitions from the database.
+   *           If a problem occurs while loading the compressed schema
+   *           definitions from the tree.
    * @throws InitializationException
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
@@ -150,11 +149,10 @@ final class PersistentCompressedSchema extends CompressedSchema
 
 
   /**
-   * Loads the compressed schema information from the database.
+   * Loads the compressed schema information from the tree.
    *
    * @throws StorageRuntimeException
-   *           If a database error occurs while loading the definitions from the
-   *           database.
+   *           If an error occurs while loading the definitions from the tree.
    * @throws InitializationException
    *           If an error occurs while loading and processing the definitions.
    */

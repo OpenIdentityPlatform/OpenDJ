@@ -38,10 +38,10 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
 /**
- * Store a counter associated to a key. Counter value is sharded amongst multiple database key to allow concurrent
+ * Store a counter associated to a key. Counter value is sharded amongst multiple keys to allow concurrent
  * update without contention (at the price of a slower read).
  */
-final class ID2Count extends AbstractDatabaseContainer
+final class ID2Count extends AbstractTree
 {
   /**
    * Must be a power of 2 @see <a href="http://en.wikipedia.org/wiki/Modulo_operation#Performance_issues">Performance
@@ -129,7 +129,7 @@ final class ID2Count extends AbstractDatabaseContainer
 
   /**
    * Get the counter value for the specified key
-   * @param txn The database transaction
+   * @param txn The transaction
    * @param entryID The entryID identifying to the counter
    * @return Value of the counter. 0 if no counter is associated yet.
    */
@@ -160,7 +160,7 @@ final class ID2Count extends AbstractDatabaseContainer
   /**
    * Get the total counter value. The total counter maintain the sum of all
    * the counter contained in this tree.
-   * @param txn The database transaction
+   * @param txn The transaction
    * @return Sum of all the counter contained in this tree
    */
   long getTotalCount(ReadableTransaction txn)
@@ -170,7 +170,7 @@ final class ID2Count extends AbstractDatabaseContainer
 
   /**
    * Delete the counter associated to the given key
-   * @param txn The database transaction
+   * @param txn The transaction
    * @param entryID The entryID identifying the counter
    * @return Value of the counter before it's deletion.
    */
