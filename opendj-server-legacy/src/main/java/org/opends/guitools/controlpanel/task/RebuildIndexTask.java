@@ -53,57 +53,54 @@ import org.opends.server.tools.RebuildIndex;
  */
 public class RebuildIndexTask extends IndexTask
 {
-  private SortedSet<AbstractIndexDescriptor> indexes =
-    new TreeSet<AbstractIndexDescriptor>();
+  private SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<>();
 
   /**
    * The indexes that must not be specified in the command-line.
    */
-  public static final String[] INDEXES_NOT_TO_SPECIFY =
-  {"id2children", "id2subtree"};
+  public static final String[] INDEXES_NOT_TO_SPECIFY = { "id2children", "id2subtree" };
 
   /**
    * Constructor of the task.
-   * @param info the control panel information.
-   * @param dlg the progress dialog where the task progress will be displayed.
-   * @param baseDNs the baseDNs corresponding to the indexes.
-   * @param indexes the indexes.
+   *
+   * @param info
+   *          the control panel information.
+   * @param dlg
+   *          the progress dialog where the task progress will be displayed.
+   * @param baseDNs
+   *          the baseDNs corresponding to the indexes.
+   * @param indexes
+   *          the indexes.
    */
-  public RebuildIndexTask(ControlPanelInfo info, ProgressDialog dlg,
-      Collection<String> baseDNs, SortedSet<AbstractIndexDescriptor> indexes)
+  public RebuildIndexTask(ControlPanelInfo info, ProgressDialog dlg, Collection<String> baseDNs,
+      SortedSet<AbstractIndexDescriptor> indexes)
   {
     super(info, dlg, baseDNs);
     this.indexes.addAll(indexes);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.REBUILD_INDEXES;
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {
     if (baseDNs.size() == 1)
     {
-      return INFO_CTRL_PANEL_REBUILD_INDEX_TASK_DESCRIPTION.get(
-          baseDNs.iterator().next());
+      return INFO_CTRL_PANEL_REBUILD_INDEX_TASK_DESCRIPTION.get(baseDNs.iterator().next());
     }
     else
     {
       // Assume is in a backend
-      return INFO_CTRL_PANEL_REBUILD_INDEX_TASK_DESCRIPTION.get(
-          backendSet.iterator().next());
+      return INFO_CTRL_PANEL_REBUILD_INDEX_TASK_DESCRIPTION.get(backendSet.iterator().next());
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean canLaunch(Task taskToBeLaunched,
-      Collection<LocalizableMessage> incompatibilityReasons)
+  public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -120,7 +117,6 @@ public class RebuildIndexTask extends IndexTask
     return canLaunch;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -132,11 +128,10 @@ public class RebuildIndexTask extends IndexTask
 
       for (final String baseDN : baseDNs)
       {
-        ArrayList<String> arguments = getCommandLineArguments(baseDN);
+        List<String> arguments = getCommandLineArguments(baseDN);
         String[] args = arguments.toArray(new String[arguments.size()]);
 
-        final List<String> displayArgs = getObfuscatedCommandLineArguments(
-            getCommandLineArguments(baseDN));
+        final List<String> displayArgs = getObfuscatedCommandLineArguments(getCommandLineArguments(baseDN));
         displayArgs.removeAll(getConfigCommandLineArguments());
 
         SwingUtilities.invokeLater(new Runnable()
@@ -144,21 +139,18 @@ public class RebuildIndexTask extends IndexTask
           @Override
           public void run()
           {
-            printEquivalentCommandLine(getCommandLinePath("rebuild-index"),
-                displayArgs,
+            printEquivalentCommandLine(getCommandLinePath("rebuild-index"), displayArgs,
                 INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_REBUILD_INDEX.get(baseDN));
           }
         });
 
         if (isLocal && !isServerRunning())
         {
-          returnCode = executeCommandLine(getCommandLinePath("rebuild-index"),
-              args);
+          returnCode = executeCommandLine(getCommandLinePath("rebuild-index"), args);
         }
         else
         {
-          returnCode = RebuildIndex.mainRebuildIndex(args, false,
-              outPrintStream, errorPrintStream);
+          returnCode = RebuildIndex.mainRebuildIndex(args, false, outPrintStream, errorPrintStream);
         }
 
         if (returnCode != 0)
@@ -188,23 +180,24 @@ public class RebuildIndexTask extends IndexTask
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  protected ArrayList<String> getCommandLineArguments()
+  protected List<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /**
-   * Returns the command line arguments required to rebuild the indexes
-   * in the specified base DN.
-   * @param baseDN the base DN.
-   * @return the command line arguments required to rebuild the indexes
-   * in the specified base DN.
+   * Returns the command line arguments required to rebuild the indexes in the
+   * specified base DN.
+   *
+   * @param baseDN
+   *          the base DN.
+   * @return the command line arguments required to rebuild the indexes in the
+   *         specified base DN.
    */
-  protected ArrayList<String> getCommandLineArguments(String baseDN)
+  protected List<String> getCommandLineArguments(String baseDN)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    List<String> args = new ArrayList<>();
 
     args.add("--baseDN");
     args.add(baseDN);
@@ -220,8 +213,7 @@ public class RebuildIndexTask extends IndexTask
         args.add("--index");
         if (index instanceof VLVIndexDescriptor)
         {
-          args.add(
-              Utilities.getVLVNameInCommandLine((VLVIndexDescriptor)index));
+          args.add(Utilities.getVLVNameInCommandLine((VLVIndexDescriptor) index));
         }
         else
         {
@@ -233,14 +225,13 @@ public class RebuildIndexTask extends IndexTask
     boolean isLocal = getInfo().getServerDescriptor().isLocal();
     if (isLocal && isServerRunning())
     {
-    args.addAll(getConnectionCommandLineArguments());
-    args.addAll(getConfigCommandLineArguments());
+      args.addAll(getConnectionCommandLineArguments());
+      args.addAll(getConfigCommandLineArguments());
     }
 
     return args;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {
@@ -249,7 +240,7 @@ public class RebuildIndexTask extends IndexTask
 
   private boolean rebuildAll()
   {
-    Set<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
+    Set<BackendDescriptor> backends = new HashSet<>();
     for (AbstractIndexDescriptor index : indexes)
     {
       backends.add(index.getBackend());
@@ -261,8 +252,7 @@ public class RebuildIndexTask extends IndexTask
       allIndexes.addAll(backend.getVLVIndexes());
       for (AbstractIndexDescriptor index : allIndexes)
       {
-        if (!ignoreIndex(index)
-            && !indexExists(index))
+        if (!ignoreIndex(index) && !indexExists(index))
         {
           return false;
         }
