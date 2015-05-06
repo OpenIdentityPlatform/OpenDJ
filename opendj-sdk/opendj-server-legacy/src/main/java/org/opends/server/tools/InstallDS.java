@@ -489,18 +489,16 @@ public class InstallDS extends ConsoleApplication
       logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "
           + "the set-java-home file in test only mode: " + t, t));
     }
-    // Test that we are running a compatible java 1.7 version.
     try
     {
       Utils.checkJavaVersion();
+      return true;
     }
     catch (final IncompatibleVersionException ive)
     {
       println(ive.getMessageObject());
       return false;
     }
-
-    return true;
   }
 
   private boolean checkLicense()
@@ -689,7 +687,7 @@ public class InstallDS extends ConsoleApplication
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
 
-    final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> errorMessages = new LinkedList<>();
     setBackendType(uData, errorMessages);
     final List<String> baseDNs = checkBaseDNs(errorMessages);
     setDirectoryManagerData(uData, errorMessages);
@@ -802,7 +800,7 @@ public class InstallDS extends ConsoleApplication
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      final List<String> nonExistingFiles = new LinkedList<String>();
+      final List<String> nonExistingFiles = new LinkedList<>();
       for (final String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
@@ -811,7 +809,7 @@ public class InstallDS extends ConsoleApplication
         }
       }
 
-      if (nonExistingFiles.size() > 0)
+      if (!nonExistingFiles.isEmpty())
       {
         errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
@@ -872,7 +870,7 @@ public class InstallDS extends ConsoleApplication
 
   private void checkCertificate(int sslPort, boolean enableSSL, UserData uData, List<LocalizableMessage> errorMessages)
   {
-    final LinkedList<String> keystoreAliases = new LinkedList<String>();
+    final LinkedList<String> keystoreAliases = new LinkedList<>();
     uData.setHostName(argParser.hostNameArg.getValue());
 
     final boolean enableStartTLS = argParser.enableStartTLSArg.isPresent();
@@ -1040,7 +1038,7 @@ public class InstallDS extends ConsoleApplication
   private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
       LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
   {
-    final LinkedList<String> dns = new LinkedList<String>();
+    final LinkedList<String> dns = new LinkedList<>();
 
     boolean usedProvided = false;
     boolean firstPrompt = true;
@@ -1075,7 +1073,7 @@ public class InstallDS extends ConsoleApplication
         dns.addAll(arg.getValues());
         usedProvided = true;
       }
-      final List<String> toRemove = new LinkedList<String>();
+      final List<String> toRemove = new LinkedList<>();
       for (final String dn : dns)
       {
         try
@@ -1095,7 +1093,7 @@ public class InstallDS extends ConsoleApplication
           println(message);
         }
       }
-      if (toRemove.size() > 0)
+      if (!toRemove.isEmpty())
       {
         println();
       }
@@ -1119,7 +1117,7 @@ public class InstallDS extends ConsoleApplication
   {
     uData.setHostName(promptForHostNameIfRequired());
 
-    final List<Integer> usedPorts = new LinkedList<Integer>();
+    final List<Integer> usedPorts = new LinkedList<>();
     //  Determine the LDAP port number.
     final int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
         INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
@@ -1314,7 +1312,7 @@ public class InstallDS extends ConsoleApplication
 
   private Menu<Integer> getBackendTypeMenu()
   {
-    final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    final MenuBuilder<Integer> builder = new MenuBuilder<>(this);
     builder.setPrompt(INFO_INSTALLDS_PROMPT_BACKEND_TYPE.get());
     int index = 1;
     for (final ManagedObjectDefinition<?, ?> backendType : backendTypeHelper.getBackendTypes())
@@ -1342,8 +1340,8 @@ public class InstallDS extends ConsoleApplication
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      final List<String> nonExistingFiles = new LinkedList<String>();
-      final List<String> importLDIFFiles = new LinkedList<String>();
+      final List<String> nonExistingFiles = new LinkedList<>();
+      final List<String> importLDIFFiles = new LinkedList<>();
       for (final String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
@@ -1355,7 +1353,7 @@ public class InstallDS extends ConsoleApplication
           importLDIFFiles.add(file);
         }
       }
-      if (nonExistingFiles.size() > 0)
+      if (!nonExistingFiles.isEmpty())
       {
         println();
         println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
@@ -1405,7 +1403,7 @@ public class InstallDS extends ConsoleApplication
           INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get()
       };
 
-      final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      final MenuBuilder<Integer> builder = new MenuBuilder<>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get());
 
       for (int i=0; i<indexes.length; i++)
@@ -1468,7 +1466,7 @@ public class InstallDS extends ConsoleApplication
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
       {
-        final List<String> importLDIFFiles = new LinkedList<String>();
+        final List<String> importLDIFFiles = new LinkedList<>();
         readImportLdifFile(importLDIFFiles, null);
         String rejectedFile = readValidFilePath(argParser.rejectedImportFileArg, null,
             ERR_INSTALLDS_CANNOT_WRITE_REJECTED, INFO_INSTALLDS_PROMPT_REJECTED_FILE);
@@ -1570,7 +1568,7 @@ public class InstallDS extends ConsoleApplication
     boolean enableStartTLS = false;
     int ldapsPort = -1;
 
-    final List<Integer> usedPorts = new LinkedList<Integer>();
+    final List<Integer> usedPorts = new LinkedList<>();
     usedPorts.add(uData.getServerPort());
     if (uData.getServerJMXPort() != -1)
     {
@@ -1677,7 +1675,7 @@ public class InstallDS extends ConsoleApplication
       };
 
 
-      final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      final MenuBuilder<Integer> builder = new MenuBuilder<>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
 
       for (int i=0; i<indexes.length; i++)
@@ -2068,15 +2066,15 @@ public class InstallDS extends ConsoleApplication
       throw new IllegalStateException(
           "Called promptIfRequiredCertificate with invalid type: "+type);
     }
-    final List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
-    final LinkedList<String> keystoreAliases = new LinkedList<String>();
+    final List<LocalizableMessage> errorMessages = new LinkedList<>();
+    final LinkedList<String> keystoreAliases = new LinkedList<>();
     boolean firstTry = true;
     int nPasswordPrompts = 0;
 
-    while (errorMessages.size() > 0 || firstTry)
+    while (!errorMessages.isEmpty() || firstTry)
     {
       boolean prompted = false;
-      if (errorMessages.size() > 0)
+      if (!errorMessages.isEmpty())
       {
         println();
         println(Utils.getMessageFromCollection(errorMessages,
@@ -2494,7 +2492,7 @@ public class InstallDS extends ConsoleApplication
         INFO_INSTALLDS_CANCEL.get()
       };
 
-    final MenuBuilder<ConfirmCode> builder = new MenuBuilder<ConfirmCode>(this);
+    final MenuBuilder<ConfirmCode> builder = new MenuBuilder<>(this);
     builder.setPrompt(INFO_INSTALLDS_CONFIRM_INSTALL_PROMPT.get());
 
     int i=0;
