@@ -26,29 +26,28 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
 
 /**
- * A monitor provider for a Berkeley DB JE environment.
- * It uses reflection on the environment statistics object
- * so that we don't need to keep a list of all the stats.
+ * A monitor provider for high level backend statistics, such as filter stats and search counters.
  */
-class DatabaseEnvironmentMonitor
-       extends MonitorProvider<MonitorProviderCfg>
+class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Represents the statistical information kept for each search filter. */
   private static class FilterStats implements Comparable<FilterStats>
@@ -91,18 +90,17 @@ class DatabaseEnvironmentMonitor
   private int maxEntries = 1024;
   private boolean filterUseEnabled;
   private String startTimeStamp;
-  private final HashMap<SearchFilter, FilterStats> filterToStats =
-      new HashMap<SearchFilter, FilterStats>();
+  private final HashMap<SearchFilter, FilterStats> filterToStats = new HashMap<>();
   private final AtomicInteger indexedSearchCount = new AtomicInteger();
   private final AtomicInteger unindexedSearchCount = new AtomicInteger();
 
   /**
-   * Creates a new database environment monitor.
+   * Creates a new backend monitor.
    * @param name The monitor instance name.
-   * @param rootContainer A root container handle for the database to be
+   * @param rootContainer A root container handle for the backend to be
    * monitored.
    */
-  DatabaseEnvironmentMonitor(String name, RootContainer rootContainer)
+  BackendMonitor(String name, RootContainer rootContainer)
   {
     this.name = name;
     this.rootContainer = rootContainer;
@@ -128,59 +126,6 @@ class DatabaseEnvironmentMonitor
   }
 
   /**
-   * Creates monitor attribute values for a given JE statistics object,
-   * using reflection to call all the getter methods of the statistics object.
-   * The attribute type names of the created attribute values are derived from
-   * the names of the getter methods.
-   * @param monitorAttrs The monitor attribute values are inserted into this
-   * attribute list.
-   * @param stats The JE statistics object.
-   * @param attrPrefix A common prefix for the attribute type names of the
-   * monitor attribute values, to distinguish the attributes of one
-   * type of statistical object from another, and to avoid attribute name
-   * collisions.
-   */
-  private void addAttributesForStatsObject(ArrayList<Attribute> monitorAttrs,
-                                           Object stats, String attrPrefix)
-  {
-    Class<?> c = stats.getClass();
-    Method[] methods = c.getMethods();
-
-    // Iterate through all the statistic class methods.
-    for (Method method : methods)
-    {
-      // Invoke all the getters returning integer values.
-      if (method.getName().startsWith("get"))
-      {
-        Class<?> returnType = method.getReturnType();
-        if (returnType.equals(int.class) || returnType.equals(long.class))
-        {
-          AttributeSyntax<?> integerSyntax =
-               DirectoryServer.getDefaultIntegerSyntax();
-
-          // Remove the 'get' from the method name and add the prefix.
-          String attrName = attrPrefix + method.getName().substring(3);
-
-          try
-          {
-            // Read the statistic.
-            Object statValue = method.invoke(stats);
-
-            // Create an attribute from the statistic.
-            AttributeType attrType =
-                 DirectoryServer.getDefaultAttributeType(attrName, integerSyntax);
-            monitorAttrs.add(Attributes.create(attrType, String.valueOf(statValue)));
-
-          } catch (Exception e)
-          {
-            logger.traceException(e);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Retrieves a set of attributes containing monitor data that should be
    * returned to the client if the corresponding monitor entry is requested.
    *
@@ -196,11 +141,11 @@ class DatabaseEnvironmentMonitor
     AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
     for(EntryContainer ec : rootContainer.getEntryContainers())
     {
-      for(DatabaseContainer dc : ec.listDatabases())
+      for(Tree tree : ec.listTrees())
       {
-        if(dc instanceof Index && !((Index)dc).isTrusted())
+        if(tree instanceof Index && !((Index)tree).isTrusted())
         {
-          needReindex.add(dc.getName().toString());
+          needReindex.add(tree.getName().toString());
         }
       }
     }

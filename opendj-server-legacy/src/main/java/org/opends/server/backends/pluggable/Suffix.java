@@ -97,7 +97,7 @@ class Suffix
   /**
    * Returns the DN2ID instance pertaining to a suffix instance.
    *
-   * @return A DN2ID instance that can be used to manipulate the DN2ID database.
+   * @return A DN2ID instance that can be used to manipulate the DN2ID tree.
    */
   public DN2ID getDN2ID()
   {
@@ -108,8 +108,7 @@ class Suffix
   /**
    * Returns the ID2Entry instance pertaining to a suffix instance.
    *
-   * @return A ID2Entry instance that can be used to manipulate the ID2Entry
-   *       database.
+   * @return A ID2Entry instance that can be used to manipulate the ID2Entry tree.
    */
   public ID2Entry getID2Entry()
   {
@@ -120,8 +119,7 @@ class Suffix
   /**
    * Returns the DN2URI instance pertaining to a suffix instance.
    *
-   * @return A DN2URI instance that can be used to manipulate the DN2URI
-   *        database.
+   * @return A DN2URI instance that can be used to manipulate the DN2URI tree.
    */
   public DN2URI getDN2URI()
   {
@@ -199,18 +197,15 @@ class Suffix
    * in the specified DN cache. This would indicate that the parent has already
    * been processed. It returns {@code false} otherwise.
    *
-   * It will optionally check the dn2id database for the dn if the specified
+   * It will optionally check the dn2id tree for the dn if the specified
    * cleared backend boolean is {@code true}.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param dn The DN to check for.
    * @param dnCache The importer DN cache.
-   * @param clearedBackend Set to {@code true} if the import process cleared the
-   *                       backend before processing.
-   * @return {@code true} if the dn is contained in the parent ID, or
-   *         {@code false} otherwise.
-   * @throws StorageRuntimeException If an error occurred searching the DN cache, or
-   *                           dn2id database.
+   * @param clearedBackend Set to {@code true} if the import process cleared the backend before processing.
+   * @return {@code true} if the dn is contained in the parent ID, or {@code false} otherwise.
+   * @throws StorageRuntimeException If an error occurred searching the DN cache, or dn2id tree.
    * @throws InterruptedException If an error occurred processing the pending map
    */
   public boolean isParentProcessed(ReadableTransaction txn, DN dn, DNCache dnCache, boolean clearedBackend)
@@ -229,7 +224,7 @@ class Suffix
       throw e;
     }
     // Either parent is in the DN cache,
-    // or else check the dn2id database for the DN (only if backend wasn't cleared)
+    // or else check the dn2id tree for the DN (only if backend wasn't cleared)
     final boolean parentThere = dnCache.contains(dn)
         || (!clearedBackend
             && getDN2ID().get(txn, dn) != null);
@@ -251,7 +246,7 @@ class Suffix
   /**
    * Sets the trusted status of all of the indexes and vlvIndexes.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param trusted True if the indexes should be trusted or false otherwise.
    * @throws StorageRuntimeException If an error occurred setting the indexes to trusted.
    */

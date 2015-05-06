@@ -291,14 +291,12 @@ final class EntryIDSet implements Iterable<EntryID>
    */
   private static final class UndefinedImpl implements EntryIDSetImplementor
   {
-    /**
-     * The database key containing this set, if the set was constructed directly from the database.
-     */
-    private final ByteSequence databaseKey;
+    /** The key containing this set, if the set was constructed directly from the tree. */
+    private final ByteSequence treeKey;
 
     UndefinedImpl(ByteSequence key)
     {
-      databaseKey = checkNotNull(key, "key must not be null");
+      treeKey = checkNotNull(key, "key must not be null");
     }
 
     @Override
@@ -310,7 +308,7 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public void toString(StringBuilder buffer)
     {
-      if (databaseKey == NO_KEY)
+      if (treeKey == NO_KEY)
       {
         buffer.append("[NOT-INDEXED]");
       }

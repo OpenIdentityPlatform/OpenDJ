@@ -44,9 +44,9 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * This class is responsible for storing the configuration state of
- * the JE backend for a particular suffix.
+ * the backend for a particular suffix.
  */
-class State extends AbstractDatabaseContainer
+class State extends AbstractTree
 {
 
   /**
@@ -81,7 +81,7 @@ class State extends AbstractDatabaseContainer
   /**
    * Create a new State object.
    *
-   * @param name The name of the entry database.
+   * @param name The name of the entry tree.
    */
   State(TreeName name)
   {
@@ -94,12 +94,12 @@ class State extends AbstractDatabaseContainer
   }
 
   /**
-   * Fetch index flags from the database.
-   * @param txn The database transaction or null if none.
+   * Fetch index flags from the tree.
+   * @param txn The transaction or null if none.
    * @param indexTreeName The tree's name of the index
-   * @return The flags of the index in the database or an empty set if no index has no flags.
+   * @return The flags of the index in the tree or an empty set if no index has no flags.
    * @throws NullPointerException if tnx or index is null
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   EnumSet<IndexFlag> getIndexFlags(ReadableTransaction txn, TreeName indexTreeName) throws StorageRuntimeException {
     checkNotNull(txn, "txn must not be null");
@@ -111,11 +111,11 @@ class State extends AbstractDatabaseContainer
 
   /**
    * Ensure that the specified flags are set for the given index
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param index The index storing the trusted state info.
    * @return true if the flags have been updated
    * @throws NullPointerException if txn, index or flags is null
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   boolean addFlagsToIndex(WriteableTransaction txn, TreeName indexTreeName, final IndexFlag... flags)
   {
@@ -162,10 +162,10 @@ class State extends AbstractDatabaseContainer
 
   /**
    * Ensure that the specified flags are not set for the given index
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param index The index storing the trusted state info.
    * @throws NullPointerException if txn, index or flags is null
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   void removeFlagsFromIndex(WriteableTransaction txn, TreeName indexTreeName, final IndexFlag... flags) {
     checkNotNull(txn, "txn must not be null");
@@ -185,13 +185,13 @@ class State extends AbstractDatabaseContainer
   }
 
   /**
-   * Remove a record from the entry database.
+   * Remove a record from the entry tree.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param index The index storing the trusted state info.
    * @return true if the entry was removed, false if it was not.
    * @throws NullPointerException if txn, index is null
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   boolean deleteRecord(WriteableTransaction txn, TreeName indexTreeName) throws StorageRuntimeException
   {

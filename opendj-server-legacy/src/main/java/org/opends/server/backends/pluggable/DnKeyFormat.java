@@ -45,7 +45,7 @@ public class DnKeyFormat
    * key. The superior DN is represented by the initial bytes of the DN key.
    *
    * @param dnKey
-   *          The database key value of the DN.
+   *          The key value of the DN.
    * @return The length of the superior DN or -1 if the given dn is the root DN
    *         or 0 if the superior DN is removed.
    */
@@ -70,7 +70,7 @@ public class DnKeyFormat
   }
 
   /**
-   * Create a DN database key from an entry DN.
+   * Create a DN key from an entry DN.
    *
    * @param dn The entry DN.
    * @param prefixRDNs The number of prefix RDNs to remove from the encoded

@@ -79,7 +79,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         @Override
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
-          // Read the database and get Record for the key.
+          // Read the tree and get Record for the key.
           // Select the right index to be used.
           final Index index = attributeIndex.getNameToIndexes().get(indexID);
           if (index == null)

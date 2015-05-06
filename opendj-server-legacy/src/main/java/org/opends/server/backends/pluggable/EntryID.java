@@ -29,7 +29,7 @@ package org.opends.server.backends.pluggable;
 import org.forgerock.opendj.ldap.ByteString;
 
 /**
- * An integer identifier assigned to each entry in the JE backend.
+ * An integer identifier assigned to each entry in the backend.
  * An entry ID is implemented by this class as a long.
  * There are static methods to assign monotonically increasing entry IDs,
  * starting from 1.
@@ -38,7 +38,7 @@ class EntryID implements Comparable<EntryID>
 {
   /** The identifier integer value. */
   private final long id;
-  /** The value in database format, created when necessary. */
+  /** The value in tree format, created when necessary. */
   private ByteString value;
 
   /**
@@ -51,8 +51,8 @@ class EntryID implements Comparable<EntryID>
   }
 
   /**
-   * Create a new entry ID object from a value in database format.
-   * @param value The database value of the ID.
+   * Create a new entry ID object from a value in tree format.
+   * @param value The tree value of the ID.
    */
   EntryID(ByteString value)
   {
@@ -70,8 +70,8 @@ class EntryID implements Comparable<EntryID>
   }
 
   /**
-   * Get the value of the ID in database format.
-   * @return The value of the ID in database format.
+   * Get the value of the ID in tree format.
+   * @return The value of the ID in tree format.
    */
   ByteString toByteString()
   {

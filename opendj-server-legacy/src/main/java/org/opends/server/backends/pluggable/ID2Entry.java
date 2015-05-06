@@ -56,10 +56,10 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 
 /**
- * Represents the database containing the LDAP entries. The database key is
- * the entry ID and the value is the entry contents.
+ * Represents the tree containing the LDAP entries.
+ * The key is the entry ID and the value is the entry contents.
  */
-class ID2Entry extends AbstractDatabaseContainer
+class ID2Entry extends AbstractTree
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -95,7 +95,7 @@ class ID2Entry extends AbstractDatabaseContainer
   private static final class EntryCodec
   {
     /** The ASN1 tag for the ByteString type. */
-    private static final byte TAG_DATABASE_ENTRY = 0x60;
+    private static final byte TAG_TREE_ENTRY = 0x60;
     private static final int BUFFER_INIT_SIZE = 512;
 
     private final ByteStringBuilder encodedBuffer = new ByteStringBuilder();
@@ -189,7 +189,7 @@ class ID2Entry extends AbstractDatabaseContainer
       try
       {
         // Then start the ASN1 sequence.
-        writer.writeStartSequence(TAG_DATABASE_ENTRY);
+        writer.writeStartSequence(TAG_TREE_ENTRY);
 
         if (dataConfig.isCompressed())
         {
@@ -225,11 +225,11 @@ class ID2Entry extends AbstractDatabaseContainer
   /**
    * Create a new ID2Entry object.
    *
-   * @param name The name of the entry database.
+   * @param name The name of the entry tree.
    * @param dataConfig The desired compression and encryption options for data
-   * stored in the entry database.
-   * @param entryContainer The entryContainer of the entry database.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * stored in the entry tree.
+   * @param entryContainer The entryContainer of the entry tree.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   ID2Entry(TreeName name, DataConfig dataConfig) throws StorageRuntimeException
   {
@@ -238,7 +238,7 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Decodes an entry from its database representation.
+   * Decodes an entry from its tree representation.
    * <p>
    * An entry on disk is ASN1 encoded in this format:
    *
@@ -260,7 +260,7 @@ class ID2Entry extends AbstractDatabaseContainer
    * }
    * </pre>
    *
-   * @param bytes A byte array containing the encoded database value.
+   * @param bytes A byte array containing the encoded tree value.
    * @param compressedSchema The compressed schema manager to use when decoding.
    * @return The decoded entry.
    * @throws DecodeException If the data is not in the expected ASN.1 encoding
@@ -288,11 +288,11 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Encodes an entry to the raw database format, with optional compression.
+   * Encodes an entry to the raw tree format, with optional compression.
    *
    * @param entry The entry to encode.
    * @param dataConfig Compression and cryptographic options.
-   * @return A ByteSTring containing the encoded database value.
+   * @return A ByteSTring containing the encoded tree value.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
@@ -311,12 +311,12 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Write a record in the entry database.
+   * Write a record in the entry tree.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param id The entry ID which forms the key.
    * @param entry The LDAP entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
@@ -337,12 +337,12 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Remove a record from the entry database.
+   * Remove a record from the entry tree.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param id The entry ID which forms the key.
    * @return true if the entry was removed, false if it was not.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   boolean remove(WriteableTransaction txn, EntryID id) throws StorageRuntimeException
   {
@@ -350,13 +350,13 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Fetch a record from the entry database.
+   * Fetch a record from the entry tree.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param id The desired entry ID which forms the key.
    * @return The requested entry, or null if there is no such record.
    * @throws DirectoryException If a problem occurs while getting the entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   public Entry get(ReadableTransaction txn, EntryID id)
        throws DirectoryException, StorageRuntimeException
@@ -365,13 +365,13 @@ class ID2Entry extends AbstractDatabaseContainer
   }
 
   /**
-   * Check that a record entry exists in the entry database.
+   * Check that a record entry exists in the entry tree.
    *
-   * @param txn a non null database transaction
+   * @param txn a non null transaction
    * @param id The entry ID which forms the key.
    * @return True if an entry with entryID exists
    * @throws DirectoryException If a problem occurs while getting the entry.
-   * @throws StorageRuntimeException If an error occurs in the database.
+   * @throws StorageRuntimeException If an error occurs in the storage.
    */
   public boolean containsEntryID(ReadableTransaction txn, EntryID id)
  {
@@ -403,10 +403,10 @@ class ID2Entry extends AbstractDatabaseContainer
 
   /**
    * Set the desired compression and encryption options for data
-   * stored in the entry database.
+   * stored in the entry tree.
    *
    * @param dataConfig The desired compression and encryption options for data
-   * stored in the entry database.
+   * stored in the entry tree.
    */
   void setDataConfig(DataConfig dataConfig)
   {

@@ -95,8 +95,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       OID_VLV_REQUEST_CONTROL));
 
   /**
-   * Begin a Backend API method that accesses the database and returns the <code>EntryContainer</code> for
-   * <code>entryDN</code>.
+   * Begin a Backend API method that accesses the {@link EntryContainer} for <code>entryDN</code>
+   * and returns it.
    * @param operation requesting the storage
    * @param entryDN the target DN for the operation
    * @return <code>EntryContainer</code> where <code>entryDN</code> resides
@@ -114,22 +114,22 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return ec;
   }
 
-  /** End a Backend API method that accesses the database. */
+  /** End a Backend API method that accesses the EntryContainer. */
   private void accessEnd()
   {
     threadTotalCount.getAndDecrement();
   }
 
   /**
-   * Wait until there are no more threads accessing the database. It is assumed
-   * that new threads have been prevented from entering the database at the time
+   * Wait until there are no more threads accessing the storage. It is assumed
+   * that new threads have been prevented from entering the storage at the time
    * this method is called.
    */
   private void waitUntilQuiescent()
   {
     while (threadTotalCount.get() > 0)
     {
-      // Still have threads in the database so sleep a little
+      // Still have threads accessing the storage so sleep a little
       try
       {
         Thread.sleep(500);
@@ -161,7 +161,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       rootContainer = initializeRootContainer();
     }
 
-    // Preload the database cache.
+    // Preload the tree cache.
     rootContainer.preload(cfg.getPreloadTimeLimit());
 
     try
@@ -187,7 +187,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
     }
 
-    // Register a monitor provider for the environment.
     rootContainerMonitor = rootContainer.getMonitorProvider();
     DirectoryServer.registerMonitorProvider(rootContainerMonitor);
 
@@ -221,7 +220,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     // backend. We need to wait for them to finish.
     waitUntilQuiescent();
 
-    // Close the database.
+    // Close RootContainer and Storage.
     try
     {
       rootContainer.close();
@@ -998,7 +997,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
   private RootContainer initializeRootContainer()
           throws ConfigException, InitializationException {
-    // Open the database environment
+    // Open the storage
     try {
       RootContainer rc = new RootContainer(this, cfg);
       rc.open();

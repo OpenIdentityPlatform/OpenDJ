@@ -38,7 +38,7 @@ import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 
 /**
  * This class manages the set of ID that are to be eventually added to an index
- * database. It is responsible for determining if the number of IDs is above
+ * tree. It is responsible for determining if the number of IDs is above
  * the configured ID limit. If the limit it reached, the class stops tracking
  * individual IDs and marks the set as undefined. This class is not thread safe.
  */

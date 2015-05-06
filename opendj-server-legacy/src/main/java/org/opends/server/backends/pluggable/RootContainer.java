@@ -72,7 +72,7 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
 /**
- * Wrapper class for the JE environment. Root container holds all the entry
+ * Wrapper class for a backend "container". Root container holds all the entry
  * containers for each base DN. It also maintains all the openings and closings
  * of the entry containers.
  */
@@ -116,15 +116,15 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
 
   private static final int IMPORT_PROGRESS_INTERVAL = 10000;
 
-  /** The database storage. */
+  /** The tree storage. */
   private Storage storage;
 
   /** The backend to which this entry root container belongs. */
   private final BackendImpl<?> backend;
   /** The backend configuration. */
   private final PluggableBackendCfg config;
-  /** The database environment monitor for this JE environment. */
-  private DatabaseEnvironmentMonitor monitor;
+  /** The monitor for this backend. */
+  private BackendMonitor monitor;
 
   /** The base DNs contained in this root container. */
   private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
@@ -136,13 +136,12 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private PersistentCompressedSchema compressedSchema;
 
   /**
-   * Creates a new RootContainer object. Each root container represents a JE
-   * environment.
+   * Creates a new RootContainer object representing a storage.
    *
    * @param config
-   *          The configuration of the JE backend.
+   *          The configuration of the backend.
    * @param backend
-   *          A reference to the JE back end that is creating this root
+   *          A reference to the backend that is creating this root
    *          container.
    */
   RootContainer(BackendImpl<?> backend, PluggableBackendCfg config)
@@ -341,9 +340,9 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * Opens the root container.
    *
    * @throws StorageRuntimeException
-   *           If a database error occurs when creating the environment.
+   *           If an error occurs when opening the storage.
    * @throws ConfigException
-   *           If an configuration error occurs while creating the environment.
+   *           If an configuration error occurs while opening the storage.
    */
   void open() throws StorageRuntimeException, ConfigException
   {
@@ -378,7 +377,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @param baseDN
    *          The base DN of the entry container to open.
    * @param txn
-   *          The database transaction
+   *          The transaction
    * @return The opened entry container.
    * @throws StorageRuntimeException
    *           If an error occurs while opening the entry container.
@@ -411,7 +410,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     // another to be opened.
     if (ec1 != null)
     {
-      throw new InitializationException(ERR_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getDatabasePrefix(), baseDN));
+      throw new InitializationException(ERR_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getTreePrefix(), baseDN));
     }
 
     this.entryContainers.put(baseDN, entryContainer);
@@ -423,7 +422,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @param baseDNs
    *          The base DNs of the entry containers to open.
    * @throws StorageRuntimeException
-   *           If a database error occurs while opening the entry container.
+   *           If an error occurs while opening the entry container.
    * @throws InitializationException
    *           If an initialization error occurs while opening the entry
    *           container.
@@ -473,24 +472,23 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   }
 
   /**
-   * Get the DatabaseEnvironmentMonitor object for JE environment used by this
-   * root container.
+   * Get the BackendMonitor object used by this root container.
    *
-   * @return The DatabaseEnvironmentMonitor object.
+   * @return The BackendMonitor object.
    */
-  DatabaseEnvironmentMonitor getMonitorProvider()
+  BackendMonitor getMonitorProvider()
   {
     if (monitor == null)
     {
-      String monitorName = backend.getBackendID() + " Database Storage";
-      monitor = new DatabaseEnvironmentMonitor(monitorName, this);
+      String monitorName = backend.getBackendID() + " Storage";
+      monitor = new BackendMonitor(monitorName, this);
     }
 
     return monitor;
   }
 
   /**
-   * Preload the database cache. There is no preload if the configured preload
+   * Preload the tree cache. There is no preload if the configured preload
    * time limit is zero.
    *
    * @param timeLimit
@@ -500,14 +498,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     if (timeLimit > 0)
     {
-      // Get a list of all the databases used by the backend.
-      final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+      // Get a list of all the tree used by the backend.
+      final List<Tree> trees = new ArrayList<>();
       for (EntryContainer ec : entryContainers.values())
       {
         ec.sharedLock.lock();
         try
         {
-          databases.addAll(ec.listDatabases());
+          trees.addAll(ec.listTrees());
         }
         finally
         {
@@ -516,9 +514,9 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       }
 
       // Sort the list in order of priority.
-      Collections.sort(databases, new DbPreloadComparator());
+      Collections.sort(trees, new TreePreloadComparator());
 
-      // Preload each database until we reach the time limit or the cache
+      // Preload each tree until we reach the time limit or the cache
       // is filled.
       try
       {
@@ -668,7 +666,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
 
   /**
    * Resets the next entry ID counter to zero. This should only be used after
-   * clearing all databases.
+   * clearing all trees.
    */
   public void resetNextEntryID()
   {

@@ -29,22 +29,21 @@ package org.opends.server.backends.pluggable;
 import java.util.Comparator;
 
 /**
- * This comparator is used to sort databases in order of priority
+ * This comparator is used to sort trees in order of priority
  * for preloading into the cache.
  */
-class DbPreloadComparator
-    implements Comparator<DatabaseContainer>
+class TreePreloadComparator implements Comparator<Tree>
 {
 
   /**
-   * Calculate the relative priority of a database for preloading.
+   * Calculate the relative priority of a tree for preloading.
    *
-   * @param database A handle to the database.
-   * @return 1 for id2entry database, 2 for dn2id database, 3 for all others.
+   * @param tree A handle to the tree.
+   * @return 1 for id2entry tree, 2 for dn2id tree, 3 for all others.
    */
-  private static int priority(DatabaseContainer database)
+  private static int priority(Tree tree)
   {
-    String indexName = database.getName().getIndexId();
+    String indexName = tree.getName().getIndexId();
     if (indexName.endsWith(SuffixContainer.ID2ENTRY_INDEX_NAME))
     {
       return 1;
@@ -64,15 +63,15 @@ class DbPreloadComparator
    * zero, or a positive integer as the first argument is less than, equal
    * to, or greater than the second.
    *
-   * @param database1 the first object to be compared.
-   * @param database2 the second object to be compared.
+   * @param tree1 the first object to be compared.
+   * @param tree2 the second object to be compared.
    * @return a negative integer, zero, or a positive integer as the
    *         first argument is less than, equal to, or greater than the
    *         second.
    **/
   @Override
-  public int compare(DatabaseContainer database1, DatabaseContainer database2)
+  public int compare(Tree tree1, Tree tree2)
   {
-    return priority(database1) - priority(database2);
+    return priority(tree1) - priority(tree2);
   }
 }

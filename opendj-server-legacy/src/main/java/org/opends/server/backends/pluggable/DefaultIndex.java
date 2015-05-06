@@ -55,7 +55,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * of a value) appearing in the entry.
  */
 @SuppressWarnings("javadoc")
-class DefaultIndex extends AbstractDatabaseContainer implements Index
+class DefaultIndex extends AbstractTree implements Index
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -67,7 +67,7 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
   private final EntryIDSetCodec codec;
 
   /**
-   * A flag to indicate if this index should be trusted to be consistent with the entries database.
+   * A flag to indicate if this index should be trusted to be consistent with the entries tree.
    * If not trusted, we assume that existing entryIDSets for a key is still accurate. However, keys
    * that do not exist are undefined instead of an empty entryIDSet. The following rules will be
    * observed when the index is not trusted: - no entryIDs will be added to a non-existing key. -
@@ -79,17 +79,17 @@ class DefaultIndex extends AbstractDatabaseContainer implements Index
    * Create a new index object.
    *
    * @param name
-   *          The name of the index database within the entryContainer.
+   *          The name of the index tree within the entryContainer.
    * @param state
-   *          The state database to persist index state info.
+   *          The state tree to persist index state info.
    * @param indexEntryLimit
    *          The configured limit on the number of entry IDs that may be indexed by one key.
    * @param txn
-   *          a non null database transaction
+   *          a non null transaction
    * @param entryContainer
-   *          The database entryContainer holding this index.
+   *          The entryContainer holding this index.
    * @throws StorageRuntimeException
-   *           If an error occurs in the database.
+   *           If an error occurs in the storage.
    */
   DefaultIndex(TreeName name, State state, int indexEntryLimit, WriteableTransaction txn, EntryContainer entryContainer)
       throws StorageRuntimeException
