@@ -196,7 +196,7 @@ class VerifyJob
           {
             verifyDN2ID = true;
           }
-          if ("id2childrencount".equals(lowerName))
+          else if ("id2childrencount".equals(lowerName))
           {
             verifyID2ChildrenCount = true;
           }
