@@ -75,6 +75,36 @@ public class EntrySchemaCheckingTestCase
     }
   }
 
+    /**
+     * Ensures that the provided entry fails schema checking validation irrespective
+     * of relaxed compliance configured. Added due to unique niche case described
+     * in OPENDJ-1797
+     *
+     * @param  e  The entry to be tested.
+     */
+    private void failAlwaysStrictEvaluation(Entry e)
+    {
+        try
+        {
+            LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+            DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+            assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
+                    "Entry validation succeeded with REJECT policy");
+
+            DirectoryServer.setSingleStructuralObjectClassPolicy(WARN);
+            assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
+                    "Entry validation failed with WARN policy:  " + invalidReason);
+
+            DirectoryServer.setSingleStructuralObjectClassPolicy(ACCEPT);
+            assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
+                    "Entry validation failed with ACCEPT policy:  " + invalidReason);
+        }
+        finally
+        {
+            DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+        }
+    }
+
 
 
   /**
@@ -194,8 +224,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: xxxundefinedstructuralxxx",
          "cn: test");
 
-    assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new LocalizableMessageBuilder()));
+    failAlwaysStrictEvaluation(e);
   }
 
 
@@ -219,8 +248,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: xxxundefinedauxiliaryxxx",
          "cn: test");
 
-    assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new LocalizableMessageBuilder()));
+    failAlwaysStrictEvaluation(e);
   }
 
 
