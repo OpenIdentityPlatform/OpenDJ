@@ -1750,6 +1750,13 @@ public class Entry
       {
         logger.error(message);
       }
+
+      if (! checkAttributesAndObjectClasses(null,
+              structuralPolicy, invalidReason))
+      {
+          return false;
+      }
+
     }
     else
     {
