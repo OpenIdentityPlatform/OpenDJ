@@ -7033,6 +7033,7 @@ public final class DirectoryServer
         if (!LockFileManager.releaseLock(serverLockFileName, failureReason)) {
             logger.info(NOTE_SERVER_SHUTDOWN, className, failureReason);
         }
+        serverLocked = false;
     } catch (Exception e) {
         logger.traceException(e);
     }
