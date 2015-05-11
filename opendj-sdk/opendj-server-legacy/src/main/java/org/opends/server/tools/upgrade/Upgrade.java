@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -393,6 +393,12 @@ public final class Upgrade
     register("3.0.0.11476",
         deleteConfigEntry(INFO_UPGRADE_TASK_11476_SUMMARY.get(),
             "dn: cn=File System,cn=Entry Caches,cn=config"));
+
+    /** See OPENDJ-1869 */
+    register("3.0.0.12226",
+        modifyConfigEntry(INFO_UPGRADE_TASK_12226_SUMMARY.get(),
+            "(objectclass=ds-cfg-root-config)",
+            "delete: ds-cfg-entry-cache-preload"));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
