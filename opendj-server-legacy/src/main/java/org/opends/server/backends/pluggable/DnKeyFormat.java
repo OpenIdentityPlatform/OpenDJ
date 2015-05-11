@@ -88,4 +88,20 @@ public class DnKeyFormat
     }
     return builder.toByteString();
   }
+
+  static ByteStringBuilder beforeKey(final ByteSequence key)
+  {
+    final ByteStringBuilder beforeKey = new ByteStringBuilder(key.length() + 1);
+    beforeKey.append(key);
+    beforeKey.append((byte) 0x00);
+    return beforeKey;
+  }
+
+  static ByteStringBuilder afterKey(final ByteSequence key)
+  {
+    final ByteStringBuilder afterKey = new ByteStringBuilder(key.length() + 1);
+    afterKey.append(key);
+    afterKey.append((byte) 0x01);
+    return afterKey;
+  }
 }

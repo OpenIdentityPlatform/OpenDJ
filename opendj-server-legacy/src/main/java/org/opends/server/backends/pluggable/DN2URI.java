@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
@@ -585,18 +586,8 @@ class DN2URI extends AbstractTree
      * find subordinates of the base entry from the top of the tree downwards.
      */
     ByteString baseDN = toKey(searchOp.getBaseDN());
-    ByteStringBuilder suffix = new ByteStringBuilder(baseDN.length() + 1);
-    suffix.append(baseDN);
-    ByteStringBuilder end = new ByteStringBuilder(suffix);
-
-    /*
-     * Set the ending value to a value of equal length but slightly
-     * greater than the suffix. Since keys are compared in
-     * reverse order we must set the first byte (the comma).
-     * No possibility of overflow here.
-     */
-    suffix.append((byte) 0x00);
-    end.append((byte) 0x01);
+    ByteStringBuilder suffix = beforeKey(baseDN);
+    ByteStringBuilder end = afterKey(baseDN);
 
     try
     {
