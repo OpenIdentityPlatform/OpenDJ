@@ -1330,10 +1330,4 @@ public class LDIFBackend
 
     return alerts;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }

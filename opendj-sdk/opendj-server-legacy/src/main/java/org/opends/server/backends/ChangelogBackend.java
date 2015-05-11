@@ -326,13 +326,6 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException
-  {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean isIndexed(final AttributeType attributeType, final IndexType indexType)
   {
     return true;

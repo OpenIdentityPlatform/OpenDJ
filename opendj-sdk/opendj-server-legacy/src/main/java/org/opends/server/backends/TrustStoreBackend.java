@@ -1530,11 +1530,5 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
 
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }
 

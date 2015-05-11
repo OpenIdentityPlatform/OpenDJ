@@ -776,10 +776,4 @@ public class MemoryBackend
     LocalizableMessage message = ERR_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }

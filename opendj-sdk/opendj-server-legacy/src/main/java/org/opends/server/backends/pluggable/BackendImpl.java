@@ -187,6 +187,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
     }
 
+    // Register a monitor provider for the environment.
     rootContainerMonitor = rootContainer.getMonitorProvider();
     DirectoryServer.registerMonitorProvider(rootContainerMonitor);
 
@@ -1007,14 +1008,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       throw new InitializationException(ERR_OPEN_ENV_FAIL.get(e.getMessage()), e);
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException
-  {
-    EntryCachePreloader preloader = new EntryCachePreloader(this);
-    preloader.preload();
   }
 
   Storage getStorage()

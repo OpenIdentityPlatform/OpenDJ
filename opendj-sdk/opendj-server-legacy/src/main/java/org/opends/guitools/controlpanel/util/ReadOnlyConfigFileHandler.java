@@ -403,12 +403,6 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException
-  {
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
   throws DirectoryException
   {

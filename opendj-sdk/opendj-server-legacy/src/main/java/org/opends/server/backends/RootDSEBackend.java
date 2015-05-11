@@ -1128,10 +1128,4 @@ public class RootDSEBackend
 
     return ccr;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }
