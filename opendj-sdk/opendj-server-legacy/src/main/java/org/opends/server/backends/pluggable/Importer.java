@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.util.DynamicConstants.*;
@@ -1214,11 +1215,12 @@ final class Importer
               boolean success = cursor.positionToKeyOrNext(key);
               if (success && key.equals(cursor.getKey()))
               {
-                // This is the base entry for a branch that was excluded in the
-                // import so we must migrate all entries in this branch over to
-                // the new entry container.
-                ByteStringBuilder end = new ByteStringBuilder(key.length() + 1);
-                end.append((byte) 0x01);
+                /*
+                 * This is the base entry for a branch that was excluded in the
+                 * import so we must migrate all entries in this branch over to
+                 * the new entry container.
+                 */
+                ByteStringBuilder end = afterKey(key);
 
                 while (success
                     && ByteSequence.COMPARATOR.compare(key, end) < 0
@@ -1287,21 +1289,16 @@ final class Importer
               }
               else
               {
-                // This is the base entry for a branch that will be included
-                // in the import so we don't want to copy the branch to the
-                //  new entry container.
-
+                /*
+                 * This is the base entry for a branch that will be included
+                 * in the import so we do not want to copy the branch to the
+                 * new entry container.
+                 */
                 /*
                  * Advance the cursor to next entry at the same level in the DIT
-                 * skipping all the entries in this branch. Set the next
-                 * starting value to a value of equal length but slightly
-                 * greater than the previous DN. Since keys are compared in
-                 * reverse order we must set the first byte (the comma). No
-                 * possibility of overflow here.
+                 * skipping all the entries in this branch.
                  */
-                ByteStringBuilder begin = new ByteStringBuilder(key.length() + 1);
-                begin.append(key);
-                begin.append((byte) 0x01);
+                ByteStringBuilder begin = afterKey(key);
                 success = cursor.positionToKeyOrNext(begin);
               }
             }
@@ -1335,9 +1332,7 @@ final class Importer
     }
   }
 
-  /**
-   * Task to perform append/replace processing.
-   */
+  /** Task to perform append/replace processing. */
   private class AppendReplaceTask extends ImportTask
   {
     public AppendReplaceTask(final Storage storage)

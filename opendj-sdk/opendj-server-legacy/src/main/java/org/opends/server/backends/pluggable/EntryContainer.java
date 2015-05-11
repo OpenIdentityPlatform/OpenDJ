@@ -29,9 +29,9 @@ package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
-import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -1156,17 +1156,8 @@ public class EntryContainer
      * "ou=people,dc=example,dc=com".
      */
     ByteString baseDNKey = dnToDNKey(aBaseDN, this.baseDN.size());
-    ByteStringBuilder suffix = copyOf(baseDNKey);
-    ByteStringBuilder end = copyOf(baseDNKey);
-
-    /*
-     * Set the ending value to a value of equal length but slightly
-     * greater than the suffix. Since keys are compared in
-     * reverse order we must set the first byte (the comma).
-     * No possibility of overflow here.
-     */
-    suffix.append((byte) 0x00);
-    end.append((byte) 0x01);
+    ByteStringBuilder suffix = beforeKey(baseDNKey);
+    ByteStringBuilder end = afterKey(baseDNKey);
 
     // Set the starting value.
     ByteSequence begin;
@@ -1621,15 +1612,8 @@ public class EntryContainer
              * downwards.
              */
             ByteString entryDNKey = dnToDNKey(entryDN, baseDN.size());
-            ByteStringBuilder suffix = copyOf(entryDNKey);
-            ByteStringBuilder end = copyOf(entryDNKey);
-
-            /*
-             * Set the ending value to a value of equal length but slightly
-             * greater than the suffix.
-             */
-            suffix.append((byte) 0x00);
-            end.append((byte) 0x01);
+            ByteStringBuilder suffix = beforeKey(entryDNKey);
+            ByteStringBuilder end = afterKey(entryDNKey);
 
             int subordinateEntriesDeleted = 0;
 
@@ -1736,13 +1720,6 @@ public class EntryContainer
     {
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
-  }
-
-  private ByteStringBuilder copyOf(ByteString bs)
-  {
-    ByteStringBuilder newBS = new ByteStringBuilder(bs.length() + 1);
-    newBS.append(bs);
-    return newBS;
   }
 
   private void deleteEntry(WriteableTransaction txn,
@@ -2192,15 +2169,8 @@ public class EntryContainer
              * downwards.
              */
             ByteString currentDNKey = dnToDNKey(currentDN, baseDN.size());
-            ByteStringBuilder suffix = copyOf(currentDNKey);
-            ByteStringBuilder end = copyOf(currentDNKey);
-
-            /*
-             * Set the ending value to a value of equal length but slightly
-             * greater than the suffix.
-             */
-            suffix.append((byte) 0x00);
-            end.append((byte) 0x01);
+            ByteStringBuilder suffix = beforeKey(currentDNKey);
+            ByteStringBuilder end = afterKey(currentDNKey);
 
             Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
             try
