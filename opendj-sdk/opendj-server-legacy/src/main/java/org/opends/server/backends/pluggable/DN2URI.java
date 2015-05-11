@@ -168,7 +168,7 @@ class DN2URI extends AbstractTree
    * @param labeledURIs The labeled URI value of the ref attribute.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void put(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
+  private void update(final WriteableTransaction txn, final DN dn, final Collection<String> labeledURIs)
       throws StorageRuntimeException
   {
     final ByteString key = toKey(dn);
@@ -302,7 +302,7 @@ class DN2URI extends AbstractTree
           case ADD:
             if (a != null)
             {
-              put(txn, entryDN, toStrings(a));
+              update(txn, entryDN, toStrings(a));
             }
             break;
 
@@ -325,7 +325,7 @@ class DN2URI extends AbstractTree
             delete(txn, entryDN);
             if (a != null)
             {
-              put(txn, entryDN, toStrings(a));
+              update(txn, entryDN, toStrings(a));
             }
             break;
         }
@@ -378,7 +378,7 @@ class DN2URI extends AbstractTree
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
     {
-      put(txn, entry.getName(), labeledURIs);
+      update(txn, entry.getName(), labeledURIs);
     }
   }
 
