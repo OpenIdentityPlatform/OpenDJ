@@ -550,7 +550,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private final ServerContext serverContext;
-  private File backendDirectory;
+  private final File backendDirectory;
   private Persistit db;
   private Volume volume;
   private PersistitBackendCfg config;
@@ -967,7 +967,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
    * @param context TODO
    * @return true if newly created backend has a valid configuration
    */
-  public static boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
+  static boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
       ServerContext context)
   {
     if (context != null)
