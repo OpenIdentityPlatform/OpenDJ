@@ -1276,7 +1276,7 @@ public class EntryContainer
    * @throws DirectoryException
    *           If an error occurs retrieving the entry
    */
-  Entry getEntry(ReadableTransaction txn, EntryID entryID) throws DirectoryException
+  private Entry getEntry(ReadableTransaction txn, EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
     final EntryCache<?> entryCache = getEntryCache();

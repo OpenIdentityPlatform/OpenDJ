@@ -37,10 +37,10 @@ import org.opends.server.types.EntryEncodeConfig;
 final class DataConfig
 {
   /** Indicates whether data should be compressed before writing to the storage. */
-  private boolean compressed;
+  private final boolean compressed;
 
   /** The configuration to use when encoding entries in the tree. */
-  private EntryEncodeConfig encodeConfig;
+  private final EntryEncodeConfig encodeConfig;
 
   /**
    * Construct a new DataConfig object with the specified settings.
