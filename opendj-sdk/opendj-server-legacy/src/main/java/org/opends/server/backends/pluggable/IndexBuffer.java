@@ -227,11 +227,6 @@ class IndexBuffer
     createOrGetBufferedVLVIndexValues(index).deleteSortKey(sortKey);
   }
 
-  void remove(Index index, ByteString key)
-  {
-    createOrGetBufferedIndexValues(index, key);
-  }
-
   void remove(Index index, ByteString key, EntryID entryID)
   {
     createOrGetBufferedIndexValues(index, key).deleteEntryID(entryID);

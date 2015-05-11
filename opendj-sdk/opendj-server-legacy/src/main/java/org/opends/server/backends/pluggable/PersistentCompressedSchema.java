@@ -69,7 +69,7 @@ final class PersistentCompressedSchema extends CompressedSchema
   private static final TreeName ocTreeName = new TreeName("compressed_schema", DB_NAME_OC);
 
   /** The storage in which the trees are held. */
-  private Storage storage;
+  private final Storage storage;
 
   private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
   private final ASN1Writer storeAttributeWriter = ASN1.getWriter(storeAttributeWriterBuffer);

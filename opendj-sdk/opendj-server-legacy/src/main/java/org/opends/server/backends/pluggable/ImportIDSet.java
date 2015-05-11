@@ -90,14 +90,6 @@ final class ImportIDSet implements Iterable<EntryID> {
   }
 
   /**
-   * @param entryID The entry ID to add to an import ID set.
-   * @throws NullPointerException if entryID is null
-   */
-  void addEntryID(EntryID entryID) {
-    addEntryID(entryID.longValue());
-  }
-
-  /**
    * @param entryID The {@link EntryID} to add to an import ID set.
    */
   void addEntryID(long entryID)

@@ -606,16 +606,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   }
 
   /**
-   * Get the backend configuration used by this root container.
-   *
-   * @return The backend configuration used by this root container.
-   */
-  PluggableBackendCfg getConfiguration()
-  {
-    return config;
-  }
-
-  /**
    * Get the total number of entries in this root container.
    *
    * @return The number of entries in this root container
@@ -698,7 +688,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @param operation the current operation
    * @throws DirectoryException if resources are in short supply
    */
-  public void checkForEnoughResources(Operation operation) throws DirectoryException
+  void checkForEnoughResources(Operation operation) throws DirectoryException
   {
     StorageStatus status = storage.getStorageStatus();
     if (status.isUnusable()

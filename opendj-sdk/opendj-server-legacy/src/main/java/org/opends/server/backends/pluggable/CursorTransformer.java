@@ -188,12 +188,12 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
    * Runtime exception for problems happening during the transformation
    */
   @SuppressWarnings("serial")
-  public static class TransformationException extends RuntimeException
+  private static class TransformationException extends RuntimeException
   {
     private final Object originalKey;
     private final Object originalValue;
 
-    public TransformationException(Exception e, Object originalKey, Object originalValue)
+    private TransformationException(Exception e, Object originalKey, Object originalValue)
     {
       super(e);
       this.originalKey = originalKey;

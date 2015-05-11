@@ -51,15 +51,6 @@ final class ImportRecord implements Comparable<ImportRecord>
     return new ImportRecord(key, indexID);
   }
 
-  static ImportRecord fromBufferAndIndexID(byte[] buffer, int indexID)
-  {
-    int offSet = readOffset(buffer, 0);
-    offSet += REC_OVERHEAD + LONG_SIZE;
-    int keyLength = readInt(buffer, offSet);
-    ByteString key = ByteString.wrap(buffer, INT_SIZE + offSet, keyLength);
-    return new ImportRecord(key, indexID);
-  }
-
   static ImportRecord from(ByteSequence key, int indexID)
   {
     return new ImportRecord(key, indexID);
@@ -94,7 +85,7 @@ final class ImportRecord implements Comparable<ImportRecord>
    */
   private final int indexID;
 
-  public ImportRecord(ByteSequence key, int indexID)
+  private ImportRecord(ByteSequence key, int indexID)
   {
     this.key = key;
     this.indexID = indexID;
