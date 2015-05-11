@@ -493,10 +493,4 @@ public class NullBackend extends Backend<BackendCfg>
     LocalizableMessage message = LocalizableMessage.raw("The null backend does not support restore operation");
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }

@@ -211,20 +211,6 @@ public abstract class Backend<C extends Configuration>
   public abstract DN[] getBaseDNs();
 
   /**
-   * Attempts to pre-load all the entries stored within this backend
-   * into the entry cache. Note that the caller must ensure that the
-   * backend stays in read-only state until this method returns as
-   * no entry locking is performed during this operation. Also note
-   * that any backend implementing this method should implement pre-
-   * load progress reporting and error handling specific to its own
-   * implementation.
-   *
-   * @throws  UnsupportedOperationException if backend does not
-   *          support this operation.
-   */
-  public abstract void preloadEntryCache() throws UnsupportedOperationException;
-
-  /**
    * Indicates whether search operations which target the specified
    * attribute in the indicated manner would be considered indexed
    * in this backend.  The operation should be considered indexed only

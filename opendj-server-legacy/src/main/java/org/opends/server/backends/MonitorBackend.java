@@ -494,13 +494,6 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException
-  {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void removeBackup(final BackupDirectory backupDirectory,
       final String backupID) throws DirectoryException
   {

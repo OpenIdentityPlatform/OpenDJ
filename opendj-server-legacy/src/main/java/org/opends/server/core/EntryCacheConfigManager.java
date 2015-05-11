@@ -41,7 +41,6 @@ import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
@@ -53,7 +52,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -204,28 +202,6 @@ public class EntryCacheConfigManager
           loadAndInstallEntryCache(className, configuration);
         } catch (InitializationException ie) {
           logger.error(ie.getMessageObject());
-        }
-      }
-    }
-
-    // If requested preload the entry cache.
-    if (rootConfiguration.getGlobalConfiguration().isEntryCachePreload() &&
-        !cacheOrderMap.isEmpty()) {
-      // Preload from every active public backend.
-      Map<DN, Backend> baseDNMap =
-        DirectoryServer.getPublicNamingContexts();
-      Set<Backend> proccessedBackends = new HashSet<Backend>();
-      for (Backend backend : baseDNMap.values()) {
-        if (!proccessedBackends.contains(backend)) {
-          proccessedBackends.add(backend);
-          try {
-            backend.preloadEntryCache();
-          } catch (UnsupportedOperationException ex) {
-            // Some backend implementations might not support entry
-            // cache preload. Log a warning and continue.
-            logger.warn(WARN_CACHE_PRELOAD_BACKEND_FAILED, backend.getBackendID());
-            continue;
-          }
         }
       }
     }

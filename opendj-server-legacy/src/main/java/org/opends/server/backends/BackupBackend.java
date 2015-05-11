@@ -1016,10 +1016,4 @@ public class BackupBackend
     ByteString attrValue = ByteString.valueOf(rdnStringValue);
     return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
 }

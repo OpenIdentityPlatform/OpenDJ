@@ -20,7 +20,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2014 ForgeRock AS.
+#      Portions Copyright 2010-2015 ForgeRock AS.
 #      Portions Copyright 2012-2014 Manuel Gaupp
 #
 #
@@ -51,7 +51,6 @@ ds-cfg-return-bind-error-messages: false
 ds-cfg-idle-time-limit: 0 seconds
 ds-cfg-save-config-on-successful-startup: true
 ds-cfg-etime-resolution: milliseconds
-ds-cfg-entry-cache-preload: false
 ds-cfg-max-allowed-client-connections: 0
 ds-cfg-max-psearches: -1
 ds-cfg-allowed-task: org.opends.server.tasks.AddSchemaFileTask

@@ -546,27 +546,6 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
    </screen>
 
-   <para>
-    You can use the global setting,
-    <link
-     xlink:show="new"
-     xlink:href="${configRefBase}global.html#entry-cache-preload"
-    ><literal>entry-cache-preload</literal></link>,
-    to force OpenDJ to load the entry cache as part of server startup.
-   </para>
-
-  <screen>
-$ <userinput>dsconfig \
- set-global-configuration-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --set entry-cache-preload:true \
- --no-prompt</userinput>
-  </screen>
-
-   <para>By default, OpenDJ does not pre-load the entry cache.</para>
   </section>
   
   <section xml:id="perf-logging">

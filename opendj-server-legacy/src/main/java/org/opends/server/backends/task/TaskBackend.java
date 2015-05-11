@@ -1445,13 +1445,6 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException
-  {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public File getDirectory()
   {
     return getFileForPath(taskBackingFile).getParentFile();

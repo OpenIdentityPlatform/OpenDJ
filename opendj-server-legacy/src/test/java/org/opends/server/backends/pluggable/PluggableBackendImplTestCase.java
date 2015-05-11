@@ -861,21 +861,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), ldifNumberOfEntries - 2, "Not enough entries in DIT.");
   }
 
-  @Test(dependsOnMethods = {"testImportLDIF"})
-  public void testPreloadEntryCache()
-  {
-    // There is no backend.isPreloadSupported(), so try and if it fails, just let it go.
-    try
-    {
-      backend.preloadEntryCache();
-    }
-    catch (UnsupportedOperationException uoe)
-    {
-      Reporter.log("Skipping unsupported Cache Preload", true);
-    }
-  }
-
-  @Test(dependsOnMethods = "testPreloadEntryCache")
+  @Test(dependsOnMethods = "testImportLDIF")
   public void testBackup() throws Exception
   {
     assertEquals(backend.supports(BackendOperation.BACKUP), true, "Skip Backup");

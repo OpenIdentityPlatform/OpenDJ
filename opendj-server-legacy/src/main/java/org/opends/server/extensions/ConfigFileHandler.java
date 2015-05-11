@@ -2052,12 +2052,6 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public File getDirectory()
   {
     return getConfigFileInBackendContext().getParentFile();

@@ -1418,14 +1418,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws
-          UnsupportedOperationException {
-    EntryCachePreloader preloader = new EntryCachePreloader(this);
-    preloader.preload();
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void diskLowThresholdReached(File directory, long thresholdInBytes) {
     storageStatus = StorageStatus.lockedDown(
         WARN_DISK_SPACE_LOW_THRESHOLD_CROSSED.get(directory.getFreeSpace(), directory.getAbsolutePath(),

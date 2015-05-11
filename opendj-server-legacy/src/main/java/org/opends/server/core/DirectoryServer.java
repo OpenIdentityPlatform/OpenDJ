@@ -5064,7 +5064,7 @@ public final class DirectoryServer
    */
   public static Map<String, Backend> getBackends()
   {
-    return (Map) directoryServer.backends;
+    return new TreeMap<String, Backend>(directoryServer.backends);
   }
 
 

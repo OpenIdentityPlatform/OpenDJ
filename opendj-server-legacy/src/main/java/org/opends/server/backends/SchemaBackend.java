@@ -4169,12 +4169,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void preloadEntryCache() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("Operation not supported.");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public File getDirectory()
   {
     return new File(SchemaConfigManager.getSchemaDirectoryPath());
