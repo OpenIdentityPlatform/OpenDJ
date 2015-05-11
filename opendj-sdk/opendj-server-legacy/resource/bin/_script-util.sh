@@ -253,10 +253,6 @@ set_environment_vars() {
 # Configure the appropriate CLASSPATH for server, using Opend DJ logger.
 set_opendj_logger_classpath() {
   CLASSPATH="${INSTANCE_ROOT}/classes"
-  for JAR in "${INSTALL_ROOT}/resources/"*.jar
-  do
-    CLASSPATH=${CLASSPATH}:${JAR}
-  done
   CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap.jar"
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
@@ -271,10 +267,6 @@ set_opendj_logger_classpath() {
 # Configure the appropriate CLASSPATH for client, using java.util.logging logger.
 set_classpath() {
   CLASSPATH="${INSTANCE_ROOT}/classes"
-  for JAR in "${INSTALL_ROOT}/resources/"*.jar
-  do
-    CLASSPATH=${CLASSPATH}:${JAR}
-  done
   CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap-client.jar"
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
