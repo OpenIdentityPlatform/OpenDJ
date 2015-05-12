@@ -26,6 +26,13 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static java.util.Locale.ENGLISH;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.ldap.tools.Utils.*;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -65,11 +72,6 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.*;
-
 /**
  * A load generation tool that can be used to load a Directory Server with Bind
  * requests using one or more LDAP connections.
@@ -90,8 +92,7 @@ public final class AuthRate extends ConsoleApplication {
                 if (extraColumn.length != 0) {
                     final long searchWaitTime = searchWaitRecentTime.getAndSet(0);
                     extraColumn[0] =
-                            String.format("%.1f",
-                                    ((float) (waitTime - searchWaitTime) / waitTime) * 100.0);
+                            String.format(ENGLISH, "%.1f", ((float) (waitTime - searchWaitTime) / waitTime) * 100.0);
                 }
                 return extraColumn;
             }

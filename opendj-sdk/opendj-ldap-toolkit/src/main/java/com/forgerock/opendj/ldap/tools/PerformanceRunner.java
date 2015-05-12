@@ -26,6 +26,13 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static java.util.Locale.ENGLISH;
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.util.Utils.*;
+
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
@@ -60,12 +67,6 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiColumnPrinter;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.StaticUtils;
-
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.forgerock.util.Utils.*;
-
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 /**
  * Benchmark application framework.
@@ -390,19 +391,19 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 averageDuration /= 1000.0;
 
                 final String[] strings = new String[numColumns];
-                strings[0] = String.format("%.1f", resultCount / recentDuration);
-                strings[1] = String.format("%.1f", totalResultCount / averageDuration);
+                strings[0] = String.format(ENGLISH, "%.1f", resultCount / recentDuration);
+                strings[1] = String.format(ENGLISH, "%.1f", totalResultCount / averageDuration);
 
                 if (resultCount > 0) {
-                    strings[2] = String.format("%.3f", (waitTime - (gcDuration - lastGCDuration))
+                    strings[2] = String.format(ENGLISH, "%.3f", (waitTime - (gcDuration - lastGCDuration))
                             / (double) resultCount / 1000000.0);
                 } else {
                     strings[2] = "-";
                 }
 
                 if (totalResultCount > 0) {
-                    strings[3] =
-                            String.format("%.3f", (totalWaitTime - gcDuration) / (double) totalResultCount / 1000000.0);
+                    strings[3] = String.format(ENGLISH, "%.3f",
+                            (totalWaitTime - gcDuration) / (double) totalResultCount / 1000000.0);
                 } else {
                     strings[3] = "-";
                 }
@@ -410,11 +411,12 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 int i = 4;
                 List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
                 for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
-                    strings[i++] = String.format("%.2f", computedPercentiles.get(j) / 1000.0);
+                    strings[i++] = String.format(ENGLISH, "%.2f", computedPercentiles.get(j) / 1000.0);
                 }
-                strings[i++] = String.format("%.1f", failedCount / recentDuration);
+                strings[i++] = String.format(ENGLISH, "%.1f", failedCount / recentDuration);
                 if (isAsync) {
-                    strings[i++] = resultCount > 0 ? String.format("%.1f", (double) operationCount / resultCount) : "-";
+                    strings[i++] = resultCount > 0 ? String.format(ENGLISH, "%.1f", (double) operationCount
+                            / resultCount) : "-";
                 }
 
                 for (final String column : getAdditionalColumns()) {
