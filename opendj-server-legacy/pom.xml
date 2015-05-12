@@ -1315,7 +1315,7 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine>-server -Xms1024M -Xmx1024M -XX:MaxPermSize=256m</argLine>
+                  <argLine>-server -Xms1024M -Xmx2048M -XX:MaxPermSize=256m</argLine>
                 </configuration>
               </execution>
             </executions>
