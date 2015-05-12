@@ -26,12 +26,47 @@
  */
 package org.opends.quicksetup.util;
 
-import java.io.*;
+import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.util.DynamicConstants.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 
-import javax.naming.*;
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.NamingSecurityException;
+import javax.naming.NoPermissionException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -63,15 +98,6 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ClientException;
-
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.quicksetup.Installation.*;
-import static org.opends.server.util.DynamicConstants.*;
 
 /**
  * This class provides some static convenience methods of different nature.
@@ -1480,10 +1506,9 @@ public class Utils
     final SuffixesToReplicateOptions suf = userInstallData.getSuffixesToReplicateOptions();
     final String backendType = userInstallData.getBackendType().getUserFriendlyName().toString();
 
-    boolean createSuffix =
-        repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
-            || repl.getType() == DataReplicationOptions.Type.STANDALONE
-            || suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+    boolean createSuffix = repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
+                        || repl.getType() == DataReplicationOptions.Type.STANDALONE
+                        || suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
 
     if (createSuffix)
     {
@@ -1518,9 +1543,8 @@ public class Utils
       }
       else if (options.getBaseDns().size() > 1)
       {
-        msg =
-            INFO_REVIEW_CREATE_SUFFIX.get(backendType, joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()),
-                arg2);
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(
+            backendType, joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
       }
       else
       {
