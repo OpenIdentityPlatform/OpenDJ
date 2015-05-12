@@ -1028,7 +1028,7 @@ public class EntryContainer
 
   private static EntryIDSet newIDSetFromCursor(SequentialCursor<?, EntryID> cursor, boolean includeCurrent)
   {
-    final long ids[] = new long[SCOPE_IDSET_LIMIT];
+    long ids[] = new long[SCOPE_IDSET_LIMIT];
     int offset = 0;
     if (includeCurrent) {
       ids[offset++] = cursor.getValue().longValue();
@@ -1036,9 +1036,13 @@ public class EntryContainer
     for(; offset < ids.length && cursor.next() ; offset++) {
       ids[offset] = cursor.getValue().longValue();
     }
+
+    ids = Arrays.copyOf(ids, offset);
+    Arrays.sort(ids);
+
     return offset == SCOPE_IDSET_LIMIT
         ? EntryIDSet.newUndefinedSet()
-        : EntryIDSet.newDefinedSet(Arrays.copyOf(ids, offset));
+        : EntryIDSet.newDefinedSet(ids);
   }
 
   private <E1 extends Exception, E2 extends Exception>
