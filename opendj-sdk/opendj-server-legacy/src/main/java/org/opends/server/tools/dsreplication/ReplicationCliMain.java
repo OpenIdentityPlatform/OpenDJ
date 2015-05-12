@@ -4092,7 +4092,7 @@ public class ReplicationCliMain extends ConsoleApplication
         : uData.getBindDn();
 
     InitialLdapContext ctx = createAdministrativeContext(uData, bindDn);
-    if (ctx != null)
+    if (ctx == null)
     {
       return ERROR_CONNECTING;
     }
