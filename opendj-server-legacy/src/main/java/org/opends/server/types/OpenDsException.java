@@ -22,47 +22,36 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.types;
 
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
-
-/**
- * This class defines a base exception for OpenDS exceptions.
- */
+/** This class defines a base exception for OpenDS exceptions. */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public abstract class OpenDsException
-        extends Exception
+public abstract class OpenDsException extends Exception implements LocalizableException
 {
-
-  /**
-   * Generated serialization ID.
-   */
+  /** Generated serialization ID. */
   private static final long serialVersionUID = 7310881401563732702L;
 
   /** LocalizableMessage that explains the problem. */
-  LocalizableMessage message;
+  private final LocalizableMessage message;
 
-  /**
-   * Creates a new identified exception.
-   */
+  /** Creates a new identified exception. */
   protected OpenDsException()
   {
-    super();
+    this(null, null);
   }
 
   /**
-   * Constructs a new instance from another
-   * <code>OpenDsException</code>.
-   * This constructor sets the message to be that of
-   * <code>cause</code>.
+   * Constructs a new instance from another <code>OpenDsException</code>.
+   * This constructor sets the message to be that of <code>cause</code>.
    *
    * @param cause exception whose message will be used for
    *        this exception's message.
@@ -74,36 +63,28 @@ public abstract class OpenDsException
   /**
    * Creates a new identified exception with the provided information.
    *
-   * @param  message  The message that explains the problem that
-   *                  occurred.
+   * @param  message  The message that explains the problem that occurred.
    */
   protected OpenDsException(LocalizableMessage message)
   {
     this(message, null);
   }
 
-
-
   /**
    * Creates a new identified exception with the provided information.
    *
-   * @param  cause  The underlying cause that triggered this
-   *                exception.
+   * @param  cause  The underlying cause that triggered this exception.
    */
   protected OpenDsException(Throwable cause)
   {
     this(null, cause);
   }
 
-
-
   /**
    * Creates a new identified exception with the provided information.
    *
-   * @param  message  The message that explains the problem that
-   *                  occurred.
-   * @param  cause    The underlying cause that triggered this
-   *                  exception.
+   * @param  message  The message that explains the problem that occurred.
+   * @param  cause    The underlying cause that triggered this exception.
    */
   protected OpenDsException(LocalizableMessage message, Throwable cause)
   {
@@ -111,18 +92,19 @@ public abstract class OpenDsException
             cause != null ? cause.getMessage() : null, cause);
     if (message != null) {
       this.message = message;
-    } else if (cause instanceof OpenDsException) {
-      this.message = ((OpenDsException)cause).getMessageObject();
+    } else if (cause instanceof LocalizableException) {
+      this.message = ((LocalizableException) cause).getMessageObject();
+    } else {
+      this.message = null;
     }
   }
-
-
 
   /**
    * Returns the message that explains the problem that occurred.
    *
    * @return LocalizableMessage of the problem
    */
+  @Override
   public LocalizableMessage getMessageObject() {
     return this.message;
   }
