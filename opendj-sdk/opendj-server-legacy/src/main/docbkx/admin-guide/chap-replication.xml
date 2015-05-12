@@ -199,11 +199,14 @@
     </textobject>
    </mediaobject>
 
-   <para>Within a replication topology, the suffixes being replicated are
-   identified to the replication servers by their DN. As all the replication
-   servers are fully connected in a topology, a consequence is that it is
-   impossible to have multiple "sub-topologies" within the overall set of
-   servers as illustrated in the following diagram.</para>
+   <para>
+    Within a replication topology,
+    the suffixes being replicated are identified to the replication servers by their DNs.
+    All the replication servers are fully connected in a topology.
+    Consequently it is impossible to have multiple separate, independent topologies
+    for data under the same DN within the overall set of servers.
+    This is illustrated in the following diagram.
+   </para>
 
    <mediaobject xml:id="figure-replication-topologies-wrong">
     <alt>Two replication topologies, one of which does not work</alt>
