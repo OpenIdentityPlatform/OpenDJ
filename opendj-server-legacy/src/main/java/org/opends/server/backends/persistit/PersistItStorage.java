@@ -595,7 +595,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     }
     else
     {
-      bufferPoolCfg.setFraction(config.getDBCachePercent() / 100.0f);
+      bufferPoolCfg.setMaximumMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
       memQuota.acquireMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
     }
     dbCfg.setCommitPolicy(config.isDBTxnNoSync() ? SOFT : GROUP);
