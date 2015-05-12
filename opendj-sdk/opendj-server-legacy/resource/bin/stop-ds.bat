@@ -115,6 +115,7 @@ goto startUsingSystemCall
 
 :stopUsingProtocol
 echo %SCRIPT%: stop using protocol >> %LOG%
+set CLASSPATH=""
 call "%INSTALL_ROOT%\lib\_client-script.bat" %*
 goto end
 
