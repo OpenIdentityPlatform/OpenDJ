@@ -31,6 +31,7 @@ import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -85,6 +86,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -127,6 +129,46 @@ import org.opends.server.util.Platform;
  */
 final class Importer
 {
+  /**
+   * Shim that allows properly constructing an {@link Importer} without polluting
+   * {@link ImportStrategy} and {@link RootContainer} with this importer inner workings.
+   */
+  static final class StrategyImpl implements ImportStrategy
+  {
+    private final PluggableBackendCfg backendCfg;
+
+    public StrategyImpl(PluggableBackendCfg backendCfg)
+    {
+      this.backendCfg = backendCfg;
+    }
+
+    @Override
+    public LDIFImportResult importLDIF(LDIFImportConfig importConfig, RootContainer rootContainer,
+        ServerContext serverContext) throws DirectoryException
+    {
+      try
+      {
+        return new Importer(rootContainer, importConfig, backendCfg, serverContext).processImport();
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
+        throw e;
+      }
+      catch (InitializationException | ConfigException e)
+      {
+        logger.traceException(e);
+        throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+        throw new DirectoryException(getServerErrorResultCode(),
+            LocalizableMessage.raw(stackTraceToSingleLineString(e)), e);
+      }
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int TIMER_INTERVAL = 10000;
@@ -853,14 +895,7 @@ final class Importer
     rebuildManager.printStopMessage(startTime);
   }
 
-  /**
-   * Import a LDIF using the specified root container.
-   *
-   * @return A LDIF result.
-   * @throws Exception
-   *           If the import failed
-   */
-  public LDIFImportResult processImport() throws Exception
+  private LDIFImportResult processImport() throws Exception
   {
     try {
       try
@@ -2989,17 +3024,15 @@ final class Importer
       return timer;
     }
 
-    private int getIndexCount() throws ConfigException, StorageRuntimeException,
-        InitializationException
+    private int getIndexCount() throws ConfigException, StorageRuntimeException, InitializationException
     {
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
         return getTotalIndexCount(cfg);
       case DEGRADED:
-        // FIXME: since the storgae is not opened we cannot determine which
-        // indexes are degraded. As a workaround, be conservative and assume all
-        // indexes need rebuilding.
+        // FIXME: since the storage is not opened we cannot determine which indexes are degraded.
+        // As a workaround, be conservative and assume all indexes need rebuilding.
         return getTotalIndexCount(cfg);
       default:
         return getRebuildListIndexCount(cfg);
@@ -3023,7 +3056,7 @@ final class Importer
         {
           indexCount += 3;
         }
-        else if ("dn2uri".equals(lowerName))
+        else if (DN2URI_INDEX_NAME.equals(lowerName))
         {
           indexCount++;
         }
@@ -3057,11 +3090,11 @@ final class Importer
             final String indexType = attrIndexParts[1];
             if (attrIndexParts.length == 2)
             {
-              if ("presence".equals(indexType)
-                  || "equality".equals(indexType)
-                  || "ordering".equals(indexType)
-                  || "substring".equals(indexType)
-                  || "approximate".equals(indexType))
+              if (PRESENCE.toString().equals(indexType)
+                  || EQUALITY.toString().equals(indexType)
+                  || ORDERING.toString().equals(indexType)
+                  || SUBSTRING.toString().equals(indexType)
+                  || APPROXIMATE.toString().equals(indexType))
               {
                 indexCount++;
               }
