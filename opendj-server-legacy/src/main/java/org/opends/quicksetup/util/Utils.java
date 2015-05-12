@@ -77,6 +77,9 @@ import javax.net.ssl.TrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
@@ -1504,7 +1507,6 @@ public class Utils
 
     final DataReplicationOptions repl = userInstallData.getReplicationOptions();
     final SuffixesToReplicateOptions suf = userInstallData.getSuffixesToReplicateOptions();
-    final String backendType = userInstallData.getBackendType().getUserFriendlyName().toString();
 
     boolean createSuffix = repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
                         || repl.getType() == DataReplicationOptions.Type.STANDALONE
@@ -1541,14 +1543,18 @@ public class Utils
       {
         msg = INFO_REVIEW_CREATE_NO_SUFFIX.get();
       }
-      else if (options.getBaseDns().size() > 1)
-      {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(
-            backendType, joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
-      }
       else
       {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(backendType, options.getBaseDns().getFirst(), arg2);
+        final String backendType = userInstallData.getBackendType().getUserFriendlyName().toString();
+        if (options.getBaseDns().size() > 1)
+        {
+          msg = INFO_REVIEW_CREATE_SUFFIX.get(
+              backendType, joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()), arg2);
+        }
+        else
+        {
+          msg = INFO_REVIEW_CREATE_SUFFIX.get(backendType, options.getBaseDns().getFirst(), arg2);
+        }
       }
     }
     else
@@ -1752,14 +1758,15 @@ public class Utils
     cmdLine.add(getInstallDir(userData) + getSetupFilename());
     cmdLine.add("--cli");
 
-    final List<String> baseDNs = getBaseDNs(userData);
-    if (!baseDNs.isEmpty())
+    final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType =
+        userData.getBackendType();
+    if (backendType != null)
     {
       cmdLine.add("--" + ArgumentConstants.OPTION_LONG_BACKEND_TYPE);
-      cmdLine.add(BackendTypeHelper.filterSchemaBackendName(userData.getBackendType().getName()));
+      cmdLine.add(BackendTypeHelper.filterSchemaBackendName(backendType.getName()));
     }
 
-    for (final String baseDN : baseDNs)
+    for (final String baseDN : getBaseDNs(userData))
     {
       cmdLine.add("--baseDN");
       cmdLine.add(baseDN);
