@@ -40,25 +40,17 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * A set of generic test cases that apply to all Directory Server backends.
- */
-public class GenericBackendTestCase
-       extends BackendTestCase
+/** A set of generic test cases that apply to all Directory Server backends. */
+@SuppressWarnings("javadoc")
+public class GenericBackendTestCase extends BackendTestCase
 {
-  /**
-   * Ensures that the Directory Server is running.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
+  /** Ensures that the Directory Server is running. */
   @BeforeClass
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
   }
-
-
 
   /**
    * Retrieves the backends defined in the server.
@@ -68,23 +60,16 @@ public class GenericBackendTestCase
   @DataProvider(name = "backends")
   public Object[][] getBackends()
   {
-    ArrayList<Backend> backendList = new ArrayList<Backend>(DirectoryServer.getBackends().values());
+    ArrayList<Backend> backendList = new ArrayList<>(DirectoryServer.getBackends().values());
     Object[][] objectArray = new Object[backendList.size()][1];
     for (int i=0; i < objectArray.length; i++)
     {
       objectArray[i][0] = backendList.get(i);
     }
-
     return objectArray;
   }
 
-
-
-  /**
-   * Tests the {@code getBaseDNs} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getBaseDNs} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetBaseDNs(Backend<?> b)
   {
@@ -93,39 +78,21 @@ public class GenericBackendTestCase
     assertNotEquals(baseDNs.length, 0);
   }
 
-
-
-  /**
-   * Tests the {@code getSupportedControls} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getSupportedControls} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetSupportedControls(Backend<?> b)
   {
     assertNotNull(b.getSupportedControls());
   }
 
-
-
-  /**
-   * Tests the {@code supportsControl} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the supports control method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testSupportsControl(Backend<?> b)
   {
     assertFalse(b.supportsControl("1.2.3.4"));
   }
 
-
-
-  /**
-   * Tests the {@code getSupportedFeatures} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getSupportedFeatures} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetSupportedFeatures(Backend<?> b)
   {
@@ -133,65 +100,35 @@ public class GenericBackendTestCase
     b.getSupportedFeatures();
   }
 
-
-
-  /**
-   * Tests the {@code supportsLDIFExport} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the supports LDIF export method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testSupportsLDIFExport(Backend<?> b)
   {
     b.supports(BackendOperation.LDIF_EXPORT);
   }
 
-
-
-  /**
-   * Tests the {@code supportsLDIFImport} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the supports LDIF import method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testSupportsLDIFImport(Backend<?> b)
   {
     b.supports(BackendOperation.LDIF_IMPORT);
   }
 
-
-
-  /**
-   * Tests the {@code supportsBackup} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the supports Backup method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testSupportsBackup(Backend<?> b)
   {
     b.supports(BackendOperation.BACKUP);
   }
 
-
-
-  /**
-   * Tests the {@code supportsRestore} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the supports restore method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testSupportsRestore(Backend<?> b)
   {
     b.supports(BackendOperation.RESTORE);
   }
 
-
-
-  /**
-   * Tests the {@code getBackendID} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getBackendID} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetBackendID(Backend<?> b)
   {
@@ -199,93 +136,51 @@ public class GenericBackendTestCase
     assertTrue(b.getBackendID().length() > 0);
   }
 
-
-
-  /**
-   * Tests the {@code isPrivateBackend} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#isPrivateBackend} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testIsPrivateBackend(Backend<?> b)
   {
     b.isPrivateBackend();
   }
 
-
-
-  /**
-   * Tests the {@code getWritabilityMode} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getWritabilityMode} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetWritabilityMode(Backend<?> b)
   {
     assertNotNull(b.getWritabilityMode());
   }
 
-
-
-  /**
-   * Tests the {@code getBackendMonitor} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getBackendMonitor} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetBackendMonitor(Backend<?> b)
   {
     assertNotNull(b.getBackendMonitor());
   }
 
-
-
-  /**
-   * Tests the {@code getEntryCount} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getEntryCount} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetEntryCount(Backend<?> b)
   {
     b.getEntryCount();
   }
 
-
-
-  /**
-   * Tests the {@code getParentBackend} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getParentBackend} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetParentBackend(Backend<?> b)
   {
     b.getParentBackend();
   }
 
-
-
-  /**
-   * Tests the {@code getSubordinateBackends} method for the provided backend.
-   *
-   * @param  b  The backend to test.
-   */
+  /** Tests the {@link Backend#getSubordinateBackends} method for the provided backend. */
   @Test(dataProvider = "backends")
   public void testGetSubordinateBackends(Backend<?> b)
   {
     assertNotNull(b.getSubordinateBackends());
   }
 
-
-
   /**
-   * Tests the {@code handlesEntry} method for the provided backend for each
-   * of the declared base DNs.
-   *
-   * @param  b  The backend to test.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * Tests the {@link Backend#handlesEntry} method for the provided backend for each of the declared
+   * base DNs.
    */
   @Test(dataProvider = "backends")
   public void testHandlesEntry(Backend<?> b) throws Exception

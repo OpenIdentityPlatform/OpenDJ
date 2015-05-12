@@ -606,33 +606,36 @@ public abstract class Backend<C extends Configuration>
   public abstract boolean supports(BackendOperation backendOperation);
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should
-   * only be called if {@code supportsLDIFExport} returns
-   * {@code true}.  Note that the server will not explicitly
-   * initialize this backend before calling this method.
+   * Exports the contents of this backend to LDIF. This method should only be called if
+   * {@link #supports(BackendOperation)} with {@link BackendOperation#LDIF_EXPORT} returns
+   * {@code true}.
+   * <p>
+   * Note that the server will not explicitly initialize this backend before calling this method.
    *
-   * @param  exportConfig  The configuration to use when performing
-   *                       the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing
-   *                              the LDIF export.
+   * @param exportConfig
+   *          The configuration to use when performing the export.
+   * @throws DirectoryException
+   *           If a problem occurs while performing the LDIF export.
    */
   public abstract void exportLDIF(LDIFExportConfig exportConfig) throws DirectoryException;
 
   /**
-   * Imports information from an LDIF file into this backend.  This
-   * method should only be called if {@code supportsLDIFImport}
-   * returns {@code true}.  Note that the server will not explicitly
-   * initialize this backend before calling this method.
+   * Imports information from an LDIF file into this backend. This method should only be called if
+   * {@link #supports(BackendOperation)} with {@link BackendOperation#LDIF_IMPORT} returns
+   * {@code true}.
+   * <p>
+   * Note that the server will not explicitly initialize this backend before calling this method.
    *
-   * @param  importConfig  The configuration to use when performing the import.
-   * @param  serverContext The server context
-   * @return  Information about the result of the import processing.
-   * @throws  DirectoryException  If a problem occurs while performing
-   *                              the LDIF import.
+   * @param importConfig
+   *          The configuration to use when performing the import.
+   * @param serverContext
+   *          The server context
+   * @return Information about the result of the import processing.
+   * @throws DirectoryException
+   *           If a problem occurs while performing the LDIF import.
    */
   public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
-         throws DirectoryException;
+      throws DirectoryException;
 
   /**
    * Verify the integrity of the backend instance.
@@ -679,20 +682,18 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Creates a backup of the contents of this backend in a form that
-   * may be restored at a later date if necessary.  This method should
-   * only be called if {@code supportsBackup} returns {@code true}.
-   * Note that the server will not explicitly initialize this backend
-   * before calling this method.
+   * Creates a backup of the contents of this backend in a form that may be restored at a later date
+   * if necessary. This method should only be called if {@link #supports(BackendOperation)} with
+   * {@link BackendOperation#BACKUP} returns {@code true}.
+   * <p>
+   * Note that the server will not explicitly initialize this backend before calling this method.
    *
-   * @param  backupConfig  The configuration to use when performing
-   *                       the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing
-   *                              the backup.
+   * @param backupConfig
+   *          The configuration to use when performing the backup.
+   * @throws DirectoryException
+   *           If a problem occurs while performing the backup.
    */
-  public abstract void createBackup(BackupConfig backupConfig)
-         throws DirectoryException;
+  public abstract void createBackup(BackupConfig backupConfig) throws DirectoryException;
 
   /**
    * Removes the specified backup if it is possible to do so.
@@ -713,19 +714,17 @@ public abstract class Backend<C extends Configuration>
          throws DirectoryException;
 
   /**
-   * Restores a backup of the contents of this backend.  This method
-   * should only be called if {@code supportsRestore} returns
-   * {@code true}.  Note that the server will not explicitly
-   * initialize this backend before calling this method.
+   * Restores a backup of the contents of this backend. This method should only be called if
+   * {@link #supports(BackendOperation)} with {@link BackendOperation#RESTORE} returns {@code true}.
+   * <p>
+   * Note that the server will not explicitly initialize this backend before calling this method.
    *
-   * @param  restoreConfig  The configuration to use when performing
-   *                        the restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing
-   *                              the restore.
+   * @param restoreConfig
+   *          The configuration to use when performing the restore.
+   * @throws DirectoryException
+   *           If a problem occurs while performing the restore.
    */
-  public abstract void restoreBackup(RestoreConfig restoreConfig)
-         throws DirectoryException;
+  public abstract void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException;
 
   /**
    * Retrieves the unique identifier for this backend.

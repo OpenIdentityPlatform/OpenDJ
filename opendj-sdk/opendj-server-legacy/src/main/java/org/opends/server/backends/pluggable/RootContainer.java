@@ -165,19 +165,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     return storage;
   }
 
-  /**
-   * Imports information from an LDIF file into this backend. This method should
-   * only be called if {@code supportsLDIFImport} returns {@code true}. <p>Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param importConfig
-   *          The configuration to use when performing the import.
-   * @param serverContext The server context
-   * @return information about the result of the import processing.
-   * @throws DirectoryException
-   *           If a problem occurs while performing the LDIF import.
-   */
   LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext) throws DirectoryException
   {//TODO JNR may call importLDIFWithSuccessiveAdds(importConfig) depending on configured import strategy
     return importLDIFWithOnDiskMerge(importConfig, serverContext);
