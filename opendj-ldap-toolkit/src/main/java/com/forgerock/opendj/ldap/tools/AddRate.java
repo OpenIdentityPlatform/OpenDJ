@@ -26,6 +26,7 @@
 
 package com.forgerock.opendj.ldap.tools;
 
+import static java.util.Locale.ENGLISH;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
@@ -151,7 +152,7 @@ public class AddRate extends ConsoleApplication {
                 final int deleteStat = recentDeletes.getAndSet(0);
                 final int total = adds + deleteStat;
 
-                extraColumn[0] = String.format("%.2f", total > 0 ? ((double) adds / total) * 100 : 0.0);
+                extraColumn[0] = String.format(ENGLISH, "%.2f", total > 0 ? ((double) adds / total) * 100 : 0.0);
 
                 return extraColumn;
             }

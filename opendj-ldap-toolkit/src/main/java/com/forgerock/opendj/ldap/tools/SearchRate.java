@@ -26,6 +26,12 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static java.util.Locale.ENGLISH;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,10 +60,6 @@ import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 /**
  * A load generation tool that can be used to load a Directory Server with
@@ -100,9 +102,9 @@ public final class SearchRate extends ConsoleApplication {
             String[] getAdditionalColumns() {
                 final int entryCount = entryRecentCount.getAndSet(0);
                 if (successCount > 0) {
-                    extraColumn[0] = String.format("%.1f", (double) entryCount / successCount);
+                    extraColumn[0] = String.format(ENGLISH, "%.1f", (double) entryCount / successCount);
                 } else {
-                    extraColumn[0] = String.format("%.1f", 0.0);
+                    extraColumn[0] = String.format(ENGLISH, "%.1f", 0.0);
                 }
                 return extraColumn;
             }
