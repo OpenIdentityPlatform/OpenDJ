@@ -183,7 +183,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="replication-db-implementation" mandatory="true" read-only="true">
+  <adm:property name="replication-db-implementation" mandatory="true" advanced="true">
     <adm:synopsis>
        The <adm:user-friendly-name /> database implementation
       that stores all persistent information.
