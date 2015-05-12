@@ -599,6 +599,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
       memQuota.acquireMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
     }
     dbCfg.setCommitPolicy(config.isDBTxnNoSync() ? SOFT : GROUP);
+    dbCfg.setJmxEnabled(false);
     return dbCfg;
   }
 
