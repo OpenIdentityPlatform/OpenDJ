@@ -126,8 +126,7 @@ public class UserData
 
     LinkedList<String> baseDn = new LinkedList<String>();
     baseDn.add("dc=example,dc=com");
-    NewSuffixOptions defaultNewSuffixOptions = NewSuffixOptions.createBaseEntry(
-        baseDn);
+    NewSuffixOptions defaultNewSuffixOptions = NewSuffixOptions.createEmpty(baseDn);
     setNewSuffixOptions(defaultNewSuffixOptions);
 
     // See what we can propose as port
