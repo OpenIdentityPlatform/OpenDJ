@@ -876,8 +876,13 @@ public abstract class Installer extends GuiApplication {
     argList.add("-w");
     argList.add(getUserData().getDirectoryManagerPwd());
 
-    argList.add("--" + OPTION_LONG_BACKEND_TYPE);
-    argList.add(BackendTypeHelper.filterSchemaBackendName(getUserData().getBackendType().getName()));
+    final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType =
+        getUserData().getBackendType();
+    if (backendType != null)
+    {
+      argList.add("--" + OPTION_LONG_BACKEND_TYPE);
+      argList.add(BackendTypeHelper.filterSchemaBackendName(backendType.getName()));
+    }
 
     if (createNotReplicatedSuffix())
     {
