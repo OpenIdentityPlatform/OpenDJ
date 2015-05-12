@@ -190,7 +190,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>je</adm:value>
+        <adm:value>log</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
