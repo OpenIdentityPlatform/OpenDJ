@@ -1389,16 +1389,16 @@ public class InstallDS extends ConsoleApplication
     }
     else
     {
-      final int POPULATE_TYPE_BASE_ONLY = 1;
-      final int POPULATE_TYPE_LEAVE_EMPTY = 2;
+      final int POPULATE_TYPE_LEAVE_EMPTY = 1;
+      final int POPULATE_TYPE_BASE_ONLY = 2;
       final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
       final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
 
-      final int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
+      final int[] indexes = {POPULATE_TYPE_LEAVE_EMPTY, POPULATE_TYPE_BASE_ONLY,
           POPULATE_TYPE_IMPORT_FROM_LDIF, POPULATE_TYPE_GENERATE_SAMPLE_DATA};
       final LocalizableMessage[] msgs = new LocalizableMessage[] {
-          INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
+          INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
           INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get()
       };
@@ -1414,8 +1414,8 @@ public class InstallDS extends ConsoleApplication
       if (lastResetPopulateOption == null)
       {
         builder.setDefault(LocalizableMessage.raw(
-            String.valueOf(POPULATE_TYPE_BASE_ONLY)),
-            MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+            String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
+            MenuResult.success(POPULATE_TYPE_LEAVE_EMPTY));
       }
       else
       {

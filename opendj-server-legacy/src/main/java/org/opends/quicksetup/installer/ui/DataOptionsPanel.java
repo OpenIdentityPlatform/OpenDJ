@@ -273,9 +273,9 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel.add(getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY), gbc);
-    gbc.insets.top = UIFactory.TOP_INSET_RADIOBUTTON;
     panel.add(getRadioButton(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY), gbc);
+    gbc.insets.top = UIFactory.TOP_INSET_RADIOBUTTON;
+    panel.add(getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY), gbc);
     panel.add(getRadioButton(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE), gbc);
 
     JPanel auxPanel = createBrowseButtonPanel(FieldName.LDIF_PATH, getLDIFBrowseButton());
@@ -454,13 +454,13 @@ public class DataOptionsPanel extends QuickSetupStepPanel
         INFO_CREATE_BASE_ENTRY_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons.put(NewSuffixOptions.Type.CREATE_BASE_ENTRY, createBaseEntryRB);
-    dataLabel.setLabelFor(createBaseEntryRB);
 
     final JRadioButton leaveDataBaseEmptyRB = UIFactory.makeJRadioButton(
         INFO_LEAVE_DATABASE_EMPTY_LABEL.get(),
         INFO_LEAVE_DATABASE_EMPTY_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons.put(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, leaveDataBaseEmptyRB);
+    dataLabel.setLabelFor(leaveDataBaseEmptyRB);
 
     final JRadioButton importFileDataRB = UIFactory.makeJRadioButton(
         INFO_IMPORT_DATA_FROM_LDIF_LABEL.get(),
