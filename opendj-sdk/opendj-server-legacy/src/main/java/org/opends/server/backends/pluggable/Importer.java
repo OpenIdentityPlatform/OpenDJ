@@ -681,90 +681,87 @@ final class Importer
   private Suffix getSuffix(WriteableTransaction txn, EntryContainer entryContainer)
       throws ConfigException, DirectoryException
   {
-    DN baseDN = entryContainer.getBaseDN();
-    EntryContainer sourceEntryContainer = null;
-    List<DN> includeBranches = new ArrayList<>();
-    List<DN> excludeBranches = new ArrayList<>();
-
-    if (!importCfg.appendToExistingData()
-        && !importCfg.clearBackend())
+    if (importCfg.appendToExistingData() || importCfg.clearBackend())
     {
-      for (DN dn : importCfg.getExcludeBranches())
+      return new Suffix(entryContainer);
+    }
+
+    final DN baseDN = entryContainer.getBaseDN();
+    if (importCfg.getExcludeBranches().contains(baseDN))
+    {
+      // This entire base DN was explicitly excluded. Skip.
+      return null;
+    }
+
+    EntryContainer sourceEntryContainer = null;
+    List<DN> excludeBranches = getDescendants(baseDN, importCfg.getExcludeBranches());
+    List<DN> includeBranches = null;
+    if (!importCfg.getIncludeBranches().isEmpty())
+    {
+      includeBranches = getDescendants(baseDN, importCfg.getIncludeBranches());
+      if (includeBranches.isEmpty())
       {
-        if (baseDN.equals(dn))
+        // There are no branches in the explicitly defined include list under this base DN.
+        // Skip this base DN altogether.
+        return null;
+      }
+
+      // Remove any overlapping include branches.
+      Iterator<DN> includeBranchIterator = includeBranches.iterator();
+      while (includeBranchIterator.hasNext())
+      {
+        DN includeDN = includeBranchIterator.next();
+        if (!isAnyNotEqualAndAncestorOf(includeBranches, includeDN))
         {
-          // This entire base DN was explicitly excluded. Skip.
-          return null;
-        }
-        if (baseDN.isAncestorOf(dn))
-        {
-          excludeBranches.add(dn);
+          includeBranchIterator.remove();
         }
       }
 
-      if (!importCfg.getIncludeBranches().isEmpty())
+      // Remove any exclude branches that are not are not under a include branch
+      // since they will be migrated as part of the existing entries
+      // outside of the include branches anyways.
+      Iterator<DN> excludeBranchIterator = excludeBranches.iterator();
+      while (excludeBranchIterator.hasNext())
       {
-        for (DN dn : importCfg.getIncludeBranches())
+        DN excludeDN = excludeBranchIterator.next();
+        if (!isAnyAncestorOf(includeBranches, excludeDN))
         {
-          if (baseDN.isAncestorOf(dn))
-          {
-            includeBranches.add(dn);
-          }
+          excludeBranchIterator.remove();
         }
+      }
 
-        if (includeBranches.isEmpty())
-        {
-          /*
-           * There are no branches in the explicitly defined include list under
-           * this base DN. Skip this base DN all together.
-           */
-          return null;
-        }
+      if (excludeBranches.isEmpty()
+          && includeBranches.size() == 1
+          && includeBranches.get(0).equals(baseDN))
+      {
+        // This entire base DN is explicitly included in the import with
+        // no exclude branches that we need to migrate.
+        // Just clear the entry container.
+        clearSuffix(entryContainer);
+      }
+      else
+      {
+        sourceEntryContainer = entryContainer;
 
-        // Remove any overlapping include branches.
-        Iterator<DN> includeBranchIterator = includeBranches.iterator();
-        while (includeBranchIterator.hasNext())
-        {
-          DN includeDN = includeBranchIterator.next();
-          if (!isAnyNotEqualAndAncestorOf(includeBranches, includeDN))
-          {
-            includeBranchIterator.remove();
-          }
-        }
-
-        // Remove any exclude branches that are not are not under a include
-        // branch since they will be migrated as part of the existing entries
-        // outside of the include branches anyways.
-        Iterator<DN> excludeBranchIterator = excludeBranches.iterator();
-        while (excludeBranchIterator.hasNext())
-        {
-          DN excludeDN = excludeBranchIterator.next();
-          if (!isAnyAncestorOf(includeBranches, excludeDN))
-          {
-            excludeBranchIterator.remove();
-          }
-        }
-
-        if (excludeBranches.isEmpty()
-            && includeBranches.size() == 1
-            && includeBranches.get(0).equals(baseDN))
-        {
-          // This entire base DN is explicitly included in the import with
-          // no exclude branches that we need to migrate.
-          // Just clear the entry container.
-          clearSuffix(entryContainer);
-        }
-        else
-        {
-          sourceEntryContainer = entryContainer;
-
-          // Create a temp entry container
-          DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
-          entryContainer = rootContainer.openEntryContainer(tempDN, txn);
-        }
+        // Create a temp entry container
+        DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+        entryContainer = rootContainer.openEntryContainer(tempDN, txn);
       }
     }
     return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
+  }
+
+  private List<DN> getDescendants(DN baseDN, Set<DN> dns)
+  {
+    final List<DN> results = new ArrayList<>();
+    for (DN dn : dns)
+    {
+      if (baseDN.isAncestorOf(dn))
+      {
+        results.add(dn);
+      }
+    }
+    return results;
   }
 
   private static void clearSuffix(EntryContainer entryContainer)
@@ -1418,14 +1415,15 @@ final class Importer
         }
         suffix.removePending(entryDN);
         processDN2ID(suffix, entryDN, entryID);
+        suffix.getDN2URI().addEntry(txn, entry);
       }
       else
       {
         suffix.removePending(entryDN);
         entryID = oldID;
+        suffix.getDN2URI().replaceEntry(txn, oldEntry, entry);
       }
 
-      processDN2URI(txn, suffix, oldEntry, entry);
       suffix.getID2Entry().put(txn, entryID, entry);
       if (oldEntry != null)
       {
@@ -1543,7 +1541,7 @@ final class Importer
       }
       suffix.removePending(entryDN);
       processDN2ID(suffix, entryDN, entryID);
-      processDN2URI(txn, suffix, null, entry);
+      suffix.getDN2URI().addEntry(txn, entry);
       processIndexes(suffix, entry, entryID);
       processVLVIndexes(txn, suffix, entry, entryID);
       suffix.getID2Entry().put(txn, entryID, entry);
@@ -1708,20 +1706,6 @@ final class Importer
       ByteString dnBytes = DnKeyFormat.dnToDNKey(dn, suffix.getBaseDN().size());
       int indexID = processKey(dn2id, dnBytes, entryID, dnIndexKey, true);
       indexIDToECMap.putIfAbsent(indexID, suffix.getEntryContainer());
-    }
-
-    void processDN2URI(WriteableTransaction txn, Suffix suffix, Entry oldEntry, Entry newEntry)
-        throws StorageRuntimeException
-    {
-      DN2URI dn2uri = suffix.getDN2URI();
-      if (oldEntry != null)
-      {
-        dn2uri.replaceEntry(txn, oldEntry, newEntry);
-      }
-      else
-      {
-        dn2uri.addEntry(txn, newEntry);
-      }
     }
   }
 
@@ -2707,7 +2691,7 @@ final class Importer
     void initialize() throws ConfigException, InitializationException
     {
       entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
-      suffix = new Suffix(entryContainer, null, null, null);
+      suffix = new Suffix(entryContainer);
     }
 
     private void printStartMessage(WriteableTransaction txn) throws StorageRuntimeException
@@ -3176,7 +3160,7 @@ final class Importer
       }
       if (rebuildDn2uri)
       {
-        processDN2URI(txn, suffix, null, entry);
+        suffix.getDN2URI().addEntry(txn, entry);
       }
       processIndexes(entry, entryID);
       processVLVIndexes(txn, entry, entryID);

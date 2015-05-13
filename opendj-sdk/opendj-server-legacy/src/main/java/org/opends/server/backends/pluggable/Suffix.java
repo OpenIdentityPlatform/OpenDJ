@@ -49,7 +49,6 @@ import org.opends.server.types.DN;
  */
 class Suffix
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final List<DN> includeBranches, excludeBranches;
@@ -58,9 +57,13 @@ class Suffix
   private final EntryContainer entryContainer;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
-  private final ConcurrentHashMap<DN, CountDownLatch> pendingMap =
-          new ConcurrentHashMap<DN, CountDownLatch>();
-  private final Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
+  private final ConcurrentHashMap<DN, CountDownLatch> pendingMap = new ConcurrentHashMap<>();
+  private final Set<DN> parentSet = new HashSet<>(PARENT_ID_SET_SIZE);
+
+  Suffix(EntryContainer entryContainer)
+  {
+    this(entryContainer, null, null, null);
+  }
 
   /**
    * Creates a suffix instance using the specified parameters.
@@ -82,7 +85,7 @@ class Suffix
     }
     else
     {
-      this.includeBranches = new ArrayList<DN>(0);
+      this.includeBranches = new ArrayList<>(0);
     }
     if (excludeBranches != null)
     {
@@ -90,7 +93,7 @@ class Suffix
     }
     else
     {
-      this.excludeBranches = new ArrayList<DN>(0);
+      this.excludeBranches = new ArrayList<>(0);
     }
   }
 
@@ -104,7 +107,6 @@ class Suffix
     return entryContainer.getDN2ID();
   }
 
-
   /**
    * Returns the ID2Entry instance pertaining to a suffix instance.
    *
@@ -114,7 +116,6 @@ class Suffix
   {
     return entryContainer.getID2Entry();
   }
-
 
   /**
    * Returns the DN2URI instance pertaining to a suffix instance.
@@ -126,7 +127,6 @@ class Suffix
     return entryContainer.getDN2URI();
   }
 
-
   /**
    * Returns the entry container pertaining to a suffix instance.
    *
@@ -136,7 +136,6 @@ class Suffix
   {
     return entryContainer;
   }
-
 
   /**
    * Return the Attribute Type - Index map used to map an attribute type to an
@@ -148,7 +147,6 @@ class Suffix
   {
     return entryContainer.getAttributeIndexMap();
   }
-
 
   /**
    * Make sure the specified parent DN is not in the pending map.
@@ -164,7 +162,6 @@ class Suffix
     }
   }
 
-
   /**
    * Add specified DN to the pending map.
    *
@@ -174,7 +171,6 @@ class Suffix
   {
     pendingMap.putIfAbsent(dn, new CountDownLatch(1));
   }
-
 
   /**
    * Remove the specified DN from the pending map, it may not exist if the
@@ -190,7 +186,6 @@ class Suffix
       l.countDown();
     }
   }
-
 
   /**
    * Return {@code true} if the specified dn is contained in the parent set, or
@@ -241,7 +236,6 @@ class Suffix
     }
     return parentThere;
   }
-
 
   /**
    * Sets the trusted status of all of the indexes and vlvIndexes.
