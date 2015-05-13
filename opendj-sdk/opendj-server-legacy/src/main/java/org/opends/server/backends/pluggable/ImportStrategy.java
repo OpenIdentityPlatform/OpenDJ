@@ -26,6 +26,7 @@ package org.opends.server.backends.pluggable;
 
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 
@@ -36,14 +37,18 @@ interface ImportStrategy
    * Imports information from an LDIF file into the supplied root container.
    *
    * @param importConfig
-   *          The configuration to use when performing the import.
+   *          The configuration to use when performing the import
+   * @param rootContainer
+   *          The root container where to do the import
    * @param serverContext
    *          The server context
-   * @return Information about the result of the import processing.
+   * @return Information about the result of the import processing
    * @throws DirectoryException
-   *           If a problem occurs while performing the LDIF import.
+   *           If a problem occurs while performing the LDIF import
+   * @throws InitializationException
+   *           If a problem occurs while initializing the LDIF import
    * @see {@link Backend#importLDIF(LDIFImportConfig, ServerContext)}
    */
   LDIFImportResult importLDIF(LDIFImportConfig importConfig, RootContainer rootContainer, ServerContext serverContext)
-      throws DirectoryException;
+      throws DirectoryException, InitializationException;
 }

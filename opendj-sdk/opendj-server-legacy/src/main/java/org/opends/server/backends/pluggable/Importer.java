@@ -144,18 +144,18 @@ final class Importer
 
     @Override
     public LDIFImportResult importLDIF(LDIFImportConfig importConfig, RootContainer rootContainer,
-        ServerContext serverContext) throws DirectoryException
+        ServerContext serverContext) throws DirectoryException, InitializationException
     {
       try
       {
         return new Importer(rootContainer, importConfig, backendCfg, serverContext).processImport();
       }
-      catch (DirectoryException e)
+      catch (DirectoryException | InitializationException e)
       {
         logger.traceException(e);
         throw e;
       }
-      catch (InitializationException | ConfigException e)
+      catch (ConfigException e)
       {
         logger.traceException(e);
         throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
@@ -640,8 +640,7 @@ final class Importer
     }
   }
 
-  private void initializeSuffixes(WriteableTransaction txn) throws StorageRuntimeException,
-      ConfigException
+  private void initializeSuffixes(WriteableTransaction txn) throws ConfigException, DirectoryException
   {
     for (EntryContainer ec : rootContainer.getEntryContainers())
     {
@@ -683,7 +682,7 @@ final class Importer
   }
 
   private Suffix getSuffix(WriteableTransaction txn, EntryContainer entryContainer)
-      throws ConfigException
+      throws ConfigException, DirectoryException
   {
     DN baseDN = entryContainer.getBaseDN();
     EntryContainer sourceEntryContainer = null;
@@ -754,32 +753,21 @@ final class Importer
             && includeBranches.get(0).equals(baseDN))
         {
           // This entire base DN is explicitly included in the import with
-          // no exclude branches that we need to migrate. Just clear the entry
-          // container.
+          // no exclude branches that we need to migrate.
+          // Just clear the entry container.
           clearSuffix(entryContainer);
         }
         else
         {
-          // Create a temp entry container
           sourceEntryContainer = entryContainer;
-          entryContainer = createEntryContainer(txn, baseDN);
+
+          // Create a temp entry container
+          DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+          entryContainer = rootContainer.openEntryContainer(tempDN, txn);
         }
       }
     }
     return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
-  }
-
-  private EntryContainer createEntryContainer(WriteableTransaction txn, DN baseDN) throws ConfigException
-  {
-    try
-    {
-      DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
-      return rootContainer.openEntryContainer(tempDN, txn);
-    }
-    catch (DirectoryException e)
-    {
-      throw new ConfigException(e.getMessageObject());
-    }
   }
 
   private static void clearSuffix(EntryContainer entryContainer)
