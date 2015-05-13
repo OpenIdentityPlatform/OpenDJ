@@ -47,11 +47,42 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
-/**
- * This class specializes the LDIFReader for imports.
- */
+/** This class specializes the LDIFReader for imports. */
 final class ImportLDIFReader extends LDIFReader
 {
+  /**
+   * A class holding the entry, its entryID as assigned by the LDIF reader and its suffix as
+   * determined by the LDIF reader.
+   */
+  static final class EntryInformation
+  {
+    private final Entry entry;
+    private final EntryID entryID;
+    private final Suffix suffix;
+
+    private EntryInformation(Entry entry, EntryID entryID, Suffix suffix)
+    {
+      this.entry = entry;
+      this.entryID = entryID;
+      this.suffix = suffix;
+    }
+
+    Entry getEntry()
+    {
+      return entry;
+    }
+
+    EntryID getEntryID()
+    {
+      return entryID;
+    }
+
+    Suffix getSuffix()
+    {
+      return suffix;
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final RootContainer rootContainer;
@@ -76,19 +107,16 @@ final class ImportLDIFReader extends LDIFReader
   /**
    * Reads the next entry from the LDIF source.
    *
-   * @return The next entry read from the LDIF source, or <CODE>null</CODE> if the end of the LDIF
+   * @return The next entry information read from the LDIF source, or <CODE>null</CODE> if the end of the LDIF
    *         data is reached.
    * @param suffixesMap
    *          A map of suffixes instances.
-   * @param entryInfo
-   *          A object to hold information about the entry ID and what suffix was selected.
    * @throws IOException
    *           If an I/O problem occurs while reading from the file.
    * @throws LDIFException
    *           If the information read cannot be parsed as an LDIF entry.
    */
-  public final Entry readEntry(Map<DN, Suffix> suffixesMap, Importer.EntryInformation entryInfo) throws IOException,
-      LDIFException
+  public final EntryInformation readEntry(Map<DN, Suffix> suffixesMap) throws IOException, LDIFException
   {
     final boolean checkSchema = importConfig.validateSchema();
     while (true)
@@ -106,7 +134,7 @@ final class ImportLDIFReader extends LDIFReader
           return null;
         }
         lastEntryBodyLines = lines;
-        lastEntryHeaderLines = new LinkedList<StringBuilder>();
+        lastEntryHeaderLines = new LinkedList<>();
 
         // Read the DN of the entry and see if it is one that should be included
         // in the import.
@@ -158,21 +186,16 @@ final class ImportLDIFReader extends LDIFReader
       {
         continue;
       }
-      entryInfo.setEntryID(entryID);
-      entryInfo.setSuffix(suffix);
-      // The entry should be included in the import, so return it.
-      return entry;
+      return new EntryInformation(entry, entryID, suffix);
     }
   }
 
   private Entry createEntry(List<StringBuilder> lines, DN entryDN, boolean checkSchema, Suffix suffix)
   {
     // Read the set of attributes from the entry.
-    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
-    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders =
-        new HashMap<AttributeType, List<AttributeBuilder>>();
-    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
-        new HashMap<AttributeType, List<AttributeBuilder>>();
+    Map<ObjectClass, String> objectClasses = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders = new HashMap<>();
     try
     {
       for (StringBuilder line : lines)
@@ -236,13 +259,13 @@ final class ImportLDIFReader extends LDIFReader
         final DN entryDN = entry.getName();
         LocalizableMessage m;
         LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
-        if (rejectMessage == null)
+        if (rejectMessage != null)
         {
-          m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
+          m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
         }
         else
         {
-          m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
+          m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
         }
 
         logToRejectWriter(lines, m);
