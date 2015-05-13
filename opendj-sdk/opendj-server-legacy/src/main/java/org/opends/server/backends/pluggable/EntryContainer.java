@@ -1790,18 +1790,6 @@ public class EntryContainer
     // Remove the children counter for this entry.
     id2childrenCount.deleteCount(txn, leafID);
 
-    // Iterate up through the superior entries from the target entry.
-    final DN parentDN = getParentWithinBase(targetDN);
-    if (parentDN != null)
-    {
-      final EntryID parentID = dn2id.get(txn, parentDN);
-      if (parentID == null)
-      {
-        throw new StorageRuntimeException(ERR_MISSING_DN2ID_RECORD.get(parentDN).toString());
-      }
-      id2childrenCount.addDelta(txn, parentID, -1);
-    }
-
     // Remove the entry from the entry cache.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
