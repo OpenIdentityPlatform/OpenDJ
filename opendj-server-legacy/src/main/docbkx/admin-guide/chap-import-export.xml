@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -161,7 +160,14 @@ LDIF processing complete.  10003 entries written</computeroutput>
    <para>The most efficient method of importing LDIF data is to take the
    OpenDJ server offline. Alternatively, you can schedule a task to import
    the data while the server is online.</para>
-   
+
+   <note>
+    <para>
+     Importing from LDIF overwrites all data in the target backend
+     with entries from the LDIF data.
+    </para>
+   </note>
+
    <step performance="optional">
     <para>If you do not want to use the default <literal>userRoot</literal>
     backend, create a new backend for your data.</para>
@@ -210,6 +216,27 @@ $ <userinput>import-ldif \
     </step>
    </stepalternatives>
   </step>
+
+   <step>
+    <para>
+     If the server is replicated with other servers,
+     initialize replication again after the successful import.
+    </para>
+
+    <para>
+     For details see the section on
+     <link
+      xlink:href="admin-guide#init-repl"
+      xlink:role="http://docbook.org/xlink/role/olink"
+      xlink:show="new"
+     ><citetitle>Initializing Replicas</citetitle></link>.
+    </para>
+
+    <para>
+     In the same way that import overwrites existing data with LDIF data,
+     initializing replication overwrites data in the remote servers.
+    </para>
+   </step>
  </procedure>
 
  <procedure xml:id="export-ldif">
