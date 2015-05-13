@@ -53,12 +53,9 @@ import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 
@@ -118,17 +115,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   Storage getStorage()
   {
     return storage;
-  }
-
-  LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext) throws DirectoryException
-  {
-    return getImportStrategy().importLDIF(importConfig, this, serverContext);
-  }
-
-  private ImportStrategy getImportStrategy() throws DirectoryException
-  {
-    //TODO JNR may call new SuccessiveAddsImportStrategy() depending on configured import strategy
-    return new Importer.StrategyImpl(config);
   }
 
   /**

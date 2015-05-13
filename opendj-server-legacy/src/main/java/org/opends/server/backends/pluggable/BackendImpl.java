@@ -56,6 +56,7 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 
 /**
@@ -350,16 +351,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
     checkNotNull(baseDN, "baseDN must not be null");
-    final EntryContainer ec;
 
-    try {
-      ec = accessBegin(null, baseDN);
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
-
+    final EntryContainer ec = accessBegin(null, baseDN);
     ec.sharedLock.lock();
     try
     {
@@ -367,8 +360,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (Exception e)
     {
-      throw new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
     }
     finally
     {
@@ -587,7 +579,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     if (rootContainer == null)
     {
       LocalizableMessage msg = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+      throw new DirectoryException(getServerErrorResultCode(), msg);
     }
   }
 
@@ -599,7 +591,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = mustOpenRootContainer();
-    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     try
     {
       if (openRootContainer)
@@ -612,23 +603,15 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (IOException ioe)
     {
-      throw new DirectoryException(errorRC, ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
+      throw new DirectoryException(getServerErrorResultCode(), ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (StorageRuntimeException de)
     {
       throw createDirectoryException(de);
     }
-    catch (ConfigException ce)
+    catch (ConfigException | InitializationException | LDIFException e)
     {
-      throw new DirectoryException(errorRC, ce.getMessageObject(), ce);
-    }
-    catch (IdentifiedException e)
-    {
-      if (e instanceof DirectoryException)
-      {
-        throw (DirectoryException) e;
-      }
-      throw new DirectoryException(errorRC, e.getMessageObject(), e);
+      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
     }
     finally
     {
@@ -671,21 +654,17 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
 
       rootContainer = initializeRootContainer();
-      return rootContainer.importLDIF(importConfig, serverContext);
+      return getImportStrategy().importLDIF(importConfig, rootContainer, serverContext);
     }
     catch (StorageRuntimeException e)
     {
-      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+      throw createDirectoryException(e);
     }
     catch (DirectoryException e)
     {
       throw e;
     }
-    catch (OpenDsException e)
-    {
-      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
-    }
-    catch (ConfigException e)
+    catch (OpenDsException | ConfigException e)
     {
       throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
     }
@@ -710,6 +689,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         logger.traceException(de);
       }
     }
+  }
+
+  private ImportStrategy getImportStrategy() throws DirectoryException
+  {
+    // TODO JNR may call new SuccessiveAddsImportStrategy() depending on configured import strategy
+    return new Importer.StrategyImpl(cfg);
   }
 
   /** {@inheritDoc} */
@@ -771,10 +756,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
      * If the rootContainer is open, the backend is initialized by something else.
      * We can't do any rebuild of system indexes while others are using this backend.
      */
-    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if (!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      throw new DirectoryException(errorRC, ERR_REBUILD_BACKEND_ONLINE.get());
+      throw new DirectoryException(getServerErrorResultCode(), ERR_REBUILD_BACKEND_ONLINE.get());
     }
 
     try
@@ -787,23 +771,23 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (ExecutionException execEx)
     {
-      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()), execEx);
+      throw new DirectoryException(getServerErrorResultCode(), ERR_EXECUTION_ERROR.get(execEx.getMessage()), execEx);
     }
     catch (InterruptedException intEx)
     {
-      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()), intEx);
+      throw new DirectoryException(getServerErrorResultCode(), ERR_INTERRUPTED_ERROR.get(intEx.getMessage()), intEx);
     }
     catch (ConfigException ce)
     {
-      throw new DirectoryException(errorRC, ce.getMessageObject(), ce);
+      throw new DirectoryException(getServerErrorResultCode(), ce.getMessageObject(), ce);
     }
     catch (StorageRuntimeException e)
     {
-      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()), e);
+      throw createDirectoryException(e);
     }
     catch (InitializationException e)
     {
-      throw new InitializationException(e.getMessageObject(), e);
+      throw e;
     }
     finally
     {
@@ -896,7 +880,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (Exception e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     return ccr;
@@ -934,7 +918,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         {
           logger.traceException(e);
 
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(getServerErrorResultCode());
           ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
           return false;
         }
@@ -985,14 +969,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     Throwable cause = e.getCause();
     if (cause instanceof OpenDsException)
     {
-      return new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(), (OpenDsException) cause);
+      return new DirectoryException(getServerErrorResultCode(), (OpenDsException) cause);
     }
     else
     {
-      return new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(),
-          LocalizableMessage.raw(e.getMessage()), e);
+      return new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
     }
   }
 
