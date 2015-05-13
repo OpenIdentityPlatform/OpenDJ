@@ -663,22 +663,19 @@ final class Importer
     {
       for (Index index : attributeIndex.getNameToIndexes().values())
       {
-        putInIdContainerMap(index);
+        putInIndexIDToIndexMap(index);
       }
     }
   }
 
-  private void putInIdContainerMap(Index index)
+  private void putInIndexIDToIndexMap(Index index)
   {
-    if (index != null)
-    {
-      indexIDToIndexMap.putIfAbsent(getIndexID(index), index);
-    }
+    indexIDToIndexMap.putIfAbsent(getIndexID(index), index);
   }
 
-  private static int getIndexID(Tree index)
+  private static int getIndexID(Tree tree)
   {
-    return System.identityHashCode(index);
+    return System.identityHashCode(tree);
   }
 
   private Suffix getSuffix(WriteableTransaction txn, EntryContainer entryContainer)
@@ -1657,8 +1654,8 @@ final class Importer
       getAll(futures);
     }
 
-    int processKey(Tree container, ByteString key, EntryID entryID,
-        IndexKey indexKey, boolean insert) throws InterruptedException
+    int processKey(Tree tree, ByteString key, EntryID entryID, IndexKey indexKey, boolean insert)
+        throws InterruptedException
     {
       int sizeNeeded = IndexOutputBuffer.getRequiredSize(key.length(), entryID.longValue());
       IndexOutputBuffer indexBuffer = indexBufferMap.get(indexKey);
@@ -1675,7 +1672,7 @@ final class Importer
         indexBuffer = getNewIndexBuffer(sizeNeeded, indexKey);
         indexBufferMap.put(indexKey, indexBuffer);
       }
-      int indexID = getIndexID(container);
+      int indexID = getIndexID(tree);
       indexBuffer.add(key, entryID, indexID, insert);
       return indexID;
     }
@@ -2678,25 +2675,22 @@ final class Importer
   /** The rebuild index manager handles all rebuild index related processing. */
   private class RebuildIndexManager extends ImportTask
   {
-
     /** Rebuild index configuration. */
     private final RebuildConfig rebuildConfig;
     /** Backend configuration. */
     private final PluggableBackendCfg cfg;
 
-    /** Map of index keys to indexes. */
+    /** Map of index keys to indexes to rebuild. */
     private final Map<IndexKey, MatchingRuleIndex> indexMap = new LinkedHashMap<>();
-    /** List of VLV indexes. */
+    /** List of VLV indexes to rebuild. */
     private final List<VLVIndex> vlvIndexes = new LinkedList<>();
+    private boolean reBuildDn2id;
+    private boolean rebuildDn2uri;
 
     /** The suffix instance. */
     private Suffix suffix;
     /** The entry container. */
     private EntryContainer entryContainer;
-    /** The DN2ID index. */
-    private DN2ID dn2id;
-    /** The DN2URI index. */
-    private DN2URI dn2uri;
 
     /** Total entries to be processed. */
     private long totalEntries;
@@ -2818,7 +2812,6 @@ final class Importer
       setRebuildListIndexesTrusted(txn, true);
     }
 
-    @SuppressWarnings("fallthrough")
     private void setIndexesListsToBeRebuilt(WriteableTransaction txn) throws StorageRuntimeException
     {
       // Depends on rebuild mode, (re)building indexes' lists.
@@ -2826,23 +2819,15 @@ final class Importer
       switch (mode)
       {
       case ALL:
+        reBuildDn2id = true;
+        rebuildDn2uri = true;
         rebuildIndexMap(txn, false);
-        // falls through
+        vlvIndexes.addAll(entryContainer.getVLVIndexes());
+        break;
+
       case DEGRADED:
-        if (mode == RebuildMode.ALL)
-        {
-          dn2id = entryContainer.getDN2ID();
-        }
-        if (mode == RebuildMode.ALL || entryContainer.getDN2URI() == null)
-        {
-          dn2uri = entryContainer.getDN2URI();
-        }
-        if (mode == RebuildMode.DEGRADED
-            || entryContainer.getAttributeIndexes().isEmpty())
-        {
-          rebuildIndexMap(txn, true); // only degraded.
-        }
-        if (mode == RebuildMode.ALL || vlvIndexes.isEmpty())
+        rebuildIndexMap(txn, true);
+        if (vlvIndexes.isEmpty())
         {
           vlvIndexes.addAll(entryContainer.getVLVIndexes());
         }
@@ -2852,6 +2837,7 @@ final class Importer
         // false may be required if the user wants to rebuild specific index.
         rebuildIndexMap(txn, false);
         break;
+
       default:
         break;
       }
@@ -2859,29 +2845,40 @@ final class Importer
 
     private void rebuildIndexMap(WriteableTransaction txn, boolean onlyDegraded)
     {
-      // rebuildList contains the user-selected index(in USER_DEFINED mode).
-      final List<String> rebuildList = rebuildConfig.getRebuildList();
+      final RebuildMode rebuildMode = rebuildConfig.getRebuildMode();
       for (final Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
         final AttributeType attributeType = mapEntry.getKey();
         final AttributeIndex attributeIndex = mapEntry.getValue();
-        if (rebuildConfig.getRebuildMode() == RebuildMode.ALL
-            || rebuildConfig.getRebuildMode() == RebuildMode.DEGRADED)
+        if (mustRebuild(attributeType, rebuildMode))
         {
-          // Get all existing indexes for all && degraded mode.
           rebuildAttributeIndexes(txn, attributeIndex, attributeType, onlyDegraded);
         }
-        else if (!rebuildList.isEmpty())
+      }
+    }
+
+    private boolean mustRebuild(final AttributeType attrType, RebuildMode rebuildMode)
+    {
+      switch (rebuildMode)
+      {
+      case ALL:
+      case DEGRADED:
+        // Get all existing indexes
+        return true;
+
+      case USER_DEFINED:
+        // Get the user selected indexes
+        for (final String index : rebuildConfig.getRebuildList())
         {
-          // Get indexes for user defined index.
-          for (final String index : rebuildList)
+          if (attrType.getNameOrOID().toLowerCase().equals(index.toLowerCase()))
           {
-            if (attributeType.getNameOrOID().toLowerCase().equals(index.toLowerCase()))
-            {
-              rebuildAttributeIndexes(txn, attributeIndex, attributeType, onlyDegraded);
-            }
+            return true;
           }
         }
+        return false;
+
+      default:
+        return false;
       }
     }
 
@@ -2890,46 +2887,41 @@ final class Importer
     {
       for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
-        fillIndexMap(txn, attrType, mapEntry.getValue(), mapEntry.getKey(), onlyDegraded);
-      }
-    }
+        MatchingRuleIndex index = mapEntry.getValue();
 
-    private void fillIndexMap(WriteableTransaction txn, AttributeType attrType, MatchingRuleIndex index,
-        String importIndexID, boolean onlyDegraded)
-    {
-      if ((!onlyDegraded || !index.isTrusted())
-          && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
-      {
-        putInIdContainerMap(index);
+        if ((!onlyDegraded || !index.isTrusted())
+            && (!rebuildConfig.isClearDegradedState() || index.getRecordCount(txn) == 0))
+        {
+          putInIndexIDToIndexMap(index);
 
-        final IndexKey key = new IndexKey(attrType, importIndexID, index.getIndexEntryLimit());
-        indexMap.put(key, index);
+          final IndexKey key = new IndexKey(attrType, mapEntry.getKey(), index.getIndexEntryLimit());
+          indexMap.put(key, index);
+        }
       }
     }
 
     private void clearIndexesToBeRebuilt(WriteableTransaction txn) throws StorageRuntimeException
     {
-      if (dn2uri != null)
+      if (rebuildDn2uri)
       {
         entryContainer.clearTree(txn, entryContainer.getDN2URI());
       }
 
-      if (dn2id != null)
+      if (reBuildDn2id)
       {
         entryContainer.clearTree(txn, entryContainer.getDN2ID());
         entryContainer.clearTree(txn, entryContainer.getID2ChildrenCount());
       }
 
-      for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
+      for (final Index index : indexMap.values())
       {
-        final Index index = mapEntry.getValue();
         if (!index.isTrusted())
         {
           entryContainer.clearTree(txn, index);
         }
       }
 
-      for (final VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+      for (final VLVIndex vlvIndex : vlvIndexes)
       {
         if (!vlvIndex.isTrusted())
         {
@@ -2942,7 +2934,10 @@ final class Importer
     {
       try
       {
-        setTrusted(txn, indexMap.values(), trusted);
+        for (Index index : indexMap.values())
+        {
+          index.setTrusted(txn, trusted);
+        }
         for (VLVIndex vlvIndex : vlvIndexes)
         {
           vlvIndex.setTrusted(txn, trusted);
@@ -2951,17 +2946,6 @@ final class Importer
       catch (StorageRuntimeException ex)
       {
         throw new StorageRuntimeException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
-      }
-    }
-
-    private void setTrusted(WriteableTransaction txn, final Collection<MatchingRuleIndex> indexes, boolean trusted)
-    {
-      if (indexes != null && !indexes.isEmpty())
-      {
-        for (Index index : indexes)
-        {
-          index.setTrusted(txn, trusted);
-        }
       }
     }
 
@@ -3186,11 +3170,11 @@ final class Importer
     private void processEntry(WriteableTransaction txn, Entry entry, EntryID entryID)
         throws DirectoryException, StorageRuntimeException, InterruptedException
     {
-      if (dn2id != null)
+      if (reBuildDn2id)
       {
         processDN2ID(suffix, entry.getName(), entryID);
       }
-      if (dn2uri != null)
+      if (rebuildDn2uri)
       {
         processDN2URI(txn, suffix, null, entry);
       }
@@ -3214,14 +3198,14 @@ final class Importer
     {
       for (Map.Entry<IndexKey, MatchingRuleIndex> mapEntry : indexMap.entrySet())
       {
-        IndexKey key = mapEntry.getKey();
-        AttributeType attrType = key.getAttributeType();
+        IndexKey indexKey = mapEntry.getKey();
+        AttributeType attrType = indexKey.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
           AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
           IndexingOptions options = attributeIndex.getIndexingOptions();
           MatchingRuleIndex index = mapEntry.getValue();
-          processAttribute(index, entry, entryID, options, key);
+          processAttribute(index, entry, entryID, options, indexKey);
         }
       }
     }
@@ -3441,9 +3425,8 @@ final class Importer
    * elements into a single queue and/or maps based on both attribute type and index ID (ie.,
    * cn.equality, sn.equality,...).
    */
-  public static class IndexKey
+  static class IndexKey
   {
-
     private final AttributeType attributeType;
     private final String indexID;
     private final int entryLimit;
