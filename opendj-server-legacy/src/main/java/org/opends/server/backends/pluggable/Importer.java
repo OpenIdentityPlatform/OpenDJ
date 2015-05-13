@@ -103,6 +103,7 @@ import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
+import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -198,6 +199,15 @@ final class Importer
 
   /** The DN attribute type. */
   private static final AttributeType DN_TYPE;
+  static
+  {
+    AttributeType attrType = DirectoryServer.getAttributeType("dn");
+    if (attrType == null)
+    {
+      attrType = DirectoryServer.getDefaultAttributeType("dn");
+    }
+    DN_TYPE = attrType;
+  }
 
   /** Root container. */
   private final RootContainer rootContainer;
@@ -267,7 +277,12 @@ final class Importer
 
   /** Map of DNs to Suffix objects. */
   private final Map<DN, Suffix> dnSuffixMap = new LinkedHashMap<>();
-  /** Map of indexIDs to indexes. */
+  /**
+   * Map of indexIDs to indexes.
+   * <p>
+   * Mainly used to support multiple suffixes. Each index in each suffix gets a unique ID to
+   * identify which tree it needs to go to in phase two processing.
+   */
   private final ConcurrentHashMap<Integer, Index> indexIDToIndexMap = new ConcurrentHashMap<>();
   /** Map of indexIDs to entry containers. */
   private final ConcurrentHashMap<Integer, EntryContainer> indexIDToECMap = new ConcurrentHashMap<>();
@@ -286,16 +301,6 @@ final class Importer
 
   /** Number of phase one buffers. */
   private int phaseOneBufferCount;
-
-  static
-  {
-    AttributeType attrType = DirectoryServer.getAttributeType("dn");
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType("dn");
-    }
-    DN_TYPE = attrType;
-  }
 
   /**
    * Create a new import job with the specified rebuild index config.
@@ -403,7 +408,7 @@ final class Importer
    * @param backendCfg
    *          the backend configuration object
    * @return true if the backend must be cleared, false otherwise
-   * @see Importer#getSuffix(WriteableTransaction, EntryContainer) for per-suffix cleanups.
+   * @see Importer#prepareSuffix(WriteableTransaction, EntryContainer) for per-suffix cleanups.
    */
   static boolean mustClearBackend(LDIFImportConfig importCfg, PluggableBackendCfg backendCfg)
   {
@@ -648,16 +653,12 @@ final class Importer
       if (suffix != null)
       {
         dnSuffixMap.put(ec.getBaseDN(), suffix);
-        generateIndexID(suffix);
+        generateIndexIDs(suffix);
       }
     }
   }
 
-  /**
-   * Mainly used to support multiple suffixes. Each index in each suffix gets an
-   * unique ID to identify which DB it needs to go to in phase two processing.
-   */
-  private void generateIndexID(Suffix suffix)
+  private void generateIndexIDs(Suffix suffix)
   {
     for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
     {
@@ -1359,31 +1360,22 @@ final class Importer
 
     private final Set<ByteString> insertKeySet = new HashSet<>();
     private final Set<ByteString> deleteKeySet = new HashSet<>();
-    private final EntryInformation entryInfo = new EntryInformation();
     private Entry oldEntry;
-    private EntryID entryID;
 
     @Override
     void call0(WriteableTransaction txn) throws Exception
     {
       try
       {
-        while (true)
+        EntryInformation entryInfo;
+        while ((entryInfo = reader.readEntry(dnSuffixMap)) != null)
         {
           if (importCfg.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
           }
-          oldEntry = null;
-          Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
-          if (entry == null)
-          {
-            break;
-          }
-          entryID = entryInfo.getEntryID();
-          Suffix suffix = entryInfo.getSuffix();
-          processEntry(txn, entry, suffix);
+          processEntry(txn, entryInfo.getEntry(), entryInfo.getEntryID(), entryInfo.getSuffix());
         }
         flushIndexBuffers();
       }
@@ -1395,17 +1387,14 @@ final class Importer
       }
     }
 
-    void processEntry(WriteableTransaction txn, Entry entry, Suffix suffix)
+    @Override
+    void processEntry(WriteableTransaction txn, Entry entry, EntryID entryID, Suffix suffix)
         throws DirectoryException, StorageRuntimeException, InterruptedException
     {
       DN entryDN = entry.getName();
 
       EntryID oldID = suffix.getDN2ID().get(txn, entryDN);
-      if (oldID != null)
-      {
-        oldEntry = suffix.getID2Entry().get(txn, oldID);
-      }
-
+      oldEntry = oldID != null ? suffix.getID2Entry().get(txn, oldID) : null;
       if (oldEntry == null)
       {
         if (validateDNs && !dnSanityCheck(txn, entry, suffix))
@@ -1477,7 +1466,6 @@ final class Importer
     private final Storage storage;
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<>();
     private final Set<ByteString> insertKeySet = new HashSet<>();
-    private final EntryInformation entryInfo = new EntryInformation();
     private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID_INDEX_NAME, 1);
 
     public ImportTask(final Storage storage)
@@ -1504,21 +1492,15 @@ final class Importer
     {
       try
       {
-        while (true)
+        EntryInformation entryInfo;
+        while ((entryInfo = reader.readEntry(dnSuffixMap)) != null)
         {
           if (importCfg.isCancelled() || isCanceled)
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
           }
-          Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
-          if (entry == null)
-          {
-            break;
-          }
-          EntryID entryID = entryInfo.getEntryID();
-          Suffix suffix = entryInfo.getSuffix();
-          processEntry(txn, entry, entryID, suffix);
+          processEntry(txn, entryInfo.getEntry(), entryInfo.getEntryID(), entryInfo.getSuffix());
         }
         flushIndexBuffers();
       }
@@ -2829,21 +2811,20 @@ final class Importer
 
     private void rebuildIndexMap(WriteableTransaction txn, boolean onlyDegraded)
     {
-      final RebuildMode rebuildMode = rebuildConfig.getRebuildMode();
       for (final Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
         final AttributeType attributeType = mapEntry.getKey();
         final AttributeIndex attributeIndex = mapEntry.getValue();
-        if (mustRebuild(attributeType, rebuildMode))
+        if (mustRebuild(attributeType))
         {
           rebuildAttributeIndexes(txn, attributeIndex, attributeType, onlyDegraded);
         }
       }
     }
 
-    private boolean mustRebuild(final AttributeType attrType, RebuildMode rebuildMode)
+    private boolean mustRebuild(final AttributeType attrType)
     {
-      switch (rebuildMode)
+      switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
       case DEGRADED:
@@ -3348,59 +3329,6 @@ final class Importer
       {
         indexMgr.printStats(deltaTime);
       }
-    }
-  }
-
-  /**
-   * A class to hold information about the entry determined by the LDIF reader.
-   * Mainly the suffix the entry belongs under and the ID assigned to it by the
-   * reader.
-   */
-  public class EntryInformation
-  {
-    private EntryID entryID;
-    private Suffix suffix;
-
-    /**
-     * Return the suffix associated with the entry.
-     *
-     * @return Entry's suffix instance;
-     */
-    private Suffix getSuffix()
-    {
-      return suffix;
-    }
-
-    /**
-     * Set the suffix instance associated with the entry.
-     *
-     * @param suffix
-     *          The suffix associated with the entry.
-     */
-    public void setSuffix(Suffix suffix)
-    {
-      this.suffix = suffix;
-    }
-
-    /**
-     * Set the entry's ID.
-     *
-     * @param entryID
-     *          The entry ID to set the entry ID to.
-     */
-    public void setEntryID(EntryID entryID)
-    {
-      this.entryID = entryID;
-    }
-
-    /**
-     * Return the entry ID associated with the entry.
-     *
-     * @return The entry ID associated with the entry.
-     */
-    private EntryID getEntryID()
-    {
-      return entryID;
     }
   }
 
