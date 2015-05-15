@@ -28,8 +28,6 @@ package org.opends.server.types;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,291 +36,284 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.forgerock.opendj.config.server.ConfigException;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a data structure for holding information about a
- * filesystem directory that contains data for one or more backups
- * associated with a backend.  Only backups for a single backend may
- * be placed in any given directory.
+ * filesystem directory that contains data for one or more backups associated
+ * with a backend. Only backups for a single backend may be placed in any given
+ * directory.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=true,
-     mayExtend=false,
-     mayInvoke=true)
+    stability = org.opends.server.types.StabilityLevel.VOLATILE,
+    mayInstantiate = true,
+    mayExtend = false,
+    mayInvoke = true)
 public final class BackupDirectory
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
 
   /**
    * The name of the property that will be used to provide the DN of
    * the configuration entry for the backend associated with the
    * backups in this directory.
    */
-  public static final String PROPERTY_BACKEND_CONFIG_DN =
-       "backend_dn";
-
-
+  public static final String PROPERTY_BACKEND_CONFIG_DN = "backend_dn";
 
   /**
    * The DN of the configuration entry for the backend with which this
    * backup directory is associated.
    */
-  private DN configEntryDN;
+  private final DN configEntryDN;
 
   /**
    * The set of backups in the specified directory.  The iteration
    * order will be the order in which the backups were created.
    */
-  private LinkedHashMap<String,BackupInfo> backups;
+  private final Map<String, BackupInfo> backups;
 
   /** The filesystem path to the backup directory. */
-  private String path;
-
-
+  private final String path;
 
   /**
-   * Creates a new backup directory object with the provided
-   * information.
+   * Creates a new backup directory object with the provided information.
    *
-   * @param  path           The path to the directory containing the
-   *                        backup file(s).
-   * @param  configEntryDN  The DN of the configuration entry for the
-   *                        backend with which this backup directory
-   *                        is associated.
+   * @param path
+   *          The path to the directory containing the backup file(s).
+   * @param configEntryDN
+   *          The DN of the configuration entry for the backend with which this
+   *          backup directory is associated.
    */
   public BackupDirectory(String path, DN configEntryDN)
   {
-    this.path          = path;
-    this.configEntryDN = configEntryDN;
-
-    backups = new LinkedHashMap<String,BackupInfo>();
+    this(path, configEntryDN, null);
   }
 
-
-
   /**
-   * Creates a new backup directory object with the provided
-   * information.
+   * Creates a new backup directory object with the provided information.
    *
-   * @param  path           The path to the directory containing the
-   *                        backup file(s).
-   * @param  configEntryDN  The DN of the configuration entry for the
-   *                        backend with which this backup directory
-   *                        is associated.
-   * @param  backups        Information about the set of backups
-   *                        available within the specified directory.
+   * @param path
+   *          The path to the directory containing the backup file(s).
+   * @param configEntryDN
+   *          The DN of the configuration entry for the backend with which this
+   *          backup directory is associated.
+   * @param backups
+   *          Information about the set of backups available within the
+   *          specified directory.
    */
-  public BackupDirectory(String path, DN configEntryDN,
-                         LinkedHashMap<String,BackupInfo> backups)
+  public BackupDirectory(String path, DN configEntryDN, LinkedHashMap<String, BackupInfo> backups)
   {
-    this.path          = path;
+    this.path = path;
     this.configEntryDN = configEntryDN;
 
-    if (backups == null)
-    {
-      this.backups = new LinkedHashMap<String,BackupInfo>();
-    }
-    else
+    if (backups != null)
     {
       this.backups = backups;
     }
+    else
+    {
+      this.backups = new LinkedHashMap<>();
+    }
   }
 
-
-
   /**
-   * Retrieves the path to the directory containing the backup
-   * file(s).
+   * Retrieves the path to the directory containing the backup file(s).
    *
-   * @return  The path to the directory containing the backup file(s).
+   * @return The path to the directory containing the backup file(s).
    */
   public String getPath()
   {
     return path;
   }
 
-
-
   /**
-   * Retrieves the DN of the configuration entry for the backend with
-   * which this backup directory is associated.
+   * Retrieves the DN of the configuration entry for the backend with which this
+   * backup directory is associated.
    *
-   * @return  The DN of the configuration entry for the backend with
-   *          which this backup directory is associated.
+   * @return The DN of the configuration entry for the backend with which this
+   *         backup directory is associated.
    */
   public DN getConfigEntryDN()
   {
     return configEntryDN;
   }
 
-
-
   /**
-   * Retrieves the set of backups in this backup directory, as a
-   * mapping between the backup ID and the associated backup info.
-   * The iteration order for the map will be the order in which the
-   * backups were created.
+   * Retrieves the set of backups in this backup directory, as a mapping between
+   * the backup ID and the associated backup info. The iteration order for the
+   * map will be the order in which the backups were created.
    *
-   * @return  The set of backups in this backup directory.
+   * @return The set of backups in this backup directory.
    */
-  public LinkedHashMap<String,BackupInfo> getBackups()
+  public Map<String, BackupInfo> getBackups()
   {
     return backups;
   }
 
-
-
   /**
-   * Retrieves the backup info structure for the backup with the
-   * specified ID.
+   * Retrieves the backup info structure for the backup with the specified ID.
    *
-   * @param  backupID  The backup ID for the structure to retrieve.
-   *
-   * @return  The requested backup info structure, or
-   *          <CODE>null</CODE> if no such structure exists.
+   * @param backupID
+   *          The backup ID for the structure to retrieve.
+   * @return The requested backup info structure, or <CODE>null</CODE> if no such
+   *         structure exists.
    */
   public BackupInfo getBackupInfo(String backupID)
   {
     return backups.get(backupID);
   }
 
-
-
   /**
-   * Retrieves the most recent backup for this backup directory,
-   * according to the backup date.
+   * Retrieves the most recent backup for this backup directory, according to
+   * the backup date.
    *
-   * @return  The most recent backup for this backup directory,
-   *          according to the backup date, or <CODE>null</CODE> if
-   *          there are no backups in the backup directory.
+   * @return The most recent backup for this backup directory, according to the
+   *         backup date, or <CODE>null</CODE> if there are no backups in the
+   *         backup directory.
    */
   public BackupInfo getLatestBackup()
   {
     BackupInfo latestBackup = null;
     for (BackupInfo backup : backups.values())
     {
-      if (latestBackup == null)
+      if (latestBackup == null
+          || backup.getBackupDate().getTime() > latestBackup.getBackupDate().getTime())
       {
         latestBackup = backup;
-      }
-      else
-      {
-        if (backup.getBackupDate().getTime() >
-            latestBackup.getBackupDate().getTime())
-        {
-          latestBackup = backup;
-        }
       }
     }
 
     return latestBackup;
   }
 
-
-
   /**
-   * Adds information about the provided backup to this backup
-   * directory.
+   * Adds information about the provided backup to this backup directory.
    *
-   * @param  backupInfo  The backup info structure for the backup to
-   *                     be added.
-   *
-   * @throws  ConfigException  If another backup already exists with
-   *                           the same backup ID.
+   * @param backupInfo
+   *          The backup info structure for the backup to be added.
+   * @throws ConfigException
+   *           If another backup already exists with the same backup ID.
    */
-  public void addBackup(BackupInfo backupInfo)
-         throws ConfigException
+  public void addBackup(BackupInfo backupInfo) throws ConfigException
   {
     String backupID = backupInfo.getBackupID();
     if (backups.containsKey(backupID))
     {
-      LocalizableMessage message =
-          ERR_BACKUPDIRECTORY_ADD_DUPLICATE_ID.get(backupID, path);
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_BACKUPDIRECTORY_ADD_DUPLICATE_ID.get(backupID, path));
     }
-
     backups.put(backupID, backupInfo);
   }
 
-
-
   /**
-   * Removes the backup with the specified backup ID from this backup
-   * directory.
+   * Removes the backup with the specified backup ID from this backup directory.
    *
-   * @param  backupID  The backup ID for the backup to remove from
-   *                   this backup directory.
-   *
-   * @throws  ConfigException  If it is not possible to remove the
-   *                           requested backup for some reason (e.g.,
-   *                           no such backup exists, or another
-   *                           backup is dependent on it).
+   * @param backupID
+   *          The backup ID for the backup to remove from this backup directory.
+   * @throws ConfigException
+   *           If it is not possible to remove the requested backup for some
+   *           reason (e.g., no such backup exists, or another backup is
+   *           dependent on it).
    */
-  public void removeBackup(String backupID)
-         throws ConfigException
+  public void removeBackup(String backupID) throws ConfigException
   {
-    if (! backups.containsKey(backupID))
+    if (!backups.containsKey(backupID))
     {
-      LocalizableMessage message =
-          ERR_BACKUPDIRECTORY_NO_SUCH_BACKUP.get(backupID, path);
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_BACKUPDIRECTORY_NO_SUCH_BACKUP.get(backupID, path));
     }
 
     for (BackupInfo backup : backups.values())
     {
       if (backup.dependsOn(backupID))
       {
-        LocalizableMessage message = ERR_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY.
-            get(backupID, path, backup.getBackupID());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY.get(backupID, path, backup.getBackupID()));
       }
     }
 
     backups.remove(backupID);
   }
 
-
-
   /**
-   * Retrieves a path to the backup descriptor file that should be
-   * used for this backup directory.
+   * Retrieves a path to the backup descriptor file that should be used for this
+   * backup directory.
    *
-   * @return  A path to the backup descriptor file that should be used
-   *          for this backup directory.
+   * @return A path to the backup descriptor file that should be used for this
+   *         backup directory.
    */
   public String getDescriptorPath()
   {
     return path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE;
   }
 
-
-
   /**
-   * Writes the descriptor with the information contained in this
-   * structure to disk in the appropriate directory.
+   * Writes the descriptor with the information contained in this structure to
+   * disk in the appropriate directory.
    *
-   * @throws  IOException  If a problem occurs while writing to disk.
+   * @throws IOException
+   *           If a problem occurs while writing to disk.
    */
-  public void writeBackupDirectoryDescriptor()
-         throws IOException
+  public void writeBackupDirectoryDescriptor() throws IOException
   {
-    // First make sure that the target directory exists.  If it
-    // doesn't, then try to create it.
+    // First make sure that the target directory exists.  If it doesn't, then try to create it.
+    createDirectoryIfNotExists();
+
+    // We'll write to a temporary file so that we won't destroy the live copy if a problem occurs.
+    String newDescriptorFilePath = path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE + ".new";
+    File newDescriptorFile = new File(newDescriptorFilePath);
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(newDescriptorFile, false)))
+    {
+      // The first line in the file will only contain the DN of the configuration entry for the associated backend.
+      writer.write(PROPERTY_BACKEND_CONFIG_DN + "=" + configEntryDN);
+      writer.newLine();
+      writer.newLine();
+
+      // Iterate through all of the backups and add them to the file.
+      for (BackupInfo backup : backups.values())
+      {
+        List<String> backupLines = backup.encode();
+        for (String line : backupLines)
+        {
+          writer.write(line);
+          writer.newLine();
+        }
+
+        writer.newLine();
+      }
+
+      // At this point, the file should be complete so flush and close it.
+      writer.flush();
+    }
+
+    // If previous backup descriptor file exists, then rename it.
+    String descriptorFilePath = path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE;
+    File descriptorFile = new File(descriptorFilePath);
+    renameOldBackupDescriptorFile(descriptorFile, descriptorFilePath);
+
+    // Rename the new descriptor file to match the previous one.
+    try
+    {
+      newDescriptorFile.renameTo(descriptorFile);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR.get(
+          newDescriptorFilePath, descriptorFilePath, getExceptionMessage(e));
+      throw new IOException(message.toString());
+    }
+  }
+
+  private void createDirectoryIfNotExists() throws IOException
+  {
     File dir = new File(path);
-    if (! dir.exists())
+    if (!dir.exists())
     {
       try
       {
@@ -331,61 +322,18 @@ public final class BackupDirectory
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.
-            get(path, getExceptionMessage(e));
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.get(path, getExceptionMessage(e));
         throw new IOException(message.toString());
       }
     }
-    else if (! dir.isDirectory())
+    else if (!dir.isDirectory())
     {
-      LocalizableMessage message = ERR_BACKUPDIRECTORY_NOT_DIRECTORY.get(path);
-      throw new IOException(message.toString());
+      throw new IOException(ERR_BACKUPDIRECTORY_NOT_DIRECTORY.get(path).toString());
     }
+  }
 
-
-    // We'll write to a temporary file so that we won't destroy the
-    // live copy if a problem occurs.
-    String newDescriptorFilePath = path + File.separator +
-                                   BACKUP_DIRECTORY_DESCRIPTOR_FILE +
-                                   ".new";
-    File newDescriptorFile = new File(newDescriptorFilePath);
-    BufferedWriter writer =
-         new BufferedWriter(new FileWriter(newDescriptorFile, false));
-
-
-    // The first line in the file will only contain the DN of the
-    // configuration entry for the associated backend.
-    writer.write(PROPERTY_BACKEND_CONFIG_DN + "=" + configEntryDN);
-    writer.newLine();
-    writer.newLine();
-
-
-    // Iterate through all of the backups and add them to the file.
-    for (BackupInfo backup : backups.values())
-    {
-      LinkedList<String> backupLines = backup.encode();
-
-      for (String line : backupLines)
-      {
-        writer.write(line);
-        writer.newLine();
-      }
-
-      writer.newLine();
-    }
-
-
-    // At this point, the file should be complete so flush and close
-    // it.
-    writer.flush();
-    writer.close();
-
-
-    // If previous backup descriptor file exists, then rename it.
-    String descriptorFilePath = path + File.separator +
-                                BACKUP_DIRECTORY_DESCRIPTOR_FILE;
-    File descriptorFile = new File(descriptorFilePath);
+  private void renameOldBackupDescriptorFile(File descriptorFile, String descriptorFilePath) throws IOException
+  {
     if (descriptorFile.exists())
     {
       String savedDescriptorFilePath = descriptorFilePath + ".save";
@@ -399,11 +347,8 @@ public final class BackupDirectory
         catch (Exception e)
         {
           logger.traceException(e);
-
-          LocalizableMessage message =
-              ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.
-                get(savedDescriptorFilePath, getExceptionMessage(e),
-                    newDescriptorFilePath, descriptorFilePath);
+          LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.get(
+              savedDescriptorFilePath, getExceptionMessage(e), descriptorFilePath, descriptorFilePath);
           throw new IOException(message.toString());
         }
       }
@@ -415,162 +360,100 @@ public final class BackupDirectory
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message =
-            ERR_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR.
-              get(descriptorFilePath, savedDescriptorFilePath,
-                  getExceptionMessage(e), newDescriptorFilePath,
-                  descriptorFilePath);
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR.get(descriptorFilePath,
+            savedDescriptorFilePath, getExceptionMessage(e), descriptorFilePath, descriptorFilePath);
         throw new IOException(message.toString());
       }
     }
-
-
-    // Rename the new descriptor file to match the previous one.
-    try
-    {
-      newDescriptorFile.renameTo(descriptorFile);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-        ERR_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR.
-            get(newDescriptorFilePath, descriptorFilePath,
-                getExceptionMessage(e));
-      throw new IOException(message.toString());
-    }
   }
-
-
 
   /**
-   * Reads the backup descriptor file in the specified path and uses
-   * the information it contains to create a new backup directory
-   * structure.
+   * Reads the backup descriptor file in the specified path and uses the
+   * information it contains to create a new backup directory structure.
    *
-   * @param  path  The path to the directory containing the backup
-   *               descriptor file to read.
-   *
-   * @return  The backup directory structure created from the contents
-   *          of the descriptor file.
-   *
-   * @throws  IOException  If a problem occurs while trying to read
-   *                       the contents of the descriptor file.
-   *
-   * @throws  ConfigException  If the contents of the descriptor file
-   *                           cannot be parsed to create a backup
-   *                           directory structure.
+   * @param path
+   *          The path to the directory containing the backup descriptor file to
+   *          read.
+   * @return The backup directory structure created from the contents of the
+   *         descriptor file.
+   * @throws IOException
+   *           If a problem occurs while trying to read the contents of the
+   *           descriptor file.
+   * @throws ConfigException
+   *           If the contents of the descriptor file cannot be parsed to create
+   *           a backup directory structure.
    */
-  public static BackupDirectory
-                     readBackupDirectoryDescriptor(String path)
-         throws IOException, ConfigException
+  public static BackupDirectory readBackupDirectoryDescriptor(String path) throws IOException, ConfigException
   {
     // Make sure that the descriptor file exists.
-    String descriptorFilePath = path + File.separator +
-                                BACKUP_DIRECTORY_DESCRIPTOR_FILE;
-    File descriptorFile = new File(descriptorFilePath);
-    if (! descriptorFile.exists())
+    String descriptorFilePath = path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE;
+    if (!new File(descriptorFilePath).exists())
     {
-      LocalizableMessage message = ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE.get(
-          descriptorFilePath);
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE.get(descriptorFilePath));
     }
 
-
-    // Open the file for reading.  The first line should be the DN of
-    // the associated configuration entry.
-    BufferedReader reader =
-         new BufferedReader(new FileReader(descriptorFile));
-    String line = reader.readLine();
-    if ((line == null) || (line.length() == 0))
+    // Open the file for reading.
+    // The first line should be the DN of the associated configuration entry.
+    try (BufferedReader reader = new BufferedReader(new FileReader(descriptorFilePath)))
     {
-      LocalizableMessage message =
-        ERR_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN.
-            get(descriptorFilePath);
-      throw new ConfigException(message);
-    }
-    else if (! line.startsWith(PROPERTY_BACKEND_CONFIG_DN))
-    {
-      LocalizableMessage message = ERR_BACKUPDIRECTORY_FIRST_LINE_NOT_DN.get(
-          descriptorFilePath, line);
-      throw new ConfigException(message);
-    }
-
-    String dnString =
-         line.substring(PROPERTY_BACKEND_CONFIG_DN.length() + 1);
-    DN configEntryDN;
-    try
-    {
-      configEntryDN = DN.valueOf(dnString);
-    }
-    catch (DirectoryException de)
-    {
-      LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
-          dnString, descriptorFilePath, de.getMessageObject());
-      throw new ConfigException(message, de);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
-          dnString, descriptorFilePath, getExceptionMessage(e));
-      throw new ConfigException(message, e);
-    }
-
-
-    // Create the backup directory structure from what we know so far.
-    BackupDirectory backupDirectory =
-         new BackupDirectory(path, configEntryDN);
-
-
-    // Iterate through the rest of the file and create the backup info
-    // structures.  Blank lines will be considered delimiters.
-    LinkedList<String> lines = new LinkedList<String>();
-    while (true)
-    {
-      line = reader.readLine();
-      if ((line == null) || (line.length() == 0))
+      String line = reader.readLine();
+      if (line == null || line.length() == 0)
       {
-        // It's a blank line or the end of the file.  If we have lines
-        // to process then do so.  Otherwise, move on.
-        if (lines.isEmpty())
+        throw new ConfigException(ERR_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN.get(descriptorFilePath));
+      }
+      else if (!line.startsWith(PROPERTY_BACKEND_CONFIG_DN))
+      {
+        throw new ConfigException(ERR_BACKUPDIRECTORY_FIRST_LINE_NOT_DN.get(descriptorFilePath, line));
+      }
+
+      String dnString = line.substring(PROPERTY_BACKEND_CONFIG_DN.length() + 1);
+      DN configEntryDN;
+      try
+      {
+        configEntryDN = DN.valueOf(dnString);
+      }
+      catch (DirectoryException de)
+      {
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+            dnString, descriptorFilePath, de.getMessageObject());
+        throw new ConfigException(message, de);
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+            dnString, descriptorFilePath, getExceptionMessage(e));
+        throw new ConfigException(message, e);
+      }
+
+      // Create the backup directory structure from what we know so far.
+      BackupDirectory backupDirectory = new BackupDirectory(path, configEntryDN);
+
+      // Iterate through the rest of the file and create the backup info structures.
+      // Blank lines will be considered delimiters.
+      List<String> lines = new LinkedList<>();
+      while ((line = reader.readLine()) != null)
+      {
+        if (!line.isEmpty())
         {
-          if (line == null)
-          {
-            break;
-          }
-          else
-          {
-            continue;
-          }
+          lines.add(line);
+          continue;
         }
 
-
-        // Parse the lines that we read and add the backup info to the
-        // directory structure.
-        BackupInfo backupInfo = BackupInfo.decode(backupDirectory,
-                                                  lines);
-        backupDirectory.addBackup(backupInfo);
-        lines.clear();
-
-
-        // If it was the end of the file, then break out of the loop.
-        if (line == null)
-        {
-          break;
-        }
+        // We are on a delimiter blank line.
+        readBackupFromLines(backupDirectory, lines);
       }
-      else
-      {
-        lines.add(line);
-      }
+      readBackupFromLines(backupDirectory, lines);
+
+      return backupDirectory;
     }
+  }
 
-
-    // Close the reader and return the backup directory structure.
-    reader.close();
-    return backupDirectory;
+  private static void readBackupFromLines(BackupDirectory backupDirectory, List<String> lines) throws ConfigException
+  {
+    if (!lines.isEmpty())
+    {
+      backupDirectory.addBackup(BackupInfo.decode(backupDirectory, lines));
+      lines.clear();
+    }
   }
 }
-

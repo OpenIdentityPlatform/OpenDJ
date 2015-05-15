@@ -30,17 +30,19 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.util.Base64;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -501,7 +503,7 @@ public final class BackupInfo
    *                           decode the backup info data.
    */
   public static BackupInfo decode(BackupDirectory backupDirectory,
-                                  LinkedList<String> encodedInfo)
+                                  List<String> encodedInfo)
          throws ConfigException
   {
     String                 backupID         = null;

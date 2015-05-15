@@ -30,7 +30,8 @@ package org.opends.guitools.controlpanel.ui;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -42,10 +43,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -61,6 +60,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackupTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -69,94 +70,68 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.renderer.BackupTableCellRenderer;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.quicksetup.Installation;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.StaticUtils;
 
-/**
- * Abstract class used to refactor code in panels that contain a backup list on
- * it.
- *
- */
+/** Abstract class used to refactor code in panels that contain a backup list on it. */
 public abstract class BackupListPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4804555239922795163L;
 
-  /**
-   * The text field containing the parent directory.
-   */
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** The refreshing list message, displayed when the list of backups is refreshed. */
+  protected static final LocalizableMessage REFRESHING_LIST = INFO_CTRL_PANEL_REFRESHING_LIST_SUMMARY.get();
+
+  /** The message informing that no backups where found. */
+  protected static final LocalizableMessage NO_BACKUPS_FOUND = INFO_CTRL_PANEL_NO_BACKUPS_FOUND.get();
+
+  private static final String DUMMY_PARENT_PATH = "/local/OpenDJ-X.X.X/bak";
+
+  /** The text field containing the parent directory. */
   protected JTextField parentDirectory;
 
-  /**
-   * The refreshing list message, displayed when the list of backups is
-   * refreshed.
-   */
-  protected final LocalizableMessage REFRESHING_LIST =
-    INFO_CTRL_PANEL_REFRESHING_LIST_SUMMARY.get();
-
-  /**
-   * The message informing that no backups where found.
-   */
-  protected final LocalizableMessage NO_BACKUPS_FOUND =
-    INFO_CTRL_PANEL_NO_BACKUPS_FOUND.get();
-
-  /**
-   * Label for the path field.
-   */
+  /** Label for the path field. */
   protected JLabel lPath;
-  /**
-   * Label for the list.
-   */
+
+  /** Label for the list. */
   protected JLabel lAvailableBackups;
-  /**
-   * Refreshing list label (displayed instead of the list when this one is
-   * being refreshed).
-   */
+
+  /** Refreshing list label (displayed instead of the list when this one is being refreshed). */
   protected JLabel lRefreshingList;
-  /**
-   * Refresh list button.
-   */
+
+  /** Refresh list button. */
   protected JButton refreshList;
-  /**
-   * Verify backup button.
-   */
+
+  /** Verify backup button. */
   protected JButton verifyBackup;
-  /**
-   * Browse button.
-   */
+
+  /** Browse button. */
   protected JButton browse;
-  /**
-   * The scroll that contains the list of backups (actually is a table).
-   */
+
+  /** The scroll that contains the list of backups (actually is a table). */
   protected JScrollPane tableScroll;
-  /**
-   * The list of backups.
-   */
+
+  /** The list of backups. */
   protected JTable backupList;
 
   private JLabel lRemoteFileHelp;
 
-  /**
-   * Whether the backup parent directory has been initialized with a value or
-   * not.
-   */
+  /** Whether the backup parent directory has been initialized with a value. */
   private boolean backupDirectoryInitialized;
 
   private BackupTableCellRenderer renderer;
 
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   protected BackupListPanel()
   {
     super();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return parentDirectory;
@@ -164,6 +139,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
 
   /**
    * Returns the selected backup in the list.
+   *
    * @return the selected backup in the list.
    */
   protected BackupDescriptor getSelectedBackup()
@@ -172,33 +148,33 @@ public abstract class BackupListPanel extends StatusGenericPanel
     int row = backupList.getSelectedRow();
     if (row != -1)
     {
-      BackupTableModel model = (BackupTableModel)backupList.getModel();
+      BackupTableModel model = (BackupTableModel) backupList.getModel();
       backup = model.get(row);
     }
     return backup;
   }
 
   /**
-   * Notification that the verify button was clicked.  Whatever is required
-   * to be done must be done in this method.
-   *
+   * Notification that the verify button was clicked. Whatever is required to be
+   * done must be done in this method.
    */
   protected abstract void verifyBackupClicked();
 
   /**
    * Creates the components and lays them in the panel.
-   * @param gbc the grid bag constraints to be used.
+   *
+   * @param gbc
+   *          the grid bag constraints to be used.
    */
   protected void createLayout(GridBagConstraints gbc)
   {
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
     gbc.insets.left = 0;
-    lPath = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_BACKUP_PATH_LABEL.get());
+    lPath = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKUP_PATH_LABEL.get());
     add(lPath, gbc);
 
     gbc.gridx = 1;
@@ -210,27 +186,24 @@ public abstract class BackupListPanel extends StatusGenericPanel
     browse = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     browse.setOpaque(false);
     browse.addActionListener(
-        new BrowseActionListener(parentDirectory,
-            BrowseActionListener.BrowseType.LOCATION_DIRECTORY,  this));
+        new BrowseActionListener(parentDirectory, BrowseActionListener.BrowseType.LOCATION_DIRECTORY, this));
     gbc.gridx = 2;
     gbc.weightx = 0.0;
     add(browse, gbc);
 
-    lRemoteFileHelp = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
     gbc.gridx = 1;
     gbc.gridwidth = 2;
     gbc.insets.top = 3;
     gbc.insets.left = 10;
-    gbc.gridy ++;
+    gbc.gridy++;
     add(lRemoteFileHelp, gbc);
 
     gbc.gridx = 0;
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.insets.top = 10;
     gbc.insets.left = 0;
-    lAvailableBackups = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_AVAILABLE_BACKUPS_LABEL.get());
+    lAvailableBackups = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_AVAILABLE_BACKUPS_LABEL.get());
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -255,13 +228,12 @@ public abstract class BackupListPanel extends StatusGenericPanel
       model.add(backup);
     }
     backupList.setModel(model);
-    backupList.getSelectionModel().setSelectionMode(
-        ListSelectionModel.SINGLE_SELECTION);
+    backupList.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     backupList.setShowGrid(false);
     backupList.setIntercellSpacing(new Dimension(0, 0));
     renderer = new BackupTableCellRenderer();
     renderer.setParentPath(new File(DUMMY_PARENT_PATH));
-    for (int i=0; i<model.getColumnCount(); i++)
+    for (int i = 0; i < model.getColumnCount(); i++)
     {
       TableColumn col = backupList.getColumn(model.getColumnName(i));
       col.setCellRenderer(renderer);
@@ -275,7 +247,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     add(tableScroll, gbc);
     lRefreshingList.setPreferredSize(tableScroll.getPreferredSize());
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.anchor = GridBagConstraints.EAST;
     gbc.weightx = 0.0;
     gbc.weighty = 0.0;
@@ -291,28 +263,26 @@ public abstract class BackupListPanel extends StatusGenericPanel
     gbc2.fill = GridBagConstraints.HORIZONTAL;
     gbc2.weightx = 1.0;
     buttonPanel.add(Box.createHorizontalGlue(), gbc2);
-    refreshList = Utilities.createButton(
-        INFO_CTRL_PANEL_REFRESH_LIST_BUTTON_LABEL.get());
+    refreshList = Utilities.createButton(INFO_CTRL_PANEL_REFRESH_LIST_BUTTON_LABEL.get());
     refreshList.setOpaque(false);
     refreshList.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         refreshList();
       }
     });
     gbc2.weightx = 0.0;
-    gbc2.gridx ++;
+    gbc2.gridx++;
     buttonPanel.add(refreshList, gbc2);
-    gbc2.gridx ++;
+    gbc2.gridx++;
     gbc2.insets.left = 5;
-    verifyBackup = Utilities.createButton(
-        INFO_CTRL_PANEL_VERIFY_BACKUP_BUTTON_LABEL.get());
+    verifyBackup = Utilities.createButton(INFO_CTRL_PANEL_VERIFY_BACKUP_BUTTON_LABEL.get());
     verifyBackup.setOpaque(false);
     verifyBackup.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         verifyBackupClicked();
@@ -320,7 +290,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     });
     ListSelectionListener listener = new ListSelectionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         BackupDescriptor backup = getSelectedBackup();
@@ -335,33 +305,30 @@ public abstract class BackupListPanel extends StatusGenericPanel
   /**
    * Refresh the list of backups by looking in the backups defined under the
    * provided parent backup directory.
-   *
    */
   protected void refreshList()
   {
     final boolean refreshEnabled = refreshList.isEnabled();
-
     refreshList.setEnabled(false);
     verifyBackup.setEnabled(false);
     tableScroll.setVisible(false);
     lRefreshingList.setText(REFRESHING_LIST.toString());
     lRefreshingList.setVisible(isLocal());
-    final int lastSelectedRow = backupList.getSelectedRow();
 
+    final int lastSelectedRow = backupList.getSelectedRow();
     final String parentPath = parentDirectory.getText();
-    BackgroundTask<Set<BackupInfo>> worker =
-      new BackgroundTask<Set<BackupInfo>>()
+
+    BackgroundTask<Set<BackupInfo>> worker = new BackgroundTask<Set<BackupInfo>>()
     {
-      /** {@inheritDoc} */
+      @Override
       public Set<BackupInfo> processBackgroundTask() throws Throwable
       {
         // Open the backup directory and make sure it is valid.
-        LinkedHashSet<BackupInfo> backups = new LinkedHashSet<BackupInfo>();
+        Set<BackupInfo> backups = new LinkedHashSet<>();
         Throwable firstThrowable = null;
         try
         {
-          BackupDirectory backupDir =
-            BackupDirectory.readBackupDirectoryDescriptor(parentPath);
+          BackupDirectory backupDir = BackupDirectory.readBackupDirectoryDescriptor(parentPath);
           backups.addAll(backupDir.getBackups().values());
         }
         catch (Throwable t)
@@ -371,30 +338,27 @@ public abstract class BackupListPanel extends StatusGenericPanel
         // Check the subdirectories
         File f = new File(parentPath);
 
-        // Check the first level of directories (we might have done a backup
-        // of one backend and then a backup of several backends under the
-        // same directory).
+        // Check the first level of directories (we might have done
+        // a backup of one backend and then a backup of several backends under the same directory).
         if (f.isDirectory())
         {
           File[] children = f.listFiles();
-          for (int i=0; i<children.length; i++)
+          for (int i = 0; i < children.length; i++)
           {
             if (children[i].isDirectory())
             {
               try
               {
                 BackupDirectory backupDir =
-                  BackupDirectory.readBackupDirectoryDescriptor(
-                      children[i].getAbsolutePath());
+                    BackupDirectory.readBackupDirectoryDescriptor(children[i].getAbsolutePath());
 
                 backups.addAll(backupDir.getBackups().values());
               }
               catch (Throwable t2)
               {
-                if (!children[i].getName().equals("tasks") &&
-                    (firstThrowable != null))
+                if (!children[i].getName().equals("tasks") && firstThrowable != null)
                 {
-                  logger.warn(LocalizableMessage.raw("Error searching backup: "+t2, t2));
+                  logger.warn(LocalizableMessage.raw("Error searching backup: " + t2, t2));
                 }
               }
             }
@@ -407,79 +371,24 @@ public abstract class BackupListPanel extends StatusGenericPanel
         return backups;
       }
 
-      /** {@inheritDoc} */
-      public void backgroundTaskCompleted(Set<BackupInfo> returnValue,
-          Throwable t)
+      @Override
+      public void backgroundTaskCompleted(Set<BackupInfo> returnValue, Throwable t)
       {
-        BackupTableModel model = (BackupTableModel)backupList.getModel();
+        BackupTableModel model = (BackupTableModel) backupList.getModel();
         model.clear();
         renderer.setParentPath(new File(parentPath));
         if (t == null)
         {
-          if (!returnValue.isEmpty())
-          {
-            for (BackupInfo backup : returnValue)
-            {
-              model.add(new BackupDescriptor(backup));
-            }
-            model.fireTableDataChanged();
-            Utilities.updateTableSizes(backupList);
-            tableScroll.setVisible(true);
-            lRefreshingList.setVisible(false);
-          }
-          else
-          {
-            model.fireTableDataChanged();
-            lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
-            lRefreshingList.setVisible(isLocal());
-          }
-          errorPane.setVisible(false);
-          // This is done to perform checks against whether we require to
-          // display an error message or not.
-          configurationChanged(new ConfigurationChangeEvent(null,
-              getInfo().getServerDescriptor()));
+          performSuccessActions(returnValue, model);
         }
         else
         {
-          model.fireTableDataChanged();
-          boolean displayError = true;
-          if (t instanceof OpenDsException)
-          {
-            OpenDsException e = (OpenDsException)t;
-            if (StaticUtils.hasDescriptor(e.getMessageObject(),
-                ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE))
-            {
-              displayError = false;
-            }
-          }
-          if (displayError)
-          {
-            LocalizableMessage details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
-              parentDirectory.getText(), StaticUtils.getExceptionMessage(t));
-
-            updateErrorPane(errorPane,
-                ERR_ERROR_SEARCHING_BACKUPS_SUMMARY.get(),
-                ColorAndFontConstants.errorTitleFont,
-                details,
-                errorPane.getFont());
-            packParentDialog();
-          }
-          errorPane.setVisible(displayError);
-
-          if (!displayError)
-          {
-            // This is done to perform checks against whether we require to
-            // display an error message or not.
-            configurationChanged(new ConfigurationChangeEvent(null,
-                getInfo().getServerDescriptor()));
-          }
-
-          lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
+          performErrorActions(t, model);
         }
+
         refreshList.setEnabled(refreshEnabled);
         verifyBackup.setEnabled(getSelectedBackup() != null);
-        if ((lastSelectedRow != -1) &&
-            (lastSelectedRow < backupList.getRowCount()))
+        if (lastSelectedRow != -1 && lastSelectedRow < backupList.getRowCount())
         {
           backupList.setRowSelectionInterval(lastSelectedRow, lastSelectedRow);
         }
@@ -488,77 +397,111 @@ public abstract class BackupListPanel extends StatusGenericPanel
           backupList.setRowSelectionInterval(0, 0);
         }
       }
+
+      private void performSuccessActions(Set<BackupInfo> returnValue, BackupTableModel model)
+      {
+        if (!returnValue.isEmpty())
+        {
+          for (BackupInfo backup : returnValue)
+          {
+            model.add(new BackupDescriptor(backup));
+          }
+          Utilities.updateTableSizes(backupList);
+          tableScroll.setVisible(true);
+          lRefreshingList.setVisible(false);
+        }
+        else
+        {
+          lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
+          lRefreshingList.setVisible(isLocal());
+        }
+        updateUI(true, model);
+      }
+
+      private void performErrorActions(Throwable t, BackupTableModel model)
+      {
+        boolean displayError = true;
+        if (t instanceof OpenDsException)
+        {
+          OpenDsException e = (OpenDsException) t;
+          if (StaticUtils.hasDescriptor(e.getMessageObject(), ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE))
+          {
+            displayError = false;
+          }
+        }
+
+        if (displayError)
+        {
+          LocalizableMessage details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+              parentDirectory.getText(), StaticUtils.getExceptionMessage(t));
+
+          updateErrorPane(errorPane,
+                          ERR_ERROR_SEARCHING_BACKUPS_SUMMARY.get(),
+                          ColorAndFontConstants.errorTitleFont,
+                          details,
+                          errorPane.getFont());
+          packParentDialog();
+        }
+        updateUI(false, model);
+     }
+
+      private void updateUI(boolean isSuccess, BackupTableModel model)
+      {
+        model.fireTableDataChanged();
+        errorPane.setVisible(!isSuccess);
+        if (isSuccess)
+        {
+          // This is done to perform checks against whether we require to display an error message.
+          configurationChanged(new ConfigurationChangeEvent(null, getInfo().getServerDescriptor()));
+        }
+        else
+        {
+          lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
+        }
+      }
     };
     worker.startBackgroundTask();
   }
 
-  private final String DUMMY_PARENT_PATH = "/local/OpenDJ-X.X.X/bak";
+
   /**
-   * Creates a list with backup descriptor.  This is done simply to have a good
-   * initial size for the table.
+   * Creates a list with backup descriptor.
+   * This is done simply to have a good initial size for the table.
+   *
    * @return a list with bogus backup descriptors.
    */
-  private ArrayList<BackupDescriptor> createDummyBackupList()
+  private List<BackupDescriptor> createDummyBackupList()
   {
-    ArrayList<BackupDescriptor> list = new ArrayList<BackupDescriptor>();
-    list.add(new BackupDescriptor(
-        new File(DUMMY_PARENT_PATH+"/200704201567Z"),
-        new GregorianCalendar(2007, 5, 20, 8, 10).getTime(),
-        BackupDescriptor.Type.FULL, "id"));
-    list.add(new BackupDescriptor(
-        new File(DUMMY_PARENT_PATH+"/200704201567Z"),
-        new GregorianCalendar(2007, 5, 22, 8, 10).getTime(),
-        BackupDescriptor.Type.INCREMENTAL, "id"));
-    list.add(new BackupDescriptor(
-        new File(DUMMY_PARENT_PATH+"/200704221567Z"),
-        new GregorianCalendar(2007, 5, 25, 8, 10).getTime(),
-        BackupDescriptor.Type.INCREMENTAL, "id"));
+    List<BackupDescriptor> list = new ArrayList<>();
+    list.add(new BackupDescriptor(new File(DUMMY_PARENT_PATH + "/200704201567Z"),
+             new GregorianCalendar(2007, 5, 20, 8, 10).getTime(), BackupDescriptor.Type.FULL, "id"));
+    list.add(new BackupDescriptor(new File(DUMMY_PARENT_PATH + "/200704201567Z"),
+             new GregorianCalendar(2007, 5, 22, 8, 10).getTime(), BackupDescriptor.Type.INCREMENTAL, "id"));
+    list.add(new BackupDescriptor(new File(DUMMY_PARENT_PATH + "/200704221567Z"),
+             new GregorianCalendar(2007, 5, 25, 8, 10).getTime(), BackupDescriptor.Type.INCREMENTAL, "id"));
     return list;
   }
 
-  /** {@inheritDoc} */
-  public void configurationChanged(ConfigurationChangeEvent ev)
+  @Override
+  public void configurationChanged(final ConfigurationChangeEvent ev)
   {
-    ServerDescriptor desc = ev.getNewDescriptor();
-
-    if (!backupDirectoryInitialized &&
-        (parentDirectory.getText().length() == 0))
+    if (!backupDirectoryInitialized && parentDirectory.getText().length() == 0)
     {
-      String path;
-
-      if (desc.isLocal() || (desc.isWindows() == isWindows()))
-      {
-        File f = new File(desc.getInstancePath(),
-            org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE);
-        try
-        {
-          path = f.getCanonicalPath();
-        }
-        catch (Throwable t)
-        {
-          path = f.getAbsolutePath();
-        }
-      }
-      else
-      {
-        String separator = desc.isWindows() ? "\\" : "/";
-        path = desc.getInstancePath() + separator +
-        org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE;
-      }
-
-      final String fPath = path;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
-          parentDirectory.setText(fPath);
+          parentDirectory.setText(getBackupPath(ev.getNewDescriptor()));
           refreshList();
           backupDirectoryInitialized = true;
         }
       });
     }
+
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         lRemoteFileHelp.setVisible(!isLocal());
@@ -571,7 +514,28 @@ public abstract class BackupListPanel extends StatusGenericPanel
     });
   }
 
-  /** {@inheritDoc} */
+  private String getBackupPath(ServerDescriptor desc)
+  {
+    if (desc.isLocal() || desc.isWindows() == isWindows())
+    {
+      File f = new File(desc.getInstancePath(), Installation.BACKUPS_PATH_RELATIVE);
+      try
+      {
+        return f.getCanonicalPath();
+      }
+      catch (Throwable t)
+      {
+        return f.getAbsolutePath();
+      }
+    }
+    else
+    {
+      String separator = desc.isWindows() ? "\\" : "/";
+      return desc.getInstancePath() + separator + Installation.BACKUPS_PATH_RELATIVE;
+    }
+  }
+
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible && backupDirectoryInitialized)
