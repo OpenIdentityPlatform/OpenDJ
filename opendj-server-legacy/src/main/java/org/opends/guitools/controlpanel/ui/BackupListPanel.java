@@ -28,8 +28,8 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
@@ -73,7 +73,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.util.StaticUtils;
 
 /** Abstract class used to refactor code in panels that contain a backup list on it. */
@@ -326,15 +325,20 @@ public abstract class BackupListPanel extends StatusGenericPanel
         // Open the backup directory and make sure it is valid.
         Set<BackupInfo> backups = new LinkedHashSet<>();
         Throwable firstThrowable = null;
-        try
+
+        if (new File(parentPath, BACKUP_DIRECTORY_DESCRIPTOR_FILE).exists())
         {
-          BackupDirectory backupDir = BackupDirectory.readBackupDirectoryDescriptor(parentPath);
-          backups.addAll(backupDir.getBackups().values());
+          try
+          {
+            BackupDirectory backupDir = BackupDirectory.readBackupDirectoryDescriptor(parentPath);
+            backups.addAll(backupDir.getBackups().values());
+          }
+          catch (Throwable t)
+          {
+            firstThrowable = t;
+          }
         }
-        catch (Throwable t)
-        {
-          firstThrowable = t;
-        }
+
         // Check the subdirectories
         File f = new File(parentPath);
 
@@ -420,28 +424,14 @@ public abstract class BackupListPanel extends StatusGenericPanel
 
       private void performErrorActions(Throwable t, BackupTableModel model)
       {
-        boolean displayError = true;
-        if (t instanceof OpenDsException)
-        {
-          OpenDsException e = (OpenDsException) t;
-          if (StaticUtils.hasDescriptor(e.getMessageObject(), ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE))
-          {
-            displayError = false;
-          }
-        }
-
-        if (displayError)
-        {
-          LocalizableMessage details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
-              parentDirectory.getText(), StaticUtils.getExceptionMessage(t));
-
-          updateErrorPane(errorPane,
-                          ERR_ERROR_SEARCHING_BACKUPS_SUMMARY.get(),
-                          ColorAndFontConstants.errorTitleFont,
-                          details,
-                          errorPane.getFont());
-          packParentDialog();
-        }
+        LocalizableMessage details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+            parentDirectory.getText(), StaticUtils.getExceptionMessage(t));
+        updateErrorPane(errorPane,
+                        ERR_ERROR_SEARCHING_BACKUPS_SUMMARY.get(),
+                        ColorAndFontConstants.errorTitleFont,
+                        details,
+                        errorPane.getFont());
+        packParentDialog();
         updateUI(false, model);
      }
 
