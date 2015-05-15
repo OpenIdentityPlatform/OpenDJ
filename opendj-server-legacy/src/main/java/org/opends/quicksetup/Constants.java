@@ -65,6 +65,9 @@ public class Constants {
   /** DN of the schema object. */
   public static final String SCHEMA_DN = "cn=schema";
 
+  /** DN of legacy replication changes base DN for backwards compatibility with OpenDJ <= 2.6.x. */
+  public static final String REPLICATION_CHANGES_DN = "dc=replicationChanges";
+
   /** The cli java system property. */
   public static final String CLI_JAVA_PROPERTY = "org.opends.quicksetup.cli";
 
