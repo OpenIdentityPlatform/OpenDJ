@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2012 profiq s.r.o.
  */
 package org.opends.server.tools.dsreplication;
@@ -1684,17 +1684,16 @@ public class ReplicationCliMain extends ConsoleApplication
       Collection<String> availableSuffixes, Arg0 noSuffixAvailableMsg,
       Arg0 noSuffixSelectedMsg, Arg1<Object> confirmationMsgPromt)
   {
+    if (containsOnlySchemaOrAdminSuffix(availableSuffixes))
+    {
+      // In interactive mode we do not propose to manage the administration suffix.
+      println();
+      println(noSuffixAvailableMsg.get());
+      return;
+    }
+
     while (suffixes.isEmpty())
     {
-      if (containsSchemaOrAdminSuffix(availableSuffixes))
-      {
-        // In interactive mode we do not propose to manage the
-        // administration suffix.
-        println();
-        println(noSuffixAvailableMsg.get());
-        break;
-      }
-
       println();
       println(noSuffixSelectedMsg.get());
       boolean confirmationLimitReached = askConfirmations(confirmationMsgPromt, availableSuffixes, suffixes);
@@ -1706,16 +1705,16 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private boolean containsSchemaOrAdminSuffix(Collection<String> suffixes)
+  private boolean containsOnlySchemaOrAdminSuffix(Collection<String> suffixes)
   {
     for (String suffix : suffixes)
     {
-      if (isSchemaOrAdminSuffix(suffix))
+      if (!isSchemaOrAdminSuffix(suffix))
       {
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   private boolean isSchemaOrAdminSuffix(String suffix)
@@ -4687,10 +4686,9 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         while (suffixes.isEmpty())
         {
-          if (containsSchemaOrAdminSuffix(availableSuffixes))
+          if (containsOnlySchemaOrAdminSuffix(availableSuffixes))
           {
-            // In interactive mode we do not propose to manage the
-            // administration suffix.
+            // In interactive mode we do not propose to manage the administration suffix.
             if (displayErrors)
             {
               println();
@@ -4843,7 +4841,7 @@ public class ReplicationCliMain extends ConsoleApplication
         while (suffixes.isEmpty())
         {
           println();
-          if (containsSchemaOrAdminSuffix(availableSuffixes))
+          if (containsOnlySchemaOrAdminSuffix(availableSuffixes))
           {
             // In interactive mode we do not propose to manage the administration suffix.
             if (argParser.isInitializeAllReplicationSubcommand())
