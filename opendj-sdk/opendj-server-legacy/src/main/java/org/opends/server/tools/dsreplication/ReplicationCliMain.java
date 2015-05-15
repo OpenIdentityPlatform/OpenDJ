@@ -1709,7 +1709,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     for (String suffix : suffixes)
     {
-      if (!isSchemaOrAdminSuffix(suffix))
+      if (!isSchemaOrInternalAdminSuffix(suffix))
       {
         return false;
       }
@@ -1717,10 +1717,11 @@ public class ReplicationCliMain extends ConsoleApplication
     return true;
   }
 
-  private boolean isSchemaOrAdminSuffix(String suffix)
+  private boolean isSchemaOrInternalAdminSuffix(String suffix)
   {
     return areDnsEqual(suffix, ADSContext.getAdministrationSuffixDN())
-        || areDnsEqual(suffix, Constants.SCHEMA_DN);
+        || areDnsEqual(suffix, Constants.SCHEMA_DN)
+        || areDnsEqual(suffix,  Constants.REPLICATION_CHANGES_DN);
   }
 
   /**
@@ -4723,7 +4724,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     for (String dn : availableSuffixes)
     {
-      if (!isSchemaOrAdminSuffix(dn))
+      if (!isSchemaOrInternalAdminSuffix(dn))
       {
         try
         {
@@ -4871,7 +4872,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
             for (String dn : availableSuffixes)
             {
-              if (!isSchemaOrAdminSuffix(dn))
+              if (!isSchemaOrInternalAdminSuffix(dn))
               {
                 boolean addSuffix;
                 try
@@ -5715,7 +5716,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
-        if (isSchemaOrAdminSuffix(suffix.getDN()))
+        if (isSchemaOrInternalAdminSuffix(suffix.getDN()))
         {
           // Do not display these suffixes.
           continue;
@@ -5742,7 +5743,7 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<String> baseDNs = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
         {
-          if (!isSchemaOrAdminSuffix(suffix.getDN()))
+          if (!isSchemaOrInternalAdminSuffix(suffix.getDN()))
           {
             // Do not display these suffixes.
             baseDNs.add(suffix.getDN());
@@ -5775,8 +5776,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean baseDNSpecified = false;
           for (String baseDN : uData.getBaseDNs())
           {
-            if (!isSchemaOrAdminSuffix(baseDN)
-                && areDnsEqual(baseDN, suffix.getDN()))
+            if (!isSchemaOrInternalAdminSuffix(baseDN) && areDnsEqual(baseDN, suffix.getDN()))
             {
               baseDNSpecified = true;
               break;
@@ -6110,8 +6110,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
-      boolean found = containsDN(userBaseDNs, dn)
-          || (displayAll && !isSchemaOrAdminSuffix(dn));
+      boolean found = containsDN(userBaseDNs, dn) || (displayAll && !isSchemaOrInternalAdminSuffix(dn));
       if (found)
       {
         boolean replicated = false;

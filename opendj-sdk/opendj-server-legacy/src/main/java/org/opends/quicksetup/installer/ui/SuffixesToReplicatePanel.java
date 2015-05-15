@@ -224,7 +224,8 @@ implements Comparator<SuffixDescriptor>
       {
         if (!Utils.areDnsEqual(suffix.getDN(),
             ADSContext.getAdministrationSuffixDN()) &&
-            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN) &&
+            !Utils.areDnsEqual(suffix.getDN(), Constants.REPLICATION_CHANGES_DN))
         {
           orderedSuffixes.add(suffix);
         }

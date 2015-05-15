@@ -336,6 +336,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {
           errors.add(ERR_REPLICATION_NOT_A_VALID_BASEDN.get(dn));
         }
+        if (dn.equalsIgnoreCase(Constants.REPLICATION_CHANGES_DN))
+        {
+          errors.add(ERR_REPLICATION_NOT_A_USER_SUFFIX.get(Constants.REPLICATION_CHANGES_DN));
+        }
       }
     }
     if (errors.size() > 0)
