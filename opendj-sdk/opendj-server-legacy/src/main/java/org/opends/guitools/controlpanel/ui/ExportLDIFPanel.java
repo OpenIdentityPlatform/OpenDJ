@@ -350,7 +350,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lBackend);
     setPrimaryValid(lFile);
     setPrimaryValid(lExportOptions);
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     String backendName = (String)backends.getSelectedItem();
     if (backendName == null)
@@ -460,7 +460,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     public ExportTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       backendSet.add((String)backends.getSelectedItem());
       fileName = file.getText();
     }
@@ -543,7 +543,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       args.add("--ldifFile");
       args.add(fileName);
       args.add("--backendID");

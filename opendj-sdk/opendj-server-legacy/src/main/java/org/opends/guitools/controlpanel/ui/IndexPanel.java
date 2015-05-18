@@ -301,12 +301,12 @@ public class IndexPanel extends AbstractIndexPanel
 
   private void deleteIndex()
   {
-    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_INDEX_TITLE.get(), getInfo());
-    ArrayList<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
+    ArrayList<AbstractIndexDescriptor> indexesToDelete = new ArrayList<>();
     indexesToDelete.add(index);
     DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg, indexesToDelete);
     for (Task task : getInfo().getTasks())
@@ -492,7 +492,7 @@ public class IndexPanel extends AbstractIndexPanel
     private String backendName;
     private int entryLimitValue;
     private IndexDescriptor indexToModify;
-    private SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<IndexTypeDescriptor>();
+    private SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<>();
     private IndexDescriptor modifiedIndex;
 
     /**
@@ -507,7 +507,7 @@ public class IndexPanel extends AbstractIndexPanel
     {
       super(info, dlg);
       backendName = index.getBackend().getBackendID();
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       backendSet.add(backendName);
       attributeName = index.getName();
       entryLimitValue = Integer.parseInt(entryLimit.getText());
@@ -694,7 +694,7 @@ public class IndexPanel extends AbstractIndexPanel
     /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
 
     /**
@@ -751,7 +751,7 @@ public class IndexPanel extends AbstractIndexPanel
 
     private List<String> getDSConfigCommandLineArguments()
     {
-      List<String> args = new ArrayList<String>();
+      List<String> args = new ArrayList<>();
       args.add("set-local-db-index-prop");
       args.add("--backend-name");
       args.add(backendName);
@@ -762,7 +762,7 @@ public class IndexPanel extends AbstractIndexPanel
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
         // To add
-        Set<IndexTypeDescriptor> toAdd = new TreeSet<IndexTypeDescriptor>();
+        Set<IndexTypeDescriptor> toAdd = new TreeSet<>();
         for (IndexTypeDescriptor newType : indexTypes)
         {
           if (!indexToModify.getTypes().contains(newType))
@@ -771,7 +771,7 @@ public class IndexPanel extends AbstractIndexPanel
           }
         }
         // To delete
-        Set<IndexTypeDescriptor> toDelete = new TreeSet<IndexTypeDescriptor>();
+        Set<IndexTypeDescriptor> toDelete = new TreeSet<>();
         for (IndexTypeDescriptor oldType : indexToModify.getTypes())
         {
           if (!indexTypes.contains(oldType))

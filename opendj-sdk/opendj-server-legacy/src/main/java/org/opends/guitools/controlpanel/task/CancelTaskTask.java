@@ -64,12 +64,12 @@ public class CancelTaskTask extends Task
       List<TaskEntry> tasks)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
       backendSet.add(backend.getBackendID());
     }
-    this.tasks = new ArrayList<TaskEntry>(tasks);
+    this.tasks = new ArrayList<>(tasks);
   }
 
   /** {@inheritDoc} */
@@ -106,7 +106,7 @@ public class CancelTaskTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /**
@@ -116,7 +116,7 @@ public class CancelTaskTask extends Task
    */
   private ArrayList<String> getCommandLineArguments(TaskEntry task)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     args.add("--cancel");
     args.add(task.getId());
     args.addAll(getConnectionCommandLineArguments());
@@ -133,7 +133,7 @@ public class CancelTaskTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
       if (!backends.isEmpty())
       {
@@ -174,7 +174,7 @@ public class CancelTaskTask extends Task
             {
               getProgressDialog().appendProgressHtml("<br><br>");
             }
-            ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(arguments));
+            ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(arguments));
             printEquivalentCommandLine(getCommandLinePath("manage-tasks"),
                     args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CANCEL_TASK.get(
                         task.getId()));

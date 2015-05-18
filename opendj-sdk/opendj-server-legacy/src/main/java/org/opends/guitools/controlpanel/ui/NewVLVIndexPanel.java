@@ -184,7 +184,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     private NewVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       backendSet.add(backendName.getText());
       indexName = name.getText().trim();
       sortOrder = getSortOrder();
@@ -352,7 +352,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     @Override
     protected List<String> getCommandLineArguments()
     {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
 
     private String getConfigCommandLineName()
@@ -407,7 +407,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
     private List<String> getDSConfigCommandLineArguments()
     {
-      final List<String> args = new ArrayList<String>();
+      final List<String> args = new ArrayList<>();
       args.add("create-local-db-vlv-index");
       args.add("--backend-name");
       args.add(backendID);

@@ -46,7 +46,7 @@ import javax.swing.AbstractListModel;
 public class SortableListModel<T> extends AbstractListModel
 {
   private static final long serialVersionUID = 3241258779190228463L;
-  private SortedSet<T> data = new TreeSet<T>();
+  private SortedSet<T> data = new TreeSet<>();
 
   /**
    * Returns the size of the list model.
@@ -64,7 +64,7 @@ public class SortableListModel<T> extends AbstractListModel
   public void setComparator(Comparator<T> comp)
   {
     SortedSet<T> copy = data;
-    data = new TreeSet<T>(comp);
+    data = new TreeSet<>(comp);
     data.addAll(copy);
   }
 
@@ -138,6 +138,6 @@ public class SortableListModel<T> extends AbstractListModel
    */
   public SortedSet<T> getData()
   {
-    return new TreeSet<T>(data);
+    return new TreeSet<>(data);
   }
 }

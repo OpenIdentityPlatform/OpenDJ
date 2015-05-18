@@ -44,12 +44,9 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 class NodeSearcherQueue implements Runnable {
 
   private String name;
-  private ArrayList<AbstractNodeTask> waitingQueue =
-    new ArrayList<AbstractNodeTask>();
-  private HashMap<BasicNode, AbstractNodeTask> workingList =
-    new HashMap<BasicNode, AbstractNodeTask>();
-  private HashMap<BasicNode, BasicNode> cancelList =
-    new HashMap<BasicNode, BasicNode>();
+  private ArrayList<AbstractNodeTask> waitingQueue = new ArrayList<>();
+  private HashMap<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
+  private HashMap<BasicNode, BasicNode> cancelList = new HashMap<>();
   private ThreadGroup threadGroup;
 
 

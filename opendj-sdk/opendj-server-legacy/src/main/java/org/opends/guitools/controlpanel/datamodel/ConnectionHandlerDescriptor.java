@@ -143,7 +143,7 @@ public class ConnectionHandlerDescriptor
   }
 
   private State state;
-  private SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+  private SortedSet<InetAddress> addresses = new TreeSet<>(
       AdministrationConnectorCfgDefn.getInstance().
       getListenAddressPropertyDefinition());
   private int port;

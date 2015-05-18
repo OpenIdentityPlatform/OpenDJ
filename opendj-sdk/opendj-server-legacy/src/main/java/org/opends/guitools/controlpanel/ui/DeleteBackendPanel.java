@@ -83,7 +83,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
-    final SortedSet<String> newElements = new TreeSet<String>();
+    final SortedSet<String> newElements = new TreeSet<>();
     for (BackendDescriptor backend : desc.getBackends())
     {
       if (!backend.isConfigBackend())
@@ -101,14 +101,13 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
     @SuppressWarnings("deprecation")
     Object[] backends = list.getSelectedValues();
-    ArrayList<BackendDescriptor> backendsToDelete =
-      new ArrayList<BackendDescriptor>();
+    ArrayList<BackendDescriptor> backendsToDelete = new ArrayList<>();
     for (Object o : backends)
     {
       String id = (String)o;

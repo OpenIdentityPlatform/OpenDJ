@@ -142,8 +142,7 @@ public class PreferredConnection
       InitialLdapContext ctx)
   {
     PreferredConnection cnx = PreferredConnection.getPreferredConnection(ctx);
-    Set<PreferredConnection> returnValue =
-      new LinkedHashSet<PreferredConnection>();
+    Set<PreferredConnection> returnValue = new LinkedHashSet<>();
     returnValue.add(cnx);
     return returnValue;
   }

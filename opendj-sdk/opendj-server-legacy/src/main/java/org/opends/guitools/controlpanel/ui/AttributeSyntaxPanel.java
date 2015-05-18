@@ -204,7 +204,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     description.setText(n);
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    TreeSet<String> attributes = new TreeSet<String>(lowerCaseComparator);
+    TreeSet<String> attributes = new TreeSet<>(lowerCaseComparator);
     for (AttributeType attr : schema.getAttributeTypes().values())
     {
       if (syntax == attr.getSyntax())

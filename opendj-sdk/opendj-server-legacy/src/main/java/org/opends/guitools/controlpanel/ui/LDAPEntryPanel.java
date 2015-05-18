@@ -550,7 +550,7 @@ implements EntryReadListener
   private void saveChanges(boolean modal)
   {
     newTask = null;
-    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<>();
     // Check that the entry is correct.
     try
     {

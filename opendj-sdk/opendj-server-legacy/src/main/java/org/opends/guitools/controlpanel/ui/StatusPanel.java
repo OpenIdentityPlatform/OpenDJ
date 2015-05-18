@@ -274,7 +274,7 @@ class StatusPanel extends StatusGenericPanel
     }
     else
     {
-      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<>();
       for (OpenDsException oe : exceptions)
       {
         msgs.add(oe.getMessageObject());
@@ -361,7 +361,7 @@ class StatusPanel extends StatusGenericPanel
 
     Set<DN> rootUsers = desc.getAdministrativeUsers();
 
-    SortedSet<String> sortedRootUsers = new TreeSet<String>();
+    SortedSet<String> sortedRootUsers = new TreeSet<>();
     for (DN dn : rootUsers)
     {
       try
@@ -429,7 +429,7 @@ class StatusPanel extends StatusGenericPanel
     setText(adminConnector,
         getAdminConnectorStringValue(desc.getAdminConnector()));
 
-    Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
+    Set<BaseDNDescriptor> baseDNs = new HashSet<>();
 
     for (BackendDescriptor backend : desc.getBackends())
     {

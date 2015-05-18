@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -36,7 +37,7 @@ import java.util.Set;
  */
 public class TopologyCacheFilter
 {
-  private Set<String> baseDNs = new HashSet<String>();
+  private Set<String> baseDNs = new HashSet<>();
   private boolean searchMonitoringInformation = true;
   private boolean searchBaseDNInformation = true;
 
@@ -110,7 +111,7 @@ public class TopologyCacheFilter
    */
   public Set<String> getBaseDNsToSearch()
   {
-    return new HashSet<String>(baseDNs);
+    return new HashSet<>(baseDNs);
   }
 
   /**

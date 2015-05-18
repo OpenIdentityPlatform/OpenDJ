@@ -111,7 +111,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<>();
 
     if (checkSyntaxBackground())
     {

@@ -573,12 +573,9 @@ implements IndexModifiedListener
       }
     }
 
-    ArrayList<ArrayList<? extends AbstractIndexTreeNode>> nodes =
-      new ArrayList<ArrayList<? extends AbstractIndexTreeNode>>();
-    ArrayList<IndexTreeNode> standardIndexNodes =
-      new ArrayList<IndexTreeNode>();
-    ArrayList<VLVIndexTreeNode> vlvIndexNodes =
-      new ArrayList<VLVIndexTreeNode>();
+    ArrayList<ArrayList<? extends AbstractIndexTreeNode>> nodes = new ArrayList<>();
+    ArrayList<IndexTreeNode> standardIndexNodes = new ArrayList<>();
+    ArrayList<VLVIndexTreeNode> vlvIndexNodes = new ArrayList<>();
     nodes.add(standardIndexNodes);
     nodes.add(vlvIndexNodes);
 
@@ -835,11 +832,10 @@ implements IndexModifiedListener
 
   private void deleteClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
-    ArrayList<AbstractIndexDescriptor> indexesToDelete =
-      new ArrayList<AbstractIndexDescriptor>();
-    ArrayList<String> indexesNames = new ArrayList<String>();
+    ArrayList<AbstractIndexDescriptor> indexesToDelete = new ArrayList<>();
+    ArrayList<String> indexesNames = new ArrayList<>();
     if (paths != null)
     {
       for (TreePath path : paths)
@@ -902,10 +898,8 @@ implements IndexModifiedListener
     }
   }
 
-  private HashMap<Object, ImageIcon> hmCategoryImages =
-    new HashMap<Object, ImageIcon>();
-  private HashMap<Class<?>, ImageIcon> hmImages =
-    new HashMap<Class<?>, ImageIcon>();
+  private HashMap<Object, ImageIcon> hmCategoryImages = new HashMap<>();
+  private HashMap<Class<?>, ImageIcon> hmImages = new HashMap<>();
   {
     Object[] nodes = {standardIndexes, vlvIndexes};
     String[] paths = {"ds-idx-folder.png", "ds-vlv-idx-folder.png"};

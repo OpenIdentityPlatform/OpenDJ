@@ -92,10 +92,10 @@ public class DeleteEntryTask extends Task
       TreePath[] paths, BrowserController controller)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     this.controller = controller;
     this.paths = paths;
-    SortedSet<DN> entries = new TreeSet<DN>();
+    SortedSet<DN> entries = new TreeSet<>();
     boolean canPrecalculateNumberOfEntries = true;
     nToDelete = paths.length;
     for (TreePath path : paths)
@@ -159,7 +159,7 @@ public class DeleteEntryTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /** {@inheritDoc} */
@@ -172,8 +172,7 @@ public class DeleteEntryTask extends Task
     {
       // All the operations are incompatible if they apply to this
       // backend for safety.
-      Set<String> backends =
-        new TreeSet<String>(taskToBeLaunched.getBackends());
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
       if (!backends.isEmpty())
       {
@@ -196,8 +195,8 @@ public class DeleteEntryTask extends Task
     state = State.RUNNING;
     lastException = null;
 
-    ArrayList<DN> alreadyDeleted = new ArrayList<DN>();
-    ArrayList<BrowserNodeInfo> toNotify = new ArrayList<BrowserNodeInfo>();
+    ArrayList<DN> alreadyDeleted = new ArrayList<>();
+    ArrayList<BrowserNodeInfo> toNotify = new ArrayList<>();
     try
     {
       for (TreePath path : paths)
@@ -497,7 +496,7 @@ public class DeleteEntryTask extends Task
    */
   private void printEquivalentCommandToDelete(DN dn, boolean usingControl)
   {
-    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     if (usingControl)

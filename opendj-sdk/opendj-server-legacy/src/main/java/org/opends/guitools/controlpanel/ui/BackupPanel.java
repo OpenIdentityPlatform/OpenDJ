@@ -350,7 +350,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lBackupOptions);
     backupIDInitialized = false;
 
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     if (!allBackends.isSelected())
     {
@@ -454,7 +454,7 @@ public class BackupPanel extends BackupListPanel
       public Void processBackgroundTask() throws Throwable
       {
         // Open the backup directory and make sure it is valid.
-        LinkedHashSet<BackupInfo> backups = new LinkedHashSet<BackupInfo>();
+        LinkedHashSet<BackupInfo> backups = new LinkedHashSet<>();
         try
         {
           BackupDirectory backupDir =
@@ -630,7 +630,7 @@ public class BackupPanel extends BackupListPanel
     public BackupTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       if (!allBackends.isSelected())
       {
         backendSet.add((String)backends.getSelectedItem());
@@ -749,7 +749,7 @@ public class BackupPanel extends BackupListPanel
     /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
 
       args.add("--backupDirectory");
       args.add(dir);

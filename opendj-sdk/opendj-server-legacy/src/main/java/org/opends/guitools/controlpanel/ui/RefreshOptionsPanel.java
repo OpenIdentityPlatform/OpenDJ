@@ -136,7 +136,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     isCanceled = true;
 
     setPrimaryValid(lPeriod);
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
     long t = -1;
     try
     {

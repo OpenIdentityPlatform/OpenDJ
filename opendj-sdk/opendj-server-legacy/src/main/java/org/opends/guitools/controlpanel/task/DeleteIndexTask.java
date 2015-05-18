@@ -65,8 +65,8 @@ import org.opends.server.types.OpenDsException;
 public class DeleteIndexTask extends Task
 {
   private final Set<String> backendSet;
-  private final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
-  private final List<AbstractIndexDescriptor> deletedIndexes = new ArrayList<AbstractIndexDescriptor>();
+  private final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<>();
+  private final List<AbstractIndexDescriptor> deletedIndexes = new ArrayList<>();
 
   /**
    * Constructor of the task.
@@ -81,7 +81,7 @@ public class DeleteIndexTask extends Task
   public DeleteIndexTask(ControlPanelInfo info, ProgressDialog dlg, List<AbstractIndexDescriptor> indexesToDelete)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     for (final AbstractIndexDescriptor index : indexesToDelete)
     {
       backendSet.add(index.getBackend().getBackendID());
@@ -123,7 +123,7 @@ public class DeleteIndexTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      final Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+      final Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
       if (!backends.isEmpty())
       {
@@ -344,7 +344,7 @@ public class DeleteIndexTask extends Task
   @Override
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /**
@@ -402,7 +402,7 @@ public class DeleteIndexTask extends Task
    */
   private List<String> getDSConfigCommandLineArguments(AbstractIndexDescriptor index)
   {
-    final List<String> args = new ArrayList<String>();
+    final List<String> args = new ArrayList<>();
     if (isVLVIndex(index))
     {
       args.add("delete-local-db-vlv-index");

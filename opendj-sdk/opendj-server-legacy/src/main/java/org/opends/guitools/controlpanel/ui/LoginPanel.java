@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -163,7 +163,7 @@ public class LoginPanel extends StatusGenericPanel
   {
     setPrimaryValid(dnLabel);
     setPrimaryValid(pwdLabel);
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     boolean dnInvalid = false;
     boolean pwdInvalid = false;

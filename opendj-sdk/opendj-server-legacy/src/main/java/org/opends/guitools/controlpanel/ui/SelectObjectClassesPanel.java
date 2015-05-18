@@ -55,9 +55,8 @@ import org.opends.server.types.Schema;
 public class SelectObjectClassesPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 1230982500028334L;
-  private AddRemovePanel<ObjectClass> addRemove =
-    new AddRemovePanel<ObjectClass>(ObjectClass.class);
-  private Set<ObjectClass> toExclude = new HashSet<ObjectClass>();
+  private AddRemovePanel<ObjectClass> addRemove = new AddRemovePanel<>(ObjectClass.class);
+  private Set<ObjectClass> toExclude = new HashSet<>();
   private Schema schema;
   private boolean isCanceled = true;
 
@@ -180,7 +179,7 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
    */
   public void setSelectedObjectClasses(Set<ObjectClass> selectedObjectClasses)
   {
-    Set<ObjectClass> toAdd = new HashSet<ObjectClass>();
+    Set<ObjectClass> toAdd = new HashSet<>();
     Set<ObjectClass> previouslySelected =
       addRemove.getSelectedListModel().getData();
     for (ObjectClass oc : previouslySelected)
@@ -232,7 +231,7 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
 
   private void updateWithSchema(Schema schema)
   {
-    ArrayList<ObjectClass> allOcs = new ArrayList<ObjectClass>();
+    ArrayList<ObjectClass> allOcs = new ArrayList<>();
     for (String key : schema.getObjectClasses().keySet())
     {
       ObjectClass oc = schema.getObjectClass(key);

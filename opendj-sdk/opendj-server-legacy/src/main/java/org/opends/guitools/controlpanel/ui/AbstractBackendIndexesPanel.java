@@ -74,17 +74,12 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
    * The scroll pane that contains the table.
    */
   protected JScrollPane tableScroll;
-  private Set<IndexSelectionListener> indexListeners =
-    new HashSet<IndexSelectionListener>();
+  private Set<IndexSelectionListener> indexListeners = new HashSet<>();
   private int lastRowMouseOver = -1;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   protected AbstractBackendIndexesPanel()
   {
-    super();
     createLayout();
   }
 

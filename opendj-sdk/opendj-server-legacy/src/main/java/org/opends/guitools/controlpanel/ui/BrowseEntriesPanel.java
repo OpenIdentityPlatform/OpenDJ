@@ -1010,7 +1010,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private void deleteClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
 
     if ((paths != null) && (paths.length > 0))
@@ -1079,7 +1079,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     if (paths != null)
     {
-      LinkedHashSet<DN> dns = new LinkedHashSet<DN>();
+      LinkedHashSet<DN> dns = new LinkedHashSet<>();
       for (TreePath path : paths)
       {
         BasicNode node = (BasicNode)path.getLastPathComponent();

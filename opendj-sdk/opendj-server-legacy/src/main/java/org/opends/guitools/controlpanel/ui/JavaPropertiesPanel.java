@@ -108,14 +108,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private JCheckBox showAll;
 
-  private Set<JavaArgumentsDescriptor> readJavaArguments =
-    new HashSet<JavaArgumentsDescriptor>();
-
-  private Set<JavaArgumentsDescriptor> currentJavaArguments =
-    new HashSet<JavaArgumentsDescriptor>();
-
-  private Set<String> allScriptNames =
-    new HashSet<String>();
+  private Set<JavaArgumentsDescriptor> readJavaArguments = new HashSet<>();
+  private Set<JavaArgumentsDescriptor> currentJavaArguments = new HashSet<>();
+  private Set<String> allScriptNames = new HashSet<>();
   {
     String[] names =
     {
@@ -136,9 +131,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  private Set<String> relevantScriptNames =
-    new HashSet<String>();
-
+  private Set<String> relevantScriptNames = new HashSet<>();
   {
     String[] relevantNames =
     {
@@ -414,8 +407,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     p.add(inlineHelp, gbc);
 
     // Just to create space.
-    Set<JavaArgumentsDescriptor> fakeArguments =
-      new HashSet<JavaArgumentsDescriptor>();
+    Set<JavaArgumentsDescriptor> fakeArguments = new HashSet<>();
     fakeArguments.add(
         new JavaArgumentsDescriptor("start-ds", "-server -XM256j"));
     fakeArguments.add(
@@ -526,11 +518,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   private Set<JavaArgumentsDescriptor> getCurrentJavaArguments()
   {
-    HashSet<JavaArgumentsDescriptor> args =
-      new HashSet<JavaArgumentsDescriptor>(currentJavaArguments);
+    HashSet<JavaArgumentsDescriptor> args = new HashSet<>(currentJavaArguments);
 
-    HashSet<JavaArgumentsDescriptor> tableArgs =
-      new HashSet<JavaArgumentsDescriptor>();
+    HashSet<JavaArgumentsDescriptor> tableArgs = new HashSet<>();
     for (int i=0; i<argumentsTableModel.getRowCount(); i++)
     {
       tableArgs.add(argumentsTableModel.getJavaArguments(i));
@@ -573,8 +563,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
     else
     {
-      Set<JavaArgumentsDescriptor> filteredArgs =
-        new HashSet<JavaArgumentsDescriptor>();
+      Set<JavaArgumentsDescriptor> filteredArgs = new HashSet<>();
       for (String relevantName : getRelevantCommandLineNames())
       {
         for (JavaArgumentsDescriptor arg : args)
@@ -739,7 +728,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   {
     editor.stopCellEditing();
 
-    final ArrayList<LocalizableMessage> javaHomeErrors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> javaHomeErrors = new ArrayList<>();
     String f = javaHome.getText().trim();
     if (f.length() > 0)
     {
@@ -763,7 +752,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
     if (javaHomeErrors.isEmpty())
     {
-      final Set<String> providedArguments = new HashSet<String>();
+      final Set<String> providedArguments = new HashSet<>();
       for (JavaArgumentsDescriptor cmd : getCurrentJavaArguments())
       {
         String args = cmd.getJavaArguments().trim();
@@ -785,8 +774,8 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         {
           String[] jvms;
           String userJVM = javaHome.getText();
-          ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
-          ArrayList<LocalizableMessage> confirmationMessages = new ArrayList<LocalizableMessage>();
+          ArrayList<LocalizableMessage> errorMessages = new ArrayList<>();
+          ArrayList<LocalizableMessage> confirmationMessages = new ArrayList<>();
           String defaultJVM = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
           if (defaultJVM == null)
           {
@@ -806,7 +795,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           }
           for (String jvm : jvms)
           {
-            Set<String> notWorkingArgs = new HashSet<String>();
+            Set<String> notWorkingArgs = new HashSet<>();
 
             String installPath = getInfo().getServerDescriptor().
             getInstallPath();
@@ -929,12 +918,12 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       }
       else
       {
-        ArrayList<String> s = new ArrayList<String>();
+        ArrayList<String> s = new ArrayList<>();
         for (LocalizableMessage msg : javaHomeErrors)
         {
           s.add(msg.toString());
         }
-        ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> msgs = new ArrayList<>();
         LocalizableMessage msg = ERR_CTRL_PANEL_GENERIC_ERROR_FALLBACK_JAVAHOME.get(
             f, Utilities.getStringFromCollection(s, "<br>-"));
         msgs.add(msg);
@@ -964,7 +953,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private void launchTask()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -1109,12 +1098,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   implements Comparator<JavaArgumentsDescriptor>
   {
     private static final long serialVersionUID = 8288418995255677560L;
-    private Set<JavaArgumentsDescriptor> data =
-      new HashSet<JavaArgumentsDescriptor>();
-    private ArrayList<String[]> dataArray =
-      new ArrayList<String[]>();
-    private ArrayList<JavaArgumentsDescriptor> argsArray =
-      new ArrayList<JavaArgumentsDescriptor>();
+    private Set<JavaArgumentsDescriptor> data = new HashSet<>();
+    private ArrayList<String[]> dataArray = new ArrayList<>();
+    private ArrayList<JavaArgumentsDescriptor> argsArray = new ArrayList<>();
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(INFO_CTRL_PANEL_COMMAND_LINE_NAME_COLUMN.get(), 40),
         getHeader(INFO_CTRL_PANEL_JAVA_ARGUMENTS_COLUMN.get(), 40)};
@@ -1286,8 +1272,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
     private void updateDataArray()
     {
-      TreeSet<JavaArgumentsDescriptor> sortedSet =
-        new TreeSet<JavaArgumentsDescriptor>(this);
+      TreeSet<JavaArgumentsDescriptor> sortedSet = new TreeSet<>(this);
       sortedSet.addAll(data);
       dataArray.clear();
       argsArray.clear();
@@ -1341,8 +1326,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     private String defaultJavaHome;
     private boolean overwriteOpenDSJavaHome;
     private boolean overwriteOpenDSJavaArgs;
-    Set<JavaArgumentsDescriptor> arguments =
-      new HashSet<JavaArgumentsDescriptor>();
+    Set<JavaArgumentsDescriptor> arguments = new HashSet<>();
 
     /**
      * The constructor of the task.
@@ -1352,7 +1336,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     public JavaPropertiesTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       defaultJavaHome = javaHome.getText().trim();
       overwriteOpenDSJavaHome = useSpecifiedJavaHome.isSelected();
       overwriteOpenDSJavaArgs = useSpecifiedJavaArgs.isSelected();
@@ -1414,7 +1398,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
 
     /** {@inheritDoc} */
@@ -1446,7 +1430,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     private int updateJavaSettings() throws IOException
     {
       final String propertiesFile = getPropertiesFile();
-      ArrayList<String> commentLines = new ArrayList<String>();
+      ArrayList<String> commentLines = new ArrayList<>();
       BufferedReader reader = null;
       try
       {

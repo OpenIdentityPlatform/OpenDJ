@@ -702,7 +702,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     {
       sb.append("objectClass: ").append(ServerConstants.OC_GROUP_OF_NAMES);
       String[] members = staticMembers.getText().split("\n");
-      LinkedHashSet<DN> dns = new LinkedHashSet<DN>();
+      LinkedHashSet<DN> dns = new LinkedHashSet<>();
       for (String member : members)
       {
         member = member.trim();

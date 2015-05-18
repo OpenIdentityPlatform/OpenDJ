@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -91,12 +91,12 @@ public class DSMLAddOperation
     addResponse.setRequestID(addRequest.getRequestID());
 
     ByteString dnStr = ByteString.valueOf(addRequest.getDn());
-    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<>();
 
     List<DsmlAttr> addList = addRequest.getAttr();
     for(DsmlAttr attr : addList)
     {
-      ArrayList<ByteString> values = new ArrayList<ByteString>();
+      ArrayList<ByteString> values = new ArrayList<>();
       List<Object> vals = attr.getValue();
       for(Object val : vals)
       {

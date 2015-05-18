@@ -66,8 +66,8 @@ import org.opends.server.util.ServerConstants;
 public class AddToGroupTask extends Task
 {
   private Set<String> backendSet;
-  private LinkedHashSet<DN> dns = new LinkedHashSet<DN>();
-  private LinkedHashSet<DN> groupDns = new LinkedHashSet<DN>();
+  private LinkedHashSet<DN> dns = new LinkedHashSet<>();
+  private LinkedHashSet<DN> groupDns = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
@@ -80,7 +80,7 @@ public class AddToGroupTask extends Task
       Set<DN> dns, Set<DN> groupDns)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     this.dns.addAll(dns);
     this.groupDns.addAll(groupDns);
     for (DN groupDn : groupDns)
@@ -126,7 +126,7 @@ public class AddToGroupTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /** {@inheritDoc} */
@@ -140,7 +140,7 @@ public class AddToGroupTask extends Task
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation
       // has not a lot of impact.
-      Set<String> backends = new TreeSet<String>(taskToBeLaunched.getBackends());
+      Set<String> backends = new TreeSet<>(taskToBeLaunched.getBackends());
       backends.retainAll(getBackends());
       if (!backends.isEmpty())
       {
@@ -221,10 +221,9 @@ public class AddToGroupTask extends Task
   private Collection<ModificationItem> getModifications(DN groupDn,
   Set<DN> dns) throws NamingException
   {
-    ArrayList<ModificationItem> modifications =
-      new ArrayList<ModificationItem>();
-    // Search for the group entry
+    ArrayList<ModificationItem> modifications = new ArrayList<>();
 
+    // Search for the group entry
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
@@ -252,9 +251,8 @@ public class AddToGroupTask extends Task
         {
           memberAttr = ServerConstants.ATTR_UNIQUE_MEMBER;
         }
-        Set<String> values =
-          ConnectionUtils.getValues(sr, memberAttr);
-        Set<String> dnsToAdd = new LinkedHashSet<String>();
+        Set<String> values = ConnectionUtils.getValues(sr, memberAttr);
+        Set<String> dnsToAdd = new LinkedHashSet<>();
         if (values != null)
         {
           for (DN newDn : dns)

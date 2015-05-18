@@ -119,35 +119,30 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private GenericDialog browseEntriesDlg;
   private LDAPEntrySelectionPanel browseEntriesPanel;
 
-  private Map<String, List<String>> lastUserPasswords =
-    new HashMap<String,List<String>>();
+  private Map<String, List<String>> lastUserPasswords = new HashMap<>();
 
   private CustomSearchResult searchResult;
   private boolean isReadOnly;
   private TreePath treePath;
   private JScrollPane scrollAttributes;
 
-  private LinkedHashMap<String, List<EditorComponent>> hmEditors =
-    new LinkedHashMap<String, List<EditorComponent>>();
+  private LinkedHashMap<String, List<EditorComponent>> hmEditors = new LinkedHashMap<>();
 
-  private Set<String> requiredAttrs = new HashSet<String>();
-  private Map<String, JComponent> hmLabels = new HashMap<String, JComponent>();
-  private Map<String, String> hmDisplayedNames = new HashMap<String, String>();
-  private Map<String, JComponent> hmComponents =
-    new HashMap<String, JComponent>();
+  private Set<String> requiredAttrs = new HashSet<>();
+  private Map<String, JComponent> hmLabels = new HashMap<>();
+  private Map<String, String> hmDisplayedNames = new HashMap<>();
+  private Map<String, JComponent> hmComponents = new HashMap<>();
 
   private final String CONFIRM_PASSWORD = "confirm password";
 
   /** Map containing as key the attribute name and as value a localizable message. */
-  static Map<String, LocalizableMessage> hmFriendlyAttrNames =
-    new HashMap<String, LocalizableMessage>();
+  static Map<String, LocalizableMessage> hmFriendlyAttrNames = new HashMap<>();
   /**
    * Map containing as key an object class and as value the preferred naming
    * attribute for the objectclass.
    */
-  static Map<String, String> hmNameAttrNames = new HashMap<String, String>();
-  static Map<String, String[]> hmOrdereredAttrNames =
-    new HashMap<String, String[]>();
+  static Map<String, String> hmNameAttrNames = new HashMap<>();
+  static Map<String, String[]> hmOrdereredAttrNames = new HashMap<>();
   static
   {
     hmFriendlyAttrNames.put(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
@@ -494,7 +489,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         List<Object> values = sr.getAttributeValues(attr);
         if (values.isEmpty())
         {
-          values = new ArrayList<Object>(1);
+          values = new ArrayList<>(1);
           if (isBinary(attr))
           {
             values.add(new byte[]{});
@@ -507,7 +502,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
         if (isPassword(attr))
         {
-          List<String> pwds = new ArrayList<String>();
+          List<String> pwds = new ArrayList<>();
           for (Object o : values)
           {
             pwds.add(getPasswordStringValue(o));
@@ -679,12 +674,12 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private Collection<String> getSortedAttributes(CustomSearchResult sr,
       boolean isReadOnly)
   {
-    LinkedHashSet<String> attrNames = new LinkedHashSet<String>();
+    LinkedHashSet<String> attrNames = new LinkedHashSet<>();
 
 //  Get all attributes that the entry can have
-    Set<String> attributes = new LinkedHashSet<String>();
-    ArrayList<String> entryAttrs = new ArrayList<String>(sr.getAttributeNames());
-    ArrayList<String> attrsWithNoOptions = new ArrayList<String>();
+    Set<String> attributes = new LinkedHashSet<>();
+    ArrayList<String> entryAttrs = new ArrayList<>(sr.getAttributeNames());
+    ArrayList<String> attrsWithNoOptions = new ArrayList<>();
     for (String attr : entryAttrs)
     {
       attrsWithNoOptions.add(
@@ -760,8 +755,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       // alphabetical order) the attributes with no friendly name.  Finally
       // do the same with the other attributes.
 
-      SortedSet<String> requiredAttributes = new TreeSet<String>();
-      SortedSet<String> allowedAttributes = new TreeSet<String>();
+      SortedSet<String> requiredAttributes = new TreeSet<>();
+      SortedSet<String> allowedAttributes = new TreeSet<>();
 
       if (schema != null)
       {
@@ -957,7 +952,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private Set<String> toStrings(Collection<Object> objects)
   {
-    Set<String> results = new TreeSet<String>();
+    Set<String> results = new TreeSet<>();
     for (Object o : objects)
     {
       results.add(String.valueOf(o));
@@ -973,7 +968,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
 
-    List<EditorComponent> components = new ArrayList<EditorComponent>();
+    List<EditorComponent> components = new ArrayList<>();
     hmEditors.put(attrName.toLowerCase(), components);
 
     boolean isBinary = hasBinaryValue(values);
@@ -1238,7 +1233,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     Entry entry = null;
 
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
 
     try
     {
@@ -1313,7 +1308,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private List<String> getDisplayedStringValues(String attrName)
   {
-    List<String> values = new ArrayList<String>();
+    List<String> values = new ArrayList<>();
     List<EditorComponent> comps =
       hmEditors.get(attrName.toLowerCase());
     if (comps != null)
@@ -1513,9 +1508,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();
-        List<AttributeType> attributeTypes = new ArrayList<AttributeType>();
-        List<String> attributeNames = new ArrayList<String>();
-        List<ByteString> attributeValues = new ArrayList<ByteString>();
+        List<AttributeType> attributeTypes = new ArrayList<>();
+        List<String> attributeNames = new ArrayList<>();
+        List<ByteString> attributeValues = new ArrayList<>();
         for (int i=0; i<rdn.getNumValues(); i++)
         {
           String attrName = rdn.getAttributeName(i);
@@ -1727,8 +1722,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (schema != null)
     {
-      ArrayList<String> attributes = new ArrayList<String>();
-      ArrayList<String> ocs = new ArrayList<String>();
+      ArrayList<String> attributes = new ArrayList<>();
+      ArrayList<String> ocs = new ArrayList<>();
       if (newValue.getStructural() != null)
       {
         ocs.add(newValue.getStructural().toLowerCase());
@@ -1935,7 +1930,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       if (comp instanceof ObjectClassCellPanel)
       {
         ObjectClassValue ocDesc = ((ObjectClassCellPanel)comp).getValue();
-        LinkedHashSet<String> values = new LinkedHashSet<String>();
+        LinkedHashSet<String> values = new LinkedHashSet<>();
         String structural = ocDesc.getStructural();
         if (structural != null)
         {
@@ -1954,7 +1949,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         returnValue = values;
       } else if (comp instanceof JTextArea)
       {
-        LinkedHashSet<String> values = new LinkedHashSet<String>();
+        LinkedHashSet<String> values = new LinkedHashSet<>();
         String value = ((JTextArea)comp).getText();
         String[] lines = value.split("\n");
         for (String line : lines)

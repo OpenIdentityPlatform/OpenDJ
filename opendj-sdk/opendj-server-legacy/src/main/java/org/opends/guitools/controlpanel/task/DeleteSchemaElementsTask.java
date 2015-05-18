@@ -76,17 +76,17 @@ import org.opends.server.util.StaticUtils;
 public class DeleteSchemaElementsTask extends Task
 {
   /** The list of object classes that the user asked to delete. */
-  private LinkedHashSet<ObjectClass> providedOcsToDelete = new LinkedHashSet<ObjectClass>();
+  private LinkedHashSet<ObjectClass> providedOcsToDelete = new LinkedHashSet<>();
   /** The list of attributes that the user asked to delete. */
-  private LinkedHashSet<AttributeType> providedAttrsToDelete = new LinkedHashSet<AttributeType>();
+  private LinkedHashSet<AttributeType> providedAttrsToDelete = new LinkedHashSet<>();
   /** The list of object classes that will be actually deleted (some might be recreated). */
-  private LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<ObjectClass>();
+  private LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<>();
   /** The list of attributes that will be actually deleted (some might be recreated). */
-  private LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<AttributeType>();
+  private LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<>();
   /** The list of object classes that will be recreated. */
-  private LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+  private LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
   /** The list of attributes that will be recreated. */
-  private LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<AttributeType>();
+  private LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
@@ -130,8 +130,7 @@ public class DeleteSchemaElementsTask extends Task
                 ocsToDelete, schema));
       }
     }
-    ArrayList<AttributeType> lAttrsToDelete =
-      new ArrayList<AttributeType>(allAttrsToDelete);
+    ArrayList<AttributeType> lAttrsToDelete = new ArrayList<>(allAttrsToDelete);
     for (int i = lAttrsToDelete.size() - 1; i >= 0; i--)
     {
       AttributeType attrToDelete = lAttrsToDelete.get(i);
@@ -146,8 +145,7 @@ public class DeleteSchemaElementsTask extends Task
     }
 
     assert allOcsToDelete != null;
-    ArrayList<ObjectClass> lOcsToDelete =
-      new ArrayList<ObjectClass>(allOcsToDelete);
+    ArrayList<ObjectClass> lOcsToDelete = new ArrayList<>(allOcsToDelete);
     for (int i = lOcsToDelete.size() - 1; i >= 0; i--)
     {
       ObjectClass ocToDelete = lOcsToDelete.get(i);
@@ -508,7 +506,7 @@ public class DeleteSchemaElementsTask extends Task
     }
     else
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       args.add("-a");
       args.addAll(getObfuscatedCommandLineArguments(
           getConnectionCommandLineArguments(true, true)));
@@ -562,7 +560,7 @@ public class DeleteSchemaElementsTask extends Task
     }
     if (isSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<String>();
+      ArrayList<String> allNames = new ArrayList<>();
       for (String str : attrToDelete.getNormalizedNames())
       {
         allNames.add(str);
@@ -610,7 +608,7 @@ public class DeleteSchemaElementsTask extends Task
       }
     }
     boolean hasSuperior = false;
-    Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> newSuperiors = new LinkedHashSet<>();
     for (ObjectClass sup : ocToDelete.getSuperiorClasses())
     {
       boolean isFound = false;
@@ -633,7 +631,7 @@ public class DeleteSchemaElementsTask extends Task
 
     if (containsAttribute || hasSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<String>();
+      ArrayList<String> allNames = new ArrayList<>();
       for (String str : ocToDelete.getNormalizedNames())
       {
         allNames.add(str);
@@ -644,10 +642,8 @@ public class DeleteSchemaElementsTask extends Task
       Set<AttributeType> optional;
       if (containsAttribute)
       {
-        required = new HashSet<AttributeType>(
-            ocToDelete.getRequiredAttributes());
-        optional = new HashSet<AttributeType>(
-            ocToDelete.getOptionalAttributes());
+        required = new HashSet<>(ocToDelete.getRequiredAttributes());
+        optional = new HashSet<>(ocToDelete.getOptionalAttributes());
         required.removeAll(providedAttrsToDelete);
         optional.removeAll(providedAttrsToDelete);
       }
@@ -679,7 +675,7 @@ public class DeleteSchemaElementsTask extends Task
 
   private Set<ObjectClass> getNewSuperiors(ObjectClass currentSup)
   {
-    Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> newSuperiors = new LinkedHashSet<>();
     if (currentSup.getSuperiorClasses() != null &&
         !currentSup.getSuperiorClasses().isEmpty())
     {
@@ -708,8 +704,7 @@ public class DeleteSchemaElementsTask extends Task
   public static LinkedHashSet<AttributeType> getOrderedAttributesToDelete(
       Collection<AttributeType> attrsToDelete, Schema schema)
   {
-    LinkedHashSet<AttributeType> orderedAttributes =
-      new LinkedHashSet<AttributeType>();
+    LinkedHashSet<AttributeType> orderedAttributes = new LinkedHashSet<>();
     for (AttributeType attribute : attrsToDelete)
     {
       orderedAttributes.addAll(getOrderedChildrenToDelete(attribute, schema));
@@ -727,7 +722,7 @@ public class DeleteSchemaElementsTask extends Task
   public static LinkedHashSet<ObjectClass> getOrderedObjectClassesToDelete(
       Collection<ObjectClass> ocsToDelete, Schema schema)
   {
-    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<ObjectClass>();
+    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<>();
     for (ObjectClass oc : ocsToDelete)
     {
       orderedOcs.addAll(getOrderedChildrenToDelete(oc, schema));
@@ -748,8 +743,8 @@ public class DeleteSchemaElementsTask extends Task
   getOrderedObjectClassesToDeleteFromAttrs(
       Collection<AttributeType> attrsToDelete, Schema schema)
   {
-    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<ObjectClass>();
-    ArrayList<ObjectClass> dependentClasses = new ArrayList<ObjectClass>();
+    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<>();
+    ArrayList<ObjectClass> dependentClasses = new ArrayList<>();
     for (AttributeType attr : attrsToDelete)
     {
       for (ObjectClass oc : schema.getObjectClasses().values())
@@ -781,12 +776,11 @@ public class DeleteSchemaElementsTask extends Task
   public static Map<String, List<String>> cloneExtraProperties(
       CommonSchemaElements element)
   {
-    Map<String, List<String>> extraProperties =
-      new HashMap<String, List<String>>();
+    Map<String, List<String>> extraProperties = new HashMap<>();
     Map<String, List<String>> props = element.getExtraProperties();
     for (String name : props.keySet())
     {
-      List<String> values = new ArrayList<String>(props.get(name));
+      List<String> values = new ArrayList<>(props.get(name));
       extraProperties.put(name, values);
     }
     return extraProperties;
@@ -796,7 +790,7 @@ public class DeleteSchemaElementsTask extends Task
   private static LinkedHashSet<AttributeType> getOrderedChildrenToDelete(
       AttributeType attribute, Schema schema)
   {
-    LinkedHashSet<AttributeType> children = new LinkedHashSet<AttributeType>();
+    LinkedHashSet<AttributeType> children = new LinkedHashSet<>();
     for (AttributeType attr : schema.getAttributeTypes().values())
     {
       if (attribute.equals(attr.getSuperiorType()))
@@ -811,7 +805,7 @@ public class DeleteSchemaElementsTask extends Task
   private static LinkedHashSet<ObjectClass> getOrderedChildrenToDelete(
       ObjectClass objectClass, Schema schema)
   {
-    LinkedHashSet<ObjectClass> children = new LinkedHashSet<ObjectClass>();
+    LinkedHashSet<ObjectClass> children = new LinkedHashSet<>();
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getSuperiorClasses().contains(objectClass))

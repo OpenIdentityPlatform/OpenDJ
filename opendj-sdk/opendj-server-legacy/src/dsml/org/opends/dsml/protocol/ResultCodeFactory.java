@@ -33,8 +33,7 @@ import java.util.HashMap;
  */
 public class ResultCodeFactory
 {
-  static HashMap<Integer,LDAPResultCode> codeToDescr =
-    new HashMap<Integer,LDAPResultCode>();
+  static HashMap<Integer,LDAPResultCode> codeToDescr = new HashMap<>();
   static
   {
     codeToDescr.put(0, LDAPResultCode.SUCCESS);
@@ -49,8 +48,7 @@ public class ResultCodeFactory
     codeToDescr.put(8, LDAPResultCode.STRONG_AUTH_REQUIRED);
     codeToDescr.put(10, LDAPResultCode.REFERRAL);
     codeToDescr.put(11, LDAPResultCode.ADMIN_LIMIT_EXCEEDED);
-    codeToDescr.put(12,
-      LDAPResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+    codeToDescr.put(12, LDAPResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
     codeToDescr.put(13, LDAPResultCode.CONFIDENTIALITY_REQUIRED);
     codeToDescr.put(14, LDAPResultCode.SASL_BIND_IN_PROGRESS);
     codeToDescr.put(16, LDAPResultCode.NO_SUCH_ATTRIBUTE);

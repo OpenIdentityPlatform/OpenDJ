@@ -79,22 +79,22 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     private String scmRepositoryUrl;
 
     /** The file extensions to test. */
-    public static final List<String> CHECKED_EXTENSIONS = new LinkedList<String>(Arrays.asList(
+    public static final List<String> CHECKED_EXTENSIONS = new LinkedList<>(Arrays.asList(
             "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "sh", "txt", "xml", "xsd", "xsl"));
 
-    private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = new LinkedList<String>(Arrays.asList(
+    private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = new LinkedList<>(Arrays.asList(
                     "*/", "-->"));
 
-    private static final List<String> SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN = new LinkedList<String>(Arrays.asList(
+    private static final List<String> SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN = new LinkedList<>(Arrays.asList(
                     "*", "#", "rem", "!"));
 
-    private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = new LinkedList<String>(Arrays.asList(
+    private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = new LinkedList<>(Arrays.asList(
                     "/*", "<!--"));
 
     /** The string representation of the current year. */
     Integer currentYear = Calendar.getInstance().get(Calendar.YEAR);
 
-    private final List<String> incorrectCopyrightFilePaths = new LinkedList<String>();
+    private final List<String> incorrectCopyrightFilePaths = new LinkedList<>();
 
     /** The overall SCM Client Manager. */
     private ScmManager scmManager;
@@ -166,7 +166,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             }
 
             List<ScmFile> scmFiles = statusResult.getChangedFiles();
-            List<String> changedFilePaths = new LinkedList<String>();
+            List<String> changedFilePaths = new LinkedList<>();
             for (ScmFile scmFile : scmFiles) {
                 if (scmFile.getStatus() != ScmFileStatus.UNKNOWN) {
                     changedFilePaths.add(scmFile.getPath());

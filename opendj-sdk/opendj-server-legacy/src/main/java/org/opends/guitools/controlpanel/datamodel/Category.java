@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -40,7 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 public class Category
 {
   private LocalizableMessage name;
-  private ArrayList<Action> actions = new ArrayList<Action>();
+  private ArrayList<Action> actions = new ArrayList<>();
 
   /**
    * Returns the name of the category.

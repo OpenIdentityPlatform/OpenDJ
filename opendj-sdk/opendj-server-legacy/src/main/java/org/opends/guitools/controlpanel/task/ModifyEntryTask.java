@@ -97,7 +97,7 @@ public class ModifyEntryTask extends Task
       BrowserController controller, TreePath path)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     this.oldEntry = oldEntry;
     this.newEntry = newEntry;
     this.controller = controller;
@@ -181,7 +181,7 @@ public class ModifyEntryTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /** {@inheritDoc} */
@@ -469,8 +469,7 @@ public class ModifyEntryTask extends Task
    */
   public static ArrayList<ModificationItem> getModifications(Entry newEntry,
       CustomSearchResult oldEntry, ControlPanelInfo info) {
-    ArrayList<ModificationItem> modifications =
-      new ArrayList<ModificationItem>();
+    ArrayList<ModificationItem> modifications = new ArrayList<>();
     Schema schema = info.getServerDescriptor().getSchema();
 
     List<org.opends.server.types.Attribute> newAttrs = newEntry.getAttributes();
@@ -489,7 +488,7 @@ public class ModifyEntryTask extends Task
         attrType = DirectoryServer.getDefaultAttributeType(
             attr.getName().toLowerCase());
       }
-      List<ByteString> newValues = new ArrayList<ByteString>();
+      List<ByteString> newValues = new ArrayList<>();
       Iterator<ByteString> it = attr.iterator();
       while (it.hasNext())
       {
@@ -562,7 +561,7 @@ public class ModifyEntryTask extends Task
       }
       if (oldValues == null)
       {
-        Set<ByteString> vs = new HashSet<ByteString>(newValues);
+        Set<ByteString> vs = new HashSet<>(newValues);
         if (rdnValue != null)
         {
           vs.remove(rdnValue);
@@ -601,7 +600,7 @@ public class ModifyEntryTask extends Task
           }
           if (!toAdd.isEmpty())
           {
-            List<ByteString> vs = new ArrayList<ByteString>(toAdd);
+            List<ByteString> vs = new ArrayList<>(toAdd);
             if (rdnValue != null)
             {
               vs.remove(rdnValue);
@@ -694,7 +693,7 @@ public class ModifyEntryTask extends Task
   private static List<ByteString> getValuesToDelete(List<Object> oldValues,
       List<ByteString> newValues)
   {
-    List<ByteString> valuesToDelete = new ArrayList<ByteString>();
+    List<ByteString> valuesToDelete = new ArrayList<>();
     for (Object o : oldValues)
     {
       ByteString oldValue = createAttributeValue(o);
@@ -715,7 +714,7 @@ public class ModifyEntryTask extends Task
   private static List<ByteString> getValuesToAdd(List<Object> oldValues,
     List<ByteString> newValues)
   {
-    List<ByteString> valuesToAdd = new ArrayList<ByteString>();
+    List<ByteString> valuesToAdd = new ArrayList<>();
     for (ByteString newValue : newValues)
     {
       if (!contains(oldValues, newValue))

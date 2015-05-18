@@ -226,17 +226,17 @@ public class BackendDescriptor
     {
       baseDN.setBackend(this);
     }
-    this.baseDns = new TreeSet<BaseDNDescriptor>(baseDns);
+    this.baseDns = new TreeSet<>(baseDns);
     for (IndexDescriptor index : indexes)
     {
       index.setBackend(this);
     }
-    this.indexes = new TreeSet<IndexDescriptor>(indexes);
+    this.indexes = new TreeSet<>(indexes);
     for (VLVIndexDescriptor index : vlvIndexes)
     {
       index.setBackend(this);
     }
-    this.vlvIndexes = new TreeSet<VLVIndexDescriptor>(vlvIndexes);
+    this.vlvIndexes = new TreeSet<>(vlvIndexes);
   }
 
   /**

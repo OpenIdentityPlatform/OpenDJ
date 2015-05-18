@@ -152,7 +152,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
   public void okClicked()
   {
     String struct = (String)  structural.getSelectedItem();
-    TreeSet<String> aux = new TreeSet<String>(auxiliary.getSelectedListModel().getData());
+    TreeSet<String> aux = new TreeSet<>(auxiliary.getSelectedListModel().getData());
     aux.add("top");
     ObjectClassValue newValue = new ObjectClassValue(struct, aux);
     valueChanged = !newValue.equals(value);
@@ -172,8 +172,8 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     final Schema schema = ev.getNewDescriptor().getSchema();
     if (schema != null)
     {
-      final SortedSet<String> auxiliaryOcs = new TreeSet<String>();
-      final SortedSet<String> structuralOcs = new TreeSet<String>();
+      final SortedSet<String> auxiliaryOcs = new TreeSet<>();
+      final SortedSet<String> structuralOcs = new TreeSet<>();
       for (ObjectClass oc : schema.getObjectClasses().values())
       {
         if (oc.getObjectClassType() == ObjectClassType.AUXILIARY)
@@ -210,7 +210,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
           }
           else
           {
-            currentAux = new TreeSet<String>();
+            currentAux = new TreeSet<>();
           }
           SortableListModel<String> availableListModel =
             auxiliary.getAvailableListModel();
@@ -322,7 +322,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
-    auxiliary = new AddRemovePanel<String>(String.class);
+    auxiliary = new AddRemovePanel<>(String.class);
     gbc.insets.left = 30;
     add(auxiliary, gbc);
   }

@@ -180,7 +180,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     scheduleType = Utilities.createComboBox();
     scheduleType.setModel(new DefaultComboBoxModel());
 
-    ArrayList<Object> newElements = new ArrayList<Object>();
+    ArrayList<Object> newElements = new ArrayList<>();
     newElements.add(new CategorizedComboBoxElement(LAUNCH_NOW,
         CategorizedComboBoxElement.Type.REGULAR));
     newElements.add(COMBO_SEPARATOR);
@@ -308,7 +308,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
   public void okClicked()
   {
     schedule = null;
-    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<>();
 
     updateErrorMessages(errorMessages);
 

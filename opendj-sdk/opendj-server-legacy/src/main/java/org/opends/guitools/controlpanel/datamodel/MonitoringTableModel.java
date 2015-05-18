@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -49,9 +49,9 @@ import static org.opends.messages.AdminToolMessages.*;
 abstract class MonitoringTableModel<T, P> extends SortableTableModel implements Comparator<P>
 {
   private static final long serialVersionUID = -3974562860632179025L;
-  private final Set<P> data = new HashSet<P>();
-  private final ArrayList<String[]> dataArray = new ArrayList<String[]>();
-  private final ArrayList<P> dataSourceArray = new ArrayList<P>();
+  private final Set<P> data = new HashSet<>();
+  private final ArrayList<String[]> dataArray = new ArrayList<>();
+  private final ArrayList<P> dataSourceArray = new ArrayList<>();
   private boolean showAverages;
   private long runningTime;
 
@@ -60,7 +60,7 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
   private final LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /** The attributes to be displayed. */
-  private final LinkedHashSet<MonitoringAttributes> attributes = new LinkedHashSet<MonitoringAttributes>();
+  private final LinkedHashSet<MonitoringAttributes> attributes = new LinkedHashSet<>();
   /** The sort column of the table. */
   private int sortColumn;
   /** Whether the sorting is ascending or descending. */
@@ -235,7 +235,7 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
    */
   private void updateDataArray()
   {
-    TreeSet<P> sortedSet = new TreeSet<P>(this);
+    TreeSet<P> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
     dataSourceArray.clear();
@@ -374,12 +374,12 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
   protected ArrayList<Integer> getMonitoringPossibleResults(
       CustomSearchResult monitor1, CustomSearchResult monitor2)
   {
-    final List<String> attrs = new ArrayList<String>();
+    final List<String> attrs = new ArrayList<>();
     for (MonitoringAttributes operation : getAttributes())
     {
       attrs.add(operation.getAttributeName());
     }
-    final ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    final ArrayList<Integer> possibleResults = new ArrayList<>();
     computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attrs);
     return possibleResults;
   }

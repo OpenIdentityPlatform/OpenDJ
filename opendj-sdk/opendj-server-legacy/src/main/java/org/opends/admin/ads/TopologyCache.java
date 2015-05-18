@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.admin.ads;
 
@@ -70,12 +70,9 @@ public class TopologyCache
   private final int timeout;
   private final String bindDN;
   private final String bindPwd;
-  private final Set<ServerDescriptor> servers =
-      new HashSet<ServerDescriptor>();
-  private final Set<SuffixDescriptor> suffixes =
-      new HashSet<SuffixDescriptor>();
-  private final Set<PreferredConnection> preferredConnections =
-      new LinkedHashSet<PreferredConnection>();
+  private final Set<ServerDescriptor> servers = new HashSet<>();
+  private final Set<SuffixDescriptor> suffixes = new HashSet<>();
+  private final Set<PreferredConnection> preferredConnections = new LinkedHashSet<>();
   private final TopologyCacheFilter filter = new TopologyCacheFilter();
   private static final int MULTITHREAD_TIMEOUT = 90 * 1000;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -116,7 +113,7 @@ public class TopologyCache
       Set<Map<ServerProperty, Object>> adsServers =
           adsContext.readServerRegistry();
 
-      Set<ServerLoader> threadSet = new HashSet<ServerLoader>();
+      Set<ServerLoader> threadSet = new HashSet<>();
       for (Map<ServerProperty, Object> serverProperties : adsServers)
       {
         ServerLoader t = getServerLoader(serverProperties);
@@ -128,8 +125,7 @@ public class TopologyCache
        * Try to consolidate things (even if the data is not complete).
        */
 
-      HashMap<LdapName, Set<SuffixDescriptor>> hmSuffixes =
-          new HashMap<LdapName, Set<SuffixDescriptor>>();
+      HashMap<LdapName, Set<SuffixDescriptor>> hmSuffixes = new HashMap<>();
       for (ServerLoader loader : threadSet)
       {
         ServerDescriptor descriptor = loader.getServerDescriptor();
@@ -165,7 +161,7 @@ public class TopologyCache
           {
             if (sufs == null)
             {
-              sufs = new HashSet<SuffixDescriptor>();
+              sufs = new HashSet<>();
               hmSuffixes.put(dn, sufs);
             }
             sufs.add(replica.getSuffix());
@@ -228,7 +224,7 @@ public class TopologyCache
         Set<ReplicaDescriptor> candidateReplicas = getCandidateReplicas(server);
         if (!candidateReplicas.isEmpty())
         {
-          Set<ReplicaDescriptor> updatedReplicas = new HashSet<ReplicaDescriptor>();
+          Set<ReplicaDescriptor> updatedReplicas = new HashSet<>();
           try
           {
             updateReplicas(server, candidateReplicas, updatedReplicas);
@@ -251,7 +247,7 @@ public class TopologyCache
 
   private Set<ReplicaDescriptor> getReplicasToUpdate()
   {
-    Set<ReplicaDescriptor> replicasToUpdate = new HashSet<ReplicaDescriptor>();
+    Set<ReplicaDescriptor> replicasToUpdate = new HashSet<>();
     for (ServerDescriptor server : getServers())
     {
       for (ReplicaDescriptor replica : server.getReplicas())
@@ -267,7 +263,7 @@ public class TopologyCache
 
   private Set<ReplicaDescriptor> getCandidateReplicas(ServerDescriptor server)
   {
-    Set<ReplicaDescriptor> candidateReplicas = new HashSet<ReplicaDescriptor>();
+    Set<ReplicaDescriptor> candidateReplicas = new HashSet<>();
     // It contains replication information: analyze it.
     String repServer = server.getReplicationServerHostPort();
     for (SuffixDescriptor suffix : getSuffixes())
@@ -315,7 +311,7 @@ public class TopologyCache
    */
   public LinkedHashSet<PreferredConnection> getPreferredConnections()
   {
-    return new LinkedHashSet<PreferredConnection>(preferredConnections);
+    return new LinkedHashSet<>(preferredConnections);
   }
 
   /**
@@ -325,7 +321,7 @@ public class TopologyCache
    */
   public Set<ServerDescriptor> getServers()
   {
-    return new HashSet<ServerDescriptor>(servers);
+    return new HashSet<>(servers);
   }
 
   /**
@@ -337,7 +333,7 @@ public class TopologyCache
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
-    return new HashSet<SuffixDescriptor>(suffixes);
+    return new HashSet<>(suffixes);
   }
 
   /**
@@ -418,10 +414,9 @@ public class TopologyCache
    */
   public Set<LocalizableMessage> getErrorMessages()
   {
-    Set<TopologyCacheException> exceptions =
-        new HashSet<TopologyCacheException>();
+    Set<TopologyCacheException> exceptions = new HashSet<>();
     Set<ServerDescriptor> theServers = getServers();
-    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<>();
     for (ServerDescriptor server : theServers)
     {
       TopologyCacheException e = server.getLastException();

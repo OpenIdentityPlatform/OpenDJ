@@ -52,8 +52,7 @@ AddressConnectionHandlerDescriptor>
   protected Set<AddressConnectionHandlerDescriptor> convertToInternalData(
       Set<ConnectionHandlerDescriptor> newData)
   {
-    Set<AddressConnectionHandlerDescriptor> newAddresses =
-      new HashSet<AddressConnectionHandlerDescriptor>();
+    Set<AddressConnectionHandlerDescriptor> newAddresses = new HashSet<>();
     for (ConnectionHandlerDescriptor ch : newData)
     {
       if (ch.getAddresses().isEmpty())
@@ -78,7 +77,7 @@ AddressConnectionHandlerDescriptor>
   public int compare(AddressConnectionHandlerDescriptor desc1,
       AddressConnectionHandlerDescriptor desc2)
   {
-    ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    ArrayList<Integer> possibleResults = new ArrayList<>();
 
     possibleResults.add(compareNames(desc1, desc2));
     possibleResults.addAll(getMonitoringPossibleResults(

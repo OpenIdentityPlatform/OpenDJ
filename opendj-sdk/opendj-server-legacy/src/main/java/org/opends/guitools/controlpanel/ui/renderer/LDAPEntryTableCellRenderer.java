@@ -59,7 +59,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
   private ImageIcon lockIcon =
     Utilities.createImageIcon(IconPool.IMAGE_PATH+"/field-locked.png");
   private Schema schema;
-  private Collection<String> requiredAttrs = new ArrayList<String>();
+  private Collection<String> requiredAttrs = new ArrayList<>();
 
   /**
    * Constructor of the cell renderer.

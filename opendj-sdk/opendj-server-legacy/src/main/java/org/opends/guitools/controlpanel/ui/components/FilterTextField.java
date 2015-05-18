@@ -75,15 +75,10 @@ public class FilterTextField extends JTextField
    */
   public static long DEFAULT_REFRESH_ICON_TIME = 750;
 
-  private LinkedHashSet<ActionListener> listeners =
-    new LinkedHashSet<ActionListener>();
-
+  private LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
   private boolean constructorBorderSet;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public FilterTextField()
   {
     super(15);

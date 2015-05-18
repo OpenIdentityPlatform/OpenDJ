@@ -155,7 +155,7 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePasswordValue;
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
-  private HashSet<String> exopStrings = new HashSet<String>();
+  private HashSet<String> exopStrings = new HashSet<>();
 
   /**
    * This method will be called by the Servlet Container when
@@ -251,10 +251,9 @@ public class DSMLServlet extends HttpServlet {
       LDAPConnection connection, String authorizationID)
       throws LDAPConnectionException
   {
-    LinkedHashSet<String>attributes = new LinkedHashSet<String>(1);
+    LinkedHashSet<String>attributes = new LinkedHashSet<>(1);
     attributes.add(SchemaConstants.NO_ATTRIBUTES);
-    ArrayList<org.opends.server.types.Control> controls =
-        new ArrayList<org.opends.server.types.Control>(1);
+    ArrayList<org.opends.server.types.Control> controls = new ArrayList<>(1);
     org.opends.server.types.Control proxyAuthzControl =
         new ProxiedAuthV2Control(true, ByteString.valueOf(authorizationID));
     controls.add(proxyAuthzControl);
@@ -726,8 +725,7 @@ public class DSMLServlet extends HttpServlet {
                                             ObjectFactory objFactory,
                                             org.opends.server.types.Control proxyAuthzControl,
                                             DsmlMessage request) {
-    ArrayList<org.opends.server.types.Control> controls =
-        new ArrayList<org.opends.server.types.Control>(1);
+    ArrayList<org.opends.server.types.Control> controls = new ArrayList<>(1);
     if (proxyAuthzControl != null)
     {
       controls.add(proxyAuthzControl);

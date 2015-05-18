@@ -52,18 +52,18 @@ public class TaskTableModel  extends SortableTableModel
 implements Comparator<TaskEntry>
 {
   private static final long serialVersionUID = -351142550147124L;
-  private Set<TaskEntry> data = new HashSet<TaskEntry>();
-  private ArrayList<TaskEntry> dataSourceArray = new ArrayList<TaskEntry>();
+  private Set<TaskEntry> data = new HashSet<>();
+  private ArrayList<TaskEntry> dataSourceArray = new ArrayList<>();
 
-  LinkedHashSet<LocalizableMessage> displayedAttributes = new LinkedHashSet<LocalizableMessage>();
-  final LinkedHashSet<LocalizableMessage> defaultAttributes = new LinkedHashSet<LocalizableMessage>();
+  LinkedHashSet<LocalizableMessage> displayedAttributes = new LinkedHashSet<>();
+  final LinkedHashSet<LocalizableMessage> defaultAttributes = new LinkedHashSet<>();
   {
     defaultAttributes.add(INFO_TASKINFO_FIELD_ID.get());
     defaultAttributes.add(INFO_TASKINFO_FIELD_TYPE.get());
     defaultAttributes.add(INFO_TASKINFO_FIELD_STATUS.get());
     defaultAttributes.add(INFO_CTRL_PANEL_TASK_CANCELABLE.get());
   }
-  LinkedHashSet<LocalizableMessage> allAttributes = new LinkedHashSet<LocalizableMessage>();
+  LinkedHashSet<LocalizableMessage> allAttributes = new LinkedHashSet<>();
   {
     allAttributes.addAll(defaultAttributes);
     allAttributes.add(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
@@ -136,7 +136,7 @@ implements Comparator<TaskEntry>
    */
   private void updateDataArray()
   {
-    TreeSet<TaskEntry> sortedSet = new TreeSet<TaskEntry>(this);
+    TreeSet<TaskEntry> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataSourceArray.clear();
     dataSourceArray.addAll(sortedSet);
@@ -281,7 +281,7 @@ implements Comparator<TaskEntry>
   public int compare(TaskEntry desc1, TaskEntry desc2)
   {
     int result;
-    ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    ArrayList<Integer> possibleResults = new ArrayList<>();
 
     possibleResults.add(desc1.getId().compareTo(desc2.getId()));
     possibleResults.add(desc1.getType().compareTo(desc2.getType()));

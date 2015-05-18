@@ -110,10 +110,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
   private JLabel lAttributes = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_ATTRIBUTES_LABEL.get());
 
-  private Set<AttributeType> inheritedOptionalAttributes =
-    new HashSet<AttributeType>();
-  private Set<AttributeType> inheritedRequiredAttributes =
-    new HashSet<AttributeType>();
+  private Set<AttributeType> inheritedOptionalAttributes = new HashSet<>();
+  private Set<AttributeType> inheritedRequiredAttributes = new HashSet<>();
 
   private JLabel[] labels = {lName, lSuperior, lOID, lAliases, lOrigin, lFile,
       lDescription, lType, lAttributes
@@ -234,7 +232,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
@@ -378,7 +376,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     attributes.getAvailableListModel().addAll(allAttrs);
 
 
-    HashSet<AttributeType> toDelete = new HashSet<AttributeType>();
+    HashSet<AttributeType> toDelete = new HashSet<>();
     for (AttributeType attr : attributes.getSelectedListModel1().getData())
     {
       if (!allAttrs.contains(attr))
@@ -395,7 +393,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       attributes.getSelectedListModel1().remove(attr);
     }
 
-    toDelete = new HashSet<AttributeType>();
+    toDelete = new HashSet<>();
     for (AttributeType attr : attributes.getSelectedListModel2().getData())
     {
       if (!allAttrs.contains(attr))
@@ -417,7 +415,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     {
       if (sel != null)
       {
-        ArrayList<Integer> indexes = new ArrayList<Integer>();
+        ArrayList<Integer> indexes = new ArrayList<>();
         for (int j=0; j<sel.length; j++)
         {
           if (sel[j] < lists[i].getModel().getSize())
@@ -510,8 +508,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
             attributes.getSelectedList2(), 0,
             attributes.getSelectedList2().getModel().getSize() - 1);
 
-        Collection<AttributeType> unmovableItems =
-          new ArrayList<AttributeType>(inheritedRequiredAttributes);
+        Collection<AttributeType> unmovableItems = new ArrayList<>(inheritedRequiredAttributes);
         unmovableItems.addAll(inheritedOptionalAttributes);
         attributes.setUnmovableItems(unmovableItems);
 
@@ -540,8 +537,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     SchemaElementComboBoxCellRenderer(type);
     type.setRenderer(renderer);
 
-    attributes =
-      new DoubleAddRemovePanel<AttributeType>(0, AttributeType.class);
+    attributes = new DoubleAddRemovePanel<>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
       /** {@inheritDoc} */
@@ -660,18 +656,18 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private Map<String, List<String>> getExtraProperties()
   {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    Map<String, List<String>> map = new HashMap<>();
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(f);
       map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(or);
       map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
     }
@@ -680,7 +676,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private ArrayList<String> getAliases()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     String s = aliases.getText().trim();
     if (s.length() > 0)
     {
@@ -695,7 +691,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private ArrayList<String> getAllNames()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     al.add(getObjectClassName());
     al.addAll(getAliases());
     return al;
@@ -736,7 +732,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private Set<AttributeType> intersect(Set<AttributeType> set1, Set<AttributeType> set2)
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>(set1);
+    HashSet<AttributeType> attrs = new HashSet<>(set1);
     attrs.removeAll(set2);
     return attrs;
   }

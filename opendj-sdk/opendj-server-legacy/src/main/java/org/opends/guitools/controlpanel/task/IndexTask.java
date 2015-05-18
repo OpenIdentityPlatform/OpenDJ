@@ -64,7 +64,7 @@ public abstract class IndexTask extends Task
       String baseDN)
   {
     super(info, dlg);
-    baseDNs = new HashSet<String>();
+    baseDNs = new HashSet<>();
     baseDNs.add(baseDN);
     initializeBackendSet();
   }
@@ -79,8 +79,8 @@ public abstract class IndexTask extends Task
       Collection<String> baseDNs)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
-    this.baseDNs = new TreeSet<String>();
+    backendSet = new HashSet<>();
+    this.baseDNs = new TreeSet<>();
     this.baseDNs.addAll(baseDNs);
     initializeBackendSet();
   }

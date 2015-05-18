@@ -78,8 +78,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   public CustomSearchResult(String dn)
   {
     this.dn = dn;
-    attributes = new HashMap<String, List<Object>>();
-    attrNames = new TreeSet<String>();
+    attributes = new HashMap<>();
+    attrNames = new TreeSet<>();
     toString = calculateToString();
     hashCode = calculateHashCode();
   }
@@ -126,8 +126,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     }
     dn = buf.toString();
 
-    attributes = new HashMap<String, List<Object>>();
-    attrNames = new TreeSet<String>();
+    attributes = new HashMap<>();
+    attrNames = new TreeSet<>();
     Attributes attrs = sr.getAttributes();
     if (attrs != null)
     {
@@ -138,7 +138,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
           Attribute attr = (Attribute)en.next();
           String attrName = attr.getID();
           attrNames.add(attrName);
-          List<Object> values = new ArrayList<Object>();
+          List<Object> values = new ArrayList<>();
           for (int i=0; i<attr.size(); i++)
           {
             Object v = attr.get(i);
@@ -208,8 +208,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   public CustomSearchResult duplicate()
   {
     CustomSearchResult sr = new CustomSearchResult(dn);
-    sr.attributes = new HashMap<String, List<Object>>(attributes);
-    sr.attrNames = new TreeSet<String>(attrNames);
+    sr.attributes = new HashMap<>(attributes);
+    sr.attrNames = new TreeSet<>(attrNames);
     sr.toString = toString;
     sr.hashCode = hashCode;
     return sr;
@@ -288,12 +288,9 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   public Entry getEntry() throws OpenDsException
   {
     DN dn = DN.valueOf(getDN());
-    Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
-    Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes =
-      new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
-    Map<AttributeType,List<org.opends.server.types.Attribute>>
-    operationalAttributes =
-      new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
+    Map<ObjectClass,String> objectClasses = new HashMap<>();
+    Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes = new HashMap<>();
+    Map<AttributeType,List<org.opends.server.types.Attribute>> operationalAttributes = new HashMap<>();
 
     for (String wholeName : getAttributeNames())
     {
@@ -343,8 +340,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
           }
           builder.add(bs);
         }
-        List<org.opends.server.types.Attribute> attrList =
-          new ArrayList<org.opends.server.types.Attribute>(1);
+        List<org.opends.server.types.Attribute> attrList = new ArrayList<>(1);
         attrList.add(builder.toAttribute());
 
         if (attrType.isOperational())

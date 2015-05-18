@@ -103,13 +103,7 @@ public class ConnectionUtils
       String pwd, int timeout, Hashtable<String, String> env)
       throws NamingException
   {
-    if (env != null)
-    { // We clone 'env' so that we can modify it freely
-      env = new Hashtable<String, String>(env);
-    } else
-    {
-      env = new Hashtable<String, String>();
-    }
+    env = copy(env);
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.attributes.binary",
@@ -183,13 +177,7 @@ public class ConnectionUtils
   public static InitialLdapContext createLdapsContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
       TrustManager trustManager, KeyManager keyManager) throws NamingException {
-    if (env != null)
-    { // We clone 'env' so that we can modify it freely
-      env = new Hashtable<String, String>(env);
-    } else
-    {
-      env = new Hashtable<String, String>();
-    }
+    env = copy(env);
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.attributes.binary",
@@ -331,14 +319,7 @@ public class ConnectionUtils
       verifier = new BlindHostnameVerifier();
     }
 
-    if (env != null)
-    { // We clone 'env' to modify it freely
-      env = new Hashtable<String, String>(env);
-    }
-    else
-    {
-      env = new Hashtable<String, String>();
-    }
+    env = copy(env);
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.attributes.binary",
@@ -399,6 +380,10 @@ public class ConnectionUtils
     });
     t.setDaemon(true);
     return getInitialLdapContext(t, pair, timeout);
+  }
+
+  private static Hashtable<String, String> copy(Hashtable<String, String> env) {
+    return env != null ? new Hashtable<>(env) : new Hashtable<String, String>();
   }
 
   /**
@@ -791,7 +776,7 @@ public class ConnectionUtils
   public static Set<String> getValues(SearchResult entry, String attrName)
   throws NamingException
   {
-    Set<String> values = new HashSet<String>();
+    Set<String> values = new HashSet<>();
     Attributes attrs = entry.getAttributes();
     if (attrs != null)
     {

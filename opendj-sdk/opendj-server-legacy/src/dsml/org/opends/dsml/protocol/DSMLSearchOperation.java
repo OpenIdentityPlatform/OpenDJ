@@ -98,7 +98,7 @@ public class DSMLSearchOperation
       throws LDAPException, IOException
   {
     List<JAXBElement<?>> list = filterSet.getFilterGroup();
-    ArrayList<RawFilter> filters = new ArrayList<RawFilter>(list.size());
+    ArrayList<RawFilter> filters = new ArrayList<>(list.size());
 
     for (JAXBElement<?> filter : list)
     {
@@ -245,7 +245,7 @@ public class DSMLSearchOperation
       throws LDAPException, IOException
   {
     List<JAXBElement<?>> list = filterSet.getFilterGroup();
-    ArrayList<RawFilter> filters = new ArrayList<RawFilter>(list.size());
+    ArrayList<RawFilter> filters = new ArrayList<>(list.size());
 
     for (JAXBElement<?> filter : list)
     {
@@ -291,8 +291,7 @@ public class DSMLSearchOperation
         throws LDAPException, IOException
   {
     List<Object> anyo = sf.getAny();
-    ArrayList<ByteString> subAnyElements = new ArrayList<ByteString>(anyo
-        .size());
+    ArrayList<ByteString> subAnyElements = new ArrayList<>(anyo.size());
 
     for (Object o : anyo)
     {
@@ -520,7 +519,7 @@ public class DSMLSearchOperation
       scope = SearchScope.BASE_OBJECT;
     }
 
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     // Get the list of attributes.
     AttributeDescriptions attrDescriptions = searchRequest.getAttributes();
     if (attrDescriptions != null)

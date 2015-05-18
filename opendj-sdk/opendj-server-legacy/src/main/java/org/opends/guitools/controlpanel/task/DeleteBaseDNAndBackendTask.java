@@ -75,10 +75,8 @@ import org.opends.server.types.OpenDsException;
 public class DeleteBaseDNAndBackendTask extends Task
 {
   private Set<String> backendSet;
-  private Map<String, Set<BaseDNDescriptor>> baseDNsToDelete =
-    new HashMap<String, Set<BaseDNDescriptor>>();
-  private ArrayList<BackendDescriptor> backendsToDelete =
-    new ArrayList<BackendDescriptor>();
+  private Map<String, Set<BaseDNDescriptor>> baseDNsToDelete = new HashMap<>();
+  private ArrayList<BackendDescriptor> backendsToDelete = new ArrayList<>();
 
   /**
    * Constructor of the task.
@@ -92,7 +90,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       Collection<BaseDNDescriptor> baseDNsToDelete)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     for (BackendDescriptor backend : backendsToDelete)
     {
       backendSet.add(backend.getBackendID());
@@ -107,12 +105,12 @@ public class DeleteBaseDNAndBackendTask extends Task
       Set<BaseDNDescriptor> set = this.baseDNsToDelete.get(backendID);
       if (set == null)
       {
-        set = new HashSet<BaseDNDescriptor>();
+        set = new HashSet<>();
         this.baseDNsToDelete.put(backendID, set);
       }
       set.add(baseDN);
     }
-    ArrayList<String> indirectBackendsToDelete = new ArrayList<String>();
+    ArrayList<String> indirectBackendsToDelete = new ArrayList<>();
     for (Set<BaseDNDescriptor> set : this.baseDNsToDelete.values())
     {
       BackendDescriptor backend = set.iterator().next().getBackend();
@@ -156,7 +154,7 @@ public class DeleteBaseDNAndBackendTask extends Task
 
     if (baseDNsToDelete.size() > 0)
     {
-      ArrayList<String> dns = new ArrayList<String>();
+      ArrayList<String> dns = new ArrayList<>();
       for (Set<BaseDNDescriptor> set : baseDNsToDelete.values())
       {
         for (BaseDNDescriptor baseDN : set)
@@ -171,7 +169,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       }
       else
       {
-        ArrayList<String> quotedDns = new ArrayList<String>();
+        ArrayList<String> quotedDns = new ArrayList<>();
         for (String dn : dns)
         {
           quotedDns.add("'"+dn+"'");
@@ -194,7 +192,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       }
       else
       {
-        ArrayList<String> ids = new ArrayList<String>();
+        ArrayList<String> ids = new ArrayList<>();
         for (BackendDescriptor backend : backendsToDelete)
         {
           ids.add(backend.getBackendID());
@@ -301,7 +299,7 @@ public class DeleteBaseDNAndBackendTask extends Task
             }
             else
             {
-              ArrayList<String> dns = new ArrayList<String>();
+              ArrayList<String> dns = new ArrayList<>();
               for (BaseDNDescriptor baseDN : baseDNs)
               {
                 dns.add("'" + baseDN.getDn() + "'");
@@ -435,13 +433,13 @@ public class DeleteBaseDNAndBackendTask extends Task
   {
     BackendDescriptor backend = baseDNs.iterator().next().getBackend();
 
-    SortedSet<DN> oldBaseDNs = new TreeSet<DN>();
+    SortedSet<DN> oldBaseDNs = new TreeSet<>();
     for (BaseDNDescriptor baseDN : backend.getBaseDns())
     {
       oldBaseDNs.add(baseDN.getDn());
     }
-    LinkedList<DN> newBaseDNs = new LinkedList<DN>(oldBaseDNs);
-    ArrayList<DN> dnsToRemove = new ArrayList<DN>();
+    LinkedList<DN> newBaseDNs = new LinkedList<>(oldBaseDNs);
+    ArrayList<DN> dnsToRemove = new ArrayList<>();
     for (BaseDNDescriptor baseDN : baseDNs)
     {
       dnsToRemove.add(baseDN.getDn());
@@ -480,8 +478,8 @@ public class DeleteBaseDNAndBackendTask extends Task
       (LocalDBBackendCfgClient)root.getBackend(
           baseDNs.iterator().next().getBackend().getBackendID());
     SortedSet<DN> oldBaseDNs = backend.getBaseDN();
-    SortedSet<DN> newBaseDNs = new TreeSet<DN>(oldBaseDNs);
-    ArrayList<DN> dnsToRemove = new ArrayList<DN>();
+    SortedSet<DN> newBaseDNs = new TreeSet<>(oldBaseDNs);
+    ArrayList<DN> dnsToRemove = new ArrayList<>();
     for (BaseDNDescriptor baseDN : baseDNs)
     {
       dnsToRemove.add(baseDN.getDn());
@@ -530,7 +528,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /**
@@ -597,7 +595,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private ArrayList<String> getDSConfigCommandLineArguments(
       Set<BaseDNDescriptor> baseDNs)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     if (isServerRunning())
     {
       args.add("set-backend-prop");
@@ -622,7 +620,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private ArrayList<String> getDSConfigCommandLineArguments(
       BackendDescriptor backend)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     args.add("delete-backend");
     args.add("--backend-name");
     args.add(backend.getBackendID());
@@ -773,7 +771,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private ArrayList<String> getCommandLineArgumentsToDisableReplication(
       String domainName)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     args.add("delete-replication-domain");
     args.add("--provider-name");
     args.add("Multimaster Synchronization");

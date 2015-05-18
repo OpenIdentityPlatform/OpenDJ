@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -38,8 +39,7 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
  */
 public class IndexModifiedEvent
 {
-  private Set<AbstractIndexDescriptor> modifiedIndexes =
-    new HashSet<AbstractIndexDescriptor>();
+  private Set<AbstractIndexDescriptor> modifiedIndexes = new HashSet<>();
 
   /**
    * The constructor of the event.

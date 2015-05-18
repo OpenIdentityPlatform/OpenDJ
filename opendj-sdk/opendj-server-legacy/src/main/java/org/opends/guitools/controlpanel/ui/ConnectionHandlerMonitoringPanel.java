@@ -109,8 +109,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
 
   private ConnectionHandlerMonitoringMenuBar menuBar;
 
-  private LinkedHashSet<MonitoringAttributes> chOperations =
-    new LinkedHashSet<MonitoringAttributes>();
+  private LinkedHashSet<MonitoringAttributes> chOperations = new LinkedHashSet<>();
   {
     chOperations.add(BasicMonitoringAttributes.ADD_REQUESTS);
     chOperations.add(BasicMonitoringAttributes.BIND_REQUESTS);
@@ -119,8 +118,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     chOperations.add(BasicMonitoringAttributes.MOD_DN_REQUESTS);
     chOperations.add(BasicMonitoringAttributes.SEARCH_REQUESTS);
   }
-  private LinkedHashSet<MonitoringAttributes> allowedChOperations =
-    new LinkedHashSet<MonitoringAttributes>();
+  private LinkedHashSet<MonitoringAttributes> allowedChOperations = new LinkedHashSet<>();
   {
     allowedChOperations.addAll(chOperations);
     allowedChOperations.add(BasicMonitoringAttributes.ADD_RESPONSES);
@@ -217,12 +215,11 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         "Third Connection Handler", "Fourth Connection Handler",
         "Fifth Connection Handler", "Connection Handler with a long name"};
 
-    Set<ConnectionHandlerDescriptor> fakeData =
-      new HashSet<ConnectionHandlerDescriptor>();
+    Set<ConnectionHandlerDescriptor> fakeData = new HashSet<>();
     connectionHandlersTableModel.setAttributes(chOperations, false);
     try
     {
-      Set<InetAddress> addresses = new HashSet<InetAddress>();
+      Set<InetAddress> addresses = new HashSet<>();
       addresses.add(InetAddress.getLocalHost());
       Set<CustomSearchResult> emptySet = Collections.emptySet();
       for (String name : names)
@@ -277,14 +274,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor server = ev.getNewDescriptor();
-    LinkedHashSet<Object> newElements = new LinkedHashSet<Object>();
+    LinkedHashSet<Object> newElements = new LinkedHashSet<>();
 
     newElements.add(new CategorizedComboBoxElement(ALL_CONNECTION_HANDLERS,
         CategorizedComboBoxElement.Type.REGULAR));
     Set<ConnectionHandlerDescriptor> chs = server.getConnectionHandlers();
 
     SortedSet<ConnectionHandlerDescriptor> sortedChs =
-      new TreeSet<ConnectionHandlerDescriptor>(
+      new TreeSet<>(
           new Comparator<ConnectionHandlerDescriptor>()
           {
             public int compare(ConnectionHandlerDescriptor desc1,
@@ -525,8 +522,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   private Set<ConnectionHandlerDescriptor> getFilteredConnectionHandlers(
       ServerDescriptor server)
   {
-    Set<ConnectionHandlerDescriptor> cchs =
-      new HashSet<ConnectionHandlerDescriptor>();
+    Set<ConnectionHandlerDescriptor> cchs = new HashSet<>();
     if (server != null)
     {
       Object o = connectionHandlers.getSelectedItem();

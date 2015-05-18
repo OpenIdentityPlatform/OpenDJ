@@ -47,15 +47,11 @@ import javax.net.ssl.TrustManager;
  */
 public class TrustedSocketFactory extends SSLSocketFactory
 {
-  private static Map<Thread, TrustManager> hmTrustManager =
-    new HashMap<Thread, TrustManager>();
-  private static Map<Thread, KeyManager> hmKeyManager =
-    new HashMap<Thread, KeyManager>();
+  private static Map<Thread, TrustManager> hmTrustManager = new HashMap<>();
+  private static Map<Thread, KeyManager> hmKeyManager = new HashMap<>();
 
-  private static Map<TrustManager, SocketFactory> hmDefaultFactoryTm =
-    new HashMap<TrustManager, SocketFactory>();
-  private static Map<KeyManager, SocketFactory> hmDefaultFactoryKm =
-    new HashMap<KeyManager, SocketFactory>();
+  private static Map<TrustManager, SocketFactory> hmDefaultFactoryTm = new HashMap<>();
+  private static Map<KeyManager, SocketFactory> hmDefaultFactoryKm = new HashMap<>();
 
   private SSLSocketFactory innerFactory;
   private TrustManager trustManager;

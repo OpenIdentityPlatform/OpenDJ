@@ -157,14 +157,14 @@ public class ModifyObjectClassTask extends Task
     }
     else if (currentSups.contains(oldObjectClass))
     {
-      ArrayList<String> allNames = new ArrayList<String>();
+      ArrayList<String> allNames = new ArrayList<>();
       for (String str : ocToDelete.getNormalizedNames())
       {
         allNames.add(str);
       }
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
-      Set<ObjectClass> newSups = new LinkedHashSet<ObjectClass>();
+      Set<ObjectClass> newSups = new LinkedHashSet<>();
       for(ObjectClass oc: currentSups)
       {
         if(oc.equals(oldObjectClass))
@@ -203,14 +203,13 @@ public class ModifyObjectClassTask extends Task
   private void updateSchema() throws OpenDsException
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<ObjectClass> ocs = new ArrayList<ObjectClass>();
+    ArrayList<ObjectClass> ocs = new ArrayList<>();
     ocs.add(oldObjectClass);
     LinkedHashSet<ObjectClass> ocsToDelete =
       DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(ocs, schema);
 
-    ArrayList<ObjectClass> lOcsToDelete =
-      new ArrayList<ObjectClass>(ocsToDelete);
-    LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+    ArrayList<ObjectClass> lOcsToDelete = new ArrayList<>(ocsToDelete);
+    LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
     for (int i = lOcsToDelete.size() - 1; i >= 0; i--)
     {
       ocsToAdd.add(getObjectClassToAdd(lOcsToDelete.get(i)));

@@ -255,7 +255,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
   private void refresh(final boolean closeAndUpdateValue,
       final boolean updateImage)
   {
-    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<>();
 
     setPrimaryValid(useFile);
     setPrimaryValid(useBase64);

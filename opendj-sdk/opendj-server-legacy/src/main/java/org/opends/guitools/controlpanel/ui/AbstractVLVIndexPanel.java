@@ -193,11 +193,11 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   private final LocalizableMessage STANDARD_ATTRIBUTES = INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
 
   /** The list of standard attribute names. */
-  private final TreeSet<String> standardAttrNames = new TreeSet<String>(new LowerCaseComparator());
+  private final TreeSet<String> standardAttrNames = new TreeSet<>(new LowerCaseComparator());
   /** The list of configuration attribute names. */
-  private final TreeSet<String> configurationAttrNames = new TreeSet<String>(new LowerCaseComparator());
+  private final TreeSet<String> configurationAttrNames = new TreeSet<>(new LowerCaseComparator());
   /** The list of custom attribute names. */
-  private final TreeSet<String> customAttrNames = new TreeSet<String>(new LowerCaseComparator());
+  private final TreeSet<String> customAttrNames = new TreeSet<>(new LowerCaseComparator());
 
   /**
    * Constructor.
@@ -264,12 +264,11 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    */
   protected List<VLVSortOrder> getSortOrder()
   {
-    List<VLVSortOrder> sortOrder = new ArrayList<VLVSortOrder>();
+    List<VLVSortOrder> sortOrder = new ArrayList<>();
     for (int i = 0; i < sortOrderModel.getSize(); i++)
     {
       sortOrder.add((VLVSortOrder) sortOrderModel.get(i));
     }
-
     return sortOrder;
   }
 
@@ -325,7 +324,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     if (schema != null)
     {
       repack[0] = attributes.getItemCount() == 0;
-      LinkedHashSet<CategorizedComboBoxElement> newElements = new LinkedHashSet<CategorizedComboBoxElement>();
+      LinkedHashSet<CategorizedComboBoxElement> newElements = new LinkedHashSet<>();
 
       synchronized (standardAttrNames)
       {
@@ -439,7 +438,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     try
     {
       LDAPFilter ldapFilter = LDAPFilter.decode(f);
-      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<>();
       updateIndexRequiredMessages(ldapFilter, msgs);
       if (!msgs.isEmpty())
       {
@@ -564,7 +563,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    */
   protected void updateBaseDNCombo(BackendDescriptor backend)
   {
-    List<Object> newElements = new ArrayList<Object>();
+    List<Object> newElements = new ArrayList<>();
     for (BaseDNDescriptor baseDN : backend.getBaseDns())
     {
       String dn = null;
@@ -599,7 +598,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     BackendDescriptor backend = getBackend();
 
-    List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     if (checkName)
     {
       String n = name.getText();

@@ -298,7 +298,7 @@ public class CustomTree extends JTree
     super.addMouseListener(mouseListener);
     if (mouseListeners == null)
     {
-      mouseListeners = new HashSet<MouseListener>();
+      mouseListeners = new HashSet<>();
     }
     mouseListeners.add(mouseListener);
   }

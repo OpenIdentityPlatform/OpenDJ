@@ -167,7 +167,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   private JList requiredBy = new JList(new DefaultListModel());
   private JList optionalBy = new JList(new DefaultListModel());
 
-  private Set<String> lastAliases = new LinkedHashSet<String>();
+  private Set<String> lastAliases = new LinkedHashSet<>();
 
   private LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
   private LocalizableMessage NO_MATCHING_RULE =
@@ -248,7 +248,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       @Override
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<>();
         saveChanges(false, errors);
       }
     });
@@ -536,7 +536,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
-      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> errors = new ArrayList<>();
       saveChanges(true, errors);
       if (!errors.isEmpty())
       {
@@ -628,7 +628,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    SortedSet<String> requiredByOcs = new TreeSet<String>(lowerCaseComparator);
+    SortedSet<String> requiredByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getRequiredAttributeChain().contains(attr))
@@ -644,7 +644,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       model.addElement(oc);
     }
 
-    SortedSet<String> optionalByOcs = new TreeSet<String>(lowerCaseComparator);
+    SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getOptionalAttributeChain().contains(attr))
@@ -676,8 +676,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<AttributeSyntax<?>> newSyntaxes =
-      new ArrayList<AttributeSyntax<?>>();
+    ArrayList<AttributeSyntax<?>> newSyntaxes = new ArrayList<>();
 
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
@@ -702,8 +701,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     if (schemaChanged)
     {
       schema = s;
-      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<String,
-      AttributeSyntax<?>>();
+      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<>();
       for (String key : schema.getSyntaxes().keySet())
       {
         AttributeSyntax<?> syntax = schema.getSyntax(key);
@@ -715,8 +713,7 @@ public class CustomAttributePanel extends SchemaElementPanel
         syntaxNameMap.put(name, syntax);
       }
 
-      SortedSet<String> orderedKeys =
-        new TreeSet<String>(new LowerCaseComparator());
+      SortedSet<String> orderedKeys = new TreeSet<>(new LowerCaseComparator());
       orderedKeys.addAll(syntaxNameMap.keySet());
       for (String key : orderedKeys)
       {
@@ -725,8 +722,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       updateComboBoxModel(newSyntaxes,
           ((DefaultComboBoxModel)syntax.getModel()));
 
-      HashMap<String, AttributeType> attributeNameMap = new HashMap<String,
-      AttributeType>();
+      HashMap<String, AttributeType> attributeNameMap = new HashMap<>();
       for (String key : schema.getAttributeTypes().keySet())
       {
         AttributeType attr = schema.getAttributeType(key);
@@ -734,7 +730,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       }
       orderedKeys.clear();
       orderedKeys.addAll(attributeNameMap.keySet());
-      ArrayList<Object> newParents = new ArrayList<Object>();
+      ArrayList<Object> newParents = new ArrayList<>();
       for (String key : orderedKeys)
       {
         newParents.add(attributeNameMap.get(key));
@@ -743,14 +739,12 @@ public class CustomAttributePanel extends SchemaElementPanel
       updateComboBoxModel(newParents,
           ((DefaultComboBoxModel)parent.getModel()));
 
-      ArrayList<MatchingRule> approximateElements =
-        new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> equalityElements = new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> orderingElements = new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> substringElements = new ArrayList<MatchingRule>();
+      ArrayList<MatchingRule> approximateElements = new ArrayList<>();
+      ArrayList<MatchingRule> equalityElements = new ArrayList<>();
+      ArrayList<MatchingRule> orderingElements = new ArrayList<>();
+      ArrayList<MatchingRule> substringElements = new ArrayList<>();
 
-      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<String,
-      MatchingRule>();
+      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
       for (String key : schema.getMatchingRules().keySet())
       {
         MatchingRule rule = schema.getMatchingRule(key);
@@ -780,8 +774,7 @@ public class CustomAttributePanel extends SchemaElementPanel
         }
       }
       JComboBox[] combos = {approximate, equality, ordering, substring};
-      ArrayList<ArrayList<MatchingRule>> ruleNames =
-        new ArrayList<ArrayList<MatchingRule>>();
+      ArrayList<ArrayList<MatchingRule>> ruleNames = new ArrayList<>();
       ruleNames.add(approximateElements);
       ruleNames.add(equalityElements);
       ruleNames.add(orderingElements);
@@ -848,15 +841,14 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private void deleteAttribute()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     Schema schema = getInfo().getServerDescriptor().getSchema();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_ATTRIBUTE_TITLE.get(), getInfo());
 
-    LinkedHashSet<AttributeType> attrsToDelete =
-      new LinkedHashSet<AttributeType>(1);
+    LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<>(1);
     attrsToDelete.add(attribute);
 
     Task newTask = new DeleteSchemaElementsTask(getInfo(), dlg,
@@ -865,8 +857,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       task.canLaunch(newTask, errors);
     }
-    TreeSet<String> childAttributes = new TreeSet<String>();
-    TreeSet<String> dependentClasses = new TreeSet<String>();
+    TreeSet<String> childAttributes = new TreeSet<>();
+    TreeSet<String> dependentClasses = new TreeSet<>();
     if (schema != null)
     {
       for (AttributeType attr : schema.getAttributeTypes().values())
@@ -1140,7 +1132,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private ArrayList<String> getAliases()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     String s = aliases.getText().trim();
     if (s.length() > 0)
     {
@@ -1155,7 +1147,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private ArrayList<String> getAllNames()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     al.add(getAttributeName());
     al.addAll(getAliases());
     return al;
@@ -1224,18 +1216,18 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private Map<String, List<String>> getExtraProperties()
   {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    Map<String, List<String>> map = new HashMap<>();
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(f);
       map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(or);
       map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
     }

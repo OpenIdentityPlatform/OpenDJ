@@ -46,12 +46,9 @@ public abstract class AbstractIndexTableModel extends SortableTableModel
 implements Comparator<AbstractIndexDescriptor>
 {
   private static final long serialVersionUID = -5131878622200568636L;
-  private Set<AbstractIndexDescriptor> data =
-    new HashSet<AbstractIndexDescriptor>();
-  private ArrayList<String[]> dataArray =
-    new ArrayList<String[]>();
-  private ArrayList<AbstractIndexDescriptor> indexArray =
-      new ArrayList<AbstractIndexDescriptor>();
+  private Set<AbstractIndexDescriptor> data = new HashSet<>();
+  private ArrayList<String[]> dataArray = new ArrayList<>();
+  private ArrayList<AbstractIndexDescriptor> indexArray = new ArrayList<>();
   private final String[] COLUMN_NAMES = getColumnNames();
   /**
    * The sort column of the table.
@@ -211,8 +208,7 @@ implements Comparator<AbstractIndexDescriptor>
    */
   private void updateDataArray()
   {
-    TreeSet<AbstractIndexDescriptor> sortedSet =
-      new TreeSet<AbstractIndexDescriptor>(this);
+    TreeSet<AbstractIndexDescriptor> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
     indexArray.clear();

@@ -53,7 +53,7 @@ public abstract class StartStopTask extends Task
   protected StartStopTask(ControlPanelInfo info, ProgressDialog progressDialog)
   {
     super(info, progressDialog);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     for (BackendDescriptor backend :
       info.getServerDescriptor().getBackends())
     {
@@ -113,7 +113,7 @@ public abstract class StartStopTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /**
