@@ -202,10 +202,7 @@ public abstract class Driver {
                     // definition of the component being created.
                     PropertyDefinition<?> pdTmp = definition.getPropertyDefinition(propertyName);
                     pd2 = pd1.getClass().cast(pdTmp);
-                } catch (IllegalArgumentException e) {
-                    throw new PropertyNotFoundException(propertyName);
-                } catch (ClassCastException e) {
-                    // FIXME: would be nice to throw a better exception here.
+                } catch (IllegalArgumentException | ClassCastException e) {
                     throw new PropertyNotFoundException(propertyName);
                 }
 
@@ -227,16 +224,8 @@ public abstract class Driver {
                     // inherits its defaults from the newly created managed object.
                     return getPropertyValues(target, pd2);
                 }
-            } catch (PropertyException e) {
-                // Wrap any errors due to recursion.
-                throw PropertyException.defaultBehaviorException(pd1, e);
-            } catch (DefinitionDecodingException e) {
-                throw PropertyException.defaultBehaviorException(pd1, e);
-            } catch (PropertyNotFoundException e) {
-                throw PropertyException.defaultBehaviorException(pd1, e);
-            } catch (LdapException e) {
-                throw PropertyException.defaultBehaviorException(pd1, e);
-            } catch (ManagedObjectNotFoundException e) {
+            } catch (PropertyException | DefinitionDecodingException | PropertyNotFoundException
+                    | LdapException | ManagedObjectNotFoundException e) {
                 throw PropertyException.defaultBehaviorException(pd1, e);
             }
         }
