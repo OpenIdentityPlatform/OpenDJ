@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,15 +19,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-issues'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
 
  <para>This chapter covers the status of key issues and limitations for OpenDJ
@@ -58,8 +57,9 @@
  <section xml:id="limitations">
   <title>Limitations</title>
 
-  <para>Release <?eval ${docTargetVersion}?> has the following
-  limitations.</para>
+  <para>
+   Release ${docTargetVersion}?> has the following limitations.
+  </para>
 
   <itemizedlist>
    <listitem>
@@ -73,6 +73,19 @@
     replication topology, however. Global account lockout occurs as soon as
     the authentication failure times have been replicated.</para>
    </listitem>
+
+   <listitem>
+    <para>
+     The backend type <literal>persistit</literal> limits key size to two KB.
+     In practice this means for example that DN size is limited to roughly two KB.
+    </para>
+
+    <para>
+     Attempts to create an entry with a DN (or other key) larger than the limit
+     cause a <literal>KeyTooLongException</literal> in the underlying backend.
+    </para>
+   </listitem>
+
    <listitem>
     <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
     directory server can be run as a service, and thus displayed in the
