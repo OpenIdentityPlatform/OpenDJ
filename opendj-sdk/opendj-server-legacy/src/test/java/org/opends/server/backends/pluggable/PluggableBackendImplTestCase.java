@@ -750,7 +750,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
   private List<Entry> getDbEntries(List<Entry> entries) throws DirectoryException
   {
-    List<Entry> result = new ArrayList<Entry>(entries.size());
+    List<Entry> result = new ArrayList<>(entries.size());
     for (Entry currentEntry : entries)
     {
       Entry dbEntry = backend.getEntry(currentEntry.getName());
@@ -840,15 +840,12 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
 
-    LDIFImportConfig importConf = new LDIFImportConfig(templateFile);
-    importConf.setInvokeImportPlugins(true);
-    importConf.setClearBackend(true);
-    importConf.writeRejectedEntries(rejectedEntries);
-    try {
+    try (final LDIFImportConfig importConf = new LDIFImportConfig(templateFile))
+    {
+      importConf.setInvokeImportPlugins(true);
+      importConf.setClearBackend(true);
+      importConf.writeRejectedEntries(rejectedEntries);
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
-    }
-    finally {
-      importConf.close();
     }
     assertEquals(rejectedEntries.size(), 0, "No entries should be rejected");
 
@@ -887,16 +884,11 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertTrue(backend.supports(BackendOperation.LDIF_EXPORT), "Export not supported");
 
     ByteArrayOutputStream ldifData = new ByteArrayOutputStream();
-    LDIFExportConfig exportConfig = new LDIFExportConfig(ldifData);
-    exportConfig.setIncludeOperationalAttributes(true);
-    exportConfig.setIncludeVirtualAttributes(true);
-    try
+    try (final LDIFExportConfig exportConfig = new LDIFExportConfig(ldifData))
     {
+      exportConfig.setIncludeOperationalAttributes(true);
+      exportConfig.setIncludeVirtualAttributes(true);
       backend.exportLDIF(exportConfig);
-    }
-    finally
-    {
-      exportConfig.close();
     }
 
     String ldifString = ldifData.toString();

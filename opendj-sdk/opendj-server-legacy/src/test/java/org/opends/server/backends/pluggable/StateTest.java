@@ -86,10 +86,10 @@ public class StateTest extends DirectoryServerTestCase
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PersistItStorage(createBackendCfg(), serverContext);
-    org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport();
-    importer.createTree(stateTreeName);
-    importer.close();
-
+    try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
+      importer.createTree(stateTreeName);
+    }
+    
     storage.open();
 
     state = new State(stateTreeName);

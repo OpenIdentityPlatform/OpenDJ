@@ -51,8 +51,12 @@ final class Utils
     assertIdsEquals(actual.iterator(), expected);
   }
 
+  public static EntryID id(long id) {
+    return new EntryID(id);
+  }
+
   private static List<EntryID> asList(long... array) {
-    List<EntryID> list = new ArrayList<EntryID>(array.length);
+    List<EntryID> list = new ArrayList<>(array.length);
     for(long l : array) {
       list.add(new EntryID(l));
     }

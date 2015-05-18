@@ -35,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.PromiseImpl;
 import org.opends.server.DirectoryServerTestCase;
@@ -87,9 +86,9 @@ public class ID2CountTest extends DirectoryServerTestCase
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PersistItStorage(createBackendCfg(), serverContext);
-    org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport();
-    importer.createTree(id2CountTreeName);
-    importer.close();
+    try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
+      importer.createTree(id2CountTreeName);
+    }
 
     storage.open();
 

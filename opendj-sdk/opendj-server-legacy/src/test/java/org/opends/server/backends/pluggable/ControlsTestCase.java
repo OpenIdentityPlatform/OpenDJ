@@ -598,7 +598,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
   private ArrayList<DN> getDNs(final LinkedList<SearchResultEntry> entries)
   {
-    final ArrayList<DN> results = new ArrayList<DN>();
+    final ArrayList<DN> results = new ArrayList<>();
     for (final Entry e : entries)
     {
       results.add(e.getName());
@@ -608,7 +608,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
   private List<DN> getDNs(List<Integer> expectedOrder) throws Exception
   {
-    List<DN> dns = new ArrayList<DN>(expectedOrder.size());
+    List<DN> dns = new ArrayList<>(expectedOrder.size());
     for (int i : expectedOrder)
     {
       dns.add(USERS[i].toDN());
@@ -739,7 +739,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
     private Entry toEntry() throws Exception
     {
-      final List<String> ldif = new ArrayList<String>();
+      final List<String> ldif = new ArrayList<>();
       ldif.add("dn: " + toDN());
       ldif.add("objectClass: top");
       ldif.add("objectClass: person");
