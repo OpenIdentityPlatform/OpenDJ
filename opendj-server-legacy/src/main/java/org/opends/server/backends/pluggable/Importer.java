@@ -1357,8 +1357,6 @@ final class Importer
       super(storage);
     }
 
-    private final Set<ByteString> insertKeySet = new HashSet<>();
-    private final Set<ByteString> deleteKeySet = new HashSet<>();
     private Entry oldEntry;
 
     @Override
@@ -1413,25 +1411,9 @@ final class Importer
       }
 
       suffix.getID2Entry().put(txn, entryID, entry);
-      if (oldEntry != null)
-      {
-        processAllIndexes(suffix, entry, entryID);
-      }
-      else
-      {
-        processIndexes(suffix, entry, entryID);
-      }
+      processIndexes(suffix, entry, entryID, oldEntry != null);
       processVLVIndexes(txn, suffix, entry, entryID);
       importCount.getAndIncrement();
-    }
-
-    void processAllIndexes(Suffix suffix, Entry entry, EntryID entryID) throws StorageRuntimeException,
-        InterruptedException
-    {
-      for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
-      {
-        fillIndexKey(mapEntry.getValue(), entry, mapEntry.getKey(), entryID);
-      }
     }
 
     @Override
@@ -1440,19 +1422,9 @@ final class Importer
     {
       if (oldEntry != null)
       {
-        deleteKeySet.clear();
-        index.indexEntry(oldEntry, deleteKeySet);
-        for (ByteString delKey : deleteKeySet)
-        {
-          processKey(index, delKey, entryID, indexKey, false);
-        }
+        processAttribute0(index, oldEntry, entryID, indexKey, false);
       }
-      insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet);
-      for (ByteString key : insertKeySet)
-      {
-        processKey(index, key, entryID, indexKey, true);
-      }
+      processAttribute0(index, entry, entryID, indexKey, true);
     }
   }
 
@@ -1464,7 +1436,7 @@ final class Importer
   {
     private final Storage storage;
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<>();
-    private final Set<ByteString> insertKeySet = new HashSet<>();
+    private final Set<ByteString> keySet = new HashSet<>();
     private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID_INDEX_NAME, 1);
 
     public ImportTask(final Storage storage)
@@ -1523,7 +1495,7 @@ final class Importer
       suffix.removePending(entryDN);
       processDN2ID(suffix, entryDN, entryID);
       suffix.getDN2URI().addEntry(txn, entry);
-      processIndexes(suffix, entry, entryID);
+      processIndexes(suffix, entry, entryID, false);
       processVLVIndexes(txn, suffix, entry, entryID);
       suffix.getID2Entry().put(txn, entryID, entry);
       importCount.getAndIncrement();
@@ -1564,25 +1536,24 @@ final class Importer
       return dnCache.insert(entryDN);
     }
 
-    void processIndexes(Suffix suffix, Entry entry, EntryID entryID) throws StorageRuntimeException,
-        InterruptedException
+    void processIndexes(Suffix suffix, Entry entry, EntryID entryID, boolean allIndexes)
+        throws StorageRuntimeException, InterruptedException
     {
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
-        AttributeType attributeType = mapEntry.getKey();
-        if (entry.hasAttribute(attributeType))
+        AttributeType attrType = mapEntry.getKey();
+        AttributeIndex attrIndex = mapEntry.getValue();
+        if (allIndexes || entry.hasAttribute(attrType))
         {
-          fillIndexKey(mapEntry.getValue(), entry, attributeType, entryID);
-        }
-      }
-    }
+          for (Map.Entry<String, MatchingRuleIndex> mapEntry2 : attrIndex.getNameToIndexes().entrySet())
+          {
+            String indexID = mapEntry2.getKey();
+            MatchingRuleIndex index = mapEntry2.getValue();
 
-    void fillIndexKey(AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
-        throws InterruptedException, StorageRuntimeException
-    {
-      for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
-      {
-        processAttribute(mapEntry.getValue(), mapEntry.getKey(), entry, attrType, entryID);
+            IndexKey indexKey = new IndexKey(attrType, indexID, index.getIndexEntryLimit());
+            processAttribute(index, entry, entryID, indexKey);
+          }
+        }
       }
     }
 
@@ -1598,24 +1569,21 @@ final class Importer
       buffer.flush(txn);
     }
 
-    private void processAttribute(MatchingRuleIndex index, String indexID, Entry entry,
-        AttributeType attributeType, EntryID entryID) throws InterruptedException
-    {
-      if (index != null)
-      {
-        IndexKey indexKey = new IndexKey(attributeType, indexID, index.getIndexEntryLimit());
-        processAttribute(index, entry, entryID, indexKey);
-      }
-    }
-
     void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey)
         throws StorageRuntimeException, InterruptedException
     {
-      insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet);
-      for (ByteString key : insertKeySet)
+      processAttribute0(index, entry, entryID, indexKey, true);
+    }
+
+    void processAttribute0(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey, boolean insert)
+        throws InterruptedException
+    {
+      keySet.clear();
+      index.indexEntry(entry, keySet);
+
+      for (ByteString key : keySet)
       {
-        processKey(index, key, entryID, indexKey, true);
+        processKey(index, key, entryID, indexKey, insert);
       }
     }
 
@@ -1631,7 +1599,7 @@ final class Importer
       getAll(futures);
     }
 
-    int processKey(Tree tree, ByteString key, EntryID entryID, IndexKey indexKey, boolean insert)
+    final int processKey(Tree tree, ByteString key, EntryID entryID, IndexKey indexKey, boolean insert)
         throws InterruptedException
     {
       int sizeNeeded = IndexOutputBuffer.getRequiredSize(key.length(), entryID.longValue());
