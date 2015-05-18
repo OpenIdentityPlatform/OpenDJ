@@ -93,7 +93,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
@@ -1436,20 +1435,20 @@ final class Importer
     }
 
     @Override
-    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexingOptions options,
-        IndexKey indexKey) throws StorageRuntimeException, InterruptedException
+    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey)
+        throws StorageRuntimeException, InterruptedException
     {
       if (oldEntry != null)
       {
         deleteKeySet.clear();
-        index.indexEntry(oldEntry, deleteKeySet, options);
+        index.indexEntry(oldEntry, deleteKeySet);
         for (ByteString delKey : deleteKeySet)
         {
           processKey(index, delKey, entryID, indexKey, false);
         }
       }
       insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key, entryID, indexKey, true);
@@ -1581,11 +1580,9 @@ final class Importer
     void fillIndexKey(AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
         throws InterruptedException, StorageRuntimeException
     {
-      final IndexingOptions options = attrIndex.getIndexingOptions();
-
       for (Map.Entry<String, MatchingRuleIndex> mapEntry : attrIndex.getNameToIndexes().entrySet())
       {
-        processAttribute(mapEntry.getValue(), mapEntry.getKey(), entry, attrType, entryID, options);
+        processAttribute(mapEntry.getValue(), mapEntry.getKey(), entry, attrType, entryID);
       }
     }
 
@@ -1602,20 +1599,20 @@ final class Importer
     }
 
     private void processAttribute(MatchingRuleIndex index, String indexID, Entry entry,
-        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
+        AttributeType attributeType, EntryID entryID) throws InterruptedException
     {
       if (index != null)
       {
         IndexKey indexKey = new IndexKey(attributeType, indexID, index.getIndexEntryLimit());
-        processAttribute(index, entry, entryID, options, indexKey);
+        processAttribute(index, entry, entryID, indexKey);
       }
     }
 
-    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexingOptions options,
-        IndexKey indexKey) throws StorageRuntimeException, InterruptedException
+    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey)
+        throws StorageRuntimeException, InterruptedException
     {
       insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key, entryID, indexKey, true);
@@ -3167,10 +3164,7 @@ final class Importer
         AttributeType attrType = indexKey.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
-          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
-          IndexingOptions options = attributeIndex.getIndexingOptions();
-          MatchingRuleIndex index = mapEntry.getValue();
-          processAttribute(index, entry, entryID, options, indexKey);
+          processAttribute(mapEntry.getValue(), entry, entryID, indexKey);
         }
       }
     }

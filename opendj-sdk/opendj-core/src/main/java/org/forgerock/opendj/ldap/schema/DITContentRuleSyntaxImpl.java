@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -50,7 +50,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
 
     @Override
     public String getEqualityMatchingRule() {
-        return EMR_OID_FIRST_COMPONENT_OID;
+        return EMR_OID_FIRST_COMPONENT_NAME;
     }
 
     public String getName() {

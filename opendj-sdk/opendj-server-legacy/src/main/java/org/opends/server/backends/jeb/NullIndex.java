@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -131,7 +130,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
   {
     // Do nothing.
@@ -139,7 +138,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
   {
     // Do nothing.
@@ -147,8 +146,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
-      IndexingOptions options) throws DatabaseException
+  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods)
+      throws DatabaseException
   {
     // Do nothing.
   }

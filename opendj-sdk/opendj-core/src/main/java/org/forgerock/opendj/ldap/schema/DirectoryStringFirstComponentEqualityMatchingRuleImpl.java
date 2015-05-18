@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,6 +30,7 @@ import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -48,9 +49,14 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
+    DirectoryStringFirstComponentEqualityMatchingRuleImpl() {
+      super(EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME);
+    }
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) {
-        return DefaultAssertion.equality(SchemaUtils.normalizeStringAttributeValue(assertionValue, TRIM, CASE_FOLD));
+        return named(EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME,
+                SchemaUtils.normalizeStringAttributeValue(assertionValue, TRIM, CASE_FOLD));
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)

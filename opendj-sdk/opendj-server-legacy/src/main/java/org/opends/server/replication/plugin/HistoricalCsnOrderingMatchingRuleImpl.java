@@ -51,7 +51,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRuleImpl
 {
-  private static final String ORDERING_ID = "ordering";
+  private static final String ORDERING_ID = "changeSequenceNumberOrderingMatch";
 
   private final Collection<? extends Indexer> indexers = Collections.singleton(new HistoricalIndexer());
 
@@ -59,8 +59,7 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
   private final class HistoricalIndexer implements Indexer
   {
     @Override
-    public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
-        throws DecodeException
+    public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException
     {
       keys.add(normalizeAttributeValue(schema, value));
     }
@@ -172,16 +171,9 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
 
   /** {@inheritDoc} */
   @Override
-  public Collection<? extends Indexer> getIndexers()
+  public Collection<? extends Indexer> createIndexers(IndexingOptions options)
   {
     return indexers;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isIndexingSupported()
-  {
-    return !indexers.isEmpty();
   }
 
 }

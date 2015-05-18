@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -36,6 +37,11 @@ import org.forgerock.opendj.ldap.ByteString;
  * referenced in RFC 2252.
  */
 final class CaseIgnoreEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    CaseIgnoreEqualityMatchingRuleImpl() {
+        super(EMR_CASE_IGNORE_NAME);
+    }
+
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD);

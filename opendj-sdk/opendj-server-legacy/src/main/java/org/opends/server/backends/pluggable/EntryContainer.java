@@ -195,17 +195,7 @@ public class EntryContainer
     {
       try
       {
-        // FIXME this should be a read operation, but I cannot change it
-        // because of AttributeIndex ctor.
-        storage.write(new WriteOperation()
-        {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
-          {
-            //Try creating all the indexes before confirming they are valid ones.
-            new AttributeIndex(cfg, state, EntryContainer.this, txn);
-          }
-        });
+        new AttributeIndex(cfg, state, EntryContainer.this);
         return true;
       }
       catch(Exception e)
@@ -222,12 +212,12 @@ public class EntryContainer
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
+        final AttributeIndex index = new AttributeIndex(cfg, state, EntryContainer.this);
         storage.write(new WriteOperation()
         {
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            final AttributeIndex index = new AttributeIndex(cfg, state, EntryContainer.this, txn);
             index.open(txn);
             if (!index.isTrusted())
             {
@@ -496,7 +486,7 @@ public class EntryContainer
       {
         BackendIndexCfg indexCfg = config.getBackendIndex(idx);
 
-        AttributeIndex index = new AttributeIndex(indexCfg, state, this, txn);
+        final AttributeIndex index = new AttributeIndex(indexCfg, state, this);
         index.open(txn);
         if(!index.isTrusted())
         {
@@ -2194,8 +2184,7 @@ public class EntryContainer
                 }
 
                 // Move this entry.
-                removeSubordinateEntry(txn, buffer, oldSuperiorDN, oldID, newID, oldEntry, newDN, isApexEntryMoved,
-                    modifyDNOperation, current);
+                removeSubordinateEntry(txn, buffer, oldID, newID, oldEntry, newDN, modifyDNOperation, current);
                 current = current.next;
 
                 if (modifyDNOperation != null)
@@ -2364,10 +2353,8 @@ public class EntryContainer
   }
 
   private void removeSubordinateEntry(WriteableTransaction txn, IndexBuffer buffer,
-      DN oldSuperiorDN,
       EntryID oldID, EntryID newID,
       Entry oldEntry, DN newDN,
-      boolean isApexEntryMoved,
       ModifyDNOperation modifyDNOperation,
       MovedEntry tail)
   throws DirectoryException, StorageRuntimeException

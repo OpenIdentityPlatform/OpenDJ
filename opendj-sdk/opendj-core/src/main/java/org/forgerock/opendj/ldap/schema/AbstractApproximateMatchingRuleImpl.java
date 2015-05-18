@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class implements an approximate matching rule that matches normalized
@@ -39,22 +40,21 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Collection<? extends Indexer> indexers =
-            Collections.singleton(new DefaultIndexer("approximate"));
+    private final Indexer indexer;
 
-    AbstractApproximateMatchingRuleImpl() {
-        // Nothing to do.
+    AbstractApproximateMatchingRuleImpl(String indexID) {
+        indexer = new DefaultIndexer(indexID);
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
+    public final Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        return DefaultAssertion.approximate(normalizeAttributeValue(schema, assertionValue));
+        return named(indexer.getIndexID(), normalizeAttributeValue(schema, assertionValue));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Collection<? extends Indexer> getIndexers() {
-        return indexers;
+    public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+        return Collections.singleton(indexer);
     }
 }

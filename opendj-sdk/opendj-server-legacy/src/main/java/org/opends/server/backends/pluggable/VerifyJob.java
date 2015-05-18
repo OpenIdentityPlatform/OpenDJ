@@ -51,7 +51,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -431,10 +430,9 @@ class VerifyJob
     else if (attrIndexList.size() > 0)
     {
       AttributeIndex attrIndex = attrIndexList.get(0);
-      final IndexingOptions options = attrIndex.getIndexingOptions();
       for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
       {
-        iterateAttrIndex(txn, index, options);
+        iterateAttrIndex(txn, index);
       }
     }
     else if (vlvIndexList.size() > 0)
@@ -672,8 +670,7 @@ class VerifyJob
    * @param index The index tree to be checked.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  private void iterateAttrIndex(ReadableTransaction txn, MatchingRuleIndex index, IndexingOptions options)
-      throws StorageRuntimeException
+  private void iterateAttrIndex(ReadableTransaction txn, MatchingRuleIndex index) throws StorageRuntimeException
   {
     if (index == null)
     {
@@ -780,7 +777,7 @@ class VerifyJob
 
             };
 
-            index.indexEntry(entry, dummySet, options);
+            index.indexEntry(entry, dummySet);
 
             if (!foundMatchingKey.get())
             {
@@ -958,11 +955,10 @@ class VerifyJob
    */
   private void verifyAttribute(ReadableTransaction txn, EntryID entryID, Entry entry, AttributeIndex attrIndex)
   {
-    IndexingOptions options = attrIndex.getIndexingOptions();
     for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
     {
       Set<ByteString> keys = new HashSet<ByteString>();
-      index.indexEntry(entry, keys, options);
+      index.indexEntry(entry, keys);
       for (ByteString key : keys)
       {
         verifyAttributeInIndex(index, txn, key, entryID);

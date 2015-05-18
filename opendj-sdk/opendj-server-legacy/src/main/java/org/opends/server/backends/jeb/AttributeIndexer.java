@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -35,7 +35,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
@@ -79,26 +78,25 @@ public final class AttributeIndexer extends Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  public void indexEntry(Entry entry, Set<ByteString> keys)
   {
-    List<Attribute> attrList = entry.getAttribute(attributeType);
+    final List<Attribute> attrList = entry.getAttribute(attributeType);
     if (attrList != null)
     {
-      indexAttribute(attrList, keys, options);
+      indexAttribute(attrList, keys);
     }
   }
 
   /** {@inheritDoc} */
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
-      List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
-      IndexingOptions options)
+      List<Modification> mods, Map<ByteString, Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    indexAttribute(oldAttributes, modifiedKeys, false, options);
-    indexAttribute(newAttributes, modifiedKeys, true, options);
+    indexAttribute(oldAttributes, modifiedKeys, false);
+    indexAttribute(newAttributes, modifiedKeys, true);
   }
 
 
@@ -108,8 +106,7 @@ public final class AttributeIndexer extends Indexer
    * @param attrList The attribute for which substring keys are required.
    * @param keys The set into which the generated keys will be inserted.
    */
-  private void indexAttribute(List<Attribute> attrList, Set<ByteString> keys,
-      IndexingOptions options)
+  private void indexAttribute(List<Attribute> attrList, Set<ByteString> keys)
   {
     if (attrList == null)
     {
@@ -124,7 +121,7 @@ public final class AttributeIndexer extends Indexer
         {
           try
           {
-            indexer.createKeys(Schema.getDefaultSchema(), value, options, keys);
+            indexer.createKeys(Schema.getDefaultSchema(), value, keys);
           }
           catch (DecodeException e)
           {
@@ -143,17 +140,15 @@ public final class AttributeIndexer extends Indexer
    * @param insert <code>true</code> if generated keys should
    * be inserted or <code>false</code> otherwise.
    */
-  private void indexAttribute(List<Attribute> attrList,
-      Map<ByteString, Boolean> modifiedKeys, Boolean insert,
-      IndexingOptions options)
+  private void indexAttribute(List<Attribute> attrList, Map<ByteString, Boolean> modifiedKeys, Boolean insert)
   {
     if (attrList == null)
     {
       return;
     }
 
-    final Set<ByteString> keys = new HashSet<ByteString>();
-    indexAttribute(attrList, keys, options);
+    final Set<ByteString> keys = new HashSet<>();
+    indexAttribute(attrList, keys);
     computeModifiedKeys(modifiedKeys, insert, keys);
   }
 

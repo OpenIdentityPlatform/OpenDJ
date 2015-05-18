@@ -89,7 +89,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -689,26 +688,7 @@ final class Importer implements DiskSpaceMonitorHandler
   {
     for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
     {
-      putInIdContainerMap(attributeIndex.getEqualityIndex());
-      putInIdContainerMap(attributeIndex.getPresenceIndex());
-      putInIdContainerMap(attributeIndex.getSubstringIndex());
-      putInIdContainerMap(attributeIndex.getOrderingIndex());
-      putInIdContainerMap(attributeIndex.getApproximateIndex());
-      Map<String, Collection<Index>> extensibleMap = attributeIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        putInIdContainerMap(extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING));
-        putInIdContainerMap(extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED));
-      }
-    }
-  }
-
-  private void putInIdContainerMap(Collection<Index> indexes)
-  {
-    if (indexes != null)
-    {
-      for (Index index : indexes)
-      {
+      for(Index index : attributeIndex.getAllIndexes()) {
         putInIdContainerMap(index);
       }
     }
@@ -1492,20 +1472,20 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     @Override
-    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
-        IndexKey indexKey) throws DatabaseException, InterruptedException
+    void processAttribute(Index index, Entry entry, EntryID entryID, IndexKey indexKey)
+        throws DatabaseException, InterruptedException
     {
       if (oldEntry != null)
       {
         deleteKeySet.clear();
-        index.indexEntry(oldEntry, deleteKeySet, options);
+        index.indexEntry(oldEntry, deleteKeySet);
         for (ByteString delKey : deleteKeySet)
         {
           processKey(index, delKey.toByteArray(), entryID, indexKey, false);
         }
       }
       insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key.toByteArray(), entryID, indexKey, true);
@@ -1522,7 +1502,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<IndexKey, IndexOutputBuffer>();
     private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
-    private final IndexKey dnIndexKey = new IndexKey(dnType, ImportIndexType.DN, 1);
+    private final IndexKey dnIndexKey = new IndexKey(dnType, ImportIndexType.DN.toString(), 1);
     private DatabaseEntry keyEntry = new DatabaseEntry();
     private DatabaseEntry valEntry = new DatabaseEntry();
 
@@ -1623,57 +1603,45 @@ final class Importer implements DiskSpaceMonitorHandler
     void fillIndexKey(Suffix suffix, AttributeIndex attrIndex, Entry entry, AttributeType attrType, EntryID entryID)
         throws DatabaseException, InterruptedException, DirectoryException, JebException
     {
-      final IndexingOptions options = attrIndex.getIndexingOptions();
-
-      processAttribute(attrIndex.getEqualityIndex(), ImportIndexType.EQUALITY, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, entry, attrType, entryID, options);
-      processAttribute(attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, entry, attrType, entryID, options);
+      for(Index index : attrIndex.getAllIndexes()) {
+        processAttribute(index,  entry, attrType, entryID);
+      }
 
       for (VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes())
       {
         Transaction transaction = null;
         vlvIdx.addEntry(transaction, entryID, entry);
       }
-      Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        Collection<Index> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        processAttributes(subIndexes, ImportIndexType.EX_SUBSTRING, entry, attrType, entryID, options);
-        Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-        processAttributes(sharedIndexes, ImportIndexType.EX_SHARED, entry, attrType, entryID, options);
-      }
     }
 
-    private void processAttribute(Index index, ImportIndexType presence, Entry entry,
-        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
+    private void processAttribute(Index index, Entry entry, AttributeType attributeType, EntryID entryID)
+        throws InterruptedException
     {
       if (index != null)
       {
-        IndexKey indexKey = new IndexKey(attributeType, presence, index.getIndexEntryLimit());
-        processAttribute(index, entry, entryID, options, indexKey);
+        processAttribute(index, entry, entryID,
+            new IndexKey(attributeType, index.getName(), index.getIndexEntryLimit()));
       }
     }
 
-    private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry,
-        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
+    private void processAttributes(Collection<Index> indexes, Entry entry, AttributeType attributeType, EntryID entryID)
+        throws InterruptedException
     {
       if (indexes != null)
       {
         for (Index index : indexes)
         {
-          IndexKey indexKey = new IndexKey(attributeType, indexType, index.getIndexEntryLimit());
-          processAttribute(index, entry, entryID, options, indexKey);
+          processAttribute(index, entry, entryID,
+              new IndexKey(attributeType, index.getName(), index.getIndexEntryLimit()));
         }
       }
     }
 
-    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
-        IndexKey indexKey) throws DatabaseException, InterruptedException
+    void processAttribute(Index index, Entry entry, EntryID entryID, IndexKey indexKey)
+        throws DatabaseException, InterruptedException
     {
       insertKeySet.clear();
-      index.indexEntry(entry, insertKeySet, options);
+      index.indexEntry(entry, insertKeySet);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key.toByteArray(), entryID, indexKey, true);
@@ -2754,7 +2722,7 @@ final class Importer implements DiskSpaceMonitorHandler
         {
           return;
         }
-        boolean isDN2ID = ImportIndexType.DN.equals(indexKey.getIndexType());
+        boolean isDN2ID = ImportIndexType.DN.toString().equals(indexKey.getIndexName());
         IndexManager indexMgr = new IndexManager(indexKey.getName(), isDN2ID, indexKey.getEntryLimit());
         if (isDN2ID)
         {
@@ -3178,60 +3146,19 @@ final class Importer implements DiskSpaceMonitorHandler
         final AttributeType attrType, final boolean onlyDegraded)
         throws DatabaseException
     {
-      fillIndexMap(attrType, attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, onlyDegraded);
-      fillIndexMap(attrType, attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, onlyDegraded);
-      fillIndexMap(attrType, attrIndex.getEqualityIndex(), ImportIndexType.EQUALITY, onlyDegraded);
-      fillIndexMap(attrType, attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, onlyDegraded);
-      fillIndexMap(attrType, attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, onlyDegraded);
-
-      final Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
-      if (!extensibleMap.isEmpty())
-      {
-        final Collection<Index> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        fillIndexMap(attrType, subIndexes, ImportIndexType.EX_SUBSTRING, onlyDegraded);
-        final Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-        fillIndexMap(attrType, sharedIndexes, ImportIndexType.EX_SHARED, onlyDegraded);
+      for(Index index : attrIndex.getAllIndexes()) {
+        fillIndexMap(attrType, index, onlyDegraded);
       }
     }
 
-    private void fillIndexMap(final AttributeType attrType, final Collection<Index> indexes,
-        final ImportIndexType importIndexType, final boolean onlyDegraded)
-    {
-      if (indexes != null && !indexes.isEmpty())
-      {
-        final List<Index> mutableCopy = new LinkedList<Index>(indexes);
-        for (final Iterator<Index> it = mutableCopy.iterator(); it.hasNext();)
-        {
-          final Index sharedIndex = it.next();
-          if (!onlyDegraded || !sharedIndex.isTrusted())
-          {
-            if (!rebuildConfig.isClearDegradedState() || sharedIndex.getRecordCount() == 0)
-            {
-              putInIdContainerMap(sharedIndex);
-            }
-          }
-          else
-          {
-            // This index is not a candidate for rebuilding.
-            it.remove();
-          }
-        }
-        if (!mutableCopy.isEmpty())
-        {
-          extensibleIndexMap.put(new IndexKey(attrType, importIndexType, 0), mutableCopy);
-        }
-      }
-    }
-
-    private void fillIndexMap(final AttributeType attrType, final Index index,
-        final ImportIndexType importIndexType, final boolean onlyDegraded)
+    private void fillIndexMap(final AttributeType attrType, final Index index, final boolean onlyDegraded)
     {
       if (index != null
           && (!onlyDegraded || !index.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || index.getRecordCount() == 0))
       {
         putInIdContainerMap(index);
-        final IndexKey key = new IndexKey(attrType, importIndexType, index.getIndexEntryLimit());
+        final IndexKey key = new IndexKey(attrType, index.getName(), index.getIndexEntryLimit());
         indexMap.put(key, index);
       }
     }
@@ -3588,11 +3515,9 @@ final class Importer implements DiskSpaceMonitorHandler
         AttributeType attrType = key.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
-          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
-          IndexingOptions options = attributeIndex.getIndexingOptions();
           for (Index index : mapEntry.getValue())
           {
-            processAttribute(index, entry, entryID, options, key);
+            processAttribute(index, entry, entryID, key);
           }
         }
       }
@@ -3607,10 +3532,7 @@ final class Importer implements DiskSpaceMonitorHandler
         AttributeType attrType = key.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
-          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
-          IndexingOptions options = attributeIndex.getIndexingOptions();
-          Index index = mapEntry.getValue();
-          processAttribute(index, entry, entryID, options, key);
+          processAttribute(mapEntry.getValue(), entry, entryID, key);
         }
       }
     }
@@ -4045,7 +3967,7 @@ final class Importer implements DiskSpaceMonitorHandler
   {
 
     private final AttributeType attributeType;
-    private final ImportIndexType indexType;
+    private final String indexName;
     private final int entryLimit;
 
     /**
@@ -4059,10 +3981,10 @@ final class Importer implements DiskSpaceMonitorHandler
      * @param entryLimit
      *          The entry limit for the index.
      */
-    private IndexKey(AttributeType attributeType, ImportIndexType indexType, int entryLimit)
+    private IndexKey(AttributeType attributeType, String indexName, int entryLimit)
     {
       this.attributeType = attributeType;
-      this.indexType = indexType;
+      this.indexName = indexName;
       this.entryLimit = entryLimit;
     }
 
@@ -4082,7 +4004,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         IndexKey oKey = (IndexKey) obj;
         if (attributeType.equals(oKey.getAttributeType())
-            && indexType.equals(oKey.getIndexType()))
+            && indexName.equals(oKey.indexName))
         {
           return true;
         }
@@ -4100,7 +4022,7 @@ final class Importer implements DiskSpaceMonitorHandler
     @Override
     public int hashCode()
     {
-      return attributeType.hashCode() + indexType.hashCode();
+      return attributeType.hashCode() + indexName.hashCode();
     }
 
     /**
@@ -4118,9 +4040,9 @@ final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The index type.
      */
-    public ImportIndexType getIndexType()
+    public String getIndexName()
     {
-      return indexType;
+      return indexName;
     }
 
     /**
@@ -4133,7 +4055,7 @@ final class Importer implements DiskSpaceMonitorHandler
     public String getName()
     {
       return attributeType.getPrimaryName() + "."
-          + StaticUtils.toLowerCase(indexType.name());
+          + StaticUtils.toLowerCase(indexName);
     }
 
     /**
@@ -4151,7 +4073,7 @@ final class Importer implements DiskSpaceMonitorHandler
     public String toString()
     {
       return getClass().getSimpleName()
-          + "(index=" + attributeType.getNameOrOID() + "." + indexType
+          + "(index=" + attributeType.getNameOrOID() + "." + indexName
           + ", entryLimit=" + entryLimit
           + ")";
     }

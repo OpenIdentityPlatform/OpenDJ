@@ -27,6 +27,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.IntegerOrderingMatchingRuleImpl.normalizeValueAndEncode;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -39,6 +40,11 @@ import org.forgerock.opendj.ldap.DecodeException;
  * potentially share the same index.
  */
 final class IntegerEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    IntegerEqualityMatchingRuleImpl() {
+        super(EMR_INTEGER_NAME);
+    }
+
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {

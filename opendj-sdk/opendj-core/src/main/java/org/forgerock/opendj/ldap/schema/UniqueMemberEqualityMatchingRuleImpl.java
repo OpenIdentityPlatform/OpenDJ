@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -40,6 +42,10 @@ import org.forgerock.opendj.ldap.DecodeException;
  * suffix.
  */
 final class UniqueMemberEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    UniqueMemberEqualityMatchingRuleImpl() {
+        super(EMR_UNIQUE_MEMBER_NAME);
+    }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
         // Separate value into normalized DN and "optional uid" portion.

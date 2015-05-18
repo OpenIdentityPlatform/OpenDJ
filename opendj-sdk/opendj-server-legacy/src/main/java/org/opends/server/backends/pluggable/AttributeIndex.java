@@ -111,36 +111,35 @@ class AttributeIndex
   /**
    * This class implements an attribute indexer for matching rules in a Backend.
    */
-  final class MatchingRuleIndex extends DefaultIndex
+  static final class MatchingRuleIndex extends DefaultIndex
   {
-    /**
-     * The matching rule's indexer.
-     */
+    private final AttributeType attributeType;
     private final Indexer indexer;
 
-    private MatchingRuleIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer)
+    private MatchingRuleIndex(EntryContainer entryContainer, AttributeType attributeType, State state, Indexer indexer,
+        int indexEntryLimit)
     {
-      super(getIndexName(attributeType, indexer.getIndexID()), state, cfg.getIndexEntryLimit(), txn, entryContainer);
+      super(getIndexName(entryContainer, attributeType, indexer.getIndexID()), state, indexEntryLimit, entryContainer);
+      this.attributeType = attributeType;
       this.indexer = indexer;
     }
 
-    void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+    void indexEntry(Entry entry, Set<ByteString> keys)
     {
       List<Attribute> attributes = entry.getAttribute(attributeType, true);
       if (attributes != null)
       {
-        indexAttribute(attributes, keys, options);
+        indexAttribute(attributes, keys);
       }
     }
 
-    private void modifyEntry(Entry oldEntry, Entry newEntry, Map<ByteString, Boolean> modifiedKeys,
-        IndexingOptions options)
+    private void modifyEntry(Entry oldEntry, Entry newEntry, Map<ByteString, Boolean> modifiedKeys)
     {
       List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
       if (oldAttributes != null)
       {
         final Set<ByteString> keys = new HashSet<ByteString>();
-        indexAttribute(oldAttributes, keys, options);
+        indexAttribute(oldAttributes, keys);
         for (ByteString key : keys)
         {
           modifiedKeys.put(key, false);
@@ -151,7 +150,7 @@ class AttributeIndex
       if (newAttributes != null)
       {
         final Set<ByteString> keys = new HashSet<ByteString>();
-        indexAttribute(newAttributes, keys, options);
+        indexAttribute(newAttributes, keys);
         for (ByteString key : keys)
         {
           final Boolean needsAdding = modifiedKeys.get(key);
@@ -169,7 +168,7 @@ class AttributeIndex
       }
     }
 
-    private void indexAttribute(List<Attribute> attributes, Set<ByteString> keys, IndexingOptions options)
+    private void indexAttribute(List<Attribute> attributes, Set<ByteString> keys)
     {
       for (Attribute attr : attributes)
       {
@@ -179,7 +178,7 @@ class AttributeIndex
           {
             try
             {
-              indexer.createKeys(Schema.getDefaultSchema(), value, options, keys);
+              indexer.createKeys(Schema.getDefaultSchema(), value, keys);
 
               /*
                * Optimization for presence: return immediately after first value since all values
@@ -209,8 +208,7 @@ class AttributeIndex
   private static final Indexer PRESENCE_INDEXER = new Indexer()
   {
     @Override
-    public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
-        throws DecodeException
+    public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException
     {
       keys.add(PRESENCE_KEY);
     }
@@ -235,118 +233,113 @@ class AttributeIndex
   private BackendIndexCfg config;
 
   /** The mapping from names to indexes. */
-  private final Map<String, MatchingRuleIndex> nameToIndexes = new HashMap<String, MatchingRuleIndex>();
-  private final IndexingOptions indexingOptions;
+  private Map<String, MatchingRuleIndex> indexIdToIndexes;
+  private IndexingOptions indexingOptions;
   private final State state;
 
-  /** The attribute type for which this instance will generate index keys. */
-  private final AttributeType attributeType;
-
-  AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer, WriteableTransaction txn)
-      throws ConfigException
+  AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer) throws ConfigException
   {
     this.entryContainer = entryContainer;
     this.config = config;
     this.state = state;
-    this.attributeType = config.getAttribute();
-
-    buildPresenceIndex(txn);
-    buildIndexes(txn, IndexType.EQUALITY);
-    buildIndexes(txn, IndexType.SUBSTRING);
-    buildIndexes(txn, IndexType.ORDERING);
-    buildIndexes(txn, IndexType.APPROXIMATE);
-    buildExtensibleIndexes(txn);
-
-    indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
+    this.indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
+    this.indexIdToIndexes = Collections.unmodifiableMap(buildIndexes(entryContainer, state, config));
   }
 
-  private void buildPresenceIndex(WriteableTransaction txn)
+  private static Map<String, MatchingRuleIndex> buildIndexes(EntryContainer entryContainer, State state,
+      BackendIndexCfg config) throws ConfigException
   {
-    final IndexType indexType = IndexType.PRESENCE;
-    if (config.getIndexType().contains(indexType))
-    {
-      String indexID = indexType.toString();
-      nameToIndexes.put(indexID, new MatchingRuleIndex(txn, config, PRESENCE_INDEXER));
+    final AttributeType attributeType = config.getAttribute();
+    final int indexEntryLimit = config.getIndexEntryLimit();
+    final IndexingOptions indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
+
+    final Map<String, MatchingRuleIndex> indexes = new HashMap<>();
+
+    for(IndexType indexType : config.getIndexType()) {
+      Collection<? extends Indexer> indexers;
+      switch (indexType)
+      {
+      case PRESENCE:
+        indexers = Collections.singleton(PRESENCE_INDEXER);
+        break;
+      case EXTENSIBLE:
+        indexers =
+            getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions);
+        break;
+      case APPROXIMATE:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule()).createIndexers(
+                indexingOptions);
+        break;
+      case EQUALITY:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getEqualityMatchingRule()).createIndexers(
+                indexingOptions);
+        break;
+      case ORDERING:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getOrderingMatchingRule()).createIndexers(
+                indexingOptions);
+        break;
+      case SUBSTRING:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getSubstringMatchingRule()).createIndexers(
+                indexingOptions);
+        break;
+      default:
+       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType.toString()));
+      }
+      buildIndexesForIndexers(entryContainer, attributeType, state, indexes, indexEntryLimit, indexers);
     }
+    return indexes;
   }
 
-  private void buildExtensibleIndexes(WriteableTransaction txn) throws ConfigException
+  private static MatchingRule throwIfNoMatchingRule(AttributeType attributeType, IndexType type, MatchingRule rule)
+      throws ConfigException
   {
-    final IndexType indexType = IndexType.EXTENSIBLE;
-    if (config.getIndexType().contains(indexType))
+    if (rule == null)
     {
-      final AttributeType attrType = config.getAttribute();
-      Set<String> extensibleRules = config.getIndexExtensibleMatchingRule();
-      if (extensibleRules == null || extensibleRules.isEmpty())
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType.toString()));
-      }
-
-      // Iterate through the Set and create the index only if necessary.
-      // Collation equality and Ordering matching rules share the same indexer and index
-      // A Collation substring matching rule is treated differently
-      // as it uses a separate indexer and index.
-      for (final String ruleName : extensibleRules)
-      {
-        MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-        if (rule == null)
-        {
-          logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
-          continue;
-        }
-        for (Indexer indexer : rule.getIndexers())
-        {
-          final String indexId = indexer.getIndexID();
-          if (!nameToIndexes.containsKey(indexId))
-          {
-            // There is no index available for this index id. Create a new index
-            nameToIndexes.put(indexId, new MatchingRuleIndex(txn, config, indexer));
-          }
-        }
-      }
+      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, type.toString()));
     }
+    return rule;
   }
 
-  private void buildIndexes(WriteableTransaction txn, IndexType indexType) throws ConfigException
+  private static void buildIndexesForIndexers(EntryContainer entryContainer, AttributeType attributeType, State state,
+      Map<String, MatchingRuleIndex> indexes, int indexEntryLimit, Collection<? extends Indexer> indexers)
   {
-    if (config.getIndexType().contains(indexType))
+    for (Indexer indexer : indexers)
     {
-      final AttributeType attrType = config.getAttribute();
-      final String indexID = indexType.toString();
-      final MatchingRule rule = getMatchingRule(indexType, attrType);
-      if (rule == null)
+      final String indexID = indexer.getIndexID();
+      if (!indexes.containsKey(indexID))
       {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexID));
-      }
-
-      for (Indexer indexer : rule.getIndexers())
-      {
-        nameToIndexes.put(indexer.getIndexID(), new MatchingRuleIndex(txn, config, indexer));
+        indexes.put(indexID, new MatchingRuleIndex(entryContainer, attributeType, state, indexer, indexEntryLimit));
       }
     }
   }
 
-  private MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
+  private static Collection<Indexer> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
+      IndexingOptions options) throws ConfigException
   {
-    switch (indexType)
+    if (extensibleRules == null || extensibleRules.isEmpty())
     {
-    case APPROXIMATE:
-      return attrType.getApproximateMatchingRule();
-    case EQUALITY:
-      return attrType.getEqualityMatchingRule();
-    case ORDERING:
-      return attrType.getOrderingMatchingRule();
-    case SUBSTRING:
-      return attrType.getSubstringMatchingRule();
-    default:
-      throw new IllegalArgumentException("Not implemented for index type " + indexType);
+      throw new ConfigException(
+          ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, IndexType.EXTENSIBLE.toString()));
     }
+
+    final Collection<Indexer> indexers = new ArrayList<>();
+    for (final String ruleName : extensibleRules)
+    {
+      final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
+      throwIfNoMatchingRule(attributeType, IndexType.EXTENSIBLE, rule);
+      indexers.addAll(rule.createIndexers(options));
+    }
+
+    return indexers;
   }
 
-  private TreeName getIndexName(AttributeType attrType, String indexID)
+  private static TreeName getIndexName(EntryContainer entryContainer, AttributeType attrType, String indexID)
   {
-    final String attrIndexId = attrType.getNameOrOID() + "." + indexID;
-    return new TreeName(entryContainer.getTreePrefix(), attrIndexId);
+    return new TreeName(entryContainer.getTreePrefix(), attrType.getNameOrOID() + "." + indexID);
   }
 
   /**
@@ -357,7 +350,7 @@ class AttributeIndex
    */
   void open(WriteableTransaction txn) throws StorageRuntimeException
   {
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       index.open(txn);
     }
@@ -436,10 +429,10 @@ class AttributeIndex
    */
   void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
   {
-    for (MatchingRuleIndex index : nameToIndexes.values())
+    for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      HashSet<ByteString> keys = new HashSet<ByteString>();
-      index.indexEntry(entry, keys, indexingOptions);
+      final Set<ByteString> keys = new HashSet<>();
+      index.indexEntry(entry, keys);
       for (ByteString key : keys)
       {
         buffer.put(index, key, entryID);
@@ -458,10 +451,10 @@ class AttributeIndex
    */
   void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws StorageRuntimeException, DirectoryException
   {
-    for (MatchingRuleIndex index : nameToIndexes.values())
+    for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
       HashSet<ByteString> keys = new HashSet<ByteString>();
-      index.indexEntry(entry, keys, indexingOptions);
+      index.indexEntry(entry, keys);
       for (ByteString key : keys)
       {
         buffer.remove(index, key, entryID);
@@ -482,10 +475,10 @@ class AttributeIndex
    */
   void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry) throws StorageRuntimeException
   {
-    for (MatchingRuleIndex index : nameToIndexes.values())
+    for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
       TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
-      index.modifyEntry(oldEntry, newEntry, modifiedKeys, indexingOptions);
+      index.modifyEntry(oldEntry, newEntry, modifiedKeys);
       for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
       {
         if (modifiedKey.getValue())
@@ -694,226 +687,143 @@ class AttributeIndex
     return true;
   }
 
-  private boolean isIndexAcceptable(BackendIndexCfg cfg, IndexType indexType,
+  private static boolean isIndexAcceptable(BackendIndexCfg cfg, IndexType indexType,
       List<LocalizableMessage> unacceptableReasons)
   {
-    final String indexId = indexType.toString();
     final AttributeType attrType = cfg.getAttribute();
     if (cfg.getIndexType().contains(indexType)
-        && nameToIndexes.get(indexId) == null
         && getMatchingRule(indexType, attrType) == null)
     {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexId));
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType));
       return false;
     }
     return true;
   }
 
+  private static MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
+  {
+    switch (indexType)
+    {
+    case APPROXIMATE:
+      return attrType.getApproximateMatchingRule();
+    case EQUALITY:
+      return attrType.getEqualityMatchingRule();
+    case ORDERING:
+      return attrType.getOrderingMatchingRule();
+    case SUBSTRING:
+      return attrType.getSubstringMatchingRule();
+    default:
+      throw new IllegalArgumentException("Not implemented for index type " + indexType);
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(final BackendIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final BackendIndexCfg newConfiguration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
+    final IndexingOptions newIndexingOptions = new IndexingOptionsImpl(newConfiguration.getSubstringLength());
     try
     {
+      final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration);
+
+      final Map<String, MatchingRuleIndex> removedIndexes = new HashMap<>(indexIdToIndexes);
+      removedIndexes.keySet().removeAll(newIndexIdToIndexes.keySet());
+
+      final Map<String, MatchingRuleIndex> addedIndexes = new HashMap<>(newIndexIdToIndexes);
+      addedIndexes.keySet().removeAll(indexIdToIndexes.keySet());
+
+      final Map<String, MatchingRuleIndex> updatedIndexes = new HashMap<>(indexIdToIndexes);
+      updatedIndexes.keySet().retainAll(newIndexIdToIndexes.keySet());
+
+      // Replace instances of Index created by buildIndexes() with the one already opened and present in the actual
+      // indexIdToIndexes
+      newIndexIdToIndexes.putAll(updatedIndexes);
+
+      // Open added indexes *before* adding them to indexIdToIndexes
       entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          applyChangeToIndex(txn, IndexType.PRESENCE, cfg, ccr);
-          applyChangeToIndex(txn, IndexType.EQUALITY, cfg, ccr);
-          applyChangeToIndex(txn, IndexType.SUBSTRING, cfg, ccr);
-          applyChangeToIndex(txn, IndexType.ORDERING, cfg, ccr);
-          applyChangeToIndex(txn, IndexType.APPROXIMATE, cfg, ccr);
-          applyChangeToExtensibleIndexes(txn, cfg, ccr);
+          for (MatchingRuleIndex addedIndex : addedIndexes.values())
+          {
+            openIndex(txn, addedIndex, ccr);
+          }
         }
       });
 
-      config = cfg;
+      config = newConfiguration;
+      indexingOptions = newIndexingOptions;
+      indexIdToIndexes = Collections.unmodifiableMap(newIndexIdToIndexes);
+
+      // We get exclusive lock to ensure that no query is actually using the indexes that will be deleted.
+      entryContainer.lock();
+      try
+      {
+        entryContainer.getRootContainer().getStorage().write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableTransaction txn) throws Exception
+          {
+            for (MatchingRuleIndex removedIndex : removedIndexes.values())
+            {
+              deleteIndex(txn, entryContainer, removedIndex);
+            }
+          }
+        });
+      }
+      finally
+      {
+        entryContainer.unlock();
+      }
+
+      for (Index updatedIndex : updatedIndexes.values())
+      {
+        updateIndex(updatedIndex, newConfiguration.getIndexEntryLimit(), ccr);
+      }
+
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
     }
+
     return ccr;
   }
 
-  private void applyChangeToExtensibleIndexes(WriteableTransaction txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
+  private static void openIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
   {
-    final AttributeType attrType = cfg.getAttribute();
-    if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
-    {
-      final Set<MatchingRule> validRules = Collections.emptySet();
-      final Set<String> validIndexIds = Collections.emptySet();
-      removeIndexesForExtensibleMatchingRules(txn, validRules, validIndexIds);
-      return;
-    }
-
-    final Set<String> extensibleRules = cfg.getIndexExtensibleMatchingRule();
-    final Set<MatchingRule> validRules = new HashSet<MatchingRule>();
-    final Set<String> validIndexIds = new HashSet<String>();
-    final int indexEntryLimit = cfg.getIndexEntryLimit();
-
-    for (String ruleName : extensibleRules)
-    {
-      MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-      if (rule == null)
-      {
-        logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
-        continue;
-      }
-      validRules.add(rule);
-      for (Indexer indexer : rule.getIndexers())
-      {
-        String indexId = indexer.getIndexID();
-        validIndexIds.add(indexId);
-        if (!nameToIndexes.containsKey(indexId))
-        {
-          nameToIndexes.put(indexId, openNewIndex(txn, cfg, indexer, ccr));
-        }
-        else
-        {
-          Index index = nameToIndexes.get(indexId);
-          if (index.setIndexEntryLimit(indexEntryLimit))
-          {
-            ccr.setAdminActionRequired(true);
-            ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-          }
-        }
-      }
-    }
-    removeIndexesForExtensibleMatchingRules(txn, validRules, validIndexIds);
-  }
-
-  /** Remove indexes which do not correspond to valid rules. */
-  private void removeIndexesForExtensibleMatchingRules(WriteableTransaction txn, Set<MatchingRule> validRules,
-      Set<String> validIndexIds)
-  {
-    final Set<MatchingRule> rulesToDelete = getCurrentExtensibleMatchingRules();
-    rulesToDelete.removeAll(validRules);
-    if (!rulesToDelete.isEmpty())
-    {
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        for (MatchingRule rule: rulesToDelete)
-        {
-          final List<String> indexIdsToRemove = new ArrayList<String>();
-          for (Indexer indexer : rule.getIndexers())
-          {
-            final String indexId = indexer.getIndexID();
-            if (!validIndexIds.contains(indexId))
-            {
-              indexIdsToRemove.add(indexId);
-            }
-          }
-          // Delete indexes which are not used
-          for (String indexId : indexIdsToRemove)
-          {
-            Index index = nameToIndexes.get(indexId);
-            if (index != null)
-            {
-              entryContainer.deleteTree(txn, index);
-              nameToIndexes.remove(index);
-            }
-          }
-        }
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-    }
-  }
-
-  private Set<MatchingRule> getCurrentExtensibleMatchingRules()
-  {
-    final Set<MatchingRule> rules = new HashSet<MatchingRule>();
-    for (String ruleName : config.getIndexExtensibleMatchingRule())
-    {
-        final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-        if (rule != null)
-        {
-          rules.add(rule);
-        }
-    }
-    return rules;
-  }
-
-  private void applyChangeToIndex(final WriteableTransaction txn, final IndexType indexType, final BackendIndexCfg cfg,
-      final ConfigChangeResult ccr)
-  {
-    String indexId = indexType.toString();
-    MatchingRuleIndex index = nameToIndexes.get(indexId);
-    if (!cfg.getIndexType().contains(indexType))
-    {
-      removeIndex(txn, index, indexType);
-      return;
-    }
-
-    if (index == null)
-    {
-      if (indexType == IndexType.PRESENCE)
-      {
-        nameToIndexes.put(indexId, openNewIndex(txn, cfg, PRESENCE_INDEXER, ccr));
-      }
-      else
-      {
-        final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
-        for (Indexer indexer : matchingRule.getIndexers())
-        {
-          nameToIndexes.put(indexId, openNewIndex(txn, cfg, indexer, ccr));
-        }
-      }
-    }
-    else
-    {
-      // already exists. Just update index entry limit.
-      if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-      {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-      }
-
-      if (indexType == IndexType.SUBSTRING && config.getSubstringLength() != cfg.getSubstringLength())
-      {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_INDEX_SUBSTRING_LENGTH_REQUIRES_REBUILD.get(index.getName()));
-      }
-    }
-  }
-
-  private void removeIndex(WriteableTransaction txn, Index index, IndexType indexType)
-  {
-    if (index != null)
-    {
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        nameToIndexes.remove(indexType.toString());
-        entryContainer.deleteTree(txn, index);
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-    }
-  }
-
-  private MatchingRuleIndex openNewIndex(WriteableTransaction txn, BackendIndexCfg cfg, Indexer indexer,
-      ConfigChangeResult ccr)
-  {
-    final MatchingRuleIndex index = new MatchingRuleIndex(txn, cfg, indexer);
     index.open(txn);
-
     if (!index.isTrusted())
     {
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
-    return index;
+  }
+
+  private static void updateIndex(Index updatedIndex, int newIndexEntryLimit, ConfigChangeResult ccr)
+  {
+    if (updatedIndex.setIndexEntryLimit(newIndexEntryLimit))
+    {
+      // This index can still be used since index size limit doesn't impact validity of the results.
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
+    }
+  }
+
+  private static void deleteIndex(WriteableTransaction txn, EntryContainer entryContainer, Index index)
+  {
+    entryContainer.exclusiveLock.lock();
+    try
+    {
+      entryContainer.deleteTree(txn, index);
+    }
+    finally
+    {
+      entryContainer.exclusiveLock.unlock();
+    }
   }
 
   /**
@@ -922,7 +832,7 @@ class AttributeIndex
    */
   boolean isTrusted()
   {
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       if (!index.isTrusted())
       {
@@ -946,7 +856,7 @@ class AttributeIndex
 
   Map<String, MatchingRuleIndex> getNameToIndexes()
   {
-    return Collections.unmodifiableMap(nameToIndexes);
+    return indexIdToIndexes;
   }
 
   /**
@@ -997,7 +907,7 @@ class AttributeIndex
       if (debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        for (Indexer indexer : rule.getIndexers())
+        for (Indexer indexer : rule.createIndexers(indexingOptions))
         {
             debugBuffer.append(" ")
               .append(filter.getAttributeType().getNameOrOID())
@@ -1032,9 +942,9 @@ class AttributeIndex
 
   private boolean ruleHasAtLeastOneIndex(MatchingRule rule)
   {
-    for (Indexer indexer : rule.getIndexers())
+    for (Indexer indexer : rule.createIndexers(indexingOptions))
     {
-      if (nameToIndexes.containsKey(indexer.getIndexID()))
+      if (indexIdToIndexes.containsKey(indexer.getIndexID()))
       {
         return true;
       }
@@ -1043,7 +953,7 @@ class AttributeIndex
   }
 
   /** Indexing options implementation. */
-  private final class IndexingOptionsImpl implements IndexingOptions
+  private static final class IndexingOptionsImpl implements IndexingOptions
   {
     /** The length of substring keys used in substring indexes. */
     private int substringKeySize;
@@ -1063,7 +973,7 @@ class AttributeIndex
   void closeAndDelete(WriteableTransaction txn)
   {
     close();
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       index.delete(txn);
       state.deleteRecord(txn, index.getName());

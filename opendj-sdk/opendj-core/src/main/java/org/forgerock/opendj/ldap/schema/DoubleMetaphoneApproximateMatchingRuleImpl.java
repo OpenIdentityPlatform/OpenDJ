@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -52,6 +54,10 @@ import org.forgerock.opendj.ldap.ByteString;
 final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproximateMatchingRuleImpl {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+    DoubleMetaphoneApproximateMatchingRuleImpl() {
+      super(AMR_DOUBLE_METAPHONE_NAME);
+    }
 
     /** {@inheritDoc} */
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {

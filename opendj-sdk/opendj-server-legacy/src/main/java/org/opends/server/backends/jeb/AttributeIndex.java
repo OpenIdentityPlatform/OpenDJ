@@ -28,7 +28,6 @@
 package org.opends.server.backends.jeb;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -45,6 +44,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -116,15 +116,11 @@ public class AttributeIndex
 
   /** The attribute index configuration. */
   private LocalDBIndexCfg indexConfig;
+  private IndexingOptions indexingOptions;
 
   /** The mapping from names to indexes. */
-  private final Map<String, Index> nameToIndexes = new HashMap<String, Index>();
-  private final IndexQueryFactory<IndexQuery> indexQueryFactory;
-
-  /**
-   * The mapping from extensible index types (e.g. "substring" or "shared") to list of indexes.
-   */
-  private Map<String, Collection<Index>> extensibleIndexesMapping;
+  private Map<String, Index> indexIdToIndexes;
+  private IndexQueryFactory<IndexQuery> indexQueryFactory;
 
   /**
    * Create a new attribute index object.
@@ -137,94 +133,119 @@ public class AttributeIndex
   {
     this.entryContainer = entryContainer;
     this.indexConfig = indexConfig;
-
-    buildPresenceIndex();
-    buildIndexes(IndexType.EQUALITY);
-    buildIndexes(IndexType.SUBSTRING);
-    buildIndexes(IndexType.ORDERING);
-    buildIndexes(IndexType.APPROXIMATE);
-    buildExtensibleIndexes();
-
-    final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
-    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config, indexConfig.getAttribute());
-    extensibleIndexesMapping = computeExtensibleIndexesMapping();
+    this.indexingOptions = new JEIndexingOptions(indexConfig.getSubstringLength());
+    this.indexIdToIndexes = Collections.unmodifiableMap(buildIndexes(entryContainer, indexConfig, indexingOptions));
+    this.indexQueryFactory = new IndexQueryFactoryImpl(indexIdToIndexes, indexingOptions, indexConfig.getAttribute());
   }
 
-  private void buildPresenceIndex()
+  private static Map<String, Index> buildIndexes(EntryContainer entryContainer,
+                                                 LocalDBIndexCfg config,
+                                                 IndexingOptions options) throws ConfigException
   {
-    final IndexType indexType = IndexType.PRESENCE;
-    if (indexConfig.getIndexType().contains(indexType))
-    {
-      String indexID = indexType.toString();
-      nameToIndexes.put(indexID, newPresenceIndex(indexConfig));
+    final Map<String, Index> indexes = new HashMap<>();
+    final AttributeType attributeType = config.getAttribute();
+    final int indexEntryLimit = config.getIndexEntryLimit();
+
+    for(IndexType indexType : config.getIndexType()) {
+      Collection<? extends Indexer> indexers;
+      switch (indexType)
+      {
+      case PRESENCE:
+        indexes.put(indexType.toString(), newPresenceIndex(entryContainer, config));
+        indexers = Collections.emptyList();
+        break;
+      case EXTENSIBLE:
+        indexers = getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), options);
+        break;
+      case APPROXIMATE:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule())
+              .createIndexers(options);
+        break;
+      case EQUALITY:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getEqualityMatchingRule())
+              .createIndexers(options);
+        break;
+      case ORDERING:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getOrderingMatchingRule())
+              .createIndexers(options);
+        break;
+      case SUBSTRING:
+        indexers =
+            throwIfNoMatchingRule(attributeType, indexType, attributeType.getSubstringMatchingRule())
+              .createIndexers(options);
+        break;
+      default:
+       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType.toString()));
+      }
+      buildAndRegisterIndexesWithIndexers(entryContainer, attributeType, indexEntryLimit, indexers, indexes);
     }
+
+    return indexes;
   }
 
-  private Index newPresenceIndex(LocalDBIndexCfg cfg)
+  private static Index newPresenceIndex(EntryContainer entryContainer, LocalDBIndexCfg cfg)
   {
     final AttributeType attrType = cfg.getAttribute();
-    final String indexName = getIndexName(attrType, IndexType.PRESENCE.toString());
+    final String indexName = getIndexName(entryContainer, attrType, IndexType.PRESENCE.toString());
     final PresenceIndexer indexer = new PresenceIndexer(attrType);
     return entryContainer.newIndexForAttribute(indexName, indexer, cfg.getIndexEntryLimit());
   }
 
-  private void buildExtensibleIndexes() throws ConfigException
+  private static MatchingRule throwIfNoMatchingRule(AttributeType attributeType, IndexType type, MatchingRule rule)
+      throws ConfigException
   {
-    final IndexType indexType = IndexType.EXTENSIBLE;
-    if (indexConfig.getIndexType().contains(indexType))
+    if (rule == null)
     {
-      final AttributeType attrType = indexConfig.getAttribute();
-      Set<String> extensibleRules = indexConfig.getIndexExtensibleMatchingRule();
-      if (extensibleRules == null || extensibleRules.isEmpty())
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType.toString()));
-      }
+      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, type.toString()));
+    }
+    return rule;
+  }
 
-      // Iterate through the Set and create the index only if necessary.
-      // Collation equality and Ordering matching rules share the same indexer and index
-      // A Collation substring matching rule is treated differently
-      // as it uses a separate indexer and index.
-      for (final String ruleName : extensibleRules)
+  private static void buildAndRegisterIndexesWithIndexers(EntryContainer entryContainer,
+                                                          AttributeType attributeType,
+                                                          int indexEntryLimit,
+                                                          Collection<? extends Indexer> indexers,
+                                                          Map<String, Index> indexes)
+  {
+    for (Indexer indexer : indexers)
+    {
+      final String indexID = indexer.getIndexID();
+      if (!indexes.containsKey(indexID))
       {
-        MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-        if (rule == null)
-        {
-          logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
-          continue;
-        }
-        for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
-        {
-          final String indexId = indexer.getIndexID();
-          if (!nameToIndexes.containsKey(indexId))
-          {
-            // There is no index available for this index id. Create a new index
-            nameToIndexes.put(indexId, newAttributeIndex(indexConfig, indexer));
-          }
-        }
+        final Index index = newAttributeIndex(entryContainer, attributeType, indexer, indexEntryLimit);
+        indexes.put(indexID, index);
       }
     }
   }
 
-  private void buildIndexes(IndexType indexType) throws ConfigException
+  private static Collection<Indexer> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
+      IndexingOptions options) throws ConfigException
   {
-    if (indexConfig.getIndexType().contains(indexType))
+    if (extensibleRules == null || extensibleRules.isEmpty())
     {
-      final AttributeType attrType = indexConfig.getAttribute();
-      final String indexID = indexType.toString();
-      final MatchingRule rule = getMatchingRule(indexType, attrType);
+      throw new ConfigException(
+          ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, IndexType.EXTENSIBLE.toString()));
+    }
+
+    final Collection<Indexer> indexers = new ArrayList<>();
+    for (final String ruleName : extensibleRules)
+    {
+      final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
       if (rule == null)
       {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexID));
+        logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attributeType, ruleName);
+        continue;
       }
-
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
-      {
-        nameToIndexes.put(indexID, newAttributeIndex(indexConfig, indexer));
-      }
+      indexers.addAll(rule.createIndexers(options));
     }
+
+    return indexers;
   }
 
-  private MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
+  private static MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
   {
     switch (indexType)
     {
@@ -241,15 +262,15 @@ public class AttributeIndex
     }
   }
 
-  private Index newAttributeIndex(LocalDBIndexCfg indexConfig, org.forgerock.opendj.ldap.spi.Indexer indexer)
+  private static Index newAttributeIndex(EntryContainer entryContainer, AttributeType attributeType,
+      org.forgerock.opendj.ldap.spi.Indexer indexer, int indexEntryLimit)
   {
-    final AttributeType attrType = indexConfig.getAttribute();
-    final String indexName = getIndexName(attrType, indexer.getIndexID());
-    final AttributeIndexer attrIndexer = new AttributeIndexer(attrType, indexer);
-    return entryContainer.newIndexForAttribute(indexName, attrIndexer, indexConfig.getIndexEntryLimit());
+    final String indexName = getIndexName(entryContainer, attributeType, indexer.getIndexID());
+    final AttributeIndexer attrIndexer = new AttributeIndexer(attributeType, indexer);
+    return entryContainer.newIndexForAttribute(indexName, attrIndexer, indexEntryLimit);
   }
 
-  private String getIndexName(AttributeType attrType, String indexID)
+  private static String getIndexName(EntryContainer entryContainer, AttributeType attrType, String indexID)
   {
     return entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID() + "." + indexID;
   }
@@ -262,7 +283,7 @@ public class AttributeIndex
    */
   public void open() throws DatabaseException
   {
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       index.open();
     }
@@ -273,7 +294,7 @@ public class AttributeIndex
   @Override
   public void close()
   {
-    Utils.closeSilently(nameToIndexes.values());
+    Utils.closeSilently(indexIdToIndexes.values());
     indexConfig.removeChangeListener(this);
     // The entryContainer is responsible for closing the JE databases.
   }
@@ -315,13 +336,11 @@ public class AttributeIndex
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DatabaseException, DirectoryException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
-      index.addEntry(buffer, entryID, entry, options);
+      index.addEntry(buffer, entryID, entry);
     }
   }
 
@@ -337,10 +356,9 @@ public class AttributeIndex
   public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
-      index.removeEntry(buffer, entryID, entry, options);
+      index.removeEntry(buffer, entryID, entry);
     }
   }
 
@@ -363,10 +381,9 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
-      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, options);
+      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -379,7 +396,7 @@ public class AttributeIndex
    * @param len The length of the substring.
    * @return A byte string containing a substring key.
    */
-  private ByteString makeSubstringKey(byte[] bytes, int pos, int len)
+  private static ByteString makeSubstringKey(byte[] bytes, int pos, int len)
   {
     byte[] keyBytes = new byte[len];
     System.arraycopy(bytes, pos, keyBytes, 0, len);
@@ -602,7 +619,7 @@ public class AttributeIndex
   {
     long entryLimitExceededCount = 0;
 
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       entryLimitExceededCount += index.getEntryLimitExceededCount();
     }
@@ -615,7 +632,7 @@ public class AttributeIndex
    */
   public void listDatabases(List<DatabaseContainer> dbList)
   {
-    dbList.addAll(nameToIndexes.values());
+    dbList.addAll(indexIdToIndexes.values());
   }
 
   /**
@@ -654,16 +671,14 @@ public class AttributeIndex
     return true;
   }
 
-  private boolean isIndexAcceptable(LocalDBIndexCfg cfg, IndexType indexType,
+  private static boolean isIndexAcceptable(LocalDBIndexCfg cfg, IndexType indexType,
       List<LocalizableMessage> unacceptableReasons)
   {
-    final String indexId = indexType.toString();
     final AttributeType attrType = cfg.getAttribute();
     if (cfg.getIndexType().contains(indexType)
-        && nameToIndexes.get(indexId) == null
         && getMatchingRule(indexType, attrType) == null)
     {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexId));
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType.toString()));
       return false;
     }
     return true;
@@ -671,222 +686,88 @@ public class AttributeIndex
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(LocalDBIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final LocalDBIndexCfg newConfiguration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
+    final IndexingOptions newIndexingOptions = new JEIndexingOptions(newConfiguration.getSubstringLength());
     try
     {
-      applyChangeToPresenceIndex(cfg, ccr);
-      applyChangeToIndex(IndexType.EQUALITY, cfg, ccr);
-      applyChangeToIndex(IndexType.SUBSTRING, cfg, ccr);
-      applyChangeToIndex(IndexType.ORDERING, cfg, ccr);
-      applyChangeToIndex(IndexType.APPROXIMATE, cfg, ccr);
-      applyChangeToExtensibleIndexes(cfg, ccr);
+      Map<String, Index> newIndexIdToIndexes = buildIndexes(entryContainer, newConfiguration, newIndexingOptions);
 
-      extensibleIndexesMapping = computeExtensibleIndexesMapping();
-      indexConfig = cfg;
+      final Map<String, Index> removedIndexes = new HashMap<>(indexIdToIndexes);
+      removedIndexes.keySet().removeAll(newIndexIdToIndexes.keySet());
 
-      return ccr;
+      final Map<String, Index> addedIndexes = new HashMap<>(newIndexIdToIndexes);
+      addedIndexes.keySet().removeAll(indexIdToIndexes.keySet());
+
+      final Map<String, Index> updatedIndexes = new HashMap<>(indexIdToIndexes);
+      updatedIndexes.keySet().retainAll(newIndexIdToIndexes.keySet());
+
+      // Replace instances of Index created by buildIndexes() with the one already opened and present in the actual
+      // indexIdToIndexes
+      newIndexIdToIndexes.putAll(updatedIndexes);
+
+      // Open added indexes *before* adding them to indexIdToIndexes
+      for (Index addedIndex : addedIndexes.values())
+      {
+        openIndex(addedIndex, ccr);
+      }
+
+      indexConfig = newConfiguration;
+      indexingOptions = newIndexingOptions;
+      indexIdToIndexes =  Collections.unmodifiableMap(newIndexIdToIndexes);
+      indexQueryFactory = new IndexQueryFactoryImpl(indexIdToIndexes, indexingOptions, indexConfig.getAttribute());
+
+      // FIXME: There is no guarantee here that deleted index are not currently involved in a query
+      for (Index removedIndex : removedIndexes.values())
+      {
+        deleteIndex(entryContainer, removedIndex);
+      }
+
+      for (Index updatedIndex : updatedIndexes.values())
+      {
+        updateIndex(updatedIndex, newConfiguration.getIndexEntryLimit(), ccr);
+      }
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-      return ccr;
     }
+
+    return ccr;
   }
 
-  private void applyChangeToExtensibleIndexes(LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
-  {
-    final AttributeType attrType = cfg.getAttribute();
-    if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
-    {
-      final Set<MatchingRule> validRules = Collections.emptySet();
-      final Set<String> validIndexIds = Collections.emptySet();
-      removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
-      return;
-    }
-
-    final Set<String> extensibleRules = cfg.getIndexExtensibleMatchingRule();
-    final Set<MatchingRule> validRules = new HashSet<MatchingRule>();
-    final Set<String> validIndexIds = new HashSet<String>();
-    final int indexEntryLimit = cfg.getIndexEntryLimit();
-
-    for (String ruleName : extensibleRules)
-    {
-      MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-      if (rule == null)
-      {
-        logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
-        continue;
-      }
-      validRules.add(rule);
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
-      {
-        String indexId = indexer.getIndexID();
-        validIndexIds.add(indexId);
-        if (!nameToIndexes.containsKey(indexId))
-        {
-          Index index = newAttributeIndex(cfg, indexer);
-          openIndex(index, ccr);
-          nameToIndexes.put(indexId, index);
-        }
-        else
-        {
-          Index index = nameToIndexes.get(indexId);
-          if (index.setIndexEntryLimit(indexEntryLimit))
-          {
-            ccr.setAdminActionRequired(true);
-            ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-          }
-          if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
-          {
-            index.setIndexer(new AttributeIndexer(attrType, indexer));
-          }
-        }
-      }
-    }
-    removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
-  }
-
-  /** Remove indexes which do not correspond to valid rules. */
-  private void removeIndexesForExtensibleMatchingRules(Set<MatchingRule> validRules, Set<String> validIndexIds)
-  {
-    final Set<MatchingRule> rulesToDelete = getCurrentExtensibleMatchingRules();
-    rulesToDelete.removeAll(validRules);
-    if (!rulesToDelete.isEmpty())
-    {
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        for (MatchingRule rule: rulesToDelete)
-        {
-          final List<String> indexIdsToRemove = new ArrayList<String>();
-          for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
-          {
-            final String indexId = indexer.getIndexID();
-            if (!validIndexIds.contains(indexId))
-            {
-              indexIdsToRemove.add(indexId);
-            }
-          }
-          // Delete indexes which are not used
-          for (String indexId : indexIdsToRemove)
-          {
-            Index index = nameToIndexes.get(indexId);
-            if (index != null)
-            {
-              entryContainer.deleteDatabase(index);
-              nameToIndexes.remove(index);
-            }
-          }
-        }
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-    }
-  }
-
-  private Set<MatchingRule> getCurrentExtensibleMatchingRules()
-  {
-    final Set<MatchingRule> rules = new HashSet<MatchingRule>();
-    for (String ruleName : indexConfig.getIndexExtensibleMatchingRule())
-    {
-        final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-        if (rule != null)
-        {
-          rules.add(rule);
-        }
-    }
-    return rules;
-  }
-
-  private void applyChangeToIndex(IndexType indexType, LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
-  {
-    String indexId = indexType.toString();
-    Index index = nameToIndexes.get(indexId);
-    if (!cfg.getIndexType().contains(indexType))
-    {
-      removeIndex(index, indexType);
-      return;
-    }
-
-    if (index == null)
-    {
-      final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
-      for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
-      {
-        index = newAttributeIndex(cfg, indexer);
-        openIndex(index, ccr);
-        nameToIndexes.put(indexId, index);
-      }
-    }
-    else
-    {
-      // already exists. Just update index entry limit.
-      if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-      {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-      }
-    }
-  }
-
-  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
-  {
-    final IndexType indexType = IndexType.PRESENCE;
-    final String indexID = indexType.toString();
-    Index index = nameToIndexes.get(indexID);
-    if (!cfg.getIndexType().contains(indexType))
-    {
-      removeIndex(index, indexType);
-      return;
-    }
-
-    if (index == null)
-    {
-      index = newPresenceIndex(cfg);
-      openIndex(index, ccr);
-      nameToIndexes.put(indexID, index);
-    }
-    else
-    {
-      // already exists. Just update index entry limit.
-      if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-      {
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-      }
-    }
-  }
-
-  private void removeIndex(Index index, IndexType indexType)
-  {
-    if (index != null)
-    {
-      entryContainer.exclusiveLock.lock();
-      try
-      {
-        nameToIndexes.remove(indexType.toString());
-        entryContainer.deleteDatabase(index);
-      }
-      finally
-      {
-        entryContainer.exclusiveLock.unlock();
-      }
-    }
-  }
-
-  private void openIndex(Index index, final ConfigChangeResult ccr)
+  private static void openIndex(Index index, ConfigChangeResult ccr)
   {
     index.open();
-
     if (!index.isTrusted())
     {
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+    }
+  }
+
+  private static void updateIndex(Index updatedIndex, int newIndexEntryLimit, ConfigChangeResult ccr)
+  {
+    if (updatedIndex.setIndexEntryLimit(newIndexEntryLimit))
+    {
+      // This index can still be used since index size limit doesn't impact validity of the results.
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
+    }
+  }
+
+  private static void deleteIndex(EntryContainer entryContainer, Index index)
+  {
+    entryContainer.exclusiveLock.lock();
+    try
+    {
+      entryContainer.deleteDatabase(index);
+    }
+    finally
+    {
+      entryContainer.exclusiveLock.unlock();
     }
   }
 
@@ -896,7 +777,7 @@ public class AttributeIndex
    */
   public boolean isTrusted()
   {
-    for (Index index : nameToIndexes.values())
+    for (Index index : indexIdToIndexes.values())
     {
       if (!index.isTrusted())
       {
@@ -918,103 +799,18 @@ public class AttributeIndex
         + indexConfig.getAttribute().getNameOrOID();
   }
 
-  /**
-   * Return the equality index.
-   *
-   * @return The equality index.
-   */
-  public Index getEqualityIndex() {
-    return nameToIndexes.get(IndexType.EQUALITY.toString());
-  }
-
-  /**
-   * Return the approximate index.
-   *
-   * @return The approximate index.
-   */
-  public Index getApproximateIndex() {
-    return nameToIndexes.get(IndexType.APPROXIMATE.toString());
-  }
-
-  /**
-   * Return the ordering index.
-   *
-   * @return  The ordering index.
-   */
-  public Index getOrderingIndex() {
-    return nameToIndexes.get(IndexType.ORDERING.toString());
-  }
-
-  /**
-   * Return the substring index.
-   *
-   * @return The substring index.
-   */
-  public Index getSubstringIndex() {
-    return nameToIndexes.get(IndexType.SUBSTRING.toString());
-  }
-
-  /**
-   * Return the presence index.
-   *
-   * @return The presence index.
-   */
-  public Index getPresenceIndex() {
-    return nameToIndexes.get(IndexType.PRESENCE.toString());
-  }
-
-  /**
-   * Return the mapping of extensible index types and indexes.
-   *
-   * @return The map containing entries (extensible index type, list of indexes)
-   */
-  public Map<String, Collection<Index>> getExtensibleIndexes()
-  {
-    return extensibleIndexesMapping;
-  }
-
-  private Map<String, Collection<Index>> computeExtensibleIndexesMapping()
-  {
-    final Collection<Index> substring = new ArrayList<Index>();
-    final Collection<Index> shared = new ArrayList<Index>();
-    for (Map.Entry<String, Index> entry : nameToIndexes.entrySet())
-    {
-      final String indexId = entry.getKey();
-      if (isDefaultIndex(indexId)) {
-        continue;
-      }
-      if (indexId.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-      {
-        substring.add(entry.getValue());
-      }
-      else
-      {
-        shared.add(entry.getValue());
-      }
-    }
-    final Map<String, Collection<Index>> indexMap = new HashMap<String,Collection<Index>>();
-    indexMap.put(EXTENSIBLE_INDEXER_ID_SUBSTRING, substring);
-    indexMap.put(EXTENSIBLE_INDEXER_ID_SHARED, shared);
-    return Collections.unmodifiableMap(indexMap);
-  }
-
-  private boolean isDefaultIndex(String indexId)
-  {
-    return indexId.equals(IndexType.EQUALITY.toString())
-        || indexId.equals(IndexType.PRESENCE.toString())
-        || indexId.equals(IndexType.SUBSTRING.toString())
-        || indexId.equals(IndexType.ORDERING.toString())
-        || indexId.equals(IndexType.APPROXIMATE.toString());
+  Index getIndex(String indexID) {
+    return indexIdToIndexes.get(indexID);
   }
 
   /**
    * Retrieves all the indexes used by this attribute index.
    *
-   * @return A collection of all indexes in use by this attribute
+   * @return An immutable collection of all indexes in use by this attribute
    * index.
    */
   public Collection<Index> getAllIndexes() {
-    return new LinkedHashSet<Index>(nameToIndexes.values());
+    return indexIdToIndexes.values();
   }
 
   /**
@@ -1065,7 +861,7 @@ public class AttributeIndex
       if (debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+        for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.createIndexers(indexingOptions))
         {
             debugBuffer.append(" ")
               .append(filter.getAttributeType().getNameOrOID())
@@ -1100,9 +896,9 @@ public class AttributeIndex
 
   private boolean ruleHasAtLeasOneIndex(MatchingRule rule)
   {
-    for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+    for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.createIndexers(indexingOptions))
     {
-      if (nameToIndexes.containsKey(indexer.getIndexID()))
+      if (indexIdToIndexes.containsKey(indexer.getIndexID()))
       {
         return true;
       }
@@ -1111,7 +907,7 @@ public class AttributeIndex
   }
 
   /** This class extends the IndexConfig for JE Backend. */
-  private final class JEIndexConfig implements IndexingOptions
+  private static final class JEIndexingOptions implements IndexingOptions
   {
     /** The length of the substring index. */
     private int substringLength;
@@ -1120,7 +916,7 @@ public class AttributeIndex
      * Creates a new JEIndexConfig instance.
      * @param substringLength The length of the substring.
      */
-    private JEIndexConfig(int substringLength)
+    private JEIndexingOptions(int substringLength)
     {
       this.substringLength = substringLength;
     }

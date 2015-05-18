@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
 import java.util.*;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -56,7 +55,7 @@ public class ID2SIndexer extends Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> addKeys, IndexingOptions options)
+  public void indexEntry(Entry entry, Set<ByteString> addKeys)
   {
     // The superior entry IDs are in the entry attachment.
     ArrayList<EntryID> ids = (ArrayList<EntryID>) entry.getAttachment();
@@ -77,7 +76,7 @@ public class ID2SIndexer extends Indexer
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
+                          Map<ByteString, Boolean> modifiedKeys)
   {
     // Nothing to do.
   }

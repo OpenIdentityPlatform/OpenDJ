@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -39,6 +39,7 @@ import org.forgerock.util.time.TimeService;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 @SuppressWarnings("javadoc")
 @Test
@@ -121,6 +122,6 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
         Assertion assertion = getRule().getAssertion(ByteString.valueOf("+5m"));
 
         String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(), false));
-        assertThat(indexQuery).startsWith("rangeMatch(rt.ext, '' < value < '");
+        assertThat(indexQuery).startsWith("rangeMatch(" + EMR_GENERALIZED_TIME_NAME + ", '' < value < '");
     }
 }

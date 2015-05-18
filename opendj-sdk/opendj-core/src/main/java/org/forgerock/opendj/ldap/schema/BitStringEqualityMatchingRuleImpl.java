@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -40,6 +41,12 @@ import org.forgerock.opendj.ldap.DecodeException;
  * referenced in RFC 2252.
  */
 final class BitStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    BitStringEqualityMatchingRuleImpl() {
+        super(EMR_BIT_STRING_NAME);
+    }
+
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();

@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,6 +40,11 @@ import com.forgerock.opendj.util.StaticUtils;
  * equal to each other.
  */
 final class UserPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    UserPasswordExactEqualityMatchingRuleImpl() {
+        super(EMR_USER_PASSWORD_EXACT_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         // The normalized form of this matching rule is exactly equal to the

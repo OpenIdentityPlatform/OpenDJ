@@ -55,7 +55,7 @@ abstract class AbstractTree implements Tree
   /**
    * Override in order to perform any additional initialization after the index has opened.
    */
-  void open0(ReadableTransaction txn) throws StorageRuntimeException
+  void open0(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing by default.
   }

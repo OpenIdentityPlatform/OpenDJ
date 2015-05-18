@@ -26,11 +26,14 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -95,9 +98,14 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class TestBackendImpl extends JebTestCase {
+
   private String homeDirName;
 
   private BackendImpl backend;
+
+  private AttributeType givenName;
+  private AttributeType title;
+  private AttributeType name;
 
   private List<Entry> topEntries;
   private List<Entry> entries;
@@ -565,6 +573,9 @@ public class TestBackendImpl extends JebTestCase {
         "ou: People"
     );
 
+    givenName = DirectoryServer.getAttributeType("givenname");
+    title = DirectoryServer.getAttributeType("title");
+    name = DirectoryServer.getAttributeType("name");
   }
 
   @AfterClass
@@ -803,18 +814,17 @@ public class TestBackendImpl extends JebTestCase {
       AttributeIndex index = ec.getAttributeIndex(attribute);
       AttributeType attrType = index.getAttributeType();
 
-      List<? extends Indexer> indexers;
-      indexers = singletonList(new PresenceIndexer(index.getAttributeType()));
-      assertIndexContainsID(indexers, entry, index.getPresenceIndex(), entryID, FALSE);
+      List<? extends Indexer> indexers = singletonList(new PresenceIndexer(index.getAttributeType()));
+      assertIndexContainsID(indexers, entry, index.getIndex("presence"), entryID, FALSE);
 
       indexers = newAttributeIndexers(attrType, attrType.getEqualityMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, FALSE);
+      assertIndexContainsID(indexers, entry, index.getIndex(EMR_CASE_IGNORE_NAME), entryID, FALSE);
 
       indexers = newAttributeIndexers(attrType, attrType.getSubstringMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, FALSE);
+      assertIndexContainsID(indexers, entry, index.getIndex(substringIndexId()), entryID, FALSE);
 
-      indexers = newAttributeIndexers(attrType, attrType.getOrderingMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, FALSE);
+      // OrderingIndex is now handled by EqualityIndex (OPENDJ-1864)
+      assertThat(index.getIndex(OMR_CASE_IGNORE_NAME)).isNull();
     }
     finally
     {
@@ -825,7 +835,7 @@ public class TestBackendImpl extends JebTestCase {
   private static List<AttributeIndexer> newAttributeIndexers(AttributeType attrType, MatchingRule matchingRule)
   {
     List<AttributeIndexer> indexers = new ArrayList<AttributeIndexer>();
-    for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
+    for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.createIndexers(getOptions()))
     {
       indexers.add(new AttributeIndexer(attrType, indexer));
     }
@@ -844,7 +854,7 @@ public class TestBackendImpl extends JebTestCase {
     for (Indexer indexer : indexers)
     {
       Set<ByteString> addKeys = new HashSet<ByteString>();
-      indexer.indexEntry(entry, addKeys, getOptions());
+      indexer.indexEntry(entry, addKeys);
 
       DatabaseEntry key = new DatabaseEntry();
       for (ByteString keyBytes : addKeys)
@@ -861,7 +871,7 @@ public class TestBackendImpl extends JebTestCase {
     for (Indexer indexer : indexers)
     {
       Set<ByteString> addKeys = new HashSet<ByteString>();
-      indexer.indexEntry(entry, addKeys, getOptions());
+      indexer.indexEntry(entry, addKeys);
 
       assertIndexContainsID(addKeys, index, entryID, expected);
     }
@@ -915,16 +925,16 @@ public class TestBackendImpl extends JebTestCase {
 
       List<? extends Indexer> indexers;
       indexers = newAttributeIndexers(attrType, attrType.getOrderingMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, TRUE);
-      assertIndexContainsID(indexers, oldEntry, index.getOrderingIndex(), entryID, FALSE);
+      // OrderingIndex is now handled by EqualityIndex (OPENDJ-1864)
+      assertThat(index.getIndex(OMR_CASE_IGNORE_NAME)).isNull();
 
       indexers = newAttributeIndexers(attrType, attrType.getSubstringMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, TRUE);
-      assertIndexContainsID(indexers, oldEntry, index.getSubstringIndex(), entryID, FALSE);
+      assertIndexContainsID(indexers, entry, index.getIndex(substringIndexId()), entryID, TRUE);
+      assertIndexContainsID(indexers, oldEntry, index.getIndex(substringIndexId()), entryID, FALSE);
 
       indexers = newAttributeIndexers(attrType, attrType.getEqualityMatchingRule());
-      assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, TRUE);
-      assertIndexContainsID(indexers, oldEntry, index.getEqualityIndex(), entryID, FALSE);
+      assertIndexContainsID(indexers, entry, index.getIndex(EMR_CASE_IGNORE_NAME), entryID, TRUE);
+      assertIndexContainsID(indexers, oldEntry, index.getIndex(EMR_CASE_IGNORE_NAME), entryID, FALSE);
     }
     finally
     {
@@ -987,20 +997,18 @@ public class TestBackendImpl extends JebTestCase {
 
       assertNotNull(entryID);
 
-      attribute = DirectoryServer.getAttributeType("title");
-      titleIndex = ec.getAttributeIndex(attribute);
-      attribute = DirectoryServer.getAttributeType("name");
-      nameIndex = ec.getAttributeIndex(attribute);
+      titleIndex = ec.getAttributeIndex(title);
+      nameIndex = ec.getAttributeIndex(name);
 
       // This current entry in the DB shouldn't be in the presence titleIndex.
       addKeys = new HashSet<ByteString>();
       addKeys.add(PresenceIndexer.presenceKey);
-      assertIndexContainsID(addKeys, titleIndex.getPresenceIndex(), entryID, FALSE);
+      assertIndexContainsID(addKeys, titleIndex.getIndex("presence"), entryID, FALSE);
 
       // This current entry should be in the presence nameIndex.
       addKeys = new HashSet<ByteString>();
       addKeys.add(PresenceIndexer.presenceKey);
-      assertIndexContainsID(addKeys, nameIndex.getPresenceIndex(), entryID, TRUE);
+      assertIndexContainsID(addKeys, nameIndex.getIndex("presence"), entryID, TRUE);
 
       List<Control> noControls = new ArrayList<Control>(0);
       ModifyOperationBasis modifyOp = new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
@@ -1039,24 +1047,30 @@ public class TestBackendImpl extends JebTestCase {
       AttributeType nameIndexAttrType = nameIndex.getAttributeType();
 
       indexers = singletonList(new PresenceIndexer(titleIndexAttrType));
-      assertIndexContainsID(indexers, entry, titleIndex.getPresenceIndex(), entryID);
+      assertIndexContainsID(indexers, entry, titleIndex.getIndex("presence"), entryID);
       indexers = singletonList(new PresenceIndexer(nameIndexAttrType));
-      assertIndexContainsID(indexers, entry, nameIndex.getPresenceIndex(), entryID);
+      assertIndexContainsID(indexers, entry, nameIndex.getIndex("presence"), entryID);
 
-      indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getOrderingMatchingRule());
-      assertIndexContainsID(indexers, entry, titleIndex.getOrderingIndex(), entryID);
-      indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getOrderingMatchingRule());
-      assertIndexContainsID(indexers, entry, nameIndex.getOrderingIndex(), entryID);
+      // OrderingIndex is now handled by EqualityIndex (OPENDJ-1864)
+      assertThat(getIndexNames(titleIndex)).containsOnly(
+          indexName(ec, titleIndexAttrType, "presence"),
+          indexName(ec, titleIndexAttrType, EMR_CASE_IGNORE_NAME),
+          indexName(ec, titleIndexAttrType, SMR_CASE_IGNORE_NAME + ":6"));
+      assertThat(getIndexNames(nameIndex)).containsOnly(
+          indexName(ec, nameIndexAttrType, "presence"),
+          indexName(ec, nameIndexAttrType, AMR_DOUBLE_METAPHONE_NAME),
+          indexName(ec, nameIndexAttrType, EMR_CASE_IGNORE_NAME),
+          indexName(ec, nameIndexAttrType, SMR_CASE_IGNORE_NAME + ":6"));
 
       indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getEqualityMatchingRule());
-      assertIndexContainsID(indexers, entry, titleIndex.getEqualityIndex(), entryID);
+      assertIndexContainsID(indexers, entry, titleIndex.getIndex(EMR_CASE_IGNORE_NAME), entryID);
       indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getEqualityMatchingRule());
-      assertIndexContainsID(indexers, entry, nameIndex.getEqualityIndex(), entryID);
+      assertIndexContainsID(indexers, entry, nameIndex.getIndex(EMR_CASE_IGNORE_NAME), entryID);
 
       indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getSubstringMatchingRule());
-      assertIndexContainsID(indexers, entry, titleIndex.getSubstringIndex(), entryID);
+      assertIndexContainsID(indexers, entry, titleIndex.getIndex(substringIndexId()), entryID);
       indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getSubstringMatchingRule());
-      assertIndexContainsID(indexers, entry, nameIndex.getSubstringIndex(), entryID);
+      assertIndexContainsID(indexers, entry, nameIndex.getIndex(substringIndexId()), entryID);
     }
     finally
     {
@@ -1176,6 +1190,39 @@ public class TestBackendImpl extends JebTestCase {
     assertNotNull(rootContainer.getEntryContainer(DN.valueOf("dc=newsuffix,dc=com")));
   }
 
+  /** @since OPENDJ-1864 Equality and Ordering indexes share the same database */
+  @Test
+  public void testRemovingOrderingIndexDoesNotRemoveEquality() throws Exception
+  {
+    int resultCode = TestCaseUtils.applyModifications(true,
+        "dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-index-type",
+        "ds-cfg-index-type: equality",
+        "ds-cfg-index-type: ordering");
+    assertEquals(resultCode, 0);
+
+    RootContainer rootContainer = backend.getRootContainer();
+    EntryContainer ec = rootContainer.getEntryContainer(DN.valueOf("dc=test,dc=com"));
+
+    Collection<String> containerNames = getContainerNames(ec);
+    assertThat(containerNames).contains(indexName(ec, givenName, EMR_CASE_IGNORE_NAME));
+    assertThat(containerNames).doesNotContain(indexName(ec, givenName, OMR_CASE_IGNORE_NAME));
+
+    // Remove equality indexes
+    resultCode = TestCaseUtils.applyModifications(true,
+        "dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-index-type",
+        "ds-cfg-index-type: ordering");
+    assertEquals(resultCode, 0);
+
+    // Since ordering is using the same equality db, it must remain
+    containerNames = getContainerNames(ec);
+    assertThat(containerNames).contains(indexName(ec, givenName, EMR_CASE_IGNORE_NAME));
+    assertThat(containerNames).doesNotContain(indexName(ec, givenName, OMR_CASE_IGNORE_NAME));
+  }
+
   @Test(dependsOnMethods = {"testModifyDN",
       "testSearchScope", "testSearchIndex", "testReplaceEntry",
       "testModifyEntry", "testModifyDN", "testDeleteSubtree",
@@ -1184,8 +1231,7 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyDNNewSuperior", "testMatchedDN"})
   public void testApplyIndexConfig() throws Exception {
     int resultCode = TestCaseUtils.applyModifications(true,
-        "dn: ds-cfg-attribute=givenName,cn=Index," +
-            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "replace: ds-cfg-index-type",
         "ds-cfg-index-type: approximate");
@@ -1195,20 +1241,13 @@ public class TestBackendImpl extends JebTestCase {
     RootContainer rootContainer = backend.getRootContainer();
     EntryContainer ec = rootContainer.getEntryContainer(DN.valueOf("dc=test,dc=com"));
 
-    AttributeType givennameAttr = DirectoryServer.getAttributeType("givenname");
-    AttributeIndex attributeIndex = ec.getAttributeIndex(givennameAttr);
-    assertNull(attributeIndex.getEqualityIndex());
-    assertNull(attributeIndex.getPresenceIndex());
-    assertNull(attributeIndex.getSubstringIndex());
-    assertNull(attributeIndex.getOrderingIndex());
-    assertNotNull(attributeIndex.getApproximateIndex());
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    ec.listDatabases(databases);
-    assertFalse(findContainer(databases, "givenname.equality"));
-    assertFalse(findContainer(databases, "givenname.presence"));
-    assertFalse(findContainer(databases, "givenname.substring"));
-    assertFalse(findContainer(databases, "givenname.ordering"));
-    assertTrue(findContainer(databases, "givenname.approximate"));
+    Collection<String> containerNames = getContainerNames(ec);
+    assertThat(containerNames).doesNotContain(
+        indexName(ec, givenName, EMR_CASE_IGNORE_NAME),
+        indexName(ec, givenName, "presence"),
+        indexName(ec, givenName, substringIndexId()),
+        indexName(ec, givenName, OMR_CASE_IGNORE_NAME));
+    assertThat(containerNames).contains(indexName(ec, givenName, AMR_DOUBLE_METAPHONE_NAME));
 
     final SearchRequest request = newSearchRequest("dc=test,dc=com", SearchScope.SUBORDINATES, "(givenName~=Aaccf)")
         .addAttribute(ATTR_DEBUG_SEARCH_INDEX);
@@ -1221,8 +1260,7 @@ public class TestBackendImpl extends JebTestCase {
     assertThat(debugString).contains("not-indexed");
 
     resultCode = TestCaseUtils.applyModifications(true,
-        "dn: ds-cfg-attribute=givenName,cn=Index," +
-            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "dn: ds-cfg-attribute=givenName,cn=Index, ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "replace: ds-cfg-index-type",
         "ds-cfg-index-type: equality",
@@ -1232,18 +1270,15 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(resultCode, 0);
 
-    assertNotNull(attributeIndex.getEqualityIndex());
-    assertNotNull(attributeIndex.getPresenceIndex());
-    assertNotNull(attributeIndex.getSubstringIndex());
-    assertNotNull(attributeIndex.getOrderingIndex());
-    assertNull(attributeIndex.getApproximateIndex());
-    databases = new ArrayList<DatabaseContainer>();
-    ec.listDatabases(databases);
-    assertTrue(findContainer(databases, "givenname.equality"));
-    assertTrue(findContainer(databases, "givenname.presence"));
-    assertTrue(findContainer(databases, "givenname.substring"));
-    assertTrue(findContainer(databases, "givenname.ordering"));
-    assertFalse(findContainer(databases, "givenname.approximate"));
+    containerNames = getContainerNames(ec);
+    assertThat(containerNames).contains(
+        indexName(ec, givenName, EMR_CASE_IGNORE_NAME),
+        indexName(ec, givenName, "presence"),
+        indexName(ec, givenName, substringIndexId()));
+    // Ordering is also handled by equality since OPENDJ-1864
+    assertThat(containerNames).doesNotContain(
+        indexName(ec, givenName, OMR_CASE_IGNORE_NAME),
+        indexName(ec, givenName, AMR_DOUBLE_METAPHONE_NAME));
 
     // Delete the entries attribute index.
     resultCode = TestCaseUtils.applyModifications(true,
@@ -1253,8 +1288,10 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(resultCode, 0);
 
+    AttributeType givennameAttr = DirectoryServer.getAttributeType("givenname");
     assertNull(ec.getAttributeIndex(givennameAttr));
-    databases = new ArrayList<DatabaseContainer>();
+
+    List<DatabaseContainer> databases = new ArrayList<>();
     ec.listDatabases(databases);
     for(DatabaseContainer dc : databases)
     {
@@ -1277,13 +1314,16 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(resultCode, 0);
 
     assertNotNull(ec.getAttributeIndex(givennameAttr));
-    databases = new ArrayList<DatabaseContainer>();
-    ec.listDatabases(databases);
-    assertTrue(findContainer(databases, "givenname.equality"));
-    assertTrue(findContainer(databases, "givenname.presence"));
-    assertTrue(findContainer(databases, "givenname.substring"));
-    assertTrue(findContainer(databases, "givenname.ordering"));
-    assertFalse(findContainer(databases, "givenname.approximate"));
+
+    containerNames = getContainerNames(ec);
+    assertThat(containerNames).contains(
+        indexName(ec, givenName, EMR_CASE_IGNORE_NAME),
+        indexName(ec, givenName, "presence"),
+        indexName(ec, givenName, substringIndexId()));
+    // Equality and Ordering indexes share the same database since OPENDJ-1864
+    assertThat(containerNames).doesNotContain(
+        indexName(ec, givenName, OMR_CASE_IGNORE_NAME),
+        indexName(ec, givenName, AMR_DOUBLE_METAPHONE_NAME));
 
     // Make sure changing the index entry limit on an index where the limit
     // is already exceeded causes warnings.
@@ -1307,16 +1347,31 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(resultCode, 0);
   }
 
-  private static boolean findContainer(List<DatabaseContainer> databases, String lowercaseName)
+  private static Collection<String> getContainerNames(EntryContainer container)
   {
+    final List<DatabaseContainer> databases = new ArrayList<>();
+    container.listDatabases(databases);
+    final Collection<String> names = new ArrayList<>(databases.size());
     for (DatabaseContainer dc : databases)
     {
-      if (dc.getName().toLowerCase().contains(lowercaseName))
-      {
-        return true;
-      }
+      names.add(dc.getName().toLowerCase());
     }
-    return false;
+    return names;
+  }
+
+  private static Collection<String> getIndexNames(AttributeIndex index)
+  {
+    final Collection<String> names = new ArrayList<>();
+    for (Index idx : index.getAllIndexes())
+    {
+      names.add(idx.getName().toLowerCase());
+    }
+    return names;
+  }
+
+  private static String indexName(EntryContainer entryContainer, AttributeType attrType, String indexID)
+  {
+    return entryContainer.getDatabasePrefix() + "_" + attrType.getPrimaryName().toLowerCase() + "." + indexID.toLowerCase();
   }
 
   @Test(dependsOnMethods = {"testDeleteEntry", "testSearchScope",
@@ -1519,5 +1574,8 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
+  private static String substringIndexId() {
+    return SMR_CASE_IGNORE_NAME + ":" + getOptions().substringKeySize();
+  }
 
 }

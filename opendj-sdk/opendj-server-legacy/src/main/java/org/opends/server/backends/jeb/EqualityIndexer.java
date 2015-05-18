@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.Indexer;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -68,9 +67,7 @@ public class EqualityIndexer implements Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void createKeys(Schema schema, ByteSequence value,
-      IndexingOptions options, Collection<ByteString> keys)
-      throws DecodeException
+  public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException
   {
     keys.add(equalityRule.normalizeAttributeValue(value));
   }

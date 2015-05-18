@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -36,6 +36,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class implements a default ordering matching rule that matches
@@ -46,23 +47,16 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * this assumption does not hold true.
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
-    private final Collection<? extends Indexer> indexers;
-    private final String indexId;
-
-    /** Constructor for default matching rules. */
-    AbstractOrderingMatchingRuleImpl() {
-        this("ordering");
-    }
+    private final Indexer indexer;
 
     /** Constructor for non-default matching rules. */
     AbstractOrderingMatchingRuleImpl(String indexId) {
-        this.indexId = indexId;
-        this.indexers = Collections.singleton(new DefaultIndexer(indexId));
+        this.indexer = new DefaultIndexer(indexId);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public final Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
@@ -73,14 +67,16 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery(indexId, ByteString.empty(), normAssertion, false, false);
+                return factory.createRangeMatchQuery(indexer.getIndexID(), ByteString.empty(), normAssertion, false,
+                        false);
             }
         };
     }
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException {
+    public final Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
+            throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
             @Override
@@ -90,14 +86,15 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery(indexId, normAssertion, ByteString.empty(), true, false);
+                return factory.createRangeMatchQuery(indexer.getIndexID(), normAssertion, ByteString.empty(), true,
+                        false);
             }
         };
     }
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
+    public final Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
@@ -108,18 +105,16 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery(indexId, ByteString.empty(), normAssertion, false, true);
+                return factory.createRangeMatchQuery(indexer.getIndexID(), ByteString.empty(), normAssertion, false,
+                        true);
             }
         };
     }
 
     /** {@inheritDoc} */
     @Override
-    public Collection<? extends Indexer> getIndexers() {
-        return indexers;
+    public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+        return Collections.singleton(indexer);
     }
 
-    final String getIndexId() {
-        return indexId;
-    }
 }

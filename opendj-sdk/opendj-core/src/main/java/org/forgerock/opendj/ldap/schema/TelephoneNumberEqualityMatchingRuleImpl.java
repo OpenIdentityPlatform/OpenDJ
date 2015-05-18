@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,6 +40,11 @@ import com.forgerock.opendj.util.StaticUtils;
  * only numeric digits and strip out everything else.
  */
 final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    TelephoneNumberEqualityMatchingRuleImpl() {
+        super(EMR_TELEPHONE_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final String valueString = value.toString();
         final int valueLength = valueString.length();

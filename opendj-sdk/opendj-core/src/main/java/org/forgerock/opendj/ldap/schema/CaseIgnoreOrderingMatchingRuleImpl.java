@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,12 +30,19 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static com.forgerock.opendj.util.StringPrepProfile.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**
  * This class defines the caseIgnoreOrderingMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
 final class CaseIgnoreOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
+
+    public CaseIgnoreOrderingMatchingRuleImpl() {
+        // Reusing equality index since OPENDJ-1864
+        super(EMR_CASE_IGNORE_NAME);
+    }
+
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD);

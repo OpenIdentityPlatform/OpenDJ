@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import static org.forgerock.opendj.ldap.schema.ObjectIdentifierEqualityMatchingRuleImpl.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
@@ -50,9 +51,13 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
+    ObjectIdentifierFirstComponentEqualityMatchingRuleImpl() {
+        super(EMR_OID_FIRST_COMPONENT_NAME);
+    }
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
-        return DefaultAssertion.equality(normalizeAttributeValuePrivate(schema, assertionValue));
+        return defaultAssertion(normalizeAttributeValuePrivate(schema, assertionValue));
     }
 
     @Override

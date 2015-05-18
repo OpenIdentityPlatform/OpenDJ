@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -40,6 +41,11 @@ import org.forgerock.opendj.ldap.DecodeException;
  * be used as the default equality matching rule for the UUID syntax.
  */
 final class UUIDEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    UUIDEqualityMatchingRuleImpl() {
+        super(EMR_UUID_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         if (value.length() != 36) {
