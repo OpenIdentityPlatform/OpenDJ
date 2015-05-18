@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !    
+-->
+<book xml:id='server-dev-guide'
+      xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xsi:schemaLocation='http://docbook.org/ns/docbook
+                          http://docbook.org/xml/5.0/xsd/docbook.xsd'
+      xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <xinclude:include href="../shared/mediaobject-fr-logo.xml" />
+
+  <title>OpenDJ Directory Server Developer's Guide</title>
+  <subtitle>Version ${docTargetVersion}</subtitle>
+  <abstract>
+   <para>
+    Hands-on guide to using OpenDJ directory server
+    with an emphasis on command-line tools.
+    The OpenDJ project offers open source LDAP directory services in Java.
+   </para>
+  </abstract>
+
+  <copyright>
+   <year>2015</year>
+   <holder>ForgeRock AS.</holder>
+  </copyright>
+
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
+    <xinclude:include href="../shared/affiliation-fr.xml"/>
+   </author>
+  </authorgroup>
+
+  <xinclude:include href='../legal.xml' />
+
+  <date>${publicationDate}</date>
+  <pubdate>${publicationDate}</pubdate>
+  <releaseinfo>${softwareReleaseDate}</releaseinfo>
+ </info>
+
+ <toc />
+
+ <xinclude:include href="preface.xml" />
+
+ <xinclude:include href="chap-rest-operations.xml" />
+ <xinclude:include href="chap-ldap-operations.xml" />
+
+ <xinclude:include href="chap-schema.xml" />
+ <xinclude:include href="chap-groups.xml" />
+ <xinclude:include href="chap-virtual-attrs-collective-attrs.xml" />
+ <xinclude:include href="chap-referrals.xml" />
+
+ <!--
+ <chapter xml:id="writing-plugins">
+  <title>Writing an OpenDJ Plugin</title>
+
+  <para>
+   Not implemented yet, see OPENDJ-1344
+  </para>
+ </chapter>
+
+ <chapter xml:id="writing-controls-ext-ops-plugins">
+  <title>Writing Custom Controls and Extended Operations</title>
+
+  <para>
+   Not implemented yet
+  </para>
+ </chapter>
+ <chapter xml:id="writing-task-plugins">
+  <title>Writing Custom Scheduled Tasks</title>
+
+  <para>
+   Not implemented yet
+  </para>
+ </chapter>
+
+ <chapter xml:id="embedding-opendj">
+  <title>Embedding OpenDJ Server</title>
+
+  <para>
+   Not implemented yet, see OPENDJ-685
+  </para>
+ </chapter>
+ -->
+
+ <index />
+</book>

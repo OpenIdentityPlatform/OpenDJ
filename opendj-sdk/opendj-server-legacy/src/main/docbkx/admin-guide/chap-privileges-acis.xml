@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -1173,7 +1172,7 @@ $ <userinput>ldappasswordmodify \
   <para>For hints on updating directory entries with
   <command>ldapmodify</command>, see the section on <link xlink:show="new"
   xlink:role="http://docbook.org/xlink/role/olink"
-  xlink:href="admin-guide#modify-ldap"><citetitle>Modifying Entry
+  xlink:href="server-dev-guide#modify-ldap"><citetitle>Modifying Entry
   Attributes</citetitle></link>, keeping in mind that the name of the ACI
   attribute is <literal>aci</literal> as shown in the examples that
   follow.</para>

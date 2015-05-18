@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,15 +19,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-referrals'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Referrals</title>
  <indexterm><primary>Referrals</primary></indexterm>
  
@@ -42,14 +41,32 @@
   <command>ldapsearch</command> command does not follow referrals.</para>
  </note>
  
- <para>Referrals are used for example when a some directory data are temporarily
+ <para>Referrals are used, for example, when some directory data are temporarily
  unavailable due to maintenance. Referrals can also be used when a container
  holds only some of the directory data for a suffix and points to other
  containers for branches whose data is not available locally.</para>
  
- <para>This chapter demonstrates how to add and remove referrals with the
- <command>ldapmodify</command> command. You can also use the Manage Entries
- window of the Control Panel to handle referrals.</para>
+ <itemizedlist>
+  <para>
+   In this chapter you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    Add referrals with the <command>ldapmodify</command> command
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Remove referrals with the <command>ldapmodify</command> command
+   </para>
+  </listitem>
+ </itemizedlist>
+
+ <para>
+  You can also use the Manage Entries window of the Control Panel to handle referrals.
+ </para>
 
  <section xml:id="referrals-overview">
   <title>About Referrals</title>
@@ -65,9 +82,9 @@
   the <literal>extensibleObject</literal> auxiliary object class.</para>
   
   <para>When a referral is set, OpenDJ returns the referral to client
-  applications requesting the entry or child entries affected. Client
+  applications requesting the affected entry or child entries. Client
   applications must be capable of following the referral returned. When the
-  directory server responds for example to your search with referrals to one
+  directory server responds, for example, to your search with referrals to one
   or more LDAP URLs, your client then constructs new searches from the LDAP
   URLs returned, and tries again.</para>
  </section>
@@ -75,8 +92,8 @@
  <section xml:id="managing-referrals">
   <title>Managing Referrals</title>
  
-  <para>To create an LDAP referral either you create a referral entry, or
-  you add the <literal>extensibleObject</literal> object class and the
+  <para>To create an LDAP referral, either create a referral entry,
+   or add the <literal>extensibleObject</literal> object class and the
   <literal>ref</literal> attribute with an LDAP URL to an existing entry.
   This section demonstrates use of the latter approach.</para>
   

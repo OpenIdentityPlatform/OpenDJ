@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
+-->
+ <section xml:id="standard-schema"
+          xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd"
+          xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>Standard Schema Included With OpenDJ Server</title>
+
+ <indexterm>
+  <primary>Schema</primary>
+  <secondary>Bundled definitions</secondary>
+ </indexterm>
+
+ <variablelist>
+  <para>
+   OpenDJ directory server provides many standard schema definitions
+   in these LDIF files under <filename>/path/to/opendj/config/schema</filename>.
+  </para>
+
+  <varlistentry>
+   <term>
+    <filename>00-core.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains a core set of
+     attribute type and object class definitions
+     from the following Internet-Drafts, RFCs, and standards:
+    </para>
+
+    <simplelist columns="1">
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-ietf-boreham-numsubordinates"
+      >draft-ietf-boreham-numsubordinates</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-findlay-ldap-groupofentries"
+      >draft-findlay-ldap-groupofentries</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-furuseth-ldap-untypedobject"
+      >draft-furuseth-ldap-untypedobject</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-good-ldap-changelog"
+      >draft-good-ldap-changelog</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-ietf-ldup-subentry"
+      >draft-ietf-ldup-subentry</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/draft-wahl-ldap-adminaddr"
+      >draft-wahl-ldap-adminaddr</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc1274">RFC 1274</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc2079">RFC 2079</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc2256">RFC 2256</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc2798">RFC 2798</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc3045">RFC 3045</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc3296">RFC 3296</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc3671">RFC 3671</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc3672">RFC 3672</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc4512">RFC 4512</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc4519">RFC 4519</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc4523">RFC 4523</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc4524">RFC 4524</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc4530">RFC 4530</member>
+     <member xlink:show="new" xlink:href="https://tools.ietf.org/html/rfc5020">RFC 5020</member>
+     <member xlink:show="new" xlink:href="https://www.itu.int/rec/T-REC-X.501">X.501</member>
+    </simplelist>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>01-pwpolicy.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/draft-behera-ldap-password-policy-09"
+      >draft-behera-ldap-password-policy</link> (Draft 09),
+     which defines a mechanism for storing password policy information
+     in an LDAP directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>02-config.ldif</filename>
+   </term>
+   <listitem>
+    <para>This file contains the attribute type and objectclass definitions
+    for use with the directory server configuration.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-changelog.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/draft-good-ldap-changelog"
+      >draft-good-ldap-changelog</link>, which defines a mechanism
+     for storing information about changes to directory server data.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc2713.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc2713"
+      >RFC 2713</link>, which defines a mechanism
+     for storing serialized Java objects in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc2714.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc2714"
+      >RFC 2714</link>, which defines a mechanism
+     for storing CORBA objects in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc2739.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc2739"
+      >RFC 2739</link>, which defines a mechanism
+     for storing calendar and vCard objects in the directory server.
+     Note that the definition in RFC 2739 contains a number of errors,
+     and this schema file has been altered from the standard definition
+     in order to fix a number of those problems.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc2926.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc2926"
+      >RFC 2926</link>, which defines a mechanism
+     for mapping between Service Location Protocol (SLP) advertisements and LDAP.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc3112.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc3112"
+      >RFC 3112</link>, which defines the authentication password schema.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-rfc3712.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc3712"
+      >RFC 3712</link>, which defines a mechanism
+     for storing printer information in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>03-uddiv3.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc4403"
+      >RFC 4403</link>, which defines a mechanism
+     for storing UDDIv3 information in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>04-rfc2307bis.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/draft-howard-rfc2307bis"
+      >draft-howard-rfc2307bis</link>, which defines a mechanism
+     for storing naming service information in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>05-rfc4876.ldif</filename>
+   </term>
+   <listitem>
+    <para>
+     This file contains schema definitions from
+     <link
+      xlink:show="new"
+      xlink:href="https://tools.ietf.org/html/rfc4876"
+      >RFC 4876</link>, which defines a schema
+     for storing Directory User Agent (DUA) profiles and preferences
+     in the directory server.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>05-samba.ldif</filename>
+   </term>
+   <listitem>
+    <para>This file contains schema definitions required when storing Samba
+    user accounts in the directory server.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>05-solaris.ldif</filename>
+   </term>
+   <listitem>
+    <para>This file contains schema definitions required for Solaris and
+    OpenSolaris LDAP naming services.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>
+    <filename>06-compat.ldif</filename>
+   </term>
+   <listitem>
+    <para>This file contains the attribute type and objectclass definitions
+    for use with the directory server configuration.</para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</section>

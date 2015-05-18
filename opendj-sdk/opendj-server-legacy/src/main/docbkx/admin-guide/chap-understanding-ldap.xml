@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -324,7 +323,7 @@ mail: escape@example.com</computeroutput>
 
   <para>For practical examples showing how to perform the key operations using
   the command line tools delivered with OpenDJ directory server, read
-  <link xlink:show="new" xlink:href="admin-guide#chap-ldap-operations"
+  <link xlink:show="new" xlink:href="server-dev-guide#chap-ldap-operations"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Performing LDAP
   Operations</citetitle></link>.</para>
  </section>
@@ -580,7 +579,7 @@ mail: escape@example.com</computeroutput>
   access.</para>
 
   <para>For examples showing how to use RESTful access, see the chapter on
-  <link xlink:show="new" xlink:href="admin-guide#chap-rest-operations"
+  <link xlink:show="new" xlink:href="server-dev-guide#chap-rest-operations"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Performing
   RESTful Operations</citetitle></link>.</para>
  </section>
