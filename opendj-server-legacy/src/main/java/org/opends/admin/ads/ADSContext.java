@@ -75,143 +75,114 @@ public class ADSContext
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * Enumeration containing the different server properties syntaxes
-   * that could be stored in the ADS.
+   * Enumeration containing the different server properties syntaxes that could
+   * be stored in the ADS.
    */
   public enum ADSPropertySyntax
   {
-    /**
-     * String syntax.
-     */
+    /** String syntax. */
     STRING,
 
-    /**
-     * Integer syntax.
-     */
+    /** Integer syntax. */
     INTEGER,
 
-    /**
-     * Boolean syntax.
-     */
+    /** Boolean syntax. */
     BOOLEAN,
 
-    /**
-     * Certificate;binary syntax.
-     */
+    /** Certificate;binary syntax. */
     CERTIFICATE_BINARY
   }
 
-  /**
-   * Enumeration containing the different server properties that are stored in
-   * the ADS.
-   */
+  /** Enumeration containing the different server properties that are stored in the ADS. */
   public enum ServerProperty
   {
-    /**
-     * The ID used to identify the server.
-     */
-    ID("id",ADSPropertySyntax.STRING),
-    /**
-     * The host name of the server.
-     */
-    HOST_NAME("hostname",ADSPropertySyntax.STRING),
-    /**
-     * The LDAP port of the server.
-     */
-    LDAP_PORT("ldapport",ADSPropertySyntax.INTEGER),
-    /**
-     * The JMX port of the server.
-     */
-    JMX_PORT("jmxport",ADSPropertySyntax.INTEGER),
-    /**
-     * The JMX secure port of the server.
-     */
-    JMXS_PORT("jmxsport",ADSPropertySyntax.INTEGER),
-    /**
-     * The LDAPS port of the server.
-     */
-    LDAPS_PORT("ldapsport",ADSPropertySyntax.INTEGER),
-    /**
-     * The administration connector port of the server.
-     */
-    ADMIN_PORT("adminport",ADSPropertySyntax.INTEGER),
-    /**
-     * The certificate used by the server.
-     */
-    CERTIFICATE("certificate",ADSPropertySyntax.STRING),
-    /**
-     * The path where the server is installed.
-     */
-    INSTANCE_PATH("instancepath",ADSPropertySyntax.STRING),
-    /**
-     * The description of the server.
-     */
-    DESCRIPTION("description",ADSPropertySyntax.STRING),
-    /**
-     * The OS of the machine where the server is installed.
-     */
-    HOST_OS("os",ADSPropertySyntax.STRING),
-    /**
-     * Whether LDAP is enabled or not.
-     */
-    LDAP_ENABLED("ldapEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * Whether LDAPS is enabled or not.
-     */
-    LDAPS_ENABLED("ldapsEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * Whether ADMIN is enabled or not.
-     */
-    ADMIN_ENABLED("adminEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * Whether StartTLS is enabled or not.
-     */
-    STARTTLS_ENABLED("startTLSEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * Whether JMX is enabled or not.
-     */
-    JMX_ENABLED("jmxEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * Whether JMX is enabled or not.
-     */
-    JMXS_ENABLED("jmxsEnabled",ADSPropertySyntax.BOOLEAN),
-    /**
-     * The location of the server.
-     */
-    LOCATION("location",ADSPropertySyntax.STRING),
-    /**
-     * The groups to which this server belongs.
-     */
-    GROUPS("memberofgroups",ADSPropertySyntax.STRING),
-    /**
-     * The unique name of the instance key public-key certificate.
-     */
-    INSTANCE_KEY_ID("ds-cfg-key-id",ADSPropertySyntax.STRING),
+    /** The ID used to identify the server. */
+    ID("id", ADSPropertySyntax.STRING),
+
+    /** The host name of the server. */
+    HOST_NAME("hostname", ADSPropertySyntax.STRING),
+
+    /** The LDAP port of the server. */
+    LDAP_PORT("ldapport", ADSPropertySyntax.INTEGER),
+
+    /** The JMX port of the server. */
+    JMX_PORT("jmxport", ADSPropertySyntax.INTEGER),
+
+    /** The JMX secure port of the server. */
+    JMXS_PORT("jmxsport", ADSPropertySyntax.INTEGER),
+
+    /** The LDAPS port of the server. */
+    LDAPS_PORT("ldapsport", ADSPropertySyntax.INTEGER),
+
+    /** The administration connector port of the server. */
+    ADMIN_PORT("adminport", ADSPropertySyntax.INTEGER),
+
+    /** The certificate used by the server. */
+    CERTIFICATE("certificate", ADSPropertySyntax.STRING),
+
+    /** The path where the server is installed. */
+    INSTANCE_PATH("instancepath", ADSPropertySyntax.STRING),
+
+    /** The description of the server. */
+    DESCRIPTION("description", ADSPropertySyntax.STRING),
+
+    /** The OS of the machine where the server is installed. */
+    HOST_OS("os", ADSPropertySyntax.STRING),
+
+    /** Whether LDAP is enabled or not. */
+    LDAP_ENABLED("ldapEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** Whether LDAPS is enabled or not. */
+    LDAPS_ENABLED("ldapsEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** Whether ADMIN is enabled or not. */
+    ADMIN_ENABLED("adminEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** Whether StartTLS is enabled or not. */
+    STARTTLS_ENABLED("startTLSEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** Whether JMX is enabled or not. */
+    JMX_ENABLED("jmxEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** Whether JMX is enabled or not. */
+    JMXS_ENABLED("jmxsEnabled", ADSPropertySyntax.BOOLEAN),
+
+    /** The location of the server. */
+    LOCATION("location", ADSPropertySyntax.STRING),
+
+    /** The groups to which this server belongs. */
+    GROUPS("memberofgroups", ADSPropertySyntax.STRING),
+
+    /** The unique name of the instance key public-key certificate. */
+    INSTANCE_KEY_ID("ds-cfg-key-id", ADSPropertySyntax.STRING),
+
     /**
      * The instance key-pair public-key certificate. Note: This attribute
      * belongs to an instance key entry, separate from the server entry and
      * named by the ds-cfg-key-id attribute from the server entry.
      */
-    INSTANCE_PUBLIC_KEY_CERTIFICATE(
-        "ds-cfg-public-key-certificate",
-        ADSPropertySyntax.CERTIFICATE_BINARY);
+    INSTANCE_PUBLIC_KEY_CERTIFICATE("ds-cfg-public-key-certificate", ADSPropertySyntax.CERTIFICATE_BINARY);
 
     private String attrName;
     private ADSPropertySyntax attSyntax;
 
     /**
      * Private constructor.
-     * @param n the name of the attribute.
-     * @param s the name of the syntax.
+     *
+     * @param n
+     *          the name of the attribute.
+     * @param s
+     *          the name of the syntax.
      */
     private ServerProperty(String n, ADSPropertySyntax s)
     {
       attrName = n;
-      attSyntax = s ;
+      attSyntax = s;
     }
 
     /**
      * Returns the attribute name.
+     *
      * @return the attribute name.
      */
     public String getAttributeName()
@@ -221,6 +192,7 @@ public class ADSContext
 
     /**
      * Returns the attribute syntax.
+     *
      * @return the attribute syntax.
      */
     public ADSPropertySyntax getAttributeSyntax()
@@ -232,33 +204,33 @@ public class ADSContext
   /** Default global admin UID. */
   public static final String GLOBAL_ADMIN_UID = "admin";
 
-  private static HashMap<String, ServerProperty> nameToServerProperty;
+  private static Map<String, ServerProperty> NAME_TO_SERVER_PROPERTY;
 
   /**
    * Get a ServerProperty associated to a name.
-   * @param name The name of the property to retrieve.
    *
-   * @return The corresponding ServerProperty or null if name
-   * doesn't match with an existing property.
+   * @param name
+   *          The name of the property to retrieve.
+   * @return The corresponding ServerProperty or null if name doesn't match with
+   *         an existing property.
    */
   public static ServerProperty getServerPropFromName(String name)
   {
-    if (nameToServerProperty == null)
+    if (NAME_TO_SERVER_PROPERTY == null)
     {
-      nameToServerProperty = new HashMap<String, ServerProperty>();
+      NAME_TO_SERVER_PROPERTY = new HashMap<>();
       for (ServerProperty s : ServerProperty.values())
       {
-        nameToServerProperty.put(s.getAttributeName(), s);
+        NAME_TO_SERVER_PROPERTY.put(s.getAttributeName(), s);
       }
     }
-    return nameToServerProperty.get(name);
+    return NAME_TO_SERVER_PROPERTY.get(name);
   }
 
   /**
    * The list of server properties that are multivalued.
    */
-  private static final Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES =
-    new HashSet<ServerProperty>();
+  private static final Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES = new HashSet<>();
   static
   {
     MULTIVALUED_SERVER_PROPERTIES.add(ServerProperty.GROUPS);
@@ -292,7 +264,9 @@ public class ADSContext
 
     /**
      * Private constructor.
-     * @param n the attribute name.
+     *
+     * @param n
+     *          the attribute name.
      */
     private ServerGroupProperty(String n)
     {
@@ -301,6 +275,7 @@ public class ADSContext
 
     /**
      * Returns the attribute name.
+     *
      * @return the attribute name.
      */
     public String getAttributeName()
@@ -312,8 +287,7 @@ public class ADSContext
   /**
    * The list of server group properties that are multivalued.
    */
-  private static final Set<ServerGroupProperty> MULTIVALUED_SERVER_GROUP_PROPERTIES =
-    new HashSet<ServerGroupProperty>();
+  private static final Set<ServerGroupProperty> MULTIVALUED_SERVER_GROUP_PROPERTIES = new HashSet<>();
   static
   {
     MULTIVALUED_SERVER_GROUP_PROPERTIES.add(ServerGroupProperty.MEMBERS);
@@ -327,40 +301,44 @@ public class ADSContext
     /**
      * The UID of the administrator.
      */
-    UID("id",ADSPropertySyntax.STRING),
+    UID("id", ADSPropertySyntax.STRING),
     /**
      * The password of the administrator.
      */
-    PASSWORD("password",ADSPropertySyntax.STRING),
+    PASSWORD("password", ADSPropertySyntax.STRING),
     /**
      * The description of the administrator.
      */
-    DESCRIPTION("description",ADSPropertySyntax.STRING),
+    DESCRIPTION("description", ADSPropertySyntax.STRING),
     /**
      * The DN of the administrator.
      */
-    ADMINISTRATOR_DN("administrator dn",ADSPropertySyntax.STRING),
+    ADMINISTRATOR_DN("administrator dn", ADSPropertySyntax.STRING),
     /**
      * The administrator privilege.
      */
-    PRIVILEGE("privilege",ADSPropertySyntax.STRING);
+    PRIVILEGE("privilege", ADSPropertySyntax.STRING);
 
     private String attrName;
     private ADSPropertySyntax attrSyntax;
 
     /**
      * Private constructor.
-     * @param n the name of the attribute.
-     * @param s the name of the syntax.
+     *
+     * @param n
+     *          the name of the attribute.
+     * @param s
+     *          the name of the syntax.
      */
     private AdministratorProperty(String n, ADSPropertySyntax s)
     {
       attrName = n;
-      attrSyntax = s ;
+      attrSyntax = s;
     }
 
     /**
      * Returns the attribute name.
+     *
      * @return the attribute name.
      */
     public String getAttributeName()
@@ -370,6 +348,7 @@ public class ADSContext
 
     /**
      * Returns the attribute syntax.
+     *
      * @return the attribute syntax.
      */
     public ADSPropertySyntax getAttributeSyntax()
@@ -382,16 +361,17 @@ public class ADSContext
 
   /**
    * Get a AdministratorProperty associated to a name.
-   * @param name The name of the property to retrieve.
    *
-   * @return The corresponding AdministratorProperty or null if name
-   * doesn't match with an existing property.
+   * @param name
+   *          The name of the property to retrieve.
+   * @return The corresponding AdministratorProperty or null if name doesn't
+   *         match with an existing property.
    */
   public static AdministratorProperty getAdminUserPropFromName(String name)
   {
     if (nameToAdminUserProperty == null)
     {
-      nameToAdminUserProperty = new HashMap<String, AdministratorProperty>();
+      nameToAdminUserProperty = new HashMap<>();
       for (AdministratorProperty u : AdministratorProperty.values())
       {
         nameToAdminUserProperty.put(u.getAttributeName(), u);
@@ -403,19 +383,20 @@ public class ADSContext
   /** The context used to retrieve information. */
   private final InitialLdapContext dirContext;
 
-
   /**
    * Constructor of the ADSContext.
-   * @param dirContext the DirContext that must be used to retrieve information.
+   *
+   * @param dirContext
+   *          the DirContext that must be used to retrieve information.
    */
   public ADSContext(InitialLdapContext dirContext)
   {
     this.dirContext = dirContext;
   }
 
-
   /**
    * Returns the DirContext used to retrieve information by this ADSContext.
+   *
    * @return the DirContext used to retrieve information by this ADSContext.
    */
   public InitialLdapContext getDirContext()
@@ -425,15 +406,16 @@ public class ADSContext
 
   /**
    * Method called to register a server in the ADS.
-   * @param serverProperties the properties of the server.
-   * @throws ADSContextException if the server could not be registered.
+   *
+   * @param serverProperties
+   *          the properties of the server.
+   * @throws ADSContextException
+   *           if the server could not be registered.
    */
-  public void registerServer(Map<ServerProperty, Object> serverProperties)
-  throws ADSContextException
+  public void registerServer(Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
-    BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties,
-        true);
+    BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties, true);
     try
     {
       // This check is required because by default the server container entry
@@ -443,21 +425,19 @@ public class ADSContext
         createContainerEntry(getServerContainerDN());
       }
       dirContext.createSubcontext(dn, attrs).close();
-      if (serverProperties.containsKey(
-          ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
+      if (serverProperties.containsKey(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
 
       // register this server into "all" groups
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
+      Map<ServerGroupProperty, Object> serverGroupProperties = new HashMap<>();
       Set<String> memberList = getServerGroupMemberList(ALL_SERVERGROUP_NAME);
-      if (memberList == null) {
-        memberList = new HashSet<String>();
+      if (memberList == null)
+      {
+        memberList = new HashSet<>();
       }
-      String newMember = "cn="
-        + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
+      String newMember = "cn=" + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
 
       memberList.add(newMember);
       serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
@@ -465,11 +445,12 @@ public class ADSContext
       updateServerGroup(ALL_SERVERGROUP_NAME, serverGroupProperties);
 
       // Update the server property "GROUPS"
-      Set<?> rawGroupList = (Set<?>)
-      serverProperties.get(ServerProperty.GROUPS);
-      Set<String> groupList = new HashSet<String>();
-      if (rawGroupList != null) {
-        for (Object elm : rawGroupList.toArray()) {
+      Set<?> rawGroupList = (Set<?>) serverProperties.get(ServerProperty.GROUPS);
+      Set<String> groupList = new HashSet<>();
+      if (rawGroupList != null)
+      {
+        for (Object elm : rawGroupList.toArray())
+        {
           groupList.add(elm.toString());
         }
       }
@@ -484,46 +465,42 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
     catch (Exception x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
-
   /**
    * Method called to update the properties of a server in the ADS.
-   * @param serverProperties the new properties of the server.
-   * @param newServerId The new server Identifier, or null.
-   * @throws ADSContextException if the server could not be registered.
+   *
+   * @param serverProperties
+   *          the new properties of the server.
+   * @param newServerId
+   *          The new server Identifier, or null.
+   * @throws ADSContextException
+   *           if the server could not be registered.
    */
-  public void updateServer(Map<ServerProperty, Object> serverProperties,
-      String newServerId) throws ADSContextException
-      {
+  public void updateServer(Map<ServerProperty, Object> serverProperties, String newServerId) throws ADSContextException
+  {
     LdapName dn = makeDNFromServerProperties(serverProperties);
 
     try
     {
       if (newServerId != null)
       {
-        HashMap<ServerProperty, Object> newServerProps =
-          new HashMap<ServerProperty, Object>(serverProperties);
-        newServerProps.put(ServerProperty.ID,newServerId);
+        Map<ServerProperty, Object> newServerProps = new HashMap<>(serverProperties);
+        newServerProps.put(ServerProperty.ID, newServerId);
         LdapName newDn = makeDNFromServerProperties(newServerProps);
         dirContext.rename(dn, newDn);
-        dn = newDn ;
-        serverProperties.put(ServerProperty.ID,newServerId);
+        dn = newDn;
+        serverProperties.put(ServerProperty.ID, newServerId);
       }
-      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties,
-          false);
-      dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE,
-          attrs);
-      if (serverProperties.containsKey(
-          ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
+      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties, false);
+      dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
+      if (serverProperties.containsKey(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
@@ -534,45 +511,40 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (Exception x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
-      }
+  }
 
   /**
    * Method called to unregister a server in the ADS. Note that the server's
    * instance key-pair public-key certificate entry (created in
-   * <tt>registerServer()</tt>)
-   * is left untouched.
-   * @param serverProperties the properties of the server.
-   * @throws ADSContextException if the server could not be unregistered.
+   * <tt>registerServer()</tt>) is left untouched.
+   *
+   * @param serverProperties
+   *          the properties of the server.
+   * @throws ADSContextException
+   *           if the server could not be unregistered.
    */
-  public void unregisterServer(Map<ServerProperty, Object> serverProperties)
-  throws ADSContextException
+  public void unregisterServer(Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
     try
     {
       // Unregister the server from the server groups.
-      String member = "cn="
-        + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
-      Set<Map<ServerGroupProperty, Object>> serverGroups =
-        readServerGroupRegistry();
+      String member = "cn=" + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
+      Set<Map<ServerGroupProperty, Object>> serverGroups = readServerGroupRegistry();
       for (Map<ServerGroupProperty, Object> serverGroup : serverGroups)
       {
-        Set<?> memberList =
-          (Set<?>)serverGroup.get(ServerGroupProperty.MEMBERS);
+        Set<?> memberList = (Set<?>) serverGroup.get(ServerGroupProperty.MEMBERS);
         if (memberList != null && memberList.remove(member))
         {
-          HashMap<ServerGroupProperty, Object> serverGroupProperties =
-            new HashMap<ServerGroupProperty, Object>();
+          Map<ServerGroupProperty, Object> serverGroupProperties = new HashMap<>();
           serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-          String groupName = (String)serverGroup.get(ServerGroupProperty.UID);
+          String groupName = (String) serverGroup.get(ServerGroupProperty.UID);
           updateServerGroup(groupName, serverGroupProperties);
         }
       }
@@ -581,13 +553,11 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
 
     // Unregister the server in server groups
@@ -600,7 +570,7 @@ public class ADSContext
       if (serverID != null)
       {
         String memberAttrName = ServerGroupProperty.MEMBERS.getAttributeName();
-        String filter = "("+memberAttrName+"=cn="+serverID+")";
+        String filter = "(" + memberAttrName + "=cn=" + serverID + ")";
         sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
         ne = dirContext.search(getServerGroupContainerDN(), filter, sc);
         while (ne.hasMore())
@@ -608,8 +578,7 @@ public class ADSContext
           SearchResult sr = ne.next();
           String groupDn = sr.getNameInNamespace();
           BasicAttribute newAttr = new BasicAttribute(memberAttrName);
-          NamingEnumeration<? extends Attribute> attrs =
-            sr.getAttributes().getAll();
+          NamingEnumeration<? extends Attribute> attrs = sr.getAttributes().getAll();
           try
           {
             while (attrs.hasMore())
@@ -624,8 +593,8 @@ public class ADSContext
                 {
                   while (ae.hasMore())
                   {
-                    String value = (String)ae.next();
-                    if (!value.equalsIgnoreCase("cn="+serverID))
+                    String value = (String) ae.next();
+                    if (!value.equalsIgnoreCase("cn=" + serverID))
                     {
                       newAttr.add(value);
                     }
@@ -646,31 +615,26 @@ public class ADSContext
           newAttrs.put(newAttr);
           if (newAttr.size() > 0)
           {
-            dirContext.modifyAttributes(groupDn, DirContext.REPLACE_ATTRIBUTE,
-                newAttrs);
+            dirContext.modifyAttributes(groupDn, DirContext.REPLACE_ATTRIBUTE, newAttrs);
           }
           else
           {
-            dirContext.modifyAttributes(groupDn, DirContext.REMOVE_ATTRIBUTE,
-                newAttrs);
+            dirContext.modifyAttributes(groupDn, DirContext.REMOVE_ATTRIBUTE, newAttrs);
           }
         }
       }
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -680,64 +644,64 @@ public class ADSContext
 
   /**
    * Returns whether a given server is already registered or not.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return <CODE>true</CODE> if the server was registered and
-   * <CODE>false</CODE> otherwise.
-   * @throws ADSContextException if something went wrong.
+   *         <CODE>false</CODE> otherwise.
+   * @throws ADSContextException
+   *           if something went wrong.
    */
-  public boolean isServerAlreadyRegistered(
-      Map<ServerProperty, Object> serverProperties)
-  throws ADSContextException
+  public boolean isServerAlreadyRegistered(Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
-    LdapName dn = makeDNFromServerProperties(serverProperties);
-    return isExistingEntry(dn);
+    return isExistingEntry(makeDNFromServerProperties(serverProperties));
   }
 
   /**
    * Returns whether a given administrator is already registered or not.
-   * @param uid the administrator UID.
+   *
+   * @param uid
+   *          the administrator UID.
    * @return <CODE>true</CODE> if the administrator was registered and
-   * <CODE>false</CODE> otherwise.
-   * @throws ADSContextException if something went wrong.
+   *         <CODE>false</CODE> otherwise.
+   * @throws ADSContextException
+   *           if something went wrong.
    */
-  public boolean isAdministratorAlreadyRegistered(String uid)
-  throws ADSContextException
+  public boolean isAdministratorAlreadyRegistered(String uid) throws ADSContextException
   {
-    LdapName dn = makeDNFromAdministratorProperties(uid);
-    return isExistingEntry(dn);
+    return isExistingEntry(makeDNFromAdministratorProperties(uid));
   }
 
   /**
-   * A convenience method that takes some server properties as parameter and
-   * if there is no server registered associated with those properties,
-   * registers it and if it is already registered, updates it.
-   * @param serverProperties the server properties.
+   * A convenience method that takes some server properties as parameter and if
+   * there is no server registered associated with those properties, registers
+   * it and if it is already registered, updates it.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return 0 if the server was registered; 1 if updated (i.e., the server
-   * entry was already in ADS).
-   * @throws ADSContextException if something goes wrong.
+   *         entry was already in ADS).
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public int registerOrUpdateServer(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
-      {
-    int result = 0;
+  public int registerOrUpdateServer(Map<ServerProperty, Object> serverProperties) throws ADSContextException
+  {
     try
     {
       registerServer(serverProperties);
+      return 0;
     }
-    catch(ADSContextException x)
+    catch (ADSContextException x)
     {
       if (x.getError() == ADSContextException.ErrorType.ALREADY_REGISTERED)
       {
         updateServer(serverProperties, null);
-        result = 1;
+        return 1;
       }
-      else
-      {
-        throw x;
-      }
+
+      throw x;
     }
-    return result;
-      }
+  }
 
   /**
    * Returns the member list of a group of server.
@@ -748,13 +712,11 @@ public class ADSContext
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  public Set<String> getServerGroupMemberList(
-      String serverGroupId) throws ADSContextException
-      {
-    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + ","
-        + getServerGroupContainerDN());
+  public Set<String> getServerGroupMemberList(String serverGroupId) throws ADSContextException
+  {
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + "," + getServerGroupContainerDN());
 
-    Set<String> result = new HashSet<String>() ;
+    Set<String> result = new HashSet<>();
     NamingEnumeration<SearchResult> srs = null;
     NamingEnumeration<? extends Attribute> ne = null;
     try
@@ -774,8 +736,7 @@ public class ADSContext
         Attribute attr = ne.next();
         String attrID = attr.getID();
 
-        if (!attrID.toLowerCase().equals(
-            ServerGroupProperty.MEMBERS.getAttributeName().toLowerCase()))
+        if (!attrID.toLowerCase().equals(ServerGroupProperty.MEMBERS.getAttributeName().toLowerCase()))
         {
           continue;
         }
@@ -786,7 +747,7 @@ public class ADSContext
         {
           while (ae.hasMore())
           {
-            result.add((String)ae.next());
+            result.add((String) ae.next());
           }
         }
         finally
@@ -798,17 +759,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      result = new HashSet<String>();
+      result = new HashSet<>();
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -819,19 +778,15 @@ public class ADSContext
   }
 
   /**
-   * Returns a set containing the servers that are registered in the
-   * ADS.
+   * Returns a set containing the servers that are registered in the ADS.
    *
-   * @return a set containing the servers that are registered in the
-   *         ADS.
+   * @return a set containing the servers that are registered in the ADS.
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  public Set<Map<ServerProperty,Object>> readServerRegistry()
-  throws ADSContextException
+  public Set<Map<ServerProperty, Object>> readServerRegistry() throws ADSContextException
   {
-    Set<Map<ServerProperty,Object>> result =
-      new HashSet<Map<ServerProperty,Object>>();
+    Set<Map<ServerProperty, Object>> result = new HashSet<>();
     NamingEnumeration<SearchResult> ne = null;
     try
     {
@@ -842,8 +797,7 @@ public class ADSContext
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
-        Map<ServerProperty,Object> properties =
-          makePropertiesFromServerAttrs(sr.getAttributes());
+        Map<ServerProperty, Object> properties = makePropertiesFromServerAttrs(sr.getAttributes());
         Object keyId = properties.get(ServerProperty.INSTANCE_KEY_ID);
         if (keyId != null)
         {
@@ -855,26 +809,23 @@ public class ADSContext
             final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
             sc1.setReturningAttributes(attrIDs);
 
-            ne2 = dirContext.search(getInstanceKeysContainerDN(),
-                "(ds-cfg-key-id="+keyId+")", sc);
+            ne2 = dirContext.search(getInstanceKeysContainerDN(), "(ds-cfg-key-id=" + keyId + ")", sc);
             boolean found = false;
             while (ne2.hasMore())
             {
               SearchResult certEntry = ne2.next();
               Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
-              properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
-                  certAttr.get());
+              properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE, certAttr.get());
               found = true;
             }
             if (!found)
             {
-              logger.warn(LocalizableMessage.raw("Could not find public key for "+
-                  properties));
+              logger.warn(LocalizableMessage.raw("Could not find public key for " + properties));
             }
           }
           catch (NameNotFoundException x)
           {
-            logger.warn(LocalizableMessage.raw("Could not find public key for "+properties));
+            logger.warn(LocalizableMessage.raw("Could not find public key for " + properties));
           }
           finally
           {
@@ -886,18 +837,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -907,20 +855,18 @@ public class ADSContext
     return result;
   }
 
-
   /**
    * Creates a Server Group in the ADS.
-   * @param serverGroupProperties the properties of the server group to be
-   * created.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param serverGroupProperties
+   *          the properties of the server group to be created.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void createServerGroup(
-      Map<ServerGroupProperty, Object> serverGroupProperties)
-  throws ADSContextException
+  public void createServerGroup(Map<ServerGroupProperty, Object> serverGroupProperties) throws ADSContextException
   {
     LdapName dn = makeDNFromServerGroupProperties(serverGroupProperties);
-    BasicAttributes attrs = makeAttrsFromServerGroupProperties(
-        serverGroupProperties);
+    BasicAttributes attrs = makeAttrsFromServerGroupProperties(serverGroupProperties);
     // Add the objectclass attribute value
     Attribute oc = new BasicAttribute("objectclass");
     oc.add("top");
@@ -933,43 +879,40 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL, x);
+      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL, x);
     }
   }
 
   /**
    * Updates the properties of a Server Group in the ADS.
-   * @param serverGroupProperties the new properties of the server group to be
-   * updated.
-   * @param groupID The group name.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param serverGroupProperties
+   *          the new properties of the server group to be updated.
+   * @param groupID
+   *          The group name.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void updateServerGroup(String groupID,
-      Map<ServerGroupProperty, Object> serverGroupProperties)
-  throws ADSContextException
+  public void updateServerGroup(String groupID, Map<ServerGroupProperty, Object> serverGroupProperties)
+      throws ADSContextException
   {
-    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
-        getServerGroupContainerDN());
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," + getServerGroupContainerDN());
     try
     {
       // Entry renaming ?
       if (serverGroupProperties.containsKey(ServerGroupProperty.UID))
       {
-        String newGroupId = serverGroupProperties
-        .get(ServerGroupProperty.UID).toString();
+        String newGroupId = serverGroupProperties.get(ServerGroupProperty.UID).toString();
         if (!newGroupId.equals(groupID))
         {
           // Rename to entry
-          LdapName newDN = nameFromDN("cn=" + Rdn.escapeValue(newGroupId)
-              + "," + getServerGroupContainerDN());
+          LdapName newDN = nameFromDN("cn=" + Rdn.escapeValue(newGroupId) + "," + getServerGroupContainerDN());
           dirContext.rename(dn, newDN);
-          dn = newDN ;
+          dn = newDN;
         }
 
         // In any case, we remove the "cn" attribute.
@@ -977,125 +920,113 @@ public class ADSContext
       }
       if (serverGroupProperties.isEmpty())
       {
-        return ;
+        return;
       }
 
-      BasicAttributes attrs =
-        makeAttrsFromServerGroupProperties(serverGroupProperties);
+      BasicAttributes attrs = makeAttrsFromServerGroupProperties(serverGroupProperties);
       // attribute modification
       dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Updates the properties of a Server Group in the ADS.
-   * @param serverGroupProperties the new properties of the server group to be
-   * updated.
-   * @param groupID The group name.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param serverGroupProperties
+   *          the new properties of the server group to be updated.
+   * @param groupID
+   *          The group name.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void removeServerGroupProp(String groupID,
-      Set<ServerGroupProperty> serverGroupProperties)
-  throws ADSContextException
+  public void removeServerGroupProp(String groupID, Set<ServerGroupProperty> serverGroupProperties)
+      throws ADSContextException
   {
 
-    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
-        getServerGroupContainerDN());
-    BasicAttributes attrs =
-      makeAttrsFromServerGroupProperties(serverGroupProperties);
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," + getServerGroupContainerDN());
+    BasicAttributes attrs = makeAttrsFromServerGroupProperties(serverGroupProperties);
     try
     {
       dirContext.modifyAttributes(dn, DirContext.REMOVE_ATTRIBUTE, attrs);
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Deletes a Server Group in the ADS.
-   * @param serverGroupProperties the properties of the server group to be
-   * deleted.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param serverGroupProperties
+   *          the properties of the server group to be deleted.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void deleteServerGroup(
-      Map<ServerGroupProperty, Object> serverGroupProperties)
-  throws ADSContextException
+  public void deleteServerGroup(Map<ServerGroupProperty, Object> serverGroupProperties) throws ADSContextException
   {
     LdapName dn = makeDNFromServerGroupProperties(serverGroupProperties);
     try
     {
       dirContext.destroySubcontext(dn);
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Returns a set containing the server groups that are defined in the ADS.
+   *
    * @return a set containing the server groups that are defined in the ADS.
-   * @throws ADSContextException if something goes wrong.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public Set<Map<ServerGroupProperty, Object>> readServerGroupRegistry()
-  throws ADSContextException
+  public Set<Map<ServerGroupProperty, Object>> readServerGroupRegistry() throws ADSContextException
   {
-    Set<Map<ServerGroupProperty, Object>> result =
-      new HashSet<Map<ServerGroupProperty, Object>>();
+    Set<Map<ServerGroupProperty, Object>> result = new HashSet<>();
     NamingEnumeration<SearchResult> ne = null;
     try
     {
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      ne = dirContext.search(getServerGroupContainerDN(), "(objectclass=*)",
-          sc);
+      ne = dirContext.search(getServerGroupContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
-        Map<ServerGroupProperty, Object> properties =
-          makePropertiesFromServerGroupAttrs(sr.getAttributes());
+        Map<ServerGroupProperty, Object> properties = makePropertiesFromServerGroupAttrs(sr.getAttributes());
         result.add(properties);
       }
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1104,52 +1035,44 @@ public class ADSContext
     return result;
   }
 
-
   /**
    * Returns a set containing the administrators that are defined in the ADS.
+   *
    * @return a set containing the administrators that are defined in the ADS.
-   * @throws ADSContextException if something goes wrong.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public Set<Map<AdministratorProperty, Object>> readAdministratorRegistry()
-  throws ADSContextException
+  public Set<Map<AdministratorProperty, Object>> readAdministratorRegistry() throws ADSContextException
   {
-    Set<Map<AdministratorProperty, Object>> result =
-      new HashSet<Map<AdministratorProperty, Object>>();
+    Set<Map<AdministratorProperty, Object>> result = new HashSet<>();
     NamingEnumeration<SearchResult> ne = null;
-    try {
+    try
+    {
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      String[] attList = { "cn", "userpassword", "ds-privilege-name",
-      "description" };
+      String[] attList = { "cn", "userpassword", "ds-privilege-name", "description" };
       sc.setReturningAttributes(attList);
-      ne = dirContext.search(getAdministratorContainerDN(), "(objectclass=*)",
-          sc);
+      ne = dirContext.search(getAdministratorContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
-
         Map<AdministratorProperty, Object> properties =
-          makePropertiesFromAdministratorAttrs(
-              getRdn(sr.getName()), sr.getAttributes());
-
+            makePropertiesFromAdministratorAttrs(getRdn(sr.getName()), sr.getAttributes());
         result.add(properties);
       }
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1160,14 +1083,16 @@ public class ADSContext
   }
 
   /**
-   * Creates the Administration Data in the server.
-   * The call to this method assumes that OpenDS.jar has already been loaded.
-   * So this should not be called by the Java Web Start before being sure that
-   * this jar is loaded.
-   * @param backendName the backend name which will handle admin information.
-   * <CODE>null</CODE> to use the default backend name for the admin
-   * information.
-   * @throws ADSContextException if something goes wrong.
+   * Creates the Administration Data in the server. The call to this method
+   * assumes that OpenDS.jar has already been loaded. So this should not be
+   * called by the Java Web Start before being sure that this jar is loaded.
+   *
+   * @param backendName
+   *          the backend name which will handle admin information.
+   *          <CODE>null</CODE> to use the default backend name for the admin
+   *          information.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
   public void createAdminData(String backendName) throws ADSContextException
   {
@@ -1200,8 +1125,7 @@ public class ADSContext
     // Add the default "all-servers" group
     if (!isExistingEntry(nameFromDN(getAllServerGroupDN())))
     {
-      Map<ServerGroupProperty, Object> allServersGroupsMap =
-        new HashMap<ServerGroupProperty, Object>();
+      Map<ServerGroupProperty, Object> allServersGroupsMap = new HashMap<>();
       allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
       createServerGroup(allServersGroupsMap);
     }
@@ -1219,8 +1143,6 @@ public class ADSContext
     }
   }
 
-
-
   /**
    * Removes the administration data.
    *
@@ -1232,12 +1154,10 @@ public class ADSContext
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  public void removeAdminData(boolean removeAdministrators)
-      throws ADSContextException
+  public void removeAdminData(boolean removeAdministrators) throws ADSContextException
   {
-    String[] dns = {getServerContainerDN(),
-        getServerGroupContainerDN(),
-        removeAdministrators ? getAdministratorContainerDN() : null };
+    String[] dns = { getServerContainerDN(), getServerGroupContainerDN(),
+      removeAdministrators ? getAdministratorContainerDN() : null };
     try
     {
       Control[] controls = new Control[] { new SubtreeDeleteControl() };
@@ -1264,36 +1184,33 @@ public class ADSContext
         }
         catch (Exception ex)
         {
-          logger.warn(LocalizableMessage.raw(
-              "Error while closing LDAP connection after removing admin data",
-              ex));
+          logger.warn(LocalizableMessage.raw("Error while closing LDAP connection after removing admin data", ex));
         }
       }
       // Recreate the container entries:
       createAdminDataContainers();
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
-
 
   /**
    * Returns <CODE>true</CODE> if the server contains Administration Data and
    * <CODE>false</CODE> otherwise.
+   *
    * @return <CODE>true</CODE> if the server contains Administration Data and
-   * <CODE>false</CODE> otherwise.
-   * @throws ADSContextException if something goes wrong.
+   *         <CODE>false</CODE> otherwise.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
   public boolean hasAdminData() throws ADSContextException
   {
-    String[] dns = {getAdministratorContainerDN(), getAllServerGroupDN(),
-        getServerContainerDN(), getInstanceKeysContainerDN(),
-        getSecretKeysContainerDN()};
+    String[] dns = { getAdministratorContainerDN(), getAllServerGroupDN(), getServerContainerDN(),
+      getInstanceKeysContainerDN(), getSecretKeysContainerDN() };
     boolean hasAdminData = true;
-    for (int i=0; i<dns.length && hasAdminData; i++)
+    for (int i = 0; i < dns.length && hasAdminData; i++)
     {
       hasAdminData = isExistingEntry(nameFromDN(dns[i]));
     }
@@ -1302,7 +1219,9 @@ public class ADSContext
 
   /**
    * Returns the DN of the administrator for a given UID.
-   * @param uid the UID to be used to generate the DN.
+   *
+   * @param uid
+   *          the UID to be used to generate the DN.
    * @return the DN of the administrator for the given UID:
    */
   public static String getAdministratorDN(String uid)
@@ -1312,16 +1231,16 @@ public class ADSContext
 
   /**
    * Creates an Administrator in the ADS.
-   * @param adminProperties the properties of the administrator to be created.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param adminProperties
+   *          the properties of the administrator to be created.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void createAdministrator(
-      Map<AdministratorProperty, Object> adminProperties)
-  throws ADSContextException {
-    LdapName dnCentralAdmin =
-      makeDNFromAdministratorProperties(adminProperties);
-    BasicAttributes attrs = makeAttrsFromAdministratorProperties(
-        adminProperties, true, null);
+  public void createAdministrator(Map<AdministratorProperty, Object> adminProperties) throws ADSContextException
+  {
+    LdapName dnCentralAdmin = makeDNFromAdministratorProperties(adminProperties);
+    BasicAttributes attrs = makeAttrsFromAdministratorProperties(adminProperties, true, null);
 
     try
     {
@@ -1330,32 +1249,30 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Deletes the administrator in the ADS.
-   * @param adminProperties the properties of the administrator to be deleted.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param adminProperties
+   *          the properties of the administrator to be deleted.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void deleteAdministrator(
-      Map<AdministratorProperty, Object> adminProperties)
-  throws ADSContextException {
+  public void deleteAdministrator(Map<AdministratorProperty, Object> adminProperties) throws ADSContextException
+  {
 
-    LdapName dnCentralAdmin =
-      makeDNFromAdministratorProperties(adminProperties);
+    LdapName dnCentralAdmin = makeDNFromAdministratorProperties(adminProperties);
 
     try
     {
@@ -1363,42 +1280,39 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NotContextException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Updates and administrator registered in the ADS.
-   * @param adminProperties the new properties of the administrator.
-   * @param newAdminUserId The new admin user Identifier, or null.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param adminProperties
+   *          the new properties of the administrator.
+   * @param newAdminUserId
+   *          The new admin user Identifier, or null.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void updateAdministrator(
-      Map<AdministratorProperty, Object> adminProperties, String newAdminUserId)
-  throws ADSContextException
+  public void updateAdministrator(Map<AdministratorProperty, Object> adminProperties, String newAdminUserId)
+      throws ADSContextException
   {
 
-    LdapName dnCentralAdmin =
-      makeDNFromAdministratorProperties(adminProperties);
+    LdapName dnCentralAdmin = makeDNFromAdministratorProperties(adminProperties);
 
-    boolean updatePassword = adminProperties
-    .containsKey(AdministratorProperty.PASSWORD);
+    boolean updatePassword = adminProperties.containsKey(AdministratorProperty.PASSWORD);
 
     NamingEnumeration<?> currentPrivileges = null;
     try
@@ -1406,13 +1320,12 @@ public class ADSContext
       // Entry renaming
       if (newAdminUserId != null)
       {
-        HashMap<AdministratorProperty, Object> newAdminUserProps =
-          new HashMap<AdministratorProperty, Object>(adminProperties);
-        newAdminUserProps.put(AdministratorProperty.UID,newAdminUserId);
+        Map<AdministratorProperty, Object> newAdminUserProps = new HashMap<>(adminProperties);
+        newAdminUserProps.put(AdministratorProperty.UID, newAdminUserId);
         LdapName newDn = makeDNFromAdministratorProperties(newAdminUserProps);
         dirContext.rename(dnCentralAdmin, newDn);
-        dnCentralAdmin = newDn ;
-        adminProperties.put(AdministratorProperty.UID,newAdminUserId);
+        dnCentralAdmin = newDn;
+        adminProperties.put(AdministratorProperty.UID, newAdminUserId);
       }
 
       // if modification includes 'privilege', we have to get first the
@@ -1421,18 +1334,14 @@ public class ADSContext
       {
         SearchControls sc = new SearchControls();
         sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-        String[] attList = {"ds-privilege-name"};
+        String[] attList = { "ds-privilege-name" };
         sc.setReturningAttributes(attList);
-        NamingEnumeration<SearchResult> ne = dirContext.search(
-            dnCentralAdmin, "(objectclass=*)", sc);
+        NamingEnumeration<SearchResult> ne = dirContext.search(dnCentralAdmin, "(objectclass=*)", sc);
         try
         {
           while (ne.hasMore())
           {
-            SearchResult sr = ne.next();
-
-            currentPrivileges = sr.getAttributes().get("ds-privilege-name")
-            .getAll();
+            currentPrivileges = ne.next().getAttributes().get("ds-privilege-name").getAll();
           }
         }
         finally
@@ -1441,31 +1350,25 @@ public class ADSContext
         }
       }
 
-
       // Replace properties, if needed.
       if (adminProperties.size() > 1)
       {
         BasicAttributes attrs =
-          makeAttrsFromAdministratorProperties(
-              adminProperties, updatePassword, currentPrivileges);
-        dirContext.modifyAttributes(dnCentralAdmin,
-            DirContext.REPLACE_ATTRIBUTE, attrs);
+            makeAttrsFromAdministratorProperties(adminProperties, updatePassword, currentPrivileges);
+        dirContext.modifyAttributes(dnCentralAdmin, DirContext.REPLACE_ATTRIBUTE, attrs);
       }
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1475,6 +1378,7 @@ public class ADSContext
 
   /**
    * Returns the DN of the suffix that contains the administration data.
+   *
    * @return the DN of the suffix that contains the administration data.
    */
   public static String getAdministrationSuffixDN()
@@ -1485,69 +1389,74 @@ public class ADSContext
   /**
    * This method returns the DN of the entry that corresponds to the given host
    * name and installation path.
-   * @param hostname the host name.
-   * @param ipath the installation path.
+   *
+   * @param hostname
+   *          the host name.
+   * @param ipath
+   *          the installation path.
    * @return the DN of the entry that corresponds to the given host name and
-   * installation path.
-   * @throws ADSContextException if something goes wrong.
+   *         installation path.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private static LdapName makeDNFromHostnameAndPath(String hostname,
-      String ipath) throws ADSContextException
-      {
-    String cnValue = Rdn.escapeValue(hostname + "@" + ipath);
-    return nameFromDN("cn=" + cnValue + "," + getServerContainerDN());
-      }
+  private static LdapName makeDNFromHostnameAndPath(String hostname, String ipath) throws ADSContextException
+  {
+    return nameFromDN("cn=" + Rdn.escapeValue(hostname + "@" + ipath) + "," + getServerContainerDN());
+  }
 
   /**
    * This method returns the DN of the entry that corresponds to the given host
    * name port representation.
-   * @param serverUniqueId the host name and port.
+   *
+   * @param serverUniqueId
+   *          the host name and port.
    * @return the DN of the entry that corresponds to the given host name and
-   * port.
-   * @throws ADSContextException if something goes wrong.
+   *         port.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private static LdapName makeDNFromServerUniqueId(String serverUniqueId)
-  throws ADSContextException
+  private static LdapName makeDNFromServerUniqueId(String serverUniqueId) throws ADSContextException
   {
-    String cnValue = Rdn.escapeValue(serverUniqueId);
-    return nameFromDN("cn=" + cnValue + "," + getServerContainerDN());
+    return nameFromDN("cn=" + Rdn.escapeValue(serverUniqueId) + "," + getServerContainerDN());
   }
-
 
   /**
    * This method returns the DN of the entry that corresponds to the given
    * server group properties.
-   * @param serverGroupProperties the server group properties
+   *
+   * @param serverGroupProperties
+   *          the server group properties
    * @return the DN of the entry that corresponds to the given server group
-   * properties.
-   * @throws ADSContextException if something goes wrong.
+   *         properties.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private static LdapName makeDNFromServerGroupProperties(
-      Map<ServerGroupProperty, Object> serverGroupProperties)
-  throws ADSContextException
+  private static LdapName makeDNFromServerGroupProperties(Map<ServerGroupProperty, Object> serverGroupProperties)
+      throws ADSContextException
   {
-    String serverGroupId = (String)serverGroupProperties.get(
-        ServerGroupProperty.UID);
+    String serverGroupId = (String) serverGroupProperties.get(ServerGroupProperty.UID);
     if (serverGroupId == null)
     {
       throw new ADSContextException(ADSContextException.ErrorType.MISSING_NAME);
     }
-    return nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + "," +
-        getServerGroupContainerDN());
+    return nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + "," + getServerGroupContainerDN());
   }
 
   /**
    * This method returns the DN of the entry that corresponds to the given
    * server properties.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return the DN of the entry that corresponds to the given server
-   * properties.
-   * @throws ADSContextException if something goes wrong.
+   *         properties.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private static LdapName makeDNFromServerProperties(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
+  private static LdapName makeDNFromServerProperties(Map<ServerProperty, Object> serverProperties)
+      throws ADSContextException
   {
-    String serverID = getServerID(serverProperties) ;
+    String serverID = getServerID(serverProperties);
     if (serverID != null)
     {
       return makeDNFromServerUniqueId(serverID);
@@ -1569,65 +1478,72 @@ public class ADSContext
   /**
    * This method returns the DN of the entry that corresponds to the given
    * server properties.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return the DN of the entry that corresponds to the given server
-   * properties.
-   * @throws ADSContextException if something goes wrong.
+   *         properties.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public static String getServerIdFromServerProperties(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
-      {
-    LdapName ldapName = makeDNFromServerProperties(serverProperties);
-    String rdn = ldapName.get(ldapName.size() -1);
-    int pos = rdn.indexOf("=");
-    return rdn.substring(pos+1);
-      }
-
-  /**
-   * This method returns the DN of the entry that corresponds to the given
-   * administrator properties.
-   * @param adminProperties the administrator properties.
-   * @return the DN of the entry that corresponds to the given administrator
-   * properties.
-   * @throws ADSContextException if something goes wrong.
-   */
-  private static LdapName makeDNFromAdministratorProperties(
-      Map<AdministratorProperty, Object> adminProperties)
-  throws ADSContextException
+  public static String getServerIdFromServerProperties(Map<ServerProperty, Object> serverProperties)
+      throws ADSContextException
   {
-    String adminUid = getAdministratorUID(adminProperties);
-    return makeDNFromAdministratorProperties(adminUid);
+    LdapName ldapName = makeDNFromServerProperties(serverProperties);
+    String rdn = ldapName.get(ldapName.size() - 1);
+    int pos = rdn.indexOf("=");
+    return rdn.substring(pos + 1);
   }
 
   /**
    * This method returns the DN of the entry that corresponds to the given
    * administrator properties.
-   * @param adminUid the administrator uid.
+   *
+   * @param adminProperties
+   *          the administrator properties.
    * @return the DN of the entry that corresponds to the given administrator
-   * properties.
-   * @throws ADSContextException if something goes wrong.
+   *         properties.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private static LdapName makeDNFromAdministratorProperties(String adminUid)
-  throws ADSContextException
+  private static LdapName makeDNFromAdministratorProperties(Map<AdministratorProperty, Object> adminProperties)
+      throws ADSContextException
   {
-    String dnCentralAdmin = getAdministratorDN(adminUid);
+    return makeDNFromAdministratorProperties(getAdministratorUID(adminProperties));
+  }
 
-    return nameFromDN(dnCentralAdmin);
+  /**
+   * This method returns the DN of the entry that corresponds to the given
+   * administrator properties.
+   *
+   * @param adminUid
+   *          the administrator uid.
+   * @return the DN of the entry that corresponds to the given administrator
+   *         properties.
+   * @throws ADSContextException
+   *           if something goes wrong.
+   */
+  private static LdapName makeDNFromAdministratorProperties(String adminUid) throws ADSContextException
+  {
+    return nameFromDN(getAdministratorDN(adminUid));
   }
 
   /**
    * Returns the attributes for some administrator properties.
-   * @param adminProperties the administrator properties.
-   * @param passwordRequired Indicates if the properties should include
-   * the password.
-   * @param currentPrivileges The current privilege list or null.
+   *
+   * @param adminProperties
+   *          the administrator properties.
+   * @param passwordRequired
+   *          Indicates if the properties should include the password.
+   * @param currentPrivileges
+   *          The current privilege list or null.
    * @return the attributes for the given administrator properties.
-   * @throws ADSContextException if something goes wrong.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromAdministratorProperties(
-      Map<AdministratorProperty, Object> adminProperties,
-      boolean passwordRequired, NamingEnumeration<?> currentPrivileges)
-  throws ADSContextException
+      Map<AdministratorProperty, Object> adminProperties, boolean passwordRequired,
+      NamingEnumeration<?> currentPrivileges) throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
     Attribute oc = new BasicAttribute("objectclass");
@@ -1641,8 +1557,7 @@ public class ADSContext
     attrs.put("sn", GLOBAL_ADMIN_UID);
     if (adminProperties.containsKey(AdministratorProperty.DESCRIPTION))
     {
-      attrs.put("description", adminProperties
-          .get(AdministratorProperty.DESCRIPTION));
+      attrs.put("description", adminProperties.get(AdministratorProperty.DESCRIPTION));
     }
     Attribute privilegeAtt;
     if (adminProperties.containsKey(AdministratorProperty.PRIVILEGE))
@@ -1659,11 +1574,10 @@ public class ADSContext
         }
       }
 
-      LinkedList<?> privileges = (LinkedList<?>)
-      adminProperties.get(AdministratorProperty.PRIVILEGE);
-      for( Object o : privileges)
+      LinkedList<?> privileges = (LinkedList<?>) adminProperties.get(AdministratorProperty.PRIVILEGE);
+      for (Object o : privileges)
       {
-        String p = o.toString() ;
+        String p = o.toString();
         if (p.startsWith("-"))
         {
           privilegeAtt.remove(p.substring(1));
@@ -1681,15 +1595,14 @@ public class ADSContext
     attrs.put(privilegeAtt);
 
     // Add the RootDNs Password policy so the password do not expire.
-    attrs.put("ds-pwp-password-policy-dn",
-        "cn=Root Password Policy,cn=Password Policies,cn=config");
+    attrs.put("ds-pwp-password-policy-dn", "cn=Root Password Policy,cn=Password Policies,cn=config");
 
     return attrs;
   }
 
-
   /**
    * Builds an attribute which contains 'root' privileges.
+   *
    * @return The attribute which contains 'root' privileges.
    */
   private static Attribute addRootPrivileges()
@@ -1718,20 +1631,22 @@ public class ADSContext
 
   /**
    * Returns the attributes for some server properties.
-   * @param serverProperties the server properties.
-   * @param addObjectClass Indicates if the object class has to be added.
+   *
+   * @param serverProperties
+   *          the server properties.
+   * @param addObjectClass
+   *          Indicates if the object class has to be added.
    * @return the attributes for the given server properties.
    */
-  private static BasicAttributes makeAttrsFromServerProperties(
-      Map<ServerProperty, Object> serverProperties, boolean addObjectClass)
+  private static BasicAttributes makeAttrsFromServerProperties(Map<ServerProperty, Object> serverProperties,
+      boolean addObjectClass)
   {
     BasicAttributes result = new BasicAttributes();
 
     // Transform 'properties' into 'attributes'
-    for (ServerProperty prop: serverProperties.keySet())
+    for (ServerProperty prop : serverProperties.keySet())
     {
-      Attribute attr = makeAttrFromServerProperty(prop,
-          serverProperties.get(prop));
+      Attribute attr = makeAttrFromServerProperty(prop, serverProperties.get(prop));
       if (attr != null)
       {
         result.put(attr);
@@ -1752,23 +1667,26 @@ public class ADSContext
 
   /**
    * Returns the attribute for a given server property.
-   * @param property the server property.
-   * @param value the value.
+   *
+   * @param property
+   *          the server property.
+   * @param value
+   *          the value.
    * @return the attribute for a given server property.
    */
-  private static Attribute makeAttrFromServerProperty(ServerProperty property,
-      Object value)
+  private static Attribute makeAttrFromServerProperty(ServerProperty property, Object value)
   {
     Attribute result;
 
-    switch(property)
+    switch (property)
     {
     case INSTANCE_PUBLIC_KEY_CERTIFICATE:
-      result = null;  // used in separate instance key entry
+      result = null; // used in separate instance key entry
       break;
     case GROUPS:
       result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
-      for (Object o : ((Set<?>) value)) {
+      for (Object o : ((Set<?>) value))
+      {
         result.add(o);
       }
       break;
@@ -1780,7 +1698,9 @@ public class ADSContext
 
   /**
    * Returns the attributes for some server group properties.
-   * @param serverGroupProperties the server group properties.
+   *
+   * @param serverGroupProperties
+   *          the server group properties.
    * @return the attributes for the given server group properties.
    */
   private static BasicAttributes makeAttrsFromServerGroupProperties(
@@ -1789,10 +1709,9 @@ public class ADSContext
     BasicAttributes result = new BasicAttributes();
 
     // Transform 'properties' into 'attributes'
-    for (ServerGroupProperty prop: serverGroupProperties.keySet())
+    for (ServerGroupProperty prop : serverGroupProperties.keySet())
     {
-      Attribute attr = makeAttrFromServerGroupProperty(prop,
-          serverGroupProperties.get(prop));
+      Attribute attr = makeAttrFromServerGroupProperty(prop, serverGroupProperties.get(prop));
       if (attr != null)
       {
         result.put(attr);
@@ -1803,18 +1722,19 @@ public class ADSContext
 
   /**
    * Returns the attributes for some server group properties.
-   * @param serverGroupProperties the server group properties.
+   *
+   * @param serverGroupProperties
+   *          the server group properties.
    * @return the attributes for the given server group properties.
    */
-  private static BasicAttributes makeAttrsFromServerGroupProperties(
-      Set<ServerGroupProperty> serverGroupProperties)
+  private static BasicAttributes makeAttrsFromServerGroupProperties(Set<ServerGroupProperty> serverGroupProperties)
   {
     BasicAttributes result = new BasicAttributes();
 
     // Transform 'properties' into 'attributes'
-    for (ServerGroupProperty prop: serverGroupProperties)
+    for (ServerGroupProperty prop : serverGroupProperties)
     {
-      Attribute attr = makeAttrFromServerGroupProperty(prop,null);
+      Attribute attr = makeAttrFromServerGroupProperty(prop, null);
       if (attr != null)
       {
         result.put(attr);
@@ -1825,42 +1745,42 @@ public class ADSContext
 
   /**
    * Returns the attribute for a given server group property.
-   * @param property the server group property.
-   * @param value the value.
+   *
+   * @param property
+   *          the server group property.
+   * @param value
+   *          the value.
    * @return the attribute for a given server group property.
    */
-  private static Attribute makeAttrFromServerGroupProperty(
-      ServerGroupProperty property, Object value)
+  private static Attribute makeAttrFromServerGroupProperty(ServerGroupProperty property, Object value)
   {
-    Attribute result;
-
-    switch(property)
+    switch (property)
     {
     case MEMBERS:
-      result = new BasicAttribute(
-          ServerGroupProperty.MEMBERS.getAttributeName());
-      for (Object o : ((Set<?>) value)) {
+      Attribute result = new BasicAttribute(ServerGroupProperty.MEMBERS.getAttributeName());
+      for (Object o : ((Set<?>) value))
+      {
         result.add(o);
       }
-      break;
+      return result;
     default:
-      result = new BasicAttribute(property.getAttributeName(), value);
+      return new BasicAttribute(property.getAttributeName(), value);
     }
-
-    return result;
   }
 
   /**
    * Returns the properties of a server group for some LDAP attributes.
-   * @param attrs the LDAP attributes.
+   *
+   * @param attrs
+   *          the LDAP attributes.
    * @return the properties of a server group for some LDAP attributes.
-   * @throws ADSContextException if something goes wrong.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private Map<ServerGroupProperty, Object> makePropertiesFromServerGroupAttrs(
-      Attributes attrs) throws ADSContextException
-      {
-    HashMap<ServerGroupProperty, Object> result =
-      new HashMap<ServerGroupProperty, Object>();
+  private Map<ServerGroupProperty, Object> makePropertiesFromServerGroupAttrs(Attributes attrs)
+      throws ADSContextException
+  {
+    Map<ServerGroupProperty, Object> result = new HashMap<>();
     try
     {
       for (ServerGroupProperty prop : ServerGroupProperty.values())
@@ -1868,20 +1788,19 @@ public class ADSContext
         Attribute attr = attrs.get(prop.getAttributeName());
         if (attr == null)
         {
-          continue ;
+          continue;
         }
         Object value;
 
-        if (attr.size() >= 1 &&
-            MULTIVALUED_SERVER_GROUP_PROPERTIES.contains(prop))
+        if (attr.size() >= 1 && MULTIVALUED_SERVER_GROUP_PROPERTIES.contains(prop))
         {
-          Set<String> set = new HashSet<String>();
+          Set<String> set = new HashSet<>();
           NamingEnumeration<?> ae = attr.getAll();
           try
           {
             while (ae.hasMore())
             {
-              set.add((String)ae.next());
+              set.add((String) ae.next());
             }
           }
           finally
@@ -1898,25 +1817,25 @@ public class ADSContext
         result.put(prop, value);
       }
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
-      }
+  }
 
   /**
    * Returns the properties of a server for some LDAP attributes.
-   * @param attrs the LDAP attributes.
+   *
+   * @param attrs
+   *          the LDAP attributes.
    * @return the properties of a server for some LDAP attributes.
-   * @throws ADSContextException if something goes wrong.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private Map<ServerProperty, Object> makePropertiesFromServerAttrs(
-      Attributes attrs) throws ADSContextException
-      {
-    HashMap<ServerProperty, Object> result =
-      new HashMap<ServerProperty, Object>();
+  private Map<ServerProperty, Object> makePropertiesFromServerAttrs(Attributes attrs) throws ADSContextException
+  {
+    Map<ServerProperty, Object> result = new HashMap<>();
     try
     {
       NamingEnumeration<? extends Attribute> ne = attrs.getAll();
@@ -1933,7 +1852,7 @@ public class ADSContext
 
         ServerProperty prop = null;
         ServerProperty[] props = ServerProperty.values();
-        for (int i=0; i<props.length && (prop == null); i++)
+        for (int i = 0; i < props.length && prop == null; i++)
         {
           String v = props[i].getAttributeName();
           if (attrID.equalsIgnoreCase(v))
@@ -1949,13 +1868,13 @@ public class ADSContext
         {
           if (attr.size() >= 1 && MULTIVALUED_SERVER_PROPERTIES.contains(prop))
           {
-            Set<String> set = new HashSet<String>();
+            Set<String> set = new HashSet<>();
             NamingEnumeration<?> ae = attr.getAll();
             try
             {
               while (ae.hasMore())
               {
-                set.add((String)ae.next());
+                set.add((String) ae.next());
               }
             }
             finally
@@ -1973,30 +1892,30 @@ public class ADSContext
         }
       }
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
   }
 
-
   /**
    * Returns the properties of an administrator for some rdn and LDAP
    * attributes.
-   * @param rdn the RDN.
-   * @param attrs the LDAP attributes.
+   *
+   * @param rdn
+   *          the RDN.
+   * @param attrs
+   *          the LDAP attributes.
    * @return the properties of an administrator for the given rdn and LDAP
-   * attributes.
-   * @throws ADSContextException if something goes wrong.
+   *         attributes.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  private Map<AdministratorProperty, Object>
-  makePropertiesFromAdministratorAttrs(String rdn, Attributes attrs)
-  throws ADSContextException
+  private Map<AdministratorProperty, Object> makePropertiesFromAdministratorAttrs(String rdn, Attributes attrs)
+      throws ADSContextException
   {
-    Map<AdministratorProperty, Object> result =
-      new HashMap<AdministratorProperty, Object>();
+    Map<AdministratorProperty, Object> result = new HashMap<>();
     LdapName nameObj;
     nameObj = nameFromDN(rdn);
     String dn = nameObj + "," + getAdministratorContainerDN();
@@ -2005,29 +1924,30 @@ public class ADSContext
     try
     {
       ne = attrs.getAll();
-      while (ne.hasMore()) {
+      while (ne.hasMore())
+      {
         Attribute attr = ne.next();
         String attrID = attr.getID();
         Object value;
 
-        if (attrID.equalsIgnoreCase("cn"))
+        if ("cn".equalsIgnoreCase(attrID))
         {
           value = attr.get(0);
           result.put(AdministratorProperty.UID, value);
         }
-        else if (attrID.equalsIgnoreCase("userpassword"))
+        else if ("userpassword".equalsIgnoreCase(attrID))
         {
           value = new String((byte[]) attr.get());
           result.put(AdministratorProperty.PASSWORD, value);
         }
-        else if (attrID.equalsIgnoreCase("description"))
+        else if ("description".equalsIgnoreCase(attrID))
         {
           value = attr.get(0);
           result.put(AdministratorProperty.DESCRIPTION, value);
         }
-        else if (attrID.equalsIgnoreCase("ds-privilege-name"))
+        else if ("ds-privilege-name".equalsIgnoreCase(attrID))
         {
-          LinkedHashSet<String> privileges = new LinkedHashSet<String>();
+          LinkedHashSet<String> privileges = new LinkedHashSet<>();
           NamingEnumeration<?> attValueList = attr.getAll();
           while (attValueList.hasMoreElements())
           {
@@ -2037,10 +1957,9 @@ public class ADSContext
         }
       }
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -2052,6 +1971,7 @@ public class ADSContext
 
   /**
    * Returns the parent entry of the server entries.
+   *
    * @return the parent entry of the server entries.
    */
   public static String getServerContainerDN()
@@ -2061,6 +1981,7 @@ public class ADSContext
 
   /**
    * Returns the parent entry of the administrator entries.
+   *
    * @return the parent entry of the administrator entries.
    */
   public static String getAdministratorContainerDN()
@@ -2070,6 +1991,7 @@ public class ADSContext
 
   /**
    * Returns the parent entry of the server group entries.
+   *
    * @return the parent entry of the server group entries.
    */
   public static String getServerGroupContainerDN()
@@ -2079,41 +2001,42 @@ public class ADSContext
 
   /**
    * Returns the all server group entry DN.
+   *
    * @return the all server group entry DN.
    */
   private static String getAllServerGroupDN()
   {
-    return "cn=" + Rdn.escapeValue(ALL_SERVERGROUP_NAME) +
-    "," + getServerGroupContainerDN();
+    return "cn=" + Rdn.escapeValue(ALL_SERVERGROUP_NAME) + "," + getServerGroupContainerDN();
   }
 
   /**
    * Returns the host name for the given properties.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return the host name for the given properties.
-   * @throws ADSContextException if the host name could not be found or its
-   * value is not valid.
+   * @throws ADSContextException
+   *           if the host name could not be found or its value is not valid.
    */
-  private static String getHostname(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
-      {
-    String result = (String)serverProperties.get(ServerProperty.HOST_NAME);
+  private static String getHostname(Map<ServerProperty, Object> serverProperties) throws ADSContextException
+  {
+    String result = (String) serverProperties.get(ServerProperty.HOST_NAME);
     if (result == null)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.MISSING_HOSTNAME);
+      throw new ADSContextException(ADSContextException.ErrorType.MISSING_HOSTNAME);
     }
     else if (result.length() == 0)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOVALID_HOSTNAME);
+      throw new ADSContextException(ADSContextException.ErrorType.NOVALID_HOSTNAME);
     }
     return result;
-      }
+  }
 
   /**
    * Returns the Server ID for the given properties.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return the server ID for the given properties or null.
    */
   private static String getServerID(Map<ServerProperty, Object> serverProperties)
@@ -2128,125 +2051,123 @@ public class ADSContext
 
   /**
    * Returns the install path for the given properties.
-   * @param serverProperties the server properties.
+   *
+   * @param serverProperties
+   *          the server properties.
    * @return the install path for the given properties.
-   * @throws ADSContextException if the install path could not be found or its
-   * value is not valid.
+   * @throws ADSContextException
+   *           if the install path could not be found or its value is not valid.
    */
-  private static String getInstallPath(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
-      {
-    String result = (String)serverProperties.get(ServerProperty.INSTANCE_PATH);
+  private static String getInstallPath(Map<ServerProperty, Object> serverProperties) throws ADSContextException
+  {
+    String result = (String) serverProperties.get(ServerProperty.INSTANCE_PATH);
     if (result == null)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.MISSING_IPATH);
+      throw new ADSContextException(ADSContextException.ErrorType.MISSING_IPATH);
     }
     else if (result.length() == 0)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.NOVALID_IPATH);
+      throw new ADSContextException(ADSContextException.ErrorType.NOVALID_IPATH);
     }
     return result;
-      }
-
+  }
 
   /**
    * Returns the Administrator UID for the given properties.
-   * @param adminProperties the server properties.
+   *
+   * @param adminProperties
+   *          the server properties.
    * @return the Administrator UID for the given properties.
-   * @throws ADSContextException if the administrator UID could not be found.
+   * @throws ADSContextException
+   *           if the administrator UID could not be found.
    */
-  private static String getAdministratorUID(
-      Map<AdministratorProperty, Object> adminProperties)
-  throws ADSContextException {
-    String result = (String)adminProperties.get(
-        AdministratorProperty.UID);
+  private static String getAdministratorUID(Map<AdministratorProperty, Object> adminProperties)
+      throws ADSContextException
+  {
+    String result = (String) adminProperties.get(AdministratorProperty.UID);
     if (result == null)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.MISSING_ADMIN_UID);
+      throw new ADSContextException(ADSContextException.ErrorType.MISSING_ADMIN_UID);
     }
     return result;
   }
 
   /**
    * Returns the Administrator password for the given properties.
-   * @param adminProperties the server properties.
+   *
+   * @param adminProperties
+   *          the server properties.
    * @return the Administrator password for the given properties.
-   * @throws ADSContextException if the administrator password could not be
-   * found.
+   * @throws ADSContextException
+   *           if the administrator password could not be found.
    */
-  private static String getAdministratorPassword(
-      Map<AdministratorProperty, Object> adminProperties)
-  throws ADSContextException {
-    String result = (String)adminProperties.get(
-        AdministratorProperty.PASSWORD);
+  private static String getAdministratorPassword(Map<AdministratorProperty, Object> adminProperties)
+      throws ADSContextException
+  {
+    String result = (String) adminProperties.get(AdministratorProperty.PASSWORD);
     if (result == null)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.MISSING_ADMIN_PASSWORD);
+      throw new ADSContextException(ADSContextException.ErrorType.MISSING_ADMIN_PASSWORD);
     }
     return result;
   }
 
-
-  //
   // LDAP utilities
-  //
   /**
    * Returns the LdapName object for the given dn.
-   * @param dn the DN.
+   *
+   * @param dn
+   *          the DN.
    * @return the LdapName object for the given dn.
-   * @throws ADSContextException if a valid LdapName could not be retrieved
-   * for the given dn.
+   * @throws ADSContextException
+   *           if a valid LdapName could not be retrieved for the given dn.
    */
   private static LdapName nameFromDN(String dn) throws ADSContextException
   {
-    LdapName result;
     try
     {
-      result = new LdapName(dn);
+      return new LdapName(dn);
     }
     catch (InvalidNameException x)
     {
-      logger.error(LocalizableMessage.raw("Error parsing dn "+dn, x));
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      logger.error(LocalizableMessage.raw("Error parsing dn " + dn, x));
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
-    return result;
   }
 
   /**
    * Returns the String rdn for the given search result name.
-   * @param rdnName the search result name.
+   *
+   * @param rdnName
+   *          the search result name.
    * @return the String rdn for the given search result name.
-   * @throws ADSContextException if a valid String rdn could not be retrieved
-   * for the given result name.
+   * @throws ADSContextException
+   *           if a valid String rdn could not be retrieved for the given result
+   *           name.
    */
   private static String getRdn(String rdnName) throws ADSContextException
   {
     // Transform the JNDI name into a RDN string
-    try {
-      CompositeName nameObj = new CompositeName(rdnName);
-      String rdn = nameObj.get(0);
-      return rdn;
+    try
+    {
+      return new CompositeName(rdnName).get(0);
     }
     catch (InvalidNameException x)
     {
-      logger.error(LocalizableMessage.raw("Error parsing rdn "+rdnName, x));
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      logger.error(LocalizableMessage.raw("Error parsing rdn " + rdnName, x));
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Tells whether an entry with the provided DN exists.
-   * @param dn the DN to check.
-   * @return <CODE>true</CODE> if the entry exists and <CODE>false</CODE> if
-   * it does not.
-   * @throws ADSContextException if an error occurred while checking if the
-   * entry exists or not.
+   *
+   * @param dn
+   *          the DN to check.
+   * @return <CODE>true</CODE> if the entry exists and <CODE>false</CODE> if it
+   *         does not.
+   * @throws ADSContextException
+   *           if an error occurred while checking if the entry exists or not.
    */
   private boolean isExistingEntry(LdapName dn) throws ADSContextException
   {
@@ -2258,8 +2179,7 @@ public class ADSContext
 
       sc.setSearchScope(SearchControls.OBJECT_SCOPE);
       sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
-      NamingEnumeration<SearchResult> sr =
-        getDirContext().search(dn, "(objectclass=*)", sc);
+      NamingEnumeration<SearchResult> sr = getDirContext().search(dn, "(objectclass=*)", sc);
       result = false;
       try
       {
@@ -2280,13 +2200,11 @@ public class ADSContext
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
-    catch(javax.naming.NamingException x)
+    catch (javax.naming.NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
 
     return result;
@@ -2294,8 +2212,11 @@ public class ADSContext
 
   /**
    * Creates a container entry with the given dn.
-   * @param dn the entry of the new entry to be created.
-   * @throws ADSContextException if the entry could not be created.
+   *
+   * @param dn
+   *          the entry of the new entry to be created.
+   * @throws ADSContextException
+   *           if the entry could not be created.
    */
   private void createContainerEntry(String dn) throws ADSContextException
   {
@@ -2309,30 +2230,30 @@ public class ADSContext
 
   /**
    * Creates the administrator container entry.
-   * @throws ADSContextException if the entry could not be created.
+   *
+   * @throws ADSContextException
+   *           if the entry could not be created.
    */
   private void createAdministratorContainerEntry() throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
-
     Attribute oc = new BasicAttribute("objectclass");
     oc.add("groupofurls");
     attrs.put(oc);
-    attrs.put("memberURL", "ldap:///" + getAdministratorContainerDN() +
-    "??one?(objectclass=*)");
+    attrs.put("memberURL", "ldap:///" + getAdministratorContainerDN() + "??one?(objectclass=*)");
     attrs.put("description", "Group of identities which have full access.");
     createEntry(getAdministratorContainerDN(), attrs);
   }
 
-
   /**
    * Creates the top container entry.
-   * @throws ADSContextException if the entry could not be created.
+   *
+   * @throws ADSContextException
+   *           if the entry could not be created.
    */
   private void createTopContainerEntry() throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
-
     Attribute oc = new BasicAttribute("objectclass");
     oc.add("top");
     oc.add("ds-cfg-branch");
@@ -2340,59 +2261,66 @@ public class ADSContext
     createEntry(getAdministrationSuffixDN(), attrs);
   }
 
-
   /**
    * Creates an entry with the provided dn and attributes.
-   * @param dn the dn of the entry.
-   * @param attrs the attributes of the entry.
-   * @throws ADSContextException if the entry could not be created.
+   *
+   * @param dn
+   *          the dn of the entry.
+   * @param attrs
+   *          the attributes of the entry.
+   * @throws ADSContextException
+   *           if the entry could not be created.
    */
-  private void createEntry(String dn, Attributes attrs)
-  throws ADSContextException {
+  private void createEntry(String dn, Attributes attrs) throws ADSContextException
+  {
     try
     {
       DirContext ctx = getDirContext().createSubcontext(nameFromDN(dn), attrs);
       ctx.close();
     }
-    catch(NamingException x)
+    catch (NamingException x)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
   /**
    * Creates the Administration Suffix.
-   * @param backendName the backend name to be used for the Administration
-   * Suffix.  If this value is null the default backendName for the
-   * Administration Suffix will be used.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @param backendName
+   *          the backend name to be used for the Administration Suffix. If this
+   *          value is null the default backendName for the Administration
+   *          Suffix will be used.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-  public void createAdministrationSuffix(String backendName)
-  throws ADSContextException
+  public void createAdministrationSuffix(String backendName) throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
-    String ben = backendName ;
+    String ben = backendName;
     if (backendName == null)
     {
-      ben = getDefaultBackendName() ;
+      ben = getDefaultBackendName();
     }
     helper.createAdministrationSuffix(getDirContext(), ben);
   }
 
   /**
    * Removes the administration suffix.
-   * @throws ADSContextException if something goes wrong.
+   *
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
-//private void removeAdministrationSuffix() throws ADSContextException
-//{
-//ADSContextHelper helper = new ADSContextHelper();
-//helper.removeAdministrationSuffix(getDirContext(),
-//getDefaultBackendName());
-//}
+  //private void removeAdministrationSuffix() throws ADSContextException
+  //{
+  //ADSContextHelper helper = new ADSContextHelper();
+  //helper.removeAdministrationSuffix(getDirContext(),
+  //getDefaultBackendName());
+  //}
 
   /**
    * Returns the default backend name of the administration data.
+   *
    * @return the default backend name of the administration data.
    */
   public static String getDefaultBackendName()
@@ -2402,22 +2330,20 @@ public class ADSContext
 
   /**
    * Returns the LDIF file of the administration data.
+   *
    * @return the LDIF file of the administration data.
    */
   public static String getAdminLDIFFile()
   {
-    return "config"+File.separator+"admin-backend.ldif";
+    return "config" + File.separator + "admin-backend.ldif";
   }
 
-
-
-  /*
-   *** CryptoManager related types, fields, and methods. ***
-   */
+  /** CryptoManager related types, fields, and methods. */
 
   /**
-   Returns the parent entry of the server key entries in ADS.
-   @return the parent entry of the server key entries in ADS.
+   * Returns the parent entry of the server key entries in ADS.
+   *
+   * @return the parent entry of the server key entries in ADS.
    */
   public static String getInstanceKeysContainerDN()
   {
@@ -2425,8 +2351,9 @@ public class ADSContext
   }
 
   /**
-  Returns the parent entry of the secret key entries in ADS.
-  @return the parent entry of the secret key entries in ADS.
+   * Returns the parent entry of the secret key entries in ADS.
+   *
+   * @return the parent entry of the secret key entries in ADS.
    */
   public static String getSecretKeysContainerDN()
   {
@@ -2435,14 +2362,15 @@ public class ADSContext
 
   /**
    * Tells whether the provided server is registered in the registry.
-   * @param server the server.
-   * @param registry the registry.
-   * @return <CODE>true</CODE> if the server is registered in the registry
-   * and <CODE>false</CODE> otherwise.
+   *
+   * @param server
+   *          the server.
+   * @param registry
+   *          the registry.
+   * @return <CODE>true</CODE> if the server is registered in the registry and
+   *         <CODE>false</CODE> otherwise.
    */
-  public static boolean isRegistered(
-      ServerDescriptor server,
-      Set<Map<ADSContext.ServerProperty, Object>> registry)
+  public static boolean isRegistered(ServerDescriptor server, Set<Map<ADSContext.ServerProperty, Object>> registry)
   {
     boolean isRegistered = false;
     for (Map<ADSContext.ServerProperty, Object> s : registry)
@@ -2458,63 +2386,69 @@ public class ADSContext
   }
 
   /**
-   Register instance key-pair public-key certificate provided in
-   serverProperties: generate a key-id attribute if one is not provided (as
-   expected); add an instance key public-key certificate entry for the key
-   certificate; and associate the certificate entry with the server entry via
-   the key ID attribute.
-   @param serverProperties Properties of the server being registered to which
-   the instance key entry belongs.
-   @param serverEntryDn The server's ADS entry DN.
-   @throws NamingException In case some JNDI operation fails.
-   @throws CryptoManager.CryptoManagerException In case there is a problem
-   getting the instance public key certificate ID.
+   * Register instance key-pair public-key certificate provided in
+   * serverProperties: generate a key-id attribute if one is not provided (as
+   * expected); add an instance key public-key certificate entry for the key
+   * certificate; and associate the certificate entry with the server entry via
+   * the key ID attribute.
+   *
+   * @param serverProperties
+   *          Properties of the server being registered to which the instance
+   *          key entry belongs.
+   * @param serverEntryDn
+   *          The server's ADS entry DN.
+   * @throws NamingException
+   *           In case some JNDI operation fails.
+   * @throws CryptoManager.CryptoManagerException
+   *           In case there is a problem getting the instance public key
+   *           certificate ID.
    */
-  private void registerInstanceKeyCertificate(
-      Map<ServerProperty, Object> serverProperties,
-      LdapName serverEntryDn)
-  throws ADSContextException {
+  private void registerInstanceKeyCertificate(Map<ServerProperty, Object> serverProperties, LdapName serverEntryDn)
+      throws ADSContextException
+  {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.registerInstanceKeyCertificate(dirContext, serverProperties,
-        serverEntryDn);
+    helper.registerInstanceKeyCertificate(dirContext, serverProperties, serverEntryDn);
   }
 
   /**
-  Unregister instance key-pair public-key certificate provided in
-  serverProperties..
-  @param serverProperties Properties of the server being unregistered to which
-  the instance key entry belongs.
-  @param serverEntryDn The server's ADS entry DN.
-  @throws NamingException In case some JNDI operation fails.
+   * Unregister instance key-pair public-key certificate provided in
+   * serverProperties..
+   *
+   * @param serverProperties
+   *          Properties of the server being unregistered to which the instance
+   *          key entry belongs.
+   * @param serverEntryDn
+   *          The server's ADS entry DN.
+   * @throws NamingException
+   *           In case some JNDI operation fails.
    */
   @SuppressWarnings("unused")
-  private void unregisterInstanceKeyCertificate(
-      Map<ServerProperty, Object> serverProperties,
-      LdapName serverEntryDn)
-  throws ADSContextException {
+  private void unregisterInstanceKeyCertificate(Map<ServerProperty, Object> serverProperties, LdapName serverEntryDn)
+      throws ADSContextException
+  {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.unregisterInstanceKeyCertificate(dirContext, serverProperties,
-        serverEntryDn);
+    helper.unregisterInstanceKeyCertificate(dirContext, serverProperties, serverEntryDn);
   }
 
   /**
-   Return the set of valid (i.e., not tagged as compromised) instance key-pair
-   public-key certificate entries in ADS.
-   NOTE: calling this method assumes that all the jar files are present in the
-   classpath.
-   @return The set of valid (i.e., not tagged as compromised) instance key-pair
-   public-key certificate entries in ADS represented as a Map from ds-cfg-key-id
-   value to ds-cfg-public-key-certificate;binary value. Note that the collection
-   might be empty.
-   @throws ADSContextException in case of problems with the entry search.
-   @see org.opends.server.crypto.CryptoManagerImpl#getTrustedCertificates
+   * Return the set of valid (i.e., not tagged as compromised) instance key-pair
+   * public-key certificate entries in ADS. NOTE: calling this method assumes
+   * that all the jar files are present in the classpath.
+   *
+   * @return The set of valid (i.e., not tagged as compromised) instance
+   *         key-pair public-key certificate entries in ADS represented as a Map
+   *         from ds-cfg-key-id value to ds-cfg-public-key-certificate;binary
+   *         value. Note that the collection might be empty.
+   * @throws ADSContextException
+   *           in case of problems with the entry search.
+   * @see org.opends.server.crypto.CryptoManagerImpl#getTrustedCertificates
    */
-  public Map<String,byte[]> getTrustedCertificates()
-  throws ADSContextException
+  public Map<String, byte[]> getTrustedCertificates() throws ADSContextException
   {
-    final Map<String, byte[]> certificateMap = new HashMap<String, byte[]>();
+    final Map<String, byte[]> certificateMap = new HashMap<>();
     final String baseDNStr = getInstanceKeysContainerDN();
-    try {
+    try
+    {
       ADSContextHelper helper = new ADSContextHelper();
       final LdapName baseDN = new LdapName(baseDNStr);
       final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + helper.getOcCryptoInstanceKey() + ")";
@@ -2522,16 +2456,15 @@ public class ADSContext
       final String searchFilter = "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")";
       final SearchControls searchControls = new SearchControls();
       searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      final String attrIDs[]= {
-          ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
-          ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE
-          .getAttributeName() + ";binary"};
+      final String attrIDs[] =
+          { ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
+            ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName() + ";binary" };
       searchControls.setReturningAttributes(attrIDs);
-      NamingEnumeration<SearchResult> keyEntries
-      = dirContext.search(baseDN, searchFilter, searchControls);
+      NamingEnumeration<SearchResult> keyEntries = dirContext.search(baseDN, searchFilter, searchControls);
       try
       {
-        while (keyEntries.hasMore()) {
+        while (keyEntries.hasMore())
+        {
           final SearchResult entry = keyEntries.next();
           final Attributes attrs = entry.getAttributes();
           final Attribute keyIDAttr = attrs.get(attrIDs[0]);
@@ -2540,8 +2473,7 @@ public class ADSContext
           {
             continue;// schema viol.
           }
-          certificateMap.put((String)keyIDAttr.get(),
-              (byte[])keyCertAttr.get());
+          certificateMap.put((String) keyIDAttr.get(), (byte[]) keyCertAttr.get());
         }
       }
       finally
@@ -2552,24 +2484,25 @@ public class ADSContext
         }
         catch (Exception ex)
         {
-          logger.warn(LocalizableMessage.raw(
-              "Unexpected error closing enumeration on ADS key pairs", ex));
+          logger.warn(LocalizableMessage.raw("Unexpected error closing enumeration on ADS key pairs", ex));
         }
       }
     }
-    catch (NamingException x) {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    catch (NamingException x)
+    {
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return certificateMap;
   }
 
   /**
    * Merge the contents of this ADSContext with the contents of the provided
-   * ADSContext.  Note that only the contents of this ADSContext will be
-   * updated.
-   * @param adsCtx the other ADSContext to merge the contents with.
-   * @throws ADSContextException if there was an error during the merge.
+   * ADSContext. Note that only the contents of this ADSContext will be updated.
+   *
+   * @param adsCtx
+   *          the other ADSContext to merge the contents with.
+   * @throws ADSContextException
+   *           if there was an error during the merge.
    */
   public void mergeWithRegistry(ADSContext adsCtx) throws ADSContextException
   {
@@ -2586,30 +2519,29 @@ public class ADSContext
     }
     catch (ADSContextException adce)
     {
-      LocalizableMessage msg = ERR_ADS_MERGE.get(
-          ConnectionUtils.getHostPort(getDirContext()),
-          ConnectionUtils.getHostPort(adsCtx.getDirContext()),
-          adce.getMessageObject());
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_MERGING, msg, adce);
+      LocalizableMessage msg = ERR_ADS_MERGE.get(ConnectionUtils.getHostPort(getDirContext()),
+          ConnectionUtils.getHostPort(adsCtx.getDirContext()), adce.getMessageObject());
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING, msg, adce);
     }
   }
 
   /**
    * Merge the administrator contents of this ADSContext with the contents of
-   * the provided ADSContext.  Note that only the contents of this ADSContext
+   * the provided ADSContext. Note that only the contents of this ADSContext
    * will be updated.
-   * @param adsCtx the other ADSContext to merge the contents with.
-   * @throws ADSContextException if there was an error during the merge.
+   *
+   * @param adsCtx
+   *          the other ADSContext to merge the contents with.
+   * @throws ADSContextException
+   *           if there was an error during the merge.
    */
   private void mergeAdministrators(ADSContext adsCtx) throws ADSContextException
   {
-    Set<Map<AdministratorProperty, Object>> admins2 =
-      adsCtx.readAdministratorRegistry();
-    SortedSet<String> notDefinedAdmins = new TreeSet<String>();
+    Set<Map<AdministratorProperty, Object>> admins2 = adsCtx.readAdministratorRegistry();
+    SortedSet<String> notDefinedAdmins = new TreeSet<>();
     for (Map<AdministratorProperty, Object> admin2 : admins2)
     {
-      String uid = (String)admin2.get(AdministratorProperty.UID);
+      String uid = (String) admin2.get(AdministratorProperty.UID);
       if (!isAdministratorAlreadyRegistered(uid))
       {
         notDefinedAdmins.add(uid);
@@ -2618,56 +2550,54 @@ public class ADSContext
     if (!notDefinedAdmins.isEmpty())
     {
       LocalizableMessage msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
-          ConnectionUtils.getHostPort(adsCtx.getDirContext()),
-          ConnectionUtils.getHostPort(getDirContext()),
-          joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins),
-          ConnectionUtils.getHostPort(getDirContext()));
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING,
-          msg, null);
+          ConnectionUtils.getHostPort(adsCtx.getDirContext()), ConnectionUtils.getHostPort(getDirContext()),
+          joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins), ConnectionUtils.getHostPort(getDirContext()));
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING, msg, null);
     }
   }
 
   /**
    * Merge the groups contents of this ADSContext with the contents of the
-   * provided ADSContext.  Note that only the contents of this ADSContext will
-   * be updated.
-   * @param adsCtx the other ADSContext to merge the contents with.
-   * @throws ADSContextException if there was an error during the merge.
+   * provided ADSContext. Note that only the contents of this ADSContext will be
+   * updated.
+   *
+   * @param adsCtx
+   *          the other ADSContext to merge the contents with.
+   * @throws ADSContextException
+   *           if there was an error during the merge.
    */
   private void mergeServerGroups(ADSContext adsCtx) throws ADSContextException
   {
-    Set<Map<ServerGroupProperty, Object>> serverGroups1 =
-      readServerGroupRegistry();
-    Set<Map<ServerGroupProperty, Object>> serverGroups2 =
-      adsCtx.readServerGroupRegistry();
+    Set<Map<ServerGroupProperty, Object>> serverGroups1 = readServerGroupRegistry();
+    Set<Map<ServerGroupProperty, Object>> serverGroups2 = adsCtx.readServerGroupRegistry();
 
     for (Map<ServerGroupProperty, Object> group2 : serverGroups2)
     {
       Map<ServerGroupProperty, Object> group1 = null;
-      String uid2 = (String)group2.get(ServerGroupProperty.UID);
+      String uid2 = (String) group2.get(ServerGroupProperty.UID);
       for (Map<ServerGroupProperty, Object> gr : serverGroups1)
       {
-        String uid1 = (String)gr.get(ServerGroupProperty.UID);
+        String uid1 = (String) gr.get(ServerGroupProperty.UID);
         if (uid1.equalsIgnoreCase(uid2))
         {
           group1 = gr;
           break;
         }
       }
+
       if (group1 != null)
       {
         // Merge the members, keep the description on this ADS.
         Set<String> member1List = getServerGroupMemberList(uid2);
         if (member1List == null)
         {
-          member1List = new HashSet<String>();
+          member1List = new HashSet<>();
         }
         Set<String> member2List = adsCtx.getServerGroupMemberList(uid2);
         if (member2List != null && !member2List.isEmpty())
         {
           member1List.addAll(member2List);
-          Map<ServerGroupProperty, Object> newProperties =
-            new HashMap<ServerGroupProperty, Object>();
+          Map<ServerGroupProperty, Object> newProperties = new HashMap<>();
           newProperties.put(ServerGroupProperty.MEMBERS, member1List);
           updateServerGroup(uid2, newProperties);
         }
@@ -2681,15 +2611,17 @@ public class ADSContext
 
   /**
    * Merge the server contents of this ADSContext with the contents of the
-   * provided ADSContext.  Note that only the contents of this ADSContext will
-   * be updated.
-   * @param adsCtx the other ADSContext to merge the contents with.
-   * @throws ADSContextException if there was an error during the merge.
+   * provided ADSContext. Note that only the contents of this ADSContext will be
+   * updated.
+   *
+   * @param adsCtx
+   *          the other ADSContext to merge the contents with.
+   * @throws ADSContextException
+   *           if there was an error during the merge.
    */
   private void mergeServers(ADSContext adsCtx) throws ADSContextException
   {
     Set<Map<ServerProperty, Object>> servers2 = adsCtx.readServerRegistry();
-
     for (Map<ServerProperty, Object> server2 : servers2)
     {
       if (!isServerAlreadyRegistered(server2))
@@ -2699,8 +2631,7 @@ public class ADSContext
     }
   }
 
-  private void handleCloseNamingEnumeration(NamingEnumeration<?> ne)
-  throws ADSContextException
+  private void handleCloseNamingEnumeration(NamingEnumeration<?> ne) throws ADSContextException
   {
     if (ne != null)
     {
@@ -2710,8 +2641,7 @@ public class ADSContext
       }
       catch (NamingException ex)
       {
-        throw new ADSContextException(
-            ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
+        throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
       }
     }
   }
