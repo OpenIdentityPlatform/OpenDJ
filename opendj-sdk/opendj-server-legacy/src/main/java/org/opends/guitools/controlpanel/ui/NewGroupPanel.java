@@ -596,11 +596,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
           e.getDropTargetContext().dropComplete(true);
         }
-        catch (IOException io)
-        {
-          e.rejectDrop();
-        }
-        catch (UnsupportedFlavorException ufe)
+        catch (IOException | UnsupportedFlavorException io)
         {
           e.rejectDrop();
         }

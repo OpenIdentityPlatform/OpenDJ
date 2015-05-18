@@ -556,28 +556,7 @@ public final class SecureConnectionCliArgs
             truststore = KeyStore.getInstance(KeyStore.getDefaultType());
             truststore.load(fos, trustStorePasswordValue);
           }
-          catch (KeyStoreException e)
-          {
-            // Nothing to do: if this occurs we will systematically refuse the
-            // certificates.  Maybe we should avoid this and be strict, but we
-            // are in a best effort mode.
-            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
-          }
-          catch (NoSuchAlgorithmException e)
-          {
-            // Nothing to do: if this occurs we will systematically refuse the
-            // certificates.  Maybe we should avoid this and be strict, but we
-            // are in a best effort mode.
-            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
-          }
-          catch (CertificateException e)
-          {
-            // Nothing to do: if this occurs we will systematically refuse the
-            // certificates.  Maybe we should avoid this and be strict, but we
-            // are in a best effort mode.
-            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
-          }
-          catch (IOException e)
+          catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
           {
             // Nothing to do: if this occurs we will systematically refuse the
             // certificates.  Maybe we should avoid this and be strict, but we

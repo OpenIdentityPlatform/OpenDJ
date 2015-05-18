@@ -575,13 +575,7 @@ public final class AggregationPropertyDefinition
         ManagedObject<?> ref;
         try {
           ref = context.getManagedObject(path);
-        } catch (DefinitionDecodingException e) {
-          LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
-              getName(), e.getMessageObject());
-          unacceptableReasons.add(msg);
-          isAcceptable = false;
-          continue;
-        } catch (ManagedObjectDecodingException e) {
+        } catch (DefinitionDecodingException | ManagedObjectDecodingException e) {
           LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
               getName(), e.getMessageObject());
           unacceptableReasons.add(msg);

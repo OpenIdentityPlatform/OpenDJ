@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.uninstaller;
 
@@ -888,11 +888,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         userData.setLocalServerUrl(adminConnectorUrl);
         couldConnect = true;
       }
-      catch (ArgumentException e) {
-        printErrorMessage(e.getMessageObject());
-        println();
-      }
-      catch (ClientException e) {
+      catch (ArgumentException | ClientException e) {
         printErrorMessage(e.getMessageObject());
         println();
       }

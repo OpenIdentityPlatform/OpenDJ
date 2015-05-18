@@ -298,18 +298,10 @@ public class InstallerHelper {
 
       writer.writeEntry(entry);
       writer.close();
-    } catch (DirectoryException de) {
+    } catch (DirectoryException | LDIFException | IOException de) {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), de), de);
-    } catch (LDIFException le) {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), le), le);
-    } catch (IOException ioe) {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), ioe), ioe);
     } catch (Throwable t) {
       throw new ApplicationException(
           ReturnCode.BUG, getThrowableMsg(
@@ -361,14 +353,10 @@ public class InstallerHelper {
       Utilities.deleteConfigSubtree(
           DirectoryServer.getConfigHandler(), DN.valueOf(dn));
     }
-    catch (OpenDsException ode)
+    catch (OpenDsException | ConfigException ode)
     {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, ode.getMessageObject(), ode);
-    }
-    catch(ConfigException ce)
-    {
-      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, ce.getMessageObject(), ce);
     }
   }
 

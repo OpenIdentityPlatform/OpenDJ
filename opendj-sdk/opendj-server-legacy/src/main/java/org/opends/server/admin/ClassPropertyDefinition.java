@@ -353,11 +353,8 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
       String classToBeLoaded, boolean initialize) {
     try {
       return loadClass(classToBeLoaded.trim(), initialize);
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | LinkageError e) {
       // If the class cannot be loaded then it is an invalid value.
-      throw illegalPropertyValueException(this, componentClassName, e);
-    } catch (LinkageError e) {
-      // If the class cannot be initialized then it is an invalid value.
       throw illegalPropertyValueException(this, componentClassName, e);
     }
   }
