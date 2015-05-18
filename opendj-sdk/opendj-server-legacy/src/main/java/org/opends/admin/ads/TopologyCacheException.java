@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.admin.ads;
@@ -86,8 +86,8 @@ public class TopologyCacheException extends OpenDsException {
    */
   public TopologyCacheException(ADSContextException ace)
   {
+    super(ace);
     type = Type.GENERIC_READING_ADS;
-    initCause(ace);
   }
 
   /**
@@ -97,8 +97,8 @@ public class TopologyCacheException extends OpenDsException {
   */
   public TopologyCacheException(Type type, Throwable t)
   {
+    super(t);
     this.type = type;
-    initCause(t);
   }
 
   /**
@@ -114,8 +114,8 @@ public class TopologyCacheException extends OpenDsException {
   public TopologyCacheException(Type type, NamingException ne,
       ApplicationTrustManager trustManager, String ldapUrl)
   {
+    super(ne);
     this.type = type;
-    initCause(ne);
     this.ldapUrl = ldapUrl;
     this.trustManager = trustManager;
   }
