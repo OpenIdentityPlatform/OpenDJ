@@ -84,4 +84,20 @@ public enum PersistentSearchChangeType {
     public int intValue() {
         return intValue;
     }
+
+    /**
+     * Returns the enum value that would return the provided argument value from its {@link #intValue} method.
+     *
+     * @param value The value to match.
+     * @return The appropriate enum value.
+     */
+    public static PersistentSearchChangeType valueOf(int value) {
+        switch (value) {
+            case 1: return ADD;
+            case 2: return DELETE;
+            case 4: return MODIFY;
+            case 8: return MODIFY_DN;
+            default: throw new IllegalArgumentException("Unknown int value: " + value);
+        }
+    }
 }
