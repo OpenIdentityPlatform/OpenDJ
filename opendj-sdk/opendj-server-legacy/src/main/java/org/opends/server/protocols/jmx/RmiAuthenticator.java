@@ -67,10 +67,7 @@ public class RmiAuthenticator implements JMXAuthenticator
      */
     private boolean finalizedPhase;
 
-  /**
-   * The JMX Client connection to be used to perform the bind (auth)
-   * call.
-   */
+  /** The JMX Client connection to be used to perform the bind (auth) call. */
   private JmxConnectionHandler jmxConnectionHandler;
 
   /**
@@ -131,16 +128,11 @@ public class RmiAuthenticator implements JMXAuthenticator
       throw new SecurityException();
     }
 
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("UserName = %s", authcID);
-    }
-
-    // Declare the client connection
-    JmxClientConnection jmxClientConnection;
+    logger.trace("UserName = %s", authcID);
 
     // Try to see if we have an Ldap Authentication
     // Which should be the case in the current implementation
+    JmxClientConnection jmxClientConnection;
     try
     {
       jmxClientConnection = bind(authcID, password);
@@ -152,13 +144,10 @@ public class RmiAuthenticator implements JMXAuthenticator
       throw se;
     }
 
-    // If we've gotten here, then the authentication was
-    // successful. We'll take the connection so
-    // invoke the post-connect plugins.
-    PluginConfigManager pluginManager = DirectoryServer
-        .getPluginConfigManager();
-    PluginResult.PostConnect pluginResult = pluginManager
-        .invokePostConnectPlugins(jmxClientConnection);
+    // If we've gotten here, then the authentication was successful.
+    // We'll take the connection so invoke the post-connect plugins.
+    PluginConfigManager pluginManager = DirectoryServer.getPluginConfigManager();
+    PluginResult.PostConnect pluginResult = pluginManager.invokePostConnectPlugins(jmxClientConnection);
     if (!pluginResult.continueProcessing())
     {
       jmxClientConnection.disconnect(pluginResult.getDisconnectReason(),
@@ -182,8 +171,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     s.getPrincipals().add(new OpendsJmxPrincipal(authcID));
 
     // add the connection client object
-    // this connection client is used at forwarder level to identify the
-    // calling client
+    // this connection client is used at forwarder level to identify the calling client
     s.getPrivateCredentials().add(new Credential(jmxClientConnection));
 
     return s;
@@ -199,8 +187,6 @@ public class RmiAuthenticator implements JMXAuthenticator
    */
   private JmxClientConnection bind(String authcID, String password)
   {
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-
     try
     {
       DN.valueOf(authcID);
@@ -210,19 +196,11 @@ public class RmiAuthenticator implements JMXAuthenticator
       LDAPException ldapEx = new LDAPException(
           LDAPResultCode.INVALID_CREDENTIALS,
           CoreMessages.INFO_RESULT_INVALID_CREDENTIALS.get());
-      SecurityException se = new SecurityException();
-      se.initCause(ldapEx);
-      throw se;
+      throw new SecurityException(ldapEx);
     }
-    ByteString bindPW;
-    if (password == null)
-    {
-      bindPW = null;
-    }
-    else
-    {
-      bindPW = ByteString.valueOf(password);
-    }
+
+    ArrayList<Control> requestControls = new ArrayList<>();
+    ByteString bindPW = password != null ? ByteString.valueOf(password) : null;
 
     AuthenticationInfo authInfo = new AuthenticationInfo();
     JmxClientConnection jmxClientConnection = new JmxClientConnection(
@@ -237,10 +215,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("User is authenticated");
-      }
+      logger.trace("User is authenticated");
 
       authInfo = bindOp.getAuthenticationInfo();
       jmxClientConnection.setAuthenticationInfo(authInfo);
@@ -263,8 +238,7 @@ public class RmiAuthenticator implements JMXAuthenticator
       LDAPException ldapEx = new LDAPException(
           LDAPResultCode.INVALID_CREDENTIALS,
           CoreMessages.INFO_RESULT_INVALID_CREDENTIALS.get());
-      SecurityException se = new SecurityException("return code: "
-          + bindOp.getResultCode());
+      SecurityException se = new SecurityException("return code: " + bindOp.getResultCode());
       se.initCause(ldapEx);
       throw se;
     }

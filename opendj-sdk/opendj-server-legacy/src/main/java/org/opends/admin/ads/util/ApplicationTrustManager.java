@@ -36,15 +36,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.Platform;
 
 /**
@@ -105,15 +104,11 @@ public class ApplicationTrustManager implements X509TrustManager
    */
   public ApplicationTrustManager(KeyStore keystore)
   {
-    TrustManagerFactory tmf = null;
     this.keystore = keystore;
-    String userSpecifiedAlgo =
-      System.getProperty("org.opends.admin.trustmanageralgo");
-    String userSpecifiedProvider =
-      System.getProperty("org.opends.admin.trustmanagerprovider");
+    String userSpecifiedAlgo = System.getProperty("org.opends.admin.trustmanageralgo");
+    String userSpecifiedProvider = System.getProperty("org.opends.admin.trustmanagerprovider");
 
-    //Handle IBM specific cases if the user did not specify a algorithm and/or
-    //provider.
+    //Handle IBM specific cases if the user did not specify a algorithm and/or provider.
     if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
     {
       userSpecifiedAlgo = "IbmX509";
@@ -123,10 +118,10 @@ public class ApplicationTrustManager implements X509TrustManager
       userSpecifiedProvider = "IBMJSSE2";
     }
 
-    // Have some fallbacks to choose the provider and algorith of the key
-    // manager.  First see if the user wanted to use something specific,
-    // then try with the SunJSSE provider and SunX509 algorithm. Finally,
-    // fallback to the default algorithm of the JVM.
+    // Have some fallbacks to choose the provider and algorithm of the key manager.
+    // First see if the user wanted to use something specific,
+    // then try with the SunJSSE provider and SunX509 algorithm.
+    // Finally,fallback to the default algorithm of the JVM.
     String[] preferredProvider =
         { userSpecifiedProvider, "SunJSSE", null, null };
     String[] preferredAlgo =
@@ -143,6 +138,7 @@ public class ApplicationTrustManager implements X509TrustManager
         }
         try
         {
+          TrustManagerFactory tmf = null;
           if (provider != null)
           {
             tmf = TrustManagerFactory.getInstance(algo, provider);
@@ -152,12 +148,11 @@ public class ApplicationTrustManager implements X509TrustManager
             tmf = TrustManagerFactory.getInstance(algo);
           }
           tmf.init(keystore);
-          TrustManager[] trustManagers = tmf.getTrustManagers();
-          for (int j=0; j < trustManagers.length; j++)
+          for (TrustManager tm : tmf.getTrustManagers())
           {
-            if (trustManagers[j] instanceof X509TrustManager)
+            if (tm instanceof X509TrustManager)
             {
-              trustManager = (X509TrustManager)trustManagers[j];
+              trustManager = (X509TrustManager) tm;
               break;
             }
           }
@@ -270,9 +265,7 @@ public class ApplicationTrustManager implements X509TrustManager
     lastRefusedChain = chain;
     lastRefusedAuthType = authType;
     lastRefusedCause = cause;
-    final OpendsCertificateException e = new OpendsCertificateException(chain);
-    e.initCause(ce);
-    throw e;
+    throw new OpendsCertificateException(chain, ce);
   }
 
   /** {@inheritDoc} */
@@ -289,8 +282,7 @@ public class ApplicationTrustManager implements X509TrustManager
    * This method is called when the user accepted a certificate.
    * @param chain the certificate chain accepted by the user.
    * @param authType the authentication type.
-   * @param host the host we tried to connect and that presented the
-   * certificate.
+   * @param host the host we tried to connect and that presented the certificate.
    */
   public void acceptCertificate(X509Certificate[] chain, String authType,
       String host)
@@ -302,7 +294,7 @@ public class ApplicationTrustManager implements X509TrustManager
 
   /**
    * Sets the host name we are trying to contact in a secure mode.  This
-   * method is used if we want to verify the correspondance between the
+   * method is used if we want to verify the correspondence between the
    * hostname and the subject DN of the certificate that is being presented.
    * If this method is never called (or called passing null) no verification
    * will be made on the host name.
