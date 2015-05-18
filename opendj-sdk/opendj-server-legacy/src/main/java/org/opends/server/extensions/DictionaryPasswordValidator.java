@@ -244,14 +244,9 @@ public class DictionaryPasswordValidator
     {
       loadDictionary(configuration);
     }
-    catch (ConfigException ce)
+    catch (ConfigException | InitializationException e)
     {
-      unacceptableReasons.add(ce.getMessageObject());
-      return false;
-    }
-    catch (InitializationException ie)
-    {
-      unacceptableReasons.add(ie.getMessageObject());
+      unacceptableReasons.add(e.getMessageObject());
       return false;
     }
     catch (Exception e)

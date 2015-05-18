@@ -369,15 +369,9 @@ public class RestoreDB extends TaskTool {
       {
         directoryServer.initializeSchema();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -395,24 +389,15 @@ public class RestoreDB extends TaskTool {
         CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
         coreConfigManager.initializeCoreConfig();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
-                ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
-                ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
-                getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -423,24 +408,15 @@ public class RestoreDB extends TaskTool {
       {
         directoryServer.initializeCryptoManager();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }

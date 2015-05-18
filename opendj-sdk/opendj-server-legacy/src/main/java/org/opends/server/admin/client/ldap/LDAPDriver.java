@@ -498,10 +498,6 @@ final class LDAPDriver extends Driver {
       AuthorizationException {
     try {
       throw ne;
-    } catch (javax.naming.CommunicationException e) {
-      throw new CommunicationException(e);
-    } catch (javax.naming.ServiceUnavailableException e) {
-      throw new CommunicationException(e);
     } catch (javax.naming.NoPermissionException e) {
       throw new AuthorizationException(e);
     } catch (NamingException e) {

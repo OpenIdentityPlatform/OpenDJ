@@ -1532,17 +1532,9 @@ public class EntryContainer
               entryCache.putEntry(entry, backend, entryID.longValue());
             }
           }
-          catch (StorageRuntimeException StorageRuntimeException)
+          catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
-            throw StorageRuntimeException;
-          }
-          catch (DirectoryException directoryException)
-          {
-            throw directoryException;
-          }
-          catch (CanceledOperationException coe)
-          {
-            throw coe;
+            throw e;
           }
           catch (Exception e)
           {
@@ -1696,17 +1688,9 @@ public class EntryContainer
                   subordinateEntriesDeleted + 1));
             }
           }
-          catch (StorageRuntimeException StorageRuntimeException)
+          catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
-            throw StorageRuntimeException;
-          }
-          catch (DirectoryException directoryException)
-          {
-            throw directoryException;
-          }
-          catch (CanceledOperationException coe)
-          {
-            throw coe;
+            throw e;
           }
           catch (Exception e)
           {
@@ -2004,17 +1988,9 @@ public class EntryContainer
               entryCache.putEntry(newEntry, backend, entryID.longValue());
             }
           }
-          catch (StorageRuntimeException StorageRuntimeException)
+          catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
-            throw StorageRuntimeException;
-          }
-          catch (DirectoryException directoryException)
-          {
-            throw directoryException;
-          }
-          catch (CanceledOperationException coe)
-          {
-            throw coe;
+            throw e;
           }
           catch (Exception e)
           {
@@ -2230,17 +2206,9 @@ public class EntryContainer
               modifyDNOperation.checkIfCanceled(true);
             }
           }
-          catch (StorageRuntimeException StorageRuntimeException)
+          catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
-            throw StorageRuntimeException;
-          }
-          catch (DirectoryException directoryException)
-          {
-            throw directoryException;
-          }
-          catch (CanceledOperationException coe)
-          {
-            throw coe;
+            throw e;
           }
           catch (Exception e)
           {

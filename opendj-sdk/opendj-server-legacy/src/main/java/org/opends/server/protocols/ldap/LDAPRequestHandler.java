@@ -204,13 +204,7 @@ public class LDAPRequestHandler
             }
           }
         }
-        catch (DecodeException e)
-        {
-          logger.traceException(e);
-          readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-            e.getMessageObject());
-        }
-        catch (LDAPException e)
+        catch (DecodeException | LDAPException e)
         {
           logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,

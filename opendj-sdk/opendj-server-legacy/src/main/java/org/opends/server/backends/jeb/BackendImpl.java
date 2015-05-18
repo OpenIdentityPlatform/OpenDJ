@@ -775,20 +775,10 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.traceException(intEx);
       throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
     }
-    catch (JebException je)
+    catch (JebException | InitializationException | ConfigException e)
     {
-      logger.traceException(je);
-      throw new DirectoryException(errorRC, je.getMessageObject());
-    }
-    catch (InitializationException ie)
-    {
-      logger.traceException(ie);
-      throw new DirectoryException(errorRC, ie.getMessageObject());
-    }
-    catch (ConfigException ce)
-    {
-      logger.traceException(ce);
-      throw new DirectoryException(errorRC, ce.getMessageObject());
+      logger.traceException(e);
+      throw new DirectoryException(errorRC, e.getMessageObject());
     }
     finally
     {
@@ -912,12 +902,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.traceException(intEx);
       throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
     }
-    catch (ConfigException ce)
-    {
-      logger.traceException(ce);
-      throw new DirectoryException(errorRC, ce.getMessageObject());
-    }
-    catch (JebException e)
+    catch (ConfigException | JebException e)
     {
       logger.traceException(e);
       throw new DirectoryException(errorRC, e.getMessageObject());

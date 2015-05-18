@@ -3785,10 +3785,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               }
             }
           }
-          catch (DirectoryException de)
-          {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, de.getMessage());
-          }
           catch (Exception e)
           {
             logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, e.getMessage());
@@ -3893,10 +3889,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                 modifiedSchemaFiles.add(schemaFile);
               }
             }
-          }
-          catch (DirectoryException de)
-          {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, de.getMessage());
           }
           catch (Exception e)
           {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -153,8 +153,6 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     DirContext ctx;
     try {
       ctx = new InitialLdapContext(env, null);
-    } catch (javax.naming.CommunicationException e) {
-      throw new CommunicationException(e);
     } catch (javax.naming.AuthenticationException e) {
       throw new AuthenticationException(e);
     } catch (javax.naming.AuthenticationNotSupportedException e) {

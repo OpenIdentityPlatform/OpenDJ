@@ -1522,20 +1522,10 @@ public class EntryContainer
         entryCache.putEntry(entry, backend, entryID.longValue());
       }
     }
-    catch (DatabaseException databaseException)
+    catch (DatabaseException | DirectoryException | CanceledOperationException e)
     {
       EntryContainer.transactionAbort(txn);
-      throw databaseException;
-    }
-    catch (DirectoryException directoryException)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw directoryException;
-    }
-    catch (CanceledOperationException coe)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw coe;
+      throw e;
     }
     catch (Exception e)
     {
@@ -1711,20 +1701,10 @@ public class EntryContainer
                 subordinateEntriesDeleted + 1));
       }
     }
-    catch (DatabaseException databaseException)
+    catch (DatabaseException | DirectoryException | CanceledOperationException e)
     {
       EntryContainer.transactionAbort(txn);
-      throw databaseException;
-    }
-    catch (DirectoryException directoryException)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw directoryException;
-    }
-    catch (CanceledOperationException coe)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw coe;
+      throw e;
     }
     catch (Exception e)
     {
@@ -1995,20 +1975,10 @@ public class EntryContainer
         entryCache.putEntry(newEntry, backend, entryID.longValue());
       }
     }
-    catch (DatabaseException databaseException)
+    catch (DatabaseException | DirectoryException | CanceledOperationException e)
     {
       EntryContainer.transactionAbort(txn);
-      throw databaseException;
-    }
-    catch (DirectoryException directoryException)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw directoryException;
-    }
-    catch (CanceledOperationException coe)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw coe;
+      throw e;
     }
     catch (Exception e)
     {
@@ -2261,20 +2231,10 @@ public class EntryContainer
       // Commit the transaction.
       EntryContainer.transactionCommit(txn);
     }
-    catch (DatabaseException databaseException)
+    catch (DatabaseException | DirectoryException | CanceledOperationException e)
     {
       EntryContainer.transactionAbort(txn);
-      throw databaseException;
-    }
-    catch (DirectoryException directoryException)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw directoryException;
-    }
-    catch (CanceledOperationException coe)
-    {
-      EntryContainer.transactionAbort(txn);
-      throw coe;
+      throw e;
     }
     catch (Exception e)
     {

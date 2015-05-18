@@ -119,12 +119,7 @@ public class NumSubordinatesVirtualAttributeProvider
       long count = backend.getNumberOfChildren(entry.getName());
       return count >= 0 && Long.parseLong(value.toString()) == count;
     }
-    catch (NumberFormatException e)
-    {
-        logger.traceException(e);
-        return false;
-    }
-    catch (DirectoryException e)
+    catch (NumberFormatException | DirectoryException e)
     {
       logger.traceException(e);
       return false;

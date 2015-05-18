@@ -282,15 +282,9 @@ public class ListBackends
       {
         directoryServer.initializeSchema();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -303,7 +297,7 @@ public class ListBackends
     }
 
 
-    // Retrieve a list of the backkends defined in the server.
+    // Retrieve a list of the backends defined in the server.
     TreeMap<String,TreeSet<DN>> backends;
     try
     {

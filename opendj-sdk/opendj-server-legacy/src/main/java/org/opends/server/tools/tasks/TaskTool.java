@@ -339,10 +339,6 @@ public abstract class TaskTool implements TaskScheduleInformation {
           }
         }
         ret = 0;
-      } catch (ArgumentException e) {
-        LocalizableMessage message = e.getMessageObject();
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
-        ret = 1;
       } catch (LDAPConnectionException e) {
         LocalizableMessage message;
         if (isWrongPortException(e,
@@ -368,7 +364,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         LocalizableMessage message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
-      } catch (OpenDsException e) {
+      } catch (ArgumentException | OpenDsException e) {
         LocalizableMessage message = e.getMessageObject();
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;

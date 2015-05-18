@@ -321,8 +321,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
     }
 
 
@@ -339,12 +338,11 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -352,13 +350,6 @@ public class LDAPAuthenticationHandler
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
           ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -632,8 +623,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_ANONYMOUS, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
     }
 
 
@@ -650,12 +640,11 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -663,13 +652,6 @@ public class LDAPAuthenticationHandler
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -884,8 +866,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
     }
 
 
@@ -902,13 +883,12 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -916,13 +896,6 @@ public class LDAPAuthenticationHandler
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -1046,13 +1019,12 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -1060,13 +1032,6 @@ public class LDAPAuthenticationHandler
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -1483,13 +1448,12 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -1497,13 +1461,6 @@ public class LDAPAuthenticationHandler
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -1796,13 +1753,12 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -1810,13 +1766,6 @@ public class LDAPAuthenticationHandler
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -2461,7 +2410,7 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException e)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
@@ -2474,13 +2423,6 @@ public class LDAPAuthenticationHandler
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -3055,12 +2997,11 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -3068,13 +3009,6 @@ public class LDAPAuthenticationHandler
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {
@@ -3284,12 +3218,11 @@ public class LDAPAuthenticationHandler
                                     message);
         }
       }
-      catch (DecodeException ae)
+      catch (DecodeException | LDAPException e)
       {
         LocalizableMessage message =
-            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-            message, ae);
+            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
       }
       catch (IOException ioe)
       {
@@ -3297,13 +3230,6 @@ public class LDAPAuthenticationHandler
             getExceptionMessage(ioe));
         throw new ClientException(
                 ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-      }
-      catch (LDAPException le)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                  message, le);
       }
       catch (Exception e)
       {
@@ -3457,13 +3383,12 @@ public class LDAPAuthenticationHandler
                                         message);
             }
           }
-          catch (DecodeException ae)
+          catch (DecodeException | LDAPException e)
           {
             LocalizableMessage message =
-                ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE
-                    .get(getExceptionMessage(ae));
+                ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
             throw new ClientException(
-                ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, ae);
+                ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
           }
           catch (IOException ioe)
           {
@@ -3471,13 +3396,6 @@ public class LDAPAuthenticationHandler
                 getExceptionMessage(ioe));
             throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                       message, ioe);
-          }
-          catch (LDAPException le)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
-                getExceptionMessage(le));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                      message, le);
           }
           catch (Exception e)
           {
@@ -3669,12 +3587,11 @@ public class LDAPAuthenticationHandler
                                   message);
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
       LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-          message, ae);
+          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
@@ -3682,13 +3599,6 @@ public class LDAPAuthenticationHandler
           getExceptionMessage(ioe));
       throw new ClientException(
               ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
-                                message, le);
     }
     catch (Exception e)
     {

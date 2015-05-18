@@ -153,17 +153,10 @@ public final class PasswordPolicyFactory implements
       {
         updateConfiguration(configuration, false);
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
         LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            configuration.dn(), ce.getMessage());
-        unacceptableReasons.add(message);
-        return false;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            configuration.dn(), ie.getMessage());
+            configuration.dn(), e.getMessage());
         unacceptableReasons.add(message);
         return false;
       }
@@ -1025,14 +1018,7 @@ public final class PasswordPolicyFactory implements
     {
       new PasswordPolicyImpl(null, configuration);
     }
-    catch (final ConfigException ce)
-    {
-      logger.traceException(ce);
-
-      unacceptableReasons.add(ce.getMessageObject());
-      return false;
-    }
-    catch (final InitializationException ie)
+    catch (final ConfigException | InitializationException ie)
     {
       logger.traceException(ie);
 

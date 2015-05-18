@@ -1322,16 +1322,6 @@ public class TaskScheduler
             this, ALERT_TYPE_CANNOT_RENAME_NEW_TASK_FILE, message);
       }
     }
-    catch (IOException ioe)
-    {
-      logger.traceException(ioe);
-      LocalizableMessage message =
-          ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(tmpFilePath,
-              stackTraceToSingleLineString(ioe));
-      logger.error(message);
-      DirectoryServer.sendAlertNotification(this,
-                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, message);
-    }
     catch (LDIFException le)
     {
       logger.traceException(le);

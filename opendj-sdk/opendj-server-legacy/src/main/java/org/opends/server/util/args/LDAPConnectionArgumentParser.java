@@ -329,14 +329,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
               ui.populateLDAPOptions(options),
               ui.getConnectTimeout(),
               out, err);
-    } catch (ArgumentException e) {
-      if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
-          e.getCause().getCause() instanceof SSLException) {
-          err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));
-        } else {
-          err.println(e.getMessageObject());
-        }
-      } catch (OpenDsException e) {
+    } catch (ArgumentException | OpenDsException e) {
       if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
         e.getCause().getCause() instanceof SSLException) {
         err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));

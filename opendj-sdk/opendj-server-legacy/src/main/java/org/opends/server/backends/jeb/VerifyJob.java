@@ -1420,17 +1420,7 @@ public class VerifyJob
         }
         errorCount++;
       }
-      catch (DatabaseException e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-          logger.trace("Error reading VLV index %s for entry %s: %s",
-              vlvIndex.getName(), entry.getName(), StaticUtils.getBacktrace(e));
-        }
-        errorCount++;
-      }
-      catch (JebException e)
+      catch (DatabaseException | JebException e)
       {
         if (logger.isTraceEnabled())
         {

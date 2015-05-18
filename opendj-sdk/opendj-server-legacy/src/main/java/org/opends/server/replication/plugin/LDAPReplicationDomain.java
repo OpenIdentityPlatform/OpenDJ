@@ -2419,13 +2419,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           replayErrorMsg = message.toString();
           updateError(csn);
         }
-      } catch (DecodeException e)
-      {
-        replayErrorMsg = logDecodingOperationError(msg, e);
-      } catch (LDAPException e)
-      {
-        replayErrorMsg = logDecodingOperationError(msg, e);
-      } catch (DataFormatException e)
+      } catch (DecodeException | LDAPException | DataFormatException e)
       {
         replayErrorMsg = logDecodingOperationError(msg, e);
       } catch (Exception e)

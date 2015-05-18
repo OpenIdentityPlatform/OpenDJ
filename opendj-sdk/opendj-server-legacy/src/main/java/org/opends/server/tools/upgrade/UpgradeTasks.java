@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -311,12 +311,7 @@ public final class UpgradeTasks
 
           context.notifyProgress(pnc.setProgress(100));
         }
-        catch (final IOException e)
-        {
-          manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
-              schemaFileTemplate.getName(), e.getMessage()), pnc);
-        }
-        catch (final IllegalStateException e)
+        catch (final IOException | IllegalStateException e)
         {
           manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
