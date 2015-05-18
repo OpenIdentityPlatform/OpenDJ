@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,21 +19,21 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-groups'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Groups of Entries</title>
 
  <para>OpenDJ supports several methods of grouping entries in the directory.
  Static groups list their members, whereas dynamic groups look up their
  membership based on an LDAP filter. OpenDJ also supports virtual static
- groups, which uses a dynamic group style definition, but allows applications
+ groups, which uses a dynamic group-style definition, but allows applications
  to list group members as if the group were static.</para>
 
  <para>When listing entries in static groups, you must also have a mechanism
@@ -42,10 +41,45 @@
  that end their membership. OpenDJ makes that possible with
  <emphasis>referential integrity</emphasis> functionality.</para>
  
- <para>This chapter demonstrates how to work with groups.</para>
+ <itemizedlist>
+  <para>
+   In this chapter you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    Create static (enumerated) groups
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Create dynamic groups based on LDAP URLs
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Create virtual static groups that make dynamic groups look like static groups
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Look up group membership efficiently
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Make sure that when an entry is deleted or modified,
+    OpenDJ also updates affected groups appropriately
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <tip>
-  <para>The examples in this chapter assume that an
+  <para>The examples in this chapter are written with the assumption that an
   <literal>ou=Groups,dc=example,dc=com</literal> entry already exists. If you
   imported data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
   xlink:show="new">Example.ldif</link>, then you already have the entry. If you
@@ -313,8 +347,8 @@ mail: rjensen@example.com</computeroutput>
   have <literal>ds-target-group-dn</literal> attributes pointing to other
   groups.</para>
   
-  <para>Generating the list of members can be resource intensive for large
-  groups, so by default you cannot retrieve the list of members. You can
+  <para>Generating the list of members can be resource-intensive for large
+  groups, so by default, you cannot retrieve the list of members. You can
   change this with the <command>dsconfig</command> command by setting the
   <literal>Virtual Static member</literal> or
   <literal>Virtual Static uniqueMember</literal> property.</para>
@@ -486,7 +520,7 @@ member: uid=bjensen,ou=People,dc=example,dc=com
 member: uid=tmorris,ou=People,dc=example,dc=com</computeroutput>
   </screen>
 
- <para>By default the referential integrity plugin is configured to manage
+ <para>By default, the referential integrity plugin is configured to manage
  <literal>member</literal> and <literal>uniqueMember</literal> attributes.
  These attributes take values that are DNs, and are indexed for equality by
  default. Before you add an additional attribute to manage, make sure that

@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -1185,7 +1184,7 @@ $ <userinput>dsconfig \
 
    <para>OpenDJ directory server has a handler for HTTP connections, where it
    exposes the RESTful API demonstrated in the chapter on
-   <link xlink:href="admin-guide#chap-rest-operations" xlink:show="new"
+   <link xlink:href="server-dev-guide#chap-rest-operations" xlink:show="new"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Performing
    RESTful Operations</citetitle></link>. The HTTP connection handler is not
    enabled by default.</para>

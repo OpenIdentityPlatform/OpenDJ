@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -28,7 +27,8 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Performing RESTful Operations</title>
  <indexterm><primary>HTTP</primary></indexterm>
  <indexterm><primary>JSON</primary></indexterm>
@@ -38,9 +38,14 @@
   OpenDJ lets you access directory data as
   <link xlink:show="new" xlink:href="http://json.org">JSON</link>
   resources over HTTP.
-  This chapter demonstrates basic RESTful client operations
-  by using the default configuration
-  and sample directory data
+  OpenDJ maps JSON resources onto LDAP entries.
+  As a result, REST clients perform many of the same operations as LDAP clients
+  with directory data.
+ </para>
+
+ <para>
+  This chapter demonstrates RESTful client operations
+  by using the default configuration and sample directory data
   <link
    xlink:show="new"
    xlink:href="admin-guide#import-ldif"
@@ -53,9 +58,60 @@
   >Example.ldif</link>.
  </para>
 
+ <itemizedlist>
+  <para>
+   In this chapter, you will learn how to use the OpenDJ REST API
+   that provides access to directory data over HTTP.
+   In particular, you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    <link linkend="create-rest">Create</link> a resource that does not yet exist
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    <link linkend="read-rest">Read</link> a single resource
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    <link linkend="update-rest">Update</link> an existing resource
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    <link linkend="delete-rest">Delete</link> an existing resource
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    <link linkend="patch-rest">Patch</link> part of an existing resource
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Perform a predefined <link linkend="action-rest">action</link>
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    <link linkend="query-rest">Query</link> a set of resources
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>
   Before trying the examples, enable HTTP access to
-  OpenDJ directory server as described in procedure,
+  OpenDJ directory server as described in
+  the <citetitle>Administration Guide</citetitle> procedure,
   <link
    xlink:show="new"
    xlink:href="admin-guide#setup-rest2ldap-connection-handler"
@@ -65,101 +121,37 @@
   but the procedure also shows how to set up HTTPS access to the server.
  </para>
 
- <para>Interface stability: <link xlink:href="reference#interface-stability"
- xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
- >Evolving</link></para>
+ <para>
+  Interface stability:
+  <link
+   xlink:href="reference#interface-stability"
+   xlink:show="new"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  >Evolving</link>
+ </para>
 
- <section xml:id="understand-rest">
-  <title>Understanding the OpenDJ REST API</title>
+  <para>
+   The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API
+   for interacting with JSON Resources.
+   All APIs built on this common layer let you perform the following operations.
+  </para>
 
-  <para>The OpenDJ REST API is built on a common ForgeRock HTTP-based REST API
-  for interacting with JSON Resources. APIs built on this common layer all let
-  you perform the following operations.</para>
-
-  <variablelist>
-   <varlistentry>
-    <term><link linkend="create-rest">Create</link></term>
-    <listitem>
-     <para>Add a resource that does not yet exist</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="read-rest">Read</link></term>
-    <listitem>
-     <para>Retrieve a single resource</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="update-rest">Update</link></term>
-    <listitem>
-     <para>Replace an existing resource</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="delete-rest">Delete</link></term>
-    <listitem>
-     <para>Remove an existing resource</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="patch-rest">Patch</link></term>
-    <listitem>
-     <para>Modify part of an existing resource</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="action-rest">Action</link></term>
-    <listitem>
-     <para>Perform a predefined action</para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><link linkend="query-rest">Query</link></term>
-    <listitem>
-     <para>List a set of resources</para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
-
-  <para>The present implementation in OpenDJ maps JSON resources onto LDAP
-  entries, meaning REST clients can in principle do just about anything an
-  LDAP client can do with directory data.</para>
-
-  <variablelist>
-   <para>In addition to query string parameters that depend on the operation,
-   the examples in this chapter make use of the following parameters that
-   apply to the JSON resource returned for all operations.</para>
-   <varlistentry>
-    <term><literal>_fields=<replaceable>field</replaceable>[,&#8230;]</literal></term>
-    <listitem>
-     <para>Retain only the specified fields in the JSON resource returned.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>_prettyPrint=true|false</literal></term>
-    <listitem>
-     <para>Make the JSON resource returned easy for humans to read.</para>
-
-     <para>
-      This parameter is used though not shown in most examples that follow.
-     </para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
- </section>
+ <xinclude:include href="../shared/sec-about-crest.xml">
+  <xinclude:fallback>
+   <para>
+    Failed to include common content <filename>../shared/sec-about-crest.xml</filename>.
+   </para>
+  </xinclude:fallback>
+ </xinclude:include>
 
  <section xml:id="authenticate-rest">
   <title>Authenticating Over REST</title>
 
-  <para>When you first try to get a resource that you can read as an LDAP
-  entry with an anonymous search, you might be surprised that you must
-  authenticate.</para>
+  <para>
+   When you first try to read a resource
+   that can be read as an LDAP entry with an anonymous search,
+   you learn that you must authenticate as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl http://opendj.example.com:8080/users/bjensen</userinput>
@@ -170,10 +162,16 @@ $ <userinput>curl http://opendj.example.com:8080/users/bjensen</userinput>
 }</computeroutput>
   </screen>
 
-  <para>HTTP status code 401 tells your HTTP client that the request requires
-  user authentication. You can change this behavior by setting the HTTP
-  connection handler property, <literal>authentication-required</literal>,
-  to <literal>false</literal>.</para>
+  <para>
+   HTTP status code 401 indicates that the request requires user authentication.
+  </para>
+
+  <para>
+   To prevent OpenDJ directory server from requiring authentication,
+   set the HTTP connection handler property
+   <literal>authentication-required</literal> to <literal>false</literal>,
+   as in the following example.
+  </para>
 
   <screen>
 $ <userinput>dsconfig \
@@ -188,18 +186,24 @@ $ <userinput>dsconfig \
  --trustAll</userinput>
   </screen>
 
-  <para>Out of the box both the HTTP Connection Handler and also the REST LDAP
-  gateway are configured to allow HTTP Basic authentication and HTTP header
-  based authentication in the style of OpenIDM. The authentication mechanisms
-  translate HTTP authentication to LDAP authentication on the directory server
-  side.</para>
+  <para>
+   By default, both the HTTP Connection Handler and also the REST LDAP gateway
+   allow HTTP Basic authentication and HTTP header-based authentication
+   in the style of OpenIDM.
+   The authentication mechanisms translate HTTP authentication
+   to LDAP authentication to the directory server.
+  </para>
 
-  <para>When you install OpenDJ either with generated sample user entries or
-  with data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
-  xlink:show="new">Example.ldif</link>, the relative distinguished name
-  attribute for the sample user entries is the user ID (<literal>uid</literal>)
-  attribute. For example, the DN and user ID for Babs Jensen are as
-  follows.</para>
+  <para>
+   When you install OpenDJ either with generated sample user entries
+   or with data from
+   <link
+    xlink:href="http://opendj.forgerock.org/Example.ldif"
+    xlink:show="new">Example.ldif</link>,
+   the relative distinguished name (DN) attribute for sample user entries
+   is the user ID (<literal>uid</literal>) attribute.
+   For example, the DN and user ID for Babs Jensen are:
+  </para>
 
   <programlisting language="ldif">
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -208,9 +212,9 @@ uid: bjensen
 
   <para>
    Given this pattern in the user entries,
-   the default REST to LDAP configuration assumes that the user name
-   on the HTTP side is the value of the user ID,
-   and that user entries can be found directly under
+   the default REST to LDAP configuration translates
+   the HTTP user name to the LDAP user ID.
+   User entries are found directly under
    <literal>ou=People,dc=example,dc=com</literal>.<footnote>
     <para>
      In general, REST to LDAP mappings require
@@ -220,11 +224,13 @@ uid: bjensen
    </footnote>
    In other words, Babs Jensen authenticates as <literal>bjensen</literal>
    (password: <literal>hifalutin</literal>) over HTTP.
-   This is mapped for an LDAP bind to the bind DN
+   The corresponding LDAP bind DN is
    <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.
   </para>
 
-  <para>With HTTP Basic authentication, it looks like this.</para>
+  <para>
+   HTTP Basic authentication works as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -236,9 +242,10 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>Or, using the HTTP Basic
-  <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
-  in the URL, it looks like this.</para>
+  <para>
+   The alternative HTTP Basic
+   <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
+   in the URL works as shown in the following example.  </para>
 
   <screen>
 $ <userinput>curl \
@@ -249,7 +256,9 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>With HTTP header based authentication, it looks like this.</para>
+  <para>
+   HTTP header based authentication works as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -262,34 +271,48 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>If your directory data are laid out differently, or if your user names
-  are email addresses rather than user IDs for example, then you must update
-  the configuration in order for authentication to work.</para>
+  <para>
+   If the directory data is laid out differently
+   or if the user names are email addresses rather than user IDs, for example,
+   then you must update the configuration in order for authentication to work.
+  </para>
 
-  <para>The REST LDAP gateway can also translate HTTP user name and password
-  authentication to PLAIN SASL authentication on the LDAP side. Moreover, the
-  gateway can fall back to proxied authorization as necessary, using a root DN
-  authenticated connection to LDAP servers. See <link xlink:show="new"
-  xlink:href="reference#appendix-rest2ldap"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
-  Configuration</citetitle></link> for details on all configuration
-  choices.</para>
+  <para>
+   The REST LDAP gateway can also translate
+   HTTP user name and password authentication to LDAP PLAIN SASL authentication.
+   Likewise, the gateway falls back to proxied authorization as necessary,
+   using a root DN authenticated connection to LDAP servers.
+   See the <citetitle>Reference</citetitle> appendix,
+   <link
+    xlink:show="new"
+    xlink:href="reference#appendix-rest2ldap"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>REST LDAP Configuration</citetitle></link>
+   for details on all configuration choices.
+  </para>
  </section>
 
  <section xml:id="create-rest">
   <title>Creating Resources</title>
 
-  <para>There are two ways to create resources.</para>
-
   <itemizedlist>
-   <listitem>
-    <para>To create a resource using an ID that you specify, perform an HTTP PUT
-    request with headers <literal>Content-Type: application/json</literal> and
-    <literal>If-None-Match: *</literal>, and the JSON content of your
-    resource.</para>
+   <para>
+    There are two alternative ways to create resources.
+   </para>
 
-    <para>The following example creates a new user entry with ID
-    <literal>newuser</literal>.</para>
+   <listitem>
+    <para>
+     To create a resource using an ID that you specify,
+     perform an HTTP PUT request with headers
+     <literal>Content-Type: application/json</literal> and
+     <literal>If-None-Match: *</literal>,
+     and the JSON content of your resource.
+    </para>
+
+    <para>
+     The following example shows you how to create
+     a new user entry with ID <literal>newuser</literal>.
+    </para>
 
     <screen>
 $ <userinput>curl \
@@ -342,9 +365,11 @@ $ <userinput>curl \
    </listitem>
 
    <listitem>
-    <para>To create a resource letting the server choose the ID, perform an HTTP
-    POST with <literal>_action=create</literal> as described in
-    <xref linkend="action-rest" />.</para>
+    <para>
+     To create a resource in a way that lets the server choose the ID,
+     perform an HTTP POST with <literal>_action=create</literal>
+     as described in <xref linkend="action-rest" />.
+    </para>
    </listitem>
   </itemizedlist>
  </section>
@@ -352,7 +377,9 @@ $ <userinput>curl \
  <section xml:id="read-rest">
   <title>Reading a Resource</title>
 
-  <para>To read a resource, perform an HTTP GET.</para>
+  <para>
+   To read a resource, perform an HTTP GET as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -387,11 +414,15 @@ $ <userinput>curl \
  <section xml:id="update-rest">
   <title>Updating Resources</title>
 
-  <para>To update a resource, perform an HTTP PUT with the changes to the
-  resource. For read-only fields, either include unmodified versions, or omit
-  them from your updated version.</para>
+  <para>
+   To update a resource, perform an HTTP PUT with the changes to the resource.
+   For read-only fields, either include unmodified versions,
+   or omit them from your updated version.
+  </para>
 
-  <para>The following example adds a manager for Sam Carter.</para>
+  <para>
+   The following example adds a manager for Sam Carter.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -449,9 +480,11 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>To update a resource only if the resource matches a particular version,
-  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
-  header.</para>
+  <para>
+   To update a resource only if the resource matches a particular version,
+   use an <literal>If-Match: <replaceable>revision</replaceable></literal> header
+   as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -462,7 +495,7 @@ $ <userinput>curl \
 $ <userinput>curl \
  --request PUT \
  --user kvaughan:bribery \
---header "If-Match: 00000000b017c5b8" \
+ --header "If-Match: 00000000b017c5b8" \
  --header "Content-Type: application/json" \
  --data '{
    "contactInformation": {
@@ -519,8 +552,10 @@ $ <userinput>curl \
  <section xml:id="delete-rest">
   <title>Deleting Resources</title>
 
-  <para>To delete a resource, perform an HTTP DELETE on the resource URL.
-  On success, the operation returns the resource you deleted.</para>
+  <para>
+   To delete a resource, perform an HTTP DELETE on the resource URL.
+   The operation returns the resource you deleted as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -551,12 +586,14 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>To delete a resource only if the resource matches a particular version,
-  use an <literal>If-Match: <replaceable>revision</replaceable></literal>
-  header.</para>
+  <para>
+   To delete a resource only if the resource matches a particular version,
+   use an <literal>If-Match: <replaceable>revision</replaceable></literal> header
+   as shown in the following example.
+  </para>
 
-  <screen>$ <userinput>curl
- --user kvaughan:bribery
+  <screen>$ <userinput>curl \
+ --user kvaughan:bribery \
  http://opendj.example.com:8080/users/newuser?_fields=_rev</userinput>
 <computeroutput>{"_rev":"000000006d8d7358"}</computeroutput>
 
@@ -590,14 +627,17 @@ $ <userinput>curl \
   </screen>
 
   <orderedlist>
-   <para>To delete a resource and all its children, you must change the
-   configuration, get the REST LDAP gateway or HTTP Connection Handler to
-   reload its configuration, and perform the operation as a user who has the
-   access rights required. The following steps show one way to do this with
-   the HTTP Connection Handler.</para>
+   <para>
+    To delete a resource and all of its children,
+    you must change the configuration,
+    get the REST LDAP gateway or HTTP Connection Handler to reload its configuration,
+    and perform the operation as a user who has the access rights required.
+    The following steps show one way to do this with the HTTP Connection Handler.</para>
 
-   <para>In this case the LDAP view of the user to delete shows two child
-   entries.</para>
+   <para>
+    In this example, the LDAP view of the user to delete shows two child entries
+    as seen in the following example.
+   </para>
 
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&amp;)" dn</userinput>
@@ -609,18 +649,25 @@ dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</computeroutput>
    </screen>
 
    <listitem>
-    <para>In the configuration file for the HTTP Connection Handler, by default
-    <filename>/path/to/opendj/config/http-config.json</filename>, set
-    <literal>"useSubtreeDelete" : true</literal>.</para>
+    <para>
+     In the configuration file for the HTTP Connection Handler,
+     by default <filename>/path/to/opendj/config/http-config.json</filename>,
+     set <literal>"useSubtreeDelete" : true</literal>.
+    </para>
 
     <note>
-     <para>After this change, only users who have access to request a tree
-     delete can delete resources.</para>
+     <para>
+      After this change, only users who have access to request a tree delete
+      can delete resources.
+     </para>
     </note>
    </listitem>
 
    <listitem>
-    <para>Force the HTTP Connection Handler to reread its configuration.</para>
+    <para>
+     Force the HTTP Connection Handler to reread its configuration
+     as shown in the following <command>dsconfig</command> commands.
+    </para>
 
     <screen>
 $ <userinput>dsconfig \
@@ -646,8 +693,11 @@ $ <userinput>dsconfig \
    </listitem>
 
    <listitem>
-    <para>Delete as a user who has rights to perform a subtree delete on
-    the resource.</para>
+    <para>
+     Request the delete as a user who has rights
+     to perform a subtree delete on the resource
+     as shown in the following example.
+    </para>
 
     <screen>
 $ <userinput>curl \
@@ -677,18 +727,12 @@ $ <userinput>curl \
  <section xml:id="patch-rest">
   <title>Patching Resources</title>
 
-  <para>OpenDJ lets you patch JSON resources, updating part of the resource
-  rather than replacing it. For example, you could change Babs Jensen's
-  email address by issuing an HTTP PATCH request, as in the example that
-  follows.</para>
-
-  <para>Notice that the data sent specifies the type of patch operation, the
-  field to change, and a value that depends on the field you change and on the
-  operation. A single-valued field takes an object, boolean, string, or number
-  depending on its type, whereas a multi-valued field takes an array of values.
-  Getting the type wrong results in an error. Also notice that the patch data is
-  itself an array, since you could patch more than one part of the resource by
-  using a set of patch operations in the same request.</para>
+  <para>
+   OpenDJ lets you patch JSON resources,
+   updating part of the resource rather than replacing it.
+   For example, you could change Babs Jensen's email address
+   by issuing an HTTP PATCH request as in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -727,14 +771,31 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
+  <para>
+   Notice in the example that the data sent specifies
+   the type of patch operation, the field to change,
+   and a value that depends on the field you change and on the operation.
+   A single-valued field takes an object, boolean, string, or number
+   depending on its type,
+   whereas a multi-valued field takes an array of values.
+   Getting the type wrong results in an error.
+   Also notice that the patch data is itself an array.
+   This makes it possible to patch more than one part of the resource
+   by using a set of patch operations in the same request.
+  </para>
+
   <variablelist>
-   <para>OpenDJ supports four types of patch operation.</para>
+   <para>
+    OpenDJ supports four types of patch operations:
+   </para>
 
    <varlistentry>
-    <term>"add"</term>
+    <term><literal>add</literal></term>
     <listitem>
-     <para>The add operation ensures that the target field contains the value
-     provided, creating parent fields as necessary.</para>
+     <para>
+      The add operation ensures that the target field contains the value provided,
+      creating parent fields as necessary.
+     </para>
 
      <para>
       If the target field is single-valued and a value already exists,
@@ -745,67 +806,93 @@ $ <userinput>curl \
       (an object, string, boolean, or number).
      </para>
 
-     <para>If the target field is multi-valued, then the array of values you
-     provide is merged with the set of values already in the resource. New
-     values are added, and duplicate values are ignored. A multi-valued field
-     takes an array value.</para>
+     <para>
+      If the target field is multi-valued,
+      then the array of values you provide is merged
+      with the set of values already in the resource.
+      New values are added, and duplicate values are ignored.
+      A multi-valued field takes an array value.
+     </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>"remove"</term>
+    <term><literal>remove</literal></term>
     <listitem>
-     <para>The remove operation ensures that the target field does not contain
-     the value provided. If you do not provide a value, the entire field is
-     removed if it already exists.</para>
+     <para>
+      The remove operation ensures that the target field
+      does not contain the value provided.
+      If you do not provide a value, the entire field is removed
+      if it already exists.
+     </para>
 
-     <para>If the target field is single-valued and a value is provided, then
-     the provided value must match the existing value to remove, otherwise the
-     field is left unchanged.</para>
+     <para>
+      If the target field is single-valued and a value is provided,
+      then the provided value must match the existing value to remove,
+      otherwise the field is left unchanged.
+     </para>
 
-     <para>If the target field is multi-valued, then values in the array you
-     provide are removed from the existing set of values.</para>
+     <para>
+      If the target field is multi-valued,
+      then values in the array you provide are removed
+      from the existing set of values.
+     </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>"replace"</term>
+    <term><literal>replace</literal></term>
     <listitem>
-     <para>The replace operation removes existing values on the target field,
-     and replaces them with the values you provide. It is equivalent to
-     performing a remove on the field, then an add with the values you
-     provide.</para>
+     <para>
+      The replace operation removes existing values on the target field,
+      and replaces them with the values you provide.
+      It is equivalent to performing a remove on the field,
+      then an add with the values you provide.
+     </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term>"increment"</term>
+    <term><literal>increment</literal></term>
     <listitem>
-     <para>The increment operation increments or decrements the value or values
-     in the target field by the amount you specify, which is positive to
-     increment, negative to decrement. The target field must be a number or
-     a set of numbers. The value you provide must be a single number.</para>
+     <para>
+      The increment operation increments or decrements
+      the value or values in the target field by the amount you specify,
+      which is positive to increment and negative to decrement.
+      The target field must take a number or a set of numbers.
+      The value you provide must be a single number.
+     </para>
     </listitem>
    </varlistentry>
   </variablelist>
 
-  <para>One key nuance in how patch works with OpenDJ has to do with
-  multi-valued fields. Although JSON resources represent multi-valued fields as
-  <emphasis>arrays</emphasis>, OpenDJ treats those values as
-  <emphasis>sets</emphasis>. In other words, values in the field are unique,
-  and the ordering of an array of values is not meaningful in the context of
-  patch operations. If you reference array values by index, OpenDJ returns
-  an error.<footnote><para>OpenDJ does let you use a hyphen as the last element
-  of the "field" JSON pointer value to add an element to the set, as in
-  <command>curl --user kvaughan:bribery --request PATCH --header "Content-Type:
-  application/json" --data '[{ "operation" : "add", "field" : "/members/-",
-  "value" : { "_id" : "bjensen" } }]'
-  http://opendj.example.com:8080/groups/Directory%20Administrators</command>.</para>
-  </footnote></para>
+  <para>
+   One key nuance in how a patch works with OpenDJ concerns multi-valued fields.
+   Although JSON resources represent multi-valued fields
+   as <emphasis>arrays</emphasis>,
+   OpenDJ treats those values as <emphasis>sets</emphasis>.
+   In other words, values in the field are unique,
+   and the ordering of an array of values is not meaningful
+   in the context of patch operations.
+   If you reference array values by index, OpenDJ returns an error.<footnote>
+    <para>
+     OpenDJ does allow use of a hyphen to add an element to a set.
+     Include the hyphen as the last element
+     of the <literal>field</literal> JSON pointer path.
+     For example:
+     <command>curl --user kvaughan:bribery --request PATCH --header "Content-Type:
+      application/json" --data '[{ "operation" : "add", "field" : "/members/-",
+      "value" : { "_id" : "bjensen" } }]'
+      http://opendj.example.com:8080/groups/Directory%20Administrators</command>.
+    </para>
+   </footnote>
+  </para>
 
-  <para>Instead use the patch operations as if arrays values were sets. For
-  example, you can include Barbara Jensen in a group by adding her to the set
-  of members.</para>
+  <para>
+   Perform patch operations as if arrays values were sets.
+   The following example includes Barbara Jensen in a group
+   by adding her to the set of members.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -848,7 +935,9 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>Removing her from the group is similar.</para>
+  <para>
+   The following example removes Barbara Jensen from the group.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -889,12 +978,9 @@ $ <userinput>curl \
   </screen>
 
   <para>
-   You can change the value of more than one attribute in a patch operation.
-   To do so, include multiple operations in the body of the JSON patch.
-   Notice that for a multi-valued attribute, the "value" field takes an array,
-   whereas the "value" field takes a single value for a single-valued field.
-   Also notice in the following example that for single-valued fields,
-   an "add" operation has the same effect as a "replace" operation.
+   To change the value of more than one attribute in a patch operation,
+   include multiple operations in the body of the JSON patch,
+   as shown in the following example.
   </para>
 
   <screen>
@@ -943,9 +1029,22 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>You can use resource revision numbers in <literal>If-Match:
-  <replaceable>revision</replaceable></literal> headers to patch the resource
-  only if the resource matches a particular version.</para>
+  <para>
+   Notice that for a multi-valued attribute,
+   the <literal>value</literal> field takes an array,
+   whereas the <literal>value</literal> field takes
+   a single value for a single-valued field.
+   Also notice that for single-valued fields,
+   an <literal>add</literal> operation has the same effect
+   as a <literal>replace</literal> operation.
+  </para>
+
+  <para>
+   You can use resource revision numbers
+   in <literal>If-Match: <replaceable>revision</replaceable></literal> headers
+   to patch the resource only if the resource matches a particular version,
+   as shown in the following example.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -992,20 +1091,26 @@ $ <userinput>curl \
 }</computeroutput>
   </screen>
 
-  <para>The resource revision changes after you successfully perform the patch
-  operation.</para>
+  <para>
+   The resource revision changes when the patch is successful.
+  </para>
  </section>
 
  <section xml:id="action-rest">
   <title>Using Actions</title>
 
-  <para>OpenDJ implements an action that lets the server set the resource ID
-  on creation. To use this action, perform an HTTP POST with header
-  <literal>Content-Type: application/json</literal>,
-  <literal>_action=create</literal> in the query string, and the JSON content of
-  your resource.</para>
+  <para>
+   OpenDJ implements an action that lets the server
+   set the resource ID on creation.
+   To use this action, perform an HTTP POST
+   with header <literal>Content-Type: application/json</literal>,
+   <literal>_action=create</literal> in the query string,
+   and the JSON content of the resource.
+  </para>
 
-  <para>The following example creates a new user entry.</para>
+  <para>
+   The following example creates a new user entry.
+  </para>
 
   <screen>
 $ <userinput>curl \
@@ -1059,14 +1164,15 @@ $ <userinput>curl \
  <section xml:id="query-rest">
   <title>Querying Resource Collections</title>
 
-  <para>To query resource collections, perform an HTTP GET with a
-  <literal>_queryFilter=<replaceable>expression</replaceable></literal> parameter
-  in your query string.</para>
+  <para>
+   To query resource collections, perform an HTTP GET with a
+   <literal>_queryFilter=<replaceable>expression</replaceable></literal> parameter
+   in the query string.
+  </para>
 
   <para>
    The following listing summarizes the string representation
-   for the filter expression.
-   Continue reading for additional explanation.
+   for the filter <replaceable>expression</replaceable>.
   </para>
 
   <programlisting language="none">
@@ -1094,7 +1200,7 @@ UTF8STRING     = UTF-8 string possibly containing white-space
 
   <para>
    The following table shows some LDAP search filters
-   with corresponding query filter expressions.
+   with corresponding examples of query filter expressions.
   </para>
 
   <table pgwide="1">
@@ -1222,30 +1328,39 @@ UTF8STRING     = UTF-8 string possibly containing white-space
   </table>
 
   <variablelist>
-   <para>For query operations, your filter <replaceable>expression</replaceable>
-   is constructed from the following building blocks.
-   Make sure you URL encode the filter expressions, which are shown here
-   without URL encoding to make them easier to read.</para>
+   <para>
+    For query operations, the filter <replaceable>expression</replaceable>
+    is constructed from the following building blocks.
+    Make sure you URL-encode the filter expressions,
+    which are shown here without URL encoding to make them easier to read.
+   </para>
 
-   <para>In these expressions the simplest
-   <replaceable>json-pointer</replaceable> is a field of the JSON resource,
-   such as <literal>userName</literal> or <literal>id</literal>. A
-   <replaceable>json-pointer</replaceable> can however point to nested
-   elements as described in the <link xlink:show="new"
-   xlink:href="http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer">JSON
-   Pointer</link> Internet-Draft.</para>
+   <para>
+    In filter expressions, the simplest <replaceable>json-pointer</replaceable>
+    is a field of the JSON resource,
+    such as <literal>userName</literal> or <literal>id</literal>.
+    A <replaceable>json-pointer</replaceable> can also point to nested elements
+    as described in the
+    <link
+     xlink:show="new"
+     xlink:href="http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer"
+    >JSON Pointer</link> Internet-Draft.
+   </para>
 
    <varlistentry>
     <term>Comparison expressions</term>
     <listitem>
-     <para>You can build filters using the following comparison expressions.</para>
-
      <variablelist>
+      <para>
+       Build filters using the following comparison expressions:
+      </para>
+
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> eq <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer equals the value, as in the following
-        example.</para>
+        <para>
+         Matches when the pointer equals the value, as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1282,8 +1397,9 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> co <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer contains the value, as in the following
-        example.</para>
+        <para>
+         Matches when the pointer contains the value, as in the following example.
+        </para>
 
         <screen width="91">
 $ <userinput>curl \
@@ -1316,8 +1432,9 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> sw <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer starts with the value, as in the
-        following example.</para>
+        <para>
+         Matches when the pointer starts with the value, as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1340,8 +1457,9 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> lt <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer is less than the value, as in the
-        following example.</para>
+        <para>
+         Matches when the pointer is less than the value, as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1364,8 +1482,10 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> le <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer is less than or equal to the value, as
-        in the following example.</para>
+        <para>
+         Matches when the pointer is less than or equal to the value,
+         as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1390,8 +1510,10 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> gt <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer is greater than the value, as in the
-        following example.</para>
+        <para>
+         Matches when the pointer is greater than the value,
+         as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1416,8 +1538,10 @@ $ <userinput>curl \
       <varlistentry>
        <term><literal><replaceable>json-pointer</replaceable> ge <replaceable>json-value</replaceable></literal></term>
        <listitem>
-        <para>Matches when the pointer is greater than or equal to the value,
-        as in the following example.</para>
+        <para>
+         Matches when the pointer is greater than or equal to the value,
+         as in the following example.
+        </para>
 
         <screen width="87">
 $ <userinput>curl \
@@ -1443,9 +1567,12 @@ $ <userinput>curl \
    <varlistentry>
     <term>Presence expression</term>
     <listitem>
-     <para><literal><replaceable>json-pointer</replaceable> pr</literal> matches
-     any resource on which the <replaceable>json-pointer</replaceable> is
-     present, as in the following example.</para>
+     <para>
+      <literal><replaceable>json-pointer</replaceable> pr</literal>
+      matches any resource on which
+      the <replaceable>json-pointer</replaceable> is present,
+      as in the following example.
+     </para>
 
      <screen>
 $ <userinput>curl \
@@ -1493,11 +1620,18 @@ $ <userinput>curl \
    <varlistentry>
     <term>Literal expressions</term>
     <listitem>
-     <para><literal>true</literal> matches any resource in the collection.</para>
-     <para><literal>false</literal> matches no resource in the collection.</para>
+     <para>
+      <literal>true</literal> matches any resource in the collection.
+     </para>
 
-     <para>In other words you can list all resources in a collection as in the
-     following example.</para>
+     <para>
+      <literal>false</literal> matches no resource in the collection.
+     </para>
+
+     <para>
+      In other words, you can list all resources in a collection
+      as in the following example.
+     </para>
 
      <screen>
 $ <userinput>curl \
@@ -1526,16 +1660,14 @@ $ <userinput>curl \
    <varlistentry>
     <term>Complex expressions</term>
     <listitem>
-     <para>You can combine expressions using boolean operators
-     <literal>and</literal>, <literal>or</literal>, and <literal>!</literal>
-     (not), using parentheses,
-     <literal>(<replaceable>expression</replaceable>)</literal>, to group
-     expressions. The following example queries resources with last name
-     Jensen and manager name starting with <literal>Bar</literal>. Notice that
-     the filters use the JSON pointers <literal>name/familyName</literal> and
-     <literal>manager/displayName</literal> to identify the fields that are
-     nested inside the <literal>name</literal> and <literal>manager</literal>
-     objects.</para>
+     <para>
+      Combine expressions using boolean operators
+      <literal>and</literal>, <literal>or</literal>, and <literal>!</literal> (not),
+      and by using parentheses <literal>(<replaceable>expression</replaceable>)</literal>
+      with group expressions.
+      The following example queries resources with last name Jensen
+      and manager name starting with <literal>Bar</literal>.
+     </para>
 
      <screen>
 $ <userinput>curl \
@@ -1553,6 +1685,14 @@ $ <userinput>curl \
   "remainingPagedResults" : -1
 }</computeroutput>
      </screen>
+
+     <para>
+      Notice that the filters use the JSON pointers
+      <literal>name/familyName</literal>
+      and <literal>manager/displayName</literal>
+      to identify the fields nested inside the
+      <literal>name</literal> and <literal>manager</literal> objects.
+     </para>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -1605,7 +1745,7 @@ $ <userinput>curl \
      <para>
       When <literal>_pagedResultsCookie</literal> is also set,
       the starting point is the position tracked by the cookie.
-      Otherwise the offset is relative to the beginning of the result set.
+      Otherwise, the offset is relative to the beginning of the result set.
      </para>
 
      <para>
@@ -1650,16 +1790,8 @@ $ <userinput>curl \
       to page through the results.
      </para>
 
-
      <para>
-      The following example demonstrates the use of paged results.
-
-      The first call requests 5 results per page, and retrieves the first page.
-
-      The next call provides the cookie to request the next 5 results.
-
-      The final call provides the cookie and requests the 10th page of results
-      after the last page of results specified by the cookie.
+      The following example demonstrates how paged results are used.
      </para>
 
      <screen width="87">
@@ -1727,7 +1859,14 @@ $ <userinput>curl \
      </screen>
 
      <para>
-      Notice that <literal>"remainingPagedResults" : -1</literal> in each case
+      The first call requests five results per page, and retrieves the first page.
+      The next call provides the cookie to request the next five results.
+      The final call provides the cookie and requests the 10th page of results
+      after the last page of results specified by the cookie.
+     </para>
+
+     <para>
+      Notice that <literal>"remainingPagedResults" : -1</literal> in each case,
       meaning that the number of remaining results is not known.
      </para>
     </listitem>

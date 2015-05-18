@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -790,7 +789,7 @@ ADD operation successful for DN
      the parent of the subentry, <literal>dc=example,dc=com</literal>,
      or further restrict the subtree specification
      by adding a <literal>specificationFilter</literal>.
-     See <link xlink:show="new" xlink:href="admin-guide#collective-attributes"
+     See <link xlink:show="new" xlink:href="server-dev-guide#collective-attributes"
      xlink:role="http://docbook.org/xlink/role/olink"><citetitle
      >Collective Attributes</citetitle></link> for more information.
     </para>

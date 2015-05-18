@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<preface xml:id='preface'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Preface</title>
+
+ <para>
+  This guide shows you how to develop scripts that use OpenDJ tools.
+  <!-- Java-based extensions to the directory server,
+  and Java-based applications that embed the directory server. -->
+ </para>
+
+ <para>
+  If you are building a Java-based Lightweight Directory Access Protocol (LDAP)
+  client application, refer to the
+  <link
+   xlink:href="dev-guide#dev-guide"
+   xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:show="new"
+  ><citetitle>LDAP SDK Developer's Guide</citetitle></link> instead.
+ </para>
+
+ <itemizedlist>
+  <para>
+   In reading and following the instructions in this guide,
+   you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    Access OpenDJ directory server by using Representational State Transfer (REST)
+    APIs over Hypertext Transfer Protocol (HTTP)
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Access OpenDJ directory server using the LDAP tools delivered with the server
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Use LDAP schema
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Work with standard LDAP groups and OpenDJ-specific groups
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Work with LDAP collective attributes and OpenDJ virtual attributes
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Work with LDAP referrals in search results
+   </para>
+  </listitem>
+
+  <!--
+    <listitem>
+     <para>
+      Develop custom OpenDJ Java plugins
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Develop custom controls and extended operations using Java plugins
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Develop custom scheduled tasks using Java plugins
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Embed OpenDJ in a Java application
+     </para>
+    </listitem>
+  -->
+ </itemizedlist>
+
+ <section xml:id="using-this-guide">
+  <title>Using This Guide</title>
+
+  <para>
+   This guide is intended for directory administrators
+   who write scripts that use OpenDJ directory services<!--,
+   and developers who write extensions for OpenDJ directory servers-->.
+  </para>
+
+  <itemizedlist>
+   <para>
+    This guide is written with the expectation
+    that you already have basic familiarity with the following topics:
+   </para>
+
+   <listitem>
+    <para>
+     Installing OpenDJ directory server, if the server is not yet installed
+    </para>
+
+    <para>
+     If you are not yet familiar with OpenDJ directory server installation,
+     read the
+     <link
+      xlink:href="install-guide#install-guide"
+      xlink:role="http://docbook.org/xlink/role/olink"
+      xlink:show="new"
+     ><citetitle>Installation Guide</citetitle></link> first.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Using command-line tools
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     LDAP and directory services
+    </para>
+   </listitem>
+<!--
+  </itemizedlist>
+
+  <itemizedlist>
+   <para>
+    This guide is written with the assumption that readers of the chapters
+    that show how to access OpenDJ directory server and to use the tools
+    are familiar with the following topics:
+   </para>
+-->
+
+   <listitem>
+    <para>
+     Basic OpenDJ server configuration
+    </para>
+
+    <para>
+     Some examples in this guide require OpenDJ configuration steps.
+    </para>
+  </listitem>
+
+   <listitem>
+    <para>
+     HTTP, JavaScript Object Notation (JSON), and web applications
+    </para>
+   </listitem>
+  </itemizedlist>
+
+<!--
+  <para>
+   This guide is written with the assumption that readers of the chapters
+   that show how to extend and to embed OpenDJ directory server
+   are familiar with writing applications in the Java programming language.
+  </para>
+-->
+ </section>
+
+ <xinclude:include href="../shared/sec-formatting-conventions.xml" />
+ <xinclude:include href="../shared/sec-accessing-doc-online.xml" />
+ <xinclude:include href="../shared/sec-joining-the-community.xml" />
+</preface>

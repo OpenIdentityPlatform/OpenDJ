@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -24,38 +23,43 @@
   !    
 -->
 <chapter xml:id='chap-ldap-operations'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Performing LDAP Operations</title>
 
- <para>OpenDJ comes with a Control Panel browser for managing entries and also
- command-line tools for performing LDAP operations. This chapter demonstrates
- how to use the command line tools to script LDAP operations.</para>
+ <para>
+  OpenDJ directory server includes the OpenDJ Control Panel browser
+  and also command-line tools for performing LDAP operations.
+  In this chapter, you will learn how to use the command line tools
+  to perform LDAP operations.
+ </para>
  
+ <xinclude:include href="../shared/sec-cli-overview.xml" />
+
  <section xml:id="search-ldap">
   <title>Searching the Directory</title>
   <indexterm><primary>Searching data</primary></indexterm>
   
-  <para>Searching the directory resembles searching for a phone number in
+  <para>Searching the directory is akin to searching for a phone number in
   a paper phone book. You can look up a phone number because you know the
   last name of a subscriber's entry. In other words, you use the value of
   one attribute of the entry to find entries that have another attribute
   you want.</para>
   
-  <para>Yet whereas a paper phone book has only one index (alphabetical order
-  by name), the directory has many indexes. For a search you therefore always
+  <para>Whereas a paper phone book has only one index (alphabetical order
+  by name), the directory has many indexes. When performing a search, you always
   specify which index to use, by specifying which attribute(s) you are using
   to lookup entries.</para>
   
   <para>Your paper phone book might be divided into white pages for residential
-  subscribers, and yellow pages for businesses. If you are looking up an
+  subscribers and yellow pages for businesses. If you are looking up an
   individual's phone number, you limit your search to the white pages.
   Directory services divide entries in various ways, often to separate
-  organizations, and to separate groups from user entries from printers for
+  organizations, and to separate groups from user entries from printers, for
   example, but potentially in other ways. When searching you therefore also
   specify where in the directory to search.</para>
   
@@ -73,7 +77,7 @@
    you might specify the base DN as
    <literal>ou=Printers,dc=example,dc=com</literal>.
    Perhaps you are visiting the <literal>GNB00</literal> office
-   and are looking for a printer.
+   and are looking for a printer as shown in the following example.
   </para>
   
   <screen>
@@ -81,11 +85,11 @@ $ <userinput>ldapsearch --baseDN ou=Printers,dc=example,dc=com "(printerLocation
   </screen>
   
   <para>In the example, the LDAP filter indicates to the directory that you
-  want to lookup printer entries where the <literal>printerLocation</literal>
+  want to look up printer entries where the <literal>printerLocation</literal>
   attribute is equal to <literal>GNB00</literal>.</para>
 
   <para>You also specify the host and port to access directory services,
-  what protocol to use (for example, LDAP/SSL, or StartTLS to protect
+  and the type of protocol to use (for example, LDAP/SSL, or StartTLS to protect
   communication). If the directory service does not allow anonymous access
   to the data you want to search, you also identify who is performing the
   search and provide their credentials, such as a password or
@@ -106,11 +110,11 @@ $ <userinput>ldapsearch --baseDN ou=Printers,dc=example,dc=com "(printerLocation
   </itemizedlist>
   
   <example xml:id="simple-filter-search">
-   <title>Search: Simple Filter</title>
+   <title>Search: Using Simple Filters</title>
    
    <para>The following example searches for entries with user IDs
    (<literal>uid</literal>) containing <literal>jensen</literal>, returning
-   only DNs and user ID values.</para>
+   only DNs and user ID values:</para>
    
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*jensen*)" uid</userinput>
@@ -141,12 +145,10 @@ Result Code:  0 (Success)</computeroutput>
   </example>
   
   <example xml:id="complex-filter-search">
-   <title>Search: Complex Filter</title>
+   <title>Search: Using Complex Filters</title>
    
    <para>The following example returns entries with <literal>uid</literal>
-   containing <literal>jensen</literal> for users located in Santa Clara. The
-   command returns the attributes associated with the <literal>person</literal>
-   object class.</para>
+   containing <literal>jensen</literal> for users located in Santa Clara:</para>
    
    <screen>
 $ <userinput>ldapsearch \
@@ -195,6 +197,11 @@ telephoneNumber: +1 408 555 8622
 sn: Jensen
 </computeroutput>
 </screen>
+
+   <para>
+    The command returns the attributes associated with
+    the <literal>person</literal> object class.
+   </para>
    
    <para>Complex filters can use both "and" syntax,
    <literal>(&amp;(<replaceable>filtercomp</replaceable>)(<replaceable>filtercomp</replaceable>))</literal>,
@@ -206,8 +213,7 @@ sn: Jensen
    <title>Search: Return Operational Attributes</title>
    
    <para>Use <literal>+</literal> in the attribute list after the filter
-   to return all operational attributes. Alternatively, specify operational
-   attributes by name.</para>
+   to return all operational attributes, as in the following example:</para>
    
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen +</userinput>
@@ -220,14 +226,18 @@ hasSubordinates: false
 entryDN: uid=bjensen,ou=people,dc=example,dc=com
 entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</computeroutput>
    </screen>
+
+   <para>
+    Alternatively, specify operational attributes by name.
+   </para>
   </example>
   
   <example xml:id="attr-desc-list-search">
-   <title>Search: Return Attributes for an Object Class</title>
+   <title>Search: Returning Attributes for an Object Class</title>
    
    <para>Use <literal>@<replaceable>objectClass</replaceable></literal> in the
    attribute list after the filter to return the attributes associated with
-   a particular object class.</para>
+   a particular object class as in the following example:</para>
    
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen @person</userinput>
@@ -276,7 +286,7 @@ sn: Jensen</computeroutput>
    </itemizedlist>
 
    <para>The following example shows a filter with escaped characters matching
-   an actual value.</para>
+   an actual value:</para>
 
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com \
@@ -287,24 +297,27 @@ description: (A \great\ description*)</computeroutput>
   </example>
 
   <example xml:id="extensible-match-search"><?dbfo keep-together="auto"?>
-   <title>Search: List Active Accounts</title>
+   <title>Search: Listing Active Accounts</title>
 
    <para>OpenDJ supports extensible matching rules, meaning you can pass in
    filters specifying a matching rule OID that extends your search beyond what
-   you can do with standard LDAP. One specific matching rule of this type that
+   you accomplish with standard LDAP. One specific matching rule of this type that
    OpenDJ supports is the generalized time based "later than" and "earlier
    than" matching rules. See the example, <link
     xlink:show="new"
     xlink:role="http://docbook.org/xlink/role/olink"
     xlink:href="admin-guide#extensible-match-index-example"><citetitle>Configure
-   an Extensible Match Index</citetitle></link>, showing how to build an index
+   an Extensible Match Index</citetitle></link>, which shows how to build an index
    for these matching rules.</para>
 
    <para>You can use these matching rules to list, for example, all users who
    have authenticated recently.</para>
 
-   <para>First set up an attribute to store a last login timestamp.
-   You can do this by adding a schema file for the attribute.</para>
+   <para>
+    First set up an attribute to store a last login timestamp.
+    You can do this by adding a schema file for the attribute
+    as in the following example.
+   </para>
 
    <screen>
 $ <userinput>ldapmodify \
@@ -330,11 +343,14 @@ attributeTypes: ( lastLoginTime-oid
 MODIFY operation successful for DN cn=schema</computeroutput>
    </screen>
 
-   <para>Configure the applicable password policy to write the last login
-   timestamp when a user authenticates. The following command configures the
-   default password policy to write the timestamp in generalized time format
-   to the <literal>lastLoginTime</literal> operational attribute on the user's
-   entry.</para>
+   <para>
+    Configure the applicable password policy to write
+    the last login timestamp when a user authenticates.
+    The following command configures the default password policy
+    to write the timestamp in generalized time format
+    to the <literal>lastLoginTime</literal> operational attribute
+    on the user's entry.
+   </para>
 
    <screen>
 $ <userinput>dsconfig \
@@ -350,10 +366,13 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
    </screen>
 
-   <para>Wait a while for users to authenticate again (or test it yourself) so
-   that OpenDJ writes the timestamps. The following search then returns users
-   who have authenticated in the last three months (13 weeks) after you
-   configured OpenDJ to keep the last login timestamps.</para>
+   <para>
+    Wait for users to authenticate again (or test it yourself)
+    so that OpenDJ writes the timestamps.
+    The following search then returns users who have authenticated
+    in the last three months (13 weeks) after you configured OpenDJ
+    to keep the last login timestamps.
+   </para>
 
    <screen>
 $ <userinput>ldapsearch \
@@ -369,7 +388,7 @@ mail: kvaughan@example.com</computeroutput>
   </example>
 
   <example xml:id="localized-search"><?dbfo keep-together="auto"?>
-   <title>Search: Language Subtype</title>
+   <title>Search: Using Language Subtypes</title>
 
    <para>OpenDJ directory server supports many language subtypes. See the
    chapter on <link xlink:href="reference#appendix-l10n"
@@ -380,7 +399,7 @@ mail: kvaughan@example.com</computeroutput>
    OID or by language subtype string. For example, the following search gets
    the French version of a common name. The example uses the
    <command>base64</command> command provided with OpenDJ directory server to
-   decode the attribute value.</para>
+   decode the attribute value:</para>
 
    <screen>
 $ <userinput>ldapsearch \
@@ -395,7 +414,7 @@ $ <userinput>base64 decode -d RnJlZMOpcmlxdWUgRHVwb250</userinput>
    </screen>
 
    <itemizedlist>
-    <para>At the end of the OID or language subtype, you further specify the
+    <para>At the end of the OID or language subtype, further specify the
     matching rule as follows:</para>
     <listitem>
      <para>Add <literal>.1</literal> for less than</para>
@@ -419,7 +438,7 @@ $ <userinput>base64 decode -d RnJlZMOpcmlxdWUgRHVwb250</userinput>
   </example>
 
   <para>The following table describes the operators you can use in LDAP search
-  filters.</para>
+  filters:</para>
   <xinclude:include href="../shared/table-filter-operators.xml" />
  </section>
 
@@ -484,7 +503,7 @@ Compare operation returned true for entry
    and export data.</para>
    
    <example xml:id="add-two-users">
-   <title>Add: Two New Users</title>
+   <title>Adding Two New Users</title>
    
    <screen>
 $ <userinput>cat new-users.ldif</userinput>
@@ -528,8 +547,8 @@ ADD operation successful for DN
   <example xml:id="modify-add-attribute">
    <title>Modify: Adding Attributes</title>
    
-   <para>The following example adds a description and JPEG photo to Sam
-   Carter's entry.</para>
+   <para>The following example shows you how to add a description and JPEG photo to Sam
+   Carter's entry:</para>
    
    <screen>
 $ <userinput>cat scarter-mods.ldif</userinput>
@@ -555,7 +574,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
    <title>Modify: Changing an Attribute Value</title>
    
    <para>The following example replaces the description on Sam Carter's
-   entry.</para>
+   entry:</para>
    
    <screen>
 $ <userinput>cat scarter-newdesc.ldif</userinput>
@@ -578,7 +597,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
    <title>Modify: Deleting an Attribute Value</title>
    
    <para>The following example deletes the JPEG photo on Sam Carter's
-   entry.</para>
+   entry:</para>
    
    <screen>
 $ <userinput>cat /path/to/scarter-deljpeg.ldif</userinput>
@@ -597,14 +616,13 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
   </example>
 
    <example xml:id="modify-optimistic-concurrency"><?dbfo keep-together="auto"?>
-    <title>Modify: Optimistic Concurrency</title>
+    <title>Modify: Using Optimistic Concurrency</title>
 
     <para>Imagine you are writing an application that lets end users update
     user profiles through a browser. You store user profiles as OpenDJ entries.
     Your end users can look up user profiles and modify them. Your application
     assumes that the end users can tell the right information when they see it,
-    and so aims to update profiles exactly as users see them on their
-    screens.</para>
+    and updates profiles exactly as users see them on their screens.</para>
 
     <para>Consider two users, Alice and Bob, both busy and often interrupted.
     Alice has Babs Jensen's new phone and room numbers. Bob has Babs's new
@@ -613,7 +631,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
     applies the right changes when Alice and Bob simulaneously update Babs
     Jensen's profile?</para>
 
-    <para>OpenDJ offers a couple of features to help you in this situation.
+    <para>OpenDJ includes two features to help you in this situation.
     One of the features is the <link
     xlink:role="http://docbook.org/xlink/role/olink"
     xlink:href="reference#assertion-request-control">LDAP Assertion
@@ -624,7 +642,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
     check whether the entry in the directory is the same as the entry you
     read.</para>
 
-    <para>Alice and Bob both get Babs's entry. In LDIF the relevant
+    <para>Alice and Bob both get Babs's entry. In LDIF, the relevant
     attributes from the entry look like this. Notice the ETag.</para>
 
     <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -638,7 +656,7 @@ ETag: 000000007a1999df</programlisting>
     a few questions.</para>
 
     <para>Alice starts just after Bob, but manages to submit her changes
-    without getting interrupted. Now Babs's entry looks like this.</para>
+    without interruption. Now Babs's entry looks like this.</para>
 
     <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
 description: Updated by Alice
@@ -648,7 +666,7 @@ l: Cupertino
 ETag: 00000000aec2c1e9</programlisting>
 
     <para>In your application, you use the ETag attribute value with the
-    assertion control to prevent Bob's update from going through when the
+    assertion control to prevent Bob's update from succeeding although the
     ETag value has changed. Your application tries the equivalent of the
     following commands with Bob's updates.</para>
 
@@ -676,8 +694,8 @@ Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com
  and the associated filter did not match the contents of the that entry</computeroutput>
     </screen>
 
-    <para>Your application therefore reloads Babs's entry, also getting the new
-    ETag value, <literal>00000000aec2c1e9</literal>, and lets Bob try again.
+    <para>Your application reloads Babs's entry, gets the new ETag value
+    <literal>00000000aec2c1e9</literal>, and lets Bob try again.
     This time Bob's changes do not collide with other changes. Babs's entry is
     successfully updated.</para>
 
@@ -691,7 +709,7 @@ ETag: 00000000e882c35e</programlisting>
   </section>
 
   <section xml:id="filter-adds-modifies">
-   <title>Filtering Add &amp; Modify Operations</title>
+   <title>Filtering Add and Modify Operations</title>
    <indexterm>
     <primary>Updating data</primary>
     <secondary>Filtering</secondary>
@@ -702,12 +720,12 @@ ETag: 00000000e882c35e</programlisting>
    applications might try to update attributes they should not update, such
    as the operational attributes <literal>creatorsName</literal>,
    <literal>createTimestamp</literal>, <literal>modifiersName</literal>,
-   and <literal>modifyTimestamp</literal>. Ideally you would fix the client
+   and <literal>modifyTimestamp</literal>. Ideally, you would fix the client
    application behavior, but that is not always feasible.</para>
    
    <para>You can configure the attribute cleanup plugin to filter add and
-   modify requests, renaming attributes in requests using incorrect names,
-   and removing attributes that applications should not change.</para>
+   modify requests, rename attributes in requests using incorrect names,
+   and remove attributes that applications should not change.</para>
    
    <example xml:id="attr-cleanup-rename">
     <title>Renaming Incoming Attributes</title>
@@ -731,7 +749,7 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
     </screen>
     
-    <para>Next, see that it works as expected.</para>
+    <para>Next, confirm that it worked as expected.</para>
     
     <screen>$ <userinput>cat email.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
@@ -788,7 +806,7 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
     </screen>
     
-    <para>Next, see that it works as expected.</para>
+    <para>Next, confirm that it worked as expected.</para>
     
     <screen>
 $ <userinput>cat badattrs.ldif</userinput>
@@ -837,24 +855,23 @@ createTimestamp: 20110930165959Z</computeroutput>
    <title>Renaming Entries</title>
    
    <para>The Relative Distinguished Name (RDN) refers to the part of an
-   entry's DN that distinguishes it from all other DNs at the same level
+   entry's DN that differentiates it from all other DNs at the same level
    in the directory tree. For example <literal>uid=bjensen</literal> is
-   the RDN of the entry having DN
+   the RDN of the entry with the DN
    <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
    
    <para>With the <command>ldapmodify</command> command, authorized users
    can rename entries in the directory.</para>
 
    <para>When you change the RDN of the entry, you are renaming the entry,
-   modifying the value of the naming attribute, but also modifying the entry's
-   DN.</para>
+   modifying the value of the naming attribute and the entry's DN.</para>
    
    <example xml:id="rename-modrdn">
     <title>Rename: Modifying the DN</title>
     
     <para>Sam Carter is changing her last name to Jensen, and changing her
     login from <literal>scarter</literal> to <literal>sjensen</literal>.
-    The following example renames and changes Sam Carter's entry accordingly.
+    The following example shows you how to rename and change Sam Carter's entry.
     Notice the boolean field, <literal>deleteoldrdn: 1</literal>, which
     indicates that the previous RDN, <literal>uid: scarter</literal>, should
     be removed. (Setting <literal>deleteoldrdn: 0</literal> instead would
@@ -898,11 +915,11 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</comp
    <title>Moving Entries</title>
 
    <para>When you rename an entry with child entries, the directory has
-   to move all the entries underneath.</para>
+   to move all the entries underneath it.</para>
    
    <note>
     <para>The modify DN operation only works when moving entries in the same
-    backend, under the same suffix. Also, depending on the number of entries
+    back end, under the same suffix. Also, depending on the number of entries
     you move, this can be a resource-intensive operation.</para>
    </note>
      
@@ -915,14 +932,14 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</comp
     
     <para>The following example moves
     <literal>ou=Customers,dc=example,dc=com</literal> to
-    <literal>ou=People,dc=example,dc=com</literal>, and then moves each
+    <literal>ou=People,dc=example,dc=com</literal>, then moves each
     employee under <literal>ou=Employees,dc=example,dc=com</literal>
-    under <literal>ou=People,dc=example,dc=com</literal> as well, finally
-    removing the empty <literal>ou=Employees,dc=example,dc=com</literal>
+    under <literal>ou=People,dc=example,dc=com</literal> as well, and finally
+    removes the empty <literal>ou=Employees,dc=example,dc=com</literal>
     container. Here, <literal>deleteoldrdn: 1</literal> indicates that the
     old RDN, <literal>ou: Customers</literal>, should be removed from the
     entry. For employees, <literal>deleteoldrdn: 0</literal> indicates that
-    old RDNs, in this case <literal>uid</literal> attribute values, should
+    old RDNs, in this case, <literal>uid</literal> attribute values, should
     be preserved.</para>
     
     <screen>
@@ -996,8 +1013,8 @@ DELETE operation successful for DN ou=Employees,dc=example,dc=com</computeroutpu
    <example xml:id="delete-subtree">
     <title>Delete: Removing a Subtree</title>
     
-    <para>The following example uses the subtree delete option to remove
-    all Special Users from the directory.</para>
+    <para>The following example shows you how to use the subtree delete option
+    to remove all special users from the directory.</para>
     
     <screen>
 $ <userinput>ldapdelete \
@@ -1027,7 +1044,7 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</computero
   </para>
   
   <example xml:id="password-reset">
-   <title>Password Reset</title>
+   <title>Resetting Passwords</title>
    <indexterm>
     <primary>Resetting passwords</primary>
    </indexterm>
@@ -1053,11 +1070,11 @@ $ <userinput>ldappasswordmodify \
      the LDAP Password Modify extended operation.
      If this extended operation is performed on a connection
      that is already associated with a user
-     &#8212;in other words, when a user first does a bind on the connection,
-     and then requests the LDAP Password Modify extended operation&#8212;
+     (in other words, when a user first does a bind on the connection,
+     then requests the LDAP Password Modify extended operation)
      then the operation is performed as the user associated with the connection.
      If the user associated with the connection
-     is not the user whose password is being changed,
+     is not the same user whose password is being changed,
      then OpenDJ considers it a password reset.
     </para>
 
@@ -1076,9 +1093,8 @@ $ <userinput>ldappasswordmodify \
     </para>
 
     <para>
-     To change the password as the user, you can
-     bind as the user whose password should be changed,
-     use the
+     To change the password as the user,
+     bind as the user whose password should be changed, and use the
      <link
       xlink:show="new"
       xlink:href="http://tools.ietf.org/html/rfc3062"
@@ -1088,14 +1104,14 @@ $ <userinput>ldappasswordmodify \
      For instructions on using proxied authorization, see the section on
      <link
       xlink:show="new"
-      xlink:href="admin-guide#proxied-authz"
+      xlink:href="server-dev-guide#proxied-authz"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><citetitle>Configuring Proxied Authorization</citetitle></link>.
     </para>
    </tip>
 
    <para>
-    You could also accomplish password reset with the
+    You could also accomplish a password reset with the
     <link
      xlink:show="new"
      xlink:href="reference#manage-account-1"
@@ -1116,7 +1132,7 @@ $ <userinput>manage-account \
   </example>
   
   <example xml:id="change-own-password">
-   <title>Change Own Password</title>
+   <title>Changing One's Own Password</title>
    
    <para>You can use the <command>ldappasswordmodify</command> command to
    change your password, as long as you know your current password.</para>
@@ -1144,7 +1160,7 @@ $ <userinput>ldappasswordmodify \
   </example>
 
   <example xml:id="non-ascii-password">
-   <title>Passwords With Special Characters</title>
+   <title>Changing Passwords With Special Characters</title>
 
    <para>OpenDJ expects passwords to be UTF-8 encoded (base64 encoded when
    included in LDIF).</para>
@@ -1200,20 +1216,20 @@ ldapsearch.port=1389</programlisting>
 
   <para>Authentication is the act of confirming the identity of a principal.
   Authorization is the act of determining whether to grant or to deny access to
-  a principal. Authentication is done to make authorization decisions.</para>
+  a principal. Authentication is performed to make authorization decisions.</para>
 
   <para>As explained in <link xlink:href="admin-guide#chap-privileges-acis"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
   Privileges &amp; Access Control</citetitle></link>, OpenDJ directory server
-  implements fine-grained access control for authorization. What is authorized
-  depends on who is requesting the operation. Directory servers like OpenDJ must
-  first therefore authenticate the principals using the clients before they can
-  authorize or deny access. The LDAP bind operation, where a directory client
-  authenticates with the directory server, is therefore the first LDAP operation
-  in every LDAP session.</para>
+  implements fine-grained access control for authorization.
+  Authorization for an operation depends on who is requesting the operation.
+  Directory servers must therefore authenticate a principal
+  before they can authorize or deny access for particular operations.
+  In LDAP, the bind operation authenticates the principal.
+  The first LDAP operation in every LDAP session is generally a bind.</para>
 
   <para>Clients bind by providing both a means to find their principal's entry
-  in the directory and also providing some credentials that the directory server
+  in the directory and also by providing some credentials that the directory server
   can check against their entry.</para>
 
   <para>In the simplest bind operation, the client provides a zero-length
@@ -1221,8 +1237,9 @@ ldapsearch.port=1389</programlisting>
   the client is authenticated as an anonymous user of the directory. In the
   simplest examples in <xref linkend="search-ldap" />, notice that no
   authentication information is provided. The examples work because the
-  client commands default to requesting anonymous binds when you provide no
-  credentials, and because access controls for the sample data allow anonymous
+  client commands default to requesting anonymous binds
+  when no credentials are provided,
+  and because access controls for the sample data allow anonymous
   clients to read, search, and compare some directory data.</para>
 
   <para>In a simple bind operation, the client provides an LDAP name, such as
@@ -1231,14 +1248,14 @@ ldapsearch.port=1389</programlisting>
   <xref linkend="write-ldap" />, notice that to change directory data the
   client provides the bind DN and bind password of a user who has permission
   to change directory data. The commands do not work with a bind DN and bind
-  password because access controls for the sample data only allow authorized
-  users to change directory data.</para>
+  password because access controls for the sample data only let authorized
+  users change directory data.</para>
 
-  <para>Users rarely provide client applications with DNs, however. Instead
+  <para>Users rarely provide client applications with DNs, however. Instead,
   users might provide a client application with an identity string like a user
   ID or an email address for example. Depending on how the DNs are constructed,
   the client application can either build the DN directly from the user's
-  identity string, or use a session where the bind has been done with some
+  identity string, or use a session where the bind has been performed with some
   other identity to search for the user entry based on the user's identity
   string. Given the DN constructed or found, the client application can then
   perform a simple bind.</para>
@@ -1249,17 +1266,17 @@ ldapsearch.port=1389</programlisting>
   <literal>(mail=bjensen@example.com)</literal> under base DN
   <literal>dc=example,dc=com</literal>. Alternatively, the client application
   might know to extract the user ID <literal>bjensen</literal> from the address,
-  and then build the corresponding DN,
+  then build the corresponding DN,
   <literal>uid=bjensen,ou=people,dc=example,dc=com</literal> in order to
   bind.</para>
 
   <indexterm><primary>Identity mappers</primary></indexterm>
-  <para>When an identifier string provided by the user can readily be mapped to
-  the user's entry DN, OpenDJ directory server can do the translation between
+  <para>When an identifier string provided by the user can be readily mapped to
+  the user's entry DN, OpenDJ directory server can translate between
   the identifier string and the entry DN. This translation is the job of a
   component called an identity mapper. Identity mappers are used to perform
   PLAIN SASL authentication (with a user name and password), SASL GSSAPI
-  authentication (Kerberos V5), SASL CRAM MD5 and DIGEST MD5 authentication.
+  authentication (Kerberos V5), SASL CRAM MD5, and DIGEST MD5 authentication.
   They also handle authorization IDs during password modify extended operations
   and proxied authorization.</para>
 
@@ -1290,7 +1307,7 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   provided (here, <literal>bjensen</literal>) and the value of a specified
   attribute (by default the <literal>uid</literal> attribute). If
   you know users are entering their email addresses, you could create an
-  exact match identity mapper for email addresses, and then use that for PLAIN
+  exact match identity mapper for email addresses, then use that for PLAIN
   SASL authentication as in the following example.</para>
 
   <screen>
@@ -1330,9 +1347,10 @@ cn: Babs Jensen
 userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   </screen>
 
-  <para>The Regular Expression identity mapper uses a regular expression to
-  extract a substring from the string provided, and then searches for a match
-  between the substring and the value of a specified attribute. In the case
+  <para>OpenDJ directory server's Regular Expression identity mapper
+  uses a regular expression to extract a substring from the string provided,
+  then searches for a match between the substring
+  and the value of a specified attribute. In the case
   of example data where an email address is <replaceable>user ID</replaceable>
   + @ + <replaceable>domain</replaceable>, you can use the default Regular
   Expression identity mapper in the same way as the email mapper from the
@@ -1379,16 +1397,15 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   xlink:href='http://tools.ietf.org/html/rfc4370'>RFC 4370</link> (and an
   earlier Internet-Draft) for binding with the user credentials of a proxy, who
   carries out LDAP operations on behalf of other users. You might use proxied
-  authorization, for example, to have your application bind with its
-  credentials, and then carry out operations as the users who login to the
-  application.</para>
+  authorization, for example, to bind your application with its credentials,
+  then carry out operations as the users who login to the application.</para>
   
   <para>Suppose you have an administrative directory client application that
   has an entry in the directory with DN
   <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>. You can give that
   application the access rights and privileges to use proxied authorization.
-  The default access control for OpenDJ permits authenticated users to use
-  the proxied authorization control.</para>
+  The default access control for OpenDJ lets authenticated users
+  use the proxied authorization control.</para>
   
   <para>Suppose also that when directory administrator, Kirsten Vaughan, logs
   in to your application to change Babs Jensen's entry, your application looks
@@ -1398,7 +1415,7 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   make a change to Babs's entry as Kirsten.</para>
   
   <procedure xml:id="setup-proxied-authz">
-   <title>To Set Up Proxied Authorization</title>
+   <title>To Configure Proxied Authorization</title>
    <step>
     <para>Grant access to applications that can use proxied authorization.</para>
 
@@ -1461,10 +1478,11 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
   <literal>u:</literal> form rather than using <literal>dn:</literal>, you can
   set the identity mapper with the global configuration setting,
   <literal>proxied-authorization-identity-mapper</literal>. For example, if you
-  get user ID values from the client, such as <literal>bjensen</literal>, you
-  can use the Exact Match Identity Mapper to match those to DNs based on an
-  attribute of the entry. Use the <command>dsconfig</command> command
-  interactively to investigate the settings you need.</para>
+  get user ID values from the client, such as <literal>bjensen</literal>,
+  you can configure OpenDJ directory server to use the Exact Match Identity Mapper
+  to match those to DNs based on an attribute of the entry.
+  Use the <command>dsconfig</command> command
+  interactively to determine the settings you need.</para>
  </section>
 
  <section xml:id="client-cert-auth">
@@ -1474,17 +1492,17 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
   <indexterm><primary>SSL</primary></indexterm>
 
   <para>One alternative to simple binds with user name/password combinations
-  consists in storing a digital certificate on the user entry, and then using
-  the certificate as credentials during the bind. You can use this mechanism for
-  example to let applications bind without using passwords.</para>
+  consists of storing a digital certificate on the user entry, then using
+  the certificate as credentials during the bind. You can use this mechanism, for
+  example, to let applications bind without using passwords.</para>
 
-  <para>Simply by setting up a secure connection with a certificate, the client
+  <para>By setting up a secure connection with a certificate, the client
   is in effect authenticating to the server. The server must close the
   connection if it cannot trust the client certificate. However, the process
   of establishing a secure connection does not in itself identify the client
   to OpenDJ directory server.</para>
 
-  <para>Instead when binding with a certificate, the client must request the
+  <para>Instead, when binding with a certificate, the client must request the
   SASL External mechanism by which OpenDJ directory server maps the certificate
   to the client entry in the directory. When it finds a match, OpenDJ sets the
   authorization identity for the connection to that of the client, and the bind
@@ -1528,8 +1546,8 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
   <procedure xml:id="add-client-cert">
    <title>To Add Certificate Information to an Entry</title>
 
-   <para>Before trying to bind to OpenDJ directory server using a certificate,
-   create a certificate, and then add the certificate attributes to the
+   <para>Before you try to bind to OpenDJ directory server using a certificate,
+   create a certificate, then add the certificate attributes to the
    entry.</para>
 
    <para><link xlink:href="http://opendj.forgerock.org/Example.ldif"
@@ -1634,13 +1652,13 @@ $ <userinput>keytool \
     <para>By default, you need the <literal>userCertificate</literal>
     value.</para>
 
-    <para>If you want OpenDJ to map the certificate to its fingerprint, use
-    <literal>ds-certificate-fingerprint</literal>. This example uses the MD5
+    <para>If you want OpenDJ to map the certificate to its fingerprint, use the
+    <literal>ds-certificate-fingerprint</literal> attribute. This example uses the MD5
     fingerprint, which corresponds to the default setting for the Fingerprint
     Certificate Mapper.</para>
 
     <para>If you want to map the certificate subject DN to an attribute of the
-    entry, use <literal>ds-certificate-subject-dn</literal>.</para>
+    entry, use the <literal>ds-certificate-subject-dn</literal> attribute.</para>
 
     <screen>
 $ <userinput>cat addcert.ldif</userinput>
@@ -1711,9 +1729,9 @@ sn: App</computeroutput>
     into the trust store for OpenDJ.</para>
 
     <para>When the client presents its certificate to OpenDJ, by default OpenDJ
-    has to be able to trust the client certificate before it can accept the
-    connection. If OpenDJ cannot trust the client certificate, it cannot
-    establish a secure connection.</para>
+    must trust the client certificate before it can accept the connection.
+    If OpenDJ cannot trust the client certificate,
+    it cannot establish a secure connection.</para>
 
     <screen>
 $ <userinput>keytool \
@@ -1816,7 +1834,7 @@ Trust this certificate? [no]:</computeroutput>  <userinput>yes</userinput>
 
    <step>
     <para>If you updated the OpenDJ trust store to add a certificate, restart
-    OpenDJ to make sure it reads the updated trust store and can recognize the
+    OpenDJ to make sure it reads the updated trust store and recognizes the
     certificate.</para>
 
     <screen>
@@ -2131,7 +2149,7 @@ $ <userinput>cp /path/to/<replaceable>pkcs12-store</replaceable> /path/to/opendj
     </para>
 
     <para>
-     In the following example the store password is <literal>changeit</literal>.
+     In the following example, the store password is <literal>changeit</literal>.
     </para>
 
     <screen>
@@ -2318,7 +2336,7 @@ $ <userinput>dsconfig \
     <para>Set the External SASL Mechanism Handler to use the appropriate
     certificate mapper (default: Subject Equals DN).</para>
 
-    <para>Clients applications use the SASL External mechanism during the bind
+    <para>Client applications use the SASL External mechanism during the bind
     to have OpenDJ set the authorization identifier based on the entry that
     matches the client certificate.</para>
 
@@ -2337,12 +2355,12 @@ $ <userinput>dsconfig \
   </procedure>
 
   <example xml:id="auth-with-client-cert"><?dbfo keep-together="auto"?>
-   <title>Authenticate With Client Certificate</title>
+   <title>Authenticating With Client Certificates</title>
 
    <para>Instead of providing a bind DN and password as for simple
    authentication, use the SASL EXTERNAL authentication mechanism, and provide
-   the certificate. As a test with example data you can try an anonymous search,
-   and then try with certificate-based authentication.</para>
+   the certificate. As a test with example data, you can try an anonymous search,
+   then try with certificate-based authentication.</para>
 
    <para>Before you try this example, make sure OpenDJ is set up to accept
    StartTLS from clients, and that you have set up the client certificate
@@ -2378,7 +2396,7 @@ $ <userinput>keytool \
    </screen>
 
    <para>If OpenDJ directory server uses a CA-signed certificate, but the CA is
-   not well known, import the CA certificate into your keystore.</para>
+   not well-known, import the CA certificate into your keystore.</para>
 
    <screen>
 $ <userinput>keytool \

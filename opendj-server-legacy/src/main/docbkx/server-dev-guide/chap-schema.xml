@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<chapter xml:id="chap-schema"
+         xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xinclude="http://www.w3.org/2001/XInclude">
+ <title>Using LDAP Schema</title>
+ <indexterm><primary>Schema</primary></indexterm>
+
+ <para>
+  LDAP services are based on X.500 Directory Services,
+  which are telecommunications standards.
+  In telecommunications, interoperability is paramount.
+  Competitors must cooperate to the extent that they use each others' systems.
+  For directory services, the protocols for exchanging data
+  and the descriptions of the data are standardized.
+  LDAP defines <firstterm>schema</firstterm> that describe both
+  what attributes a given LDAP entry must have and may optionally have,
+  and also what attribute values can contain and how they can be matched.
+  Formal schema definitions protect interoperability when many applications
+  read and write to the same directory service.
+  Directory data are much easier to share
+  as long as you understand how to use LDAP schema.
+ </para>
+
+ <para>
+  The <citetitle>Administration Guide</citetitle> chapter on
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#chap-schema"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><citetitle>Managing Schema</citetitle></link>
+  covers LDAP schema from the server administrator's perspective.
+  Administrators can update LDAP directory schema.
+  OpenDJ directory server includes
+  a large number of standard schema definitions available by default.
+  Administrators can also adjust how strictly OpenDJ directory server
+  applies schema definitions.
+ </para>
+
+ <para>
+  This chapter covers LDAP schema from the script developer's perspective.
+  As a script developer, you use the available schema
+  and accept the server's application of schema when updating directory entries.
+ </para>
+
+ <itemizedlist>
+  <para>
+   In this chapter you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    Look up available schemas
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Understand what the schemas allow
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Understand and resolve errors that arise due to schema violations
+   </para>
+  </listitem>
+ </itemizedlist>
+
+ <section xml:id="getting-schema-information">
+  <title>Getting Schema Information</title>
+
+  <indexterm>
+   <primary>Schema</primary>
+   <secondary>Reading definitions</secondary>
+  </indexterm>
+
+  <para>
+   Directory servers publish information about services they provide
+   as operational attributes of the <firstterm>root DSE</firstterm>.
+   The root DSE is the entry with an empty string DN, <literal>""</literal>.
+   DSE stands for DSA-Specific Entry.
+   DSA stands for Directory System Agent.
+   The DSE differs by server, but is generally nearly identical for replicas.
+  </para>
+
+  <para>
+   OpenDJ directory server publishes the DN
+   of the entry holding schema definitions as the value of the attribute
+   <literal>subschemaSubentry</literal>
+   as shown in <xref linkend="example-finding-schema" />.
+  </para>
+
+  <example xml:id="example-finding-schema">
+   <title>Finding the Schema Entry</title>
+
+   <para>
+    Look up the schema DN:
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN "" --searchScope base "(&amp;)" subschemaSubentry</userinput>
+<computeroutput>dn:
+subschemaSubentry: cn=schema</computeroutput>
+   </screen>
+
+   <para>
+    By default, the DN for the schema entry is <literal>cn=schema</literal>.
+   </para>
+  </example>
+
+  <variablelist>
+   <para>
+    The schema entry has the following attributes
+    whose values are schema definitions:
+   </para>
+
+   <varlistentry>
+    <term><literal>attributeTypes</literal></term>
+    <listitem>
+     <para>
+      <firstterm>Attribute type</firstterm> definitions describe
+      attributes of directory entries,
+      such as <literal>givenName</literal> or <literal>mail</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>objectClasses</literal></term>
+    <listitem>
+     <para>
+      <firstterm>Object class</firstterm> definitions identify
+      the attribute types that an entry must have, and may have.
+      Examples of object classes include
+      <literal>person</literal> and <literal>organizationalUnit</literal>.
+      Object classes inherit from other object classes.
+      For example, <literal>inetOrgPerson</literal> inherits
+      from <literal>person</literal>.
+     </para>
+
+     <para>
+      Object classes are specified as values of an entry's
+      <literal>objectClass</literal> attribute.
+     </para>
+
+     <itemizedlist>
+      <para>
+       An object class can be one of the following:
+      </para>
+
+      <listitem>
+       <para>
+        <firstterm>Structural</firstterm> object classes define
+        the core structure of the entry,
+        generally representing a real-world object.
+       </para>
+
+       <para>
+        By default, OpenDJ directory entries have
+        a single structural object class
+        or at least a single line of structural object class inheritance.
+       </para>
+
+       <para>
+        The <literal>person</literal> object class is structural, for example.
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <firstterm>Auxiliary</firstterm> object classes define
+        additional characteristics of entries.
+       </para>
+
+       <para>
+        The <literal>posixAccount</literal> object class is auxiliary, for example.
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <firstterm>Abstract</firstterm> object classes define
+        base characteristics for other object classes to inherit,
+        and cannot themselves inherit from other object classes.
+       </para>
+
+       <para>
+        The <literal>top</literal> object class from which others inherit
+        is abstract, for example.
+       </para>
+      </listitem>
+     </itemizedlist>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>ldapSyntaxes</literal></term>
+    <listitem>
+     <para>
+      An <firstterm>attribute syntax</firstterm> constrains
+      what directory clients can store as attribute values.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>matchingRules</literal></term>
+    <listitem>
+     <para>
+      A <literal>Matching rule</literal> determines how the directory server
+      compares attribute values to assertion values
+      for LDAP search and LDAP compare operations.
+     </para>
+
+     <para>
+      For example, in a search having the filter <literal>(uid=bjensen)</literal>
+      the assertion value is <literal>bjensen</literal>.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>nameForms</literal></term>
+    <listitem>
+     <para>
+      A <firstterm>name form</firstterm> specifies which attribute can be used
+      as the relative DN (RDN) for a structural object class.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><literal>dITStructureRules</literal></term>
+    <listitem>
+     <para>
+      A <firstterm>DIT structure rule</firstterm> defines a relationship
+      between directory entries by identifying the name form
+      allowed for subordinate entries of a given superior entry.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <example xml:id="example-reading-schema-definition">
+   <title>Reading an Object Class Schema Definition</title>
+
+   <para>
+    The schema entry in OpenDJ directory server is large
+    because it contains all of the schema definitions.
+    Filter the results when reading a specific schema definition.
+    As schema definitions themselves are long strings,
+    pass the <option>--dontWrap</option> option
+    to the <command>ldapsearch</command> command when reading one.
+   </para>
+
+   <para>
+    The example below reads the definition
+    for the <literal>person</literal> object class:
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&amp;)" \
+ objectClasses \
+ | grep \'person\'</userinput>
+ <computeroutput>objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
+  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
+  X-ORIGIN 'RFC 4519' )</computeroutput>
+   </screen>
+
+   <para>
+    Notice the use of the object class name in <command>grep \'person\'</command>
+    to filter search results.
+    The actual result would not be wrapped.
+   </para>
+  </example>
+
+  <para>
+   The object class defines
+   which attributes an entry of that object class <emphasis>must</emphasis> have
+   and which attributes the entry <emphasis>may</emphasis> optionally have.
+   A <literal>person</literal> entry must have
+   a <literal>cn</literal> and an <literal>sn</literal> attribute.
+   A <literal>person</literal> entry may optionally have
+   <literal>userPassword</literal>, <literal>telephoneNumber</literal>,
+   <literal>seeAlso</literal>, and <literal>description</literal> attributes.
+  </para>
+
+  <para>
+   To determine definitions of those attributes, read the LDAP schema
+   as demonstrated in <xref linkend="example-reading-attribute-definitions" />.
+  </para>
+
+  <example xml:id="example-reading-attribute-definitions">
+   <title>Reading Schema Definitions for an Attribute</title>
+
+   <para>
+    The following example shows you how to read the schema definition
+    for the <literal>cn</literal> attribute:
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&amp;)" \
+ attributeTypes \
+ | grep \'cn\'</userinput>
+ <computeroutput>attributeTypes: ( 2.5.4.3 NAME ( 'cn' 'commonName' ) SUP name X-ORIGIN 'RFC 4519' )</computeroutput>
+   </screen>
+
+   <para>
+    The <literal>cn</literal> attribute inherits its definition
+    from the <literal>name</literal> attribute.
+    That attribute definition indicates attribute syntax and matching rules
+    as shown in the following example:
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&amp;)" \
+ attributeTypes \
+ | grep \'name\'</userinput>
+<computeroutput>attributeTypes: ( 2.5.4.41 NAME 'name' EQUALITY caseIgnoreMatch
+  SUBSTR caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} X-ORIGIN 'RFC 4519' )</computeroutput>
+   </screen>
+
+   <para>
+    This means that the server ignores case when matching a common name value.
+    Use the OID to read the syntax as shown in the following example:
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN "cn=schema" \
+ --searchScope base \
+ --dontWrap \
+ "(&amp;)" \
+ ldapSyntaxes \
+ | grep 1.3.6.1.4.1.1466.115.121.1.15</userinput>
+<computeroutput>ldapSyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' )</computeroutput>
+   </screen>
+
+   <para>
+    Taken together with the information for the <literal>name</literal> attribute,
+    the common name attribute value is a Directory String of at most 32,768 characters.
+    For details about syntaxes, read
+    <link xlink:href="http://tools.ietf.org/html/rfc4517" xlink:show="new"
+    >RFC 4517, <citetitle>Lightweight Directory Access Protocol (LDAP):
+     Syntaxes and Matching Rules</citetitle></link>.
+    That document describes a Directory String as one or more UTF-8 characters.
+   </para>
+  </example>
+ </section>
+
+ <section xml:id="respecting-schema">
+  <title>Respecting LDAP Schema</title>
+
+  <indexterm>
+   <primary>Schema</primary>
+   <secondary>Respecting definitions</secondary>
+  </indexterm>
+
+  <para>
+   For the sake of interoperability and to avoid polluting directory data,
+   scripts and applications should respect LDAP schema.
+   In the simplest case,
+   scripts and applications can use the schemas already defined.
+  </para>
+
+  <para>
+   OpenDJ directory server does accept updates to schema definitions
+   over LDAP while the server is running.
+   This means that when a new application calls for attributes
+   that are not yet defined by existing directory schemas,
+   the directory administrator can easily add them as described in
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#update-schema"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Updating Directory Schema</citetitle></link>
+   as long as the new definitions do not conflict with existing definitions.
+  </para>
+
+  <para>
+   General purpose applications handle many different types of data.
+   Such applications must deal with schema compliance at run time.
+   Software development kits such as the Java-based OpenDJ LDAP SDK
+   provide mechanisms for reading schema definitions at run time
+   and checking whether entry data is valid according to the schema definitions.
+  </para>
+
+  <variablelist>
+   <para>
+    Many scripts do not require run time schema checking.
+    In such cases it is enough properly to handle
+    schema-related LDAP result codes when writing to the directory:
+   </para>
+
+   <varlistentry>
+    <term>LDAP result code: 17 (Undefined attribute type)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it referenced
+      an attribute that is not defined in the server schema.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 18 (Inappropriate matching)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it attempted to perform
+      an inappropriate type of matching against an attribute.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 20 (Attribute or value exists)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it would have resulted in
+      a conflict with an existing attribute or attribute value in the target entry.
+     </para>
+
+     <para>
+      For example, the request tried to add a second value
+      to a single-valued attribute.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 21 (Invalid attribute syntax)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it violated the syntax
+      for a specified attribute.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 34 (Invalid DN syntax)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it would have resulted in
+      an entry with an invalid or malformed DN.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 64 (Naming violation)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it would have violated
+      the server's naming configuration.
+     </para>
+
+     <para>
+      For example, the request did not respect a name form definition.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 65 (Object class violation)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it would have resulted in
+      an entry that violated the server schema.
+     </para>
+
+     <para>
+      For example, the request tried to remove a required attribute,
+      or tried to add an attribute that is not allowed.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>LDAP result code: 69 (Object class mods prohibited)</term>
+    <listitem>
+     <para>
+      The requested operation failed because it would have modified]
+      the object classes associated with an entry in an illegal manner.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>
+   When you encounter an error, take the time to read the additional information.
+   The additional information from OpenDJ directory server often suffices
+   to allow you to resolve the problem directly.
+  </para>
+
+  <para>
+   <xref linkend="example-object-class-violations" /> and
+   <xref linkend="example-invalid-attribute-syntax" />
+   show some common problems that can result from schema violations.
+  </para>
+
+  <example xml:id="example-object-class-violations">
+   <title>Object Class Violations</title>
+
+   <para>
+    A number of schema violations show up as object class violations.
+    The following request fails to add an <literal>undefined</literal> attribute.
+   </para>
+
+   <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: undefined
+undefined: This attribute is not defined.
+</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  65 (Object Class Violation)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com cannot
+  be modified because the resulting entry would have violated the server schema:
+  Entry uid=bjensen,ou=People,dc=example,dc=com violates
+  the Directory Server schema configuration because
+  it includes attribute undefined which is not allowed
+  by any of the objectclasses defined in that entry</computeroutput>
+   </screen>
+
+   <para>
+    The solution in this case is to make sure
+    that the <literal>undefined</literal> attribute is defined
+    and that it is allowed by one of the object classes defined for the entry.
+   </para>
+
+   <para>
+    The following request fails to add a second structural object class:
+   </para>
+
+   <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: organizationalUnit
+</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  65 (Object Class Violation)
+Additional Information:  Entry uid=bjensen,ou=People,dc=example,dc=com cannot
+  be modified because the resulting entry would have violated the server schema:
+  Entry uid=bjensen,ou=People,dc=example,dc=com violates
+  the Directory Server schema configuration because
+  it includes multiple conflicting structural objectclasses
+  inetOrgPerson and organizationalUnit.
+  Only a single structural objectclass is allowed in an entry</computeroutput>
+   </screen>
+
+   <para>
+    The solution in this case is to define only one structural object class
+    for the entry.
+    Either Babs Jensen is a person or an organizational unit, but not both.
+   </para>
+  </example>
+
+  <example xml:id="example-invalid-attribute-syntax">
+   <title>Invalid Attribute Syntax</title>
+
+   <para>
+    The following request fails to add an empty string as
+    a common name attribute value.
+   </para>
+
+   <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: cn
+cn:
+</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  21 (Invalid Attribute Syntax)
+Additional Information:  When attempting to modify entry
+ uid=bjensen,ou=People,dc=example,dc=com to add one or more values
+ for attribute cn, value "" was found to be invalid
+ according to the associated syntax:
+ The operation attempted to assign a zero-length value to an attribute
+ with the directory string syntax</computeroutput>
+   </screen>
+
+   <para>
+    As mentioned in <xref linkend="example-reading-attribute-definitions" />,
+    a Directory String has one or more UTF-8 characters.
+   </para>
+  </example>
+ </section>
+
+ <section xml:id="abusing-schema">
+  <title>Abusing LDAP Schema</title>
+
+  <itemizedlist>
+   <para>
+    Follow the suggestions in <xref linkend="respecting-schema" />
+    as much as possible.
+    In particular follow these rules of thumb:
+   </para>
+
+   <listitem>
+    <para>
+     Test with your own copy of OpenDJ directory server
+     to resolve schema issues before going live.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Adapt your scripts and applications to avoid violating schema definitions.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     When existing schemas are not sufficient,
+     request schema updates to add definitions
+     that do not conflict with any already in use.
+    </para>
+   </listitem>
+  </itemizedlist>
+
+  <para>
+   When it is not possible to respect the schema definitions,
+   you can sometimes work around LDAP schema constraints
+   without changing OpenDJ directory server configuration.
+   The schema defines an <literal>extensibleObject</literal> object class.
+   The <literal>extensibleObject</literal> object class is auxiliary.
+   It effectively allows entries to hold any user attribute,
+   even attributes that are not defined in the schema.
+  </para>
+
+  <example xml:id="example-extensible-object">
+   <title>Working Around Restrictions With ExtensibleObject</title>
+
+   <para>
+    The following example adds one attribute that is undefined
+    and another that is not allowed.
+   </para>
+
+   <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: undefined
+undefined: This attribute is not defined in the LDAP schema.
+-
+add: serialNumber
+serialNumber: This attribute is not allowed according to the object classes.
+</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
+
+   <para>
+    Use of the <literal>extensibleObject</literal> object class
+    opens the door to abuse and can prevent interoperability.
+    Restrict its use to cases where no better alternative is available.
+   </para>
+  </example>
+ </section>
+
+ <xinclude:include href="../shared/sec-standard-schema.xml" />
+</chapter>
