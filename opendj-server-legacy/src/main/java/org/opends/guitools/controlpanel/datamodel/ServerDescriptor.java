@@ -62,15 +62,15 @@ public class ServerDescriptor
 
   private ServerStatus status;
   private int openConnections;
-  private Set<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
-  private Set<ConnectionHandlerDescriptor> listeners = new HashSet<ConnectionHandlerDescriptor>();
+  private Set<BackendDescriptor> backends = new HashSet<>();
+  private Set<ConnectionHandlerDescriptor> listeners = new HashSet<>();
   private ConnectionHandlerDescriptor adminConnector;
-  private Set<DN> administrativeUsers = new HashSet<DN>();
+  private Set<DN> administrativeUsers = new HashSet<>();
   private String installPath;
   private String instancePath;
   private String openDSVersion;
   private String javaVersion;
-  private ArrayList<OpenDsException> exceptions = new ArrayList<OpenDsException>();
+  private ArrayList<OpenDsException> exceptions = new ArrayList<>();
   private boolean isWindowsServiceEnabled;
   private boolean isSchemaEnabled;
   private Schema schema;
@@ -81,7 +81,7 @@ public class ServerDescriptor
   private CustomSearchResult entryCaches;
   private CustomSearchResult workQueue;
 
-  private Set<TaskEntry> taskEntries = new HashSet<TaskEntry>();
+  private Set<TaskEntry> taskEntries = new HashSet<>();
 
   private long runningTime = -1;
   private boolean isAuthenticated;
@@ -647,7 +647,7 @@ public class ServerDescriptor
 
   private static Set<Object> toSet(Iterable<?> iterable)
   {
-    Set<Object> s = new HashSet<Object>();
+    Set<Object> s = new HashSet<>();
     for (Object o : iterable)
     {
       s.add(o);

@@ -177,14 +177,14 @@ public class AddRemovePanel<T> extends JPanel
     };
 
 
-    availableListModel = new SortableListModel<T>();
+    availableListModel = new SortableListModel<>();
     availableListModel.addListDataListener(listDataListener);
     availableList = new JList();
     availableList.setModel(availableListModel);
     availableList.setVisibleRowCount(15);
     availableList.addMouseListener(doubleClickListener);
 
-    selectedListModel = new SortableListModel<T>();
+    selectedListModel = new SortableListModel<>();
     selectedListModel.addListDataListener(listDataListener);
     selectedList = new JList();
     selectedList.setModel(selectedListModel);

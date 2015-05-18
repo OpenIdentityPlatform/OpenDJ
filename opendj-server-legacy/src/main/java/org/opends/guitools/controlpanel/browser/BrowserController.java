@@ -132,8 +132,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private NumSubordinateHacker numSubordinateHacker;
   private int queueTotalSize;
   private int maxChildren;
-  private final Collection<BrowserEventListener> listeners =
-    new ArrayList<BrowserEventListener>();
+  private final Collection<BrowserEventListener> listeners = new ArrayList<>();
   private final LDAPConnectionPool connectionPool;
   private final IconPool iconPool;
 
@@ -1127,7 +1126,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the list of attributes for the red search.
    */
   String[] getAttrsForRedSearch() {
-    ArrayList<String> v = new ArrayList<String>();
+    ArrayList<String> v = new ArrayList<>();
 
     v.add(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     v.add(NUMSUBORDINATES_ATTR);
@@ -1438,8 +1437,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private void updateChildNodes(NodeRefresher task) throws NamingException {
     BasicNode parent = task.getNode();
-    ArrayList<Integer> insertIndex = new ArrayList<Integer>();
-    ArrayList<Integer> changedIndex = new ArrayList<Integer>();
+    ArrayList<Integer> insertIndex = new ArrayList<>();
+    ArrayList<Integer> changedIndex = new ArrayList<>();
     boolean differential = canDoDifferentialUpdate(task);
 
     // NUMSUBORDINATE HACK
@@ -1679,7 +1678,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       modifiers |= IconPool.MODIFIER_ERROR;
     }
 
-    SortedSet<String> objectClasses = new TreeSet<String>();
+    SortedSet<String> objectClasses = new TreeSet<>();
     if (entry != null) {
       Set<String> ocs = ConnectionUtils.getValues(entry, "objectClass");
       if (ocs != null)

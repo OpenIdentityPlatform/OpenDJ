@@ -154,7 +154,7 @@ implements BackupCreatedListener
   /** {@inheritDoc} */
   protected void verifyBackupClicked()
   {
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
     // Launch the task in another progress dialog.
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
@@ -242,7 +242,7 @@ implements BackupCreatedListener
     setPrimaryValid(lAvailableBackups);
     setPrimaryValid(lBackupID);
 
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     BackupDescriptor backup = getSelectedBackup();
 
@@ -359,7 +359,7 @@ implements BackupCreatedListener
         dir = parentDirectory.getText();
         backupID = RestorePanel.this.backupID.getText();
       }
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
       {
         if (!backend.isConfigBackend())
@@ -449,7 +449,7 @@ implements BackupCreatedListener
         lastException = t;
         state = State.FINISHED_WITH_ERROR;
       }
-      HashSet<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
+      HashSet<BackendDescriptor> backends = new HashSet<>();
       for (BackendDescriptor backend :
         getInfo().getServerDescriptor().getBackends())
       {
@@ -477,7 +477,7 @@ implements BackupCreatedListener
     /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
 
       args.add("--backupDirectory");
       args.add(dir);

@@ -69,7 +69,7 @@ public class SuperiorObjectClassesEditor extends JPanel
 {
   private static final long serialVersionUID = 123123973933568L;
 
-  private Set<ObjectClass> toExclude = new HashSet<ObjectClass>();
+  private Set<ObjectClass> toExclude = new HashSet<>();
   private JComboBox singleSuperior = Utilities.createComboBox();
   private JLabel multipleSuperiors = Utilities.createDefaultLabel();
   private JButton bSpecifyMultiple = Utilities.createButton(
@@ -87,11 +87,8 @@ public class SuperiorObjectClassesEditor extends JPanel
 
   private boolean isMultiple;
 
-  private Set<ObjectClass> selectedMultipleSuperiors =
-    new HashSet<ObjectClass>();
-
-  private Set<SuperiorObjectClassesChangedListener> listeners =
-    new HashSet<SuperiorObjectClassesChangedListener>();
+  private Set<ObjectClass> selectedMultipleSuperiors = new HashSet<>();
+  private Set<SuperiorObjectClassesChangedListener> listeners = new HashSet<>();
 
   private Schema schema;
 
@@ -242,8 +239,7 @@ public class SuperiorObjectClassesEditor extends JPanel
   private void updateMultipleSuperiorsLabel(
       Set<ObjectClass> superiors)
   {
-    SortedSet<String> orderedOcs =
-      new TreeSet<String>(new LowerCaseComparator());
+    SortedSet<String> orderedOcs = new TreeSet<>(new LowerCaseComparator());
     for (ObjectClass oc : superiors)
     {
       orderedOcs.add(oc.getNameOrOID());
@@ -293,8 +289,7 @@ public class SuperiorObjectClassesEditor extends JPanel
 
   private void updateWithSchema(Schema schema)
   {
-    HashMap<String, ObjectClass> objectClassNameMap = new HashMap<String,
-    ObjectClass>();
+    HashMap<String, ObjectClass> objectClassNameMap = new HashMap<>();
     for (String key : schema.getObjectClasses().keySet())
     {
       ObjectClass oc = schema.getObjectClass(key);
@@ -303,10 +298,9 @@ public class SuperiorObjectClassesEditor extends JPanel
         objectClassNameMap.put(oc.getNameOrOID(), oc);
       }
     }
-    SortedSet<String> orderedKeys =
-      new TreeSet<String>(new LowerCaseComparator());
+    SortedSet<String> orderedKeys = new TreeSet<>(new LowerCaseComparator());
     orderedKeys.addAll(objectClassNameMap.keySet());
-    ArrayList<Object> newParents = new ArrayList<Object>();
+    ArrayList<Object> newParents = new ArrayList<>();
     for (String key : orderedKeys)
     {
       newParents.add(objectClassNameMap.get(key));

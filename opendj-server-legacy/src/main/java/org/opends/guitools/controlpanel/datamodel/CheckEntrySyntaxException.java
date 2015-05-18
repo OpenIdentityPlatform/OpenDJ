@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -71,7 +71,7 @@ public class CheckEntrySyntaxException extends OpenDsException
    */
   private static LocalizableMessage getMessage(List<LocalizableMessage> errors)
   {
-    ArrayList<String> s = new ArrayList<String>();
+    ArrayList<String> s = new ArrayList<>();
     for (LocalizableMessage error : errors)
     {
       s.add(error.toString());

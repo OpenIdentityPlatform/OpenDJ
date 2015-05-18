@@ -38,7 +38,7 @@ import java.util.Set;
 public class SuffixDescriptor
 {
   private String suffixDN;
-  private Set<ReplicaDescriptor> replicas = new HashSet<ReplicaDescriptor>();
+  private Set<ReplicaDescriptor> replicas = new HashSet<>();
 
   /**
    * Returns the DN associated with this suffix descriptor.
@@ -65,7 +65,7 @@ public class SuffixDescriptor
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
-    return new HashSet<ReplicaDescriptor>(replicas);
+    return new HashSet<>(replicas);
   }
 
   /**
@@ -86,7 +86,7 @@ public class SuffixDescriptor
    */
   public Set<String> getReplicationServers()
   {
-    Set<String> replicationServers = new HashSet<String>();
+    Set<String> replicationServers = new HashSet<>();
     for (ReplicaDescriptor replica : getReplicas())
     {
       replicationServers.addAll(replica.getReplicationServers());

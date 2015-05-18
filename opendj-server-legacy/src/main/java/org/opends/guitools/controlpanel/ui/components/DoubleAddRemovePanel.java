@@ -85,7 +85,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
   private JList selectedList1;
   private JList selectedList2;
   private Class<T> theClass;
-  private Collection<T> unmovableItems = new ArrayList<T>();
+  private Collection<T> unmovableItems = new ArrayList<>();
   private boolean ignoreListEvents;
 
   /**
@@ -193,21 +193,21 @@ public class DoubleAddRemovePanel<T> extends JPanel
     };
 
 
-    availableListModel = new SortableListModel<T>();
+    availableListModel = new SortableListModel<>();
     availableListModel.addListDataListener(listDataListener);
     availableList = new JList();
     availableList.setModel(availableListModel);
     availableList.setVisibleRowCount(15);
     availableList.addMouseListener(doubleClickListener);
 
-    selectedListModel1 = new SortableListModel<T>();
+    selectedListModel1 = new SortableListModel<>();
     selectedListModel1.addListDataListener(listDataListener);
     selectedList1 = new JList();
     selectedList1.setModel(selectedListModel1);
     selectedList1.setVisibleRowCount(7);
     selectedList1.addMouseListener(doubleClickListener);
 
-    selectedListModel2 = new SortableListModel<T>();
+    selectedListModel2 = new SortableListModel<>();
     selectedListModel2.addListDataListener(listDataListener);
     selectedList2 = new JList();
     selectedList2.setModel(selectedListModel2);

@@ -190,7 +190,7 @@ public class ObjectClassCellPanel extends JPanel
     LocalizableMessageBuilder sb = new LocalizableMessageBuilder();
     if (value != null)
     {
-      Set<String> aux = new TreeSet<String>(value.getAuxiliary());
+      Set<String> aux = new TreeSet<>(value.getAuxiliary());
       aux.remove("top");
       if (value.getStructural() != null)
       {

@@ -226,7 +226,7 @@ public class WindowsServicePanel extends StatusGenericPanel
 
   private void updateWindowsService()
   {
-    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
         getInfo());
@@ -288,7 +288,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     {
       super(info, dlg);
       this.enableService = enableService;
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
     }
 
     /** {@inheritDoc} */
@@ -386,7 +386,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     /** {@inheritDoc} */
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
 
       if (enableService)
       {

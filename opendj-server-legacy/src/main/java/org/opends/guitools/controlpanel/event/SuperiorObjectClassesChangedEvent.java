@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -44,7 +45,7 @@ import org.opends.server.types.ObjectClass;
 public class SuperiorObjectClassesChangedEvent
 {
   private Object source;
-  private Set<ObjectClass> newObjectClasses = new HashSet<ObjectClass>();
+  private Set<ObjectClass> newObjectClasses = new HashSet<>();
 
   /**
    * Constructor of the event.

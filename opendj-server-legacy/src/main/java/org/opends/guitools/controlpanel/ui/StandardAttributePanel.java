@@ -315,7 +315,7 @@ public class StandardAttributePanel extends SchemaElementPanel
     type.setText(getTypeValue(attr).toString());
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    SortedSet<String> requiredByOcs = new TreeSet<String>(lowerCaseComparator);
+    SortedSet<String> requiredByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getRequiredAttributeChain().contains(attr))
@@ -331,7 +331,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       model.addElement(oc);
     }
 
-    SortedSet<String> optionalByOcs = new TreeSet<String>(lowerCaseComparator);
+    SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getOptionalAttributeChain().contains(attr))

@@ -568,7 +568,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
      */
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       String s = dnsToInclude.getText();
       if (s.trim().length() > 0)
       {

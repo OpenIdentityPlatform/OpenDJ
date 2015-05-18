@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -92,8 +92,7 @@ public class DSMLModifyOperation
     LDAPResult modResponse = objFactory.createLDAPResult();
     modResponse.setRequestID(modifyRequest.getRequestID());
 
-    ArrayList<RawModification> modifications =
-         new ArrayList<RawModification> ();
+    ArrayList<RawModification> modifications = new ArrayList<>();
 
     // Read the modification type from the DSML request.
     List<DsmlModification> mods = modifyRequest.getModification();
@@ -111,10 +110,9 @@ public class DSMLModifyOperation
 
       // Read the attribute name and values.
       String attrType = attr.getName();
-      ArrayList<ByteString> values = new ArrayList<ByteString> ();
+      ArrayList<ByteString> values = new ArrayList<>();
 
-      List<Object> vals = attr.getValue();
-      for(Object val : vals)
+      for (Object val : attr.getValue())
       {
         values.add(ByteStringUtility.convertValue(val));
       }

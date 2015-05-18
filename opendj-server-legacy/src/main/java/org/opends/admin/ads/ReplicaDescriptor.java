@@ -40,7 +40,7 @@ public class ReplicaDescriptor
   private SuffixDescriptor suffix;
   private int entries = -1;
   private ServerDescriptor server;
-  private Set<String> replicationServers = new HashSet<String>();
+  private Set<String> replicationServers = new HashSet<>();
   private int replicationId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
@@ -135,7 +135,7 @@ public class ReplicaDescriptor
    */
   public Set<String> getReplicationServers()
   {
-    return new HashSet<String>(replicationServers);
+    return new HashSet<>(replicationServers);
   }
 
   /**

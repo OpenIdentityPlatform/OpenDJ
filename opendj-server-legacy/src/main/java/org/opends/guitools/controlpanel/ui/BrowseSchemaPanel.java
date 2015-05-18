@@ -717,16 +717,12 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
 
-    TreeSet<String> standardOcNames = new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, StandardObjectClassTreeNode> hmStandardOcs =
-      new HashMap<String, StandardObjectClassTreeNode>();
-    TreeSet<String> configurationOcNames =
-      new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, ConfigurationObjectClassTreeNode> hmConfigurationOcs =
-      new HashMap<String, ConfigurationObjectClassTreeNode>();
-    TreeSet<String> customOcNames = new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, CustomObjectClassTreeNode> hmCustomOcs =
-      new HashMap<String, CustomObjectClassTreeNode>();
+    TreeSet<String> standardOcNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, StandardObjectClassTreeNode> hmStandardOcs = new HashMap<>();
+    TreeSet<String> configurationOcNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, ConfigurationObjectClassTreeNode> hmConfigurationOcs = new HashMap<>();
+    TreeSet<String> customOcNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, CustomObjectClassTreeNode> hmCustomOcs = new HashMap<>();
     for (ObjectClass oc : lastSchema.getObjectClasses().values())
     {
       if (mustAdd(oc))
@@ -752,17 +748,12 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
 
 
-    TreeSet<String> standardAttrNames =
-      new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, StandardAttributeTreeNode> hmStandardAttrs =
-      new HashMap<String, StandardAttributeTreeNode>();
-    TreeSet<String> configurationAttrNames =
-      new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, ConfigurationAttributeTreeNode> hmConfigurationAttrs =
-      new HashMap<String, ConfigurationAttributeTreeNode>();
-    TreeSet<String> customAttrNames = new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, CustomAttributeTreeNode> hmCustomAttrs =
-      new HashMap<String, CustomAttributeTreeNode>();
+    TreeSet<String> standardAttrNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, StandardAttributeTreeNode> hmStandardAttrs = new HashMap<>();
+    TreeSet<String> configurationAttrNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, ConfigurationAttributeTreeNode> hmConfigurationAttrs = new HashMap<>();
+    TreeSet<String> customAttrNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, CustomAttributeTreeNode> hmCustomAttrs = new HashMap<>();
     for (AttributeType attr : lastSchema.getAttributeTypes().values())
     {
       if (mustAdd(attr))
@@ -787,10 +778,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
 
-    TreeSet<String> matchingRuleNames =
-      new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, MatchingRuleTreeNode> hmMatchingRules =
-      new HashMap<String, MatchingRuleTreeNode>();
+    TreeSet<String> matchingRuleNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, MatchingRuleTreeNode> hmMatchingRules = new HashMap<>();
     for (MatchingRule matchingRule : lastSchema.getMatchingRules().values())
     {
       if (mustAdd(matchingRule))
@@ -801,9 +790,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
 
-    TreeSet<String> syntaxNames = new TreeSet<String>(lowerCaseComparator);
-    HashMap<String, AttributeSyntaxTreeNode> hmSyntaxes =
-      new HashMap<String, AttributeSyntaxTreeNode>();
+    TreeSet<String> syntaxNames = new TreeSet<>(lowerCaseComparator);
+    HashMap<String, AttributeSyntaxTreeNode> hmSyntaxes = new HashMap<>();
     for (AttributeSyntax<?> syntax : lastSchema.getSyntaxes().values())
     {
       if (mustAdd(syntax))
@@ -819,7 +807,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
 
 
-    ArrayList<TreeSet<String>> names = new ArrayList<TreeSet<String>>();
+    ArrayList<TreeSet<String>> names = new ArrayList<>();
     names.add(standardOcNames);
     names.add(standardAttrNames);
     names.add(customOcNames);
@@ -829,8 +817,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     names.add(matchingRuleNames);
     names.add(syntaxNames);
 
-    ArrayList<HashMap<String, ? extends DefaultMutableTreeNode>> nodes =
-      new ArrayList<HashMap<String, ? extends DefaultMutableTreeNode>>();
+    ArrayList<HashMap<String, ? extends DefaultMutableTreeNode>> nodes = new ArrayList<>();
     nodes.add(hmStandardOcs);
     nodes.add(hmStandardAttrs);
     nodes.add(hmCustomOcs);
@@ -845,7 +832,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     String f = filter.getText().trim();
     boolean filterProvided = f.length() > 0;
 
-    ArrayList<TreePath> toExpand = new ArrayList<TreePath>();
+    ArrayList<TreePath> toExpand = new ArrayList<>();
 
     int i = 0;
     int positionUnderRoot = 0;
@@ -1206,10 +1193,10 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private void deleteClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
-    ArrayList<ObjectClass> ocsToDelete = new ArrayList<ObjectClass>();
-    ArrayList<AttributeType> attrsToDelete = new ArrayList<AttributeType>();
+    ArrayList<ObjectClass> ocsToDelete = new ArrayList<>();
+    ArrayList<AttributeType> attrsToDelete = new ArrayList<>();
     if (paths != null)
     {
       for (TreePath path : paths)
@@ -1266,7 +1253,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       if (errors.isEmpty())
       {
-        ArrayList<String> allNames = new ArrayList<String>();
+        ArrayList<String> allNames = new ArrayList<>();
         if (displayConfirmationDialog(
             INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
             confirmationMessage))
@@ -1302,7 +1289,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAdd(String name, String oid, String primaryName, Iterable<String> names)
   {
-    ArrayList<String> values = new ArrayList<String>();
+    ArrayList<String> values = new ArrayList<>();
     values.add(oid);
     if (primaryName != null)
     {
@@ -1551,7 +1538,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAdd(String f, String oid, String name)
   {
-    ArrayList<String> values = new ArrayList<String>(2);
+    ArrayList<String> values = new ArrayList<>(2);
     values.add(oid);
     if (name != null)
     {
@@ -1637,10 +1624,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
   }
 
-  private HashMap<Object, ImageIcon> hmCategoryImages =
-    new HashMap<Object, ImageIcon>();
-  private HashMap<Class<?>, ImageIcon> hmImages =
-    new HashMap<Class<?>, ImageIcon>();
+  private HashMap<Object, ImageIcon> hmCategoryImages = new HashMap<>();
+  private HashMap<Class<?>, ImageIcon> hmImages = new HashMap<>();
   {
     Object[] nodes = {attributes, objectClasses, standardObjectClasses,
         standardAttributes, configurationObjectClasses, configurationAttributes,
@@ -1703,9 +1688,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   private LinkedHashSet<ObjectClass> getOrderedObjectClassesToDelete(
       Collection<ObjectClass> ocsToDelete)
   {
-    ArrayList<ObjectClass> lOrderedOcs = new ArrayList<ObjectClass>();
-    // Reorder objectClasses and attributes to delete them in the proper
-    // order.
+    ArrayList<ObjectClass> lOrderedOcs = new ArrayList<>();
+    // Reorder objectClasses and attributes to delete them in the proper order.
     for (ObjectClass oc : ocsToDelete)
     {
       int index = -1;
@@ -1725,14 +1709,13 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         lOrderedOcs.add(index, oc);
       }
     }
-    return new LinkedHashSet<ObjectClass>(lOrderedOcs);
+    return new LinkedHashSet<>(lOrderedOcs);
   }
 
   private LinkedHashSet<AttributeType> getOrderedAttributesToDelete(
       Collection<AttributeType> attrsToDelete)
   {
-    ArrayList<AttributeType> lOrderedAttributes =
-      new ArrayList<AttributeType>();
+    ArrayList<AttributeType> lOrderedAttributes = new ArrayList<>();
     for (AttributeType attr : attrsToDelete)
     {
       int index = -1;
@@ -1760,7 +1743,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         lOrderedAttributes.add(index, attr);
       }
     }
-    return new LinkedHashSet<AttributeType>(lOrderedAttributes);
+    return new LinkedHashSet<>(lOrderedAttributes);
   }
 
   private LocalizableMessage getConfirmationMessage(
@@ -1768,7 +1751,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       Collection<AttributeType> attrsToDelete,
       Schema schema)
   {
-    ArrayList<ObjectClass> childClasses = new ArrayList<ObjectClass>();
+    ArrayList<ObjectClass> childClasses = new ArrayList<>();
     // Analyze objectClasses
     for (ObjectClass objectClass : ocsToDelete)
     {
@@ -1782,8 +1765,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       childClasses.removeAll(ocsToDelete);
     }
 
-    ArrayList<AttributeType> childAttributes = new ArrayList<AttributeType>();
-    TreeSet<String> dependentClasses = new TreeSet<String>();
+    ArrayList<AttributeType> childAttributes = new ArrayList<>();
+    TreeSet<String> dependentClasses = new TreeSet<>();
     // Analyze attributes
     for (AttributeType attribute : attrsToDelete)
     {
@@ -1816,7 +1799,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (!childClasses.isEmpty())
     {
-      TreeSet<String> childNames = new TreeSet<String>();
+      TreeSet<String> childNames = new TreeSet<>();
       for (ObjectClass oc : childClasses)
       {
         childNames.add(oc.getNameOrOID());
@@ -1836,7 +1819,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
     if (!childAttributes.isEmpty())
     {
-      TreeSet<String> childNames = new TreeSet<String>();
+      TreeSet<String> childNames = new TreeSet<>();
       for (AttributeType attr : childAttributes)
       {
         childNames.add(attr.getNameOrOID());
@@ -1870,7 +1853,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       mb.append("<br>");
     }
 
-    ArrayList<String> allNames = new ArrayList<String>();
+    ArrayList<String> allNames = new ArrayList<>();
     for (ObjectClass ocToDelete : ocsToDelete)
     {
       allNames.add(ocToDelete.getNameOrOID());

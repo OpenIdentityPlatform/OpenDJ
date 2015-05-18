@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -49,8 +50,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -8556383593966382604L;
 
-  private Set<SchemaElementSelectionListener> listeners =
-    new HashSet<SchemaElementSelectionListener>();
+  private Set<SchemaElementSelectionListener> listeners = new HashSet<>();
 
   /**
    * The empty border shared by all the schema element panels.
@@ -141,7 +141,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(AttributeType attr)
   {
-    Set<String> aliases = new LinkedHashSet<String>();
+    Set<String> aliases = new LinkedHashSet<>();
     Iterable<String> ocNames = attr.getNormalizedNames();
     String primaryName = attr.getPrimaryName();
     if (primaryName == null)
@@ -165,7 +165,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(ObjectClass oc)
   {
-    Set<String> aliases = new LinkedHashSet<String>();
+    Set<String> aliases = new LinkedHashSet<>();
     Iterable<String> ocNames = oc.getNormalizedNames();
     String primaryName = oc.getPrimaryName();
     if (primaryName == null)

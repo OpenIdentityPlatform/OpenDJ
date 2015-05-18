@@ -44,10 +44,8 @@ public class ConnectionHandlerTableModel extends SortableTableModel
 implements Comparator<ConnectionHandlerDescriptor>
 {
   private static final long serialVersionUID = -1121308303480078376L;
-  private Set<ConnectionHandlerDescriptor> data =
-    new HashSet<ConnectionHandlerDescriptor>();
-  private ArrayList<String[]> dataArray =
-    new ArrayList<String[]>();
+  private Set<ConnectionHandlerDescriptor> data = new HashSet<>();
+  private ArrayList<String[]> dataArray = new ArrayList<>();
   private String[] COLUMN_NAMES;
   private int sortColumn;
   private boolean sortAscending = true;
@@ -297,8 +295,7 @@ implements Comparator<ConnectionHandlerDescriptor>
 
   private void updateDataArray()
   {
-    TreeSet<ConnectionHandlerDescriptor> sortedSet =
-      new TreeSet<ConnectionHandlerDescriptor>(this);
+    TreeSet<ConnectionHandlerDescriptor> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
     for (ConnectionHandlerDescriptor desc : sortedSet)

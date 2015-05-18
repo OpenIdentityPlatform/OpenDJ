@@ -97,8 +97,8 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
     public void testUpdateCopyright(String testCaseFolderPath, String lineBeforeCopyrightToken,
             int nbLinesToSkip, int numberSpacesIndentation, String newPortionCopyrightString,
             String newCopyrightStartString, String copyrightEndToken, String newCopyrightOwnerStr) throws Exception {
-        List<String> testFilePaths = new LinkedList<String>();
-        List<String> updatedTestFilePaths = new LinkedList<String>();
+        List<String> testFilePaths = new LinkedList<>();
+        List<String> updatedTestFilePaths = new LinkedList<>();
 
         File[] changedFiles = new File(RESOURCE_DIR, testCaseFolderPath)
             .listFiles(new FilenameExtensionFilter(".txt"));

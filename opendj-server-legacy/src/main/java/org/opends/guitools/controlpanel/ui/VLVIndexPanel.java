@@ -350,10 +350,10 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
   private void deleteIndex()
   {
-    final List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final List<LocalizableMessage> errors = new ArrayList<>();
     final ProgressDialog dlg = new ProgressDialog(
         createFrame(), getParentDialog(this), INFO_CTRL_PANEL_DELETE_VLV_INDEX_TITLE.get(), getInfo());
-    final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<AbstractIndexDescriptor>();
+    final List<AbstractIndexDescriptor> indexesToDelete = new ArrayList<>();
     indexesToDelete.add(index);
     final DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg, indexesToDelete);
     for (final Task task : getInfo().getTasks())
@@ -569,7 +569,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     {
       super(info, dlg);
       backendID = index.getBackend().getBackendID();
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       backendSet.add(backendID);
       indexName = index.getName();
       sortOrder = getSortOrder();
@@ -773,7 +773,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
 
     private String getConfigCommandLineName()
@@ -817,7 +817,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
     private List<String> getDSConfigCommandLineArguments()
     {
-      final List<String> args = new ArrayList<String>();
+      final List<String> args = new ArrayList<>();
       args.add("set-local-db-vlv-index-prop");
       args.add("--backend-name");
       args.add(backendID);

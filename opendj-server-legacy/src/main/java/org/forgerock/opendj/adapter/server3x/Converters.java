@@ -94,7 +94,7 @@ public final class Converters {
         if (sdkEntry != null) {
             org.opends.server.types.Entry entry =
                 new org.opends.server.types.Entry(to(sdkEntry.getName()), null, null, null);
-            List<ByteString> duplicateValues = new ArrayList<ByteString>();
+            List<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
                 entry.addAttribute(attribute, duplicateValues);
             }
@@ -118,7 +118,7 @@ public final class Converters {
                 new org.opends.server.types.Entry(to(value.getName()), null, null, null);
             org.opends.server.types.SearchResultEntry searchResultEntry =
                 new org.opends.server.types.SearchResultEntry(entry, to(value.getControls()));
-            List<ByteString> duplicateValues = new ArrayList<ByteString>();
+            List<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(value.getAllAttributes())) {
                 searchResultEntry.addAttribute(attribute, duplicateValues);
             }
@@ -153,7 +153,7 @@ public final class Converters {
      */
     public static SortedSet<org.opends.server.types.DN> to(final SortedSet<DN> dnSet) {
         try {
-            SortedSet<org.opends.server.types.DN> newSet = new TreeSet<org.opends.server.types.DN>();
+            SortedSet<org.opends.server.types.DN> newSet = new TreeSet<>();
             for (DN dn : dnSet) {
                 newSet.add(org.opends.server.types.DN.valueOf(dn.toString()));
             }
@@ -273,8 +273,7 @@ public final class Converters {
      */
     public static List<org.opends.server.types.Control> to(
             final List<org.forgerock.opendj.ldap.controls.Control> listOfControl) {
-        List<org.opends.server.types.Control> toListOfControl =
-                new ArrayList<org.opends.server.types.Control>(listOfControl.size());
+        List<org.opends.server.types.Control> toListOfControl = new ArrayList<>(listOfControl.size());
         for (org.forgerock.opendj.ldap.controls.Control c : listOfControl) {
             toListOfControl.add(to(c));
         }
@@ -291,8 +290,7 @@ public final class Converters {
      */
     public static org.opends.server.types.RawAttribute to(
             final org.forgerock.opendj.ldap.Attribute attribute) {
-        ArrayList<ByteString> listAttributeValues =
-                new ArrayList<ByteString>(attribute.size());
+        ArrayList<ByteString> listAttributeValues = new ArrayList<>(attribute.size());
         Collections.addAll(listAttributeValues, attribute.toArray());
         return new LDAPAttribute(attribute.getAttributeDescriptionAsString(), listAttributeValues);
     }
@@ -309,8 +307,7 @@ public final class Converters {
     public static List<org.opends.server.types.RawAttribute> to(
             final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
         List<org.opends.server.types.RawAttribute> toListOfAttributes =
-                new ArrayList<org.opends.server.types.RawAttribute>(
-                        ((Collection<org.forgerock.opendj.ldap.Attribute>) listOfAttributes).size());
+                new ArrayList<>(((Collection<?>) listOfAttributes).size());
         for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
             toListOfAttributes.add(to(a));
         }
@@ -344,7 +341,7 @@ public final class Converters {
     public static List<org.opends.server.types.RawModification> toRawModifications(
             final List<org.forgerock.opendj.ldap.Modification> listOfModifications) {
         List<org.opends.server.types.RawModification> toListOfModifications =
-                new ArrayList<org.opends.server.types.RawModification>(listOfModifications.size());
+                new ArrayList<>(listOfModifications.size());
         for (org.forgerock.opendj.ldap.Modification m : listOfModifications) {
             toListOfModifications.add(to(m));
         }
@@ -381,8 +378,7 @@ public final class Converters {
     public static List<org.opends.server.types.Attribute> toAttributes(
             final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
         List<org.opends.server.types.Attribute> toListOfAttributes =
-                new ArrayList<org.opends.server.types.Attribute>(
-                        ((Collection<org.forgerock.opendj.ldap.Attribute>) listOfAttributes).size());
+                new ArrayList<>(((Collection<?>) listOfAttributes).size());
         for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
             toListOfAttributes.add(toAttribute(a));
         }
@@ -415,9 +411,7 @@ public final class Converters {
      */
     public static List<org.opends.server.types.Modification> toModifications(
             final List<org.forgerock.opendj.ldap.Modification> listOfModifications) {
-        List<org.opends.server.types.Modification> toListOfModifications =
-                new ArrayList<org.opends.server.types.Modification>(
-                        listOfModifications.size());
+        List<org.opends.server.types.Modification> toListOfModifications = new ArrayList<>(listOfModifications.size());
         for (org.forgerock.opendj.ldap.Modification m : listOfModifications) {
             toListOfModifications.add(toModification(m));
         }
@@ -494,8 +488,7 @@ public final class Converters {
      */
     public static List<org.forgerock.opendj.ldap.controls.Control> from(
             final List<org.opends.server.types.Control> listOfControl) {
-        List<org.forgerock.opendj.ldap.controls.Control> fromListofControl =
-                new ArrayList<org.forgerock.opendj.ldap.controls.Control>(listOfControl.size());
+        List<org.forgerock.opendj.ldap.controls.Control> fromListofControl = new ArrayList<>(listOfControl.size());
         for (org.opends.server.types.Control c : listOfControl) {
             fromListofControl.add(from(c));
         }
@@ -545,8 +538,7 @@ public final class Converters {
     public static List<org.forgerock.opendj.ldap.Attribute> from(
             final Iterable<org.opends.server.types.Attribute> listOfAttributes) {
         List<org.forgerock.opendj.ldap.Attribute> fromListofAttributes =
-                new ArrayList<org.forgerock.opendj.ldap.Attribute>(
-                        ((Collection<org.opends.server.types.Attribute>) listOfAttributes).size());
+                new ArrayList<>(((Collection<?>) listOfAttributes).size());
         for (org.opends.server.types.Attribute a : listOfAttributes) {
             fromListofAttributes.add(from(a));
         }

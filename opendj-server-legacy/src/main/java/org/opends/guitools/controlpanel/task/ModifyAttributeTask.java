@@ -158,7 +158,7 @@ public class ModifyAttributeTask extends Task
     {
       if (oldAttribute.equals(attrToDelete.getSuperiorType()))
       {
-        ArrayList<String> allNames = new ArrayList<String>();
+        ArrayList<String> allNames = new ArrayList<>();
         for (String str : attrToDelete.getNormalizedNames())
         {
           allNames.add(str);
@@ -202,17 +202,15 @@ public class ModifyAttributeTask extends Task
       ocToDelete.getOptionalAttributeChain().contains(oldAttribute);
     if (containsAttribute)
     {
-      ArrayList<String> allNames = new ArrayList<String>();
+      ArrayList<String> allNames = new ArrayList<>();
       for (String str : ocToDelete.getNormalizedNames())
       {
         allNames.add(str);
       }
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
-      Set<AttributeType> required = new HashSet<AttributeType>(
-          ocToDelete.getRequiredAttributes());
-      Set<AttributeType> optional = new HashSet<AttributeType>(
-          ocToDelete.getOptionalAttributes());
+      Set<AttributeType> required = new HashSet<>(ocToDelete.getRequiredAttributes());
+      Set<AttributeType> optional = new HashSet<>(ocToDelete.getOptionalAttributes());
       if (required.contains(oldAttribute))
       {
         required.remove(oldAttribute);
@@ -250,7 +248,7 @@ public class ModifyAttributeTask extends Task
   private void updateSchema() throws OpenDsException
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<AttributeType> attrs = new ArrayList<AttributeType>();
+    ArrayList<AttributeType> attrs = new ArrayList<>();
     attrs.add(oldAttribute);
     LinkedHashSet<AttributeType> attrsToDelete =
       DeleteSchemaElementsTask.getOrderedAttributesToDelete(attrs, schema);
@@ -258,10 +256,8 @@ public class ModifyAttributeTask extends Task
       DeleteSchemaElementsTask.getOrderedObjectClassesToDeleteFromAttrs(
           attrsToDelete, schema);
 
-    LinkedHashSet<AttributeType> attrsToAdd =
-      new LinkedHashSet<AttributeType>();
-    ArrayList<AttributeType> lAttrsToDelete =
-      new ArrayList<AttributeType>(attrsToDelete);
+    LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<>();
+    ArrayList<AttributeType> lAttrsToDelete = new ArrayList<>(attrsToDelete);
     for (int i = lAttrsToDelete.size() - 1; i >= 0; i--)
     {
       AttributeType attrToAdd = getAttributeToAdd(lAttrsToDelete.get(i));
@@ -271,9 +267,8 @@ public class ModifyAttributeTask extends Task
       }
     }
 
-    ArrayList<ObjectClass> lOcsToDelete =
-      new ArrayList<ObjectClass>(ocsToDelete);
-    LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+    ArrayList<ObjectClass> lOcsToDelete = new ArrayList<>(ocsToDelete);
+    LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
     for (int i = lOcsToDelete.size() - 1; i >= 0; i--)
     {
       ocsToAdd.add(getObjectClassToAdd(lOcsToDelete.get(i)));

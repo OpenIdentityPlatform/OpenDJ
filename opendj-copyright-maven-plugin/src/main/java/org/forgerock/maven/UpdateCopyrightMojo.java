@@ -109,7 +109,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
 
     private final class UpdateCopyrightFile {
         private final String filePath;
-        private final List<String> bufferedLines = new LinkedList<String>();
+        private final List<String> bufferedLines = new LinkedList<>();
         private boolean copyrightUpdated;
         private boolean lineBeforeCopyrightReaded;
         private boolean commentBlockEnded;

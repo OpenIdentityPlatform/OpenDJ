@@ -38,7 +38,7 @@ import java.util.TreeSet;
 public class ObjectClassValue
 {
   private String structural;
-  private SortedSet<String> auxiliary = new TreeSet<String>();
+  private SortedSet<String> auxiliary = new TreeSet<>();
   private int hashCode;
 
   /**

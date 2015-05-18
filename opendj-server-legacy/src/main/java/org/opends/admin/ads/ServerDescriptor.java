@@ -60,12 +60,9 @@ public class ServerDescriptor
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final String TRUSTSTORE_DN = "cn=ads-truststore";
 
-  private final Map<ADSContext.ServerProperty, Object> adsProperties =
-    new HashMap<ADSContext.ServerProperty, Object>();
-  private final Set<ReplicaDescriptor> replicas =
-    new HashSet<ReplicaDescriptor>();
-  private final Map<ServerProperty, Object> serverProperties =
-    new HashMap<ServerProperty, Object>();
+  private final Map<ADSContext.ServerProperty, Object> adsProperties = new HashMap<>();
+  private final Set<ReplicaDescriptor> replicas = new HashSet<>();
+  private final Map<ServerProperty, Object> serverProperties = new HashMap<>();
   private TopologyCacheException lastException;
 
   /**
@@ -133,7 +130,7 @@ public class ServerDescriptor
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
-    return new HashSet<ReplicaDescriptor>(replicas);
+    return new HashSet<>(replicas);
   }
 
   /**
@@ -410,11 +407,9 @@ public class ServerDescriptor
    */
   public List<Integer> getEnabledAdministrationPorts()
   {
-    List<Integer> ports = new ArrayList<Integer>(1);
-    ArrayList<?> s = (ArrayList<?>)serverProperties.get(
-        ServerProperty.ADMIN_ENABLED);
-    ArrayList<?> p = (ArrayList<?>)serverProperties.get(
-        ServerProperty.ADMIN_PORT);
+    List<Integer> ports = new ArrayList<>(1);
+    ArrayList<?> s = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_ENABLED);
+    ArrayList<?> p = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_PORT);
     if (s != null)
     {
       for (int i=0; i<s.size(); i++)
@@ -478,8 +473,7 @@ public class ServerDescriptor
     }
     else
     {
-      ArrayList<ADSContext.ServerProperty> enabledAttrs =
-        new ArrayList<ADSContext.ServerProperty>();
+      ArrayList<ADSContext.ServerProperty> enabledAttrs = new ArrayList<>();
 
       if (securePreferred)
       {
@@ -777,11 +771,11 @@ public class ServerDescriptor
 
     try
     {
-      ArrayList<Integer> ldapPorts = new ArrayList<Integer>();
-      ArrayList<Integer> ldapsPorts = new ArrayList<Integer>();
-      ArrayList<Boolean> ldapEnabled = new ArrayList<Boolean>();
-      ArrayList<Boolean> ldapsEnabled = new ArrayList<Boolean>();
-      ArrayList<Boolean> startTLSEnabled = new ArrayList<Boolean>();
+      ArrayList<Integer> ldapPorts = new ArrayList<>();
+      ArrayList<Integer> ldapsPorts = new ArrayList<>();
+      ArrayList<Boolean> ldapEnabled = new ArrayList<>();
+      ArrayList<Boolean> ldapsEnabled = new ArrayList<>();
+      ArrayList<Boolean> startTLSEnabled = new ArrayList<>();
 
       desc.serverProperties.put(ServerProperty.LDAP_PORT, ldapPorts);
       desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
@@ -852,8 +846,8 @@ public class ServerDescriptor
 
       // Even if we have a single port, use an array to be consistent with
       // other protocols.
-      ArrayList<Integer> adminPorts = new ArrayList<Integer>();
-      ArrayList<Boolean> adminEnabled = new ArrayList<Boolean>();
+      ArrayList<Integer> adminPorts = new ArrayList<>();
+      ArrayList<Boolean> adminEnabled = new ArrayList<>();
       if (adminConnectorPort != null)
       {
         adminPorts.add(adminConnectorPort);
@@ -886,10 +880,10 @@ public class ServerDescriptor
     NamingEnumeration<SearchResult> listeners =
       ctx.search(jndiName, filter, ctls);
 
-    ArrayList<Integer> jmxPorts = new ArrayList<Integer>();
-    ArrayList<Integer> jmxsPorts = new ArrayList<Integer>();
-    ArrayList<Boolean> jmxEnabled = new ArrayList<Boolean>();
-    ArrayList<Boolean> jmxsEnabled = new ArrayList<Boolean>();
+    ArrayList<Integer> jmxPorts = new ArrayList<>();
+    ArrayList<Integer> jmxsPorts = new ArrayList<>();
+    ArrayList<Boolean> jmxEnabled = new ArrayList<>();
+    ArrayList<Boolean> jmxsEnabled = new ArrayList<>();
 
     desc.serverProperties.put(ServerProperty.JMX_PORT, jmxPorts);
     desc.serverProperties.put(ServerProperty.JMXS_PORT, jmxsPorts);
@@ -968,7 +962,7 @@ public class ServerDescriptor
           }
           else
           {
-            entries = new HashSet<String>();
+            entries = new HashSet<>();
           }
 
           Set<ReplicaDescriptor> replicas = desc.getReplicas();
@@ -994,7 +988,7 @@ public class ServerDescriptor
               replica.setServer(desc);
               replica.setBackendName(id);
               replicas.add(replica);
-              HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
+              HashSet<ReplicaDescriptor> r = new HashSet<>();
               r.add(replica);
               suffix.setReplicas(r);
               replica.setSuffix(suffix);
@@ -1078,7 +1072,7 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         Boolean.valueOf(replicationEnabled));
 
-    Set<String> allReplicationServers = new LinkedHashSet<String>();
+    Set<String> allReplicationServers = new LinkedHashSet<>();
 
     if (cacheFilter.searchBaseDNInformation())
     {
@@ -1118,7 +1112,7 @@ public class ServerDescriptor
                 replica.setReplicationId(id);
                 // Keep the values of the replication servers in lower case
                 // to make use of Sets as String simpler.
-                LinkedHashSet<String> repServers = new LinkedHashSet<String>();
+                LinkedHashSet<String> repServers = new LinkedHashSet<>();
                 for (String s: replicationServers)
                 {
                   repServers.add(s.toLowerCase());
@@ -1177,7 +1171,7 @@ public class ServerDescriptor
         Set<String> values = getValues(sr, "ds-cfg-replication-server");
         // Keep the values of the replication servers in lower case
         // to make use of Sets as String simpler.
-        LinkedHashSet<String> repServers = new LinkedHashSet<String>();
+        LinkedHashSet<String> repServers = new LinkedHashSet<>();
         for (String s: values)
         {
           repServers.add(s.toLowerCase());
@@ -1382,7 +1376,7 @@ public class ServerDescriptor
       sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
           "(objectclass=ds-cfg-instance-key)", sc);
-      ArrayList<String> dnsToDelete = new ArrayList<String>();
+      ArrayList<String> dnsToDelete = new ArrayList<>();
       try
       {
         while (ne.hasMore())
@@ -1418,7 +1412,7 @@ public class ServerDescriptor
   private static Set<String> getBaseDNEntryCount(InitialLdapContext ctx,
       String backendID) throws NamingException
   {
-    LinkedHashSet<String> v = new LinkedHashSet<String>();
+    LinkedHashSet<String> v = new LinkedHashSet<>();
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     ctls.setReturningAttributes(

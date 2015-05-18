@@ -81,9 +81,8 @@ public class MainActionsPane extends StatusGenericPanel
     ArrayList<Category> categories = createCategories();
     ButtonGroup group = new ButtonGroup();
     int maxWidth = 0;
-    final Map<Action, GenericFrame> frames =
-      new HashMap<Action, GenericFrame>();
-    ArrayList<ActionButton> actions = new ArrayList<ActionButton>();
+    final Map<Action, GenericFrame> frames = new HashMap<>();
+    ArrayList<ActionButton> actions = new ArrayList<>();
     for(Category category: categories)
     {
       JPanel categoryPanel = new JPanel(new GridBagLayout());
@@ -185,7 +184,7 @@ public class MainActionsPane extends StatusGenericPanel
    */
   protected ArrayList<Category> createCategories()
   {
-    ArrayList<Category> categories = new ArrayList<Category>();
+    ArrayList<Category> categories = new ArrayList<>();
     LocalizableMessage[][] labels;
     if (isWindows())
     {
@@ -256,8 +255,7 @@ public class MainActionsPane extends StatusGenericPanel
           }
       };
     }
-    ArrayList<Class<? extends StatusGenericPanel>> classes =
-      new ArrayList<Class<? extends StatusGenericPanel>>();
+    ArrayList<Class<? extends StatusGenericPanel>> classes = new ArrayList<>();
     classes.add(BrowseEntriesPanel.class);
     classes.add(NewBaseDNPanel.class);
     classes.add(ImportLDIFPanel.class);

@@ -283,9 +283,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();
-        List<AttributeType> attributeTypes = new ArrayList<AttributeType>();
-        List<String> attributeNames = new ArrayList<String>();
-        List<ByteString> attributeValues = new ArrayList<ByteString>();
+        List<AttributeType> attributeTypes = new ArrayList<>();
+        List<String> attributeNames = new ArrayList<>();
+        List<ByteString> attributeValues = new ArrayList<>();
         for (int i=0; i<rdn.getNumValues(); i++)
         {
           String attrName = rdn.getAttributeName(i);
@@ -395,7 +395,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
 
   private Set<String> getDisplayedStringValues(String attrName)
   {
-    Set<String> values = new LinkedHashSet<String>();
+    Set<String> values = new LinkedHashSet<>();
     for (int i=0; i<table.getRowCount(); i++)
     {
       if (attrName.equalsIgnoreCase((String)table.getValueAt(i, 0)))
@@ -426,11 +426,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
   implements Comparator<AttributeValuePair>
   {
     private static final long serialVersionUID = -1240282431326505113L;
-    private ArrayList<AttributeValuePair> dataArray =
-      new ArrayList<AttributeValuePair>();
-    private SortedSet<AttributeValuePair> allSortedValues =
-      new TreeSet<AttributeValuePair>(this);
-    private Set<String> requiredAttrs = new HashSet<String>();
+    private ArrayList<AttributeValuePair> dataArray = new ArrayList<>();
+    private SortedSet<AttributeValuePair> allSortedValues = new TreeSet<>(this);
+    private Set<String> requiredAttrs = new HashSet<>();
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(LocalizableMessage.raw("Attribute"), 40),
         getHeader(LocalizableMessage.raw("Value", 40))};
@@ -644,7 +642,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     {
       allSortedValues.clear();
       requiredAttrs.clear();
-      List<String> addedAttrs = new ArrayList<String>();
+      List<String> addedAttrs = new ArrayList<>();
       Schema schema = getInfo().getServerDescriptor().getSchema();
       List<Object> ocs = null;
       for (String attrName : searchResult.getAttributeNames())
@@ -757,7 +755,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
      */
     public List<Object> getValues(String attrName)
     {
-      List<Object> values = new ArrayList<Object>();
+      List<Object> values = new ArrayList<>();
       for (AttributeValuePair valuePair : dataArray)
       {
         if (valuePair.attrName.equalsIgnoreCase(attrName)
@@ -795,8 +793,8 @@ public class TableViewEntryPanel extends ViewEntryPanel
       Schema schema = getInfo().getServerDescriptor().getSchema();
       if (schema != null)
       {
-        ArrayList<String> attributes = new ArrayList<String>();
-        ArrayList<String> ocs = new ArrayList<String>();
+        ArrayList<String> attributes = new ArrayList<>();
+        ArrayList<String> ocs = new ArrayList<>();
         if (newValue.getStructural() != null)
         {
           ocs.add(newValue.getStructural().toLowerCase());

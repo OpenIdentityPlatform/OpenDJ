@@ -48,8 +48,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 public class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563298069830L;
-  static List<MonitoringAttributes> operations =
-    new ArrayList<MonitoringAttributes>();
+  static List<MonitoringAttributes> operations = new ArrayList<>();
   {
     operations.add(BasicMonitoringAttributes.SYSTEM_NAME);
     operations.add(BasicMonitoringAttributes.OPERATING_SYSTEM);
@@ -58,8 +57,7 @@ public class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
     operations.add(BasicMonitoringAttributes.FREE_USED_MEMORY);
     operations.add(BasicMonitoringAttributes.MAX_MEMORY);
   }
-  private ArrayList<JLabel> monitoringLabels =
-    new ArrayList<JLabel>();
+  private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
   {
     for (int i=0; i<operations.size(); i++)
     {

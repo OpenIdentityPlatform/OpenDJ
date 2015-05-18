@@ -184,7 +184,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    */
   private List<TaskEntry> getSelectedTasks(boolean onlyCancelable)
   {
-    ArrayList<TaskEntry> tasks = new ArrayList<TaskEntry>();
+    ArrayList<TaskEntry> tasks = new ArrayList<>();
     int[] rows = taskTable.getSelectedRows();
     for (int row : rows)
     {
@@ -490,7 +490,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    */
   private Set<TaskEntry> createRandomTasksList()
   {
-    Set<TaskEntry> list = new HashSet<TaskEntry>();
+    Set<TaskEntry> list = new HashSet<>();
     Random r = new Random();
     int numberTasks = r.nextInt(10);
     for (int i= 0; i<numberTasks; i++)
@@ -534,7 +534,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        List<Object> attrValues = new ArrayList<Object>(1);
+        List<Object> attrValues = new ArrayList<>(1);
         attrValues.add(values[j] + r.nextInt());
         csr.set(attrNames[j], attrValues);
       }
@@ -559,7 +559,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    */
   private Set<TaskEntry> createDummyTaskList()
   {
-    Set<TaskEntry> list = new HashSet<TaskEntry>();
+    Set<TaskEntry> list = new HashSet<>();
     for (int i= 0; i<10; i++)
     {
       CustomSearchResult csr =
@@ -601,7 +601,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        List<Object> attrValues = new ArrayList<Object>(1);
+        List<Object> attrValues = new ArrayList<>(1);
         attrValues.add(values[j]);
         csr.set(attrNames[j], attrValues);
       }
@@ -621,7 +621,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private void cancelTaskClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -666,11 +666,9 @@ public class ManageTasksPanel extends StatusGenericPanel
   public static Entry getEntry(CustomSearchResult csr) throws OpenDsException
   {
     DN dn = DN.valueOf(csr.getDN());
-    Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
-    Map<AttributeType,List<Attribute>> userAttributes =
-      new HashMap<AttributeType,List<Attribute>>();
-    Map<AttributeType,List<Attribute>> operationalAttributes =
-      new HashMap<AttributeType,List<Attribute>>();
+    Map<ObjectClass,String> objectClasses = new HashMap<>();
+    Map<AttributeType,List<Attribute>> userAttributes = new HashMap<>();
+    Map<AttributeType,List<Attribute>> operationalAttributes = new HashMap<>();
 
     for (String wholeName : csr.getAttributeNames())
     {
@@ -719,7 +717,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           }
           builder.add(bs);
         }
-        List<Attribute> attrList = new ArrayList<Attribute>(1);
+        List<Attribute> attrList = new ArrayList<>(1);
         attrList.add(builder.toAttribute());
 
         if (attrType.isOperational())
@@ -1000,7 +998,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private Set<String> getSelectedIds()
   {
-    Set<String> selectedIds = new HashSet<String>();
+    Set<String> selectedIds = new HashSet<>();
     int[] indexes = taskTable.getSelectedRows();
     if (indexes != null)
     {

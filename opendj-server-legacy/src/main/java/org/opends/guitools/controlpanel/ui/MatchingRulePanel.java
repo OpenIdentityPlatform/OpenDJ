@@ -235,7 +235,7 @@ public class MatchingRulePanel extends SchemaElementPanel
     type.setText(getTypeValue(matchingRule).toString());
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    TreeSet<String> attributes = new TreeSet<String>(lowerCaseComparator);
+    TreeSet<String> attributes = new TreeSet<>(lowerCaseComparator);
     for (AttributeType attr : schema.getAttributeTypes().values())
     {
       if (matchingRule.equals(attr.getApproximateMatchingRule()) ||

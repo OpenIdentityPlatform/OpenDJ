@@ -77,21 +77,18 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * The read-only attributes as they appear on the schema.
    */
-  protected SortedSet<String> schemaReadOnlyAttributes = new TreeSet<String>();
+  protected SortedSet<String> schemaReadOnlyAttributes = new TreeSet<>();
   /**
    * The read-only attributes in lower case.
    */
-  protected SortedSet<String> schemaReadOnlyAttributesLowerCase =
-    new TreeSet<String>();
+  protected SortedSet<String> schemaReadOnlyAttributesLowerCase = new TreeSet<>();
   /**
    * The editable operational attributes.
    */
-  protected SortedSet<String> editableOperationalAttrNames =
-    new TreeSet<String>();
+  protected SortedSet<String> editableOperationalAttrNames = new TreeSet<>();
   private JLabel title= Utilities.createDefaultLabel();
 
-  private Set<LDAPEntryChangedListener> listeners =
-    new LinkedHashSet<LDAPEntryChangedListener>();
+  private Set<LDAPEntryChangedListener> listeners = new LinkedHashSet<>();
 
   /**
    * Whether the entry change events should be ignored or not.
@@ -291,7 +288,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       Schema schema)
   {
     ObjectClass structuralObjectClass = null;
-    SortedSet<String> auxiliaryClasses = new TreeSet<String>();
+    SortedSet<String> auxiliaryClasses = new TreeSet<>();
     for (Object o : ocValues)
     {
       ObjectClass objectClass =
@@ -348,7 +345,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         {
           if (attr.getNameWithOptions().equals(attrName))
           {
-            ArrayList<ByteString> newValues = new ArrayList<ByteString>();
+            ArrayList<ByteString> newValues = new ArrayList<>();
             Iterator<ByteString> it = attr.iterator();
             while (it.hasNext())
             {
@@ -365,7 +362,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       {
         org.opends.server.types.Attribute attr =
           Attributes.create(rdn.getAttributeType(i), value);
-        ArrayList<ByteString> newValues = new ArrayList<ByteString>();
+        ArrayList<ByteString> newValues = new ArrayList<>();
         newValues.add(value);
         entry.addAttribute(attr, newValues);
       }
@@ -548,7 +545,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void setValues(CustomSearchResult sr, String attrName)
   {
     List<Object> values = getValues(attrName);
-    List<Object> valuesToSet = new ArrayList<Object>();
+    List<Object> valuesToSet = new ArrayList<>();
     for (Object value : values)
     {
       if (value instanceof ObjectClassValue)
@@ -621,7 +618,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected Set<String> getObjectClassSuperiorValues(
       ObjectClass oc)
   {
-    Set<String> names = new LinkedHashSet<String>();
+    Set<String> names = new LinkedHashSet<>();
     Set<ObjectClass> parents = oc.getSuperiorClasses();
     if (parents != null && !parents.isEmpty())
     {

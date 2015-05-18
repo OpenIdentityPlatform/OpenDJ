@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -74,10 +74,8 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
  */
 public class LDAPConnectionPool {
 
-  private final HashMap<String, AuthRecord> authTable =
-      new HashMap<String, AuthRecord>();
-  private final HashMap<String, ConnectionRecord> connectionTable =
-    new HashMap<String, ConnectionRecord>();
+  private final HashMap<String, AuthRecord> authTable = new HashMap<>();
+  private final HashMap<String, ConnectionRecord> connectionTable = new HashMap<>();
 
   private ArrayList<ReferralAuthenticationListener> listeners;
 
@@ -145,7 +143,7 @@ public class LDAPConnectionPool {
   public void addReferralAuthenticationListener(
       ReferralAuthenticationListener listener) {
     if (listeners == null) {
-      listeners = new ArrayList<ReferralAuthenticationListener>();
+      listeners = new ArrayList<>();
     }
     listeners.add(listener);
   }

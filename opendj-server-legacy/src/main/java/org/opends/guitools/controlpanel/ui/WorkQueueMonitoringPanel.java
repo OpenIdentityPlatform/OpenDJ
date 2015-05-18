@@ -48,8 +48,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
-  static List<MonitoringAttributes> attributes =
-    new ArrayList<MonitoringAttributes>();
+  static List<MonitoringAttributes> attributes = new ArrayList<>();
   {
     attributes.add(BasicMonitoringAttributes.AVERAGE_REQUEST_BACKLOG);
     attributes.add(BasicMonitoringAttributes.MAX_REQUEST_BACKLOG);
@@ -57,8 +56,7 @@ public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
     attributes.add(BasicMonitoringAttributes.REQUESTS_SUBMITTED);
     attributes.add(BasicMonitoringAttributes.REQUESTS_REJECTED);
   }
-  private ArrayList<JLabel> monitoringLabels =
-    new ArrayList<JLabel>();
+  private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
   {
     for (int i=0; i<attributes.size(); i++)
     {

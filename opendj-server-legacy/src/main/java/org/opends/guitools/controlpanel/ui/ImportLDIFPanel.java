@@ -565,7 +565,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lRejectsFile);
     setPrimaryValid(lSkipsFile);
     setPrimaryValid(lThreads);
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     String backendName = (String)backends.getSelectedItem();
     if (backendName == null)
@@ -659,7 +659,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         }
         else if (!overwrite.isSelected() && canInitialize)
         {
-          ArrayList<String> dns = new ArrayList<String>();
+          ArrayList<String> dns = new ArrayList<>();
           for (DN dn : replicatedBaseDNs)
           {
             dns.add(dn.toString());
@@ -671,7 +671,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         }
         else if (overwrite.isSelected() && canInitialize)
         {
-          ArrayList<String> dns = new ArrayList<String>();
+          ArrayList<String> dns = new ArrayList<>();
           for (DN dn : replicatedBaseDNs)
           {
             dns.add(dn.toString());
@@ -742,7 +742,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
   private Set<DN> getReplicatedBaseDNs()
   {
-    Set<DN> baseDNs = new TreeSet<DN>();
+    Set<DN> baseDNs = new TreeSet<>();
     String backendID = (String)backends.getSelectedItem();
     if (backendID != null)
     {
@@ -783,7 +783,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     public ImportTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
-      backendSet = new HashSet<String>();
+      backendSet = new HashSet<>();
       backendSet.add((String)backends.getSelectedItem());
       fileName = file.getText();
       replicatedBaseDNs = getReplicatedBaseDNs();
@@ -834,7 +834,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       args.add("--ldifFile");
       args.add(fileName);
       args.add("--backendID");
@@ -952,7 +952,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         lastException = t;
         state = State.FINISHED_WITH_ERROR;
       }
-      HashSet<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
+      HashSet<BackendDescriptor> backends = new HashSet<>();
       for (BackendDescriptor backend :
         getInfo().getServerDescriptor().getBackends())
       {
@@ -1004,7 +1004,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     private String getCommandLineToInitializeAll()
     {
       String cmdLineName = getCommandLinePath("dsreplication");
-      ArrayList<String> args = new ArrayList<String>();
+      ArrayList<String> args = new ArrayList<>();
       args.add(
           ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
       args.add("--hostName");

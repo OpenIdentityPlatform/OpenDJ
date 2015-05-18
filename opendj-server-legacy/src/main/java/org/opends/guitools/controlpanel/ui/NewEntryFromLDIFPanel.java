@@ -181,7 +181,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
       /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<>();
         checkSyntax(errors);
         if (!errors.isEmpty())
         {

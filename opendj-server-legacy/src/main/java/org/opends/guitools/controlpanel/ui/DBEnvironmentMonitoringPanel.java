@@ -67,8 +67,8 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
   private JLabel noMonitoringFound;
   private JButton showOperations;
 
-  private LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-  private LinkedHashSet<String> allAttributes = new LinkedHashSet<String>();
+  private LinkedHashSet<String> attributes = new LinkedHashSet<>();
+  private LinkedHashSet<String> allAttributes = new LinkedHashSet<>();
 
   private MonitoringAttributesViewPanel<String> operationViewPanel;
   private GenericDialog operationViewDlg;
@@ -166,9 +166,9 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     {
       server = getInfo().getServerDescriptor();
     }
-    Set<BackendDescriptor> dbBackends = new HashSet<BackendDescriptor>();
+    Set<BackendDescriptor> dbBackends = new HashSet<>();
     boolean updateAttributes = allAttributes.isEmpty();
-    SortedSet<String> sortedAttrNames = new TreeSet<String>();
+    SortedSet<String> sortedAttrNames = new TreeSet<>();
     if (server != null)
     {
       for (BackendDescriptor backend : server.getBackends())
@@ -253,7 +253,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
 
   private Set<String> getMonitoringAttributes(BackendDescriptor backend)
   {
-    Set<String> attrNames = new HashSet<String>();
+    Set<String> attrNames = new HashSet<>();
     if (backend.getMonitoringEntry() != null)
     {
       Set<String> allNames = backend.getMonitoringEntry().getAttributeNames();

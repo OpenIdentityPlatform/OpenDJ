@@ -79,8 +79,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
   private JLabel lIndexes;
   private JLabel lNoBaseDNsFound;
 
-  private final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes =
-      new HashMap<String, SortedSet<AbstractIndexDescriptor>>();
+  private final Map<String, SortedSet<AbstractIndexDescriptor>> hmIndexes = new HashMap<>();
 
   /** Constructor of the panel. */
   public RebuildIndexPanel()
@@ -148,7 +147,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     gbc.anchor = GridBagConstraints.NORTHWEST;
     add(lIndexes, gbc);
 
-    addRemove = new AddRemovePanel<AbstractIndexDescriptor>(AbstractIndexDescriptor.class);
+    addRemove = new AddRemovePanel<>(AbstractIndexDescriptor.class);
     addRemove.getAvailableLabel().setText(INFO_CTRL_PANEL_AVAILABLE_INDEXES_LABEL.get().toString());
     addRemove.getSelectedLabel().setText(INFO_CTRL_PANEL_SELECTED_INDEXES_LABEL.get().toString());
 
@@ -286,7 +285,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     setPrimaryValid(lBaseDN);
     setSecondaryValid(addRemove.getSelectedLabel());
 
-    final Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final Set<LocalizableMessage> errors = new LinkedHashSet<>();
     String baseDN = getSelectedBaseDN();
 
     if (baseDN == null)
@@ -313,7 +312,7 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     {
       ProgressDialog progressDialog =
           new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(), getInfo());
-      Set<String> baseDNs = new HashSet<String>();
+      Set<String> baseDNs = new HashSet<>();
       baseDNs.add(getSelectedBaseDN());
       RebuildIndexTask newTask =
           new RebuildIndexTask(getInfo(), progressDialog, baseDNs, addRemove.getSelectedListModel().getData());

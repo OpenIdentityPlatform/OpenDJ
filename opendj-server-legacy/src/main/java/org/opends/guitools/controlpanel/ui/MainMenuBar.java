@@ -93,7 +93,7 @@ public class MainMenuBar extends GenericMenuBar
    */
   public void quitClicked()
   {
-    Set<String> runningTasks = new HashSet<String>();
+    Set<String> runningTasks = new HashSet<>();
     for (Task task : getInfo().getTasks())
     {
       if (task.getState() == Task.State.RUNNING)
@@ -250,7 +250,7 @@ public class MainMenuBar extends GenericMenuBar
    */
   protected void connectToServerClicked()
   {
-    Set<String> runningTasks = new HashSet<String>();
+    Set<String> runningTasks = new HashSet<>();
     for (Task task : getInfo().getTasks())
     {
       if (task.getState() == Task.State.RUNNING)

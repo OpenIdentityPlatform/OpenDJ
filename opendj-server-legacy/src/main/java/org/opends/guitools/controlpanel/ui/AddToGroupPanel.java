@@ -78,7 +78,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   private JScrollPane scrollEntries;
   private JLabel lEntries = Utilities.createDefaultLabel();
   private JLabel lGroups = Utilities.createDefaultLabel();
-  private LinkedHashSet<DN> dns = new LinkedHashSet<DN>();
+  private LinkedHashSet<DN> dns = new LinkedHashSet<>();
 
   private GenericDialog browseGroupDlg;
   private LDAPEntrySelectionPanel browseGroupPanel;
@@ -99,7 +99,7 @@ public class AddToGroupPanel extends StatusGenericPanel
    */
   public void setEntriesToAdd(Set<DN> dns)
   {
-    ArrayList<String> sDns = new ArrayList<String>();
+    ArrayList<String> sDns = new ArrayList<>();
     for (DN dn : dns)
     {
       sDns.add(dn.toString());
@@ -132,7 +132,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<>();
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
       /** {@inheritDoc} */
@@ -403,7 +403,7 @@ public class AddToGroupPanel extends StatusGenericPanel
           Utilities.createFrame(),
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get(), getInfo());
-      LinkedHashSet<DN> groupDns = new LinkedHashSet<DN>();
+      LinkedHashSet<DN> groupDns = new LinkedHashSet<>();
       String[] grs = groups.getText().split("\n");
       try
       {

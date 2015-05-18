@@ -98,9 +98,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     /**
      * One-line descriptions for log reference categories.
      */
-    private static final HashMap<String, LocalizableMessage> CATEGORY_DESCRIPTIONS =
-            new HashMap<String, LocalizableMessage>();
-
+    private static final HashMap<String, LocalizableMessage> CATEGORY_DESCRIPTIONS = new HashMap<>();
     static {
         CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", CATEGORY_ACCESS_CONTROL.get());
         CATEGORY_DESCRIPTIONS.put("ADMIN", CATEGORY_ADMIN.get());
@@ -200,7 +198,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
          * @return A map of this log reference entry, suitable for use with FreeMarker.
          */
         public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             String id = (ordinal != null) ? ordinal.toString() : MESSAGE_NO_ORDINAL.get().toString();
             map.put("xmlId", "log-ref-" + xmlId);
             map.put("id", MESSAGE_ORDINAL_ID.get(id));
@@ -238,10 +236,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
          * @return A map of this log reference category, suitable for use with FreeMarker.
          */
         public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("id", category);
             map.put("category", MESSAGE_CATEGORY.get(category));
-            List<Map<String, Object>> messageEntries = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> messageEntries = new LinkedList<>();
             for (MessageRefEntry entry : messages) {
                 messageEntries.add(entry.toMap());
             }
@@ -340,13 +338,13 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             throw new MojoExecutionException(errorMsg);
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("lang", locale);
         map.put("title", LOG_REF_TITLE.get());
         map.put("indexterm", LOG_REF_INDEXTERM.get());
         map.put("intro", LOG_REF_INTRO.get());
-        List<Map<String, Object>> categories = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> categories = new LinkedList<>();
         for (String category : messageFileNames) {
             File source = new File(messagesDirectory, category + ".properties");
             categories.add(getCategoryMap(source, category.toUpperCase()));
@@ -375,8 +373,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         try {
             properties.load(new FileInputStream(source));
             Map<MessagePropertyKey, String> errorMessages = loadErrorProperties(properties);
-            TreeSet<MessageRefEntry> messageRefEntries = new TreeSet<MessageRefEntry>();
-            Set<Integer> usedOrdinals = new HashSet<Integer>();
+            TreeSet<MessageRefEntry> messageRefEntries = new TreeSet<>();
+            Set<Integer> usedOrdinals = new HashSet<>();
 
             for (MessagePropertyKey msgKey : errorMessages.keySet()) {
                 String formatString = errorMessages.get(msgKey).replaceAll("<", "&lt;");
@@ -398,7 +396,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     }
 
     private Map<MessagePropertyKey, String> loadErrorProperties(Properties properties) throws Exception {
-        Map<MessagePropertyKey, String> errorMessage = new TreeMap<MessagePropertyKey, String>();
+        Map<MessagePropertyKey, String> errorMessage = new TreeMap<>();
         for (Object propO : properties.keySet()) {
             String propKey = propO.toString();
             try {

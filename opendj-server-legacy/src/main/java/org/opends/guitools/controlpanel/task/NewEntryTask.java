@@ -87,7 +87,7 @@ public class NewEntryTask extends Task
       BasicNode parentNode, BrowserController controller)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     this.newEntry = newEntry;
     this.ldif = ldif;
     this.parentNode = parentNode;
@@ -132,7 +132,7 @@ public class NewEntryTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return new ArrayList<>();
   }
 
   /** {@inheritDoc} */
@@ -194,7 +194,7 @@ public class NewEntryTask extends Task
       for (org.opends.server.types.Attribute attr : newEntry.getAttributes())
       {
         String attrName = attr.getNameWithOptions();
-        Set<ByteString> values = new LinkedHashSet<ByteString>();
+        Set<ByteString> values = new LinkedHashSet<>();
         Iterator<ByteString> it = attr.iterator();
         while (it.hasNext())
         {
@@ -291,7 +291,7 @@ public class NewEntryTask extends Task
    */
   private void printEquivalentCommand()
   {
-    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     args.add("--defaultAdd");

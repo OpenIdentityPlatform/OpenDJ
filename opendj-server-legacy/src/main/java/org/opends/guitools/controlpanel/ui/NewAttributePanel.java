@@ -173,8 +173,7 @@ public class NewAttributePanel extends StatusGenericPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<AttributeSyntax<?>> newSyntaxes =
-      new ArrayList<AttributeSyntax<?>>();
+    ArrayList<AttributeSyntax<?>> newSyntaxes = new ArrayList<>();
 
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
@@ -204,8 +203,7 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       schema = s;
 
-      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<String,
-      AttributeSyntax<?>>();
+      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<>();
       for (String key : schema.getSyntaxes().keySet())
       {
         AttributeSyntax<?> syntax = schema.getSyntax(key);
@@ -217,8 +215,7 @@ public class NewAttributePanel extends StatusGenericPanel
         syntaxNameMap.put(name, syntax);
       }
 
-      SortedSet<String> orderedKeys =
-        new TreeSet<String>(new LowerCaseComparator());
+      SortedSet<String> orderedKeys = new TreeSet<>(new LowerCaseComparator());
       orderedKeys.addAll(syntaxNameMap.keySet());
       for (String key : orderedKeys)
       {
@@ -226,8 +223,7 @@ public class NewAttributePanel extends StatusGenericPanel
       }
       updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
-      HashMap<String, AttributeType> attributeNameMap = new HashMap<String,
-      AttributeType>();
+      HashMap<String, AttributeType> attributeNameMap = new HashMap<>();
       for (String key : schema.getAttributeTypes().keySet())
       {
         AttributeType attr = schema.getAttributeType(key);
@@ -235,7 +231,7 @@ public class NewAttributePanel extends StatusGenericPanel
       }
       orderedKeys.clear();
       orderedKeys.addAll(attributeNameMap.keySet());
-      ArrayList<Object> newParents = new ArrayList<Object>();
+      ArrayList<Object> newParents = new ArrayList<>();
       for (String key : orderedKeys)
       {
         newParents.add(attributeNameMap.get(key));
@@ -243,14 +239,12 @@ public class NewAttributePanel extends StatusGenericPanel
       newParents.add(0, NO_PARENT);
       updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
-      ArrayList<MatchingRule> approximateElements =
-        new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> equalityElements = new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> orderingElements = new ArrayList<MatchingRule>();
-      ArrayList<MatchingRule> substringElements = new ArrayList<MatchingRule>();
+      ArrayList<MatchingRule> approximateElements = new ArrayList<>();
+      ArrayList<MatchingRule> equalityElements = new ArrayList<>();
+      ArrayList<MatchingRule> orderingElements = new ArrayList<>();
+      ArrayList<MatchingRule> substringElements = new ArrayList<>();
 
-      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<String,
-      MatchingRule>();
+      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
       for (String key : schema.getMatchingRules().keySet())
       {
         MatchingRule rule = schema.getMatchingRule(key);
@@ -280,8 +274,7 @@ public class NewAttributePanel extends StatusGenericPanel
         }
       }
       JComboBox[] combos = {approximate, equality, ordering, substring};
-      ArrayList<ArrayList<MatchingRule>> ruleNames =
-        new ArrayList<ArrayList<MatchingRule>>();
+      ArrayList<ArrayList<MatchingRule>> ruleNames = new ArrayList<>();
       ruleNames.add(approximateElements);
       ruleNames.add(equalityElements);
       ruleNames.add(orderingElements);
@@ -362,7 +355,7 @@ public class NewAttributePanel extends StatusGenericPanel
   @Override
   public void okClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
@@ -725,7 +718,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private ArrayList<String> getAliases()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     String s = aliases.getText().trim();
     if (s.length() > 0)
     {
@@ -740,7 +733,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private ArrayList<String> getAllNames()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     al.add(getAttributeName());
     al.addAll(getAliases());
     return al;
@@ -787,18 +780,18 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private Map<String, List<String>> getExtraProperties()
   {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    Map<String, List<String>> map = new HashMap<>();
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(f);
       map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(or);
       map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
     }

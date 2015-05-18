@@ -110,7 +110,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     private URLClassLoader getBootToolsClassLoader() throws MojoFailureException {
         try {
             List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-            Set<URL> runtimeUrls = new LinkedHashSet<URL>();
+            Set<URL> runtimeUrls = new LinkedHashSet<>();
             for (String element : runtimeClasspathElements) {
                 runtimeUrls.add(new File(element).toURI().toURL());
             }
@@ -141,7 +141,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         final String toolScript = tool.getName();
         final String toolSects  = pathsToXIncludes(tool.getTrailingSectionPaths());
         final String toolClass  = tool.getApplication();
-        List<String> commands   = new LinkedList<String>();
+        List<String> commands   = new LinkedList<>();
         commands.add(getJavaCommand());
         commands.addAll(getJavaArgs(toolScript, toolSects));
         commands.add("-classpath");
@@ -208,7 +208,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      * @return The Java args for running a tool.
      */
     private List<String> getJavaArgs(final String scriptName, final String trailingSections) {
-        List<String> args = new LinkedList<String>();
+        List<String> args = new LinkedList<>();
         args.add("-Dorg.forgerock.opendj.gendoc=true");
         args.add("-Dorg.opends.server.ServerRoot=" + System.getProperty("java.io.tmpdir"));
         args.add("-Dcom.forgerock.opendj.ldap.tools.scriptName=" + scriptName);

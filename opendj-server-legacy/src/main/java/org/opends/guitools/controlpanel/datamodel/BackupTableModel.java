@@ -38,13 +38,9 @@ import javax.swing.table.AbstractTableModel;
 public class BackupTableModel extends AbstractTableModel
 {
   private static final long serialVersionUID = -3511425157550147124L;
-  private ArrayList<BackupDescriptor> backups =
-    new ArrayList<BackupDescriptor>();
+  private ArrayList<BackupDescriptor> backups = new ArrayList<>();
 
-  /**
-   * Clears the contents ot the table model.
-   *
-   */
+  /** Clears the contents of the table model. */
   public void clear()
   {
     backups.clear();

@@ -81,7 +81,7 @@ public class ResetUserPasswordTask extends Task
       BasicNode node, BrowserController controller, char[] pwd)
   {
     super(info, dlg);
-    backendSet = new HashSet<String>();
+    backendSet = new HashSet<>();
     this.node = node;
     this.newPassword = pwd;
     try
@@ -151,7 +151,7 @@ public class ResetUserPasswordTask extends Task
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     if (currentPassword == null)
     {
       args.add("--authzID");

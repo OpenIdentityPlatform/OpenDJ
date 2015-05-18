@@ -579,8 +579,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     return changed;
   }
 
-  private HashMap<Object, ImageIcon> hmImages =
-    new HashMap<Object, ImageIcon>();
+  private HashMap<Object, ImageIcon> hmImages = new HashMap<>();
   {
     NodeType[] identifiers = {
         NodeType.ROOT,

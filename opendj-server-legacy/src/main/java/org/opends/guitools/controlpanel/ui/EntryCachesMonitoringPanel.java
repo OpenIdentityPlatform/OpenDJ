@@ -53,14 +53,14 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
       ENTRY_CACHE_TRIES, ENTRY_CACHE_HITS, ENTRY_CACHE_HIT_RATIO, CURRENT_ENTRY_CACHE_SIZE, MAX_ENTRY_CACHE_SIZE,
       CURRENT_ENTRY_CACHE_COUNT, MAX_ENTRY_CACHE_COUNT));
 
-  private ArrayList<JLabel> monitoringLabels = new ArrayList<JLabel>();
+  private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
   {
     for (int i=0; i<ngOperations.size(); i++)
     {
       monitoringLabels.add(Utilities.createDefaultLabel());
     }
   }
-  private ArrayList<JLabel> labels = new ArrayList<JLabel>();
+  private ArrayList<JLabel> labels = new ArrayList<>();
   {
     for (int i=0; i<ngOperations.size(); i++)
     {

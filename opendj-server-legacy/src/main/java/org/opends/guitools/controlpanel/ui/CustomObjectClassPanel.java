@@ -130,10 +130,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private JLabel lAttributes = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_ATTRIBUTES_LABEL.get());
 
-  private Set<AttributeType> inheritedOptionalAttributes =
-    new HashSet<AttributeType>();
-  private Set<AttributeType> inheritedRequiredAttributes =
-    new HashSet<AttributeType>();
+  private Set<AttributeType> inheritedOptionalAttributes = new HashSet<>();
+  private Set<AttributeType> inheritedRequiredAttributes = new HashSet<>();
 
   private JLabel[] labels = {lName, lSuperior, lOID, lAliases, lOrigin, lFile,
       lDescription, lType, lAttributes
@@ -152,7 +150,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private DoubleAddRemovePanel<AttributeType> attributes;
 
   private Schema schema;
-  private Set<String> lastAliases = new LinkedHashSet<String>();
+  private Set<String> lastAliases = new LinkedHashSet<>();
 
   private boolean ignoreChangeEvents;
 
@@ -228,7 +226,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       @Override
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<>();
         saveChanges(false, errors);
       }
     });
@@ -277,8 +275,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     SchemaElementComboBoxCellRenderer(type);
     type.setRenderer(renderer);
 
-    attributes =
-      new DoubleAddRemovePanel<AttributeType>(0, AttributeType.class);
+    attributes = new DoubleAddRemovePanel<>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
       /** {@inheritDoc} */
@@ -649,7 +646,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
-      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> errors = new ArrayList<>();
       saveChanges(true, errors);
       if (!errors.isEmpty())
       {
@@ -675,15 +672,14 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private void deleteObjectclass()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_OBJECTCLASS_TITLE.get(), getInfo());
-    LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<ObjectClass>();
+    LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<>();
     ocsToDelete.add(objectClass);
-    LinkedHashSet<AttributeType> attrsToDelete =
-      new LinkedHashSet<AttributeType>(0);
+    LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<>(0);
 
     DeleteSchemaElementsTask newTask = new DeleteSchemaElementsTask(getInfo(),
         dlg, ocsToDelete, attrsToDelete);
@@ -692,7 +688,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       task.canLaunch(newTask, errors);
     }
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<String> childClasses = new ArrayList<String>();
+    ArrayList<String> childClasses = new ArrayList<>();
     if (schema != null)
     {
       for (ObjectClass o : schema.getObjectClasses().values())
@@ -931,7 +927,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private Set<String> getAliases()
   {
-    Set<String> al = new LinkedHashSet<String>();
+    Set<String> al = new LinkedHashSet<>();
     String s = aliases.getText().trim();
     if (s.length() > 0)
     {
@@ -961,18 +957,18 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private Map<String, List<String>> getExtraProperties()
   {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    Map<String, List<String>> map = new HashMap<>();
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(f);
       map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<String>();
+      ArrayList<String> list = new ArrayList<>();
       list.add(or);
       map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
     }
@@ -981,7 +977,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private ArrayList<String> getAllNames()
   {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     al.add(getObjectClassName());
     al.addAll(getAliases());
     return al;
@@ -1014,7 +1010,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private Set<AttributeType> intersect(Set<AttributeType> set1, Set<AttributeType> set2)
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>(set1);
+    HashSet<AttributeType> attrs = new HashSet<>(set1);
     attrs.removeAll(set2);
     return attrs;
   }
@@ -1054,7 +1050,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     attributes.getAvailableListModel().addAll(allAttrs);
 
 
-    HashSet<AttributeType> toDelete = new HashSet<AttributeType>();
+    HashSet<AttributeType> toDelete = new HashSet<>();
     for (AttributeType attr : attributes.getSelectedListModel1().getData())
     {
       if (!allAttrs.contains(attr))
@@ -1071,7 +1067,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       attributes.getSelectedListModel1().remove(attr);
     }
 
-    toDelete = new HashSet<AttributeType>();
+    toDelete = new HashSet<>();
     for (AttributeType attr : attributes.getSelectedListModel2().getData())
     {
       if (!allAttrs.contains(attr))
@@ -1093,7 +1089,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     {
       if (sel != null)
       {
-        ArrayList<Integer> indexes = new ArrayList<Integer>();
+        ArrayList<Integer> indexes = new ArrayList<>();
         for (int element : sel)
         {
           if (element < lists[i].getModel().getSize())
@@ -1144,8 +1140,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       attributes.getSelectedListModel2().add(attr);
     }
 
-    Collection<AttributeType> unmovableItems =
-      new ArrayList<AttributeType>(inheritedRequiredAttributes);
+    Collection<AttributeType> unmovableItems = new ArrayList<>(inheritedRequiredAttributes);
     unmovableItems.addAll(inheritedOptionalAttributes);
     attributes.setUnmovableItems(unmovableItems);
 

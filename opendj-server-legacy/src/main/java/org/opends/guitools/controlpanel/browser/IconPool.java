@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -58,12 +58,9 @@ public class IconPool {
    */
   public static final int MODIFIER_ERROR    = 0x04;
 
-  private final HashMap<String, ImageIcon> iconTable =
-    new HashMap<String, ImageIcon>();
-  private final HashMap<String, String> pathTable =
-      new HashMap<String, String>();
-  private final HashMap<String, String> descriptionTable =
-    new HashMap<String, String>();
+  private final HashMap<String, ImageIcon> iconTable = new HashMap<>();
+  private final HashMap<String, String> pathTable = new HashMap<>();
+  private final HashMap<String, String> descriptionTable = new HashMap<>();
   private ImageIcon defaultLeafIcon;
   private ImageIcon suffixIcon;
   private ImageIcon defaultContainerIcon;

@@ -63,10 +63,8 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
 {
  private static final long serialVersionUID = 6462932163745559L;
 
- private LinkedHashSet<T> selectedAttributes = new LinkedHashSet<T>();
-
+ private LinkedHashSet<T> selectedAttributes = new LinkedHashSet<>();
  private LinkedHashSet<T> monitoringAttributes;
-
  private boolean isCanceled = true;
 
  /**
@@ -86,7 +84,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  public static MonitoringAttributesViewPanel<String>
  createStringInstance(LinkedHashSet<String> attributes)
  {
-   return new MonitoringAttributesViewPanel<String>(attributes);
+   return new MonitoringAttributesViewPanel<>(attributes);
  }
 
  /**
@@ -100,7 +98,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  createMonitoringAttributesInstance(
      LinkedHashSet<MonitoringAttributes> attributes)
  {
-   return new MonitoringAttributesViewPanel<MonitoringAttributes>(attributes);
+   return new MonitoringAttributesViewPanel<>(attributes);
  }
 
  /**
@@ -112,7 +110,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  public static MonitoringAttributesViewPanel<LocalizableMessage>
  createMessageInstance(LinkedHashSet<LocalizableMessage> attributes)
  {
-   return new MonitoringAttributesViewPanel<LocalizableMessage>(attributes);
+   return new MonitoringAttributesViewPanel<>(attributes);
  }
 
  /** {@inheritDoc} */
@@ -129,7 +127,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   */
  protected MonitoringAttributesViewPanel(LinkedHashSet<T> attributes)
  {
-   monitoringAttributes = new LinkedHashSet<T>(attributes);
+   monitoringAttributes = new LinkedHashSet<>(attributes);
    createLayout();
  }
 
@@ -302,7 +300,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
    if (selectedAttributes.isEmpty())
    {
-     ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+     ArrayList<LocalizableMessage> errors = new ArrayList<>();
      errors.add(INFO_CTRL_PANEL_NO_OPERATION_SELECTED.get());
      super.displayErrorDialog(errors);
    }

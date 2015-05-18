@@ -78,8 +78,8 @@ import static org.opends.server.types.CommonSchemaElements.*;
  */
 public class NewSchemaElementsTask extends Task
 {
-  LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
-  LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<AttributeType>();
+  LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
+  LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
@@ -164,12 +164,12 @@ public class NewSchemaElementsTask extends Task
     }
     else
     {
-      ArrayList<String> attrNames = new ArrayList<String>();
+      ArrayList<String> attrNames = new ArrayList<>();
       for (AttributeType attribute : attrsToAdd)
       {
         attrNames.add(attribute.getNameOrOID());
       }
-      ArrayList<String> ocNames = new ArrayList<String>();
+      ArrayList<String> ocNames = new ArrayList<>();
       for (ObjectClass oc : ocsToAdd)
       {
         ocNames.add(oc.getNameOrOID());
@@ -259,7 +259,7 @@ public class NewSchemaElementsTask extends Task
     LinkedHashMap<String, List<AttributeType>> hmAttrs = copy(attrsToAdd);
     LinkedHashMap<String, List<ObjectClass>> hmOcs = copy(ocsToAdd);
 
-    LinkedHashSet<String> allFileNames = new LinkedHashSet<String>();
+    LinkedHashSet<String> allFileNames = new LinkedHashSet<>();
     allFileNames.addAll(hmAttrs.keySet());
     allFileNames.addAll(hmOcs.keySet());
     for (String fileName : allFileNames)
@@ -298,8 +298,7 @@ public class NewSchemaElementsTask extends Task
   private <T extends SchemaFileElement> LinkedHashMap<String, List<T>> copy(
       LinkedHashSet<T> elemsToAdd)
   {
-    LinkedHashMap<String, List<T>> hmElems =
-        new LinkedHashMap<String, List<T>>();
+    LinkedHashMap<String, List<T>> hmElems = new LinkedHashMap<>();
     for (T elem : elemsToAdd)
     {
       String fileName = CommonSchemaElements.getSchemaFile(elem);
@@ -310,7 +309,7 @@ public class NewSchemaElementsTask extends Task
       List<T> elems = hmElems.get(fileName);
       if (elems == null)
       {
-        elems = new ArrayList<T>();
+        elems = new ArrayList<>();
         hmElems.put(fileName, elems);
       }
       elems.add(elem);
@@ -421,7 +420,7 @@ public class NewSchemaElementsTask extends Task
 
     if (previousValues != null && !previousValues.isEmpty())
     {
-      ArrayList<String> vs = new ArrayList<String>(previousValues);
+      ArrayList<String> vs = new ArrayList<>(previousValues);
       element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, vs);
     }
     return attributeWithoutFileDefinition;
@@ -430,7 +429,7 @@ public class NewSchemaElementsTask extends Task
   private void printEquivalentCommandLineToAddOnline(
       CommonSchemaElements element)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     args.add("-a");
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(true, true)));
@@ -558,7 +557,7 @@ public class NewSchemaElementsTask extends Task
       List<AttributeType> attributes,
       List<ObjectClass> objectClasses)
   {
-    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<>();
     for (AttributeType attr : attributes)
     {
       names.add(attr.getNameOrOID());
@@ -638,7 +637,7 @@ public class NewSchemaElementsTask extends Task
    */
   private ArrayList<String> getSchemaEntryLines()
   {
-    ArrayList<String> lines = new ArrayList<String>();
+    ArrayList<String> lines = new ArrayList<>();
     lines.add("dn: cn=schema");
     lines.add("objectClass: top");
     lines.add("objectClass: ldapSubentry");

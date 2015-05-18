@@ -47,12 +47,11 @@ public class BaseDNTableModel extends SortableTableModel
 implements Comparator<BaseDNDescriptor>
 {
   private static final long serialVersionUID = -5650762484071136983L;
-  private HashSet<BaseDNDescriptor> data = new HashSet<BaseDNDescriptor>();
+  private HashSet<BaseDNDescriptor> data = new HashSet<>();
   private ServerDescriptor.ServerStatus serverStatus;
   private boolean isAuthenticated;
 
-  private ArrayList<String[]> dataArray =
-    new ArrayList<String[]>();
+  private ArrayList<String[]> dataArray = new ArrayList<>();
   private String[] COLUMN_NAMES;
   private int sortColumn;
   private boolean sortAscending = true;
@@ -369,7 +368,7 @@ implements Comparator<BaseDNDescriptor>
   /** Updates the array data.  This includes resorting it. */
   private void updateDataArray()
   {
-    TreeSet<BaseDNDescriptor> sortedSet = new TreeSet<BaseDNDescriptor>(this);
+    TreeSet<BaseDNDescriptor> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
     for (BaseDNDescriptor desc : sortedSet)

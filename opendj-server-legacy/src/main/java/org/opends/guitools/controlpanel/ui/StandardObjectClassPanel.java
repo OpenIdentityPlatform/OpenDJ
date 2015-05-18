@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -92,16 +92,11 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   private static LocalizableMessage OBSOLETE_VALUE =
     INFO_CTRL_PANEL_OBJECTCLASS_OBSOLETE_LABEL.get();
 
-  private Map<String, AttributeType> hmAttrs =
-    new HashMap<String, AttributeType>();
+  private Map<String, AttributeType> hmAttrs = new HashMap<>();
 
-  /**
-   * Default constructor of the panel.
-   *
-   */
+  /** Default constructor of the panel. */
   public StandardObjectClassPanel()
   {
-    super();
     createLayout();
   }
 
@@ -321,7 +316,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       n = NOT_APPLICABLE.toString();
     }
     description.setText(n);
-    ArrayList<String> otherNames = new ArrayList<String>();
+    ArrayList<String> otherNames = new ArrayList<>();
     Iterable<String> ocNames = oc.getNormalizedNames();
     String primaryName = oc.getPrimaryName();
     if (primaryName == null)
@@ -348,8 +343,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     type.setText(getTypeValue(oc).toString());
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    SortedSet<String> requiredAttrs = new TreeSet<String>(lowerCaseComparator);
-    Set<String> inheritedAttrs = new HashSet<String>();
+    SortedSet<String> requiredAttrs = new TreeSet<>(lowerCaseComparator);
+    Set<String> inheritedAttrs = new HashSet<>();
     for (AttributeType attr : oc.getRequiredAttributeChain())
     {
       requiredAttrs.add(attr.getNameOrOID());
@@ -398,8 +393,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       hmAttrs.put(v, schema.getAttributeType(attr.toLowerCase()));
     }
 
-    SortedSet<String> optionalAttrs = new TreeSet<String>(lowerCaseComparator);
-    inheritedAttrs = new HashSet<String>();
+    SortedSet<String> optionalAttrs = new TreeSet<>(lowerCaseComparator);
+    inheritedAttrs = new HashSet<>();
     for (AttributeType attr : oc.getOptionalAttributeChain())
     {
       optionalAttrs.add(attr.getNameOrOID());
@@ -452,7 +447,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       }
       else
       {
-        SortedSet<String> names = new TreeSet<String>();
+        SortedSet<String> names = new TreeSet<>();
         for (ObjectClass superior : superiors)
         {
           names.add(superior.getPrimaryName());

@@ -100,8 +100,7 @@ public class ServerLoader extends Thread
     this.pwd = pwd;
     this.trustManager = trustManager;
     this.timeout = timeout;
-    this.preferredLDAPURLs =
-      new LinkedHashSet<PreferredConnection>(preferredLDAPURLs);
+    this.preferredLDAPURLs = new LinkedHashSet<>(preferredLDAPURLs);
     this.filter = filter;
   }
 
@@ -443,8 +442,7 @@ public class ServerLoader extends Thread
    */
   private LinkedHashSet<PreferredConnection> getLDAPURLsByPreference()
   {
-    LinkedHashSet<PreferredConnection> ldapUrls =
-      new LinkedHashSet<PreferredConnection>();
+    LinkedHashSet<PreferredConnection> ldapUrls = new LinkedHashSet<>();
 
     String adminConnectorUrl = getAdminConnectorUrl(serverProperties);
     String ldapsUrl = getLdapsUrl(serverProperties);

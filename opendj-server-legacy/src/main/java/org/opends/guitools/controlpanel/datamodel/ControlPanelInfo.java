@@ -83,7 +83,7 @@ public class ControlPanelInfo
   private long poolingPeriod = 20000;
 
   private ServerDescriptor serverDesc;
-  private Set<Task> tasks = new HashSet<Task>();
+  private Set<Task> tasks = new HashSet<>();
   private InitialLdapContext ctx;
   private InitialLdapContext userDataCtx;
   private final LDAPConnectionPool connectionPool = new LDAPConnectionPool();
@@ -110,29 +110,17 @@ public class ControlPanelInfo
 
   private boolean isLocal = true;
 
-  private Set<AbstractIndexDescriptor> modifiedIndexes =
-    new HashSet<AbstractIndexDescriptor>();
-
-  private LinkedHashSet<ConfigChangeListener> configListeners =
-    new LinkedHashSet<ConfigChangeListener>();
-
-  private LinkedHashSet<BackupCreatedListener> backupListeners =
-    new LinkedHashSet<BackupCreatedListener>();
-
-  private LinkedHashSet<BackendPopulatedListener> backendPopulatedListeners =
-    new LinkedHashSet<BackendPopulatedListener>();
-
-  private LinkedHashSet<IndexModifiedListener> indexListeners =
-    new LinkedHashSet<IndexModifiedListener>();
+  private Set<AbstractIndexDescriptor> modifiedIndexes = new HashSet<>();
+  private LinkedHashSet<ConfigChangeListener> configListeners = new LinkedHashSet<>();
+  private LinkedHashSet<BackupCreatedListener> backupListeners = new LinkedHashSet<>();
+  private LinkedHashSet<BackendPopulatedListener> backendPopulatedListeners = new LinkedHashSet<>();
+  private LinkedHashSet<IndexModifiedListener> indexListeners = new LinkedHashSet<>();
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static ControlPanelInfo instance;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   protected ControlPanelInfo()
   {
   }
@@ -241,8 +229,7 @@ public class ControlPanelInfo
     // We might have stored indexes whose configuration has changed, just remove
     // them if they have the same name, are of the same type and are defined in
     // the same backend.
-    Set<AbstractIndexDescriptor> toRemove =
-      new HashSet<AbstractIndexDescriptor>();
+    Set<AbstractIndexDescriptor> toRemove = new HashSet<>();
     for (AbstractIndexDescriptor i : modifiedIndexes)
     {
       if (i.getName().equalsIgnoreCase(index.getName()) &&
@@ -269,8 +256,7 @@ public class ControlPanelInfo
    */
   public void unregisterModifiedIndexesInBackend(String backendName)
   {
-    HashSet<AbstractIndexDescriptor> toDelete =
-      new HashSet<AbstractIndexDescriptor>();
+    HashSet<AbstractIndexDescriptor> toDelete = new HashSet<>();
     for (AbstractIndexDescriptor index : modifiedIndexes)
     {
       // Compare only the Backend ID, since the backend object attached to
@@ -1213,7 +1199,7 @@ public class ControlPanelInfo
    */
   private void cleanupTasks()
   {
-    Set<Task> toClean = new HashSet<Task>();
+    Set<Task> toClean = new HashSet<>();
     for (Task task : tasks)
     {
       if (task.getState() == Task.State.FINISHED_SUCCESSFULLY ||

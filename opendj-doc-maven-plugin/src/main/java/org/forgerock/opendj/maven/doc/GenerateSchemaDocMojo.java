@@ -92,7 +92,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A DocBook XML Section element documenting supported locales and language subtypes.
      */
     private String getLocalesAndSubTypesDocumentation(final Locale currentLocale) {
-        final Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<>();
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
         map.put("lang", getTagFromLocale(currentLocale));
         map.put("title", DOC_LOCALE_SECTION_TITLE.get());
@@ -183,7 +183,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A map of languages to Locale documentation containers.
      */
     private Map<String, LocaleDoc> getLanguagesToLocalesMap(final Locale currentLocale) {
-        Map<String, LocaleDoc> locales = new TreeMap<String, LocaleDoc>();
+        Map<String, LocaleDoc> locales = new TreeMap<>();
         for (String tag : localeTagsToOids.keySet()) {
             final Locale locale = getLocaleFromTag(tag);
             if (locale == null) {
@@ -210,15 +210,15 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A map of information for documenting supported locales.
      */
     private Map<String, Object> getLocalesDocMap(final Locale currentLocale) {
-        final Map<String, Object> result = new HashMap<String, Object>();
+        final Map<String, Object> result = new HashMap<>();
         result.put("title", DOC_SUPPORTED_LOCALES_TITLE.get());
         result.put("indexTerm", DOC_SUPPORTED_LOCALES_INDEXTERM.get());
         final Map<String, LocaleDoc> localesMap = getLanguagesToLocalesMap(currentLocale);
         final Set<String> sortedLanguages = localesMap.keySet();
-        final List<Map<String, Object>> locales = new LinkedList<Map<String, Object>>();
+        final List<Map<String, Object>> locales = new LinkedList<>();
         for (final String language : sortedLanguages) {
             final LocaleDoc locale = localesMap.get(language);
-            final Map<String, Object> map = new HashMap<String, Object>();
+            final Map<String, Object> map = new HashMap<>();
             map.put("language", locale.language);
             map.put("tag", DOC_LOCALE_TAG.get(locale.tag));
             map.put("oid", DOC_LOCALE_OID.get(locale.oid));
@@ -234,12 +234,12 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      * @return A map of information for documenting supported language subtypes.
      */
     private Map<String, Object> getSubTypesDocMap(final Locale currentLocale) {
-        final Map<String, Object> result = new HashMap<String, Object>();
+        final Map<String, Object> result = new HashMap<>();
         result.put("title", DOC_SUPPORTED_SUBTYPES_TITLE.get());
         result.put("indexTerm", DOC_SUPPORTED_SUBTYPES_INDEXTERM.get());
-        final List<Map<String, Object>> locales = new LinkedList<Map<String, Object>>();
+        final List<Map<String, Object>> locales = new LinkedList<>();
         for (final String tag : localeTagsToOids.keySet()) {
-            final Map<String, Object> map = new HashMap<String, Object>();
+            final Map<String, Object> map = new HashMap<>();
             int idx = tag.indexOf('-');
             if (idx == -1) {
                 final Locale locale = getLocaleFromTag(tag);

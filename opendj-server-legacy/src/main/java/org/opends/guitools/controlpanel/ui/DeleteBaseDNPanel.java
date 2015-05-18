@@ -166,7 +166,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
         {
           @SuppressWarnings("deprecation")
           Object[] s = list.getSelectedValues();
-          Set<Object> selected = new HashSet<Object>();
+          Set<Object> selected = new HashSet<>();
           if (s != null)
           {
             for (Object o : s)
@@ -176,7 +176,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
           }
           final DefaultListModel model = (DefaultListModel)list.getModel();
           model.clear();
-          SortedSet<Integer> indices = new TreeSet<Integer>();
+          SortedSet<Integer> indices = new TreeSet<>();
           int i = 0;
           for (Object newElement : newElements)
           {
@@ -335,7 +335,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
-    final SortedSet<DN> newElements = new TreeSet<DN>();
+    final SortedSet<DN> newElements = new TreeSet<>();
     for (BackendDescriptor backend : desc.getBackends())
     {
       if (!backend.isConfigBackend())
@@ -356,14 +356,13 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
   /** {@inheritDoc} */
   public void okClicked()
   {
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
     @SuppressWarnings("deprecation")
     Object[] dns = list.getSelectedValues();
-    ArrayList<BaseDNDescriptor> baseDNsToDelete =
-      new ArrayList<BaseDNDescriptor>();
+    ArrayList<BaseDNDescriptor> baseDNsToDelete = new ArrayList<>();
     for (Object o : dns)
     {
       DN dn = (DN)o;
@@ -422,20 +421,19 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
       Collection<BaseDNDescriptor> baseDNsToDelete)
   {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-    Map<String, Set<BaseDNDescriptor>> hmBackends =
-      new HashMap<String, Set<BaseDNDescriptor>>();
+    Map<String, Set<BaseDNDescriptor>> hmBackends = new HashMap<>();
     for (BaseDNDescriptor baseDN : baseDNsToDelete)
     {
       String backendID = baseDN.getBackend().getBackendID();
       Set<BaseDNDescriptor> set = hmBackends.get(backendID);
       if (set == null)
       {
-        set = new HashSet<BaseDNDescriptor>();
+        set = new HashSet<>();
         hmBackends.put(backendID, set);
       }
       set.add(baseDN);
     }
-    ArrayList<String> indirectBackendsToDelete = new ArrayList<String>();
+    ArrayList<String> indirectBackendsToDelete = new ArrayList<>();
     for (Set<BaseDNDescriptor> set : hmBackends.values())
     {
       BackendDescriptor backend = set.iterator().next().getBackend();

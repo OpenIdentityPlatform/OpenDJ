@@ -73,7 +73,7 @@ public class StartServerTask extends StartStopTask
   /** {@inheritDoc} */
   protected ArrayList<String> getCommandLineArguments()
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     args.add("--timeout");
     args.add("0");
     return args;

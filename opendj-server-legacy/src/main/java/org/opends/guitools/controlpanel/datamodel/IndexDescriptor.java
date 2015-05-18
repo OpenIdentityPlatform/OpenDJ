@@ -45,7 +45,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
   private static final String[] DATABASE_INDEXES = new String[] {
     DN2ID_INDEX_NAME, ID2CHILDREN_COUNT_NAME, ID2CHILDREN_INDEX_NAME, ID2SUBTREE_INDEX_NAME };
 
-  private final SortedSet<IndexTypeDescriptor> types = new TreeSet<IndexTypeDescriptor>();
+  private final SortedSet<IndexTypeDescriptor> types = new TreeSet<>();
   private final boolean isDatabaseIndex;
   private final int entryLimit;
   private final AttributeType attr;
@@ -116,7 +116,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    */
   public SortedSet<IndexTypeDescriptor> getTypes()
   {
-    return new TreeSet<IndexTypeDescriptor>(types);
+    return new TreeSet<>(types);
   }
 
   /**

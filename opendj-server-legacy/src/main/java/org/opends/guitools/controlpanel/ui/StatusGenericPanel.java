@@ -159,8 +159,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   /** The last displayed message in the error pane. */
   private String lastDisplayedError;
 
-  private final List<ConfigurationElementCreatedListener> confListeners =
-      new ArrayList<ConfigurationElementCreatedListener>();
+  private final List<ConfigurationElementCreatedListener> confListeners = new ArrayList<>();
 
   private boolean sizeSet;
   private boolean focusSet;
@@ -710,16 +709,16 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     }
     if (rebuildIndexes)
     {
-      SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<AbstractIndexDescriptor>();
+      SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<>();
       indexes.add(index);
-      SortedSet<String> baseDNs = new TreeSet<String>();
+      SortedSet<String> baseDNs = new TreeSet<>();
       for (BaseDNDescriptor b : index.getBackend().getBaseDns())
       {
         baseDNs.add(Utilities.unescapeUtf8(b.getDn().toString()));
       }
 
       RebuildIndexTask newTask = new RebuildIndexTask(getInfo(), progressDialog, baseDNs, indexes);
-      List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+      List<LocalizableMessage> errors = new ArrayList<>();
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
@@ -1296,7 +1295,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   protected void updateSimpleBackendComboBoxModel(final JComboBox combo, final JLabel lNoBackendsFound,
       final ServerDescriptor desc)
   {
-    final SortedSet<String> newElements = new TreeSet<String>(new LowerCaseComparator());
+    final SortedSet<String> newElements = new TreeSet<>(new LowerCaseComparator());
     for (BackendDescriptor backend : desc.getBackends())
     {
       if (!backend.isConfigBackend())
@@ -1342,9 +1341,9 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected void updateBaseDNComboBoxModel(final DefaultComboBoxModel model, final ServerDescriptor desc)
   {
-    Set<CategorizedComboBoxElement> newElements = new LinkedHashSet<CategorizedComboBoxElement>();
-    SortedSet<String> backendIDs = new TreeSet<String>(new LowerCaseComparator());
-    Map<String, SortedSet<String>> hmBaseDNs = new HashMap<String, SortedSet<String>>();
+    Set<CategorizedComboBoxElement> newElements = new LinkedHashSet<>();
+    SortedSet<String> backendIDs = new TreeSet<>(new LowerCaseComparator());
+    Map<String, SortedSet<String>> hmBaseDNs = new HashMap<>();
 
     for (BackendDescriptor backend : desc.getBackends())
     {
@@ -1352,7 +1351,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       {
         String backendID = backend.getBackendID();
         backendIDs.add(backendID);
-        SortedSet<String> baseDNs = new TreeSet<String>(new LowerCaseComparator());
+        SortedSet<String> baseDNs = new TreeSet<>(new LowerCaseComparator());
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try
@@ -1432,7 +1431,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   {
     synchronized (hmIndexes)
     {
-      Set<String> dns = new HashSet<String>();
+      Set<String> dns = new HashSet<>();
       for (BackendDescriptor backend : desc.getBackends())
       {
         if (backend.getType() == BackendDescriptor.Type.LOCAL_DB
@@ -1877,7 +1876,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected void startServer()
   {
-    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
             INFO_CTRL_PANEL_START_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StartServerTask newTask = new StartServerTask(getInfo(), progressDialog);
@@ -1908,7 +1907,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected void stopServer()
   {
-    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
             INFO_CTRL_PANEL_STOP_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StopServerTask newTask = new StopServerTask(getInfo(), progressDialog);
@@ -1945,7 +1944,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected void restartServer()
   {
-    Set<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> errors = new LinkedHashSet<>();
     ProgressDialog progressDialog = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
             INFO_CTRL_PANEL_RESTART_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     RestartServerTask newTask = new RestartServerTask(getInfo(), progressDialog);
@@ -2167,7 +2166,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected List<String> getScheduleArgs(final ScheduleType schedule)
   {
-    List<String> args = new ArrayList<String>(2);
+    List<String> args = new ArrayList<>(2);
     switch (schedule.getType())
     {
     case LAUNCH_LATER:
@@ -2232,7 +2231,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   protected void checkCompatibleSuperiors(final Set<ObjectClass> objectClassSuperiors,
       final ObjectClassType objectClassType, final List<LocalizableMessage> errors)
   {
-    SortedSet<String> notCompatibleClasses = new TreeSet<String>(new LowerCaseComparator());
+    SortedSet<String> notCompatibleClasses = new TreeSet<>(new LowerCaseComparator());
     for (ObjectClass oc : objectClassSuperiors)
     {
       if (oc.getObjectClassType() == ObjectClassType.ABSTRACT)

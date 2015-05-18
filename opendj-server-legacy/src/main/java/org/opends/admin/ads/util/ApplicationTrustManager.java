@@ -89,10 +89,9 @@ public class ApplicationTrustManager implements X509TrustManager
    * The following ArrayList contain information about the certificates
    * explicitly accepted by the user.
    */
-  private ArrayList<X509Certificate[]> acceptedChains =
-    new ArrayList<X509Certificate[]>();
-  private ArrayList<String> acceptedAuthTypes = new ArrayList<String>();
-  private ArrayList<String> acceptedHosts = new ArrayList<String>();
+  private ArrayList<X509Certificate[]> acceptedChains = new ArrayList<>();
+  private ArrayList<String> acceptedAuthTypes = new ArrayList<>();
+  private ArrayList<String> acceptedHosts = new ArrayList<>();
 
   private String host;
 

@@ -268,8 +268,7 @@ public abstract class Task
 
   private ProgressDialog progressDialog;
 
-  private ArrayList<ConfigurationElementCreatedListener> confListeners =
-    new ArrayList<ConfigurationElementCreatedListener>();
+  private ArrayList<ConfigurationElementCreatedListener> confListeners = new ArrayList<>();
 
   private static int MAX_BINARY_LENGTH_TO_DISPLAY = 1024;
 
@@ -750,7 +749,7 @@ public abstract class Task
   {
     String[] toObfuscate = {"--bindPassword", "--currentPassword",
         "--newPassword"};
-    ArrayList<String> args = new ArrayList<String>(clearArgs);
+    ArrayList<String> args = new ArrayList<>(clearArgs);
     for (int i=1; i<args.size(); i++)
     {
       for (String argName : toObfuscate)
@@ -777,7 +776,7 @@ public abstract class Task
    */
   protected List<String> getConfigCommandLineArguments()
   {
-    List<String> args = new ArrayList<String>();
+    List<String> args = new ArrayList<>();
     args.add("--configClass");
     args.add(org.opends.server.extensions.ConfigFileHandler.class.getName());
     args.add("--configFile");
@@ -807,7 +806,7 @@ public abstract class Task
   protected List<String> getConnectionCommandLineArguments(
       boolean useAdminConnector, boolean addConnectionTypeParameters)
   {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     InitialLdapContext ctx;
 
     if (useAdminConnector)
@@ -936,7 +935,7 @@ public abstract class Task
   protected void printEquivalentCommandToModify(String dn,
       Collection<ModificationItem> mods, boolean useAdminCtx)
   {
-    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
@@ -1075,7 +1074,7 @@ public abstract class Task
   protected void printEquivalentRenameCommand(DN oldDN, DN newDN,
       boolean useAdminCtx)
   {
-    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),

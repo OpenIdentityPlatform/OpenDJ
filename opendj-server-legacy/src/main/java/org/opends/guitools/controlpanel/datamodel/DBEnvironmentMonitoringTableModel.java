@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -46,16 +46,16 @@ public class DBEnvironmentMonitoringTableModel extends SortableTableModel
 implements Comparator<BackendDescriptor>
 {
   private static final long serialVersionUID = 548035716525600536L;
-  private Set<BackendDescriptor> data = new HashSet<BackendDescriptor>();
-  private ArrayList<String[]> dataArray = new ArrayList<String[]>();
-  private ArrayList<BackendDescriptor> dataSourceArray = new ArrayList<BackendDescriptor>();
+  private Set<BackendDescriptor> data = new HashSet<>();
+  private ArrayList<String[]> dataArray = new ArrayList<>();
+  private ArrayList<BackendDescriptor> dataSourceArray = new ArrayList<>();
 
   private String[] columnNames = {};
   private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
   private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /** The operations to be displayed. */
-  private LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+  private LinkedHashSet<String> attributes = new LinkedHashSet<>();
   /** The sort column of the table. */
   private int sortColumn;
   /** Whether the sorting is ascending or descending. */
@@ -132,7 +132,7 @@ implements Comparator<BackendDescriptor>
     CustomSearchResult monitor1 = desc1.getMonitoringEntry();
     CustomSearchResult monitor2 = desc2.getMonitoringEntry();
 
-    ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    ArrayList<Integer> possibleResults = new ArrayList<>();
     possibleResults.add(getName(desc1).compareTo(getName(desc2)));
     computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attributes);
 
@@ -228,7 +228,7 @@ implements Comparator<BackendDescriptor>
    */
   private void updateDataArray()
   {
-    TreeSet<BackendDescriptor> sortedSet = new TreeSet<BackendDescriptor>(this);
+    TreeSet<BackendDescriptor> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
     dataSourceArray.clear();

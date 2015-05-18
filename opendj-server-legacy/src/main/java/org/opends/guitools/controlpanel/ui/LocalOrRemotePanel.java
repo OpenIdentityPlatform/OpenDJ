@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -467,7 +467,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     setPrimaryValid(portLabel);
     setPrimaryValid(dnLabel);
     setPrimaryValid(pwdLabel);
-    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
 
     boolean dnInvalid = false;
     boolean pwdInvalid = false;
@@ -730,7 +730,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             }
             else
             {
-              ArrayList<String> stringErrors = new ArrayList<String>();
+              ArrayList<String> stringErrors = new ArrayList<>();
               for (LocalizableMessage err : errors)
               {
                 stringErrors.add(err.toString());
