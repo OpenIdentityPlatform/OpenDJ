@@ -27,7 +27,7 @@
 package org.opends.admin.ads.util;
 
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate ;
+import java.security.cert.X509Certificate;
 
 /**
  * When a remote client (dsconfig for instance) wants to establish a
@@ -38,10 +38,8 @@ import java.security.cert.X509Certificate ;
  */
 public class OpendsCertificateException extends CertificateException
 {
-
   /** The serial version UUID. */
   private static final long serialVersionUID = 1151044344529478436L;
-
 
   /** Private certificate chain. */
   private X509Certificate[] chain;
@@ -73,6 +71,19 @@ public class OpendsCertificateException extends CertificateException
   public OpendsCertificateException(String msg, X509Certificate[] chain)
   {
     super(msg);
+    this.chain = chain;
+  }
+
+  /**
+   * Build a new OpendsCertificationException object.
+   *
+   * @param chain the certificate chain which is unknown and has caused
+   *        the SSL handcheck failure.
+   * @param cause the cause
+   */
+  public OpendsCertificateException(X509Certificate[] chain, CertificateException cause)
+  {
+    super(cause);
     this.chain = chain;
   }
 

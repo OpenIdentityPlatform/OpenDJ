@@ -24,12 +24,12 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isUnix;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -169,7 +169,6 @@ public class ZipExtractor {
   public void extract(String destDir, boolean removeFirstPath)
           throws ApplicationException
   {
-
     ZipInputStream zipIn = new ZipInputStream(is);
     int nEntries = 1;
 
@@ -179,18 +178,19 @@ public class ZipExtractor {
      * these files.  This is done this way to group the number of calls to
      * Runtime.exec (which is required to update the file system permissions).
      */
-    Map<String, ArrayList<String>> permissions =
-        new HashMap<String, ArrayList<String>>();
-    ArrayList<String> list = new ArrayList<String>();
+    Map<String, ArrayList<String>> permissions = new HashMap<>();
+    ArrayList<String> list = new ArrayList<>();
     list.add(destDir);
     permissions.put(getProtectedDirectoryPermissionUnix(), list);
     try {
-      if(application != null)
-         application.checkAbort();
+      if(application != null) {
+        application.checkAbort();
+      }
       ZipEntry entry = zipIn.getNextEntry();
       while (entry != null) {
-        if(application != null)
-           application.checkAbort();
+        if(application != null) {
+          application.checkAbort();
+        }
         int ratioBeforeCompleted = minRatio
                 + ((nEntries - 1) * (maxRatio - minRatio) / numberZipEntries);
         int ratioWhenCompleted =
@@ -212,15 +212,11 @@ public class ZipExtractor {
             File destination = new File(destDir, name);
             copyZipEntry(entry, destination, zipIn,
                     ratioBeforeCompleted, ratioWhenCompleted, permissions);
-
           } catch (IOException ioe) {
-            LocalizableMessage errorMsg =
-                    getThrowableMsg(
-                            INFO_ERROR_COPYING.get(entry.getName()), ioe);
-
             throw new ApplicationException(
                 ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-                    errorMsg, ioe);
+                getThrowableMsg(INFO_ERROR_COPYING.get(entry.getName()), ioe),
+                ioe);
           }
         }
 
@@ -240,23 +236,16 @@ public class ZipExtractor {
                       + paths + ".  The chmod error code was: " + result);
             }
           } catch (InterruptedException ie) {
-            IOException ioe =
-                    new IOException("Could not set permissions on files " +
-                            paths + ".  The chmod call returned an " +
-                            "InterruptedException.");
-            ioe.initCause(ie);
-            throw ioe;
+            throw new IOException("Could not set permissions on files " + paths
+                + ".  The chmod call returned an InterruptedException.", ie);
           }
         }
       }
-
     } catch (IOException ioe) {
-      LocalizableMessage errorMsg =
-              getThrowableMsg(
-                      INFO_ERROR_ZIP_STREAM.get(zipFileName), ioe);
       throw new ApplicationException(
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-          errorMsg, ioe);
+          getThrowableMsg(INFO_ERROR_ZIP_STREAM.get(zipFileName), ioe),
+          ioe);
     }
   }
 
@@ -265,12 +254,9 @@ public class ZipExtractor {
     * @param entry the ZipEntry object.
     * @param destination File where the entry will be copied.
     * @param is the ZipInputStream that contains the contents to be copied.
-    * @param ratioBeforeCompleted the progress ratio before the zip file is
-    * copied.
-    * @param ratioWhenCompleted the progress ratio after the zip file is
-    * copied.
-    * @param permissions an ArrayList with permissions whose contents will be
-    * updated.
+    * @param ratioBeforeCompleted the progress ratio before the zip file is copied.
+    * @param ratioWhenCompleted the progress ratio after the zip file is copied.
+    * @param permissions an ArrayList with permissions whose contents will be updated.
     * @throws IOException if an error occurs.
     */
   private void copyZipEntry(ZipEntry entry, File destination,
@@ -300,7 +286,7 @@ public class ZipExtractor {
         ArrayList<String> list = permissions.get(perm);
         if (list == null)
         {
-          list = new ArrayList<String>();
+          list = new ArrayList<>();
         }
         list.add(Utils.getPath(destination));
         permissions.put(perm, list);
@@ -315,7 +301,7 @@ public class ZipExtractor {
         ArrayList<String> list = permissions.get(perm);
         if (list == null)
         {
-          list = new ArrayList<String>();
+          list = new ArrayList<>();
         }
         list.add(Utils.getPath(destination));
         permissions.put(perm, list);
@@ -350,5 +336,4 @@ public class ZipExtractor {
     // TODO We should get this dynamically during build?
     return "755";
   }
-
 }
