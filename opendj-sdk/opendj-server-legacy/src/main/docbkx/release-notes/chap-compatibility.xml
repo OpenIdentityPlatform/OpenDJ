@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -48,6 +48,37 @@
    <listitem>
     <para>
      TODO: Update for next release
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Improvements that allow OpenDJ directory server
+     to use alternative backends have resulted in incompatible updates
+     to some backup archives:
+    </para>
+
+    <itemizedlist>
+     <listitem>
+      <para>
+       Configuration, schema, and task backend backup archives now all
+       have backup archives named
+       <filename>backup-<replaceable>backend-id</replaceable>-<replaceable>backup-id</replaceable></filename>.
+      </para>
+     </listitem>
+
+     <listitem>
+      <para>
+       The backup archive content for schema backends has changed.
+      </para>
+     </listitem>
+    </itemizedlist>
+
+    <para>
+     Rather than using a backup archive with the <command>backup</command> command,
+     use a file system backup if you must revert an upgrade to ${docTargetVersion}.
+     After successful upgrade, do not restore backup archives generated
+     with older versions of the <command>backup</command> command.
     </para>
    </listitem>
 
