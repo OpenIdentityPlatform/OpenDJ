@@ -93,9 +93,7 @@ import static org.opends.server.types.Attributes.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * BackendImpl Tester.
- */
+/** BackendImpl Tester. */
 @SuppressWarnings("javadoc")
 public class TestBackendImpl extends JebTestCase {
 
@@ -589,7 +587,6 @@ public class TestBackendImpl extends JebTestCase {
    */
   @Test
   public void testAddNoParent() throws Exception {
-
     try
     {
       for (Entry entry : entries) {
@@ -597,11 +594,10 @@ public class TestBackendImpl extends JebTestCase {
       }
       failBecauseExceptionWasNotThrown(DirectoryException.class);
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
        // expected
     }
-
   }
 
   @Test(dependsOnMethods = "testAddNoParent")
@@ -678,10 +674,9 @@ public class TestBackendImpl extends JebTestCase {
     backend.getNumberOfEntriesInBaseDN(DN.valueOf("ou=People,dc=test,dc=com"));
   }
 
-
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
-    Set<String> attribs = new LinkedHashSet<String>();
+    Set<String> attribs = new LinkedHashSet<>();
     String debugString;
     List<SearchResultEntry> result;
 
@@ -734,7 +729,7 @@ public class TestBackendImpl extends JebTestCase {
   {
     int finalStartPos = debugString.indexOf("final=") + 13;
     int finalEndPos = debugString.indexOf("]", finalStartPos);
-    int finalCount = Integer.valueOf(debugString.substring(finalStartPos, finalEndPos));
+    int finalCount = Integer.parseInt(debugString.substring(finalStartPos, finalEndPos));
     assertEquals(finalCount, expectedCount);
   }
 
@@ -785,7 +780,7 @@ public class TestBackendImpl extends JebTestCase {
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
       "testSearchScope", "testMatchedDN"})
   public void testDeleteEntry() throws Exception {
-    List<Control> noControls = new ArrayList<Control>(0);
+    List<Control> noControls = new ArrayList<>(0);
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.valueOf("ou=People,dc=test,dc=com"));
 
@@ -802,7 +797,6 @@ public class TestBackendImpl extends JebTestCase {
           noControls,
           DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"));
       backend.deleteEntry(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"), delete);
-
 
       assertFalse(ec.entryExists(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
@@ -834,7 +828,7 @@ public class TestBackendImpl extends JebTestCase {
 
   private static List<AttributeIndexer> newAttributeIndexers(AttributeType attrType, MatchingRule matchingRule)
   {
-    List<AttributeIndexer> indexers = new ArrayList<AttributeIndexer>();
+    List<AttributeIndexer> indexers = new ArrayList<>();
     for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.createIndexers(getOptions()))
     {
       indexers.add(new AttributeIndexer(attrType, indexer));
@@ -851,18 +845,7 @@ public class TestBackendImpl extends JebTestCase {
 
   private static void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index, EntryID entryID)
   {
-    for (Indexer indexer : indexers)
-    {
-      Set<ByteString> addKeys = new HashSet<ByteString>();
-      indexer.indexEntry(entry, addKeys);
-
-      DatabaseEntry key = new DatabaseEntry();
-      for (ByteString keyBytes : addKeys)
-      {
-        key.setData(keyBytes.toByteArray());
-        assertEquals(index.containsID(null, key, entryID), TRUE);
-      }
-    }
+    assertIndexContainsID(indexers, entry, index, entryID, TRUE);
   }
 
   private static void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index,
@@ -870,7 +853,7 @@ public class TestBackendImpl extends JebTestCase {
   {
     for (Indexer indexer : indexers)
     {
-      Set<ByteString> addKeys = new HashSet<ByteString>();
+      Set<ByteString> addKeys = new HashSet<>();
       indexer.indexEntry(entry, addKeys);
 
       assertIndexContainsID(addKeys, index, entryID, expected);
@@ -961,7 +944,7 @@ public class TestBackendImpl extends JebTestCase {
     ec.sharedLock.lock();
     try
     {
-      List<Modification> modifications = new ArrayList<Modification>();
+      List<Modification> modifications = new ArrayList<>();
       modifications.add(new Modification(ADD, create("title", "debugger")));
 
       AttributeBuilder builder = new AttributeBuilder("title");
@@ -1001,16 +984,16 @@ public class TestBackendImpl extends JebTestCase {
       nameIndex = ec.getAttributeIndex(name);
 
       // This current entry in the DB shouldn't be in the presence titleIndex.
-      addKeys = new HashSet<ByteString>();
+      addKeys = new HashSet<>();
       addKeys.add(PresenceIndexer.presenceKey);
       assertIndexContainsID(addKeys, titleIndex.getIndex("presence"), entryID, FALSE);
 
       // This current entry should be in the presence nameIndex.
-      addKeys = new HashSet<ByteString>();
+      addKeys = new HashSet<>();
       addKeys.add(PresenceIndexer.presenceKey);
       assertIndexContainsID(addKeys, nameIndex.getIndex("presence"), entryID, TRUE);
 
-      List<Control> noControls = new ArrayList<Control>(0);
+      List<Control> noControls = new ArrayList<>(0);
       ModifyOperationBasis modifyOp = new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
           noControls, DN.valueOf("uid=user.1,ou=People,dc=test,dc=com"), modifications);
 
@@ -1124,7 +1107,7 @@ public class TestBackendImpl extends JebTestCase {
           DN.valueOf("ou=People,dc=test,dc=com"), LockMode.DEFAULT);
       assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
-      List<Control> noControls = new ArrayList<Control>(0);
+      List<Control> noControls = new ArrayList<>(0);
       ModifyDNOperationBasis modifyDN = new ModifyDNOperationBasis(
           getRootConnection(), nextOperationID(), nextMessageID(),
           noControls,
@@ -1414,7 +1397,6 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(backend.getNumberOfChildren(dn), -1);
   }
 
-
   /**
    * Provides a set of DNs for the matched DN test case.
    *
@@ -1423,7 +1405,6 @@ public class TestBackendImpl extends JebTestCase {
    */
   @DataProvider(name = "MatchedDNs")
   public Object[][] initMatchedDNs() throws Exception {
-
     ResultCode success      = ResultCode.SUCCESS;
     ResultCode noSuchObject = ResultCode.NO_SUCH_OBJECT;
 
@@ -1440,7 +1421,6 @@ public class TestBackendImpl extends JebTestCase {
       {dummyPeopleTestComDN, peopleTestComDN, noSuchObject},
     };
   }
-
 
   /**
    * Executes an internal search operation and check the result code and
@@ -1577,5 +1557,4 @@ public class TestBackendImpl extends JebTestCase {
   private static String substringIndexId() {
     return SMR_CASE_IGNORE_NAME + ":" + getOptions().substringKeySize();
   }
-
 }

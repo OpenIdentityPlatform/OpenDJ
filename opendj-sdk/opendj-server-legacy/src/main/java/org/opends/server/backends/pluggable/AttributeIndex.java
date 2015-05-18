@@ -431,9 +431,7 @@ class AttributeIndex
   {
     for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      final Set<ByteString> keys = new HashSet<>();
-      index.indexEntry(entry, keys);
-      for (ByteString key : keys)
+      for (ByteString key : indexEntry(index, entry))
       {
         buffer.put(index, key, entryID);
       }
@@ -453,13 +451,18 @@ class AttributeIndex
   {
     for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      HashSet<ByteString> keys = new HashSet<ByteString>();
-      index.indexEntry(entry, keys);
-      for (ByteString key : keys)
+      for (ByteString key : indexEntry(index, entry))
       {
         buffer.remove(index, key, entryID);
       }
     }
+  }
+
+  private Set<ByteString> indexEntry(MatchingRuleIndex index, Entry entry)
+  {
+    final Set<ByteString> keys = new HashSet<>();
+    index.indexEntry(entry, keys);
+    return keys;
   }
 
   /**
