@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.admin.ads;
 
 import static org.opends.messages.QuickSetupMessages.*;
@@ -32,99 +31,58 @@ import static org.opends.messages.QuickSetupMessages.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
-
 /**
  * This is the exception that is thrown in ADSContext.
  * @see org.opends.admin.ads.ADSContext
- *
  */
 public class ADSContextException extends OpenDsException {
-
   private static final long serialVersionUID = 1984039711031042813L;
 
-  private String toString;
-
-  /**
-   * The enumeration containing the different error types.
-   *
-   */
+  /** The enumeration containing the different error types. */
   public enum ErrorType
   {
-    /**
-     * The host name is missing.
-     */
-    MISSING_HOSTNAME(),
-    /**
-     * The host name is not valid.
-     */
-    NOVALID_HOSTNAME(),
-    /**
-     * The installation path is missing.
-     */
-    MISSING_IPATH(),
-    /**
-     * The installation path is not valid.
-     */
-    NOVALID_IPATH(),
-    /**
-     * An access permission error.
-     */
-    ACCESS_PERMISSION(),
-    /**
-     * The entity is already registered.
-     */
-    ALREADY_REGISTERED(),
-    /**
-     * The installation is broken.
-     */
-    BROKEN_INSTALL(),
-    /**
-     * The entity is not yet registered.
-     */
-    NOT_YET_REGISTERED(),
-    /**
-     * The port is missing.
-     */
-    MISSING_PORT(),
-    /**
-     * The port is not valid.
-     */
-    NOVALID_PORT(),
-    /**
-     * The name is missing.
-     */
-    MISSING_NAME(),
-    /**
-     * The administration UID is missing.
-     */
-    MISSING_ADMIN_UID(),
-    /**
-     * The administrator password is missing.
-     */
-    MISSING_ADMIN_PASSWORD(),
-    /**
-     * There is already a backend with the name of the ADS backend but not
-     * of the expected type.
-     */
-    UNEXPECTED_ADS_BACKEND_TYPE(),
-    /**
-     * Error merging with another ADSContext.
-     */
+    /** The host name is missing. */
+    MISSING_HOSTNAME,
+    /** The host name is not valid. */
+    NOVALID_HOSTNAME,
+    /** The installation path is missing. */
+    MISSING_IPATH,
+    /** The installation path is not valid. */
+    NOVALID_IPATH,
+    /** An access permission error. */
+    ACCESS_PERMISSION,
+    /** The entity is already registered. */
+    ALREADY_REGISTERED,
+    /** The installation is broken. */
+    BROKEN_INSTALL,
+    /** The entity is not yet registered. */
+    NOT_YET_REGISTERED,
+    /** The port is missing. */
+    MISSING_PORT,
+    /** The port is not valid. */
+    NOVALID_PORT,
+    /** The name is missing. */
+    MISSING_NAME,
+    /** The administration UID is missing. */
+    MISSING_ADMIN_UID,
+    /** The administrator password is missing. */
+    MISSING_ADMIN_PASSWORD,
+    /** There is already a backend with the name of the ADS backend but not of the expected type. */
+    UNEXPECTED_ADS_BACKEND_TYPE,
+    /** Error merging with another ADSContext. */
     ERROR_MERGING,
-    /**
-     * Unexpected error (potential bug).
-     */
-    ERROR_UNEXPECTED();
-  };
+    /** Unexpected error (potential bug). */
+    ERROR_UNEXPECTED;
+  }
 
-  ErrorType error;
-  Throwable embeddedException;
+  private final ErrorType error;
+  private final String toString;
 
   /**
    * Creates an ADSContextException of the given error type.
    * @param error the error type.
    */
-  public ADSContextException(ErrorType error)
+  ADSContextException(ErrorType error)
   {
     this(error, null);
   }
@@ -135,28 +93,27 @@ public class ADSContextException extends OpenDsException {
    * @param error the error type.
    * @param x the throwable that generated this exception.
    */
-  public ADSContextException(ErrorType error, Throwable x)
+  ADSContextException(ErrorType error, Throwable x)
   {
     this(error, getMessage(error, x), x);
   }
 
   /**
-   * Creates an ADSContextException of the given error type with the provided
-   * error cause and message.
-   * @param error the error type.
-   * @param msg the message describing the error.
-   * @param x the throwable that generated this exception.
+   * Creates an ADSContextException of the given error type with the provided error cause and
+   * message.
+   *
+   * @param error
+   *          the error type.
+   * @param msg
+   *          the message describing the error.
+   * @param cause
+   *          the throwable that generated this exception.
    */
-  public ADSContextException(ErrorType error, LocalizableMessage msg, Throwable x)
+  ADSContextException(ErrorType error, LocalizableMessage msg, Throwable cause)
   {
-    super(msg);
+    super(msg, cause);
     this.error = error;
-    this.embeddedException = x;
-    toString = "ADSContextException: error type "+error+".";
-    if (getCause() != null)
-    {
-      toString += "  Root cause: " + getCause();
-    }
+    toString = "ADSContextException: error type " + error + "." + (cause != null ? "  Root cause: " + cause : "");
   }
 
   /**
@@ -168,28 +125,21 @@ public class ADSContextException extends OpenDsException {
     return error;
   }
 
-  /**
-   * Returns the throwable that caused this exception.  It might be null.
-   * @return the throwable that caused this exception.
-   */
-  public Throwable getCause()
-  {
-    return embeddedException;
-  }
-
   /** {@inheritDoc} */
+  @Override
   public void printStackTrace()
   {
     super.printStackTrace();
-    if (embeddedException != null)
+    if (getCause() != null)
     {
       System.out.println("embeddedException = {");
-      embeddedException.printStackTrace();
+      getCause().printStackTrace();
       System.out.println("}");
     }
   }
 
   /** {@inheritDoc} */
+  @Override
   public String toString()
   {
     return toString;
@@ -197,19 +147,17 @@ public class ADSContextException extends OpenDsException {
 
   private static LocalizableMessage getMessage(ErrorType error, Throwable x)
   {
-    LocalizableMessage msg;
     if (x instanceof OpenDsException)
     {
-      msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error,
+      return INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error,
           ((OpenDsException)x).getMessageObject());
     } else if (x != null)
     {
-      msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error, x);
+      return INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error, x);
     }
     else
     {
-      msg = INFO_ADS_CONTEXT_EXCEPTION_MSG.get(error);
+      return INFO_ADS_CONTEXT_EXCEPTION_MSG.get(error);
     }
-    return msg;
   }
 }

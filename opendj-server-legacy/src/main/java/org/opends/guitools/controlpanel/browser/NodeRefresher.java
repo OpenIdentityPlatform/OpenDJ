@@ -26,6 +26,8 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -52,56 +54,32 @@ import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 /**
  * The class that is in charge of doing the LDAP searches required to update a
  * node: search the local entry, detect if it has children, retrieve the
  * attributes required to render the node, etc.
  */
 public class NodeRefresher extends AbstractNodeTask {
-
-  /**
-   * The enumeration containing all the states the refresher can have.
-   *
-   */
+  /** The enumeration containing all the states the refresher can have. */
   public enum State
   {
-    /**
-     * The refresher is queued, but not started.
-     */
+    /** The refresher is queued, but not started. */
     QUEUED,
-    /**
-     * The refresher is reading the local entry.
-     */
+    /** The refresher is reading the local entry. */
     READING_LOCAL_ENTRY,
-    /**
-     * The refresher is solving a referral.
-     */
+    /** The refresher is solving a referral. */
     SOLVING_REFERRAL,
-    /**
-     * The refresher is detecting whether the entry has children or not.
-     */
+    /** The refresher is detecting whether the entry has children or not. */
     DETECTING_CHILDREN,
-    /**
-     * The refresher is searching for the children of the entry.
-     */
+    /** The refresher is searching for the children of the entry. */
     SEARCHING_CHILDREN,
-    /**
-     * The refresher is finished.
-     */
+    /** The refresher is finished. */
     FINISHED,
-    /**
-     * The refresher is cancelled.
-     */
+    /** The refresher is cancelled. */
     CANCELLED,
-    /**
-     * The refresher has been interrupted.
-     */
+    /** The refresher has been interrupted. */
     INTERRUPTED,
-    /**
-     * The refresher has failed.
-     */
+    /** The refresher has failed. */
     FAILED
   }
 
@@ -113,30 +91,27 @@ public class NodeRefresher extends AbstractNodeTask {
   SearchResult remoteEntry;
   LDAPURL   remoteUrl;
   boolean isLeafNode;
-  ArrayList<SearchResult> childEntries = new ArrayList<SearchResult>();
-  boolean differential;
+  final ArrayList<SearchResult> childEntries = new ArrayList<>();
+  final boolean differential;
   Exception exception;
   Object exceptionArg;
-
 
   /**
    * The constructor of the refresher object.
    * @param node the node on the tree to be updated.
    * @param ctlr the BrowserController.
    * @param localEntry the local entry corresponding to the node.
-   * @param recursive whether this task is recursive or not (children must be
-   * searched).
+   * @param recursive whether this task is recursive or not (children must be searched).
    */
-  public NodeRefresher(BasicNode node, BrowserController ctlr,
-      SearchResult localEntry, boolean recursive) {
+  NodeRefresher(BasicNode node, BrowserController ctlr, SearchResult localEntry, boolean recursive) {
     super(node);
     controller = ctlr;
     state = State.QUEUED;
     this.recursive = recursive;
 
     this.localEntry = localEntry;
+    differential = false;
   }
-
 
   /**
    * Returns the local entry the refresher is handling.
@@ -145,7 +120,6 @@ public class NodeRefresher extends AbstractNodeTask {
   public SearchResult getLocalEntry() {
     return localEntry;
   }
-
 
   /**
    * Returns the remote entry for the node.  It will be <CODE>null</CODE> if
@@ -165,7 +139,6 @@ public class NodeRefresher extends AbstractNodeTask {
     return remoteUrl;
   }
 
-
   /**
    * Tells whether the node is a leaf or not.
    * @return <CODE>true</CODE> if the node is a leaf and <CODE>false</CODE>
@@ -174,7 +147,6 @@ public class NodeRefresher extends AbstractNodeTask {
   public boolean isLeafNode() {
     return isLeafNode;
   }
-
 
   /**
    * Returns the child entries of the node.
@@ -203,7 +175,6 @@ public class NodeRefresher extends AbstractNodeTask {
     return exception;
   }
 
-
   /**
    * Returns the argument of the exception that occurred during the processing.
    * It returns <CODE>null</CODE> if no exception occurred or if the exception
@@ -214,7 +185,6 @@ public class NodeRefresher extends AbstractNodeTask {
     return exceptionArg;
   }
 
-
   /**
    * Returns the displayed entry in the browser.  This depends on the
    * visualization options in the BrowserController.
@@ -223,7 +193,8 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   public SearchResult getDisplayedEntry() {
     SearchResult result;
-    if (controller.getFollowReferrals() && (remoteEntry != null)) {
+    if (controller.getFollowReferrals() && remoteEntry != null)
+    {
       result = remoteEntry;
     }
     else {
@@ -241,7 +212,8 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   public LDAPURL getDisplayedUrl() {
     LDAPURL result;
-    if (controller.getFollowReferrals() && (remoteUrl != null)) {
+    if (controller.getFollowReferrals() && remoteUrl != null)
+    {
       result = remoteUrl;
     }
     else {
@@ -256,17 +228,10 @@ public class NodeRefresher extends AbstractNodeTask {
    * otherwise.
    */
   public boolean isInFinalState() {
-    return (
-      (state == State.FINISHED) ||
-        (state == State.CANCELLED) ||
-        (state == State.FAILED) ||
-        (state == State.INTERRUPTED)
-    );
+    return state == State.FINISHED || state == State.CANCELLED || state == State.FAILED || state == State.INTERRUPTED;
   }
 
-  /**
-   * The method that actually does the refresh.
-   */
+  /** The method that actually does the refresh. */
   @Override
   public void run() {
     final BasicNode node = getNode();
@@ -289,8 +254,7 @@ public class NodeRefresher extends AbstractNodeTask {
         if (controller.nodeIsExpanded(node) && recursive) {
           changeStateTo(State.SEARCHING_CHILDREN);
           runSearchChildren();
-          /* If the node is not expanded, we have to refresh its children
-            when we expand it */
+          /* If the node is not expanded, we have to refresh its children when we expand it */
         } else if (recursive  && (!node.isLeaf() || !isLeafNode)) {
           node.setRefreshNeededOnExpansion(true);
           checkExpand = true;
@@ -336,8 +300,10 @@ public class NodeRefresher extends AbstractNodeTask {
   {
     boolean result=false;
     if (controller.getFilter()!=null)
+    {
       result =
-        !controller.getFilter().equals(BrowserController.ALL_OBJECTS_FILTER);
+ !BrowserController.ALL_OBJECTS_FILTER.equals(controller.getFilter());
+    }
     return result;
   }
 
@@ -425,9 +391,7 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
-  /**
-   * Read the local entry associated to the current node.
-   */
+  /** Read the local entry associated to the current node. */
   private void runReadLocalEntry() throws SearchAbandonException {
     BasicNode node = getNode();
     InitialLdapContext ctx = null;
@@ -455,7 +419,6 @@ public class NodeRefresher extends AbstractNodeTask {
           {
             localEntry = s.next();
             localEntry.setName(node.getDN());
-
           }
         }
         finally
@@ -463,8 +426,7 @@ public class NodeRefresher extends AbstractNodeTask {
           s.close();
         }
         if (localEntry == null) {
-          /* Not enough rights to read the entry or the entry simply does not
-           exist */
+          /* Not enough rights to read the entry or the entry simply does not exist */
           throw new NameNotFoundException("Can't find entry: "+node.getDN());
         }
         throwAbandonIfNeeded(null);
@@ -496,12 +458,14 @@ public class NodeRefresher extends AbstractNodeTask {
   throws SearchAbandonException, NamingException {
     int hopCount = 0;
     String[] referral = getNode().getReferral();
-    while ((referral != null) && (hopCount < 10)) {
+    while (referral != null && hopCount < 10)
+    {
       readRemoteEntry(referral);
       referral = BrowserController.getReferral(remoteEntry);
       hopCount++;
     }
-    if (referral != null) { // -> hopCount has reached the max
+    if (referral != null)
+    {
       throwAbandonIfNeeded(new ReferralLimitExceededException(
           AdminToolMessages.ERR_REFERRAL_LIMIT_EXCEEDED.get(hopCount)));
     }
@@ -522,7 +486,8 @@ public class NodeRefresher extends AbstractNodeTask {
     Object lastExceptionArg = null;
 
     int i = 0;
-    while ((i < referral.length) && (entry == null)) {
+    while (i < referral.length && entry == null)
+    {
       InitialLdapContext ctx = null;
       try {
         url = LDAPURL.decode(referral[i], false);
@@ -536,8 +501,8 @@ public class NodeRefresher extends AbstractNodeTask {
         }
         ctx = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();
-        if ((remoteDn == null) ||
-          remoteDn.equals("")) {
+        if (remoteDn == null || "".equals(remoteDn))
+        {
           /* The referral has not a target DN specified: we
              have to use the DN of the entry that contains the
              referral... */
@@ -546,8 +511,7 @@ public class NodeRefresher extends AbstractNodeTask {
           } else {
             remoteDn = localEntry.getName();
           }
-          /* We have to recreate the url including the target DN
-             we are using */
+          /* We have to recreate the url including the target DN we are using */
           url = new LDAPURL(url.getScheme(), url.getHost(), url.getPort(),
               remoteDn, url.getAttributes(), url.getScope(), url.getRawFilter(),
                  url.getExtensions());
@@ -608,12 +572,8 @@ public class NodeRefresher extends AbstractNodeTask {
       catch (InterruptedNamingException x) {
         throwAbandonIfNeeded(x);
       }
-      catch (NamingException x) {
+      catch (NamingException | DirectoryException x) {
         lastException = x;
-        lastExceptionArg = referral[i];
-      }
-      catch (DirectoryException de) {
-        lastException = de;
         lastExceptionArg = referral[i];
       }
       finally {
@@ -685,7 +645,6 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
-
   /**
    * Detects whether the entry has children by performing a search using the
    * entry as base DN.
@@ -754,7 +713,6 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
-
   /**
    * NUMSUBORDINATE HACK
    * numsubordinates is not usable if the displayed entry
@@ -764,15 +722,14 @@ public class NodeRefresher extends AbstractNodeTask {
   private boolean isNumSubOrdinatesUsable() throws NamingException {
     SearchResult entry = getDisplayedEntry();
     boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);
-    if (!hasSubOrdinates) { // We must check
+    if (!hasSubOrdinates)
+    {
       LDAPURL url = getDisplayedUrl();
       return !controller.getNumSubordinateHacker().contains(url);
     }
     // Other values are usable
     return true;
   }
-
-
 
   /**
    * Searches for the children.
@@ -991,11 +948,7 @@ public class NodeRefresher extends AbstractNodeTask {
     return sr;
   }
 
-
-  /**
-   * Utilities
-   */
-
+  /** Utilities. */
 
   /**
    * Change the state of the task and inform the BrowserController.
@@ -1012,7 +965,6 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
-
   /**
    * Transform an exception into a TaskAbandonException.
    * If no exception is passed, the routine checks if the task has
@@ -1023,8 +975,8 @@ public class NodeRefresher extends AbstractNodeTask {
   private void throwAbandonIfNeeded(Exception x) throws SearchAbandonException {
     SearchAbandonException tax = null;
     if (x != null) {
-      if ((x instanceof InterruptedException) ||
-          (x instanceof InterruptedNamingException)) {
+      if (x instanceof InterruptedException || x instanceof InterruptedNamingException)
+      {
         tax = new SearchAbandonException(State.INTERRUPTED, x, null);
       }
       else {
@@ -1048,7 +1000,7 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private String unquoteRelativeName(String name)
   {
-    if ((name.length() > 0) && (name.charAt(0) == '"'))
+    if (name.length() > 0 && name.charAt(0) == '"')
     {
       if (name.charAt(name.length() - 1) == '"')
       {
@@ -1065,9 +1017,7 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
-  /**
-   * DEBUG : Dump the state of the task.
-   */
+  /** DEBUG : Dump the state of the task. */
   void dump() {
     System.out.println("=============");
     System.out.println("         node: " + getNode().getDN());
@@ -1084,7 +1034,6 @@ public class NodeRefresher extends AbstractNodeTask {
     System.out.println("=============");
   }
 
-
   /**
    * Checks that the entry's objectClass contains 'referral' and that the
    * attribute 'ref' is present.
@@ -1099,10 +1048,10 @@ public class NodeRefresher extends AbstractNodeTask {
     if (ocValues != null) {
       for (String value : ocValues)
       {
-        boolean isReferral = value.equalsIgnoreCase("referral");
+        boolean isReferral = "referral".equalsIgnoreCase(value);
 
         if (isReferral) {
-          result = (ConnectionUtils.getFirstValue(entry, "ref") != null);
+          result = ConnectionUtils.getFirstValue(entry, "ref") != null;
           break;
         }
       }
@@ -1188,7 +1137,7 @@ public class NodeRefresher extends AbstractNodeTask {
             controller.getConfigurationConnection());
         int adminPort =
           ConnectionUtils.getPort(controller.getConfigurationConnection());
-        checkSucceeded = (port != adminPort) ||
+        checkSucceeded = port != adminPort ||
         !adminHost.equalsIgnoreCase(host);
 
         if (checkSucceeded)
@@ -1197,7 +1146,7 @@ public class NodeRefresher extends AbstractNodeTask {
               controller.getUserDataConnection());
           int portUserData =
             ConnectionUtils.getPort(controller.getUserDataConnection());
-          checkSucceeded = (port != portUserData) ||
+          checkSucceeded = port != portUserData ||
           !hostUserData.equalsIgnoreCase(host);
         }
       }

@@ -24,10 +24,7 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.admin.client.spi;
-
-
 
 import static org.opends.server.admin.PropertyException.*;
 
@@ -45,22 +42,22 @@ import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.Constraint;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
@@ -70,8 +67,6 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.client.OperationRejectedException.OperationType;
 import org.opends.server.admin.std.client.RootCfgClient;
-
-
 
 /**
  * An abstract management connection context driver which should form
@@ -104,17 +99,14 @@ public abstract class Driver {
     /** The next property whose default values were required. */
     private PropertyDefinition<T> nextProperty;
 
-
-
     /** Private constructor. */
     private DefaultValueFinder(ManagedObjectPath<?, ?> p, boolean isCreate) {
       this.firstPath = p;
       this.isCreate = isCreate;
     }
 
-
-
     /** {@inheritDoc} */
+    @Override
     public Collection<T> visitAbsoluteInherited(
         AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
@@ -126,20 +118,18 @@ public abstract class Driver {
       }
     }
 
-
-
     /** {@inheritDoc} */
+    @Override
     public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
       return Collections.emptySet();
     }
 
-
-
     /** {@inheritDoc} */
+    @Override
     public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
         Void p) {
       Collection<String> stringValues = d.getDefaultValues();
-      List<T> values = new ArrayList<T>(stringValues.size());
+      List<T> values = new ArrayList<>(stringValues.size());
 
       for (String stringValue : stringValues) {
         try {
@@ -153,9 +143,8 @@ public abstract class Driver {
       return values;
     }
 
-
-
     /** {@inheritDoc} */
+    @Override
     public Collection<T> visitRelativeInherited(
         RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
@@ -167,15 +156,12 @@ public abstract class Driver {
       }
     }
 
-
-
     /** {@inheritDoc} */
+    @Override
     public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
         Void p) {
       return Collections.emptySet();
     }
-
-
 
     /** Find the default values for the next path/property. */
     private Collection<T> find(ManagedObjectPath<?, ?> p,
@@ -197,8 +183,6 @@ public abstract class Driver {
 
       return values;
     }
-
-
 
     /** Get an inherited property value. */
     @SuppressWarnings("unchecked")
@@ -241,7 +225,7 @@ public abstract class Driver {
         if (isCreate && firstPath.equals(target)) {
           // Recursively retrieve this property's default values.
           Collection<T> tmp = find(target, pd2);
-          Collection<T> values = new ArrayList<T>(tmp.size());
+          Collection<T> values = new ArrayList<>(tmp.size());
           for (T value : tmp) {
             pd1.validateValue(value);
             values.add(value);
@@ -252,43 +236,22 @@ public abstract class Driver {
           // inherits its defaults from the newly created managed object.
           return getPropertyValues(target, pd2);
         }
-      } catch (PropertyException e) {
-        // Wrap any errors due to recursion.
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (DefinitionDecodingException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (PropertyNotFoundException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (AuthorizationException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (ManagedObjectNotFoundException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (CommunicationException e) {
+      } catch (PropertyException | DefinitionDecodingException | PropertyNotFoundException
+          | AuthorizationException | ManagedObjectNotFoundException | CommunicationException e) {
         throw PropertyException.defaultBehaviorException(pd1, e);
       }
     }
-  };
+  }
 
-
-
-  /**
-   * Creates a new abstract management context.
-   */
+  /** Creates a new abstract management context. */
   protected Driver() {
     // No implementation required.
   }
 
-
-
-  /**
-   * Closes any context associated with this management context
-   * driver.
-   */
+  /** Closes any context associated with this management context driver. */
   public void close() {
     // do nothing by default
   }
-
-
 
   /**
    * Deletes the named instantiable child managed object from the
@@ -338,8 +301,6 @@ public abstract class Driver {
     return doDeleteManagedObject(child);
   }
 
-
-
   /**
    * Deletes the optional child managed object from the named parent
    * managed object.
@@ -385,8 +346,6 @@ public abstract class Driver {
     ManagedObjectPath<?, ?> child = parent.child(rd);
     return doDeleteManagedObject(child);
   }
-
-
 
   /**
    * Deletes the named instantiable child managed object from the
@@ -436,8 +395,6 @@ public abstract class Driver {
     return doDeleteManagedObject(child);
   }
 
-
-
   /**
    * Gets the named managed object. The path is guaranteed to be
    * non-empty, so implementations do not need to worry about handling
@@ -474,8 +431,6 @@ public abstract class Driver {
       ManagedObjectPath<C, S> path) throws DefinitionDecodingException,
       ManagedObjectDecodingException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException;
-
-
 
   /**
    * Gets the effective values of a property in the named managed
@@ -531,8 +486,6 @@ public abstract class Driver {
       AuthorizationException, ManagedObjectNotFoundException,
       CommunicationException, PropertyException;
 
-
-
   /**
    * Gets the root configuration managed object associated with this
    * management context driver.
@@ -542,8 +495,6 @@ public abstract class Driver {
    */
   public abstract
   ManagedObject<RootCfgClient> getRootConfigurationManagedObject();
-
-
 
   /**
    * Lists the child managed objects of the named parent managed
@@ -584,8 +535,6 @@ public abstract class Driver {
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException;
 
-
-
   /**
    * Lists the child managed objects of the named parent managed
    * object which are a sub-type of the specified managed object
@@ -625,8 +574,6 @@ public abstract class Driver {
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException;
 
-
-
   /**
    * Determines whether or not the named managed object exists.
    * <p>
@@ -649,8 +596,6 @@ public abstract class Driver {
   public abstract boolean managedObjectExists(ManagedObjectPath<?, ?> path)
       throws ManagedObjectNotFoundException, AuthorizationException,
       CommunicationException;
-
-
 
   /**
    * Deletes the named managed object.
@@ -684,8 +629,6 @@ public abstract class Driver {
       ManagedObjectPath<C, S> path) throws OperationRejectedException,
       AuthorizationException, CommunicationException;
 
-
-
   /**
    * Gets the default values for the specified property.
    *
@@ -706,11 +649,9 @@ public abstract class Driver {
   protected final <PD> Collection<PD> findDefaultValues(
       ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd, boolean isCreate)
       throws PropertyException {
-    DefaultValueFinder<PD> v = new DefaultValueFinder<PD>(p, isCreate);
+    DefaultValueFinder<PD> v = new DefaultValueFinder<>(p, isCreate);
     return v.find(p, pd);
   }
-
-
 
   /**
    * Gets the management context associated with this driver.
@@ -719,8 +660,6 @@ public abstract class Driver {
    *         driver.
    */
   protected abstract ManagementContext getManagementContext();
-
-
 
   /**
    * Validate that a relation definition belongs to the managed object
@@ -743,8 +682,6 @@ public abstract class Driver {
           + " is not associated with a " + d.getName());
     }
   }
-
-
 
   /**
    * Remove a managed object, first ensuring that the parent exists,
@@ -769,7 +706,7 @@ public abstract class Driver {
     // The targeted managed object is guaranteed to exist, so enforce
     // any constraints.
     AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
-    List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> messages = new LinkedList<>();
     boolean isAcceptable = true;
 
     for (Constraint constraint : d.getAllConstraints()) {
@@ -793,5 +730,4 @@ public abstract class Driver {
     deleteManagedObject(path);
     return true;
   }
-
 }

@@ -24,14 +24,12 @@
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.admin.ads;
 
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -43,11 +41,13 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.ADSContext.ServerProperty;
+import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.*;
+import org.opends.server.admin.std.client.LDIFBackendCfgClient;
+import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
 import org.opends.server.admin.std.meta.LDIFBackendCfgDefn;
 import org.opends.server.config.ConfigConstants;
@@ -64,62 +64,11 @@ import org.opends.server.types.DN;
  * QuickSetup code to be able to use some of the functionalities provided
  * by the ADSContext classes before OpenDS.jar is downloaded.
  */
-public class ADSContextHelper
+class ADSContextHelper
 {
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public ADSContextHelper()
   {
-  }
-  /**
-   * Removes the administration suffix.
-   * @param ctx the DirContext to be used.
-   * @param backendName the name of the backend where the administration
-   * suffix is stored.
-   * @throws ADSContextException if the administration suffix could not be
-   * removed.
-   */
-  public void removeAdministrationSuffix(InitialLdapContext ctx,
-      String backendName) throws ADSContextException
-  {
-    try
-    {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-      BackendCfgClient backend = null;
-      try
-      {
-        backend = root.getBackend(backendName);
-      }
-      catch (ManagedObjectNotFoundException monfe)
-      {
-        // It does not exist.
-      }
-      if (backend != null)
-      {
-        SortedSet<DN> suffixes = backend.getBaseDN();
-        if (suffixes != null
-            && suffixes.remove(DN.valueOf(ADSContext.getAdministrationSuffixDN())))
-        {
-          if (!suffixes.isEmpty())
-          {
-            backend.setBaseDN(suffixes);
-            backend.commit();
-          }
-          else
-          {
-            root.removeBackend(backendName);
-          }
-        }
-      }
-    }
-    catch (Throwable t)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, t);
-    }
   }
 
   /**
@@ -130,8 +79,7 @@ public class ADSContextHelper
    * @throws ADSContextException if the administration suffix could not be
    * created.
    */
-  public void createAdministrationSuffix(InitialLdapContext ctx,
-      String backendName)
+  void createAdministrationSuffix(InitialLdapContext ctx, String backendName)
   throws ADSContextException
   {
     try
@@ -149,8 +97,7 @@ public class ADSContextHelper
       }
       catch (ClassCastException cce)
       {
-        throw new ADSContextException(
-            ADSContextException.ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
+        throw new ADSContextException(ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
       }
 
       if (backend == null)
@@ -166,7 +113,7 @@ public class ADSContextHelper
       SortedSet<DN> suffixes = backend.getBaseDN();
       if (suffixes == null)
       {
-        suffixes = new TreeSet<DN>();
+        suffixes = new TreeSet<>();
       }
       DN newDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
       if (!suffixes.contains(newDN))
@@ -178,8 +125,7 @@ public class ADSContextHelper
     }
     catch (Throwable t)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, t);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, t);
     }
   }
 
@@ -196,7 +142,7 @@ public class ADSContextHelper
   @throws ADSContextException In case some JNDI operation fails or there is a
   problem getting the instance public key certificate ID.
    */
-  public void registerInstanceKeyCertificate(
+  void registerInstanceKeyCertificate(
       InitialLdapContext ctx, Map<ServerProperty, Object> serverProperties,
       LdapName serverEntryDn)
   throws ADSContextException {
@@ -207,8 +153,7 @@ public class ADSContextHelper
       return;
     }
 
-    /* the key ID might be supplied in serverProperties (although, I am unaware
-   of any such case). */
+    // the key ID might be supplied in serverProperties (although, I am unaware of any such case).
     String keyID = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
 
     /* these attributes are used both to search for an existing certificate
@@ -273,78 +218,12 @@ public class ADSContextHelper
         /* associate server entry with certificate entry via key ID attribute */
         ctx.modifyAttributes(serverEntryDn,
           InitialLdapContext.REPLACE_ATTRIBUTE,
-          (new BasicAttributes(
-              ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID)));
+          new BasicAttributes(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
       }
     }
-    catch (NamingException ne)
+    catch (NamingException | CryptoManagerException ne)
     {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
-    }
-    catch (CryptoManagerException cme)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, cme);
-    }
-    finally
-    {
-      handleCloseNamingEnumeration(results);
-    }
-  }
-
-
-  /**
-  Unregister instance key-pair public-key certificate provided in
-  serverProperties.
-  @param ctx the connection to the server.
-  @param serverProperties Properties of the server being unregistered to which
-  the instance key entry belongs.
-  @param serverEntryDn The server's ADS entry DN.
-  @throws ADSContextException In case some JNDI operation fails.
-  */
-  public void unregisterInstanceKeyCertificate(
-      InitialLdapContext ctx, Map<ServerProperty, Object> serverProperties,
-      LdapName serverEntryDn)
-  throws ADSContextException {
-    assert serverProperties.containsKey(
-        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
-    if (! serverProperties.containsKey(
-        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
-      return;
-    }
-
-    /* these attributes are used both to search for an existing certificate
-     entry and, if one does not exist, add a new certificate entry */
-    final BasicAttributes keyAttrs = new BasicAttributes();
-    final Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top"); oc.add("ds-cfg-instance-key");
-    keyAttrs.put(oc);
-    keyAttrs.put(new BasicAttribute(
-        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName()
-        + ";binary",
-        serverProperties.get(
-            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
-
-    /* search for public-key certificate entry in ADS DIT */
-    final String attrIDs[] = { "ds-cfg-key-id" };
-    NamingEnumeration<SearchResult> results = null;
-    try
-    {
-      results = ctx.search(
-          ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
-      while (results.hasMore()) {
-        SearchResult res = results.next();
-        ctx.destroySubcontext(res.getNameInNamespace());
-      }
-    }
-    catch (NameNotFoundException nnfe)
-    {
-    }
-    catch (NamingException ne)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, ne);
     }
     finally
     {
@@ -385,8 +264,7 @@ public class ADSContextHelper
       }
       catch (NamingException ex)
       {
-        throw new ADSContextException(
-            ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
+        throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, ex);
       }
     }
   }
