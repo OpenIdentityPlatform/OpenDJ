@@ -58,7 +58,7 @@
   <title>Limitations</title>
 
   <para>
-   Release ${docTargetVersion}?> has the following limitations.
+   Release ${docTargetVersion} has the following limitations.
   </para>
 
   <itemizedlist>
