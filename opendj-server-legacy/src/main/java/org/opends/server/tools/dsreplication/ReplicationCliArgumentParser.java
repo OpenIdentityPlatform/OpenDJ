@@ -1691,13 +1691,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         taskArgs.validateArgs();
       }
     }
-    catch (ClientException ce)
+    catch (ClientException | ArgumentException e)
     {
-      addMessage(buf, ce.getMessageObject());
-    }
-    catch (ArgumentException ae)
-    {
-      addMessage(buf, ae.getMessageObject());
+      addMessage(buf, e.getMessageObject());
     }
   }
 

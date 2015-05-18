@@ -289,17 +289,7 @@ public class DSMLServlet extends HttpServlet {
         }
       } while (true);
     }
-    catch (LDAPException le)
-    {
-      LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
-      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, le);
-    }
-    catch (DecodeException ae)
-    {
-      LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
-      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ae);
-    }
-    catch (IOException ie)
+    catch (LDAPException | IOException ie)
     {
       LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ie);
@@ -659,15 +649,7 @@ public class DSMLServlet extends HttpServlet {
 
       xmlReader.parse(new InputSource(is));
     }
-    catch (ParserConfigurationException e)
-    {
-      // ignore
-    }
-    catch (SAXException e)
-    {
-      // ignore
-    }
-    catch (IOException e)
+    catch (ParserConfigurationException | SAXException | IOException e)
     {
       // ignore
     }

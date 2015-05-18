@@ -433,22 +433,7 @@ public final class Session extends DirectoryThread implements Closeable
             + totalLength + " bytes.");
       }
     }
-    catch (final IOException e)
-    {
-      setSessionError(e);
-      throw e;
-    }
-    catch (final DataFormatException e)
-    {
-      setSessionError(e);
-      throw e;
-    }
-    catch (final NotSupportedOldVersionPDUException e)
-    {
-      setSessionError(e);
-      throw e;
-    }
-    catch (final RuntimeException e)
+    catch (final IOException | DataFormatException | NotSupportedOldVersionPDUException | RuntimeException e)
     {
       setSessionError(e);
       throw e;

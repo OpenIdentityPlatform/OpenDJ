@@ -1052,10 +1052,6 @@ public final class SubtreeSpecification
         isValid = false;
       }
     }
-    catch (final InputMismatchException e)
-    {
-      isValid = false;
-    }
     catch (final NoSuchElementException e)
     {
       isValid = false;

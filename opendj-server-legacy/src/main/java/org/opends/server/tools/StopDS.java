@@ -690,9 +690,9 @@ public class StopDS
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
     }
-    catch (DecodeException ae)
+    catch (DecodeException | LDAPException e)
     {
-      LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(ae.getMessage());
+      LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(e.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
@@ -700,12 +700,6 @@ public class StopDS
     {
       err.println(wrapText(ERR_STOPDS_IO_ERROR.get(ioe), MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
-    }
-    catch (LDAPException le)
-    {
-      LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(le.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
 
 

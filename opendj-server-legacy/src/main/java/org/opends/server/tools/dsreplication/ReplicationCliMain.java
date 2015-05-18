@@ -1441,14 +1441,6 @@ public class ReplicationCliMain extends ConsoleApplication
         logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
-      catch (NameAlreadyBoundException ex)
-      {
-        logger.error(LocalizableMessage.raw("Error creating task "+attrs, ex));
-        LocalizableMessage msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
-        ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
-        throw new ReplicationCliException(
-            getThrowableMsg(msg, ex), code, ex);
-      }
       catch (NamingException ne)
       {
         logger.error(LocalizableMessage.raw("Error creating task "+attrs, ne));

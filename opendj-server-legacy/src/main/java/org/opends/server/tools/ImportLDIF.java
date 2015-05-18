@@ -1252,11 +1252,7 @@ public class ImportLDIF extends TaskTool {
     {
       throw e;
     }
-    catch (ConfigException e2)
-    {
-      return e2.getMessage();
-    }
-    catch (InitializationException e2)
+    catch (ConfigException | InitializationException e2)
     {
       return e2.getMessage();
     }

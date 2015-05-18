@@ -249,16 +249,10 @@ public class LDAPConnection
       socket = createSSLOrBasicSocket(startTLSSocket, sslConnectionFactory);
       ldapWriter = new LDAPWriter(socket);
       ldapReader = new LDAPReader(socket);
-    } catch(UnknownHostException uhe)
+    } catch(UnknownHostException | ConnectException e)
     {
       LocalizableMessage msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
-      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
-                                        uhe);
-    } catch(ConnectException ce)
-    {
-      LocalizableMessage msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
-      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
-                                        ce);
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null, e);
     } catch (LDAPConnectionException e)
     {
       throw e;

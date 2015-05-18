@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getSchemaDN;
+import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -152,23 +153,12 @@ public class AddSchemaFileTask
       {
         SchemaConfigManager.loadSchemaFile(schema, schemaFile);
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        logger.traceException(ce);
+        logger.traceException(e);
 
-        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
-            schemaFile, ce.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, ce);
-      }
-      catch (InitializationException ie)
-      {
-        logger.traceException(ie);
-
-        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
-            schemaFile, ie.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, ie);
+        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(schemaFile, e.getMessage());
+        throw new DirectoryException(getServerErrorResultCode(), message, e);
       }
     }
   }
@@ -227,16 +217,10 @@ public class AddSchemaFileTask
                 .toAttribute()));
           }
         }
-        catch (ConfigException ce)
+        catch (ConfigException | InitializationException e)
         {
-          logger.traceException(ce);
-          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, ce.getMessage());
-          return TaskState.STOPPED_BY_ERROR;
-        }
-        catch (InitializationException ie)
-        {
-          logger.traceException(ie);
-          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, ie.getMessage());
+          logger.traceException(e);
+          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, e.getMessage());
           return TaskState.STOPPED_BY_ERROR;
         }
       }

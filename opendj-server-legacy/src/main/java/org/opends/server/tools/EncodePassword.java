@@ -409,15 +409,9 @@ public class EncodePassword
       {
         directoryServer.initializeSchema();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return OPERATIONS_ERROR;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return OPERATIONS_ERROR;
       }
@@ -435,17 +429,10 @@ public class EncodePassword
         CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
         coreConfigManager.initializeCoreConfig();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
         LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return OPERATIONS_ERROR;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return OPERATIONS_ERROR;
       }
@@ -470,25 +457,15 @@ public class EncodePassword
              new PasswordStorageSchemeConfigManager(directoryServer.getServerContext());
         storageSchemeConfigManager.initializePasswordStorageSchemes();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message =
-                ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
-                        ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return OPERATIONS_ERROR;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
-                ie.getMessage());
+        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(
-                getExceptionMessage(e));
+        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return OPERATIONS_ERROR;
       }
@@ -793,24 +770,15 @@ public class EncodePassword
       {
         directoryServer.initializeCryptoManager();
       }
-      catch (ConfigException ce)
+      catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return false;
-      }
-      catch (InitializationException ie)
-      {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return false;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return false;
       }
@@ -825,14 +793,8 @@ public class EncodePassword
           directoryServer.initializeAuthenticationPolicyComponents();
           directoryServer.initializeAuthenticatedUsers();
           new CryptoManagerSync();
-    } catch (InitializationException ie) {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
-                getExceptionMessage(ie));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return false;
-    } catch (ConfigException ce) {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
-                getExceptionMessage(ce));
+    } catch (InitializationException | ConfigException e) {
+        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return false;
     }

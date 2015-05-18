@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools.status;
 
@@ -324,10 +324,7 @@ class StatusCli extends ConsoleApplication
           controlInfo.setTrustManager(interactiveTrustManager);
           useInteractiveTrustManager = true;
         }
-      } catch (ArgumentException e) {
-        println(e.getMessageObject());
-        return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
-      } catch (ClientException e) {
+      } catch (ArgumentException | ClientException e) {
         println(e.getMessageObject());
         return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
       } finally {
