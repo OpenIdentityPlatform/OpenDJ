@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions copyright 2013-2014 ForgeRock AS
+  !      Portions copyright 2013-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="error-log-publisher"
   plural-name="error-log-publishers"
@@ -138,7 +138,7 @@
     <adm:description>
       Each override severity level should include the category and the
       severity levels to log for that category, for example, 
-      core=mild-error,info,mild-warning. Valid categories are: core,
+      core=error,info,warning. Valid categories are: core,
       extensions, protocol, config, log, util, schema, plugin, jeb,
       backend, tools, task, access-control, admin, sync, version,
       quicksetup, admin-tool, dsconfig, user-defined. Valid severities
