@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class implements an equality matching rule that matches normalized
@@ -39,21 +40,26 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Collection<? extends Indexer> indexers = Collections.singleton(new DefaultIndexer("equality"));
+    private final Indexer indexer;
 
-    AbstractEqualityMatchingRuleImpl() {
-        // Nothing to do.
+    AbstractEqualityMatchingRuleImpl(String indexID) {
+        this.indexer = new DefaultIndexer(indexID);
     }
 
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        return DefaultAssertion.equality(normalizeAttributeValue(schema, assertionValue));
+        return defaultAssertion(normalizeAttributeValue(schema, assertionValue));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Collection<? extends Indexer> getIndexers() {
-        return indexers;
+    public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+        return Collections.singleton(indexer);
     }
+
+    Assertion defaultAssertion(final ByteSequence normalizedAssertionValue) {
+        return named(indexer.getIndexID(), normalizedAssertionValue);
+    }
+
 }

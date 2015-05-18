@@ -22,10 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -42,10 +44,12 @@ final class EnumOrderingMatchingRule extends AbstractOrderingMatchingRuleImpl {
     private final EnumSyntaxImpl syntax;
 
     EnumOrderingMatchingRule(final EnumSyntaxImpl syntax) {
+        super(OMR_GENERIC_ENUM_NAME);
         Reject.ifNull(syntax);
         this.syntax = syntax;
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final int index = syntax.indexOf(value);

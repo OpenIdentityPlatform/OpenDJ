@@ -38,7 +38,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -436,14 +435,10 @@ public class VerifyJob
     }
     else if (attrIndexList.size() > 0)
     {
-      AttributeIndex attrIndex = attrIndexList.get(0);
-      final IndexingOptions options = attrIndex.getIndexingOptions();
-      iterateAttrIndex(attrIndex.getEqualityIndex(), options);
-      iterateAttrIndex(attrIndex.getPresenceIndex(), options);
-      iterateAttrIndex(attrIndex.getSubstringIndex(), options);
-      iterateAttrIndex(attrIndex.getOrderingIndex(), options);
-      iterateAttrIndex(attrIndex.getApproximateIndex(), options);
-     // TODO: Need to iterate through ExtendedMatchingRules indexes.
+      for (Index index : attrIndexList.get(0).getAllIndexes())
+      {
+        iterateAttrIndex(index);
+      }
     }
     else if (vlvIndexList.size() > 0)
     {
@@ -962,8 +957,7 @@ public class VerifyJob
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  private void iterateAttrIndex(Index index, IndexingOptions options)
-      throws JebException, DatabaseException
+  private void iterateAttrIndex(Index index) throws JebException, DatabaseException
   {
     if (index == null)
     {
@@ -1078,7 +1072,7 @@ public class VerifyJob
 
             };
 
-            index.indexEntry(entry, dummySet, options);
+            index.indexEntry(entry, dummySet);
 
             if (!foundMatchingKey.get())
             {
@@ -1386,12 +1380,7 @@ public class VerifyJob
     {
       try
       {
-        List<Attribute> attrList =
-             entry.getAttribute(attrIndex.getAttributeType());
-        if (attrList != null)
-        {
-          verifyAttribute(attrIndex, entryID, attrList);
-        }
+        verifyAttribute(attrIndex, entryID, entry);
       }
       catch (DirectoryException e)
       {
@@ -1462,86 +1451,37 @@ public class VerifyJob
    * @param attrList The attribute to be checked.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void verifyAttribute(AttributeIndex attrIndex, EntryID entryID,
-                              List<Attribute> attrList)
-       throws DirectoryException
+  private void verifyAttribute(AttributeIndex attrIndex, EntryID entryID, Entry entry) throws DirectoryException
   {
-    if (attrList == null || attrList.isEmpty())
+    for (Index index : attrIndex.getAllIndexes())
     {
-      return;
-    }
-
-    Transaction txn = null;
-    Index equalityIndex = attrIndex.getEqualityIndex();
-    Index presenceIndex = attrIndex.getPresenceIndex();
-    Index substringIndex = attrIndex.getSubstringIndex();
-    Index orderingIndex = attrIndex.getOrderingIndex();
-    Index approximateIndex = attrIndex.getApproximateIndex();
-    // TODO: Add support for Extended Matching Rules indexes.
-
-    if (presenceIndex != null)
-    {
-      verifyAttributeInIndex(presenceIndex, txn, JEBUtils.presenceKey, entryID);
-    }
-
-    final DatabaseEntry key = new DatabaseEntry();
-    for (Attribute attr : attrList)
-    {
-      final AttributeType attrType = attr.getAttributeType();
-      MatchingRule equalityRule = attrType.getEqualityMatchingRule();
-      for (ByteString value : attr)
+      final Set<ByteString> keys = new HashSet<>();
+      index.indexEntry(entry, keys);
+      for (ByteString key : keys)
       {
-        byte[] normalizedBytes = normalize(equalityRule, value);
-
-        if (equalityIndex != null)
-        {
-          key.setData(normalizedBytes);
-          verifyAttributeInIndex(equalityIndex, txn, key, entryID);
-        }
-
-        if (substringIndex != null)
-        {
-          for (ByteString keyBytes : attrIndex.substringKeys(normalizedBytes))
-          {
-            key.setData(keyBytes.toByteArray());
-            verifyAttributeInIndex(substringIndex, txn, key, entryID);
-          }
-        }
-
-        if (orderingIndex != null)
-        {
-          key.setData(normalize(attrType.getOrderingMatchingRule(), value));
-          verifyAttributeInIndex(orderingIndex, txn, key, entryID);
-        }
-
-        if (approximateIndex != null)
-        {
-          key.setData(normalize(attrType.getApproximateMatchingRule(), value));
-          verifyAttributeInIndex(approximateIndex, txn, key, entryID);
-        }
+        verifyAttributeInIndex(index, null, key, entryID);
       }
     }
   }
 
-  private void verifyAttributeInIndex(Index index, Transaction txn,
-      DatabaseEntry key, EntryID entryID)
+  private void verifyAttributeInIndex(Index index, Transaction txn, ByteString key, EntryID entryID)
   {
     try
     {
-      ConditionResult cr = index.containsID(txn, key, entryID);
+      final ConditionResult cr = index.containsID(txn, new DatabaseEntry(key.toByteArray()), entryID);
       if (cr == ConditionResult.FALSE)
       {
         if (logger.isTraceEnabled())
         {
           logger.trace("Missing ID %d%n%s",
                      entryID.longValue(),
-                     keyDump(index, key.getData()));
+                     keyDump(index, key.toByteArray()));
         }
         errorCount++;
       }
       else if (cr == ConditionResult.UNDEFINED)
       {
-        incrEntryLimitStats(index, key.getData());
+        incrEntryLimitStats(index, key.toByteArray());
       }
     }
     catch (DatabaseException e)
@@ -1552,7 +1492,7 @@ public class VerifyJob
 
         logger.trace("Error reading database: %s%n%s",
                    e.getMessage(),
-                   keyDump(index, key.getData()));
+                   keyDump(index, key.toByteArray()));
       }
       errorCount++;
     }
@@ -1640,12 +1580,10 @@ public class VerifyJob
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
-          totalCount += getRecordCount(attrIndex.getEqualityIndex());
-          totalCount += getRecordCount(attrIndex.getPresenceIndex());
-          totalCount += getRecordCount(attrIndex.getSubstringIndex());
-          totalCount += getRecordCount(attrIndex.getOrderingIndex());
-          totalCount += getRecordCount(attrIndex.getApproximateIndex());
-          // TODO: Add support for Extended Matching Rules indexes.
+          for (Index index : attrIndex.getAllIndexes())
+          {
+            totalCount += getRecordCount(index);
+          }
         }
         else if (vlvIndexList.size() > 0)
         {

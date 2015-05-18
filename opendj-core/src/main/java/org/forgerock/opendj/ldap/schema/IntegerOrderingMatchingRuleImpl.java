@@ -27,6 +27,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.math.BigInteger;
 
@@ -134,6 +135,11 @@ final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRule
             builder.append((byte) (length >> 4 & 0xFF ^ signMask));
             builder.append((byte) (length << 4 & 0xFF ^ signMask));
         }
+    }
+
+    public IntegerOrderingMatchingRuleImpl() {
+        // Reusing equality index since OPENDJ-1864
+        super(EMR_INTEGER_NAME);
     }
 
     @Override

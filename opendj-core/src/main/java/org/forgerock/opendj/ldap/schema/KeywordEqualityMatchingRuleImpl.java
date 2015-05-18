@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class implements the keywordMatch matching rule defined in X.520. That
@@ -60,6 +62,11 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * </UL>
  */
 final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    KeywordEqualityMatchingRuleImpl() {
+        super(EMR_KEYWORD_NAME);
+    }
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
@@ -122,7 +129,7 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
 
     /** {@inheritDoc} */
     @Override
-    public Collection<? extends Indexer> getIndexers() {
+    public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
         return Collections.emptySet();
     }
 

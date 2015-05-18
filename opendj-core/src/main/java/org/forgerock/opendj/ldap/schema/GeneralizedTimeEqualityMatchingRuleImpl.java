@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -37,6 +39,11 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
  * and referenced in RFC 2252.
  */
 final class GeneralizedTimeEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    GeneralizedTimeEqualityMatchingRuleImpl() {
+        super(EMR_GENERALIZED_TIME_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {

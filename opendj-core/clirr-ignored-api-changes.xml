@@ -421,6 +421,12 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <justification>OPENDJ-1689 method has been removed because all matching rules should support the default comparator</justification>
   </difference>
   <difference>
+    <className>org/forgerock/opendj/ldap/schema/MatchingRuleImpl</className>
+    <differenceType>7012</differenceType>
+    <method>java.util.Collection createIndexers(org.forgerock.opendj.ldap.spi.IndexingOptions)</method>
+    <justification>Doesn't really seem correct to call createKeys() with different options each time.</justification>
+  </difference>
+  <difference>
     <className>org/forgerock/opendj/ldap/ByteSequence</className>
     <differenceType>7012</differenceType>
     <method>boolean startsWith(org.forgerock.opendj.ldap.ByteSequence)</method>

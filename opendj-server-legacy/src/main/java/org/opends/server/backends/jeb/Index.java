@@ -35,7 +35,6 @@ import java.util.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.jeb.IndexBuffer.BufferedIndexValues;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -140,9 +139,9 @@ public class Index extends DatabaseContainer
     }
   }
 
-  void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  void indexEntry(Entry entry, Set<ByteString> keys)
   {
-    indexer.indexEntry(entry, keys, options);
+    indexer.indexEntry(entry, keys);
   }
 
   /**
@@ -684,15 +683,13 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
-   * @param options     The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
-      IndexingOptions options) throws DatabaseException, DirectoryException
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DatabaseException, DirectoryException
   {
-    HashSet<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys, options);
+    final Set<ByteString> addKeys = new HashSet<>();
+    indexer.indexEntry(entry, addKeys);
 
     for (ByteString keyBytes : addKeys)
     {
@@ -706,15 +703,14 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID
    * @param entry       The contents of the deleted entry.
-   * @param options     The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
-      IndexingOptions options) throws DatabaseException, DirectoryException
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+      throws DatabaseException, DirectoryException
   {
-    HashSet<ByteString> delKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, delKeys, options);
+    final Set<ByteString> delKeys = new HashSet<>();
+    indexer.indexEntry(entry, delKeys);
 
     for (ByteString keyBytes : delKeys)
     {
@@ -731,19 +727,17 @@ public class Index extends DatabaseContainer
    * @param oldEntry The entry before the modifications were applied.
    * @param newEntry The entry after the modifications were applied.
    * @param mods The sequence of modifications in the Modify operation.
-   * @param options The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
-                          List<Modification> mods, IndexingOptions options)
+                          List<Modification> mods)
       throws DatabaseException
   {
-    TreeMap<ByteString, Boolean> modifiedKeys =
-        new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
-    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
+    final Map<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
+    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
 
     for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
     {

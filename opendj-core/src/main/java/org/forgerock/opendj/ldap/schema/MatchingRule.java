@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class defines a data structure for storing and interacting with matching
@@ -348,12 +349,14 @@ public final class MatchingRule extends SchemaElement {
     }
 
     /**
-     * Returns the indexers for this matching rule.
+     * Returns the indexers for this matching rule configured using the provided indexing options.
      *
+     * @param options
+     *            The indexing options
      * @return the collection of indexers for this matching rule.
      */
-    public Collection<? extends Indexer> getIndexers() {
-        return impl.getIndexers();
+    public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+        return impl.createIndexers(options);
     }
 
     /**

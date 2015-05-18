@@ -43,6 +43,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -53,6 +54,10 @@ import static org.testng.Assert.*;
 public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCase {
 
     private static class FakeSubstringMatchingRuleImpl extends AbstractSubstringMatchingRuleImpl {
+
+        FakeSubstringMatchingRuleImpl() {
+            super(SMR_CASE_EXACT_OID, EMR_CASE_EXACT_OID);
+        }
 
         /** {@inheritDoc} */
         @Override
@@ -210,8 +215,8 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
             "intersect["
-                    + "exactMatch(substring, value=='his'), "
-                    + "exactMatch(substring, value=='thi')"
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='his'), "
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='thi')"
                     + "]");
     }
 
@@ -223,11 +228,11 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
             "intersect["
-                    + "rangeMatch(equality, 'abc' <= value < 'abd'), "
-                    + "exactMatch(substring, value=='def'), "
-                    + "exactMatch(substring, value=='ghi'), "
-                    + "exactMatch(substring, value=='jkl'), "
-                    + "exactMatch(substring, value=='abc')"
+                    + "rangeMatch(" + EMR_CASE_EXACT_OID + ", 'abc' <= value < 'abd'), "
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='def'), "
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='ghi'), "
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='jkl'), "
+                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='abc')"
                     + "]");
     }
 
@@ -240,8 +245,8 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
             "intersect["
-                    + "rangeMatch(equality, 'aa' <= value < 'ab'), "
-                    + "rangeMatch(substring, 'aa' <= value < 'ab')"
+                    + "rangeMatch(" + EMR_CASE_EXACT_OID + ", 'aa' <= value < 'ab'), "
+                    + "rangeMatch(" + SMR_CASE_EXACT_OID + ", 'aa' <= value < 'ab')"
                     + "]");
     }
 
@@ -257,19 +262,19 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             // 0x00 is the nul byte, a.k.a. string terminator
             // so everything after it is not part of the string
             "intersect["
-                    + "rangeMatch(equality, '" + lower + "' <= value < 'b\u0000'), "
-                    + "rangeMatch(substring, '" + lower + "' <= value < 'b\u0000')"
+                    + "rangeMatch(" + EMR_CASE_EXACT_OID + ", '" + lower + "' <= value < 'b\u0000'), "
+                    + "rangeMatch(" + SMR_CASE_EXACT_OID + ", '" + lower + "' <= value < 'b\u0000')"
                     + "]");
     }
 
     @Test
     public void testIndexer() throws Exception {
-        final Indexer indexer = getRule().getIndexers().iterator().next();
-        Assertions.assertThat(indexer.getIndexID()).isEqualTo("substring");
-
         final IndexingOptions options = newIndexingOptions();
+        final Indexer indexer = getRule().createIndexers(options).iterator().next();
+        Assertions.assertThat(indexer.getIndexID()).isEqualTo(SMR_CASE_EXACT_OID + ":" + options.substringKeySize());
+
         final TreeSet<ByteString> keys = new TreeSet<>();
-        indexer.createKeys(Schema.getCoreSchema(), valueOf("ABCDE"), options, keys);
+        indexer.createKeys(Schema.getCoreSchema(), valueOf("ABCDE"), keys);
         Assertions.assertThat(keys).containsOnly((Object[]) toByteStrings("ABC", "BCD", "CDE", "DE", "E"));
     }
 

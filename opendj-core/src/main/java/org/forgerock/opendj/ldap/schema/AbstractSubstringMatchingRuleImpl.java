@@ -225,14 +225,20 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     }
 
-    final class SubstringIndexer implements Indexer {
+    private final class SubstringIndexer implements Indexer {
+
+        private final String indexID;
+        private final int substringKeySize;
+
+        private SubstringIndexer(int substringKeySize) {
+            this.substringKeySize = substringKeySize;
+            this.indexID = substringIndexId + ":" + this.substringKeySize;
+        }
 
         /** {@inheritDoc} */
         @Override
-        public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
-                throws DecodeException {
+        public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException {
             final ByteString normValue = normalizeAttributeValue(schema, value);
-            final int substringKeySize = options.substringKeySize();
 
             // Example: The value is ABCDE and the substring length is 3.
             // We produce the keys ABC BCD CDE DE E
@@ -248,22 +254,15 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         /** {@inheritDoc} */
         @Override
         public String getIndexID() {
-            return substringIndexId;
+            return indexID;
         }
     }
-
-    private final Collection<? extends Indexer> indexers = Collections.singleton(new SubstringIndexer());
 
     /** Identifier of the substring index. */
     private final String substringIndexId;
 
     /** Identifier of the equality index. */
     private final String equalityIndexId;
-
-    /** Constructor for default matching rules. */
-    AbstractSubstringMatchingRuleImpl() {
-        this("substring", "equality");
-    }
 
     /** Constructor for non-default matching rules. */
     AbstractSubstringMatchingRuleImpl(String substringIndexId, String equalityIndexId) {
@@ -273,7 +272,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
+    public final Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         if (assertionValue.length() == 0) {
             throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
@@ -323,7 +322,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
+    public final Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
             throws DecodeException {
         final ByteString normInitial =
@@ -543,8 +542,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     /** {@inheritDoc} */
     @Override
-    public Collection<? extends Indexer> getIndexers() {
-        return indexers;
+    public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+        return Collections.singleton(new SubstringIndexer(options.substringKeySize()));
     }
 
 }

@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -54,6 +55,12 @@ import com.sleepycat.je.Transaction;
 @SuppressWarnings("javadoc")
 public class TestVerifyJob extends JebTestCase
 {
+
+  private static final String EQUALITY_CASE_IGNORE = EMR_CASE_IGNORE_NAME;
+  private static final String EQUALITY_TELEPHONE = EMR_TELEPHONE_NAME;
+  private static final String ORDERING_CASE_IGNORE = OMR_CASE_IGNORE_NAME;
+  private static final String SUBSTRING_CASE_IGNORE_IA5 = SMR_CASE_IGNORE_IA5_NAME;
+
   /** Root suffix for verify backend. */
   private static String suffix="dc=verify,dc=jeb";
   private static  String vBranch="ou=verify tests," + suffix;
@@ -344,7 +351,7 @@ public class TestVerifyJob extends JebTestCase
     try
     {
       AttributeType attributeType = DirectoryServer.getAttributeType(phoneType);
-      Index index = eContainer.getAttributeIndex(attributeType).getEqualityIndex();
+      Index index = eContainer.getAttributeIndex(attributeType).getIndex(EQUALITY_TELEPHONE);
       //Add entry with bad JEB format Version
       addID2EntryReturnKey(junkDN, 4, true);
       //Add phone number with various bad id list entryIDs
@@ -636,10 +643,12 @@ public class TestVerifyJob extends JebTestCase
           DirectoryServer.getAttributeType(mailType);
       //Get db handles to each index.
       AttributeIndex attributeIndex = eContainer.getAttributeIndex(attributeType);
-      Index eqIndex = attributeIndex.getEqualityIndex();
-      Index presIndex = attributeIndex.getPresenceIndex();
-      Index subIndex = attributeIndex.getSubstringIndex();
-      Index ordIndex = attributeIndex.getOrderingIndex();
+      Index eqIndex = attributeIndex.getIndex(EQUALITY_CASE_IGNORE);
+      Index presIndex = attributeIndex.getIndex("presence");
+      Index subIndex = attributeIndex.getIndex(SUBSTRING_CASE_IGNORE_IA5 + ":6");
+      // Ordering is processed by equality since OPENDJ-1864
+      assertNull(attributeIndex.getIndex(ORDERING_CASE_IGNORE));
+
       //Add invalid idlist ids to both equality and ordering indexes.
       DatabaseEntry key=
            new DatabaseEntry(StaticUtils.getBytes("user.0@example.com"));
@@ -650,14 +659,10 @@ public class TestVerifyJob extends JebTestCase
       DatabaseEntry data= new DatabaseEntry(dataBytes);
       OperationStatus status = eqIndex.put(txn, key, data);
       assertEquals(status, OperationStatus.SUCCESS);
-      status = ordIndex.put(txn, key, data);
-      assertEquals(status, OperationStatus.SUCCESS);
-      //Add null idlist to both equality and ordering indexes.
+      //Add null idlist to equality index.
       key = new DatabaseEntry(StaticUtils.getBytes("user.1@example.com"));
       data= new DatabaseEntry(new EntryIDSet().toDatabase());
       status = eqIndex.put(txn, key, data);
-      assertEquals(status, OperationStatus.SUCCESS);
-      status = ordIndex.put(txn, key, data);
       assertEquals(status, OperationStatus.SUCCESS);
       //Add invalid idlist ids to presence index.
       key = new DatabaseEntry(StaticUtils.getBytes("+"));
@@ -669,7 +674,7 @@ public class TestVerifyJob extends JebTestCase
       data = new DatabaseEntry(dataBytes);
       status = subIndex.put(txn, key, data);
       assertEquals(status, OperationStatus.SUCCESS);
-      performBECompleteVerify(mailType, 6);
+      performBECompleteVerify(mailType, 5);
     }
     finally
     {

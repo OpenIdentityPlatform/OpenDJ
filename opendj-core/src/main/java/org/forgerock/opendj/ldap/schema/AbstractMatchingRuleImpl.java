@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 import static org.forgerock.opendj.ldap.Assertion.*;
 
@@ -46,22 +45,14 @@ import static org.forgerock.opendj.ldap.Assertion.*;
  */
 abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
 
-    static final class DefaultAssertion implements Assertion {
+    static DefaultAssertion named(final String indexID, final ByteSequence normalizedAssertionValue) {
+        return new DefaultAssertion(indexID, normalizedAssertionValue);
+    }
+
+    private static final class DefaultAssertion implements Assertion {
         /** The ID of the DB index to use with this assertion.*/
         private final String indexID;
         private final ByteSequence normalizedAssertionValue;
-
-        static DefaultAssertion equality(final ByteSequence normalizedAssertionValue) {
-            return named("equality", normalizedAssertionValue);
-        }
-
-        static DefaultAssertion approximate(final ByteSequence normalizedAssertionValue) {
-            return named("approximate", normalizedAssertionValue);
-        }
-
-        static DefaultAssertion named(final String indexID, final ByteSequence normalizedAssertionValue) {
-            return new DefaultAssertion(indexID, normalizedAssertionValue);
-        }
 
         private DefaultAssertion(final String indexID, final ByteSequence normalizedAssertionValue) {
             this.indexID = indexID;
@@ -88,8 +79,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         }
 
         @Override
-        public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
-                throws DecodeException {
+        public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException {
             keys.add(normalizeAttributeValue(schema, value));
         }
 
@@ -97,10 +87,6 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         public String getIndexID() {
             return indexID;
         }
-    }
-
-    AbstractMatchingRuleImpl() {
-        // Nothing to do.
     }
 
     @Override
@@ -127,10 +113,4 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
             throws DecodeException {
         return UNDEFINED_ASSERTION;
     }
-
-    @Override
-    public boolean isIndexingSupported() {
-        return !getIndexers().isEmpty();
-    }
-
 }

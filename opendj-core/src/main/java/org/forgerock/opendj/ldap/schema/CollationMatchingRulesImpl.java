@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import java.text.Collator;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * Implementations of collation matching rules. Each matching rule is created
@@ -183,7 +184,7 @@ final class CollationMatchingRulesImpl {
 
         /** {@inheritDoc} */
         @Override
-        public Collection<? extends Indexer> getIndexers() {
+        public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
         }
 
@@ -219,7 +220,7 @@ final class CollationMatchingRulesImpl {
         @Override
         public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
                 throws DecodeException {
-            return DefaultAssertion.named(indexName, normalizeAttributeValue(schema, assertionValue));
+            return named(indexName, normalizeAttributeValue(schema, assertionValue));
         }
 
     }
@@ -230,7 +231,6 @@ final class CollationMatchingRulesImpl {
     private static final class CollationSubstringMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
 
         private final AbstractSubstringMatchingRuleImpl substringMatchingRule;
-        private final Indexer subIndexer;
 
         /**
          * Creates the matching rule with the provided locale.
@@ -248,8 +248,6 @@ final class CollationMatchingRulesImpl {
                     return CollationSubstringMatchingRuleImpl.this.normalizeAttributeValue(schema, value);
                 }
             };
-            // default substring matching rule has exactly one indexer
-            subIndexer = substringMatchingRule.getIndexers().iterator().next();
         }
 
         @Override
@@ -266,8 +264,10 @@ final class CollationMatchingRulesImpl {
 
         /** {@inheritDoc} */
         @Override
-        public final Collection<? extends Indexer> getIndexers() {
-            return Arrays.asList(subIndexer, indexer);
+        public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
+            final Collection<Indexer> indexers = new ArrayList<>(substringMatchingRule.createIndexers(options));
+            indexers.add(indexer);
+            return indexers;
         }
     }
 

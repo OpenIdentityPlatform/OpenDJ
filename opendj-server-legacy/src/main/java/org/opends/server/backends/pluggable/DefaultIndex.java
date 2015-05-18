@@ -64,7 +64,9 @@ class DefaultIndex extends AbstractTree implements Index
 
   private final State state;
 
-  private final EntryIDSetCodec codec;
+  private final EntryContainer entryContainer;
+
+  private EntryIDSetCodec codec;
 
   /**
    * A flag to indicate if this index should be trusted to be consistent with the entries tree.
@@ -84,23 +86,26 @@ class DefaultIndex extends AbstractTree implements Index
    *          The state tree to persist index state info.
    * @param indexEntryLimit
    *          The configured limit on the number of entry IDs that may be indexed by one key.
-   * @param txn
-   *          a non null transaction
    * @param entryContainer
    *          The entryContainer holding this index.
    * @throws StorageRuntimeException
    *           If an error occurs in the storage.
    */
-  DefaultIndex(TreeName name, State state, int indexEntryLimit, WriteableTransaction txn, EntryContainer entryContainer)
+  DefaultIndex(TreeName name, State state, int indexEntryLimit, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
     super(name);
     this.indexEntryLimit = indexEntryLimit;
     this.state = state;
+    this.entryContainer = entryContainer;
+  }
 
+  @Override
+  final void open0(WriteableTransaction txn)
+  {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
-    this.codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
-    this.trusted = flags.contains(TRUSTED);
+    codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
+    trusted = flags.contains(TRUSTED);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there

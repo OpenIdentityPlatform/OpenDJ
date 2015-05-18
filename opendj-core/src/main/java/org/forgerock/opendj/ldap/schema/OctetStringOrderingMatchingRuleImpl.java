@@ -22,8 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -34,6 +37,12 @@ import org.forgerock.opendj.ldap.ByteString;
  * octet string syntaxes.
  */
 final class OctetStringOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
+
+    OctetStringOrderingMatchingRuleImpl() {
+        // Reusing equality index since OPENDJ-1864
+        super(EMR_OCTET_STRING_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -58,13 +58,10 @@ public interface Indexer {
      *          The schema in which the associated matching rule is defined.
      * @param value
      *          The attribute value for which keys are required.
-     * @param options
-     *          The indexing options
      * @param keys
      *          A collection where to add the created keys.
      * @throws DecodeException if an error occurs while normalizing the value
      */
-    void createKeys(Schema schema, ByteSequence value, IndexingOptions options,
-            Collection<ByteString> keys) throws DecodeException;
+    void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException;
 
 }

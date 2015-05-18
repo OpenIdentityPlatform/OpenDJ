@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS
+ *      Portions copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -48,6 +49,10 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+    IntegerFirstComponentEqualityMatchingRuleImpl() {
+        super(EMR_INTEGER_FIRST_COMPONENT_NAME);
+    }
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
@@ -55,7 +60,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
             final String definition = assertionValue.toString();
             final SubstringReader reader = new SubstringReader(definition);
             final int intValue = SchemaUtils.readRuleID(reader);
-            return DefaultAssertion.equality(ByteString.valueOf(intValue));
+            return defaultAssertion(ByteString.valueOf(intValue));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
 

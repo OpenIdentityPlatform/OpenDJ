@@ -46,22 +46,17 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-
 import org.forgerock.util.time.TimeService;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
-
 import static org.forgerock.opendj.ldap.DecodeException.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**
  * Implementations of time-based matching rules.
  */
 final class TimeBasedMatchingRulesImpl {
-
-    private static final String RELATIVE_TIME_INDEX_ID = "rt";
-    private static final String PARTIAL_DATE_TIME_INDEX_ID = "pdt";
-    private static final String EXTENSIBLE_INDEX_ID = "ext";
 
     private static final TimeZone TIME_ZONE_UTC = TimeZone.getTimeZone("UTC");
 
@@ -114,7 +109,7 @@ final class TimeBasedMatchingRulesImpl {
 
         /** {@inheritDoc} */
         @Override
-        public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
+        public final ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
             try {
                 return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
             } catch (final LocalizedIllegalArgumentException e) {
@@ -133,11 +128,11 @@ final class TimeBasedMatchingRulesImpl {
      */
     private static abstract class RelativeTimeOrderingMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
 
-        final Indexer indexer = new DefaultIndexer(RELATIVE_TIME_INDEX_ID + "." + EXTENSIBLE_INDEX_ID);
+        final Indexer indexer = new DefaultIndexer(EMR_GENERALIZED_TIME_NAME);
 
         /** {@inheritDoc} */
         @Override
-        public Collection<? extends Indexer> getIndexers() {
+        public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
         }
 
@@ -291,11 +286,11 @@ final class TimeBasedMatchingRulesImpl {
      */
     private static final class PartialDateAndTimeMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
 
-        final Indexer indexer = new PartialDateAndTimeIndexer(this);
+        private final Indexer indexer = new PartialDateAndTimeIndexer(this);
 
         /** {@inheritDoc} */
         @Override
-        public Collection<? extends Indexer> getIndexers() {
+        public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
         }
 
@@ -585,15 +580,14 @@ final class TimeBasedMatchingRulesImpl {
 
         /** {@inheritDoc} */
         @Override
-        public void createKeys(Schema schema, ByteSequence value, IndexingOptions options,
-                Collection<ByteString> keys) {
+        public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) {
             matchingRule.timeKeys(value, keys);
         }
 
         /** {@inheritDoc} */
         @Override
         public String getIndexID() {
-            return PARTIAL_DATE_TIME_INDEX_ID + "." + EXTENSIBLE_INDEX_ID;
+            return MR_PARTIAL_DATE_AND_TIME_NAME;
         }
     }
 }

@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -37,6 +39,10 @@ import org.forgerock.opendj.ldap.DecodeException;
  * and referenced in RFC 2252.
  */
 final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    DistinguishedNameEqualityMatchingRuleImpl() {
+        super(EMR_DN_NAME);
+    }
 
     /** {@inheritDoc} */
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)

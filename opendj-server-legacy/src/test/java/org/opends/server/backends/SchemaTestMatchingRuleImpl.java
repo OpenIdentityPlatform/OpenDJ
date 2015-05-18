@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 
 /**
@@ -94,15 +95,10 @@ public class SchemaTestMatchingRuleImpl implements MatchingRuleImpl
   }
 
   @Override
-  public Collection<? extends Indexer> getIndexers()
+  public Collection<? extends Indexer> createIndexers(IndexingOptions options)
   {
-    return caseIgnoreMatchingRule.getIndexers();
+    return caseIgnoreMatchingRule.createIndexers(options);
   }
 
-  @Override
-  public boolean isIndexingSupported()
-  {
-    return !getIndexers().isEmpty();
-  }
 }
 

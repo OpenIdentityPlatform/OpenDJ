@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -35,6 +37,11 @@ import org.forgerock.opendj.ldap.ByteString;
  * spaces, but ignores spaces when performing matching.
  */
 final class NumericStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    NumericStringEqualityMatchingRuleImpl() {
+        super(EMR_NUMERIC_STRING_NAME);
+    }
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeNumericStringAttributeValue(value);
     }

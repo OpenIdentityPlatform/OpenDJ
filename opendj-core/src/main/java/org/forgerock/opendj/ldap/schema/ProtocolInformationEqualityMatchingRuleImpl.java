@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,6 +30,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static com.forgerock.opendj.util.StringPrepProfile.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**
  * This class implements the protocolInformationMatch matching rule defined in
@@ -38,6 +39,11 @@ import static com.forgerock.opendj.util.StringPrepProfile.*;
  * like the caseIgnoreMatch rule.
  */
 final class ProtocolInformationEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    ProtocolInformationEqualityMatchingRuleImpl() {
+        super(EMR_PROTOCOL_INFORMATION_NAME);
+    }
+
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD);

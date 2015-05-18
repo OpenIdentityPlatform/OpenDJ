@@ -266,19 +266,13 @@ class Suffix
     entryContainer.getID2Subtree().setTrusted(null, trusted);
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      setTrusted(attributeIndex.getEqualityIndex(), trusted);
-      setTrusted(attributeIndex.getPresenceIndex(), trusted);
-      setTrusted(attributeIndex.getSubstringIndex(), trusted);
-      setTrusted(attributeIndex.getOrderingIndex(), trusted);
-      setTrusted(attributeIndex.getApproximateIndex(), trusted);
-      Map<String, Collection<Index>> exIndexes = attributeIndex.getExtensibleIndexes();
-      if(!exIndexes.isEmpty())
+      for (Index index : attributeIndex.getAllIndexes())
       {
-        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
-        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SHARED), trusted);
+        setTrusted(index, trusted);
       }
     }
-    for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
+    for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+    {
       vlvIdx.setTrusted(null, trusted);
     }
   }
@@ -288,17 +282,6 @@ class Suffix
     if (index != null)
     {
       index.setTrusted(null, trusted);
-    }
-  }
-
-  private void setTrusted(Collection<Index> subIndexes, boolean trusted)
-  {
-    if (subIndexes != null)
-    {
-      for (Index subIndex : subIndexes)
-      {
-        subIndex.setTrusted(null, trusted);
-      }
     }
   }
 

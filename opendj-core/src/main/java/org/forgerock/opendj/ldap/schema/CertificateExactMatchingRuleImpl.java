@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.GSERParser;
 import com.forgerock.opendj.util.StaticUtils;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**
  * This class implements the certificateExactMatch matching rule defined in
@@ -73,6 +74,10 @@ final class CertificateExactMatchingRuleImpl
      * The GSER identifier for the rdnSequence IdentifiedChoiceValue.
      */
     private static final String GSER_ID_RDNSEQUENCE = "rdnSequence";
+
+    CertificateExactMatchingRuleImpl() {
+        super(EMR_CERTIFICATE_EXACT_NAME);
+    }
 
     /**
      * Retrieves the normalized form of the provided value, which is best suited
@@ -129,7 +134,7 @@ final class CertificateExactMatchingRuleImpl
             // Assume the assertion value is a certificate and parse issuer and
             // serial number. If the value is not even a certificate then the
             // raw bytes will be returned.
-            return DefaultAssertion.equality(normalizeAttributeValue(schema, value));
+            return defaultAssertion(normalizeAttributeValue(schema, value));
         }
 
         final BigInteger serialNumber;
@@ -181,7 +186,7 @@ final class CertificateExactMatchingRuleImpl
         }
 
         final ByteString certificateIssuer = normalizeDN(schema, dnstring);
-        return DefaultAssertion.equality(createEncodedValue(serialNumber, certificateIssuer));
+        return defaultAssertion(createEncodedValue(serialNumber, certificateIssuer));
     }
 
     private ByteString normalizeDN(final Schema schema, final String dnstring) throws DecodeException {

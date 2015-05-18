@@ -26,6 +26,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
@@ -43,6 +44,10 @@ import com.forgerock.opendj.util.SubstringReader;
  * rule requires a schema to lookup object identifiers in the descriptor form.
  */
 final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    ObjectIdentifierEqualityMatchingRuleImpl() {
+        super(EMR_OID_NAME);
+    }
 
     static String resolveNames(final Schema schema, final String oid) {
         if (!StaticUtils.isDigit(oid.charAt(0))) {

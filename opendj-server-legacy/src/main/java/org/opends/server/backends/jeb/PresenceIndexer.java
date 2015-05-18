@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
@@ -70,7 +69,7 @@ public class PresenceIndexer extends Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
+  public void indexEntry(Entry entry, Set<ByteString> keys)
   {
     List<Attribute> attrList = entry.getAttribute(attributeType);
     if (attrList != null && !attrList.isEmpty())
@@ -83,7 +82,7 @@ public class PresenceIndexer extends Indexer
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
+                          Map<ByteString, Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);

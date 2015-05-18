@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -37,6 +38,12 @@ import org.forgerock.opendj.ldap.DecodeException;
  * referenced in RFC 4519.
  */
 final class BooleanEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
+    BooleanEqualityMatchingRuleImpl() {
+        super(EMR_BOOLEAN_NAME);
+    }
+
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();

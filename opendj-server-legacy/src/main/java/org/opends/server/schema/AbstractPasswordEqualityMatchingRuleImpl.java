@@ -42,6 +42,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 import static org.forgerock.opendj.ldap.Assertion.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * Abstract implementation for password matching rules.
@@ -49,13 +50,12 @@ import static org.forgerock.opendj.ldap.Assertion.*;
 abstract class AbstractPasswordEqualityMatchingRuleImpl implements MatchingRuleImpl
 {
 
-  private static final String EQUALITY_ID = "equality";
+  private static final String EQUALITY_ID =  EMR_AUTH_PASSWORD_NAME;
 
   private final Collection<? extends Indexer> indexers = Collections.singleton(new Indexer()
   {
     @Override
-    public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
-        throws DecodeException
+    public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException
     {
       keys.add(normalizeAttributeValue(schema, value));
     }
@@ -131,16 +131,9 @@ abstract class AbstractPasswordEqualityMatchingRuleImpl implements MatchingRuleI
 
   /** {@inheritDoc} */
   @Override
-  public Collection<? extends Indexer> getIndexers()
+  public Collection<? extends Indexer> createIndexers(IndexingOptions options)
   {
     return indexers;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isIndexingSupported()
-  {
-    return !indexers.isEmpty();
   }
 
   /**
