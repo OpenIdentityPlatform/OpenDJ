@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
@@ -141,48 +140,53 @@ public class LdapException extends IOException {
             throw new IllegalArgumentException("Attempted to wrap a successful result: " + result);
         }
 
-        ResultCode rc = result.getResultCode();
-        if (rc == ResultCode.ASSERTION_FAILED) {
+        switch (result.getResultCode().asEnum()) {
+        case ASSERTION_FAILED:
             return new AssertionFailureException(result);
-        } else if (rc == ResultCode.AUTH_METHOD_NOT_SUPPORTED
-                || rc == ResultCode.CLIENT_SIDE_AUTH_UNKNOWN
-                || rc == ResultCode.INAPPROPRIATE_AUTHENTICATION
-                || rc == ResultCode.INVALID_CREDENTIALS) {
+        case AUTH_METHOD_NOT_SUPPORTED:
+        case CLIENT_SIDE_AUTH_UNKNOWN:
+        case INAPPROPRIATE_AUTHENTICATION:
+        case INVALID_CREDENTIALS:
             return new AuthenticationException(result);
-        } else if (rc == ResultCode.AUTHORIZATION_DENIED
-                || rc == ResultCode.CONFIDENTIALITY_REQUIRED
-                || rc == ResultCode.INSUFFICIENT_ACCESS_RIGHTS
-                || rc == ResultCode.STRONG_AUTH_REQUIRED) {
+        case AUTHORIZATION_DENIED:
+        case CONFIDENTIALITY_REQUIRED:
+        case INSUFFICIENT_ACCESS_RIGHTS:
+        case STRONG_AUTH_REQUIRED:
             return new AuthorizationException(result);
-        } else if (rc == ResultCode.CLIENT_SIDE_USER_CANCELLED || rc == ResultCode.CANCELLED) {
+        case CLIENT_SIDE_USER_CANCELLED:
+        case CANCELLED:
             return new CancelledResultException(result);
-        } else if (rc == ResultCode.CLIENT_SIDE_SERVER_DOWN
-                || rc == ResultCode.CLIENT_SIDE_CONNECT_ERROR
-                || rc == ResultCode.CLIENT_SIDE_DECODING_ERROR
-                || rc == ResultCode.CLIENT_SIDE_ENCODING_ERROR) {
+        case CLIENT_SIDE_SERVER_DOWN:
+        case CLIENT_SIDE_CONNECT_ERROR:
+        case CLIENT_SIDE_DECODING_ERROR:
+        case CLIENT_SIDE_ENCODING_ERROR:
             return new ConnectionException(result);
-        } else if (rc == ResultCode.ATTRIBUTE_OR_VALUE_EXISTS
-                || rc == ResultCode.NO_SUCH_ATTRIBUTE
-                || rc == ResultCode.CONSTRAINT_VIOLATION || rc == ResultCode.ENTRY_ALREADY_EXISTS
-                || rc == ResultCode.INVALID_ATTRIBUTE_SYNTAX || rc == ResultCode.INVALID_DN_SYNTAX
-                || rc == ResultCode.NAMING_VIOLATION || rc == ResultCode.NOT_ALLOWED_ON_NONLEAF
-                || rc == ResultCode.NOT_ALLOWED_ON_RDN
-                || rc == ResultCode.OBJECTCLASS_MODS_PROHIBITED
-                || rc == ResultCode.OBJECTCLASS_VIOLATION
-                || rc == ResultCode.UNDEFINED_ATTRIBUTE_TYPE) {
+        case ATTRIBUTE_OR_VALUE_EXISTS:
+        case NO_SUCH_ATTRIBUTE:
+        case CONSTRAINT_VIOLATION:
+        case ENTRY_ALREADY_EXISTS:
+        case INVALID_ATTRIBUTE_SYNTAX:
+        case INVALID_DN_SYNTAX:
+        case NAMING_VIOLATION:
+        case NOT_ALLOWED_ON_NONLEAF:
+        case NOT_ALLOWED_ON_RDN:
+        case OBJECTCLASS_MODS_PROHIBITED:
+        case OBJECTCLASS_VIOLATION:
+        case UNDEFINED_ATTRIBUTE_TYPE:
             return new ConstraintViolationException(result);
-        } else if (rc == ResultCode.REFERRAL) {
+        case REFERRAL:
             return new ReferralException(result);
-        } else if (rc == ResultCode.NO_SUCH_OBJECT
-                || rc == ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED) {
+        case NO_SUCH_OBJECT:
+        case CLIENT_SIDE_NO_RESULTS_RETURNED:
             return new EntryNotFoundException(result);
-        } else if (rc == ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED) {
+        case CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED:
             return new MultipleEntriesFoundException(result);
-        } else if (rc == ResultCode.CLIENT_SIDE_TIMEOUT || rc == ResultCode.TIME_LIMIT_EXCEEDED) {
+        case CLIENT_SIDE_TIMEOUT:
+        case TIME_LIMIT_EXCEEDED:
             return new TimeoutResultException(result);
+        default:
+            return new LdapException(result);
         }
-
-        return new LdapException(result);
     }
 
     private static String getMessage(final Result result) {
