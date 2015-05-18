@@ -237,10 +237,7 @@ public final class LDIFSearch extends ConsoleApplication {
                             attributes.toArray(new String[attributes.size()])).setTypesOnly(
                             typesOnly.isPresent()).setTimeLimit(timeLimit.getIntValue())
                             .setSizeLimit(sizeLimit.getIntValue());
-        } catch (final ArgumentException e) {
-            errPrintln(e.getMessageObject());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        } catch (final LocalizedIllegalArgumentException e) {
+        } catch (final ArgumentException | LocalizedIllegalArgumentException e) {
             errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }

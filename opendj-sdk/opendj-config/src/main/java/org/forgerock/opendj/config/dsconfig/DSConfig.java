@@ -1238,10 +1238,7 @@ public final class DSConfig extends ConsoleApplication {
         try {
             // Force retrieval of management context.
             factory.getManagementContext(app);
-        } catch (ArgumentException e) {
-            app.errPrintln(e.getMessageObject());
-            return ReturnCode.ERROR_UNEXPECTED.get();
-        } catch (ClientException e) {
+        } catch (ArgumentException | ClientException e) {
             app.errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         }

@@ -749,9 +749,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation.getUserFriendlyName(),
                                 e.getMessage());
                         throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
-                    } catch (DefinitionDecodingException e) {
-                        // Do nothing.
-                    } catch (ManagedObjectDecodingException e) {
+                    } catch (DefinitionDecodingException | ManagedObjectDecodingException e) {
                         // Do nothing.
                     } catch (ManagedObjectNotFoundException e) {
                         // The child does not already exist so this name is ok.

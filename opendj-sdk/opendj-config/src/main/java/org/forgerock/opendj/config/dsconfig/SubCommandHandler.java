@@ -977,17 +977,11 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                     // For sets the RDN is the type string, the ufn is more friendly.
                     children.put(cd.getUserFriendlyName().toString(), childName);
                 }
-            } catch (DefinitionDecodingException e) {
-                // Add it anyway: maybe the user is trying to fix the problem.
-                children.put(childName, childName);
-            } catch (ManagedObjectDecodingException e) {
+            } catch (DefinitionDecodingException | ManagedObjectDecodingException | LdapException e) {
                 // Add it anyway: maybe the user is trying to fix the problem.
                 children.put(childName, childName);
             } catch (ManagedObjectNotFoundException e) {
                 // Skip it - the managed object has been concurrently removed.
-            } catch (LdapException e) {
-                // Add it anyway: maybe the user is trying to fix the problem.
-                children.put(childName, childName);
             }
         }
 

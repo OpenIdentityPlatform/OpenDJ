@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -133,15 +133,9 @@ public final class ServerSideSortResponseControl implements Control {
 
                         return new ServerSideSortResponseControl(control.isCritical(), result,
                                 attributeDescription);
-                    } catch (final IOException e) {
+                    } catch (final IOException | LocalizedIllegalArgumentException e) {
                         final LocalizableMessage message =
-                                INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
-                                        .get(getExceptionMessage(e));
-                        throw DecodeException.error(message, e);
-                    } catch (final LocalizedIllegalArgumentException e) {
-                        final LocalizableMessage message =
-                                INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
-                                        .get(getExceptionMessage(e));
+                                INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
                         throw DecodeException.error(message, e);
                     }
                 }

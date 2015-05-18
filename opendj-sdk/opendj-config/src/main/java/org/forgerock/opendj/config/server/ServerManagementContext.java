@@ -217,10 +217,7 @@ public final class ServerManagementContext {
                 try {
                     PropertyDefinition<?> propDefTmp = mod.getPropertyDefinition(propertyName);
                     propDef2 = propDef1.getClass().cast(propDefTmp);
-                } catch (IllegalArgumentException e) {
-                    throw new PropertyNotFoundException(propertyName);
-                } catch (ClassCastException e) {
-                    // FIXME: would be nice to throw a better exception here.
+                } catch (IllegalArgumentException | ClassCastException e) {
                     throw new PropertyNotFoundException(propertyName);
                 }
 

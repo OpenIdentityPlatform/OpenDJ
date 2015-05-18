@@ -1052,10 +1052,7 @@ public final class Rest2LDAP {
                 }
                 options.setSSLContext(builder.getSSLContext());
                 options.setUseStartTLS(connectionSecurity == ConnectionSecurity.STARTTLS);
-            } catch (GeneralSecurityException e) {
-                // Rethrow as unchecked exception.
-                throw new IllegalArgumentException(e);
-            } catch (IOException e) {
+            } catch (GeneralSecurityException | IOException e) {
                 // Rethrow as unchecked exception.
                 throw new IllegalArgumentException(e);
             }
