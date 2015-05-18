@@ -50,25 +50,25 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test
   public void testDefinedAdd()
   {
-    EntryIDSet set = newDefinedSet(6, 8, 10, 12);
+    final EntryIDSet set = newDefinedSet(6, 8, 10, 12);
 
-    assertThat(set.add(new EntryID(4))).isTrue();
-    assertIdsEquals(set, 4L, 6, 8, 10, 12);
+    assertThat(set.add(id(4))).isTrue();
+    assertIdsEquals(set, 4, 6, 8, 10, 12);
 
-    assertThat(set.add(new EntryID(14L))).isTrue();
-    assertIdsEquals(set, 4L, 6, 8, 10, 12, 14L);
+    assertThat(set.add(id(14))).isTrue();
+    assertIdsEquals(set, 4, 6, 8, 10, 12, 14);
 
-    assertThat(set.add(new EntryID(11))).isTrue();
-    assertIdsEquals(set, 4L, 6, 8, 10, 11, 12, 14L);
+    assertThat(set.add(id(11))).isTrue();
+    assertIdsEquals(set, 4, 6, 8, 10, 11, 12, 14);
 
-    assertThat(set.add(new EntryID(10))).isFalse();
-    assertIdsEquals(set, 4L, 6, 8, 10, 11, 12, 14);
+    assertThat(set.add(id(10))).isFalse();
+    assertIdsEquals(set, 4, 6, 8, 10, 11, 12, 14);
   }
 
   @Test
   public void testDefinedAddAll()
   {
-    EntryIDSet set = newDefinedSet(10, 12);
+    final EntryIDSet set = newDefinedSet(10, 12);
 
     // Add nothing
     set.addAll(newDefinedSet());
@@ -98,25 +98,25 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test
   public void testDefinedRemove()
   {
-    EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12, 14);
+    final EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12, 14);
 
-    assertThat(set.remove(new EntryID(4))).isTrue();
+    assertThat(set.remove(id(4))).isTrue();
     assertIdsEquals(set, 6, 8, 10, 12, 14);
 
-    assertThat(set.remove(new EntryID(14))).isTrue();
+    assertThat(set.remove(id(14))).isTrue();
     assertIdsEquals(set, 6, 8, 10, 12);
 
-    assertThat(set.remove(new EntryID(10))).isTrue();
+    assertThat(set.remove(id(10))).isTrue();
     assertIdsEquals(set, 6, 8, 12);
 
-    assertThat(set.remove(new EntryID(10))).isFalse();
+    assertThat(set.remove(id(10))).isFalse();
     assertIdsEquals(set, 6, 8, 12);
   }
 
   @Test
   public void testDefinedRemoveAll()
   {
-    EntryIDSet set = newDefinedSet(1, 2, 4, 6, 8, 9, 10, 12, 13, 14, 16, 18, 20, 21);
+    final EntryIDSet set = newDefinedSet(1, 2, 4, 6, 8, 9, 10, 12, 13, 14, 16, 18, 20, 21);
 
     // Remove nothing
     set.removeAll(newDefinedSet());
@@ -142,33 +142,33 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test
   public void testDefinedContain()
   {
-    EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12, 14);
+    final EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12, 14);
 
-    assertThat(set.contains(new EntryID(2))).isFalse();
-    assertThat(set.contains(new EntryID(4))).isTrue();
+    assertThat(set.contains(id(2))).isFalse();
+    assertThat(set.contains(id(4))).isTrue();
 
-    assertThat(set.contains(new EntryID(9))).isFalse();
-    assertThat(set.contains(new EntryID(10))).isTrue();
+    assertThat(set.contains(id(9))).isFalse();
+    assertThat(set.contains(id(10))).isTrue();
 
-    assertThat(set.contains(new EntryID(14))).isTrue();
-    assertThat(set.contains(new EntryID(16))).isFalse();
+    assertThat(set.contains(id(14))).isTrue();
+    assertThat(set.contains(id(16))).isFalse();
   }
 
   @Test
   public void testDefinedIterator()
   {
-    assertIdsEquals(newDefinedSet(4, 6, 8, 10, 12).iterator(), 4L, 6L, 8L, 10L, 12L);
+    assertIdsEquals(newDefinedSet(4, 6, 8, 10, 12).iterator(), 4, 6, 8, 10, 12);
   }
 
   @Test
   public void testDefinedIteratorWithBegin()
   {
-    EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12);
+    final EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12);
 
-    assertIdsEquals(set.iterator(new EntryID(4)), 4L, 6L, 8L, 10L, 12L);
-    assertIdsEquals(set.iterator(new EntryID(8)), 8L, 10L, 12L);
-    assertIdsEquals(set.iterator(new EntryID(12)), 12L);
-    assertIdsEquals(set.iterator(new EntryID(13)), 4L, 6L, 8L, 10L, 12L);
+    assertIdsEquals(set.iterator(id(4)), 4, 6, 8, 10, 12);
+    assertIdsEquals(set.iterator(id(8)), 8, 10, 12);
+    assertIdsEquals(set.iterator(id(12)), 12);
+    assertIdsEquals(set.iterator(id(13)), 4, 6, 8, 10, 12);
   }
 
   @Test(dataProvider = "codecs")
@@ -208,7 +208,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   public void testUndefinedAddDoesNothing()
   {
     final EntryIDSet undefined = newUndefinedSet();
-    assertThat(undefined.add(new EntryID(4))).isTrue();
+    assertThat(undefined.add(id(4))).isTrue();
     assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
@@ -228,7 +228,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   public void testUndefinedRemoveDoesNothing()
   {
     final EntryIDSet undefined = newUndefinedSet();
-    assertThat(undefined.remove(new EntryID(4))).isTrue();
+    assertThat(undefined.remove(id(4))).isTrue();
     assertThat(undefined.size()).isEqualTo(Long.MAX_VALUE);
   }
 
@@ -243,7 +243,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test
   public void testUndefinedContain()
   {
-    assertThat(newUndefinedSet().contains(new EntryID(4))).isTrue();
+    assertThat(newUndefinedSet().contains(id(4))).isTrue();
   }
 
   @Test
@@ -255,7 +255,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   @Test
   public void testUndefinedIteratorWithBegin()
   {
-    assertThat(newUndefinedSet().iterator(new EntryID(8)).hasNext()).isFalse();
+    assertThat(newUndefinedSet().iterator(id(8)).hasNext()).isFalse();
   }
 
   @Test

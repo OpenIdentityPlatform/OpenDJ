@@ -361,61 +361,60 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
 
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
-        new ByteArrayInputStream(originalLDIFBytes)));
+    try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(new ByteArrayInputStream(originalLDIFBytes))))
+    {
+      Entry entryBefore, entryAfter;
+      while ((entryBefore = reader.readEntry(false)) != null) {
+        ByteString bytes = ID2Entry.entryToDatabase(entryBefore,
+            new DataConfig(false, false, null));
 
-    Entry entryBefore, entryAfter;
-    while ((entryBefore = reader.readEntry(false)) != null) {
-      ByteString bytes = ID2Entry.entryToDatabase(entryBefore,
-          new DataConfig(false, false, null));
+        entryAfter = ID2Entry.entryFromDatabase(bytes,
+                          DirectoryServer.getDefaultCompressedSchema());
 
-      entryAfter = ID2Entry.entryFromDatabase(bytes,
-                        DirectoryServer.getDefaultCompressedSchema());
+        // check DN and number of attributes
+        assertEquals(entryBefore.getAttributes().size(), entryAfter
+            .getAttributes().size());
 
-      // check DN and number of attributes
-      assertEquals(entryBefore.getAttributes().size(), entryAfter
-          .getAttributes().size());
+        assertEquals(entryBefore.getName(), entryAfter.getName());
 
-      assertEquals(entryBefore.getName(), entryAfter.getName());
-
-      // check the object classes were not changed
-      for (String ocBefore : entryBefore.getObjectClasses().values()) {
-        ObjectClass objectClass = DirectoryServer.getObjectClass(ocBefore
-            .toLowerCase());
-        if (objectClass == null) {
-          objectClass = DirectoryServer.getDefaultObjectClass(ocBefore);
-        }
-        String ocAfter = entryAfter.getObjectClasses().get(objectClass);
-
-        assertEquals(ocBefore, ocAfter);
-      }
-
-      // check the user attributes were not changed
-      for (AttributeType attrType : entryBefore.getUserAttributes()
-          .keySet()) {
-        List<Attribute> listBefore = entryBefore.getAttribute(attrType);
-        List<Attribute> listAfter = entryAfter.getAttribute(attrType);
-
-        assertNotNull(listAfter);
-        assertEquals(listBefore.size(), listAfter.size());
-
-        for (Attribute attrBefore : listBefore) {
-          boolean found = false;
-
-          for (Attribute attrAfter : listAfter) {
-            if (attrAfter.optionsEqual(attrBefore.getOptions())) {
-              // Found the corresponding attribute
-
-              assertEquals(attrBefore, attrAfter);
-              found = true;
-            }
+        // check the object classes were not changed
+        for (String ocBefore : entryBefore.getObjectClasses().values()) {
+          ObjectClass objectClass = DirectoryServer.getObjectClass(ocBefore
+              .toLowerCase());
+          if (objectClass == null) {
+            objectClass = DirectoryServer.getDefaultObjectClass(ocBefore);
           }
+          String ocAfter = entryAfter.getObjectClasses().get(objectClass);
 
-          assertTrue(found);
+          assertEquals(ocBefore, ocAfter);
+        }
+
+        // check the user attributes were not changed
+        for (AttributeType attrType : entryBefore.getUserAttributes()
+            .keySet()) {
+          List<Attribute> listBefore = entryBefore.getAttribute(attrType);
+          List<Attribute> listAfter = entryAfter.getAttribute(attrType);
+
+          assertNotNull(listAfter);
+          assertEquals(listBefore.size(), listAfter.size());
+
+          for (Attribute attrBefore : listBefore) {
+            boolean found = false;
+
+            for (Attribute attrAfter : listAfter) {
+              if (attrAfter.optionsEqual(attrBefore.getOptions())) {
+                // Found the corresponding attribute
+
+                assertEquals(attrBefore, attrAfter);
+                found = true;
+              }
+            }
+
+            assertTrue(found);
+          }
         }
       }
     }
-    reader.close();
   }
 
   /**
@@ -431,18 +430,17 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
 
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
-        new ByteArrayInputStream(originalLDIFBytes)));
+    try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(new ByteArrayInputStream(originalLDIFBytes))))
+    {
+      Entry entryBefore, entryAfterV1;
+      while ((entryBefore = reader.readEntry(false)) != null) {
+        ByteStringBuilder bsb = new ByteStringBuilder();
+        encodeV1(entryBefore, bsb);
+        entryAfterV1 = Entry.decode(bsb.asReader());
 
-    Entry entryBefore, entryAfterV1;
-    while ((entryBefore = reader.readEntry(false)) != null) {
-      ByteStringBuilder bsb = new ByteStringBuilder();
-      encodeV1(entryBefore, bsb);
-      entryAfterV1 = Entry.decode(bsb.asReader());
-
-      assertEquals(entryBefore, entryAfterV1);
+        assertEquals(entryBefore, entryAfterV1);
+      }
     }
-    reader.close();
   }
 
   /**
@@ -480,21 +478,20 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
 
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
-        new ByteArrayInputStream(originalLDIFBytes)));
-
-    Entry entryBefore, entryAfterV2;
-    while ((entryBefore = reader.readEntry(false)) != null) {
-      ByteStringBuilder bsb = new ByteStringBuilder();
-      encodeV2(entryBefore, bsb, config);
-      entryAfterV2 = Entry.decode(bsb.asReader());
-      if (config.excludeDN())
-      {
-        entryAfterV2.setDN(entryBefore.getName());
+    try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(new ByteArrayInputStream(originalLDIFBytes))))
+    {
+      Entry entryBefore, entryAfterV2;
+      while ((entryBefore = reader.readEntry(false)) != null) {
+        ByteStringBuilder bsb = new ByteStringBuilder();
+        encodeV2(entryBefore, bsb, config);
+        entryAfterV2 = Entry.decode(bsb.asReader());
+        if (config.excludeDN())
+        {
+          entryAfterV2.setDN(entryBefore.getName());
+        }
+        assertEquals(entryBefore, entryAfterV2);
       }
-      assertEquals(entryBefore, entryAfterV2);
     }
-    reader.close();
   }
 
   /**
@@ -511,21 +508,20 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
 
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
-        new ByteArrayInputStream(originalLDIFBytes)));
-
-    Entry entryBefore, entryAfterV3;
-    while ((entryBefore = reader.readEntry(false)) != null) {
-      ByteStringBuilder bsb = new ByteStringBuilder();
-      entryBefore.encode(bsb, config);
-      entryAfterV3 = Entry.decode(bsb.asReader());
-      if (config.excludeDN())
-      {
-        entryAfterV3.setDN(entryBefore.getName());
+    try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(new ByteArrayInputStream(originalLDIFBytes))))
+    {
+      Entry entryBefore, entryAfterV3;
+      while ((entryBefore = reader.readEntry(false)) != null) {
+        ByteStringBuilder bsb = new ByteStringBuilder();
+        entryBefore.encode(bsb, config);
+        entryAfterV3 = Entry.decode(bsb.asReader());
+        if (config.excludeDN())
+        {
+          entryAfterV3.setDN(entryBefore.getName());
+        }
+        assertEquals(entryBefore, entryAfterV3);
       }
-      assertEquals(entryBefore, entryAfterV3);
     }
-    reader.close();
   }
 
   @DataProvider
