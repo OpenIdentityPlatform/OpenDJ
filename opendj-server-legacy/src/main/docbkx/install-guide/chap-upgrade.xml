@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -24,13 +23,13 @@
   !
 -->
 <chapter xml:id='chap-upgrade'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Upgrading to OpenDJ <?eval ${docTargetVersion}?></title>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Upgrading to OpenDJ ${docTargetVersion}</title>
  <indexterm><primary>Upgrading</primary></indexterm>
  
  <para>This chapter covers upgrade from OpenDJ 2.4.5 and later versions.</para>
@@ -57,16 +56,19 @@
   </step>
 
   <step>
-   <para>In order to revert if the upgrade fails, make sure you perform a
-   full backup of your current OpenDJ installation.</para>
+   <para>
+    In order to revert if the upgrade fails,
+    make sure you perform a full backup of your current OpenDJ installation.
+   </para>
 
-   <para>It might be most expedient to back up the file system directory where
-   the current OpenDJ server is installed as part of the upgrade process.</para>
-
-   <para>Alternatively, see <link xlink:href="admin-guide#chap-backup-restore"
-   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
-   ><citetitle>Backing Up &amp; Restoring Data</citetitle></link> for
-   instructions.</para>
+   <para>
+    Due to changes to the backup archive format,
+    make sure you stop OpenDJ directory server
+    and back up the file system directory
+    where the current OpenDJ directory server is installed
+    rather than creating a backup archive
+    with the <command>backup</command> command.
+   </para>
   </step>
  </procedure>
 
