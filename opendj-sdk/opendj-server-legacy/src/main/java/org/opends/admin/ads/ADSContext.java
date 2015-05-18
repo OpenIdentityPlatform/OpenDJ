@@ -30,17 +30,14 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
@@ -50,26 +47,27 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.NotContextException;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.LdapContext;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.server.schema.SchemaConstants;
 
-/**
- * Class used to update and read the contents of the Administration Data.
- */
+/** Class used to update and read the contents of the Administration Data. */
 public class ADSContext
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -82,13 +80,10 @@ public class ADSContext
   {
     /** String syntax. */
     STRING,
-
     /** Integer syntax. */
     INTEGER,
-
     /** Boolean syntax. */
     BOOLEAN,
-
     /** Certificate;binary syntax. */
     CERTIFICATE_BINARY
   }
@@ -97,65 +92,45 @@ public class ADSContext
   public enum ServerProperty
   {
     /** The ID used to identify the server. */
-    ID("id", ADSPropertySyntax.STRING),
-
+    ID("id",ADSPropertySyntax.STRING),
     /** The host name of the server. */
-    HOST_NAME("hostname", ADSPropertySyntax.STRING),
-
+    HOST_NAME("hostname",ADSPropertySyntax.STRING),
     /** The LDAP port of the server. */
-    LDAP_PORT("ldapport", ADSPropertySyntax.INTEGER),
-
+    LDAP_PORT("ldapport",ADSPropertySyntax.INTEGER),
     /** The JMX port of the server. */
-    JMX_PORT("jmxport", ADSPropertySyntax.INTEGER),
-
+    JMX_PORT("jmxport",ADSPropertySyntax.INTEGER),
     /** The JMX secure port of the server. */
-    JMXS_PORT("jmxsport", ADSPropertySyntax.INTEGER),
-
+    JMXS_PORT("jmxsport",ADSPropertySyntax.INTEGER),
     /** The LDAPS port of the server. */
-    LDAPS_PORT("ldapsport", ADSPropertySyntax.INTEGER),
-
+    LDAPS_PORT("ldapsport",ADSPropertySyntax.INTEGER),
     /** The administration connector port of the server. */
-    ADMIN_PORT("adminport", ADSPropertySyntax.INTEGER),
-
+    ADMIN_PORT("adminport",ADSPropertySyntax.INTEGER),
     /** The certificate used by the server. */
-    CERTIFICATE("certificate", ADSPropertySyntax.STRING),
-
+    CERTIFICATE("certificate",ADSPropertySyntax.STRING),
     /** The path where the server is installed. */
-    INSTANCE_PATH("instancepath", ADSPropertySyntax.STRING),
-
+    INSTANCE_PATH("instancepath",ADSPropertySyntax.STRING),
     /** The description of the server. */
-    DESCRIPTION("description", ADSPropertySyntax.STRING),
-
+    DESCRIPTION("description",ADSPropertySyntax.STRING),
     /** The OS of the machine where the server is installed. */
-    HOST_OS("os", ADSPropertySyntax.STRING),
-
+    HOST_OS("os",ADSPropertySyntax.STRING),
     /** Whether LDAP is enabled or not. */
-    LDAP_ENABLED("ldapEnabled", ADSPropertySyntax.BOOLEAN),
-
+    LDAP_ENABLED("ldapEnabled",ADSPropertySyntax.BOOLEAN),
     /** Whether LDAPS is enabled or not. */
-    LDAPS_ENABLED("ldapsEnabled", ADSPropertySyntax.BOOLEAN),
-
+    LDAPS_ENABLED("ldapsEnabled",ADSPropertySyntax.BOOLEAN),
     /** Whether ADMIN is enabled or not. */
-    ADMIN_ENABLED("adminEnabled", ADSPropertySyntax.BOOLEAN),
-
+    ADMIN_ENABLED("adminEnabled",ADSPropertySyntax.BOOLEAN),
     /** Whether StartTLS is enabled or not. */
-    STARTTLS_ENABLED("startTLSEnabled", ADSPropertySyntax.BOOLEAN),
-
+    STARTTLS_ENABLED("startTLSEnabled",ADSPropertySyntax.BOOLEAN),
     /** Whether JMX is enabled or not. */
-    JMX_ENABLED("jmxEnabled", ADSPropertySyntax.BOOLEAN),
-
+    JMX_ENABLED("jmxEnabled",ADSPropertySyntax.BOOLEAN),
     /** Whether JMX is enabled or not. */
-    JMXS_ENABLED("jmxsEnabled", ADSPropertySyntax.BOOLEAN),
-
+    JMXS_ENABLED("jmxsEnabled",ADSPropertySyntax.BOOLEAN),
     /** The location of the server. */
-    LOCATION("location", ADSPropertySyntax.STRING),
-
+    LOCATION("location",ADSPropertySyntax.STRING),
     /** The groups to which this server belongs. */
-    GROUPS("memberofgroups", ADSPropertySyntax.STRING),
-
+    GROUPS("memberofgroups",ADSPropertySyntax.STRING),
     /** The unique name of the instance key public-key certificate. */
-    INSTANCE_KEY_ID("ds-cfg-key-id", ADSPropertySyntax.STRING),
-
+    INSTANCE_KEY_ID("ds-cfg-key-id",ADSPropertySyntax.STRING),
     /**
      * The instance key-pair public-key certificate. Note: This attribute
      * belongs to an instance key entry, separate from the server entry and
@@ -227,37 +202,24 @@ public class ADSContext
     return NAME_TO_SERVER_PROPERTY.get(name);
   }
 
-  /**
-   * The list of server properties that are multivalued.
-   */
+  /** The list of server properties that are multivalued. */
   private static final Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES = new HashSet<>();
   static
   {
     MULTIVALUED_SERVER_PROPERTIES.add(ServerProperty.GROUPS);
   }
 
-  /**
-   * The default server group which will contain all registered servers.
-   */
+  /** The default server group which will contain all registered servers. */
   public static final String ALL_SERVERGROUP_NAME = "all-servers";
 
-  /**
-   * Enumeration containing the different server group properties that are
-   * stored in the ADS.
-   */
+  /** Enumeration containing the different server group properties that are stored in the ADS. */
   public enum ServerGroupProperty
   {
-    /**
-     * The UID of the server group.
-     */
+    /** The UID of the server group. */
     UID("cn"),
-    /**
-     * The description of the server group.
-     */
+    /** The description of the server group. */
     DESCRIPTION("description"),
-    /**
-     * The members of the server group.
-     */
+    /** The members of the server group. */
     MEMBERS("uniqueMember");
 
     private String attrName;
@@ -284,39 +246,25 @@ public class ADSContext
     }
   }
 
-  /**
-   * The list of server group properties that are multivalued.
-   */
+  /** The list of server group properties that are multivalued. */
   private static final Set<ServerGroupProperty> MULTIVALUED_SERVER_GROUP_PROPERTIES = new HashSet<>();
   static
   {
     MULTIVALUED_SERVER_GROUP_PROPERTIES.add(ServerGroupProperty.MEMBERS);
   }
 
-  /**
-   * The enumeration containing the different Administrator properties.
-   */
+  /** The enumeration containing the different Administrator properties. */
   public enum AdministratorProperty
   {
-    /**
-     * The UID of the administrator.
-     */
+    /** The UID of the administrator. */
     UID("id", ADSPropertySyntax.STRING),
-    /**
-     * The password of the administrator.
-     */
+    /** The password of the administrator. */
     PASSWORD("password", ADSPropertySyntax.STRING),
-    /**
-     * The description of the administrator.
-     */
+    /** The description of the administrator. */
     DESCRIPTION("description", ADSPropertySyntax.STRING),
-    /**
-     * The DN of the administrator.
-     */
+    /** The DN of the administrator. */
     ADMINISTRATOR_DN("administrator dn", ADSPropertySyntax.STRING),
-    /**
-     * The administrator privilege.
-     */
+    /** The administrator privilege. */
     PRIVILEGE("privilege", ADSPropertySyntax.STRING);
 
     private String attrName;
@@ -449,7 +397,7 @@ public class ADSContext
       Set<String> groupList = new HashSet<>();
       if (rawGroupList != null)
       {
-        for (Object elm : rawGroupList.toArray())
+        for (Object elm : rawGroupList)
         {
           groupList.add(elm.toString());
         }
@@ -457,7 +405,6 @@ public class ADSContext
       groupList.add(ALL_SERVERGROUP_NAME);
       serverProperties.put(ServerProperty.GROUPS, groupList);
       updateServer(serverProperties, null);
-
     }
     catch (ADSContextException ace)
     {
@@ -465,11 +412,11 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ErrorType.ALREADY_REGISTERED);
     }
     catch (Exception x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -511,11 +458,11 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ErrorType.NOT_YET_REGISTERED);
     }
     catch (Exception x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -553,11 +500,11 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ErrorType.NOT_YET_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
 
     // Unregister the server in server groups
@@ -626,15 +573,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -693,7 +640,7 @@ public class ADSContext
     }
     catch (ADSContextException x)
     {
-      if (x.getError() == ADSContextException.ErrorType.ALREADY_REGISTERED)
+      if (x.getError() == ErrorType.ALREADY_REGISTERED)
       {
         updateServer(serverProperties, null);
         return 1;
@@ -763,11 +710,11 @@ public class ADSContext
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -837,15 +784,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -879,11 +826,11 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL, x);
+      throw new ADSContextException(ErrorType.BROKEN_INSTALL, x);
     }
   }
 
@@ -929,15 +876,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ErrorType.NOT_YET_REGISTERED);
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -954,7 +901,6 @@ public class ADSContext
   public void removeServerGroupProp(String groupID, Set<ServerGroupProperty> serverGroupProperties)
       throws ADSContextException
   {
-
     LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," + getServerGroupContainerDN());
     BasicAttributes attrs = makeAttrsFromServerGroupProperties(serverGroupProperties);
     try
@@ -963,11 +909,11 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ErrorType.ALREADY_REGISTERED);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -988,7 +934,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -1018,15 +964,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1064,15 +1010,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.BROKEN_INSTALL);
+      throw new ADSContextException(ErrorType.BROKEN_INSTALL);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1192,7 +1138,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -1249,15 +1195,15 @@ public class ADSContext
     }
     catch (NameAlreadyBoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ALREADY_REGISTERED);
+      throw new ADSContextException(ErrorType.ALREADY_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -1271,28 +1217,23 @@ public class ADSContext
    */
   public void deleteAdministrator(Map<AdministratorProperty, Object> adminProperties) throws ADSContextException
   {
-
     LdapName dnCentralAdmin = makeDNFromAdministratorProperties(adminProperties);
 
     try
     {
       dirContext.destroySubcontext(dnCentralAdmin);
     }
-    catch (NameNotFoundException x)
+    catch (NameNotFoundException | NotContextException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
-    }
-    catch (NotContextException x)
-    {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ErrorType.NOT_YET_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -1309,7 +1250,6 @@ public class ADSContext
   public void updateAdministrator(Map<AdministratorProperty, Object> adminProperties, String newAdminUserId)
       throws ADSContextException
   {
-
     LdapName dnCentralAdmin = makeDNFromAdministratorProperties(adminProperties);
 
     boolean updatePassword = adminProperties.containsKey(AdministratorProperty.PASSWORD);
@@ -1360,15 +1300,15 @@ public class ADSContext
     }
     catch (NameNotFoundException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOT_YET_REGISTERED);
+      throw new ADSContextException(ErrorType.NOT_YET_REGISTERED);
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -1437,7 +1377,7 @@ public class ADSContext
     String serverGroupId = (String) serverGroupProperties.get(ServerGroupProperty.UID);
     if (serverGroupId == null)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.MISSING_NAME);
+      throw new ADSContextException(ErrorType.MISSING_NAME);
     }
     return nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + "," + getServerGroupContainerDN());
   }
@@ -1819,7 +1759,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
   }
@@ -1894,7 +1834,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
   }
@@ -1959,7 +1899,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     finally
     {
@@ -2023,11 +1963,11 @@ public class ADSContext
     String result = (String) serverProperties.get(ServerProperty.HOST_NAME);
     if (result == null)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.MISSING_HOSTNAME);
+      throw new ADSContextException(ErrorType.MISSING_HOSTNAME);
     }
     else if (result.length() == 0)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOVALID_HOSTNAME);
+      throw new ADSContextException(ErrorType.NOVALID_HOSTNAME);
     }
     return result;
   }
@@ -2063,11 +2003,11 @@ public class ADSContext
     String result = (String) serverProperties.get(ServerProperty.INSTANCE_PATH);
     if (result == null)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.MISSING_IPATH);
+      throw new ADSContextException(ErrorType.MISSING_IPATH);
     }
     else if (result.length() == 0)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.NOVALID_IPATH);
+      throw new ADSContextException(ErrorType.NOVALID_IPATH);
     }
     return result;
   }
@@ -2087,7 +2027,7 @@ public class ADSContext
     String result = (String) adminProperties.get(AdministratorProperty.UID);
     if (result == null)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.MISSING_ADMIN_UID);
+      throw new ADSContextException(ErrorType.MISSING_ADMIN_UID);
     }
     return result;
   }
@@ -2107,7 +2047,7 @@ public class ADSContext
     String result = (String) adminProperties.get(AdministratorProperty.PASSWORD);
     if (result == null)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.MISSING_ADMIN_PASSWORD);
+      throw new ADSContextException(ErrorType.MISSING_ADMIN_PASSWORD);
     }
     return result;
   }
@@ -2131,7 +2071,7 @@ public class ADSContext
     catch (InvalidNameException x)
     {
       logger.error(LocalizableMessage.raw("Error parsing dn " + dn, x));
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -2155,7 +2095,7 @@ public class ADSContext
     catch (InvalidNameException x)
     {
       logger.error(LocalizableMessage.raw("Error parsing rdn " + rdnName, x));
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -2171,8 +2111,6 @@ public class ADSContext
    */
   private boolean isExistingEntry(LdapName dn) throws ADSContextException
   {
-    boolean result;
-
     try
     {
       SearchControls sc = new SearchControls();
@@ -2180,7 +2118,7 @@ public class ADSContext
       sc.setSearchScope(SearchControls.OBJECT_SCOPE);
       sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       NamingEnumeration<SearchResult> sr = getDirContext().search(dn, "(objectclass=*)", sc);
-      result = false;
+      boolean result = false;
       try
       {
         while (sr.hasMore())
@@ -2193,21 +2131,20 @@ public class ADSContext
       {
         sr.close();
       }
+      return result;
     }
     catch (NameNotFoundException x)
     {
-      result = false;
+      return false;
     }
     catch (NoPermissionException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ACCESS_PERMISSION);
+      throw new ADSContextException(ErrorType.ACCESS_PERMISSION);
     }
     catch (javax.naming.NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
-
-    return result;
   }
 
   /**
@@ -2280,7 +2217,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
   }
 
@@ -2304,19 +2241,6 @@ public class ADSContext
     }
     helper.createAdministrationSuffix(getDirContext(), ben);
   }
-
-  /**
-   * Removes the administration suffix.
-   *
-   * @throws ADSContextException
-   *           if something goes wrong.
-   */
-  //private void removeAdministrationSuffix() throws ADSContextException
-  //{
-  //ADSContextHelper helper = new ADSContextHelper();
-  //helper.removeAdministrationSuffix(getDirContext(),
-  //getDefaultBackendName());
-  //}
 
   /**
    * Returns the default backend name of the administration data.
@@ -2372,17 +2296,15 @@ public class ADSContext
    */
   public static boolean isRegistered(ServerDescriptor server, Set<Map<ADSContext.ServerProperty, Object>> registry)
   {
-    boolean isRegistered = false;
     for (Map<ADSContext.ServerProperty, Object> s : registry)
     {
       ServerDescriptor servInRegistry = ServerDescriptor.createStandalone(s);
       if (servInRegistry.getId().equals(server.getId()))
       {
-        isRegistered = true;
-        break;
+        return true;
       }
     }
-    return isRegistered;
+    return false;
   }
 
   /**
@@ -2408,26 +2330,6 @@ public class ADSContext
   {
     ADSContextHelper helper = new ADSContextHelper();
     helper.registerInstanceKeyCertificate(dirContext, serverProperties, serverEntryDn);
-  }
-
-  /**
-   * Unregister instance key-pair public-key certificate provided in
-   * serverProperties..
-   *
-   * @param serverProperties
-   *          Properties of the server being unregistered to which the instance
-   *          key entry belongs.
-   * @param serverEntryDn
-   *          The server's ADS entry DN.
-   * @throws NamingException
-   *           In case some JNDI operation fails.
-   */
-  @SuppressWarnings("unused")
-  private void unregisterInstanceKeyCertificate(Map<ServerProperty, Object> serverProperties, LdapName serverEntryDn)
-      throws ADSContextException
-  {
-    ADSContextHelper helper = new ADSContextHelper();
-    helper.unregisterInstanceKeyCertificate(dirContext, serverProperties, serverEntryDn);
   }
 
   /**
@@ -2490,7 +2392,7 @@ public class ADSContext
     }
     catch (NamingException x)
     {
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }
     return certificateMap;
   }
@@ -2508,20 +2410,15 @@ public class ADSContext
   {
     try
     {
-      // Merge administrators.
       mergeAdministrators(adsCtx);
-
-      // Merge groups.
       mergeServerGroups(adsCtx);
-
-      // Merge servers.
       mergeServers(adsCtx);
     }
     catch (ADSContextException adce)
     {
       LocalizableMessage msg = ERR_ADS_MERGE.get(ConnectionUtils.getHostPort(getDirContext()),
           ConnectionUtils.getHostPort(adsCtx.getDirContext()), adce.getMessageObject());
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING, msg, adce);
+      throw new ADSContextException(ErrorType.ERROR_MERGING, msg, adce);
     }
   }
 
@@ -2552,7 +2449,7 @@ public class ADSContext
       LocalizableMessage msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
           ConnectionUtils.getHostPort(adsCtx.getDirContext()), ConnectionUtils.getHostPort(getDirContext()),
           joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins), ConnectionUtils.getHostPort(getDirContext()));
-      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING, msg, null);
+      throw new ADSContextException(ErrorType.ERROR_MERGING, msg, null);
     }
   }
 
@@ -2621,8 +2518,7 @@ public class ADSContext
    */
   private void mergeServers(ADSContext adsCtx) throws ADSContextException
   {
-    Set<Map<ServerProperty, Object>> servers2 = adsCtx.readServerRegistry();
-    for (Map<ServerProperty, Object> server2 : servers2)
+    for (Map<ServerProperty, Object> server2 : adsCtx.readServerRegistry())
     {
       if (!isServerAlreadyRegistered(server2))
       {
@@ -2641,7 +2537,7 @@ public class ADSContext
       }
       catch (NamingException ex)
       {
-        throw new ADSContextException(ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
+        throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, ex);
       }
     }
   }
