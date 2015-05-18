@@ -212,6 +212,7 @@ public class DatabaseEnvironmentMonitor
     EnvironmentStats environmentStats = null;
     TransactionStats transactionStats = null;
     StatsConfig statsConfig = new StatsConfig();
+    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
 
     try
     {
@@ -221,10 +222,8 @@ public class DatabaseEnvironmentMonitor
     } catch (DatabaseException e)
     {
       logger.traceException(e);
-      return null;
+      return monitorAttrs;
     }
-
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
 
     String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
     AttributeType versionType =
