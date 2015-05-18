@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -509,16 +509,11 @@ public class ServerController {
             throw new ApplicationException(ReturnCode.START_ERROR, msg, null);
           }
         }
-      } catch (IOException ioe)
+      } catch (IOException | InterruptedException ioe)
       {
         throw new ApplicationException(
             ReturnCode.START_ERROR,
             getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe), ioe);
-      } catch (InterruptedException ie)
-      {
-        throw new ApplicationException(
-            ReturnCode.START_ERROR,
-            getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ie), ie);
       }
     } finally {
       if (suppressOutput)

@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
@@ -477,8 +476,6 @@ public final class Converters {
                 value = sdkReaderASN1.readOctetString();
             }
             sdkReaderASN1.readEndSequence();
-        } catch (DecodeException e) {
-            // Nothing to do.
         } catch (IOException e) {
             // Nothing to do.
         }

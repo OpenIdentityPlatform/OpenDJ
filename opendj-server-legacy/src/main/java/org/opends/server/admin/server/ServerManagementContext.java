@@ -270,13 +270,7 @@ public final class ServerManagementContext {
           }
           return pvalues;
         }
-      } catch (DefinitionDecodingException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (PropertyNotFoundException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (PropertyException e) {
-        throw PropertyException.defaultBehaviorException(pd1, e);
-      } catch (ConfigException e) {
+      } catch (DefinitionDecodingException | PropertyNotFoundException | PropertyException | ConfigException e) {
         throw PropertyException.defaultBehaviorException(pd1, e);
       }
     }

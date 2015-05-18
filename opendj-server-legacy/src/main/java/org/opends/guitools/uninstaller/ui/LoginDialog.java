@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -419,13 +419,9 @@ public class LoginDialog extends JDialog
             throw ne;
           }
           isServerRunning = Boolean.FALSE;
-        } catch (ApplicationException e)
+        } catch (ApplicationException | IllegalStateException e)
         {
           throw e;
-        } catch (IllegalStateException ise)
-        {
-          throw ise;
-
         } catch (Throwable t)
         {
           throw new IllegalStateException("Unexpected throwable.", t);

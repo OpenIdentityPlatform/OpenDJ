@@ -543,11 +543,7 @@ public class ControlPanelInfo
                 getTrustManager(), null);
           }
         }
-        catch (ConfigReadException cre)
-        {
-//        Ignore: we will ask the user for credentials.
-        }
-        catch (NamingException ne)
+        catch (ConfigReadException | NamingException cre)
         {
           // Ignore: we will ask the user for credentials.
         }

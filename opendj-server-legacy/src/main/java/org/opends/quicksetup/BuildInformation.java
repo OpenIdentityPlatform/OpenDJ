@@ -157,15 +157,11 @@ public class BuildInformation implements Comparable<BuildInformation> {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       throw new ApplicationException(
           ReturnCode.START_ERROR,
           INFO_ERROR_CREATING_BUILD_INFO.get(), e);
 
-    } catch (InterruptedException ie) {
-      throw new ApplicationException(
-          ReturnCode.START_ERROR,
-          INFO_ERROR_CREATING_BUILD_INFO.get(), ie);
     } finally {
       done[0] = true;
       StaticUtils.close(is, out);

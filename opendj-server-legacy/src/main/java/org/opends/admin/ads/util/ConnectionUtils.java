@@ -226,12 +226,8 @@ public class ConnectionUtils
           TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
               fKeyManager);
           pair[0] = new InitialLdapContext(fEnv, null);
-
-        } catch (NamingException ne) {
+        } catch (NamingException | RuntimeException ne) {
           pair[1] = ne;
-
-        } catch (RuntimeException re) {
-          pair[1] = re;
         }
       }
     });
@@ -279,12 +275,8 @@ public class ConnectionUtils
                 fKeyManager);
           }
           pair[0] = new InitialLdapContext(fEnv, fNewCtls);
-
-        } catch (NamingException ne) {
+        } catch (NamingException | RuntimeException ne) {
           pair[1] = ne;
-
-        } catch (RuntimeException re) {
-          pair[1] = re;
         }
       }
     });
@@ -399,14 +391,9 @@ public class ConnectionUtils
             result.reconnect(null);
           }
           pair[0] = result;
-
-        } catch (NamingException ne)
+        } catch (NamingException | RuntimeException ne)
         {
           pair[1] = ne;
-
-        } catch (RuntimeException re)
-        {
-          pair[1] = re;
         }
       }
     });

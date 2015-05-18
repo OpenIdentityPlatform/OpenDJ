@@ -199,9 +199,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
       DN dn = DN.valueOf(value);
       validateValue(dn);
       return dn;
-    } catch (DirectoryException e) {
-      throw PropertyException.illegalPropertyValueException(this, value);
-    } catch (PropertyException e) {
+    } catch (DirectoryException | PropertyException e) {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
