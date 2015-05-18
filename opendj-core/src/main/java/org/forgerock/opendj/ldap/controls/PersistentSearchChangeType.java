@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -93,11 +93,16 @@ public enum PersistentSearchChangeType {
      */
     public static PersistentSearchChangeType valueOf(int value) {
         switch (value) {
-            case 1: return ADD;
-            case 2: return DELETE;
-            case 4: return MODIFY;
-            case 8: return MODIFY_DN;
-            default: throw new IllegalArgumentException("Unknown int value: " + value);
+        case 1:
+            return ADD;
+        case 2:
+            return DELETE;
+        case 4:
+            return MODIFY;
+        case 8:
+            return MODIFY_DN;
+        default:
+            throw new IllegalArgumentException("Unknown int value: " + value);
         }
     }
 }
