@@ -1611,6 +1611,17 @@ public class EntryContainer
 
             int subordinateEntriesDeleted = 0;
 
+            // Since everything under targetDN will be deleted, we only have to decrement the counter of targetDN's
+            // parent. Other counters will be removed in deleteEntry()
+            final DN parentDN = getParentWithinBase(entryDN);
+            if (parentDN != null) {
+              final EntryID parentID = dn2id.get(txn, parentDN);
+              if ( parentID == null ) {
+                throw new StorageRuntimeException(ERR_MISSING_DN2ID_RECORD.get(parentDN).toString());
+              }
+              id2childrenCount.addDelta(txn, parentID, -1);
+            }
+
             Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
             try
             {
