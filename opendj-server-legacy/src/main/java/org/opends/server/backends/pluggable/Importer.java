@@ -3510,8 +3510,10 @@ final class Importer
     private static final long FNV_PRIME = 0x100000001b3L;
 
     /** Hash the DN bytes. Uses the FNV-1a hash. */
-    private ByteString fnv1AHashCode(ByteString b)
+    private ByteString fnv1AHashCode(DN dn)
     {
+      final ByteString b = dn.toNormalizedByteString();
+
       long hash = FNV_INIT;
       for (int i = 0; i < b.length(); i++)
       {
@@ -3539,13 +3541,13 @@ final class Importer
     {
       // Use a compact representation for key
       // and a reversible representation for value
-      final ByteString key = fnv1AHashCode(dn.toNormalizedByteString());
-      final ByteStringBuilder dnValue = new ByteStringBuilder().append(dn.toString());
+      final ByteString key = fnv1AHashCode(dn);
+      final ByteString dnValue = ByteString.valueOf(dn);
 
       return insert(key, dnValue);
     }
 
-    private boolean insert(final ByteString key, final ByteStringBuilder dn) throws StorageRuntimeException
+    private boolean insert(final ByteString key, final ByteString dn) throws StorageRuntimeException
     {
       final AtomicBoolean updateResult = new AtomicBoolean();
       try
@@ -3609,26 +3611,23 @@ final class Importer
     }
 
     /** Return true if the specified DN is in the DNs saved as a result of hash collisions. */
-    private boolean containsDN(ByteSequence existingDns, ByteStringBuilder dn)
+    private boolean containsDN(ByteSequence existingDns, ByteString dnToFind)
     {
       if (existingDns != null && existingDns.length() > 0)
       {
-        // TODO JNR remove call to toByteArray() on next line?
-        final byte[] existingDnsBytes = existingDns.toByteArray();
         final ByteSequenceReader reader = existingDns.asReader();
-        int previousPos = 0;
+        int pos = 0;
         while (reader.remaining() != 0)
         {
-          int pLen = INT_SIZE;
-          int len = reader.getInt();
-          ImportRecord r1 = ImportRecord.from(ByteString.wrap(existingDnsBytes, previousPos + pLen, len), 0);
-          ImportRecord r2 = ImportRecord.from(dn, 0);
-          if (r1.equals(r2))
+          int dnLength = reader.getInt();
+          int dnStart = pos + INT_SIZE;
+          ByteSequence existingDn = existingDns.subSequence(dnStart, dnStart + dnLength);
+          if (dnToFind.equals(existingDn))
           {
             return true;
           }
-          reader.skip(len);
-          previousPos = reader.position();
+          reader.skip(dnLength);
+          pos = reader.position();
         }
       }
       return false;
@@ -3644,14 +3643,10 @@ final class Importer
           @Override
           public Boolean run(ReadableTransaction txn) throws Exception
           {
-            final ByteString key = fnv1AHashCode(dn.toNormalizedByteString());
+            final ByteString key = fnv1AHashCode(dn);
             final ByteString existingDns = txn.read(dnCache, key);
-            if (existingDns != null)
-            {
-              final ByteStringBuilder dnBytes = new ByteStringBuilder().append(dn.toString());
-              return containsDN(existingDns, dnBytes);
-            }
-            return false;
+
+            return containsDN(existingDns, ByteString.valueOf(dn));
           }
         });
       }
