@@ -56,7 +56,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -1407,7 +1406,6 @@ final class Importer
   {
     private final Storage storage;
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap = new HashMap<>();
-    private final Set<ByteString> keySet = new HashSet<>();
     private final IndexKey dnIndexKey = new IndexKey(DN_TYPE, DN2ID_INDEX_NAME, 1);
 
     public ImportTask(final Storage storage)
@@ -1550,10 +1548,7 @@ final class Importer
     void processAttribute0(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey, boolean insert)
         throws InterruptedException
     {
-      keySet.clear();
-      index.indexEntry(entry, keySet);
-
-      for (ByteString key : keySet)
+      for (ByteString key : index.indexEntry(entry))
       {
         processKey(index, key, entryID, indexKey, insert);
       }
@@ -3306,8 +3301,8 @@ final class Importer
       if (obj instanceof IndexKey)
       {
         IndexKey oKey = (IndexKey) obj;
-        if (attributeType.equals(oKey.getAttributeType())
-            && indexID.equals(oKey.getIndexID()))
+        if (attributeType.equals(oKey.attributeType)
+            && indexID.equals(oKey.indexID))
         {
           return true;
         }
