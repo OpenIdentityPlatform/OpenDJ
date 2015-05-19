@@ -170,10 +170,10 @@ public class EntryContainer
   private final State state;
 
   /** The set of attribute indexes. */
-  private final HashMap<AttributeType, AttributeIndex> attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
+  private final Map<AttributeType, AttributeIndex> attrIndexMap = new HashMap<>();
 
   /** The set of VLV (Virtual List View) indexes. */
-  private final HashMap<String, VLVIndex> vlvIndexMap = new HashMap<String, VLVIndex>();
+  private final Map<String, VLVIndex> vlvIndexMap = new HashMap<>();
 
   /**
    * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
@@ -1064,8 +1064,8 @@ public class EntryContainer
     throw new StorageRuntimeException(e);
   }
 
-  private <E1 extends Exception, E2 extends Exception> void throwIfPossible(final Throwable cause, Class<E1> clazz1,
-      Class<E2> clazz2) throws E1, E2
+  private static <E1 extends Exception, E2 extends Exception> void throwIfPossible(final Throwable cause,
+      Class<E1> clazz1, Class<E2> clazz2) throws E1, E2
   {
     if (clazz1.isAssignableFrom(cause.getClass()))
     {
@@ -1077,7 +1077,8 @@ public class EntryContainer
     }
   }
 
-  private boolean processSearchWithVirtualAttributeRule(final SearchOperation searchOperation, boolean isPreIndexed)
+  private static boolean processSearchWithVirtualAttributeRule(final SearchOperation searchOperation,
+      boolean isPreIndexed)
   {
     for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
     {
@@ -1091,7 +1092,7 @@ public class EntryContainer
     return false;
   }
 
-  private Entry buildDebugSearchIndexEntry(StringBuilder debugBuffer) throws DirectoryException
+  private static Entry buildDebugSearchIndexEntry(StringBuilder debugBuffer) throws DirectoryException
   {
     Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX, debugBuffer.toString());
     Entry entry = new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
@@ -2828,7 +2829,7 @@ public class EntryContainer
 
   List<Tree> listTrees()
   {
-    final List<Tree> allTrees = new ArrayList<Tree>();
+    final List<Tree> allTrees = new ArrayList<>();
     allTrees.add(dn2id);
     allTrees.add(id2entry);
     allTrees.add(dn2uri);
@@ -2896,8 +2897,7 @@ public class EntryContainer
    * @param mods the modifications to check for.
    * @return true if any apply, false otherwise.
    */
-  private boolean isAttributeModified(AttributeIndex index,
-                                      List<Modification> mods)
+  private static boolean isAttributeModified(AttributeIndex index, List<Modification> mods)
   {
     boolean attributeModified = false;
     AttributeType indexAttributeType = index.getAttributeType();
@@ -2972,7 +2972,7 @@ public class EntryContainer
     final SearchScope scope = searchOperation.getScope();
     final SearchFilter filter = searchOperation.getFilter();
 
-    final TreeMap<ByteString, EntryID> sortMap = new TreeMap<ByteString, EntryID>();
+    final TreeMap<ByteString, EntryID> sortMap = new TreeMap<>();
     for (EntryID id : entryIDSet)
     {
       try
