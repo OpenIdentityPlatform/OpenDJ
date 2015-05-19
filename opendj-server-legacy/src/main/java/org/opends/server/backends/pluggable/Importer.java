@@ -2451,7 +2451,6 @@ final class Importer
   final class IndexManager implements Comparable<IndexManager>
   {
     private final File bufferFile;
-    private final String bufferFileName;
     private final File bufferIndexFile;
     private final boolean isDN2ID;
     private final int indexEntryLimit;
@@ -2461,9 +2460,8 @@ final class Importer
     private long totalDNs;
     private volatile IndexDBWriteTask writer;
 
-    private IndexManager(String fileName, boolean isDN2ID, int indexEntryLimit)
+    private IndexManager(String bufferFileName, boolean isDN2ID, int indexEntryLimit)
     {
-      this.bufferFileName = fileName;
       this.bufferFile = new File(tempDir, bufferFileName);
       this.bufferIndexFile = new File(tempDir, bufferFileName + ".index");
 
@@ -2565,7 +2563,7 @@ final class Importer
     @Override
     public String toString()
     {
-      return getClass().getSimpleName() + "(" + bufferFileName + ": " + bufferFile + ")";
+      return getClass().getSimpleName() + "(" + bufferFile + ")";
     }
   }
 
