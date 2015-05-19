@@ -49,9 +49,7 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been initialized and is
    *                  about to be put into service.
    */
-  void performBackendInitializationProcessing(Backend backend);
-
-
+  void performBackendInitializationProcessing(Backend<?> backend);
 
   /**
    * Performs any processing that may be required whenever a backend
@@ -61,6 +59,6 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been taken out of service
    *                  and is about to be finalized.
    */
-  void performBackendFinalizationProcessing(Backend backend);
+  void performBackendFinalizationProcessing(Backend<?> backend);
 }
 
