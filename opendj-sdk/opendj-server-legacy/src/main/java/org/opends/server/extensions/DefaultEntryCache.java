@@ -354,7 +354,7 @@ public class DefaultEntryCache
    *
    * @return  The current cache order array.
    */
-  public final EntryCache<? extends EntryCacheCfg>[] getCacheOrder()
+  public final static EntryCache<? extends EntryCacheCfg>[] getCacheOrder()
   {
     return DefaultEntryCache.cacheOrder;
   }
@@ -366,7 +366,7 @@ public class DefaultEntryCache
    *
    * @param  cacheOrderMap  The current cache order array.
    */
-  public final void setCacheOrder(
+  public final static void setCacheOrder(
     SortedMap<Integer,
     EntryCache<? extends EntryCacheCfg>> cacheOrderMap)
   {
@@ -386,7 +386,7 @@ public class DefaultEntryCache
    *                  about to be put into service.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend backend)
+  public void performBackendInitializationProcessing(Backend<?> backend)
   {
     // Do nothing.
   }
@@ -402,7 +402,7 @@ public class DefaultEntryCache
    *                  and is about to be finalized.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend backend)
+  public void performBackendFinalizationProcessing(Backend<?> backend)
   {
     // Do not clear any backends if the server is shutting down.
     if (!DirectoryServer.getInstance().isShuttingDown())

@@ -26,8 +26,22 @@
  */
 package org.opends.server.core;
 
-import java.util.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -57,16 +71,23 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.*;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a mechanism for interacting with all groups defined in
@@ -98,7 +119,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * A mapping between the DNs of the config entries and the associated group
    * implementations.
    */
-  private ConcurrentHashMap<DN, Group<?>> groupImplementations;
+  private ConcurrentMap<DN, Group<?>> groupImplementations;
 
   /**
    * A mapping between the DNs of all group entries and the corresponding group
@@ -134,8 +155,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
         PluginType.POST_SYNCHRONIZATION_MODIFY_DN), true);
     this.serverContext = serverContext;
 
-    groupImplementations = new ConcurrentHashMap<DN, Group<?>>();
-    groupInstances = new DITCacheMap<Group<?>>();
+    groupImplementations = new ConcurrentHashMap<>();
+    groupInstances = new DITCacheMap<>();
 
     lock = new ReentrantReadWriteLock();
 
@@ -429,9 +450,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the group implementation.
    */
-  private Group<?> loadGroup(String className,
-                          GroupImplementationCfg configuration,
-                          boolean initialize)
+  private static Group<?> loadGroup(String className,
+                                    GroupImplementationCfg configuration,
+                                    boolean initialize)
           throws InitializationException
   {
     try
@@ -450,7 +471,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!group.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reason = Utils.joinAsString(".  ", unacceptableReasons);
@@ -519,7 +540,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     try
     {
       // Return a copy to protect from structural changes.
-      return new ArrayList<Group<?>>(groupInstances.values());
+      return new ArrayList<>(groupInstances.values());
     }
     finally
     {
@@ -559,7 +580,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * manager.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend backend)
+  public void performBackendInitializationProcessing(Backend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
 
@@ -650,7 +671,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * instances associated with entries in the provided backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend backend)
+  public void performBackendFinalizationProcessing(Backend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -691,7 +712,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  private boolean hasGroupMembershipUpdateControl(PluginOperation operation)
+  private static boolean hasGroupMembershipUpdateControl(PluginOperation operation)
   {
     List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null)
@@ -804,7 +825,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      Set<Group<?>> groupSet = new HashSet<Group<?>>();
+      Set<Group<?>> groupSet = new HashSet<>();
       final DN oldDN = oldEntry.getName();
       final DN newDN = newEntry.getName();
       groupInstances.removeSubtree(oldDN, groupSet);

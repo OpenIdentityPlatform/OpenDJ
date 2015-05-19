@@ -26,10 +26,19 @@
  */
 package org.opends.server.crypto;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.api.plugin.PluginType.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -65,14 +74,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.api.plugin.PluginType.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an object that synchronizes certificates from the admin
@@ -223,7 +224,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   /** {@inheritDoc} */
   @Override
-  public void performBackendInitializationProcessing(Backend backend)
+  public void performBackendInitializationProcessing(Backend<?> backend)
   {
     DN[] baseDNs = backend.getBaseDNs();
     if (baseDNs != null)
@@ -240,7 +241,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   /** {@inheritDoc} */
   @Override
-  public void performBackendFinalizationProcessing(Backend backend)
+  public void performBackendFinalizationProcessing(Backend<?> backend)
   {
     // No implementation required.
   }
@@ -387,7 +388,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
    * Delete an entry from the local trust store.
    * @param dstDN The DN of the entry to be deleted in the local trust store.
    */
-  private void deleteEntry(DN dstDN)
+  private static void deleteEntry(DN dstDN)
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -408,13 +409,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
    */
   private void addEntry(Entry srcEntry, DN dstDN)
   {
-    LinkedHashMap<ObjectClass,String> ocMap =
-         new LinkedHashMap<ObjectClass,String>(2);
+    Map<ObjectClass, String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
     ocMap.put(ocInstanceKey, OC_CRYPTO_INSTANCE_KEY);
 
-    HashMap<AttributeType, List<Attribute>> userAttrs =
-         new HashMap<AttributeType, List<Attribute>>();
+    Map<AttributeType, List<Attribute>> userAttrs = new HashMap<>();
 
     List<Attribute> attrList;
     attrList = srcEntry.getAttribute(attrAlias);

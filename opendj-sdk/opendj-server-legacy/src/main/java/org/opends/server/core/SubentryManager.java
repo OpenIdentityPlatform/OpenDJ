@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -84,23 +85,22 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A mapping between the DNs and applicable subentries. */
-  private HashMap<DN,List<SubEntry>> dn2SubEntry;
+  private Map<DN,List<SubEntry>> dn2SubEntry;
 
   /** A mapping between the DNs and applicable collective subentries. */
-  private HashMap<DN,List<SubEntry>> dn2CollectiveSubEntry;
+  private Map<DN,List<SubEntry>> dn2CollectiveSubEntry;
 
   /** A mapping between subentry DNs and subentry objects. */
   private DITCacheMap<SubEntry> dit2SubEntry;
 
   /** Internal search all operational attributes. */
-  private LinkedHashSet<String> requestAttrs;
+  private Set<String> requestAttrs;
 
   /** Lock to protect internal data structures. */
-  private final ReentrantReadWriteLock lock;
+  private final ReadWriteLock lock;
 
   /** The set of change notification listeners. */
-  private CopyOnWriteArrayList<SubentryChangeListener>
-               changeListeners;
+  private List<SubentryChangeListener> changeListeners;
 
   /** Dummy configuration DN for Subentry Manager. */
   private static final String CONFIG_DN = "cn=Subentry Manager,cn=config";
@@ -131,14 +131,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
     lock = new ReentrantReadWriteLock();
 
-    dn2SubEntry = new HashMap<DN,List<SubEntry>>();
-    dn2CollectiveSubEntry = new HashMap<DN,List<SubEntry>>();
-    dit2SubEntry = new DITCacheMap<SubEntry>();
+    dn2SubEntry = new HashMap<>();
+    dn2CollectiveSubEntry = new HashMap<>();
+    dit2SubEntry = new DITCacheMap<>();
 
-    changeListeners =
-            new CopyOnWriteArrayList<SubentryChangeListener>();
+    changeListeners = new CopyOnWriteArrayList<>();
 
-    requestAttrs = new LinkedHashSet<String>();
+    requestAttrs = new LinkedHashSet<>();
     requestAttrs.add("*");
     requestAttrs.add("+");
 
@@ -210,7 +209,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       }
       if (subList == null)
       {
-        subList = new ArrayList<SubEntry>();
+        subList = new ArrayList<>();
         if (subEntry.isCollective() || subEntry.isInheritedCollective())
         {
           dn2CollectiveSubEntry.put(subDN, subList);
@@ -304,7 +303,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries that it may contain and register them with this manager.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend backend)
+  public void performBackendInitializationProcessing(Backend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
     SubentriesControl control = new SubentriesControl(true, true);
@@ -409,8 +408,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<SubEntry>();
-
+    List<SubEntry> subentries = new ArrayList<>();
+    
     lock.readLock().lock();
     try
     {
@@ -442,8 +441,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<SubEntry>();
-
+    List<SubEntry> subentries = new ArrayList<>();
     lock.readLock().lock();
     try
     {
@@ -488,8 +486,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<SubEntry>();
-
+    List<SubEntry> subentries = new ArrayList<>();
+    
     lock.readLock().lock();
     try
     {
@@ -534,8 +532,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<SubEntry>();
-
+    List<SubEntry> subentries = new ArrayList<>();
+    
     lock.readLock().lock();
     try
     {
@@ -580,7 +578,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<SubEntry>();
+    List<SubEntry> subentries = new ArrayList<>();
 
     lock.readLock().lock();
     try
@@ -616,7 +614,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries associated with the provided backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend backend)
+  public void performBackendFinalizationProcessing(Backend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -927,10 +925,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
                     ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                     ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
           }
-          else
-          {
-            hasSubentryWritePrivilege = true;
-          }
+          hasSubentryWritePrivilege = true;
         }
         for (SubentryChangeListener changeListener :
                 changeListeners)
@@ -1024,10 +1019,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
                     ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                     ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
           }
-          else
-          {
-            hasSubentryWritePrivilege = true;
-          }
+          hasSubentryWritePrivilege = true;
         }
 
         final Entry newEntry = modifyDNOperation.getUpdatedEntry();

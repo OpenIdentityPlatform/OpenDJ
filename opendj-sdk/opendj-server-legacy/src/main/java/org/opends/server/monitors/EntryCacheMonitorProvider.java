@@ -26,7 +26,6 @@
  */
 package org.opends.server.monitors;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

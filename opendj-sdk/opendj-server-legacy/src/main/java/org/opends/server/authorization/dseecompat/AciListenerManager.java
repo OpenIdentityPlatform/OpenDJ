@@ -233,7 +233,7 @@ public class AciListenerManager implements
       {
         // Ignore this list, the ACI syntax has already passed and it
         // should be empty.
-        LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
+        List<LocalizableMessage> failedACIMsgs = new LinkedList<>();
 
         aciList.addAci(addedEntry, hasAci, hasGlobalAci, failedACIMsgs);
       }
@@ -395,7 +395,7 @@ public class AciListenerManager implements
    * to the ACI list.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend backend)
+  public void performBackendInitializationProcessing(Backend<?> backend)
   {
     // Check to make sure that the backend has a presence index defined
     // for the ACI attribute. If it does not, then log a warning message
@@ -467,7 +467,7 @@ public class AciListenerManager implements
    * backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend backend)
+  public void performBackendFinalizationProcessing(Backend<?> backend)
   {
     aciList.removeAci(backend);
   }

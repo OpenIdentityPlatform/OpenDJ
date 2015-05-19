@@ -51,8 +51,7 @@ public class AciList {
    * A map containing all the ACIs.
    * We use the copy-on-write technique to avoid locking when reading.
    */
-  private volatile DITCacheMap<List<Aci>> aciList =
-       new DITCacheMap<List<Aci>>();
+  private volatile DITCacheMap<List<Aci>> aciList = new DITCacheMap<>();
 
   /**
    * Lock to protect internal data structures.
@@ -82,8 +81,8 @@ public class AciList {
    * @param baseDN  The DN to check.
    * @return A list of candidate ACIs that might be applicable.
    */
-  public LinkedList<Aci> getCandidateAcis(DN baseDN) {
-    LinkedList<Aci> candidates = new LinkedList<Aci>();
+  public List<Aci> getCandidateAcis(DN baseDN) {
+    List<Aci> candidates = new LinkedList<>();
     if(baseDN == null)
     {
       return candidates;
@@ -178,7 +177,7 @@ public class AciList {
     lock.writeLock().lock();
     try
     {
-      aciList.put(dn, new LinkedList<Aci>(acis));
+      aciList.put(dn, new LinkedList<>(acis));
     }
     finally
     {
@@ -197,9 +196,9 @@ public class AciList {
    *                      exceptions.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
-  public int addAci(Entry entry,  boolean hasAci,
+  public int addAci(Entry entry, boolean hasAci,
                                  boolean hasGlobalAci,
-                                 LinkedList<LocalizableMessage> failedACIMsgs) {
+                                 List<LocalizableMessage> failedACIMsgs) {
     int validAcis=0;
 
     lock.writeLock().lock();
@@ -246,14 +245,14 @@ public class AciList {
   private static int addAciAttributeList(DITCacheMap<List<Aci>> aciList,
                                          DN dn, DN configDN,
                                          List<Attribute> attributeList,
-                                         LinkedList<LocalizableMessage> failedACIMsgs) {
+                                         List<LocalizableMessage> failedACIMsgs) {
 
     if (attributeList == null) {
       return 0;
     }
 
     int validAcis=0;
-    ArrayList<Aci> acis = new ArrayList<Aci>();
+    List<Aci> acis = new ArrayList<>();
     for (Attribute attribute : attributeList) {
       for (ByteString value : attribute) {
         try {
@@ -293,7 +292,7 @@ public class AciList {
     lock.writeLock().lock();
     try
     {
-      LinkedList<LocalizableMessage>failedACIMsgs=new LinkedList<LocalizableMessage>();
+      List<LocalizableMessage> failedACIMsgs=new LinkedList<>();
       //Process "aci" attribute types.
       if(hasAci) {
           aciList.remove(oldEntry.getName());
@@ -380,7 +379,7 @@ public class AciList {
    * @param backend  The backend to check if each DN is handled by that
    * backend.
    */
-  public void removeAci(Backend backend) {
+  public void removeAci(Backend<?> backend) {
 
     lock.writeLock().lock();
     try
@@ -416,7 +415,7 @@ public class AciList {
     lock.writeLock().lock();
     try
     {
-      Map<DN,List<Aci>> tempAciList = new HashMap<DN,List<Aci>>();
+      Map<DN,List<Aci>> tempAciList = new HashMap<>();
       Iterator<Map.Entry<DN,List<Aci>>> iterator =
               aciList.entrySet().iterator();
       while (iterator.hasNext()) {
@@ -432,7 +431,7 @@ public class AciList {
             newRDNs[i] = newDN.getRDN(j);
           }
           DN relocateDN=new DN(newRDNs);
-          List<Aci> acis = new LinkedList<Aci>();
+          List<Aci> acis = new LinkedList<>();
           for(Aci aci : hashEntry.getValue()) {
             try {
                Aci newAci =
