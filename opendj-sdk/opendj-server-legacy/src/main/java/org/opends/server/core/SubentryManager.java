@@ -409,7 +409,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
 
     List<SubEntry> subentries = new ArrayList<>();
-    
+
     lock.readLock().lock();
     try
     {
@@ -487,7 +487,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
 
     List<SubEntry> subentries = new ArrayList<>();
-    
+
     lock.readLock().lock();
     try
     {
@@ -533,7 +533,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
 
     List<SubEntry> subentries = new ArrayList<>();
-    
+
     lock.readLock().lock();
     try
     {
