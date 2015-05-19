@@ -28,12 +28,16 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
 
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -69,11 +73,10 @@ public class SoftReferenceEntryCache
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The mapping between entry DNs and their corresponding entries. */
-  private ConcurrentHashMap<DN,SoftReference<CacheEntry>> dnMap;
+  private ConcurrentMap<DN, Reference<CacheEntry>> dnMap;
 
   /** The mapping between backend+ID and their corresponding entries. */
-  private ConcurrentHashMap<Backend,
-               ConcurrentHashMap<Long,SoftReference<CacheEntry>>> idMap;
+  private ConcurrentMap<Backend, ConcurrentMap<Long, Reference<CacheEntry>>> idMap;
 
   /**
    * The reference queue that will be used to notify us whenever a soft
@@ -98,13 +101,12 @@ public class SoftReferenceEntryCache
   {
     super();
 
-    dnMap = new ConcurrentHashMap<DN,SoftReference<CacheEntry>>();
-    idMap = new ConcurrentHashMap<Backend,
-                     ConcurrentHashMap<Long,SoftReference<CacheEntry>>>();
+    dnMap = new ConcurrentHashMap<>();
+    idMap = new ConcurrentHashMap<>();
 
     setExcludeFilters(new HashSet<SearchFilter>());
     setIncludeFilters(new HashSet<SearchFilter>());
-    referenceQueue = new ReferenceQueue<CacheEntry>();
+    referenceQueue = new ReferenceQueue<>();
   }
 
   /** {@inheritDoc} */
@@ -127,7 +129,7 @@ public class SoftReferenceEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
-    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errorMessages = new ArrayList<>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
@@ -172,36 +174,30 @@ public class SoftReferenceEntryCache
   @Override
   public Entry getEntry(DN entryDN)
   {
-    SoftReference<CacheEntry> ref = dnMap.get(entryDN);
+    Reference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
     {
       // Indicate cache miss.
       cacheMisses.getAndIncrement();
       return null;
     }
-    else
+    CacheEntry cacheEntry = ref.get();
+    if (cacheEntry == null)
     {
-      CacheEntry cacheEntry = ref.get();
-      if (cacheEntry == null)
-      {
-        // Indicate cache miss.
-        cacheMisses.getAndIncrement();
-        return null;
-      }
-      else
-      {
-        // Indicate cache hit.
-        cacheHits.getAndIncrement();
-        return cacheEntry.getEntry();
-      }
+      // Indicate cache miss.
+      cacheMisses.getAndIncrement();
+      return null;
     }
+    // Indicate cache hit.
+    cacheHits.getAndIncrement();
+    return cacheEntry.getEntry();
   }
 
   /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
-    SoftReference<CacheEntry> ref = dnMap.get(entryDN);
+    Reference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref != null)
     {
       CacheEntry cacheEntry = ref.get();
@@ -215,10 +211,9 @@ public class SoftReferenceEntryCache
   public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
-    ConcurrentHashMap<Long,SoftReference<CacheEntry>>
-      backendMap = idMap.get(backend);
+    ConcurrentMap<Long, Reference<CacheEntry>> backendMap = idMap.get(backend);
     if (backendMap != null) {
-      SoftReference<CacheEntry> ref = backendMap.get(entryID);
+      Reference<CacheEntry> ref = backendMap.get(entryID);
       if (ref != null) {
         CacheEntry cacheEntry = ref.get();
         if (cacheEntry != null) {
@@ -235,19 +230,18 @@ public class SoftReferenceEntryCache
   {
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
-    SoftReference<CacheEntry> ref =
-         new SoftReference<CacheEntry>(cacheEntry, referenceQueue);
+    Reference<CacheEntry> ref = new SoftReference<>(cacheEntry, referenceQueue);
 
-    SoftReference<CacheEntry> oldRef = dnMap.put(entry.getName(), ref);
+    Reference<CacheEntry> oldRef = dnMap.put(entry.getName(), ref);
     if (oldRef != null)
     {
       oldRef.clear();
     }
 
-    ConcurrentHashMap<Long,SoftReference<CacheEntry>> map = idMap.get(backend);
+    ConcurrentMap<Long,Reference<CacheEntry>> map = idMap.get(backend);
     if (map == null)
     {
-      map = new ConcurrentHashMap<Long,SoftReference<CacheEntry>>();
+      map = new ConcurrentHashMap<>();
       map.put(entryID, ref);
       idMap.put(backend, map);
     }
@@ -275,15 +269,14 @@ public class SoftReferenceEntryCache
 
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
-    SoftReference<CacheEntry> ref =
-         new SoftReference<CacheEntry>(cacheEntry, referenceQueue);
+    Reference<CacheEntry> ref = new SoftReference<>(cacheEntry, referenceQueue);
 
     dnMap.put(entry.getName(), ref);
 
-    ConcurrentHashMap<Long,SoftReference<CacheEntry>> map = idMap.get(backend);
+    ConcurrentMap<Long,Reference<CacheEntry>> map = idMap.get(backend);
     if (map == null)
     {
-      map = new ConcurrentHashMap<Long,SoftReference<CacheEntry>>();
+      map = new ConcurrentHashMap<>();
       map.put(entryID, ref);
       idMap.put(backend, map);
     }
@@ -299,7 +292,7 @@ public class SoftReferenceEntryCache
   @Override
   public void removeEntry(DN entryDN)
   {
-    SoftReference<CacheEntry> ref = dnMap.remove(entryDN);
+    Reference<CacheEntry> ref = dnMap.remove(entryDN);
     if (ref != null)
     {
       ref.clear();
@@ -309,8 +302,7 @@ public class SoftReferenceEntryCache
       {
         Backend<?> backend = cacheEntry.getBackend();
 
-        ConcurrentHashMap<Long,SoftReference<CacheEntry>> map =
-             idMap.get(backend);
+        ConcurrentMap<Long, Reference<CacheEntry>> map = idMap.get(backend);
         if (map != null)
         {
           ref = map.remove(cacheEntry.getEntryID());
@@ -342,11 +334,10 @@ public class SoftReferenceEntryCache
   public void clearBackend(Backend backend)
   {
     // FIXME -- Would it be better just to dump everything?
-    ConcurrentHashMap<Long,SoftReference<CacheEntry>> map =
-         idMap.remove(backend);
+    ConcurrentMap<Long, Reference<CacheEntry>> map = idMap.remove(backend);
     if (map != null)
     {
-      for (SoftReference<CacheEntry> ref : map.values())
+      for (Reference<CacheEntry> ref : map.values())
       {
         CacheEntry cacheEntry = ref.get();
         if (cacheEntry != null)
@@ -419,7 +410,7 @@ public class SoftReferenceEntryCache
   public ConfigChangeResult applyConfigurationChange(SoftReferenceEntryCacheCfg configuration)
   {
     boolean applyChanges = true;
-    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errorMessages = new ArrayList<>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -455,9 +446,9 @@ public class SoftReferenceEntryCache
       )
   {
     // Local variables to read configuration.
-    DN                    newConfigEntryDN;
-    HashSet<SearchFilter> newIncludeFilters = null;
-    HashSet<SearchFilter> newExcludeFilters = null;
+    DN newConfigEntryDN;
+    Set<SearchFilter> newIncludeFilters = null;
+    Set<SearchFilter> newExcludeFilters = null;
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();
@@ -509,7 +500,7 @@ public class SoftReferenceEntryCache
 
         if (freedEntry != null)
         {
-          SoftReference<CacheEntry> ref = dnMap.remove(freedEntry.getDN());
+          Reference<CacheEntry> ref = dnMap.remove(freedEntry.getDN());
 
           if (ref != null)
           {
@@ -525,8 +516,7 @@ public class SoftReferenceEntryCache
               ref.clear();
 
               Backend<?> backend = freedEntry.getBackend();
-              ConcurrentHashMap<Long,SoftReference<CacheEntry>> map =
-                   idMap.get(backend);
+              ConcurrentMap<Long, Reference<CacheEntry>> map = idMap.get(backend);
               if (map != null)
               {
                 ref = map.remove(freedEntry.getEntryID());
@@ -553,12 +543,10 @@ public class SoftReferenceEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
     try {
-      attrs = EntryCacheCommon.getGenericMonitorData(
+      return EntryCacheCommon.getGenericMonitorData(
         Long.valueOf(cacheHits.longValue()),
         // If cache misses is maintained by default cache
         // get it from there and if not point to itself.
@@ -570,9 +558,8 @@ public class SoftReferenceEntryCache
         );
     } catch (Exception e) {
       logger.traceException(e);
+      return Collections.emptyList();
     }
-
-    return attrs;
   }
 
   /** {@inheritDoc} */
@@ -592,7 +579,7 @@ public class SoftReferenceEntryCache
     // Examine dnMap only since its more likely to be up to date than idMap.
     // Do not bother with copies either since this
     // is SoftReference based implementation.
-    for(SoftReference<CacheEntry> ce : dnMap.values()) {
+    for(Reference<CacheEntry> ce : dnMap.values()) {
       sb.append(ce.get().getDN());
       sb.append(":");
       sb.append(ce.get().getEntryID());
