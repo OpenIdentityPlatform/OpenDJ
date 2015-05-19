@@ -26,7 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
@@ -289,10 +289,8 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
     // The sum of cache hits of all active entry cache implementations.
     long entryCacheHits = 0;
     // Common for all active entry cache implementations.
@@ -307,7 +305,7 @@ public class DefaultEntryCache
     }
 
     try {
-      attrs = EntryCacheCommon.getGenericMonitorData(
+      return EntryCacheCommon.getGenericMonitorData(
         entryCacheHits,
         entryCacheMisses,
         null,
@@ -317,9 +315,8 @@ public class DefaultEntryCache
         );
     } catch (Exception e) {
       logger.traceException(e);
+      return Collections.emptyList();
     }
-
-    return attrs;
   }
 
   /** {@inheritDoc} */

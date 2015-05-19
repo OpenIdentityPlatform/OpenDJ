@@ -33,6 +33,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -92,7 +93,7 @@ public class EntryCacheCommon
     private List<LocalizableMessage> _unacceptableReasons;
 
     /** Error messages. Used when _configPhase is PHASE_APPLY. */
-    private ArrayList<LocalizableMessage> _errorMessages;
+    private List<LocalizableMessage> _errorMessages;
 
     /** Result code. Used when _configPhase is PHASE_APPLY. */
     private ResultCode _resultCode;
@@ -122,7 +123,7 @@ public class EntryCacheCommon
     public ConfigErrorHandler (
         EntryCacheCommon.ConfigPhase configPhase,
         List<LocalizableMessage> unacceptableReasons,
-        ArrayList<LocalizableMessage>            errorMessages
+        List<LocalizableMessage> errorMessages
         )
     {
       _configPhase           = configPhase;
@@ -255,7 +256,7 @@ public class EntryCacheCommon
      *
      * @return the list of error messages
      */
-    public ArrayList<LocalizableMessage> getErrorMessages()
+    public List<LocalizableMessage> getErrorMessages()
     {
       return _errorMessages;
     }
@@ -296,12 +297,12 @@ public class EntryCacheCommon
    *
    * @return the set of search filters
    */
-  public static HashSet<SearchFilter> getFilters(SortedSet<String> filters,
+  public static Set<SearchFilter> getFilters(SortedSet<String> filters,
       LocalizableMessageDescriptor.Arg3<Object, Object, Object> decodeErrorMsg,
       ConfigErrorHandler errorHandler, DN configEntryDN)
   {
     // Returned value
-    HashSet<SearchFilter> searchFilters = new HashSet<SearchFilter>();
+    Set<SearchFilter> searchFilters = new HashSet<>();
 
     // Convert the string filters to search filters.
     if ((filters != null) && (! filters.isEmpty()))
@@ -344,7 +345,7 @@ public class EntryCacheCommon
   public static ConfigErrorHandler getConfigErrorHandler (
       EntryCacheCommon.ConfigPhase  configPhase,
       List<LocalizableMessage> unacceptableReasons,
-      ArrayList<LocalizableMessage>             errorMessages
+      List<LocalizableMessage> errorMessages
       )
   {
     EntryCacheCommon ec = new EntryCacheCommon();
@@ -369,7 +370,7 @@ public class EntryCacheCommon
    *
    * @return  A set of generic attributes containing monitor data.
    */
-  public static ArrayList<Attribute> getGenericMonitorData(
+  public static List<Attribute> getGenericMonitorData(
     Long cacheHits,
     Long cacheMisses,
     Long cacheSize,
@@ -377,7 +378,7 @@ public class EntryCacheCommon
     Long cacheCount,
     Long maxCacheCount)
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+    List<Attribute> attrs = new ArrayList<>();
 
     if (cacheHits != null)
     {

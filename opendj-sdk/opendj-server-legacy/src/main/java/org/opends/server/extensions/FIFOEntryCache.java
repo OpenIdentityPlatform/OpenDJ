@@ -31,6 +31,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -90,7 +91,7 @@ public class FIFOEntryCache
   private static final Runtime runtime = Runtime.getRuntime();
 
   /** The mapping between entry backends/IDs and entries. */
-  private HashMap<Backend<?>, HashMap<Long, CacheEntry>> idMap;
+  private Map<Backend<?>, Map<Long, CacheEntry>> idMap;
 
   /** The mapping between DNs and entries. */
   private LinkedHashMap<DN,CacheEntry> dnMap;
@@ -99,7 +100,7 @@ public class FIFOEntryCache
    * The lock used to provide threadsafe access when changing the contents of
    * the cache.
    */
-  private ReentrantReadWriteLock cacheLock;
+  private ReadWriteLock cacheLock;
   private Lock cacheWriteLock;
   private Lock cacheReadLock;
 
@@ -134,8 +135,8 @@ public class FIFOEntryCache
     configuration.addFIFOChangeListener (this);
 
     // Initialize the cache structures.
-    idMap     = new HashMap<Backend<?>, HashMap<Long, CacheEntry>>();
-    dnMap     = new LinkedHashMap<DN,CacheEntry>();
+    idMap = new HashMap<>();
+    dnMap = new LinkedHashMap<>();
 
     // Initialize locks.
     cacheLock = new ReentrantReadWriteLock(true);
@@ -144,7 +145,7 @@ public class FIFOEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
-    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errorMessages = new ArrayList<>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
@@ -206,11 +207,10 @@ public class FIFOEntryCache
         // Indicate cache miss.
         cacheMisses.getAndIncrement();
         return null;
-      } else {
-        // Indicate cache hit.
-        cacheHits.getAndIncrement();
-        return e.getEntry();
       }
+      // Indicate cache hit.
+      cacheHits.getAndIncrement();
+      return e.getEntry();
     } finally {
       cacheReadLock.unlock();
     }
@@ -237,7 +237,7 @@ public class FIFOEntryCache
     // Locate specific backend map and return the entry DN by ID.
     cacheReadLock.lock();
     try {
-      HashMap<Long, CacheEntry> backendMap = idMap.get(backend);
+      Map<Long, CacheEntry> backendMap = idMap.get(backend);
       if (backendMap != null) {
         CacheEntry e = backendMap.get(entryID);
         if (e != null) {
@@ -295,7 +295,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -324,10 +324,10 @@ public class FIFOEntryCache
         // present and add it if it isn't.
         dnMap.put(entry.getName(), cacheEntry);
 
-        HashMap<Long,CacheEntry> map = idMap.get(backend);
+        Map<Long,CacheEntry> map = idMap.get(backend);
         if (map == null)
         {
-          map = new HashMap<Long,CacheEntry>();
+          map = new HashMap<>();
           map.put(entryID, cacheEntry);
           idMap.put(backend, map);
         }
@@ -349,7 +349,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -420,7 +420,7 @@ public class FIFOEntryCache
           CacheEntry ce = iterator.next();
           iterator.remove();
 
-          HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+          Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
           if (m != null)
           {
             m.remove(ce.getEntryID());
@@ -433,10 +433,10 @@ public class FIFOEntryCache
         // present and add it if it isn't.
         dnMap.put(entry.getName(), cacheEntry);
 
-        HashMap<Long,CacheEntry> map = idMap.get(backend);
+        Map<Long,CacheEntry> map = idMap.get(backend);
         if (map == null)
         {
-          map = new HashMap<Long,CacheEntry>();
+          map = new HashMap<>();
           map.put(entryID, cacheEntry);
           idMap.put(backend, map);
         }
@@ -458,7 +458,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            HashMap<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -587,7 +587,7 @@ public class FIFOEntryCache
     try
     {
       // Remove all references to entries for this backend from the ID cache.
-      HashMap<Long,CacheEntry> map = idMap.remove(backend);
+      Map<Long,CacheEntry> map = idMap.remove(backend);
       if (map == null)
       {
         // No entries were in the cache for this backend, so we can return
@@ -677,7 +677,7 @@ public class FIFOEntryCache
   {
     // See if there are any entries for the provided backend in the cache.  If
     // not, then return.
-    HashMap<Long,CacheEntry> map = idMap.get(backend);
+    Map<Long,CacheEntry> map = idMap.get(backend);
     if (map == null)
     {
       // No entries were in the cache for this backend, so we can return without
@@ -764,7 +764,7 @@ public class FIFOEntryCache
           CacheEntry entry = iterator.next();
           iterator.remove();
 
-          HashMap<Long,CacheEntry> m = idMap.get(entry.getBackend());
+          Map<Long,CacheEntry> m = idMap.get(entry.getBackend());
           if (m != null)
           {
             m.remove(entry.getEntryID());
@@ -819,7 +819,7 @@ public class FIFOEntryCache
   public ConfigChangeResult applyConfigurationChange(      FIFOEntryCacheCfg configuration      )
   {
     boolean applyChanges = true;
-    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errorMessages = new ArrayList<>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -856,8 +856,8 @@ public class FIFOEntryCache
       )
   {
     // Local variables to read configuration.
-    HashSet<SearchFilter> newIncludeFilters = null;
-    HashSet<SearchFilter> newExcludeFilters = null;
+    Set<SearchFilter> newIncludeFilters = null;
+    Set<SearchFilter> newExcludeFilters = null;
 
     // Read configuration.
     DN newConfigEntryDN = configuration.dn();
@@ -905,12 +905,10 @@ public class FIFOEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
     try {
-      attrs = EntryCacheCommon.getGenericMonitorData(
+      return EntryCacheCommon.getGenericMonitorData(
         Long.valueOf(cacheHits.longValue()),
         // If cache misses is maintained by default cache
         // get it from there and if not point to itself.
@@ -923,9 +921,8 @@ public class FIFOEntryCache
         );
     } catch (Exception e) {
       logger.traceException(e);
+      return Collections.emptyList();
     }
-
-    return attrs;
   }
 
   /** {@inheritDoc} */
@@ -942,7 +939,7 @@ public class FIFOEntryCache
     StringBuilder sb = new StringBuilder();
 
     Map<DN,CacheEntry> dnMapCopy;
-    Map<Backend<?>, HashMap<Long, CacheEntry>> idMapCopy;
+    Map<Backend<?>, Map<Long, CacheEntry>> idMapCopy;
 
     // Grab cache lock to prevent any modifications
     // to the cache maps until a snapshot is taken.
@@ -951,8 +948,8 @@ public class FIFOEntryCache
       // Examining the real maps will hold the lock and can cause map
       // modifications in case of any access order maps, make copies
       // instead.
-      dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
-      idMapCopy = new HashMap<Backend<?>, HashMap<Long, CacheEntry>>(idMap);
+      dnMapCopy = new LinkedHashMap<>(dnMap);
+      idMapCopy = new HashMap<>(idMap);
     } finally {
       cacheWriteLock.unlock();
     }
