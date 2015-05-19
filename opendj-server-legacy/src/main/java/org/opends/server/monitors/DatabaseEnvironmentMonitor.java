@@ -26,13 +26,13 @@
  */
 package org.opends.server.monitors;
 
-
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
@@ -40,17 +40,15 @@ import org.opends.server.backends.jeb.DatabaseContainer;
 import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.backends.jeb.Index;
 import org.opends.server.backends.jeb.RootContainer;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.opends.server.util.TimeThread;
+
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.JEVersion;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.TransactionStats;
-import org.opends.server.util.TimeThread;
-
 
 /**
  * A monitor provider for a Berkeley DB JE environment.
@@ -207,12 +205,11 @@ public class DatabaseEnvironmentMonitor
    *         returned to the client if the corresponding monitor entry is
    *         requested.
    */
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     EnvironmentStats environmentStats = null;
     TransactionStats transactionStats = null;
     StatsConfig statsConfig = new StatsConfig();
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
 
     try
     {
@@ -222,9 +219,10 @@ public class DatabaseEnvironmentMonitor
     } catch (DatabaseException e)
     {
       logger.traceException(e);
-      return monitorAttrs;
+      return Collections.emptyList();
     }
 
+    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
     String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
     AttributeType versionType =
          DirectoryServer.getDefaultAttributeType("JEVersion");
