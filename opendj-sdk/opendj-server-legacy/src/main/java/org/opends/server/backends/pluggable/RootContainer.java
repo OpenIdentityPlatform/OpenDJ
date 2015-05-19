@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -79,7 +80,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private BackendMonitor monitor;
 
   /** The base DNs contained in this root container. */
-  private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
+  private final ConcurrentMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<>();
 
   /** Value of the next entryID to be assigned. */
   private AtomicLong nextEntryID = new AtomicLong(1);
