@@ -26,7 +26,6 @@
  */
 package org.opends.server.api;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,8 +73,7 @@ import org.opends.server.types.SearchFilter;
      mayExtend=true,
      mayInvoke=true,
      notes="Entry cache methods may only be invoked by backends")
-public abstract class EntryCache
-       <T extends EntryCacheCfg>
+public abstract class EntryCache<T extends EntryCacheCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -114,8 +112,6 @@ public abstract class EntryCache
     // No implementation required.
   }
 
-
-
   /**
    * Initializes this entry cache implementation so that it will be
    * available for storing and retrieving entries.
@@ -134,8 +130,6 @@ public abstract class EntryCache
    */
   public abstract void initializeEntryCache(T configuration)
          throws ConfigException, InitializationException;
-
-
 
   /**
    * Indicates whether the provided configuration is acceptable for
@@ -167,8 +161,6 @@ public abstract class EntryCache
     return true;
   }
 
-
-
   /**
    * Performs any necessary cleanup work (e.g., flushing all cached
    * entries and releasing any other held resources) that should be
@@ -176,8 +168,6 @@ public abstract class EntryCache
    * destroyed or replaced.
    */
   public abstract void finalizeEntryCache();
-
-
 
   /**
    * Indicates whether the entry cache currently contains the entry
@@ -193,8 +183,6 @@ public abstract class EntryCache
    */
   public abstract boolean containsEntry(DN entryDN);
 
-
-
   /**
    * Retrieves the entry with the specified DN from the cache.
    *
@@ -204,8 +192,6 @@ public abstract class EntryCache
    *          {@code null} if it is not present.
    */
   public abstract Entry getEntry(DN entryDN);
-
-
 
   /**
    * Retrieves the requested entry if it is present in the cache.
@@ -232,8 +218,6 @@ public abstract class EntryCache
     return getEntry(entryDN);
   }
 
-
-
   /**
    * Retrieves the entry ID for the entry with the specified DN from
    * the cache.  The caller should have already acquired a read or
@@ -246,8 +230,6 @@ public abstract class EntryCache
    *          not present in the cache.
    */
   public abstract long getEntryID(DN entryDN);
-
-
 
   /**
    * Retrieves the entry DN for the entry with the specified ID on
@@ -267,8 +249,6 @@ public abstract class EntryCache
    */
   public abstract DN getEntryDN(Backend backend, long entryID);
 
-
-
   /**
    * Stores the provided entry in the cache.  Note that the mechanism
    * that it uses to achieve this is implementation-dependent, and it
@@ -282,8 +262,6 @@ public abstract class EntryCache
    */
   public abstract void putEntry(Entry entry, Backend backend,
                                 long entryID);
-
-
 
   /**
    * Stores the provided entry in the cache only if it does not
@@ -308,8 +286,6 @@ public abstract class EntryCache
                                            Backend backend,
                                            long entryID);
 
-
-
   /**
    * Removes the specified entry from the cache.
    *
@@ -317,15 +293,11 @@ public abstract class EntryCache
    */
   public abstract void removeEntry(DN entryDN);
 
-
-
   /**
    * Removes all entries from the cache.  The cache should still be
    * available for future use.
    */
   public abstract void clear();
-
-
 
   /**
    * Removes all entries from the cache that are associated with the
@@ -336,8 +308,6 @@ public abstract class EntryCache
    */
   public abstract void clearBackend(Backend backend);
 
-
-
   /**
    * Removes all entries from the cache that are below the provided
    * DN.
@@ -347,8 +317,6 @@ public abstract class EntryCache
    */
   public abstract void clearSubtree(DN baseDN);
 
-
-
   /**
    * Attempts to react to a scenario in which it is determined that
    * the system is running low on available memory.  In this case, the
@@ -356,8 +324,6 @@ public abstract class EntryCache
    * to avoid out of memory errors.
    */
   public abstract void handleLowMemory();
-
-
 
   /**
    * Retrieves the monitor that is associated with this entry
@@ -371,8 +337,6 @@ public abstract class EntryCache
     return entryCacheMonitor;
   }
 
-
-
   /**
    * Sets the monitor for this entry cache.
    *
@@ -383,8 +347,6 @@ public abstract class EntryCache
   {
     this.entryCacheMonitor = entryCacheMonitor;
   }
-
-
 
   /**
    * Retrieves a set of attributes containing monitor data that should
@@ -397,16 +359,12 @@ public abstract class EntryCache
    */
   public abstract List<Attribute> getMonitorData();
 
-
-
   /**
    * Retrieves the current number of entries stored within the cache.
    *
    * @return  The current number of entries stored within the cache.
    */
   public abstract Long getCacheCount();
-
-
 
   /**
    * Retrieves the current number of cache hits for this cache.
@@ -418,8 +376,6 @@ public abstract class EntryCache
     return cacheHits.longValue();
   }
 
-
-
   /**
    * Retrieves the current number of cache misses for this cache.
    *
@@ -429,8 +385,6 @@ public abstract class EntryCache
   {
     return cacheMisses.longValue();
   }
-
-
 
   /**
    * Retrieves the set of search filters that may be used to determine
@@ -443,8 +397,6 @@ public abstract class EntryCache
   {
     return excludeFilters;
   }
-
-
 
   /**
    * Specifies the set of search filters that may be used to determine
@@ -466,8 +418,6 @@ public abstract class EntryCache
     }
   }
 
-
-
   /**
    * Retrieves the set of search filters that may be used to determine
    * whether an entry should be included in the cache.
@@ -479,8 +429,6 @@ public abstract class EntryCache
   {
     return includeFilters;
   }
-
-
 
   /**
    * Specifies the set of search filters that may be used to determine
@@ -501,8 +449,6 @@ public abstract class EntryCache
       this.includeFilters = includeFilters;
     }
   }
-
-
 
   /**
    * Indicates whether the current set of exclude and include filters
@@ -573,9 +519,7 @@ public abstract class EntryCache
 
     return true;
   }
-
-
-
+  
   /**
    * Return a verbose string representation of the current cache maps. This is
    * useful primary for debugging and diagnostic purposes such as in the entry
