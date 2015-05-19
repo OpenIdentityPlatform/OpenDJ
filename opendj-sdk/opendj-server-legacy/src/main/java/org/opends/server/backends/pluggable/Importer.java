@@ -1151,7 +1151,7 @@ final class Importer
       org.opends.server.backends.pluggable.spi.Importer importer,
       ExecutorService dbService, Semaphore permits, int buffers, int readAheadSize) throws InterruptedException
   {
-    List<IndexDBWriteTask> tasks = new ArrayList<IndexDBWriteTask>(indexMgrs.size());
+    List<IndexDBWriteTask> tasks = new ArrayList<>(indexMgrs.size());
     for (IndexManager indexMgr : indexMgrs)
     {
       tasks.add(new IndexDBWriteTask(importer, indexMgr, permits, buffers, readAheadSize));
@@ -1198,7 +1198,7 @@ final class Importer
           {
             for (DN excludedDN : suffix.getExcludeBranches())
             {
-              final ByteString key = DnKeyFormat.dnToDNKey(excludedDN, suffix.getBaseDN().size());
+              final ByteString key = dnToDNKey(excludedDN, suffix.getBaseDN().size());
               boolean success = cursor.positionToKeyOrNext(key);
               if (success && key.equals(cursor.getKey()))
               {
@@ -1312,7 +1312,7 @@ final class Importer
       {
         if (includeBranch.isDescendantOf(suffix.getBaseDN()))
         {
-          includeBranches.add(DnKeyFormat.dnToDNKey(includeBranch, suffix.getBaseDN().size()));
+          includeBranches.add(dnToDNKey(includeBranch, suffix.getBaseDN().size()));
         }
       }
       return includeBranches;
@@ -1617,7 +1617,7 @@ final class Importer
         throws InterruptedException
     {
       DN2ID dn2id = suffix.getDN2ID();
-      ByteString dnBytes = DnKeyFormat.dnToDNKey(dn, suffix.getBaseDN().size());
+      ByteString dnBytes = dnToDNKey(dn, suffix.getBaseDN().size());
       int indexID = processKey(dn2id, dnBytes, entryID, dnIndexKey, true);
       indexIDToECMap.putIfAbsent(indexID, suffix.getEntryContainer());
     }
@@ -1972,7 +1972,7 @@ final class Importer
 
       private ByteSequence getParent(ByteSequence dn)
       {
-        int parentIndex = DnKeyFormat.findDNKeyParent(dn);
+        int parentIndex = findDNKeyParent(dn);
         if (parentIndex < 0)
         {
           // This is the root or base DN
@@ -2106,7 +2106,6 @@ final class Importer
         }
         id2childrenCountTree.clear();
       }
-
 
       void finalFlush(org.opends.server.backends.pluggable.spi.Importer importer)
       {
@@ -2387,7 +2386,6 @@ final class Importer
    */
   private final class SortTask implements Callable<Void>
   {
-
     private final IndexOutputBuffer indexBuffer;
 
     public SortTask(IndexOutputBuffer indexBuffer)
@@ -2680,7 +2678,6 @@ final class Importer
       logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
       postRebuildIndexes(txn);
     }
-
 
     private void preRebuildIndexes(WriteableTransaction txn)
     {
@@ -3117,15 +3114,10 @@ final class Importer
     }
   }
 
-  /**
-   * This class reports progress of rebuild index processing at fixed intervals.
-   */
+  /** This class reports progress of rebuild index processing at fixed intervals. */
   private class RebuildFirstPhaseProgressTask extends TimerTask
   {
-    /**
-     * The number of records that had been processed at the time of the previous
-     * progress report.
-     */
+    /** The number of records that had been processed at the time of the previous progress report. */
     private long previousProcessed;
     /** The time in milliseconds of the previous progress report. */
     private long previousTime;
@@ -3141,9 +3133,7 @@ final class Importer
       previousTime = System.currentTimeMillis();
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
@@ -3169,16 +3159,10 @@ final class Importer
     }
   }
 
-  /**
-   * This class reports progress of first phase of import processing at fixed
-   * intervals.
-   */
+  /** This class reports progress of first phase of import processing at fixed intervals. */
   private final class FirstPhaseProgressTask extends TimerTask
   {
-    /**
-     * The number of entries that had been read at the time of the previous
-     * progress report.
-     */
+    /** The number of entries that had been read at the time of the previous progress report. */
     private long previousCount;
     /** The time in milliseconds of the previous progress report. */
     private long previousTime;
@@ -3212,10 +3196,7 @@ final class Importer
     }
   }
 
-  /**
-   * This class reports progress of the second phase of import processing at
-   * fixed intervals.
-   */
+  /** This class reports progress of the second phase of import processing at fixed intervals. */
   private class SecondPhaseProgressTask extends TimerTask
   {
     /** The time in milliseconds of the previous progress report. */
@@ -3270,8 +3251,7 @@ final class Importer
     private final int entryLimit;
 
     /**
-     * Create index key instance using the specified attribute type, index ID and index entry
-     * limit.
+     * Create index key instance using the specified attribute type, index ID and index entry limit.
      *
      * @param attributeType
      *          The attribute type.
