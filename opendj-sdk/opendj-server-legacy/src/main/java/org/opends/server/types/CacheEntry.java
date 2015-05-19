@@ -28,8 +28,6 @@ package org.opends.server.types;
 
 import org.opends.server.api.Backend;
 
-
-
 /**
  * This class defines a Directory Server cache entry, which is simply
  * used to store an entry with its associated backend and entry ID.
@@ -43,15 +41,13 @@ import org.opends.server.api.Backend;
 public final class CacheEntry
 {
   /** The backend with which this cache entry is associated. */
-  private Backend<?> backend;
+  private final Backend<?> backend;
 
   /** The entry itself. */
-  private Entry entry;
+  private final Entry entry;
 
   /** The entry ID for the entry within the backend. */
-  private long entryID;
-
-
+  private final long entryID;
 
   /**
    * Creates a new cache entry with the provided information.
@@ -67,8 +63,6 @@ public final class CacheEntry
     this.entryID = entryID;
   }
 
-
-
   /**
    * Retrieves the entry for this cache entry.
    *
@@ -79,43 +73,15 @@ public final class CacheEntry
     return entry;
   }
 
-
-
-  /**
-   * Specifies the entry for this cache entry.
-   *
-   * @param  entry  The entry for this cache entry.
-   */
-  public void setEntry(Entry entry)
-  {
-    this.entry = entry;
-  }
-
-
-
   /**
    * Retrieves the backend for this cache entry.
    *
    * @return  The backend for this cache entry.
    */
-  public Backend getBackend()
+  public Backend<?> getBackend()
   {
     return backend;
   }
-
-
-
-  /**
-   * Specifies the backend for this cache entry.
-   *
-   * @param  backend  The backend for this cache entry.
-   */
-  public void setBackend(Backend backend)
-  {
-    this.backend = backend;
-  }
-
-
 
   /**
    * Retrieves the entry ID for this cache entry.
@@ -127,20 +93,6 @@ public final class CacheEntry
     return entryID;
   }
 
-
-
-  /**
-   * Specifies the entry ID for this cache entry.
-   *
-   * @param  entryID  The entryID for this cache entry.
-   */
-  public void setEntryID(long entryID)
-  {
-    this.entryID = entryID;
-  }
-
-
-
   /**
    * Retrieves the DN for this cache entry.
    *
@@ -151,20 +103,17 @@ public final class CacheEntry
     return entry.getName();
   }
 
-
-
   /**
    * Retrieves the hash code for this cache entry.  It will be the
    * integer representation of the entry ID.
    *
    * @return  The hash code for this cache entry.
    */
+  @Override
   public int hashCode()
   {
     return (int) entryID;
   }
-
-
 
   /**
    * Indicates whether this cache entry is equal to the provided \
@@ -176,6 +125,7 @@ public final class CacheEntry
    * @return  <CODE>true</CODE> if the provided object is equal to
    *          this cache entry, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
