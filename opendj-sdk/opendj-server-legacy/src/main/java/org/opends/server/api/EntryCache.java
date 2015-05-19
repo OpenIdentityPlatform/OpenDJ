@@ -83,15 +83,13 @@ public abstract class EntryCache
    * The set of filters that define the entries that should be
    * excluded from the cache.
    */
-  private Set<SearchFilter> excludeFilters =
-       new HashSet<SearchFilter>(0);
+  private Set<SearchFilter> excludeFilters = new HashSet<>(0);
 
   /**
    * The set of filters that define the entries that should be
    * included in the cache.
    */
-  private Set<SearchFilter> includeFilters =
-       new HashSet<SearchFilter>(0);
+  private Set<SearchFilter> includeFilters = new HashSet<>(0);
 
   /**
    * Arbitrary number of cache hits for monitoring.
@@ -460,7 +458,7 @@ public abstract class EntryCache
   {
     if (excludeFilters == null)
     {
-      this.excludeFilters = new HashSet<SearchFilter>(0);
+      this.excludeFilters = new HashSet<>(0);
     }
     else
     {
@@ -496,7 +494,7 @@ public abstract class EntryCache
   {
     if (includeFilters == null)
     {
-      this.includeFilters = new HashSet<SearchFilter>(0);
+      this.includeFilters = new HashSet<>(0);
     }
     else
     {
