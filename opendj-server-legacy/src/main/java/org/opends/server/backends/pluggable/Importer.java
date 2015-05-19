@@ -2539,7 +2539,7 @@ final class Importer
      */
     String getBufferFileName()
     {
-      return bufferFileName;
+      return bufferFile.getName();
     }
 
     private int getIndexEntryLimit()
