@@ -108,9 +108,7 @@ class AttributeIndex
     }
   }
 
-  /**
-   * This class implements an attribute indexer for matching rules in a Backend.
-   */
+  /** This class implements an attribute indexer for matching rules in a Backend. */
   static final class MatchingRuleIndex extends DefaultIndex
   {
     private final AttributeType attributeType;
@@ -127,49 +125,45 @@ class AttributeIndex
     void indexEntry(Entry entry, Set<ByteString> keys)
     {
       List<Attribute> attributes = entry.getAttribute(attributeType, true);
-      if (attributes != null)
-      {
-        indexAttribute(attributes, keys);
-      }
+      indexAttribute(attributes, keys);
+    }
+
+    Set<ByteString> indexEntry(Entry entry)
+    {
+      final Set<ByteString> keys = new HashSet<>();
+      indexEntry(entry, keys);
+      return keys;
     }
 
     private void modifyEntry(Entry oldEntry, Entry newEntry, Map<ByteString, Boolean> modifiedKeys)
     {
-      List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
-      if (oldAttributes != null)
+      for (ByteString key : indexEntry(oldEntry))
       {
-        final Set<ByteString> keys = new HashSet<ByteString>();
-        indexAttribute(oldAttributes, keys);
-        for (ByteString key : keys)
-        {
-          modifiedKeys.put(key, false);
-        }
+        modifiedKeys.put(key, false);
       }
 
-      List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
-      if (newAttributes != null)
+      for (ByteString key : indexEntry(newEntry))
       {
-        final Set<ByteString> keys = new HashSet<ByteString>();
-        indexAttribute(newAttributes, keys);
-        for (ByteString key : keys)
+        final Boolean needsAdding = modifiedKeys.get(key);
+        if (needsAdding == null)
         {
-          final Boolean needsAdding = modifiedKeys.get(key);
-          if (needsAdding == null)
-          {
-            // This value has been added.
-            modifiedKeys.put(key, true);
-          }
-          else if (!needsAdding)
-          {
-            // This value has not been added or removed.
-            modifiedKeys.remove(key);
-          }
+          // This value has been added.
+          modifiedKeys.put(key, true);
+        }
+        else if (!needsAdding)
+        {
+          // This value has not been added or removed.
+          modifiedKeys.remove(key);
         }
       }
     }
 
     private void indexAttribute(List<Attribute> attributes, Set<ByteString> keys)
     {
+      if (attributes == null)
+      {
+        return;
+      }
       for (Attribute attr : attributes)
       {
         if (!attr.isVirtual())
@@ -202,9 +196,7 @@ class AttributeIndex
   /** The key bytes used for the presence index as a {@link ByteString}. */
   static final ByteString PRESENCE_KEY = ByteString.valueOf("+");
 
-  /**
-   * A special indexer for generating presence indexes.
-   */
+  /** A special indexer for generating presence indexes. */
   private static final Indexer PRESENCE_INDEXER = new Indexer()
   {
     @Override
@@ -253,10 +245,9 @@ class AttributeIndex
     final int indexEntryLimit = config.getIndexEntryLimit();
     final IndexingOptions indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
 
-    final Map<String, MatchingRuleIndex> indexes = new HashMap<>();
-
+    Collection<Indexer> indexers = new ArrayList<>();
     for(IndexType indexType : config.getIndexType()) {
-      Collection<? extends Indexer> indexers;
+      MatchingRule rule;
       switch (indexType)
       {
       case PRESENCE:
@@ -267,31 +258,26 @@ class AttributeIndex
             getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions);
         break;
       case APPROXIMATE:
-        indexers =
-            throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule()).createIndexers(
-                indexingOptions);
+        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule());
+        indexers.addAll(rule.createIndexers(indexingOptions));
         break;
       case EQUALITY:
-        indexers =
-            throwIfNoMatchingRule(attributeType, indexType, attributeType.getEqualityMatchingRule()).createIndexers(
-                indexingOptions);
+        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getEqualityMatchingRule());
+        indexers.addAll(rule.createIndexers(indexingOptions));
         break;
       case ORDERING:
-        indexers =
-            throwIfNoMatchingRule(attributeType, indexType, attributeType.getOrderingMatchingRule()).createIndexers(
-                indexingOptions);
+        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getOrderingMatchingRule());
+        indexers.addAll(rule.createIndexers(indexingOptions));
         break;
       case SUBSTRING:
-        indexers =
-            throwIfNoMatchingRule(attributeType, indexType, attributeType.getSubstringMatchingRule()).createIndexers(
-                indexingOptions);
+        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getSubstringMatchingRule());
+        indexers.addAll(rule.createIndexers(indexingOptions));
         break;
       default:
        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType.toString()));
       }
-      buildIndexesForIndexers(entryContainer, attributeType, state, indexes, indexEntryLimit, indexers);
     }
-    return indexes;
+    return buildIndexesForIndexers(entryContainer, attributeType, state, indexEntryLimit, indexers);
   }
 
   private static MatchingRule throwIfNoMatchingRule(AttributeType attributeType, IndexType type, MatchingRule rule)
@@ -304,9 +290,10 @@ class AttributeIndex
     return rule;
   }
 
-  private static void buildIndexesForIndexers(EntryContainer entryContainer, AttributeType attributeType, State state,
-      Map<String, MatchingRuleIndex> indexes, int indexEntryLimit, Collection<? extends Indexer> indexers)
+  private static Map<String, MatchingRuleIndex> buildIndexesForIndexers(EntryContainer entryContainer,
+      AttributeType attributeType, State state, int indexEntryLimit, Collection<? extends Indexer> indexers)
   {
+    final Map<String, MatchingRuleIndex> indexes = new HashMap<>();
     for (Indexer indexer : indexers)
     {
       final String indexID = indexer.getIndexID();
@@ -315,6 +302,7 @@ class AttributeIndex
         indexes.put(indexID, new MatchingRuleIndex(entryContainer, attributeType, state, indexer, indexEntryLimit));
       }
     }
+    return indexes;
   }
 
   private static Collection<Indexer> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
@@ -431,7 +419,7 @@ class AttributeIndex
   {
     for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      for (ByteString key : indexEntry(index, entry))
+      for (ByteString key : index.indexEntry(entry))
       {
         buffer.put(index, key, entryID);
       }
@@ -451,23 +439,15 @@ class AttributeIndex
   {
     for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      for (ByteString key : indexEntry(index, entry))
+      for (ByteString key : index.indexEntry(entry))
       {
         buffer.remove(index, key, entryID);
       }
     }
   }
 
-  private Set<ByteString> indexEntry(MatchingRuleIndex index, Entry entry)
-  {
-    final Set<ByteString> keys = new HashSet<>();
-    index.indexEntry(entry, keys);
-    return keys;
-  }
-
   /**
-   * Update the index to reflect a sequence of modifications in a Modify
-   * operation.
+   * Update the index to reflect a sequence of modifications in a Modify operation.
    *
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entryID The ID of the entry that was modified.
@@ -480,7 +460,7 @@ class AttributeIndex
   {
     for (MatchingRuleIndex index : indexIdToIndexes.values())
     {
-      TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
+      TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<>();
       index.modifyEntry(oldEntry, newEntry, modifiedKeys);
       for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
       {
@@ -785,7 +765,6 @@ class AttributeIndex
       {
         updateIndex(updatedIndex, newConfiguration.getIndexEntryLimit(), ccr);
       }
-
     }
     catch (Exception e)
     {
