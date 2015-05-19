@@ -25,6 +25,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.ModificationType.ADD;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,14 +38,18 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
 import org.assertj.core.api.Assertions;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -54,7 +59,10 @@ import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -62,14 +70,20 @@ import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
@@ -714,6 +728,30 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     subTreeSearch(false);
     subTreeSearch(true);
+  }
+
+  @Test(dependsOnMethods = "testAdd")
+  public void testSearchIsConsideredUnindexedBasedOnLookThroughLimit() throws DirectoryException {
+    final int nbEntries = topEntries.size() + entries.size() + workEntries.size();
+
+    final SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, "objectclass=*");
+    final ClientConnection connection = new ClientConnectionStub();
+    connection.setLookthroughLimit(0);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(connection, 1, 1, request, null);
+    searchOperation.run();
+    assertThat(searchOperation.getEntriesSent()).isEqualTo(nbEntries);
+
+    connection.setLookthroughLimit(nbEntries);
+    searchOperation = new InternalSearchOperation(connection, 1, 1, request, null);
+    searchOperation.run();
+    assertThat(searchOperation.getEntriesSent()).isEqualTo(nbEntries);
+
+    connection.setLookthroughLimit(nbEntries - 1);
+    searchOperation = new InternalSearchOperation(connection, 1, 1, request, null);
+    searchOperation.run();
+    assertThat(searchOperation.getResultCode()).isEqualTo(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    assertThat(searchOperation.getErrorMessage().toString()).contains("not have sufficient privileges", "unindexed search");
+    assertThat(searchOperation.getEntriesSent()).isEqualTo(0);
   }
 
   private void subTreeSearch(boolean useInternalConnection) throws Exception
