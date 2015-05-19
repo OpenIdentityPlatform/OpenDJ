@@ -391,11 +391,11 @@ public abstract class EntryCache
    * be returned to the client if the corresponding monitor entry is
    * requested.
    *
-   * @return  A set of attributes containing monitor data that should
+   * @return  A list of attributes containing monitor data that should
    *          be returned to the client if the corresponding monitor
    *          entry is requested.
    */
-  public abstract ArrayList<Attribute> getMonitorData();
+  public abstract List<Attribute> getMonitorData();
 
 
 

@@ -27,6 +27,8 @@
 package org.opends.server.monitors;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -124,17 +126,14 @@ public class EntryCacheMonitorProvider
 
   /** {@inheritDoc} */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
     if ((entryCache != null) &&
         (monitorConfiguration != null) &&
         (monitorConfiguration.isEnabled())) {
       // Get monitor data from the cache.
-      attrs = entryCache.getMonitorData();
+      return entryCache.getMonitorData();
     }
-
-    return attrs;
+    return Collections.emptyList();
   }
 }
