@@ -865,7 +865,11 @@ public class EntryContainer
 
             if (!isBelowFilterThreshold(entryIDSet))
             {
-              final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope);
+              final int lookThroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
+              final int idSetLimit =
+                  lookThroughLimit == 0 ? SCOPE_IDSET_LIMIT : Math.min(SCOPE_IDSET_LIMIT, lookThroughLimit);
+
+              final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope, idSetLimit);
               entryIDSet.retainAll(scopeSet);
               if (debugBuffer != null)
               {
@@ -969,8 +973,8 @@ public class EntryContainer
           return null;
         }
 
-        private EntryIDSet getIDSetFromScope(final ReadableTransaction txn, DN aBaseDN, SearchScope searchScope)
-            throws DirectoryException
+        private EntryIDSet getIDSetFromScope(final ReadableTransaction txn, DN aBaseDN, SearchScope searchScope,
+            int idSetLimit) throws DirectoryException
         {
           final EntryIDSet scopeSet;
           try
@@ -986,14 +990,14 @@ public class EntryContainer
             case SINGLE_LEVEL:
               try (final SequentialCursor<?, EntryID> scopeCursor = dn2id.openChildrenCursor(txn, aBaseDN))
               {
-                scopeSet = newIDSetFromCursor(scopeCursor, false);
+                scopeSet = newIDSetFromCursor(scopeCursor, false, idSetLimit);
               }
               break;
             case SUBORDINATES:
             case WHOLE_SUBTREE:
               try (final SequentialCursor<?, EntryID> scopeCursor = dn2id.openSubordinatesCursor(txn, aBaseDN))
               {
-                scopeSet = newIDSetFromCursor(scopeCursor, searchScope.equals(SearchScope.WHOLE_SUBTREE));
+                scopeSet = newIDSetFromCursor(scopeCursor, searchScope.equals(SearchScope.WHOLE_SUBTREE), idSetLimit);
               }
               break;
             default:
@@ -1016,23 +1020,32 @@ public class EntryContainer
     }
   }
 
-  private static EntryIDSet newIDSetFromCursor(SequentialCursor<?, EntryID> cursor, boolean includeCurrent)
+  private static EntryIDSet newIDSetFromCursor(SequentialCursor<?, EntryID> cursor, boolean includeCurrent,
+      int idSetLimit)
   {
-    long ids[] = new long[SCOPE_IDSET_LIMIT];
+    long entryIDs[] = new long[idSetLimit];
     int offset = 0;
-    if (includeCurrent) {
-      ids[offset++] = cursor.getValue().longValue();
-    }
-    for(; offset < ids.length && cursor.next() ; offset++) {
-      ids[offset] = cursor.getValue().longValue();
+    if (includeCurrent)
+    {
+      entryIDs[offset++] = cursor.getValue().longValue();
     }
 
-    ids = Arrays.copyOf(ids, offset);
-    Arrays.sort(ids);
+    while(offset < idSetLimit && cursor.next())
+    {
+      entryIDs[offset++] = cursor.getValue().longValue();
+    }
 
-    return offset == SCOPE_IDSET_LIMIT
-        ? EntryIDSet.newUndefinedSet()
-        : EntryIDSet.newDefinedSet(ids);
+    if (offset == idSetLimit && cursor.next())
+    {
+      return EntryIDSet.newUndefinedSet();
+    }
+    else if (offset != idSetLimit)
+    {
+      entryIDs = Arrays.copyOf(entryIDs, offset);
+    }
+    Arrays.sort(entryIDs);
+
+    return EntryIDSet.newDefinedSet(entryIDs);
   }
 
   private <E1 extends Exception, E2 extends Exception>
