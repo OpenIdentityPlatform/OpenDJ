@@ -1337,7 +1337,7 @@ final class OnDiskMergeBufferImporter
       oldEntry = oldID != null ? suffix.getID2Entry().get(txn, oldID) : null;
       if (oldEntry == null)
       {
-        if (validateDNs && !dnSanityCheck(txn, entry, suffix))
+        if (validateDNs && !dnSanityCheck(txn, entry, entryID, suffix))
         {
           suffix.removePending(entryDN);
           return;
@@ -1429,7 +1429,7 @@ final class OnDiskMergeBufferImporter
         throws DirectoryException, StorageRuntimeException, InterruptedException
     {
       DN entryDN = entry.getName();
-      if (validateDNs && !dnSanityCheck(txn, entry, suffix))
+      if (validateDNs && !dnSanityCheck(txn, entry, entryID, suffix))
       {
         suffix.removePending(entryDN);
         return;
@@ -1449,34 +1449,24 @@ final class OnDiskMergeBufferImporter
      * @return true if the import operation can proceed with the provided entry, false otherwise
      */
     @SuppressWarnings("javadoc")
-    boolean dnSanityCheck(WriteableTransaction txn, Entry entry, Suffix suffix)
+    boolean dnSanityCheck(WriteableTransaction txn, Entry entry, EntryID entryID, Suffix suffix)
         throws StorageRuntimeException, InterruptedException
     {
       //Perform parent checking.
       DN entryDN = entry.getName();
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
-      if (parentDN != null && !suffix.isParentProcessed(txn, parentDN, dnCache, clearedBackend))
+      DNCache localDnCache = clearedBackend ? dnCache : new Dn2IdDnCache(suffix, txn);
+      if (parentDN != null && !suffix.isParentProcessed(parentDN, localDnCache))
       {
         reader.rejectEntry(entry, ERR_IMPORT_PARENT_NOT_FOUND.get(parentDN));
         return false;
       }
-      if (!insert(txn, entryDN, suffix, dnCache))
+      if (!localDnCache.insert(entryDN, entryID))
       {
         reader.rejectEntry(entry, WARN_IMPORT_ENTRY_EXISTS.get());
         return false;
       }
       return true;
-    }
-
-    private boolean insert(WriteableTransaction txn, DN entryDN, Suffix suffix, DNCache dnCache)
-    {
-      //If the backend was not cleared, then first check dn2id
-      //for DNs that might not exist in the DN cache.
-      if (!clearedBackend && suffix.getDN2ID().get(txn, entryDN) != null)
-      {
-        return false;
-      }
-      return dnCache.insert(entryDN);
     }
 
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID, boolean allIndexes)
@@ -3338,12 +3328,14 @@ final class OnDiskMergeBufferImporter
      *
      * @param dn
      *          The DN to insert in the cache.
+     * @param entryID
+     *          The entryID associated to the DN.
      * @return {@code true} if the DN was inserted in the cache, or {@code false} if the DN exists
      *         in the cache already and could not be inserted.
      * @throws StorageRuntimeException
      *           If an error occurs accessing the storage.
      */
-    boolean insert(DN dn);
+    boolean insert(DN dn, EntryID entryID);
 
     /**
      * Returns whether the specified DN is contained in the DN cache.
@@ -3480,7 +3472,7 @@ final class OnDiskMergeBufferImporter
     }
 
     @Override
-    public boolean insert(DN dn) throws StorageRuntimeException
+    public boolean insert(DN dn, EntryID unused) throws StorageRuntimeException
     {
       // Use a compact representation for key
       // and a reversible representation for value
@@ -3601,6 +3593,42 @@ final class OnDiskMergeBufferImporter
       {
         throw new StorageRuntimeException(e);
       }
+    }
+  }
+
+  /** Cache used when the backend has not been cleared */
+  private final class Dn2IdDnCache implements DNCache
+  {
+    private final Suffix suffix;
+    private final ReadableTransaction txn;
+
+    private Dn2IdDnCache(Suffix suffix, ReadableTransaction txn)
+    {
+      this.suffix = suffix;
+      this.txn = txn;
+    }
+
+    @Override
+    public boolean insert(DN dn, EntryID entryID)
+    {
+      return !existsInDN2ID(dn) && dnCache.insert(dn, entryID);
+    }
+
+    @Override
+    public boolean contains(DN dn) throws StorageRuntimeException
+    {
+      return dnCache.contains(dn) || existsInDN2ID(dn);
+    }
+
+    private boolean existsInDN2ID(DN dn)
+    {
+      return suffix.getDN2ID().get(txn, dn) != null;
+    }
+
+    @Override
+    public void close()
+    {
+      // Nothing to do
     }
   }
 }

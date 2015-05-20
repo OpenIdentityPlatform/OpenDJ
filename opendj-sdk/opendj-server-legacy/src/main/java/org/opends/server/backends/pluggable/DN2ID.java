@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.CursorTransformer.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,6 +38,7 @@ import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -87,15 +88,33 @@ class DN2ID extends AbstractTree
 
   /**
    * Adds a new record into the DN tree replacing any existing record having the same DN.
+   *
    * @param txn a non null transaction
    * @param dn The entry DN, which is the key to the record.
-   * @param id The entry ID, which is the value of the record.
-   * @throws StorageRuntimeException If an error occurred while attempting to insert
-   * the new record.
+   * @param entryID The entry ID, which is the value of the record.
+   * @throws StorageRuntimeException If an error occurred while attempting to insert the new record.
    */
-  void put(final WriteableTransaction txn, DN dn, final EntryID id) throws StorageRuntimeException
+  void put(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
   {
-    txn.put(getName(), dnToKey(dn), id.toByteString());
+    txn.put(getName(), dnToKey(dn), entryID.toByteString());
+  }
+
+  boolean insert(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
+  {
+    return txn.update(getName(), dnToKey(dn), new UpdateFunction()
+    {
+      @Override
+      public ByteSequence computeNewValue(ByteSequence oldEntryID)
+      {
+        if (oldEntryID != null)
+        {
+          // no change
+          return oldEntryID;
+        }
+        // it did not exist before, insert the new value
+        return entryID.toByteString();
+      }
+    });
   }
 
   private ByteString dnToKey(DN dn) {

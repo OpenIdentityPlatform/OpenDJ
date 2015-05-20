@@ -35,7 +35,6 @@ import java.util.concurrent.CountDownLatch;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
-import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.AttributeType;
@@ -47,7 +46,7 @@ import org.opends.server.types.DN;
  * during and import to support multiple suffixes in a backend. A rebuild
  * index has only one of these instances.
  */
-class Suffix
+final class Suffix
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -195,16 +194,14 @@ class Suffix
    * It will optionally check the dn2id tree for the dn if the specified
    * cleared backend boolean is {@code true}.
    *
-   * @param txn a non null transaction
    * @param dn The DN to check for.
    * @param dnCache The importer DN cache.
-   * @param clearedBackend Set to {@code true} if the import process cleared the backend before processing.
    * @return {@code true} if the dn is contained in the parent ID, or {@code false} otherwise.
    * @throws StorageRuntimeException If an error occurred searching the DN cache, or dn2id tree.
    * @throws InterruptedException If an error occurred processing the pending map
    */
-  public boolean isParentProcessed(ReadableTransaction txn, DN dn, DNCache dnCache, boolean clearedBackend)
-      throws StorageRuntimeException, InterruptedException {
+  public boolean isParentProcessed(DN dn, DNCache dnCache) throws StorageRuntimeException, InterruptedException
+  {
     synchronized(synchObject) {
       if(parentSet.contains(dn))
       {
@@ -220,9 +217,7 @@ class Suffix
     }
     // Either parent is in the DN cache,
     // or else check the dn2id tree for the DN (only if backend wasn't cleared)
-    final boolean parentThere = dnCache.contains(dn)
-        || (!clearedBackend
-            && getDN2ID().get(txn, dn) != null);
+    final boolean parentThere = dnCache.contains(dn);
     //Add the DN to the parent set if needed.
     if (parentThere) {
       synchronized(synchObject) {
