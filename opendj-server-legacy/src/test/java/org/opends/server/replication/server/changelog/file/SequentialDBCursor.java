@@ -21,9 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
-package org.opends.server.replication.server.changelog.je;
+package org.opends.server.replication.server.changelog.file;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -86,7 +86,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
+import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;

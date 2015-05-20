@@ -21,9 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
-package org.opends.server.replication.server.changelog.je;
+package org.opends.server.replication.server.changelog.file;
 
 import java.util.Map.Entry;
 import java.util.Set;
@@ -43,7 +43,6 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
@@ -302,7 +301,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * Restores in memory data needed to build the CNIndexDB. In particular,
    * initializes the changes cursor to the medium consistency point.
    */
-  private void initialize() throws ChangelogException, DirectoryException
+  private void initialize() throws ChangelogException
   {
     final ReplicationDomainDB domainDB = changelogDB.getReplicationDomainDB();
 

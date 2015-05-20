@@ -23,7 +23,7 @@
  *
  *      Copyright 2013-2015 ForgeRock AS
  */
-package org.opends.server.replication.server.changelog.je;
+package org.opends.server.replication.server.changelog.file;
 
 import static org.forgerock.util.Pair.*;
 import static org.testng.Assert.*;
@@ -33,6 +33,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.file.CompositeDBCursor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
