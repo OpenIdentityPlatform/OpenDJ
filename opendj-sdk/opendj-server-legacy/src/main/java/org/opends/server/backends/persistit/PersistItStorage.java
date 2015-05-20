@@ -810,7 +810,9 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     try
     {
       // FIXME: use full programmatic way of retrieving backup file once available in persistIt
-      String filesAsString = db.getManagement().execute("backup -f");
+      // When requesting files to backup, append only mode must also be set (-a) otherwise it will be ended
+      // by PersistIt and performing backup may corrupt the DB.
+      String filesAsString = db.getManagement().execute("backup -a -f");
       String[] allFiles = filesAsString.split("[\r\n]+");
       final List<Path> files = new ArrayList<>();
       for (String file : allFiles)
@@ -866,7 +868,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     try
     {
       // FIXME: use full programmatic way of switching to this mode once available in persistIt
-      db.getManagement().execute("backup -y -a -c");
+      db.getManagement().execute("backup -a -c");
     }
     catch (RemoteException e)
     {
