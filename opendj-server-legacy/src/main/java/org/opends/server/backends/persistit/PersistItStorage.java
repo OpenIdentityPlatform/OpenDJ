@@ -34,6 +34,7 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -98,6 +99,9 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   DiskSpaceMonitorHandler
 {
   private static final String VOLUME_NAME = "dj";
+
+  private static final String JOURNAL_NAME = VOLUME_NAME + "_journal";
+
   /** The buffer / page size used by the PersistIt storage. */
   private static final int BUFFER_SIZE = 16 * 1024;
 
@@ -580,7 +584,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   {
     final Configuration dbCfg = new Configuration();
     dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
-    dbCfg.setJournalPath(new File(backendDirectory, VOLUME_NAME + "_journal").getPath());
+    dbCfg.setJournalPath(new File(backendDirectory, JOURNAL_NAME).getPath());
     dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
         BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg(dbCfg);
@@ -809,6 +813,11 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   {
     try
     {
+      if (db == null)
+      {
+        return getFilesToBackupWhenOffline();
+      }
+
       // FIXME: use full programmatic way of retrieving backup file once available in persistIt
       // When requesting files to backup, append only mode must also be set (-a) otherwise it will be ended
       // by PersistIt and performing backup may corrupt the DB.
@@ -821,11 +830,33 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
       }
       return files.listIterator();
     }
-    catch (RemoteException e)
+    catch (Exception e)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_BACKEND_LIST_FILES_TO_BACKUP.get(config.getBackendId(), stackTraceToSingleLineString(e)));
     }
+  }
+
+  /** Filter to retrieve the database files to backup. */
+  private static final FileFilter BACKUP_FILES_FILTER = new FileFilter()
+  {
+    @Override
+    public boolean accept(File file)
+    {
+      String name = file.getName();
+      return name.equals(VOLUME_NAME) || name.matches(JOURNAL_NAME + "\\.\\d+$");
+    }
+  };
+
+  /**
+   * Returns the list of files to backup when there is no open database.
+   * <p>
+   * It is not possible to rely on the database returning the files, so the files must be retrieved
+   * from a file filter.
+   */
+  private ListIterator<Path> getFilesToBackupWhenOffline() throws DirectoryException
+  {
+    return BackupManager.getFiles(getDirectory(), BACKUP_FILES_FILTER, config.getBackendId()).listIterator();
   }
 
   @Override
@@ -899,14 +930,20 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    switchToAppendOnlyMode();
+    if (db != null)
+    {
+      switchToAppendOnlyMode();
+    }
     try
     {
       new BackupManager(config.getBackendId()).createBackup(this, backupConfig);
     }
     finally
     {
-      endAppendOnlyMode();
+      if (db != null)
+      {
+        endAppendOnlyMode();
+      }
     }
   }
 
