@@ -24,11 +24,10 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-package org.opends.server.tools;
+package org.opends.server.backends.jeb;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -51,25 +50,13 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.DN2ID;
-import org.opends.server.backends.jeb.DN2URI;
-import org.opends.server.backends.jeb.DatabaseContainer;
-import org.opends.server.backends.jeb.EntryContainer;
-import org.opends.server.backends.jeb.EntryID;
-import org.opends.server.backends.jeb.EntryIDSet;
-import org.opends.server.backends.jeb.ID2Entry;
-import org.opends.server.backends.jeb.Index;
-import org.opends.server.backends.jeb.JebFormat;
-import org.opends.server.backends.jeb.RootContainer;
-import org.opends.server.backends.jeb.SortValuesSet;
-import org.opends.server.backends.jeb.VLVIndex;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
+import org.opends.server.tools.BackendToolUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;

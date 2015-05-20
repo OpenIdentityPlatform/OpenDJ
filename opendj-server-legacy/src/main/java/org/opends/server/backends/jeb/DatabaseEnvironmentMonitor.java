@@ -24,7 +24,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-package org.opends.server.monitors;
+package org.opends.server.backends.jeb;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -36,10 +36,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.backends.jeb.DatabaseContainer;
-import org.opends.server.backends.jeb.EntryContainer;
-import org.opends.server.backends.jeb.Index;
-import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
@@ -55,7 +51,7 @@ import com.sleepycat.je.TransactionStats;
  * It uses reflection on the environment statistics object
  * so that we don't need to keep a list of all the stats.
  */
-public class DatabaseEnvironmentMonitor
+final class DatabaseEnvironmentMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

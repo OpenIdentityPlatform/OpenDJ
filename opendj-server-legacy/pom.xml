@@ -1583,7 +1583,7 @@
 
                     <tool>
                      <name>dbtest</name>
-                     <application>org.opends.server.tools.DBTest</application>
+                     <application>org.opends.server.backends.jeb.DBTest</application>
                      <trailingSectionPaths>
                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
                        <trailingSectionPath>dbtest-examples.xml</trailingSectionPath>
