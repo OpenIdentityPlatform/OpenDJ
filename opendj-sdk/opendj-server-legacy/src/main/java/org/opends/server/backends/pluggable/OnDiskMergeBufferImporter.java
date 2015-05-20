@@ -2389,8 +2389,7 @@ final class OnDiskMergeBufferImporter
         {
           return;
         }
-        boolean isDN2ID = DN2ID_INDEX_NAME.equals(indexKey.getIndexID());
-        IndexManager indexMgr = new IndexManager(indexKey.getName(), isDN2ID, indexKey.getEntryLimit());
+        IndexManager indexMgr = new IndexManager(indexKey);
         indexMgrList.add(indexMgr);
         BlockingQueue<IndexOutputBuffer> newQueue = new ArrayBlockingQueue<>(phaseOneBufferCount);
         ScratchFileWriterTask indexWriter = new ScratchFileWriterTask(newQueue, indexMgr);
@@ -2421,13 +2420,16 @@ final class OnDiskMergeBufferImporter
     private long totalDNs;
     private volatile IndexDBWriteTask writer;
 
-    private IndexManager(String bufferFileName, boolean isDN2ID, int indexEntryLimit)
+    private IndexManager(IndexKey indexKey)
     {
+      final String bufferFileName = indexKey.getName();
+      final int entryLimit = indexKey.getEntryLimit();
+
       this.bufferFile = new File(tempDir, bufferFileName);
       this.bufferIndexFile = new File(tempDir, bufferFileName + ".index");
 
-      this.isDN2ID = isDN2ID;
-      this.indexEntryLimit = indexEntryLimit > 0 ? indexEntryLimit : Integer.MAX_VALUE;
+      this.isDN2ID = DN2ID_INDEX_NAME.equals(indexKey.getIndexID());
+      this.indexEntryLimit = entryLimit > 0 ? entryLimit : Integer.MAX_VALUE;
     }
 
     private void setIndexDBWriteTask(IndexDBWriteTask writer)
