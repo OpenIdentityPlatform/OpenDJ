@@ -20,9 +20,9 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-package org.opends.server.replication.server.changelog.je;
+package org.opends.server.replication.server.changelog.file;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;

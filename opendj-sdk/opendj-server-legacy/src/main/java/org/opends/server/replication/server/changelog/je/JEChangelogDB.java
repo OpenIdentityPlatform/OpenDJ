@@ -62,6 +62,10 @@ import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingSt
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.file.ChangeNumberIndexer;
+import org.opends.server.replication.server.changelog.file.DomainDBCursor;
+import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
+import org.opends.server.replication.server.changelog.file.ReplicaCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;

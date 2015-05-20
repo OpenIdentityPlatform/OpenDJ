@@ -33,7 +33,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
-import org.opends.server.replication.server.changelog.je.MultiDomainDBCursor;
+import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
 import org.opends.server.types.DN;
 
 /**

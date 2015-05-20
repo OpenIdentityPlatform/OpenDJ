@@ -21,10 +21,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  *      Portions Copyright 2014 ForgeRock AS
  */
-package org.opends.server.replication.server.changelog.je;
+package org.opends.server.replication.server.changelog.file;
 
 import java.lang.Thread.State;
 import java.util.Arrays;
@@ -48,6 +48,10 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.file.ChangeNumberIndexer;
+import org.opends.server.replication.server.changelog.file.DomainDBCursor;
+import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
+import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
 import org.opends.server.types.DN;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;

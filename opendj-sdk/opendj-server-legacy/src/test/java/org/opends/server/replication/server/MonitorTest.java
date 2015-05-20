@@ -39,7 +39,7 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
+import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
