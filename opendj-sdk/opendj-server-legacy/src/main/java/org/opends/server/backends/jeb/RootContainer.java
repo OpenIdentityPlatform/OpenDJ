@@ -38,7 +38,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;

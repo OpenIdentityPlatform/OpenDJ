@@ -33,7 +33,6 @@ import java.util.Map;
 
 import org.opends.server.backends.jeb.AttributeIndex.IndexFilterType;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
