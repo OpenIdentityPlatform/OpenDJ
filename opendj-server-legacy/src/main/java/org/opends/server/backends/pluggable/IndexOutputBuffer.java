@@ -32,6 +32,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.ByteArrayOutputStream;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.IndexKey;
 
 /**
  * This class represents a index buffer used to store the keys and entry IDs
@@ -92,7 +93,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * Used to make sure that an instance of this class is put on the
    * correct scratch file writer work queue for processing.
    */
-  private Importer.IndexKey indexKey;
+  private IndexKey indexKey;
 
   /**
    * Set to {@code true} if the buffer should not be recycled. Used when the
@@ -568,7 +569,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    *
    * @param indexKey The index key.
    */
-  public void setIndexKey(Importer.IndexKey indexKey)
+  public void setIndexKey(IndexKey indexKey)
   {
     this.indexKey = indexKey;
   }
@@ -577,7 +578,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * Return the index key of an index buffer.
    * @return The index buffer's index key.
    */
-  public Importer.IndexKey getIndexKey()
+  public IndexKey getIndexKey()
   {
     return indexKey;
   }

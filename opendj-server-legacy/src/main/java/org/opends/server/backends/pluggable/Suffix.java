@@ -34,7 +34,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
-import org.opends.server.backends.pluggable.Importer.DNCache;
+import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;

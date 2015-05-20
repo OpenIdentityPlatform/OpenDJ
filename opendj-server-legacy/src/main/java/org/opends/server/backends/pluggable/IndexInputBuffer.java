@@ -36,7 +36,7 @@ import java.nio.channels.FileChannel;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.backends.pluggable.Importer.IndexManager;
+import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.IndexManager;
 
 /**
  * The buffer class is used to process a buffer from the temporary index files
