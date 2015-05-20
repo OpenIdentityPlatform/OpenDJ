@@ -163,7 +163,7 @@ final class ImportLDIFReader extends LDIFReader
           logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           continue;
         }
-        suffix = Importer.getMatchSuffix(entryDN, suffixesMap);
+        suffix = getMatchSuffix(entryDN, suffixesMap);
         if (suffix == null)
         {
           logger.trace("Skipping entry %s because the DN is not one that "
@@ -292,5 +292,29 @@ final class ImportLDIFReader extends LDIFReader
       return false;
     }
     return true;
+  }
+
+  /**
+   * Return the suffix instance in the specified map that matches the specified DN.
+   *
+   * @param dn
+   *          The DN to search for.
+   * @param map
+   *          The map to search.
+   * @return The suffix instance that matches the DN, or null if no match is found.
+   */
+  private Suffix getMatchSuffix(DN dn, Map<DN, Suffix> map)
+  {
+    DN nodeDN = dn;
+    while (nodeDN != null)
+    {
+      final Suffix suffix = map.get(nodeDN);
+      if (suffix != null)
+      {
+        return suffix;
+      }
+      nodeDN = nodeDN.getParentDNInSuffix();
+    }
+    return null;
   }
 }
