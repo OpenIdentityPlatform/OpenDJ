@@ -319,9 +319,9 @@ final class OnDiskMergeBufferImporter
     this.dnCache = null;
   }
 
-  @SuppressWarnings("javadoc")
-  OnDiskMergeBufferImporter(RootContainer rootContainer, LDIFImportConfig importCfg, PluggableBackendCfg backendCfg,
-      ServerContext serverContext) throws InitializationException, ConfigException, StorageRuntimeException
+  private OnDiskMergeBufferImporter(RootContainer rootContainer, LDIFImportConfig importCfg,
+      PluggableBackendCfg backendCfg, ServerContext serverContext)
+      throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rootContainer = rootContainer;
     this.rebuildManager = null;
@@ -3230,7 +3230,7 @@ final class OnDiskMergeBufferImporter
      * @param entryLimit
      *          The entry limit for the index.
      */
-    private IndexKey(AttributeType attributeType, String indexID, int entryLimit)
+    IndexKey(AttributeType attributeType, String indexID, int entryLimit)
     {
       this.attributeType = attributeType;
       this.indexID = indexID;
