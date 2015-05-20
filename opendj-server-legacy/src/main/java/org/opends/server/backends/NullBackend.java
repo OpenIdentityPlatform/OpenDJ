@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends;
 
-import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

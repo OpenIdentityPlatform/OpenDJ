@@ -27,7 +27,6 @@
 package org.opends.server.backends.jeb;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

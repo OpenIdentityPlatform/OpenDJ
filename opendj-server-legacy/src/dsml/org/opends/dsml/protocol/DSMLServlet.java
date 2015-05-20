@@ -36,14 +36,12 @@ import static org.opends.messages.CoreMessages.
 import static org.opends.messages.CoreMessages.INFO_RESULT_AUTHORIZATION_DENIED;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -51,14 +49,16 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -75,9 +75,11 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -89,22 +91,18 @@ import org.opends.server.tools.LDAPConnectionException;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.LDAPException;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.Base64;
 
 import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
 import org.xml.sax.EntityResolver;
-import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
-
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * This class provides the entry point for the DSML request.
@@ -304,6 +302,7 @@ public class DSMLServlet extends HttpServlet {
    * @throws ServletException If an error occurs during servlet processing.
    * @throws IOException   If an error occurs while interacting with the client.
    */
+  @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res)
   throws ServletException, IOException {
     LDAPConnectionOptions connOptions = new LDAPConnectionOptions();
@@ -747,7 +746,7 @@ public class DSMLServlet extends HttpServlet {
         // Process the abandon request.
         AbandonRequest ar = (AbandonRequest) request;
         DSMLAbandonOperation ao = new DSMLAbandonOperation(connection);
-        LDAPResult abandonResponse = ao.doOperation(objFactory, ar, controls);
+        ao.doOperation(objFactory, ar, controls);
         return null;
       } else if (request instanceof ExtendedRequest) {
         // Process the extended request.
@@ -954,6 +953,7 @@ public class DSMLServlet extends HttpServlet {
      * This function fetches the requestID value of the batchRequest xml
      * element and call the default implementation (super).
      */
+    @Override
     public void startElement(String uri, String localName, String qName,
                              Attributes attributes) throws SAXException {
       if ( requestID==null && localName.equals("batchRequest") ) {
@@ -969,6 +969,7 @@ public class DSMLServlet extends HttpServlet {
    */
   private class SafeEntityResolver implements EntityResolver
   {
+    @Override
     public InputSource resolveEntity(String publicId, String systemId)
     {
       return new InputSource(new StringReader(""));
