@@ -412,33 +412,6 @@ final class Importer
   }
 
   /**
-   * Return the suffix instance in the specified map that matches the specified
-   * DN.
-   *
-   * @param dn
-   *          The DN to search for.
-   * @param map
-   *          The map to search.
-   * @return The suffix instance that matches the DN, or null if no match is
-   *         found.
-   */
-  public static Suffix getMatchSuffix(DN dn, Map<DN, Suffix> map)
-  {
-    Suffix suffix = null;
-    DN nodeDN = dn;
-
-    while (suffix == null && nodeDN != null)
-    {
-      suffix = map.get(nodeDN);
-      if (suffix == null)
-      {
-        nodeDN = nodeDN.getParentDNInSuffix();
-      }
-    }
-    return suffix;
-  }
-
-  /**
    * Calculate buffer sizes and initialize properties based on memory.
    *
    * @throws InitializationException
