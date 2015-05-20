@@ -483,6 +483,7 @@
               </excludes>
               <additionalJars>
                  <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
               </additionalJars>
             </configuration>
           </execution>
@@ -495,6 +496,9 @@
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
               <productJarName>${shortProductName}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
+              <additionalJars>
+                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
+              </additionalJars>
             </configuration>
           </execution>
 
@@ -737,6 +741,22 @@
               </includes>
             </configuration>
           </execution>
+          <!-- Package JE backend and changelog jar -->
+          <execution>
+            <id>build-opendj-je-backend-changelog-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>opendj-je-backend-changelog</finalName>
+              <includes>
+                <include>org/opends/server/backends/jeb/**</include>
+                <include>org/opends/server/replication/server/changelog/je/**</include>
+              </includes>
+            </configuration>
+          </execution>
           <!-- Build localized jars (one per supported locale) -->
           <!-- (is there a way to avoid all these repeated executions ?) -->
           <execution>
@@ -930,6 +950,8 @@
                 <exclude>**/*_zh_TW.properties</exclude>
                 <exclude>org/slf4j/**</exclude>
                 <exclude>org/opends/server/loggers/OpenDJLogger*</exclude>
+                <exclude>org/opends/server/backends/jeb/**</exclude>
+                <exclude>org/opends/server/replication/server/changelog/je/**</exclude>
               </excludes>
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
