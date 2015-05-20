@@ -640,7 +640,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
     try
     {
-      if (Importer.mustClearBackend(importConfig, cfg))
+      if (OnDiskMergeBufferImporter.mustClearBackend(importConfig, cfg))
       {
         try
         {
@@ -694,7 +694,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   private ImportStrategy getImportStrategy() throws DirectoryException
   {
     // TODO JNR may call new SuccessiveAddsImportStrategy() depending on configured import strategy
-    return new Importer.StrategyImpl(cfg);
+    return new OnDiskMergeBufferImporter.StrategyImpl(cfg);
   }
 
   /** {@inheritDoc} */
@@ -767,7 +767,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = initializeRootContainer();
       }
-      new Importer(rootContainer, rebuildConfig, cfg, serverContext).rebuildIndexes();
+      new OnDiskMergeBufferImporter(rootContainer, rebuildConfig, cfg, serverContext).rebuildIndexes();
     }
     catch (ExecutionException execEx)
     {

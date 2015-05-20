@@ -103,6 +103,7 @@ import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -126,10 +127,10 @@ import org.opends.server.util.Platform;
  * This class provides the engine that performs both importing of LDIF files and
  * the rebuilding of indexes.
  */
-final class Importer
+final class OnDiskMergeBufferImporter
 {
   /**
-   * Shim that allows properly constructing an {@link Importer} without polluting
+   * Shim that allows properly constructing an {@link OnDiskMergeBufferImporter} without polluting
    * {@link ImportStrategy} and {@link RootContainer} with this importer inner workings.
    */
   @SuppressWarnings("javadoc")
@@ -148,7 +149,7 @@ final class Importer
     {
       try
       {
-        return new Importer(rootContainer, importConfig, backendCfg, serverContext).processImport();
+        return new OnDiskMergeBufferImporter(rootContainer, importConfig, backendCfg, serverContext).processImport();
       }
       catch (DirectoryException | InitializationException e)
       {
@@ -300,7 +301,7 @@ final class Importer
   private int phaseOneBufferCount;
 
   @SuppressWarnings("javadoc")
-  Importer(RootContainer rootContainer, RebuildConfig rebuildConfig, PluggableBackendCfg cfg,
+  OnDiskMergeBufferImporter(RootContainer rootContainer, RebuildConfig rebuildConfig, PluggableBackendCfg cfg,
       ServerContext serverContext) throws InitializationException, StorageRuntimeException, ConfigException
   {
     this.rootContainer = rootContainer;
@@ -319,7 +320,7 @@ final class Importer
   }
 
   @SuppressWarnings("javadoc")
-  Importer(RootContainer rootContainer, LDIFImportConfig importCfg, PluggableBackendCfg backendCfg,
+  OnDiskMergeBufferImporter(RootContainer rootContainer, LDIFImportConfig importCfg, PluggableBackendCfg backendCfg,
       ServerContext serverContext) throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rootContainer = rootContainer;
@@ -379,7 +380,7 @@ final class Importer
    * @param backendCfg
    *          the backend configuration object
    * @return true if the backend must be cleared, false otherwise
-   * @see Importer#prepareSuffix(WriteableTransaction, EntryContainer) for per-suffix cleanups.
+   * @see #prepareSuffix(WriteableTransaction, EntryContainer) for per-suffix cleanups.
    */
   static boolean mustClearBackend(LDIFImportConfig importCfg, PluggableBackendCfg backendCfg)
   {
@@ -1108,7 +1109,7 @@ final class Importer
     // Start DN processing first.
     Storage storage = rootContainer.getStorage();
     storage.close();
-    try (final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport())
+    try (final Importer importer = storage.startImport())
     {
       submitIndexDBWriteTasks(indexMgrList, importer, dbService, permits, buffers, readAheadSize);
     }
@@ -1120,8 +1121,7 @@ final class Importer
     shutdownAll(dbService);
   }
 
-  private void submitIndexDBWriteTasks(List<IndexManager> indexMgrs,
-      org.opends.server.backends.pluggable.spi.Importer importer,
+  private void submitIndexDBWriteTasks(List<IndexManager> indexMgrs, Importer importer,
       ExecutorService dbService, Semaphore permits, int buffers, int readAheadSize) throws InterruptedException
   {
     List<IndexDBWriteTask> tasks = new ArrayList<>(indexMgrs.size());
@@ -1603,7 +1603,7 @@ final class Importer
    */
   private final class IndexDBWriteTask implements Callable<Void>
   {
-    private final org.opends.server.backends.pluggable.spi.Importer importer;
+    private final Importer importer;
     private final IndexManager indexMgr;
     private final int cacheSize;
     /** indexID => DNState map */
@@ -1636,8 +1636,7 @@ final class Importer
      * @param cacheSize
      *          The buffer cache size.
      */
-    public IndexDBWriteTask(org.opends.server.backends.pluggable.spi.Importer importer, IndexManager indexMgr,
-        Semaphore permits, int maxPermits, int cacheSize)
+    public IndexDBWriteTask(Importer importer, IndexManager indexMgr, Semaphore permits, int maxPermits, int cacheSize)
     {
       this.importer = importer;
       this.indexMgr = indexMgr;
@@ -1719,7 +1718,7 @@ final class Importer
     }
 
     /** Finishes this task. */
-    private void endWriteTask(org.opends.server.backends.pluggable.spi.Importer importer)
+    private void endWriteTask(Importer importer)
     {
       isRunning = false;
 
@@ -1798,7 +1797,7 @@ final class Importer
       return null;
     }
 
-    private void call0(org.opends.server.backends.pluggable.spi.Importer importer) throws Exception
+    private void call0(Importer importer) throws Exception
     {
       if (isCanceled)
       {
@@ -1877,8 +1876,8 @@ final class Importer
       return new ImportIDSet(record.getKey(), newDefinedSet(), index.getIndexEntryLimit());
     }
 
-    private void addToDB(org.opends.server.backends.pluggable.spi.Importer importer, int indexID, ImportIDSet insertSet,
-        ImportIDSet deleteSet) throws DirectoryException
+    private void addToDB(Importer importer, int indexID, ImportIDSet insertSet, ImportIDSet deleteSet)
+        throws DirectoryException
     {
       keyCount.incrementAndGet();
       if (indexMgr.isDN2ID())
@@ -1900,8 +1899,7 @@ final class Importer
       }
     }
 
-    private void addDN2ID(org.opends.server.backends.pluggable.spi.Importer importer, int indexID, ImportIDSet idSet)
-        throws DirectoryException
+    private void addDN2ID(Importer importer, int indexID, ImportIDSet idSet) throws DirectoryException
     {
       DNState dnState = dnStateMap.get(indexID);
       if (dnState == null)
@@ -1956,8 +1954,7 @@ final class Importer
 
       /** Why do we still need this if we are checking parents in the first phase? */
       @SuppressWarnings("javadoc")
-      boolean checkParent(org.opends.server.backends.pluggable.spi.Importer importer, ImportIDSet idSet)
-          throws StorageRuntimeException
+      boolean checkParent(Importer importer, ImportIDSet idSet) throws StorageRuntimeException
       {
         entryID = idSet.iterator().next();
         parentDN = getParent(idSet.getKey());
@@ -2040,15 +2037,13 @@ final class Importer
         return importCfg != null && importCfg.appendToExistingData();
       }
 
-      private EntryID get(org.opends.server.backends.pluggable.spi.Importer importer, TreeName dn2id, ByteSequence dn)
-          throws StorageRuntimeException
+      private EntryID get(Importer importer, TreeName dn2id, ByteSequence dn) throws StorageRuntimeException
       {
         ByteString value = importer.read(dn2id, dn);
         return value != null ? new EntryID(value) : null;
       }
 
-      void writeToDN2ID(org.opends.server.backends.pluggable.spi.Importer importer, ByteSequence key)
-          throws DirectoryException
+      void writeToDN2ID(Importer importer, ByteSequence key) throws DirectoryException
       {
         importer.put(dn2id, key, entryID.toByteString());
         indexMgr.addTotDNCount(1);
@@ -2058,7 +2053,7 @@ final class Importer
         }
       }
 
-      private void incrementChildrenCounter(org.opends.server.backends.pluggable.spi.Importer importer)
+      private void incrementChildrenCounter(Importer importer)
       {
         final AtomicLong counter = getId2childrenCounter();
         counter.incrementAndGet();
@@ -2068,7 +2063,7 @@ final class Importer
         }
       }
 
-      private void flush(org.opends.server.backends.pluggable.spi.Importer importer)
+      private void flush(Importer importer)
       {
         for (Map.Entry<EntryID, AtomicLong> childrenCounter : id2childrenCountTree.entrySet())
         {
@@ -2080,7 +2075,7 @@ final class Importer
         id2childrenCountTree.clear();
       }
 
-      void finalFlush(org.opends.server.backends.pluggable.spi.Importer importer)
+      void finalFlush(Importer importer)
       {
         flush(importer);
 
@@ -2173,7 +2168,7 @@ final class Importer
           bufferIndexStream.writeLong(offset);
 
           bufferCount++;
-          Importer.this.bufferCount.incrementAndGet();
+          OnDiskMergeBufferImporter.this.bufferCount.incrementAndGet();
 
           if (poisonSeen)
           {
@@ -2808,7 +2803,7 @@ final class Importer
       }
     }
 
-    /** @see Importer#importPhaseOne(WriteableTransaction) */
+    /** @see #importPhaseOne(WriteableTransaction) */
     private void rebuildIndexesPhaseOne() throws StorageRuntimeException, InterruptedException,
         ExecutionException
     {
