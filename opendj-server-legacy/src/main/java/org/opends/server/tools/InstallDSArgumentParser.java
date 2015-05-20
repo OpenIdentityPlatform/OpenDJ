@@ -39,7 +39,6 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
@@ -399,12 +398,12 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_BACKEND_TYPE.toLowerCase(),
         OPTION_SHORT_BACKEND_TYPE, OPTION_LONG_BACKEND_TYPE,
         false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
-        BackendTypeHelper.filterSchemaBackendName(LocalDBBackendCfgDefn.getInstance().getName()),
+        BackendTypeHelper.filterSchemaBackendName(
+            new BackendTypeHelper().getBackendTypes().get(0).getName()),
         OPTION_LONG_BACKEND_TYPE,
         INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
     );
     addArgument(backendTypeArg);
-
   }
 
   /**

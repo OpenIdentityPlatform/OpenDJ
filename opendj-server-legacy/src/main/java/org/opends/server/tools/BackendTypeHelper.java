@@ -139,20 +139,26 @@ public class BackendTypeHelper
     }
   }
 
-  private List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
+  private final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
 
   /** Creates a new backend type helper. */
+  @SuppressWarnings("unchecked")
   public BackendTypeHelper()
   {
     Utilities.initializeConfigurationFramework();
-    createAvailableBackendsList();
-  }
 
-  @SuppressWarnings("unchecked")
-  private void createAvailableBackendsList()
-  {
     backends = new LinkedList<>();
-    backends.add(LocalDBBackendCfgDefn.getInstance());
+
+    // Add the JE backend if it is supported in this release.
+    try
+    {
+      Class.forName("org.opends.server.backends.jeb.BackendImpl");
+      backends.add(LocalDBBackendCfgDefn.getInstance());
+    }
+    catch (ClassNotFoundException ignored)
+    {
+      // Ignore: JE backend not supported.
+    }
 
     for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
     {
