@@ -37,6 +37,7 @@
       <excludes>
         <exclude>javax.activation:activation</exclude>
         <exclude>org.forgerock.commons:json-resource-servlet:war</exclude>
+        <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>
