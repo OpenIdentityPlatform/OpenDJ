@@ -2024,6 +2024,7 @@ public class LDAPConnectionConsoleInteraction
     secureArgsList.bindPasswordFileArg.clearValues();
     secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
     secureArgsList.bindPasswordFileArg.setPresent(false);
+    state.bindPassword = null;
     secureArgsList.adminUidArg.clearValues();
     secureArgsList.adminUidArg.setPresent(false);
   }
