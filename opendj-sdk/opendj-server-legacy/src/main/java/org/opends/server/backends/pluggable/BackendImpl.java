@@ -88,7 +88,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   private Storage storage;
 
   /** The controls supported by this backend. */
-  private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
+  private static final Set<String> supportedControls = new HashSet<>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
@@ -146,7 +146,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   @Override
   public void configureBackend(C cfg, ServerContext serverContext) throws ConfigException
   {
-    Reject.ifNull(cfg);
+    Reject.ifNull(cfg, "cfg must not be null");
 
     this.cfg = cfg;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
@@ -981,7 +981,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
           throws ConfigException, InitializationException {
     // Open the storage
     try {
-      RootContainer rc = new RootContainer(this, cfg);
+      final RootContainer rc = new RootContainer(getBackendID(), storage, cfg);
       rc.open();
       return rc;
     }
@@ -991,8 +991,4 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  Storage getStorage()
-  {
-    return storage;
-  }
 }

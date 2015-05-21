@@ -68,7 +68,6 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -143,8 +142,8 @@ public class EntryContainer
   /** The vlv index configuration manager. */
   private final VLVIndexCfgManager vlvIndexCfgManager;
 
-  /** The backend to which this entry container belongs. */
-  private final Backend<?> backend;
+  /** ID of the backend to which this entry container belongs. */
+  private final String backendID;
 
   /** The root container in which this entryContainer belongs. */
   private final RootContainer rootContainer;
@@ -421,18 +420,17 @@ public class EntryContainer
    *
    * @param baseDN  The baseDN this entry container will be responsible for
    *                storing on disk.
-   * @param backend A reference to the backend that is creating this entry
-   *                container. It is needed by the Directory Server entry cache
-   *                methods.
+   * @param backendID  ID of the backend that is creating this entry container.
+   *                   It is needed by the Directory Server entry cache methods.
    * @param config The configuration of the backend.
    * @param storage The storage for this entryContainer.
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  EntryContainer(DN baseDN, Backend<?> backend, PluggableBackendCfg config, Storage storage,
+  EntryContainer(DN baseDN, String backendID, PluggableBackendCfg config, Storage storage,
       RootContainer rootContainer) throws ConfigException
   {
-    this.backend = backend;
+    this.backendID = backendID;
     this.baseDN = baseDN;
     this.config = config;
     this.storage = storage;
@@ -1288,7 +1286,7 @@ public class EntryContainer
   {
     // Try the entry cache first.
     final EntryCache<?> entryCache = getEntryCache();
-    final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
+    final Entry cacheEntry = entryCache.getEntry(backendID, entryID.longValue());
     if (cacheEntry != null)
     {
       return cacheEntry;
@@ -1299,7 +1297,7 @@ public class EntryContainer
     {
       // Put the entry in the cache making sure not to overwrite a newer copy
       // that may have been inserted since the time we read the cache.
-      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+      entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
     }
     return entry;
   }
@@ -1543,7 +1541,7 @@ public class EntryContainer
             EntryCache<?> entryCache = DirectoryServer.getEntryCache();
             if (entryCache != null)
             {
-              entryCache.putEntry(entry, backend, entryID.longValue());
+              entryCache.putEntry(entry, backendID, entryID.longValue());
             }
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
@@ -1907,7 +1905,7 @@ public class EntryContainer
          * Put the entry in the cache making sure not to overwrite a newer copy that may have been
          * inserted since the time we read the cache.
          */
-        entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+        entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
       }
       return entry;
     }
@@ -1999,7 +1997,7 @@ public class EntryContainer
             EntryCache<?> entryCache = DirectoryServer.getEntryCache();
             if (entryCache != null)
             {
-              entryCache.putEntry(newEntry, backend, entryID.longValue());
+              entryCache.putEntry(newEntry, backendID, entryID.longValue());
             }
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)

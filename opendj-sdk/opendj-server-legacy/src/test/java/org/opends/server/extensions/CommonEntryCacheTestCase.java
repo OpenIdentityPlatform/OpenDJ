@@ -32,7 +32,6 @@ import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -106,7 +105,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertFalse(cache.containsEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -140,7 +139,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -174,7 +173,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -208,7 +207,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(b, -1),
       "Not expected to find entry id " + -1 +
@@ -241,7 +240,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertEquals(cache.getEntryID(testEntriesList.get(0).getName()), -1,
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -274,7 +273,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
@@ -307,7 +306,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     assertTrue(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -348,7 +347,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     cache.removeEntry(testEntriesList.get(0).getName());
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -383,7 +382,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     cache.clear();
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -418,8 +417,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
-    Backend<?> c = DirectoryServer.getBackend(DN.valueOf("cn=config"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
+    String c = DirectoryServer.getBackend(DN.valueOf("cn=config")).getBackendID();
 
     cache.clearBackend(b);
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -428,7 +427,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
 
     assertNull(cache.getEntry(b, 1),
       "Not expected to find entry id " + 1 + " on backend " +
-      b.getBackendID() + " in the cache.  Cache contents:" +
+      b + " in the cache.  Cache contents:" +
       ServerConstants.EOL + cache.toVerboseString());
 
     assertNull(cache.getEntry(testEntriesList.get(0).getName()),
@@ -438,7 +437,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
 
     assertNotNull(cache.getEntry(c, 1),
       "Expected to find entry id " + 1 + " on backend " +
-      c.getBackendID() + " in the cache.  Cache contents:" +
+      c + " in the cache.  Cache contents:" +
       ServerConstants.EOL + cache.toVerboseString());
 
     // Clear the cache so that other tests can start from scratch.
@@ -460,8 +459,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
-    Backend<?> c = DirectoryServer.getBackend(DN.valueOf("cn=config"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
+    String c = DirectoryServer.getBackend(DN.valueOf("cn=config")).getBackendID();
 
     cache.putEntry(testEntriesList.get(0), b, 1);
     Entry testEntry = testEntriesList.get(1);
@@ -521,7 +520,7 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
   public void testCacheConcurrency()
          throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int loops = 0; loops < CONCURRENCYLOOPS; loops++) {
       for(int i = 0; i < NUMTESTENTRIES; i++) {

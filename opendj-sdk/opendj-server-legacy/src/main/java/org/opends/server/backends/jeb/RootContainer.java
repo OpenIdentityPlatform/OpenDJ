@@ -234,8 +234,7 @@ public class RootContainer
       databasePrefix = name;
     }
 
-    EntryContainer ec = new EntryContainer(baseDN, databasePrefix,
-                                           backend, config, env, this);
+    EntryContainer ec = new EntryContainer(baseDN, databasePrefix, backend.getBackendID(), config, env, this);
     ec.open();
     return ec;
   }

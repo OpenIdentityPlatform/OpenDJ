@@ -119,11 +119,11 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public Entry getEntry(Backend backend, long entryID)
+  public Entry getEntry(String backendID, long entryID)
   {
     for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder)
     {
-      Entry entry = entryCache.getEntry(backend, entryID);
+      Entry entry = entryCache.getEntry(backendID, entryID);
       if (entry != null)
       {
         return entry.duplicate(true);
@@ -176,11 +176,11 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public DN getEntryDN(Backend backend, long entryID)
+  public DN getEntryDN(String backendID, long entryID)
   {
     for (EntryCache<?> entryCache : cacheOrder)
     {
-      DN entryDN = entryCache.getEntryDN(backend, entryID);
+      DN entryDN = entryCache.getEntryDN(backendID, entryID);
       if (entryDN != null)
       {
         return entryDN;
@@ -191,14 +191,13 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public void putEntry(Entry entry, Backend backend, long entryID)
+  public void putEntry(Entry entry, String backendID, long entryID)
   {
     for (EntryCache<?> entryCache : cacheOrder) {
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
-        entryCache.putEntry(entry.duplicate(false),
-                backend, entryID);
+        entryCache.putEntry(entry.duplicate(false), backendID, entryID);
         break;
       }
     }
@@ -206,14 +205,14 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
+  public boolean putEntryIfAbsent(Entry entry, String backendID, long entryID)
   {
     for (EntryCache<?> entryCache : cacheOrder) {
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
         return entryCache.putEntryIfAbsent(entry.duplicate(false),
-                backend, entryID);
+                backendID, entryID);
       }
     }
 
@@ -243,10 +242,10 @@ public class DefaultEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public void clearBackend(Backend backend)
+  public void clearBackend(String backendID)
   {
     for (EntryCache<?> entryCache : cacheOrder) {
-      entryCache.clearBackend(backend);
+      entryCache.clearBackend(backendID);
     }
   }
 
@@ -407,7 +406,7 @@ public class DefaultEntryCache
     // Do not clear any backends if the server is shutting down.
     if (!DirectoryServer.getInstance().isShuttingDown())
     {
-      clearBackend(backend);
+      clearBackend(backend.getBackendID());
     }
   }
 }

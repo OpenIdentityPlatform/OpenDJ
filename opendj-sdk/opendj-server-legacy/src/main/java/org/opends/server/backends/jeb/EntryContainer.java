@@ -46,7 +46,6 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
@@ -96,8 +95,8 @@ public class EntryContainer
   /** The vlv index configuration manager. */
   private final VLVJEIndexCfgManager vlvJEIndexCfgManager;
 
-  /** The backend to which this entry container belongs. */
-  private final Backend<?> backend;
+  /** ID of the backend to which this entry container belongs. */
+  private final String backendID;
 
   /** The root container in which this entryContainer belongs. */
   private final RootContainer rootContainer;
@@ -366,19 +365,19 @@ public class EntryContainer
    *                storing on disk.
    * @param databasePrefix The prefix to use in the database names used by
    *                       this entry container.
-   * @param backend A reference to the JE backend that is creating this entry
-   *                container. It is needed by the Directory Server entry cache
-   *                methods.
+   * @param backendID ID of the JE backend that is creating this entry
+   *                  container. It is needed by the Directory Server
+   *                  entry cache methods.
    * @param config The configuration of the JE backend.
    * @param env The JE environment to create this entryContainer in.
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
+  EntryContainer(DN baseDN, String databasePrefix, String backendID,
       LocalDBBackendCfg config, Environment env, RootContainer rootContainer)
           throws ConfigException
   {
-    this.backend = backend;
+    this.backendID = backendID;
     this.baseDN = baseDN;
     this.config = config;
     this.env = env;
@@ -446,7 +445,7 @@ public class EntryContainer
         }
         id2subtree.open(); // No-op
 
-        logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
+        logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backendID);
       }
 
       dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME, env, this);
@@ -1214,7 +1213,7 @@ public class EntryContainer
   {
     // Try the entry cache first.
     final EntryCache<?> entryCache = getEntryCache();
-    final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
+    final Entry cacheEntry = entryCache.getEntry(backendID, entryID.longValue());
     if (cacheEntry != null)
     {
       return cacheEntry;
@@ -1225,7 +1224,7 @@ public class EntryContainer
     {
       // Put the entry in the cache making sure not to overwrite a newer copy
       // that may have been inserted since the time we read the cache.
-      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+      entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
     }
     return entry;
   }
@@ -1519,7 +1518,7 @@ public class EntryContainer
       EntryCache<?> entryCache = DirectoryServer.getEntryCache();
       if (entryCache != null)
       {
-        entryCache.putEntry(entry, backend, entryID.longValue());
+        entryCache.putEntry(entry, backendID, entryID.longValue());
       }
     }
     catch (DatabaseException | DirectoryException | CanceledOperationException e)
@@ -1886,7 +1885,7 @@ public class EntryContainer
        * Put the entry in the cache making sure not to overwrite a newer copy that may have been
        * inserted since the time we read the cache.
        */
-      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+      entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
     }
     return entry;
   }
@@ -1972,7 +1971,7 @@ public class EntryContainer
       EntryCache<?> entryCache = DirectoryServer.getEntryCache();
       if (entryCache != null)
       {
-        entryCache.putEntry(newEntry, backend, entryID.longValue());
+        entryCache.putEntry(newEntry, backendID, entryID.longValue());
       }
     }
     catch (DatabaseException | DirectoryException | CanceledOperationException e)

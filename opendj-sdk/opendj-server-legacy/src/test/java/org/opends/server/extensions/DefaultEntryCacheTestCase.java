@@ -32,12 +32,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -47,6 +47,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 
@@ -376,7 +377,7 @@ public class DefaultEntryCacheTestCase
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     // Spread test entries among all cache levels via default cache.
     for (int i = 0; i < NUMTESTENTRIES; i++) {
