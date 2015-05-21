@@ -223,23 +223,23 @@
      The
      <link
       xlink:show="new"
-      xlink:href="${coreDocBase}dev-guide#addrate-1"
+      xlink:href="${coreDocBase}dev-guide/#addrate-1"
      >addrate</link> command measures add and delete throughput and response time.
     </para>
    </listitem>
    <listitem>
     <para>The <link xlink:show="new"
-    xlink:href="${coreDocBase}dev-guide#authrate-1">authrate</link> command
+    xlink:href="${coreDocBase}dev-guide/#authrate-1">authrate</link> command
     measures bind throughput and response time.</para>
    </listitem>
    <listitem>
     <para>The <link xlink:show="new"
-    xlink:href="${coreDocBase}dev-guide#modrate-1">modrate</link> command
+    xlink:href="${coreDocBase}dev-guide/#modrate-1">modrate</link> command
     measures modification throughput and response time.</para>
    </listitem>
    <listitem>
     <para>The <link xlink:show="new"
-    xlink:href="${coreDocBase}dev-guide#searchrate-1">searchrate</link> command
+    xlink:href="${coreDocBase}dev-guide/#searchrate-1">searchrate</link> command
     measures search throughput and response time.</para>
    </listitem>
   </itemizedlist>
