@@ -582,6 +582,11 @@ final class OnDiskMergeBufferImporter
     availableMemory = totalAvailableMemory * importMemPct / 100;
   }
 
+  private boolean isCanceled()
+  {
+    return isCanceled || (importCfg != null && importCfg.isCancelled());
+  }
+
   private void initializeIndexBuffers()
   {
     for (int i = 0; i < phaseOneBufferCount; i++)
@@ -857,14 +862,14 @@ final class OnDiskMergeBufferImporter
         dnCache.close();
       }
 
-      if (isCanceled)
+      if (isCanceled())
       {
         throw new InterruptedException("Import processing canceled.");
       }
 
       final long phaseTwoTime = System.currentTimeMillis();
       importPhaseTwo();
-      if (isCanceled)
+      if (isCanceled())
       {
         throw new InterruptedException("Import processing canceled.");
       }
@@ -1183,9 +1188,8 @@ final class OnDiskMergeBufferImporter
                 ByteStringBuilder end = afterKey(key);
 
                 while (success
-                    && ByteSequence.COMPARATOR.compare(key, end) < 0
-                    && !importCfg.isCancelled()
-                    && !isCanceled)
+                    && key.compareTo(end) < 0
+                    && !isCanceled())
                 {
                   EntryID id = new EntryID(cursor.getValue());
                   Entry entry = entryContainer.getID2Entry().get(txn, id);
@@ -1235,8 +1239,7 @@ final class OnDiskMergeBufferImporter
             final List<ByteString> includeBranches = includeBranchesAsBytes(suffix);
             boolean success = cursor.next();
             while (success
-                && !importCfg.isCancelled()
-                && !isCanceled)
+                && !isCanceled())
             {
               final ByteString key = cursor.getKey();
               if (!includeBranches.contains(key))
@@ -1310,7 +1313,7 @@ final class OnDiskMergeBufferImporter
         EntryInformation entryInfo;
         while ((entryInfo = reader.readEntry(dnSuffixMap)) != null)
         {
-          if (importCfg.isCancelled() || isCanceled)
+          if (isCanceled())
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
@@ -1408,7 +1411,7 @@ final class OnDiskMergeBufferImporter
         EntryInformation entryInfo;
         while ((entryInfo = reader.readEntry(dnSuffixMap)) != null)
         {
-          if (importCfg.isCancelled() || isCanceled)
+          if (isCanceled())
           {
             freeBufferQueue.add(IndexOutputBuffer.poison());
             return;
@@ -1728,14 +1731,14 @@ final class OnDiskMergeBufferImporter
             dnState.finalFlush(importer);
           }
 
-          if (!isCanceled)
+          if (!isCanceled())
           {
             logger.info(NOTE_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
           }
         }
         else
         {
-          if (!isCanceled)
+          if (!isCanceled())
           {
             logger.info(NOTE_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
           }
@@ -1789,7 +1792,7 @@ final class OnDiskMergeBufferImporter
 
     private void call0(Importer importer) throws Exception
     {
-      if (isCanceled)
+      if (isCanceled())
       {
         return;
       }
@@ -1804,7 +1807,7 @@ final class OnDiskMergeBufferImporter
         NavigableSet<IndexInputBuffer> bufferSet;
         while ((bufferSet = getNextBufferBatch()) != null)
         {
-          if (isCanceled)
+          if (isCanceled())
           {
             return;
           }
@@ -2355,8 +2358,7 @@ final class OnDiskMergeBufferImporter
     @Override
     public Void call() throws Exception
     {
-      if ((importCfg != null && importCfg.isCancelled())
-          || isCanceled)
+      if (isCanceled())
       {
         isCanceled = true;
         return null;
@@ -2606,7 +2608,7 @@ final class OnDiskMergeBufferImporter
       {
         while (cursor.next())
         {
-          if (isCanceled)
+          if (isCanceled())
           {
             return;
           }
@@ -2648,7 +2650,7 @@ final class OnDiskMergeBufferImporter
 
     private void throwIfCancelled() throws InterruptedException
     {
-      if (isCanceled)
+      if (isCanceled())
       {
         throw new InterruptedException("Rebuild Index canceled.");
       }

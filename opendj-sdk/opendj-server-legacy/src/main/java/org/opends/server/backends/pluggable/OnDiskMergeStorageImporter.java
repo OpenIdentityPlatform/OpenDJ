@@ -445,6 +445,11 @@ final class OnDiskMergeStorageImporter
     availableMemory = totalAvailableMemory * importMemPct / 100;
   }
 
+  private boolean isCanceled()
+  {
+    return isCanceled || (importCfg != null && importCfg.isCancelled());
+  }
+
   private void initializeSuffixes(WriteableTransaction txn) throws ConfigException, DirectoryException
   {
     for (EntryContainer ec : rootContainer.getEntryContainers())
@@ -604,14 +609,14 @@ final class OnDiskMergeStorageImporter
       importPhaseOne();
       final long phaseOneFinishTime = System.currentTimeMillis();
 
-      if (isCanceled)
+      if (isCanceled())
       {
         throw new InterruptedException("Import processing canceled.");
       }
 
       final long phaseTwoTime = System.currentTimeMillis();
       importPhaseTwo();
-      if (isCanceled)
+      if (isCanceled())
       {
         throw new InterruptedException("Import processing canceled.");
       }
@@ -805,9 +810,8 @@ final class OnDiskMergeStorageImporter
                 ByteStringBuilder end = afterKey(key);
 
                 while (success
-                    && ByteSequence.COMPARATOR.compare(key, end) < 0
-                    && !importCfg.isCancelled()
-                    && !isCanceled)
+                    && key.compareTo(end) < 0
+                    && !isCanceled())
                 {
                   EntryID id = new EntryID(cursor.getValue());
                   Entry entry = entryContainer.getID2Entry().get(txn, id);
@@ -873,8 +877,7 @@ final class OnDiskMergeStorageImporter
             final List<ByteString> includeBranches = includeBranchesAsBytes(suffix);
             boolean success = cursor.next();
             while (success
-                && !importCfg.isCancelled()
-                && !isCanceled)
+                && !isCanceled())
             {
               final ByteString key = cursor.getKey();
               if (!includeBranches.contains(key))
@@ -957,7 +960,7 @@ final class OnDiskMergeStorageImporter
         EntryInformation entryInfo;
         while ((entryInfo = reader.readEntry(dnSuffixMap)) != null)
         {
-          if (importCfg.isCancelled() || isCanceled)
+          if (isCanceled())
           {
             return;
           }
