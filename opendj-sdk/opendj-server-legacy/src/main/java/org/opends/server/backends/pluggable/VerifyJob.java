@@ -29,6 +29,7 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -89,12 +90,8 @@ class VerifyJob
   /** The maximum number of references per record. */
   private long maxEntryPerValue;
 
-  /**
-   * This map is used to gather some statistics about values that have
-   * exceeded the entry limit.
-   */
-  private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap =
-       new IdentityHashMap<Index, HashMap<ByteString, Long>>();
+  /** This map is used to gather some statistics about values that have exceeded the entry limit. */
+  private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap = new IdentityHashMap<>();
 
   /** Indicates whether dn2id is to be verified. */
   private boolean verifyDN2ID;
@@ -109,13 +106,14 @@ class VerifyJob
   private ID2Count id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
-  private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
+  private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<>();
   /** A list of the VLV indexes to be verified. */
-  private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
+  private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<>();
 
   /**
    * Construct a VerifyJob.
    *
+   * @param rootContainer The root container.
    * @param verifyConfig The verify configuration.
    */
   VerifyJob(RootContainer rootContainer, VerifyConfig verifyConfig)
@@ -132,8 +130,7 @@ class VerifyJob
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
-  long verifyBackend() throws StorageRuntimeException,
-      DirectoryException
+  long verifyBackend() throws StorageRuntimeException, DirectoryException
   {
     try
     {
@@ -158,8 +155,7 @@ class VerifyJob
 
   private long verifyBackend0(ReadableTransaction txn) throws StorageRuntimeException, DirectoryException
   {
-    EntryContainer entryContainer =
-        rootContainer.getEntryContainer(verifyConfig.getBaseDN());
+    EntryContainer entryContainer = rootContainer.getEntryContainer(verifyConfig.getBaseDN());
 
     entryContainer.sharedLock.lock();
     try
@@ -205,8 +201,7 @@ class VerifyJob
               throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName).toString());
             }
 
-            VLVIndex vlvIndex =
-                entryContainer.getVLVIndex(lowerName.substring(4));
+            VLVIndex vlvIndex = entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
               throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4)).toString());
@@ -231,7 +226,7 @@ class VerifyJob
         }
       }
 
-      entryLimitMap = new IdentityHashMap<Index, HashMap<ByteString, Long>>(attrIndexList.size());
+      entryLimitMap = new IdentityHashMap<>(attrIndexList.size());
 
       // We will be updating these files independently of the indexes
       // so we need direct access to them rather than going through
@@ -426,7 +421,7 @@ class VerifyJob
     {
       iterateID2ChildrenCount(txn);
     }
-    else if (attrIndexList.size() > 0)
+    else if (!attrIndexList.isEmpty())
     {
       AttributeIndex attrIndex = attrIndexList.get(0);
       for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
@@ -434,7 +429,7 @@ class VerifyJob
         iterateAttrIndex(txn, index);
       }
     }
-    else if (vlvIndexList.size() > 0)
+    else if (!vlvIndexList.isEmpty())
     {
       iterateVLVIndex(txn, vlvIndexList.get(0), true);
     }
@@ -541,7 +536,7 @@ class VerifyJob
     EntryID currentEntryID = new EntryID(-1);
     while(cursor.next()) {
       if (cursor.getKey().equals(currentEntryID)) {
-        /** Sharded cursor may return the same EntryID multiple times */
+        // Sharded cursor may return the same EntryID multiple times
         continue;
       }
       currentEntryID = cursor.getKey();
@@ -565,7 +560,7 @@ class VerifyJob
     HashMap<ByteString,Long> hashMap = entryLimitMap.get(index);
     if (hashMap == null)
     {
-      hashMap = new HashMap<ByteString, Long>();
+      hashMap = new HashMap<>();
       entryLimitMap.put(index, hashMap);
     }
     Long counter = hashMap.get(key);
@@ -648,7 +643,7 @@ class VerifyJob
           continue;
         }
 
-        ByteString expectedKey = vlvIndex.encodeVLVKey(entry, id.longValue());
+        ByteString expectedKey = vlvIndex.toKey(entry, id);
         if (expectedKey.compareTo(key) != 0)
         {
           errorCount++;
@@ -658,7 +653,6 @@ class VerifyJob
                 id, keyDump(vlvIndex.toString(), expectedKey));
           }
         }
-
       }
     }
   }
@@ -707,10 +701,7 @@ class VerifyJob
           {
             if (prevID != null && id.equals(prevID) && logger.isTraceEnabled())
             {
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Duplicate reference to ID %d%n%s", id, keyDump(index.toString(), key));
-              }
+              logger.trace("Duplicate reference to ID %d%n%s", id, keyDump(index.toString(), key));
             }
             prevID = id;
 
@@ -889,11 +880,8 @@ class VerifyJob
   private static String keyDump(String indexName, ByteSequence key)
   {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("Index: ");
-    buffer.append(indexName);
-    buffer.append(ServerConstants.EOL);
-    buffer.append("Key:");
-    buffer.append(ServerConstants.EOL);
+    buffer.append("Index: ").append(indexName).append(ServerConstants.EOL);
+    buffer.append("Key:").append(ServerConstants.EOL);
     StaticUtils.byteArrayToHexPlusAscii(buffer, key.toByteArray(), 6);
     return buffer.toString();
   }
@@ -949,9 +937,7 @@ class VerifyJob
     }
   }
 
-  /**
-   * Check that an attribute index is complete for a given attribute.
-   */
+  /** Check that an attribute index is complete for a given attribute. */
   private void verifyAttribute(ReadableTransaction txn, EntryID entryID, Entry entry, AttributeIndex attrIndex)
   {
     for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
@@ -1019,9 +1005,7 @@ class VerifyJob
     return dn.getParentDNInSuffix();
   }
 
-  /**
-   * This class maintain the number of children for a given dn
-   */
+  /** This class maintain the number of children for a given dn. */
   private static final class ChildrenCount {
     private final ByteString baseDN;
     private final EntryID entryID;
@@ -1038,21 +1022,10 @@ class VerifyJob
   {
     /** The total number of records to process. */
     private long totalCount;
-
-    /**
-     * The number of records that had been processed at the time of the
-     * previous progress report.
-     */
+    /** The number of records that had been processed at the time of the previous progress report. */
     private long previousCount;
-
     /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The number of bytes in a megabyte.
-     * Note that 1024*1024 bytes may eventually become known as a mebibyte(MiB).
-     */
-    private static final int bytesPerMegabyte = 1024*1024;
 
     /**
      * Create a new verify progress task.
@@ -1124,7 +1097,7 @@ class VerifyJob
       try
       {
         Runtime runtime = Runtime.getRuntime();
-        long freeMemory = runtime.freeMemory() / bytesPerMegabyte;
+        long freeMemory = runtime.freeMemory() / MB;
 
         // FIXME JNR compute the cache miss rate
         float cacheMissRate = 0;
@@ -1135,7 +1108,6 @@ class VerifyJob
       {
         logger.traceException(e);
       }
-
 
       previousCount = latestCount;
       previousTime = latestTime;

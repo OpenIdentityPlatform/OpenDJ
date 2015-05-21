@@ -66,7 +66,6 @@ import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
-import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.IndexKey;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -993,7 +992,7 @@ final class OnDiskMergeStorageImporter
         processDN2ID(suffix, entry.getName(), entryID);
       }
       processDN2URI(suffix, entry);
-      processIndexes(suffix, entry, entryID, false);
+      processIndexes(suffix, entry, entryID);
       processVLVIndexes(suffix, entry, entryID);
       // FIXME JNR run a dedicated thread to do the puts ordered by entryID
       // suffix.getID2Entry().put(importer, entryID, entry);
@@ -1026,22 +1025,39 @@ final class OnDiskMergeStorageImporter
       return true;
     }
 
-    void processIndexes(Suffix suffix, Entry entry, EntryID entryID, boolean allIndexes)
+    void processDN2ID(Suffix suffix, DN dn, EntryID entryID)
+    {
+      DN2ID dn2id = suffix.getDN2ID();
+      importer.put(dn2id.getName(), dn2id.toKey(dn), entryID.toByteString());
+    }
+
+    private void processDN2URI(Suffix suffix, Entry entry)
+    {
+      DN2URI dn2uri = suffix.getDN2URI();
+      DN entryDN = entry.getName();
+      ByteSequence value = dn2uri.toValue(entryDN, entry);
+      if (value != null)
+      {
+        importer.put(dn2uri.getName(), dn2uri.toKey(entryDN), value);
+      }
+    }
+
+    void processIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws StorageRuntimeException, InterruptedException
     {
+      final ByteString value = entryID.toByteString();
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
-        AttributeType attrType = mapEntry.getKey();
-        AttributeIndex attrIndex = mapEntry.getValue();
-        if (allIndexes || entry.hasAttribute(attrType))
+        final AttributeType attrType = mapEntry.getKey();
+        final AttributeIndex attrIndex = mapEntry.getValue();
+        if (entry.hasAttribute(attrType))
         {
-          for (Map.Entry<String, MatchingRuleIndex> mapEntry2 : attrIndex.getNameToIndexes().entrySet())
+          for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
           {
-            String indexID = mapEntry2.getKey();
-            MatchingRuleIndex index = mapEntry2.getValue();
-
-            IndexKey indexKey = new IndexKey(attrType, indexID, index.getIndexEntryLimit());
-            processAttribute(index, entry, entryID, indexKey);
+            for (ByteString key : index.indexEntry(entry))
+            {
+              importer.put(index.getName(), key, value);
+            }
           }
         }
       }
@@ -1050,38 +1066,11 @@ final class OnDiskMergeStorageImporter
     void processVLVIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws DirectoryException
     {
-      final EntryContainer entryContainer = suffix.getEntryContainer();
-      final IndexBuffer buffer = new IndexBuffer(entryContainer);
-      for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+      for (VLVIndex vlvIndex : suffix.getEntryContainer().getVLVIndexes())
       {
-        vlvIdx.addEntry(buffer, entryID, entry);
+        ByteString key = vlvIndex.toKey(entry, entryID);
+        importer.put(vlvIndex.getName(), key, ByteString.empty());
       }
-      // buffer.flush(txn); // TODO JNR do something about it
-    }
-
-    void processAttribute(MatchingRuleIndex index, Entry entry, EntryID entryID, IndexKey indexKey)
-        throws StorageRuntimeException, InterruptedException
-    {
-      for (ByteString key : index.indexEntry(entry))
-      {
-        processKey(index, key, entryID, indexKey);
-      }
-    }
-
-    final int processKey(Tree tree, ByteString key, EntryID entryID, IndexKey indexKey) throws InterruptedException
-    {
-      // TODO JNR implement
-      return -1;
-    }
-
-    void processDN2ID(Suffix suffix, DN dn, EntryID entryID)
-    {
-      // TODO JNR implement
-    }
-
-    private void processDN2URI(Suffix suffix, Entry entry)
-    {
-      // TODO JNR implement
     }
   }
 

@@ -26,11 +26,11 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.server.backends.pluggable.EntryIDSet.newDefinedSet;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -42,10 +42,12 @@ import org.opends.server.types.DirectoryException;
 /**
  * A buffered index is used to buffer multiple reads or writes to the
  * same index key into a single read or write.
+ * <p>
  * It can only be used to buffer multiple reads and writes under
  * the same transaction. The transaction may be null if it is known
  * that there are no other concurrent updates to the index.
  */
+@SuppressWarnings("javadoc")
 class IndexBuffer
 {
   private final EntryContainer entryContainer;
@@ -54,12 +56,10 @@ class IndexBuffer
    * The buffered records stored as a map from the record key to the
    * buffered value for that key for each index.
    */
-  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes =
-      new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
+  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes = new LinkedHashMap<>();
 
   /** The buffered records stored as a set of buffered VLV values for each index. */
-  private final LinkedHashMap<VLVIndex, BufferedVLVIndexValues> bufferedVLVIndexes =
-      new LinkedHashMap<VLVIndex, BufferedVLVIndexValues>();
+  private final LinkedHashMap<VLVIndex, BufferedVLVIndexValues> bufferedVLVIndexes = new LinkedHashMap<>();
 
   /**
    * A simple class representing a pair of added and deleted indexed IDs. Initially both addedIDs
@@ -112,7 +112,7 @@ class IndexBuffer
       {
         if (addedSortKeys == null)
         {
-          addedSortKeys = new TreeSet<ByteString>();
+          addedSortKeys = new TreeSet<>();
         }
         addedSortKeys.add(sortKey);
       }
@@ -124,7 +124,7 @@ class IndexBuffer
       {
         if (deletedSortKeys == null)
         {
-          deletedSortKeys = new TreeSet<ByteString>();
+          deletedSortKeys = new TreeSet<>();
         }
         deletedSortKeys.add(sortKey);
       }
@@ -159,25 +159,26 @@ class IndexBuffer
 
   private BufferedIndexValues createOrGetBufferedIndexValues(Index index, ByteString keyBytes)
   {
-    BufferedIndexValues values = null;
+    Map<ByteString, BufferedIndexValues> bufferedOperations = createOrGetBufferedOperations(index);
 
-    TreeMap<ByteString, BufferedIndexValues> bufferedOperations = bufferedIndexes.get(index);
-    if (bufferedOperations == null)
-    {
-      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>();
-      bufferedIndexes.put(index, bufferedOperations);
-    }
-    else
-    {
-      values = bufferedOperations.get(keyBytes);
-    }
-
+    BufferedIndexValues values = bufferedOperations.get(keyBytes);
     if (values == null)
     {
       values = new BufferedIndexValues();
       bufferedOperations.put(keyBytes, values);
     }
     return values;
+  }
+
+  private Map<ByteString, BufferedIndexValues> createOrGetBufferedOperations(Index index)
+  {
+    TreeMap<ByteString, BufferedIndexValues> bufferedOperations = bufferedIndexes.get(index);
+    if (bufferedOperations == null)
+    {
+      bufferedOperations = new TreeMap<>();
+      bufferedIndexes.put(index, bufferedOperations);
+    }
+    return bufferedOperations;
   }
 
   /**
@@ -190,9 +191,8 @@ class IndexBuffer
   void flush(WriteableTransaction txn) throws StorageRuntimeException, DirectoryException
   {
     /*
-     * FIXME: this seems like a surprising way to update the indexes. Why not
-     * store the buffered changes in a TreeMap in order to have a predictable
-     * iteration order?
+     * FIXME: this seems like a surprising way to update the indexes. Why not store the buffered
+     * changes in a TreeMap in order to have a predictable iteration order?
      */
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
@@ -232,20 +232,17 @@ class IndexBuffer
     createOrGetBufferedIndexValues(index, key).deleteEntryID(entryID);
   }
 
-  private void flushIndex(Index index, WriteableTransaction txn,
-      Map<ByteString, BufferedIndexValues> bufferedValues)
+  private void flushIndex(Index index, WriteableTransaction txn, Map<ByteString, BufferedIndexValues> bufferedValues)
   {
     if (bufferedValues != null)
     {
-      final Iterator<Map.Entry<ByteString, BufferedIndexValues>> it = bufferedValues.entrySet().iterator();
-      while (it.hasNext())
+      for (Entry<ByteString, BufferedIndexValues> entry : bufferedValues.entrySet())
       {
-        final Map.Entry<ByteString, BufferedIndexValues> entry = it.next();
         final ByteString key = entry.getKey();
         final BufferedIndexValues values = entry.getValue();
         index.update(txn, key, values.deletedEntryIDs, values.addedEntryIDs);
-        it.remove();
       }
+      bufferedValues.clear();
     }
   }
 }

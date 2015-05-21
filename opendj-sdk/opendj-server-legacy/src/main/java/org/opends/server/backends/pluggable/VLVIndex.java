@@ -91,7 +91,6 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /** The VLV vlvIndex configuration. */
   private BackendVLVIndexCfg config;
 
@@ -349,8 +348,13 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     if (shouldInclude(entry))
     {
-      buffer.put(this, encodeVLVKey(entry, entryID.longValue()));
+      buffer.put(this, toKey(entry, entryID));
     }
+  }
+
+  ByteString toKey(final Entry entry, final EntryID entryID)
+  {
+    return encodeVLVKey(entry, entryID.longValue());
   }
 
   private boolean shouldInclude(final Entry entry) throws DirectoryException
@@ -415,7 +419,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     if (shouldInclude(entry))
     {
-      buffer.remove(this, encodeVLVKey(entry, entryID.longValue()));
+      buffer.remove(this, toKey(entry, entryID));
     }
   }
 
@@ -489,15 +493,10 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private EntryIDSet evaluateNonVLVRequest(final ReadableTransaction txn, final StringBuilder debugBuilder)
   {
-    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
       final long[] selectedIDs = readRange(cursor, count.get(), debugBuilder);
       return newDefinedSet(selectedIDs);
-    }
-    finally
-    {
-      cursor.close();
     }
   }
 
@@ -516,10 +515,9 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     final ByteString assertion = vlvRequest.getGreaterThanOrEqualAssertion();
     final ByteSequence encodedTargetAssertion =
         encodeTargetAssertion(sortOrder, assertion, searchOperation, currentCount);
-    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final LinkedList<Long> selectedIDs = new LinkedList<Long>();
+      final LinkedList<Long> selectedIDs = new LinkedList<>();
       int targetPosition = 0;
 
       // Don't waste cycles looking for an assertion that does not match anything.
@@ -572,10 +570,6 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
           LDAPResultCode.SUCCESS));
       return newDefinedSet(toPrimitiveLongArray(selectedIDs));
     }
-    finally
-    {
-      cursor.close();
-    }
   }
 
   private long[] toPrimitiveLongArray(final List<Long> entryIDs)
@@ -589,9 +583,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return result;
   }
 
-  /**
-   * Normalize the assertion using the primary key's ordering matching rule.
-   */
+  /** Normalize the assertion using the primary key's ordering matching rule. */
   static ByteSequence encodeTargetAssertion(final SortOrder sortOrder, final ByteString assertion,
       final SearchOperation searchOperation, final int resultSetSize) throws DirectoryException
   {
@@ -669,8 +661,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     }
 
     final int count = 1 + beforeCount + afterCount;
-    final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
       final long[] selectedIDs;
       if (cursor.positionToIndex(startPos))
@@ -683,10 +674,6 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       }
       searchOperation.addResponseControl(new VLVResponseControl(targetOffset, currentCount, LDAPResultCode.SUCCESS));
       return newDefinedSet(selectedIDs);
-    }
-    finally
-    {
-      cursor.close();
     }
   }
 
@@ -746,7 +733,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     if (shouldInclude(entry))
     {
-      final ByteString key = encodeVLVKey(entry, entryID.longValue());
+      final ByteString key = toKey(entry, entryID);
       return txn.read(getName(), key) != null;
     }
     return false;
@@ -760,7 +747,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return builder.toByteString();
   }
 
-  ByteString encodeVLVKey(final Entry entry, final long entryID)
+  private ByteString encodeVLVKey(final Entry entry, final long entryID)
   {
     return encodeVLVKey(sortOrder, entry, entryID);
   }
