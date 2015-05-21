@@ -277,12 +277,22 @@ C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput
   the server process is killed abruptly. OpenDJ might have to replay the last
   few entries in a transaction log. Generally OpenDJ returns to service
   quickly.</para>
-  
-  <para>You can find Berkeley Java Edition database recovery messages in the
-  database log file, such as
-  <filename>/path/to/opendj/db/userRoot/je.info.0</filename>. The following
-  shows two example messages from that log, the first written at the beginning
-  of the recovery process, the second written at the end of the process.</para>
+
+  <para>
+   Database recovery messages are found in the database log file,
+   such as <filename>/path/to/opendj/db/userRoot/dj.log</filename>.
+  </para>
+
+  <para condition="local-db">
+   For <literal>local-db</literal> type backends, the log file name is similar to
+   <filename>/path/to/opendj/db/userRoot/je.info.0</filename>.
+  </para>
+
+  <para>
+   The following example shows two example messages from the recover log.
+   The first message is written at the beginning of the recovery process.
+   The second message is written at the end of the process.
+  </para>
   
   <programlisting language="none">
 111104 10:23:48:967 CONFIG [/path/to/opendj/db/userRoot]Recovery

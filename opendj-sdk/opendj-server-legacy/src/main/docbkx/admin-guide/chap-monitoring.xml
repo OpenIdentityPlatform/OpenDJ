@@ -383,10 +383,10 @@ example-20110623030000000  Backup  Waiting on start time</computeroutput>
    <listitem>
     <para>The <firstterm>errors log</firstterm> traces server events, error
     conditions, and warnings, categorized and identified by severity.</para>
-    <para>The following errors log excerpt shows log entries about a
+    <para condition="local-db">The following errors log excerpt shows log entries about a
     backup task, with lines wrapped for readability.</para>
 
-    <programlisting language="none">
+    <programlisting language="none" condition="local-db">
 [22/Jun/2011:12:32:23 +0200] category=BACKEND severity=NOTICE msgID=9896349
  msg=Backup task 20110622123224088 started execution
 [22/Jun/2011:12:32:23 +0200] category=TOOLS severity=NOTICE msgID=10944792
@@ -886,7 +886,7 @@ $ <userinput>dsconfig \
      one or more ACI rules when the server first started.</para>
     </listitem>
    </varlistentry>
-   <varlistentry>
+   <varlistentry condition="local-db">
     <term><literal>org.opends.server.BackendRunRecovery</literal></term>
     <listitem>
      <para>

@@ -177,13 +177,13 @@
     <para>High performance storage is essential if you need to handle high
     write throughput.</para>
     
-    <para>The Berkeley Java Edition DB works well with traditional disks as
+    <para condition="local-db">The Berkeley Java Edition DB works well with traditional disks as
     long as the database cache size allows the DB to stay fully cached in
     memory. This is the case because the database transaction log is append
     only. When the DB is too big to stay cached in memory, however, then
     cache misses lead to random disk access, slowing OpenDJ performance.</para>
     
-    <para>You might mitigate this effect by using solid-state disks for
+    <para condition="local-db">You might mitigate this effect by using solid-state disks for
     persistent storage, or for file system cache.</para>
     
     <para>Regarding database size on disk, if you have sustained write traffic
@@ -376,11 +376,8 @@ $ <userinput>dsconfig \
     stored in its backend database.
     If your entries hold values that compress well &#8212;
     such as text, and not JPEG photos or MP3 audio &#8212;
-    you can gain space by setting the local DB backend property,
-    <link
-     xlink:show="new"
-     xlink:href="${configRefBase}local-db-backend.html#entries-compressed"
-    ><literal>entries-compressed</literal></link>,
+    you can gain space by setting the backend property
+    <literal>entries-compressed</literal>,
     to <literal>true</literal> before you (re-)import data from LDIF.
     With <literal>entries-compressed: true</literal>
     OpenDJ compresses entries before writing them to the database.<footnote>
@@ -460,16 +457,8 @@ $ <userinput>import-ldif \
    
    <para>
     Database cache size is, by default, set as a percentage of the JVM heap
-    by using the backend property,
-    <link
-     xlink:show="new"
-     xlink:href="${configRefBase}local-db-backend.html#db-cache-percent"
-    ><literal>db-cache-percent</literal></link>.
-    Alternatively, you use the backend property,
-    <link
-     xlink:show="new"
-     xlink:href="${configRefBase}local-db-backend.html#db-cache-size"
-    ><literal>db-cache-size</literal></link>,
+    by using the backend property <literal>db-cache-percent</literal>.
+    Alternatively, you use the backend property <literal>db-cache-size</literal>,
     to set the size.
     If you set up multiple database backends,
     the total percent of JVM heap used must remain less than 100,
@@ -490,12 +479,9 @@ $ <userinput>import-ldif \
     which you must pre-load on startup,
     and which can result in long garbage collections
     and a difficult-to-manage JVM.
-    Test database pre-load on startup by setting the
-    <link
-     xlink:show="new"
-     xlink:href="${configRefBase}local-db-backend.html#preload-time-limit"
-    ><literal>preload-time-limit</literal></link>
-    for the backend.</para>
+    Test database pre-load on startup by setting
+    the <literal>preload-time-limit</literal> for the backend.
+   </para>
    
    <screen>
 $ <userinput>dsconfig \

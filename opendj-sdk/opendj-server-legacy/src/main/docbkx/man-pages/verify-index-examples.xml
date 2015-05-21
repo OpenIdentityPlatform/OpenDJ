@@ -31,11 +31,36 @@
  <title>Examples</title>
 
  <para>
-  The following example verifies the <literal>cn</literal> (common name) index
-  for completeness and for errors.
+  The following example shows how to verify
+  the <literal>sn</literal> (surname) index for completeness and for errors.
+  The messages shown are for a backend of type <literal>persistit</literal>.
  </para>
 
   <screen>
+$ <userinput>verify-index -b dc=example,dc=com -i sn --clean --countErrors</userinput>
+<computeroutput>[20/05/2015:14:24:18 +0200] category=...persistit.PersistItStorage seq=0 severity=INFO
+ msg=The Persistit storage for backend 'userRoot' initialized
+ to use 57528 buffers of 16384 bytes (total 920448kb)
+[20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=1 severity=INFO
+ msg=Checked 478 records and found 0 error(s) in 0 seconds
+ (average rate 3594.0/sec)
+[20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=2 severity=FINE
+ msg=Number of records referencing more than one entry: 224
+[20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=3 severity=FINE
+ msg=Number of records that exceed the entry limit: 0
+[20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=4 severity=FINE
+ msg=Average number of entries referenced is 2.00/record
+[20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=5 severity=FINE
+ msg=Maximum number of entries referenced by any record is 32</computeroutput>
+  </screen>
+
+ <para condition="local-db">
+  The following example shows how to verify
+  the <literal>cn</literal> (common name) index for completeness and for errors.
+  The messages shown are for a backend of type <literal>local-db</literal>.
+ </para>
+
+  <screen condition="local-db">
 $ <userinput>verify-index -b dc=example,dc=com -i cn --clean --countErrors</userinput>
 <computeroutput>[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
  msgID=9437595 msg=Local DB backend userRoot does not specify the number of

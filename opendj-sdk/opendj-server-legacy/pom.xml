@@ -1610,6 +1610,9 @@
                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
                        <trailingSectionPath>dbtest-examples.xml</trailingSectionPath>
                      </trailingSectionPaths>
+                     <!-- If no dbtest tool is provided, use this setting
+                     <enabled>false</enabled>
+                     -->
                     </tool>
 
                     <tool>
@@ -1958,6 +1961,13 @@
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-doc-maven-plugin</artifactId>
             <inherited>false</inherited>
+            <!-- Use conditional text to exclude local-db related elements in hand-written docs.
+            <configuration>
+              <exclusions>
+                <condition>local-db</condition>
+              </exclusions>
+            </configuration>
+            -->
             <executions>
               <execution>
                 <id>build-doc</id>
