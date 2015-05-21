@@ -48,6 +48,7 @@ import org.opends.server.types.DirectoryException;
  * for each entry.  The key is the normalized entry DN and the value
  * is the entry ID.
  */
+@SuppressWarnings("javadoc")
 class DN2ID extends AbstractTree
 {
   private static final Function<ByteString, Void, DirectoryException> TO_VOID_KEY =
@@ -72,7 +73,6 @@ class DN2ID extends AbstractTree
 
   private final DN baseDN;
 
-
   /**
    * Create a DN2ID instance for in a given entryContainer.
    *
@@ -96,12 +96,12 @@ class DN2ID extends AbstractTree
    */
   void put(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
   {
-    txn.put(getName(), dnToKey(dn), entryID.toByteString());
+    txn.put(getName(), toKey(dn), entryID.toByteString());
   }
 
   boolean insert(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
   {
-    return txn.update(getName(), dnToKey(dn), new UpdateFunction()
+    return txn.update(getName(), toKey(dn), new UpdateFunction()
     {
       @Override
       public ByteSequence computeNewValue(ByteSequence oldEntryID)
@@ -117,7 +117,8 @@ class DN2ID extends AbstractTree
     });
   }
 
-  private ByteString dnToKey(DN dn) {
+  ByteString toKey(DN dn)
+  {
     return dnToDNKey(dn, baseDN.size());
   }
 
@@ -131,7 +132,7 @@ class DN2ID extends AbstractTree
    */
   boolean remove(WriteableTransaction txn, DN dn) throws StorageRuntimeException
   {
-    return txn.delete(getName(), dnToKey(dn));
+    return txn.delete(getName(), toKey(dn));
   }
 
   /**
@@ -143,7 +144,7 @@ class DN2ID extends AbstractTree
    */
   EntryID get(ReadableTransaction txn, DN dn) throws StorageRuntimeException
   {
-    final ByteString value = txn.read(getName(), dnToKey(dn));
+    final ByteString value = txn.read(getName(), toKey(dn));
     return value != null ? new EntryID(value) : null;
   }
 
@@ -154,7 +155,7 @@ class DN2ID extends AbstractTree
 
   private Cursor<ByteString, ByteString> openCursor0(ReadableTransaction txn, DN dn) {
     final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-    cursor.positionToKey(dnToKey(dn));
+    cursor.positionToKey(toKey(dn));
     return cursor;
   }
 
@@ -166,7 +167,6 @@ class DN2ID extends AbstractTree
   SequentialCursor<Void, EntryID> openSubordinatesCursor(ReadableTransaction txn, DN dn) {
     return new SubtreeCursor(openCursor0(txn, dn));
   }
-
 
   /**
    * Check if two DN have a parent-child relationship.
@@ -215,11 +215,11 @@ class DN2ID extends AbstractTree
     public boolean next()
     {
       if (cursorOnParent) {
-        /** Go to the first children */
+        // Go to the first children
         delegate.next();
         cursorOnParent = false;
       } else {
-        /** Go to the next sibling */
+        // Go to the next sibling
         delegate.positionToKeyOrNext(nextSibling());
       }
       return isDefined() && delegate.getKey().startsWith(parentDN);

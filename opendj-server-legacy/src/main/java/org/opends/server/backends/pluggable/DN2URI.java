@@ -74,6 +74,7 @@ import org.opends.server.util.StaticUtils;
  * as in dn2id so that all referrals in a subtree can be retrieved by cursoring
  * through a range of the records.
  */
+@SuppressWarnings("javadoc")
 class DN2URI extends AbstractTree
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -84,17 +85,14 @@ class DN2URI extends AbstractTree
    * The standard attribute type that is used to specify the set of referral
    * URLs in a referral entry.
    */
-  private final AttributeType referralType =
-       DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+  private final AttributeType referralType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
 
   /**
    * A flag that indicates whether there are any referrals contained in this
    * tree.  It should only be set to {@code false} when it is known that
    * there are no referrals.
    */
-  private volatile ConditionResult containsReferrals =
-       ConditionResult.UNDEFINED;
-
+  private volatile ConditionResult containsReferrals = ConditionResult.UNDEFINED;
 
   /**
    * Create a new object representing a referral tree in a given
@@ -113,11 +111,14 @@ class DN2URI extends AbstractTree
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 
+  /** Encodes the value. */
   private ByteSequence encode(DN dn, Collection<String> col)
   {
     if (col != null && !col.isEmpty())
     {
       ByteStringBuilder b = new ByteStringBuilder();
+      // encode the dn inside the value
+      // because the dn is encoded in a non reversible way in the key
       byte[] dnBytes = StaticUtils.getBytes(dn.toString());
       b.append(dnBytes.length);
       b.append(dnBytes);
@@ -133,6 +134,7 @@ class DN2URI extends AbstractTree
     return null;
   }
 
+  /** Decodes the value as a pair where the first element is the DN key and the second is the actual value. */
   private Pair<DN, List<String>> decode(ByteSequence bs) throws StorageRuntimeException
   {
     if (!bs.isEmpty())
@@ -149,7 +151,7 @@ class DN2URI extends AbstractTree
         throw new StorageRuntimeException("Unable to decode DN from binary value", e);
       }
       final int nbElems = r.getInt();
-      List<String> results = new ArrayList<String>(nbElems);
+      List<String> results = new ArrayList<>(nbElems);
       for (int i = 0; i < nbElems; i++)
       {
         final int stringLength = r.getInt();
@@ -258,8 +260,7 @@ class DN2URI extends AbstractTree
    */
   private ConditionResult containsReferrals(ReadableTransaction txn)
   {
-    Cursor<?, ?> cursor = txn.openCursor(getName());
-    try
+    try (Cursor<?, ?> cursor = txn.openCursor(getName()))
     {
       return ConditionResult.valueOf(cursor.next());
     }
@@ -268,10 +269,6 @@ class DN2URI extends AbstractTree
       logger.traceException(e);
 
       return ConditionResult.UNDEFINED;
-    }
-    finally
-    {
-      cursor.close();
     }
   }
 
@@ -335,7 +332,7 @@ class DN2URI extends AbstractTree
 
   private List<String> toStrings(Attribute a)
   {
-    List<String> results = new ArrayList<String>(a.size());
+    List<String> results = new ArrayList<>(a.size());
     for (ByteString v : a)
     {
       results.add(v.toString());
@@ -414,8 +411,7 @@ class DN2URI extends AbstractTree
     Set<String> referralURLs = entry.getReferralURLs();
     if (referralURLs != null)
     {
-      throwReferralException(entry.getName(), entry.getName(), referralURLs,
-                             searchScope);
+      throwReferralException(entry.getName(), entry.getName(), referralURLs, searchScope);
     }
   }
 
@@ -433,10 +429,9 @@ class DN2URI extends AbstractTree
    * in the referral entry.
    */
   private void throwReferralException(DN targetDN, DN referralDN, Collection<String> labeledURIs,
-      SearchScope searchScope)
-      throws DirectoryException
+      SearchScope searchScope) throws DirectoryException
   {
-    ArrayList<String> URIList = new ArrayList<String>(labeledURIs.size());
+    ArrayList<String> URIList = new ArrayList<>(labeledURIs.size());
     for (String labeledURI : labeledURIs)
     {
       // Remove the label part of the labeled URI if there is a label.
@@ -456,10 +451,7 @@ class DN2URI extends AbstractTree
           DN urlBaseDN = targetDN;
           if (!referralDN.equals(ldapurl.getBaseDN()))
           {
-            urlBaseDN =
-                 EntryContainer.modDN(targetDN,
-                                      referralDN.size(),
-                                      ldapurl.getBaseDN());
+            urlBaseDN = EntryContainer.modDN(targetDN, referralDN.size(), ldapurl.getBaseDN());
           }
           ldapurl.setBaseDN(urlBaseDN);
           if (searchScope == null)
@@ -523,27 +515,19 @@ class DN2URI extends AbstractTree
       return;
     }
 
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-      try
+      // Go up through the DIT hierarchy until we find a referral.
+      for (DN dn = getParentWithinBase(targetDN); dn != null; dn = getParentWithinBase(dn))
       {
-        // Go up through the DIT hierarchy until we find a referral.
-        for (DN dn = getParentWithinBase(targetDN); dn != null; dn = getParentWithinBase(dn))
+        // Look for a record whose key matches the current DN.
+        if (cursor.positionToKey(toKey(dn)))
         {
-          // Look for a record whose key matches the current DN.
-          if (cursor.positionToKey(toKey(dn)))
-          {
-            // Construct a set of all the labeled URIs in the referral.
-            final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
-            Collection<String> labeledURIs = dnAndUris.getSecond();
-            throwReferralException(targetDN, dn, labeledURIs, searchScope);
-          }
+          // Construct a set of all the labeled URIs in the referral.
+          final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
+          Collection<String> labeledURIs = dnAndUris.getSecond();
+          throwReferralException(targetDN, dn, labeledURIs, searchScope);
         }
-      }
-      finally
-      {
-        cursor.close();
       }
     }
     catch (StorageRuntimeException e)
@@ -589,39 +573,31 @@ class DN2URI extends AbstractTree
     ByteStringBuilder suffix = beforeKey(baseDN);
     ByteStringBuilder end = afterKey(baseDN);
 
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName());
-      try
+      // Initialize the cursor very close to the starting value then
+      // step forward until we pass the ending value.
+      boolean success = cursor.positionToKey(suffix);
+      while (success && cursor.getKey().compareTo(end) < 0)
       {
-        // Initialize the cursor very close to the starting value then
-        // step forward until we pass the ending value.
-        boolean success = cursor.positionToKey(suffix);
-        while (success && cursor.getKey().compareTo(end) < 0)
+        // We have found a subordinate referral.
+        // Make sure the referral is within scope.
+        if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
+            && DnKeyFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
         {
-          // We have found a subordinate referral.
-          // Make sure the referral is within scope.
-          if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
-              && DnKeyFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
-          {
-            continue;
-          }
-
-          // Construct a list of all the URIs in the referral.
-          final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
-          final DN dn = dnAndUris.getFirst();
-          final Collection<String> labeledURIs = dnAndUris.getSecond();
-          SearchResultReference reference = toSearchResultReference(dn, labeledURIs, searchOp.getScope());
-          if (!searchOp.returnReference(dn, reference))
-          {
-            return false;
-          }
-          success = cursor.next();
+          continue;
         }
-      }
-      finally
-      {
-        cursor.close();
+
+        // Construct a list of all the URIs in the referral.
+        final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
+        final DN dn = dnAndUris.getFirst();
+        final Collection<String> labeledURIs = dnAndUris.getSecond();
+        SearchResultReference reference = toSearchResultReference(dn, labeledURIs, searchOp.getScope());
+        if (!searchOp.returnReference(dn, reference))
+        {
+          return false;
+        }
+        success = cursor.next();
       }
     }
     catch (StorageRuntimeException e)
@@ -634,7 +610,7 @@ class DN2URI extends AbstractTree
 
   private SearchResultReference toSearchResultReference(DN dn, Collection<String> labeledURIs, SearchScope scope)
   {
-    ArrayList<String> URIList = new ArrayList<String>(labeledURIs.size());
+    ArrayList<String> URIList = new ArrayList<>(labeledURIs.size());
     for (String labeledURI : labeledURIs)
     {
       // Remove the label part of the labeled URI if there is a label.
@@ -685,8 +661,16 @@ class DN2URI extends AbstractTree
     return new SearchResultReference(URIList);
   }
 
-  private ByteString toKey(DN dn)
+  ByteString toKey(DN dn)
   {
     return DnKeyFormat.dnToDNKey(dn, prefixRDNComponents);
+  }
+
+  ByteSequence toValue(DN dn, Entry entry)
+  {
+    // FIXME JNR This is not very efficient:
+    // getReferralsURL() converts from bytestring into string
+    // and the code down below then does the reverse
+    return encode(dn, entry.getReferralURLs());
   }
 }
