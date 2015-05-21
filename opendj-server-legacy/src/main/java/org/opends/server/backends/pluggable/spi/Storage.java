@@ -39,6 +39,15 @@ import org.opends.server.types.RestoreConfig;
  */
 public interface Storage extends Closeable
 {
+
+  /** Defines access modes of a Storage. */
+  public enum AccessMode {
+    /** Constant used to open the Storage in read-only mode. */
+    READ_ONLY,
+    /** Constant used to open the Storage in read-write mode. */
+    READ_WRITE;
+  }
+
   /**
    * Starts the import operation.
    *
@@ -54,11 +63,15 @@ public interface Storage extends Closeable
   /**
    * Opens the storage engine to allow executing operations on it.
    *
+   * @param accessMode
+   *           Specify the access mode to this storage.
+   * @throws NullPointerException
+   *           if accessMode is null.
    * @throws Exception
    *           if a problem occurs with the underlying storage engine
    * @see #close() to release all resources once import is finished
    */
-  void open() throws Exception;
+  void open(AccessMode accessMode) throws Exception;
 
   /**
    * Executes a read operation. In case of a read operation rollback, implementations must ensure

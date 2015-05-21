@@ -33,7 +33,12 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,11 +56,33 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
+import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 
@@ -159,7 +186,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   {
     if (mustOpenRootContainer())
     {
-      rootContainer = initializeRootContainer();
+      rootContainer = newRootContainer(AccessMode.READ_WRITE);
     }
 
     // Preload the tree cache.
@@ -653,7 +680,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         }
       }
 
-      rootContainer = initializeRootContainer();
+      rootContainer = newRootContainer(AccessMode.READ_WRITE);
       return getImportStrategy().importLDIF(importConfig, rootContainer, serverContext);
     }
     catch (StorageRuntimeException e)
@@ -765,7 +792,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       if (openRootContainer)
       {
-        rootContainer = initializeRootContainer();
+        rootContainer = newRootContainer(AccessMode.READ_WRITE);
       }
       new OnDiskMergeBufferImporter(rootContainer, rebuildConfig, cfg, serverContext).rebuildIndexes();
     }
@@ -953,7 +980,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   private final RootContainer getReadOnlyRootContainer()
       throws ConfigException, InitializationException
   {
-    return initializeRootContainer();
+    return newRootContainer(AccessMode.READ_ONLY);
   }
 
   /**
@@ -977,13 +1004,16 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private RootContainer initializeRootContainer()
+  private RootContainer newRootContainer(AccessMode accessMode)
           throws ConfigException, InitializationException {
     // Open the storage
     try {
       final RootContainer rc = new RootContainer(getBackendID(), storage, cfg);
-      rc.open();
+      rc.open(accessMode);
       return rc;
+    }
+    catch (StorageInUseException e) {
+      throw new InitializationException(ERR_VERIFY_BACKEND_ONLINE.get(), e);
     }
     catch (StorageRuntimeException e)
     {

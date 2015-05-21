@@ -41,6 +41,7 @@ import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
@@ -89,8 +90,8 @@ public class StateTest extends DirectoryServerTestCase
     try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
       importer.createTree(stateTreeName);
     }
-    
-    storage.open();
+
+    storage.open(AccessMode.READ_WRITE);
 
     state = new State(stateTreeName);
   }

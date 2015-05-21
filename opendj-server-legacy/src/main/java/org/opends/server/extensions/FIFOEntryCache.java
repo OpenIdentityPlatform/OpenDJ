@@ -967,8 +967,9 @@ public class FIFOEntryCache
 
     // See if there is anything on idMap that is not reflected on
     // dnMap in case maps went out of sync.
-    for (String backendID : idMapCopy.keySet()) {
-      for (Map.Entry<Long, CacheEntry> entry : idMapCopy.get(backendID).entrySet()) {
+    for (Map.Entry<String,  Map<Long, CacheEntry>> backendCache : idMapCopy.entrySet()) {
+      final String backendID = backendCache.getKey();
+      for (Map.Entry<Long, CacheEntry> entry : backendCache.getValue().entrySet()) {
         final CacheEntry cacheEntry = entry.getValue();
         if (cacheEntry == null || !dnMapCopy.containsKey(cacheEntry.getDN())) {
           sb.append(cacheEntry != null ? cacheEntry.getDN() : null);

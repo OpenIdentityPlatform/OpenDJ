@@ -107,6 +107,7 @@ import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
@@ -1120,7 +1121,7 @@ final class OnDiskMergeBufferImporter
     }
     finally
     {
-      storage.open();
+      storage.open(AccessMode.READ_WRITE);
     }
 
     shutdownAll(dbService);
@@ -3419,7 +3420,7 @@ final class OnDiskMergeBufferImporter
         returnValues.put("dn", DN.valueOf("ds-cfg-backend-id=importDNCache,cn=Backends,cn=config"));
         storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues),
             DirectoryServer.getInstance().getServerContext());
-        storage.open();
+        storage.open(AccessMode.READ_WRITE);
         storage.write(new WriteOperation()
         {
           @Override

@@ -460,6 +460,12 @@ public class VerifyIndex
         }
       }
     }
+    catch (InitializationException e)
+    {
+      err.println(wrapText(ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(e.getMessage()),
+          MAX_LINE_WIDTH));
+      returnCode = 1;
+    }
     catch (Exception e)
     {
       err.println(wrapText(ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)),

@@ -49,6 +49,7 @@ import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -127,11 +128,11 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    * @throws ConfigException
    *           If an configuration error occurs while opening the storage.
    */
-  void open() throws StorageRuntimeException, ConfigException
+  void open(AccessMode accessMode) throws StorageRuntimeException, ConfigException
   {
     try
     {
-      storage.open();
+      storage.open(accessMode);
       storage.write(new WriteOperation()
       {
         @Override
@@ -141,6 +142,10 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
           openAndRegisterEntryContainers(txn, config.getBaseDN());
         }
       });
+    }
+    catch(StorageRuntimeException e)
+    {
+      throw e;
     }
     catch (Exception e)
     {
