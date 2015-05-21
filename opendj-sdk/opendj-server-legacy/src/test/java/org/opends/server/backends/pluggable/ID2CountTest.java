@@ -45,6 +45,7 @@ import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
@@ -90,7 +91,7 @@ public class ID2CountTest extends DirectoryServerTestCase
       importer.createTree(id2CountTreeName);
     }
 
-    storage.open();
+    storage.open(AccessMode.READ_WRITE);
 
     id2Count = new ID2Count(id2CountTreeName);
 

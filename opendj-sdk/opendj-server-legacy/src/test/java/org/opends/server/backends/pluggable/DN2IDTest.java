@@ -44,6 +44,7 @@ import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
@@ -91,7 +92,7 @@ public class DN2IDTest extends DirectoryServerTestCase
       importer.createTree(dn2IDTreeName);
     }
 
-    storage.open();
+    storage.open(AccessMode.READ_WRITE);
 
     baseDN = dn("dc=example, dc=com");
     dn2ID = new DN2ID(dn2IDTreeName, baseDN);

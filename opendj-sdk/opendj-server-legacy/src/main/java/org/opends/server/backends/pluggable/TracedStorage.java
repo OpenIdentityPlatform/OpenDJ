@@ -271,12 +271,13 @@ final class TracedStorage implements Storage
   }
 
   @Override
-  public void open() throws Exception
+  public void open(AccessMode accessMode) throws Exception
   {
-    storage.open();
+    storage.open(accessMode);
     if (logger.isTraceEnabled())
     {
-      logger.trace("Storage@%s.open() - Opened storage for backend %s", storageId(), backendId);
+      logger
+          .trace("Storage@%s.open(accessMode=%s) - Opened storage for backend %s", storageId(), accessMode, backendId);
     }
   }
 

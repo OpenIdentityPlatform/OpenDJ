@@ -27,7 +27,6 @@ package org.opends.server.backends.persistit;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
-
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
@@ -55,6 +54,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.Backupable;
@@ -63,6 +63,7 @@ import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -90,6 +91,7 @@ import com.persistit.Tree;
 import com.persistit.Value;
 import com.persistit.Volume;
 import com.persistit.VolumeSpecification;
+import com.persistit.exception.InUseException;
 import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
@@ -580,13 +582,13 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     cfg.addPersistitChangeListener(this);
   }
 
-  private Configuration buildConfiguration()
+  private Configuration buildConfiguration(AccessMode accessMode)
   {
     final Configuration dbCfg = new Configuration();
     dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
     dbCfg.setJournalPath(new File(backendDirectory, JOURNAL_NAME).getPath());
     dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
-        BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
+        BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, accessMode.equals(AccessMode.READ_ONLY))));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg(dbCfg);
     bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
 
@@ -642,9 +644,10 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
   /** {@inheritDoc} */
   @Override
-  public void open() throws ConfigException, StorageRuntimeException
+  public void open(AccessMode accessMode) throws ConfigException, StorageRuntimeException
   {
-    open0(buildConfiguration());
+    Reject.ifNull(accessMode, "accessMode must not be null");
+    open0(buildConfiguration(accessMode));
   }
 
   private void open0(final Configuration dbCfg) throws ConfigException
@@ -665,6 +668,9 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
       db.initialize();
       volume = db.loadVolume(VOLUME_NAME);
+    }
+    catch(final InUseException e) {
+      throw new StorageInUseException(e);
     }
     catch (final PersistitException e)
     {
@@ -728,7 +734,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   @Override
   public Importer startImport() throws ConfigException, StorageRuntimeException
   {
-    open0(buildConfiguration());
+    open0(buildConfiguration(AccessMode.READ_WRITE));
     return new ImporterImpl();
   }
 

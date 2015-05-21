@@ -38,7 +38,7 @@ package org.opends.server.types;
      notes="This should only be used within a backend")
 public final class CacheEntry
 {
-  /** The backend with which this cache entry is associated. */
+  /** ID of the backend with which this cache entry is associated. */
   private final String backendID;
 
   /** The entry itself. */
@@ -72,9 +72,9 @@ public final class CacheEntry
   }
 
   /**
-   * Retrieves the backend for this cache entry.
+   * Retrieves the backend ID for this cache entry.
    *
-   * @return  The backend for this cache entry.
+   * @return  ID of the backend for this cache entry.
    */
   public String getBackendID()
   {
