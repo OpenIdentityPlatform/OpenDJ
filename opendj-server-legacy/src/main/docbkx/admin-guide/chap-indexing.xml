@@ -423,13 +423,13 @@ $ <userinput>dsconfig \
    <example xml:id="create-index-example">
     <title>Create a New Index</title>
     
-    <para>
+    <para condition="local-db">
      The following example creates a new substring index
      for the <literal>description</literal> attribute
      in a backend of type <literal>local-db</literal>.
     </para>
     
-    <screen>
+    <screen condition="local-db">
 $ <userinput>dsconfig \
  create-local-db-index \
  --port 4444 \
@@ -472,13 +472,13 @@ $ <userinput>dsconfig \
      <secondary>Approximate</secondary>
     </indexterm>
 
-    <para>
+    <para condition="local-db">
      The following example configures an approximate index for
      the <literal>cn</literal> (common name) attribute
      in a backend of type <literal>local-db</literal>.
     </para>
     
-    <screen>
+    <screen condition="local-db">
 $ <userinput>dsconfig \
  set-local-db-index-prop \
  --port 4444 \
@@ -525,14 +525,14 @@ $ <userinput>dsconfig \
     extensible matching rule indexes. Use the <command>dsconfig</command>
     command instead.</para>
 
-    <para>
+    <para condition="local-db">
      The following example configures an extensible matching rule index
      for "later than" and "earlier than" generalized time matching
      on a <literal>lastLoginTime</literal> attribute
      in a backend of type <literal>local-db</literal>.
     </para>
 
-    <screen>
+    <screen condition="local-db">
 $ <userinput>dsconfig \
  create-local-db-index \
  --port 4444 \
@@ -604,11 +604,14 @@ $ <userinput>dsconfig \
    <para>
     You can also create the equivalent index configuration
     by using the <command>dsconfig</command> command.
+   </para>
+
+   <para condition="local-db">
     The following example shows how to create the VLV index
     for a backend of type <literal>local-db</literal>.
    </para>
    
-   <screen>
+   <screen condition="local-db">
 $ <userinput>dsconfig \
  create-local-db-vlv-index \
  --port 4444 \
@@ -742,7 +745,7 @@ Rebuild Index task 20120131164324838 has been successfully completed</computerou
     is shown in the following example, where an index has just been created
     for <literal>newUnusedAttribute</literal>.</para>
 
-    <para>
+    <para condition="local-db">
      Start by testing the index status by using the
      <link
       xlink:show="new"
@@ -753,14 +756,7 @@ Rebuild Index task 20120131164324838 has been successfully completed</computerou
      <literal>false</literal> before the rebuild, <literal>true</literal> after.
     </para>
 
-    <note>
-     <para>
-      The <command>dbtest list-index-status</command> command
-      can take a long time to complete, as it reads all indexes for all backends.
-     </para>
-    </note>
-
-    <screen>
+    <screen condition="local-db">
 $ <userinput>dbtest \
  list-index-status \
  --backendID userRoot \
@@ -769,7 +765,16 @@ $ <userinput>dbtest \
 <computeroutput>newUnusedAttribute.equality   Index  ...newUnusedAttribute.equality   false...
 newUnusedAttribute.presence   Index  ...newUnusedAttribute.presence   false...
 newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  false...</computeroutput>
+    </screen>
 
+    <note condition="local-db">
+     <para>
+      The <command>dbtest list-index-status</command> command
+      can take a long time to complete, as it reads all indexes for all backends.
+     </para>
+    </note>
+
+    <screen>
 $ <userinput>rebuild-index \
  --port 4444 \
  --hostname opendj.example.com \
@@ -824,13 +829,18 @@ newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  true...</c
    
    <para>The default index entry limit value is 4000. 4000 is intended to be
    large enough for most index keys, though it prevents OpenDJ from maintaining
-   indexes at any cost. You can use the <command>dbtest</command> command to
-   evaluate how well attributes are indexed, and consider whether to change
-   the index entry limit. Non-zero values in the "Undefined" column indicate
-   the number of index keys that have reached the limit and are no longer
-   maintained. The "Undefined keys" are then listed below.</para>
+   indexes at any cost.
+   </para>
 
-   <informalexample><?dbfo pgwide="1"?>
+   <para condition="local-db">
+    Use the <command>dbtest</command> command to
+    evaluate how well attributes are indexed, and consider whether to change
+    the index entry limit. Non-zero values in the "Undefined" column indicate
+    the number of index keys that have reached the limit and are no longer
+    maintained. The "Undefined keys" are then listed below.
+   </para>
+
+   <informalexample condition="local-db"><?dbfo pgwide="1"?>
     <screen width="136">
 $ <userinput>dbtest list-index-status --backendID userRoot --baseDN dc=example,dc=com</userinput>
 <computeroutput>Index Name                 Index Type  JE Database Name                             Index Valid  Record Count  Undefined  95%  90%  85%
@@ -872,14 +882,14 @@ Undefined keys: [1] [2]</computeroutput>
     </screen>
    </informalexample>
 
-   <para>In this case (for a directory with only about 10,000 entries) the
+   <para condition="local-db">In this case (for a directory with only about 10,000 entries) the
    list of undefined keys is perfectly reasonable. Every user entry has the
    object classes listed, and every user entry has a mail address ending in
    <literal>@maildomain.net</literal>, so those values are not specific enough
    to be used in search filters. The <literal>id2children</literal> and
    <literal>id2subtree</literal> are for OpenDJ's internal use.</para>
 
-   <para>
+   <para condition="local-db">
     For an explanation of the output
     of the <command>dbtest list-index-status</command> command, see
     <link xlink:show="new" xlink:href="reference#dbtest-1"
@@ -904,15 +914,13 @@ Undefined keys: [1] [2]</computeroutput>
      production.</para>
     </important>
 
-    <para>
+    <para condition="local-db">
      The following example uses
      the <command>dsconfig set-local-db-index-prop</command> command,
      and works with a backend of type <literal>local-db</literal>.
-     For other indexed backend types, use
-     the <command>dsconfig set-backend-index-prop</command> command.
     </para>
 
-    <screen>
+    <screen condition="local-db">
 $ <userinput>dsconfig \
  set-local-db-index-prop \
  --port 4444 \
@@ -934,6 +942,38 @@ $ <userinput>rebuild-index \
  --index objectclass \
  --start 0</userinput>
 <computeroutput>Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</computeroutput>
+    </screen>
+
+    <para>
+     The following example shows how to use
+     the <command>dsconfig set-backend-index-prop</command> command
+     to change the index entry limit
+     for a backend of type <literal>persistit</literal>.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-backend-index-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --index-name objectClass \
+ --set index-entry-limit:5000 \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>rebuild-index \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --index objectclass \
+ --start 0</userinput>
+<computeroutput>Rebuild Index task 20150520135018932 scheduled to start May 20, 2015 1:50:18
+PM CEST</computeroutput>
     </screen>
    </example>
    
@@ -975,24 +1015,12 @@ $ <userinput>verify-index \
  --index cn \
  --clean \
  --countErrors</userinput>
-<computeroutput>[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
- msgID=9437595 msg=Local DB backend userRoot does not specify the number of
- lock tables: defaulting to 97
-[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
- msgID=9437594 msg=Local DB backend userRoot does not specify the number of
- cleaner threads: defaulting to 24 threads
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=NOTICE msgID=8847461
- msg=Checked 1316 records and found 0 error(s) in 0 seconds
+<computeroutput>...msg=Checked 1316 records and found 0 error(s) in 0 seconds
  (average rate 2506.7/sec)
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388710 msg=Number of records referencing more than one entry: 315
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388711 msg=Number of records that exceed the entry limit: 0
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388712 msg=Average number of entries referenced is 1.58/record
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388713 msg=Maximum number of entries referenced by any
- record is 32</computeroutput>
+...msg=Number of records referencing more than one entry: 315
+...msg=Number of records that exceed the entry limit: 0
+...msg=Average number of entries referenced is 1.58/record
+...msg=Maximum number of entries referenced by any record is 32</computeroutput>
    </screen>
 
    <para>Ignore the messages regarding lock tables and cleaner threads. The

@@ -418,11 +418,11 @@ description: This is the description for Aaccf Amar.
    When you create a backend, choose the type of backend that fits your purpose.
   </para>
 
-  <para>
+  <para condition="local-db">
    The following example creates a local backend named <literal>testData</literal>.
   </para>
 
-  <screen>
+  <screen condition="local-db">
 $ <userinput>dsconfig create-backend --backend-name testData --type local-db</userinput>
 
 <computeroutput>
@@ -485,10 +485,6 @@ Enter choice [f]:
 The Local DB Backend was created successfully</computeroutput>
   </screen>
 
-  <para>Alternatively, you can create a new backend in OpenDJ Control Panel
-  (Directory Data > New Base DN > Backend > New Backend:
-  <replaceable>backend-name</replaceable>).</para>
-
   <para>
    The following example creates a <literal>persistit</literal> backend,
    which relies on a Persistit database for data storage and indexing.
@@ -537,6 +533,12 @@ index-entry-limit : 4000
 writability-mode  : enabled</computeroutput>
   </screen>
 
+  <para>
+   Alternatively, you can create a new backend in OpenDJ Control Panel
+   (Directory Data > New Base DN > Backend > New Backend:
+   <replaceable>backend-name</replaceable>).
+  </para>
+
   <xinclude:include href="../shared/informalexample-default-indexes.xml" />
  </section>
 
@@ -556,15 +558,8 @@ writability-mode  : enabled</computeroutput>
   </para>
 
   <para>
-   Local database backends therefore have advanced properties,
-   <link
-    xlink:href="${configRefBase}/local-db-backend.html#disk-low-threshold"
-    xlink:show="new"
-   ><literal>disk-low-threshold</literal></link> and
-   <link
-    xlink:href="${configRefBase}/local-db-backend.html#disk-full-threshold"
-    xlink:show="new"
-   ><literal>disk-full-threshold</literal></link>.
+   Database backends therefore have advanced properties,
+   <literal>disk-low-threshold</literal> and <literal>disk-full-threshold</literal>.
    When available disk space falls below <literal>disk-low-threshold</literal>,
    OpenDJ server only allows updates from users and applications
    that have the privilege to

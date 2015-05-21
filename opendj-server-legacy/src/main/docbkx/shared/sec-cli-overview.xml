@@ -148,7 +148,7 @@
    </listitem>
   </varlistentry>
 
-  <varlistentry>
+  <varlistentry condition="local-db">
    <term><link
     xlink:href="reference#dbtest-1"
     xlink:role="http://docbook.org/xlink/role/olink">dbtest</link></term>

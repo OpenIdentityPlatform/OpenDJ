@@ -155,4 +155,23 @@ public class CommandLineTool {
     public void setTrailingSectionPaths(final List<String> paths) {
         this.trailingSectionPaths = paths;
     }
+
+    /** Whether the tool is enabled. Default: true. */
+    private boolean enabled = true;
+
+    /**
+     * Returns true if the tool is enabled.
+     * @return true if the tool is enabled.
+     */
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Set to true if the tool is enabled, false otherwise.
+     * @param enabled true if the tool is enabled, false otherwise.
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
 }
