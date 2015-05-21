@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.opends.server.api.Backend;
-
 /**
  * This class defines a Directory Server cache entry, which is simply
  * used to store an entry with its associated backend and entry ID.
@@ -41,7 +39,7 @@ import org.opends.server.api.Backend;
 public final class CacheEntry
 {
   /** The backend with which this cache entry is associated. */
-  private final Backend<?> backend;
+  private final String backendID;
 
   /** The entry itself. */
   private final Entry entry;
@@ -53,13 +51,13 @@ public final class CacheEntry
    * Creates a new cache entry with the provided information.
    *
    * @param  entry    The entry for this cache entry.
-   * @param  backend  The backend for this cache entry.
+   * @param  backendID  ID of the backend for this cache entry.
    * @param  entryID  The entry ID for this cache entry.
    */
-  public CacheEntry(Entry entry, Backend<?> backend, long entryID)
+  public CacheEntry(Entry entry, String backendID, long entryID)
   {
     this.entry   = entry;
-    this.backend = backend;
+    this.backendID = backendID;
     this.entryID = entryID;
   }
 
@@ -78,9 +76,9 @@ public final class CacheEntry
    *
    * @return  The backend for this cache entry.
    */
-  public Backend<?> getBackend()
+  public String getBackendID()
   {
-    return backend;
+    return backendID;
   }
 
   /**

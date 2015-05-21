@@ -29,12 +29,12 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -43,6 +43,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 
@@ -266,7 +267,7 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
@@ -336,7 +337,7 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);

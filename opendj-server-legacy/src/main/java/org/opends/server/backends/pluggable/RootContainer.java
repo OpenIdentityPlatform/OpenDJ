@@ -70,10 +70,10 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The tree storage. */
-  private Storage storage;
+  private final Storage storage;
 
-  /** The backend to which this entry root container belongs. */
-  private final BackendImpl<?> backend;
+  /** The ID of the backend to which this entry root container belongs. */
+  private final String backendId;
   /** The backend configuration. */
   private final PluggableBackendCfg config;
   /** The monitor for this backend. */
@@ -93,13 +93,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @param config
    *          The configuration of the backend.
-   * @param backend
+   * @param backendID
    *          A reference to the backend that is creating this root
    *          container.
    */
-  RootContainer(BackendImpl<?> backend, PluggableBackendCfg config)
+  RootContainer(String backendID, Storage storage, PluggableBackendCfg config)
   {
-    this.backend = backend;
+    this.backendId = backendID;
+    this.storage = storage;
     this.config = config;
 
     getMonitorProvider().enableFilterUseStats(config.isIndexFilterAnalyzerEnabled());
@@ -130,7 +131,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     try
     {
-      storage = backend.getStorage();
       storage.open();
       storage.write(new WriteOperation()
       {
@@ -169,7 +169,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   EntryContainer openEntryContainer(DN baseDN, WriteableTransaction txn)
       throws StorageRuntimeException, ConfigException
   {
-    EntryContainer ec = new EntryContainer(baseDN, backend, config, storage, this);
+    EntryContainer ec = new EntryContainer(baseDN, backendId, config, storage, this);
     ec.open(txn);
     return ec;
   }
@@ -258,8 +258,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     if (monitor == null)
     {
-      String monitorName = backend.getBackendID() + " Storage";
-      monitor = new BackendMonitor(monitorName, this);
+      monitor = new BackendMonitor(backendId + " Storage", this);
     }
     return monitor;
   }
@@ -300,9 +299,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       }
       catch (StorageRuntimeException e)
       {
-        logger.traceException(e);
-
-        logger.error(ERR_CACHE_PRELOAD, backend.getBackendID(),
+        logger.error(ERR_CACHE_PRELOAD, backendId,
             stackTraceToSingleLineString(e.getCause() != null ? e.getCause() : e));
       }
     }
@@ -333,7 +330,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     if (storage != null)
     {
       storage.close();
-      storage = null;
     }
   }
 

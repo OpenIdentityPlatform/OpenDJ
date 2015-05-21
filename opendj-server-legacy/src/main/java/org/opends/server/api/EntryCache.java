@@ -196,18 +196,18 @@ public abstract class EntryCache<T extends EntryCacheCfg>
   /**
    * Retrieves the requested entry if it is present in the cache.
    *
-   * @param  backend   The backend associated with the entry to
-   *                   retrieve.
+   * @param  backendID   ID of the backend associated with the entry
+   *                     to retrieve.
    * @param  entryID   The entry ID within the provided backend for
    *                   the specified entry.
    *
    * @return  The requested entry if it is present in the cache, or
    *          {@code null} if it is not present.
    */
-  public Entry getEntry(Backend backend, long entryID)
+  public Entry getEntry(String backendID, long entryID)
   {
     // Translate given backend/entryID pair to entryDN.
-    DN entryDN = getEntryDN(backend, entryID);
+    DN entryDN = getEntryDN(backendID, entryID);
     if (entryDN == null)
     {
       // Indicate cache miss.
@@ -239,15 +239,15 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    * Note that this method is called from @see #getEntry(Backend
    * backend, long entryID, LockType lockType, List lockList)
    *
-   * @param  backend  The backend associated with the entry for
-   *                  which to retrieve the entry DN.
-   * @param  entryID  The entry ID within the provided backend
-   *                  for which to retrieve the entry DN.
+   * @param  backendID  ID of the backend associated with the
+   *                    entry for which to retrieve the entry DN.
+   * @param  entryID    The entry ID within the provided backend
+   *                    for which to retrieve the entry DN.
    *
    * @return  The entry DN for the requested entry, or
    *          {@code null} if it is not present in the cache.
    */
-  public abstract DN getEntryDN(Backend backend, long entryID);
+  public abstract DN getEntryDN(String backendID, long entryID);
 
   /**
    * Stores the provided entry in the cache.  Note that the mechanism
@@ -255,13 +255,13 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    * is acceptable for the entry to not actually be stored in any
    * cache.
    *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that
-   *                  uniquely identifies the specified entry.
+   * @param  entry      The entry to store in the cache.
+   * @param  backendID  ID of the backend with which the entry is
+   *                    associated.
+   * @param  entryID    The entry ID within the provided backend that
+   *                    uniquely identifies the specified entry.
    */
-  public abstract void putEntry(Entry entry, Backend backend,
-                                long entryID);
+  public abstract void putEntry(Entry entry, String backendID, long entryID);
 
   /**
    * Stores the provided entry in the cache only if it does not
@@ -271,10 +271,11 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    * not actually be stored in any cache.  However, this method must
    * not overwrite an existing version of the entry.
    *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that
-   *                  uniquely identifies the specified entry.
+   * @param  entry      The entry to store in the cache.
+   * @param  backendID  ID of the backend with which the entry is
+   *                    associated.
+   * @param  entryID    The entry ID within the provided backend that
+   *                    uniquely identifies the specified entry.
    *
    * @return  {@code false} if an existing entry or some other problem
    *          prevented the method from completing successfully, or
@@ -283,7 +284,7 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    *          should never be cached for some reason.
    */
   public abstract boolean putEntryIfAbsent(Entry entry,
-                                           Backend backend,
+                                           String backendID,
                                            long entryID);
 
   /**
@@ -303,10 +304,10 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    * Removes all entries from the cache that are associated with the
    * provided backend.
    *
-   * @param  backend  The backend for which to flush the associated
-   *                  entries.
+   * @param  backendID  ID of the backend for which to flush the
+   *                    associated entries.
    */
-  public abstract void clearBackend(Backend backend);
+  public abstract void clearBackend(String backendID);
 
   /**
    * Removes all entries from the cache that are below the provided

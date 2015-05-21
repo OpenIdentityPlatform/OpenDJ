@@ -91,7 +91,7 @@ public class FIFOEntryCache
   private static final Runtime runtime = Runtime.getRuntime();
 
   /** The mapping between entry backends/IDs and entries. */
-  private Map<Backend<?>, Map<Long, CacheEntry>> idMap;
+  private Map<String, Map<Long, CacheEntry>> idMap;
 
   /** The mapping between DNs and entries. */
   private LinkedHashMap<DN,CacheEntry> dnMap;
@@ -232,12 +232,12 @@ public class FIFOEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public DN getEntryDN(Backend backend, long entryID)
+  public DN getEntryDN(String backendID, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
     cacheReadLock.lock();
     try {
-      Map<Long, CacheEntry> backendMap = idMap.get(backend);
+      Map<Long, CacheEntry> backendMap = idMap.get(backendID);
       if (backendMap != null) {
         CacheEntry e = backendMap.get(entryID);
         if (e != null) {
@@ -252,10 +252,10 @@ public class FIFOEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public void putEntry(Entry entry, Backend backend, long entryID)
+  public void putEntry(Entry entry, String backendID, long entryID)
   {
     // Create the cache entry based on the provided information.
-    CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
+    CacheEntry cacheEntry = new CacheEntry(entry, backendID, entryID);
 
 
     // Obtain a lock on the cache.  If this fails, then don't do anything.
@@ -295,7 +295,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackendID());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -305,14 +305,14 @@ public class FIFOEntryCache
         else
         {
           // Try to remove the entry from the ID list as well.
-          Map<Long,CacheEntry> map = idMap.get(backend);
+          Map<Long,CacheEntry> map = idMap.get(backendID);
           if (map != null)
           {
             map.remove(cacheEntry.getEntryID());
             // If this backend becomes empty now remove it from the idMap map.
             if (map.isEmpty())
             {
-              idMap.remove(backend);
+              idMap.remove(backendID);
             }
           }
         }
@@ -324,12 +324,12 @@ public class FIFOEntryCache
         // present and add it if it isn't.
         dnMap.put(entry.getName(), cacheEntry);
 
-        Map<Long,CacheEntry> map = idMap.get(backend);
+        Map<Long,CacheEntry> map = idMap.get(backendID);
         if (map == null)
         {
           map = new HashMap<>();
           map.put(entryID, cacheEntry);
-          idMap.put(backend, map);
+          idMap.put(backendID, map);
         }
         else
         {
@@ -349,7 +349,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackendID());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -372,10 +372,10 @@ public class FIFOEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
+  public boolean putEntryIfAbsent(Entry entry, String backendID, long entryID)
   {
     // Create the cache entry based on the provided information.
-    CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
+    CacheEntry cacheEntry = new CacheEntry(entry, backendID, entryID);
 
 
     // Obtain a lock on the cache.  If this fails, then don't do anything.
@@ -420,7 +420,7 @@ public class FIFOEntryCache
           CacheEntry ce = iterator.next();
           iterator.remove();
 
-          Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
+          Map<Long,CacheEntry> m = idMap.get(ce.getBackendID());
           if (m != null)
           {
             m.remove(ce.getEntryID());
@@ -433,12 +433,12 @@ public class FIFOEntryCache
         // present and add it if it isn't.
         dnMap.put(entry.getName(), cacheEntry);
 
-        Map<Long,CacheEntry> map = idMap.get(backend);
+        Map<Long,CacheEntry> map = idMap.get(backendID);
         if (map == null)
         {
           map = new HashMap<>();
           map.put(entryID, cacheEntry);
-          idMap.put(backend, map);
+          idMap.put(backendID, map);
         }
         else
         {
@@ -458,7 +458,7 @@ public class FIFOEntryCache
             CacheEntry ce = iterator.next();
             iterator.remove();
 
-            Map<Long,CacheEntry> m = idMap.get(ce.getBackend());
+            Map<Long,CacheEntry> m = idMap.get(ce.getBackendID());
             if (m != null)
             {
               m.remove(ce.getEntryID());
@@ -511,10 +511,10 @@ public class FIFOEntryCache
         return;
       }
 
-      Backend backend = entry.getBackend();
+      final String backendID = entry.getBackendID();
 
       // Try to remove the entry from the ID list as well.
-      Map<Long,CacheEntry> map = idMap.get(backend);
+      Map<Long,CacheEntry> map = idMap.get(backendID);
       if (map == null)
       {
         // This should't happen, but the entry isn't cached in the ID map so
@@ -527,7 +527,7 @@ public class FIFOEntryCache
       // If this backend becomes empty now remove it from the idMap map.
       if (map.isEmpty())
       {
-        idMap.remove(backend);
+        idMap.remove(backendID);
       }
     }
     catch (Exception e)
@@ -575,7 +575,7 @@ public class FIFOEntryCache
 
   /** {@inheritDoc} */
   @Override
-  public void clearBackend(Backend backend)
+  public void clearBackend(String backendID)
   {
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
@@ -587,7 +587,7 @@ public class FIFOEntryCache
     try
     {
       // Remove all references to entries for this backend from the ID cache.
-      Map<Long,CacheEntry> map = idMap.remove(backend);
+      Map<Long,CacheEntry> map = idMap.remove(backendID);
       if (map == null)
       {
         // No entries were in the cache for this backend, so we can return
@@ -634,7 +634,7 @@ public class FIFOEntryCache
   {
     // Determine which backend should be used for the provided base DN.  If
     // there is none, then we don't need to do anything.
-    Backend backend = DirectoryServer.getBackend(baseDN);
+    Backend<?> backend = DirectoryServer.getBackend(baseDN);
     if (backend == null)
     {
       return;
@@ -673,11 +673,11 @@ public class FIFOEntryCache
    * @param  baseDN   The base DN below which all entries should be flushed.
    * @param  backend  The backend for which to remove the appropriate entries.
    */
-  private void clearSubtree(DN baseDN, Backend backend)
+  private void clearSubtree(DN baseDN, Backend<?> backend)
   {
     // See if there are any entries for the provided backend in the cache.  If
     // not, then return.
-    Map<Long,CacheEntry> map = idMap.get(backend);
+    Map<Long,CacheEntry> map = idMap.get(backend.getBackendID());
     if (map == null)
     {
       // No entries were in the cache for this backend, so we can return without
@@ -716,7 +716,7 @@ public class FIFOEntryCache
 
     // See if the backend has any subordinate backends.  If so, then process
     // them recursively.
-    for (Backend subBackend : backend.getSubordinateBackends())
+    for (Backend<?> subBackend : backend.getSubordinateBackends())
     {
       boolean isAppropriate = false;
       for (DN subBase : subBackend.getBaseDNs())
@@ -764,7 +764,7 @@ public class FIFOEntryCache
           CacheEntry entry = iterator.next();
           iterator.remove();
 
-          Map<Long,CacheEntry> m = idMap.get(entry.getBackend());
+          Map<Long,CacheEntry> m = idMap.get(entry.getBackendID());
           if (m != null)
           {
             m.remove(entry.getEntryID());
@@ -939,7 +939,7 @@ public class FIFOEntryCache
     StringBuilder sb = new StringBuilder();
 
     Map<DN,CacheEntry> dnMapCopy;
-    Map<Backend<?>, Map<Long, CacheEntry>> idMapCopy;
+    Map<String, Map<Long, CacheEntry>> idMapCopy;
 
     // Grab cache lock to prevent any modifications
     // to the cache maps until a snapshot is taken.
@@ -959,25 +959,23 @@ public class FIFOEntryCache
       final CacheEntry cacheEntry = dnMapCopy.get(dn);
       sb.append(dn);
       sb.append(":");
-      sb.append(cacheEntry != null ?
-          Long.toString(cacheEntry.getEntryID()) : null);
+      sb.append(cacheEntry != null ? Long.toString(cacheEntry.getEntryID()) : null);
       sb.append(":");
-      sb.append(cacheEntry != null ?
-          cacheEntry.getBackend().getBackendID() : null);
+      sb.append(cacheEntry != null ? cacheEntry.getBackendID() : null);
       sb.append(ServerConstants.EOL);
     }
 
     // See if there is anything on idMap that is not reflected on
     // dnMap in case maps went out of sync.
-    for (Backend<?> backend : idMapCopy.keySet()) {
-      for (Long id : idMapCopy.get(backend).keySet()) {
-        final CacheEntry cacheEntry = idMapCopy.get(backend).get(id);
+    for (String backendID : idMapCopy.keySet()) {
+      for (Map.Entry<Long, CacheEntry> entry : idMapCopy.get(backendID).entrySet()) {
+        final CacheEntry cacheEntry = entry.getValue();
         if (cacheEntry == null || !dnMapCopy.containsKey(cacheEntry.getDN())) {
           sb.append(cacheEntry != null ? cacheEntry.getDN() : null);
           sb.append(":");
-          sb.append(id);
+          sb.append(entry.getKey());
           sb.append(":");
-          sb.append(backend.getBackendID());
+          sb.append(backendID);
           sb.append(ServerConstants.EOL);
         }
       }
