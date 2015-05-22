@@ -29,10 +29,12 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Other mailbox syntax tests.
  */
+@Test
 public class OtherMailboxSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override

@@ -21,41 +21,44 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Manuel Gaupp
- *      Portions copyright 2014 ForgeRock AS.
- *
+ *      Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_COUNTRY_STRING_OID;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Country String syntax tests.
+ * Telephone number syntax tests.
  */
 @Test
-public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
+public class TelephoneNumberSyntaxTest extends AbstractSyntaxTestCase {
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] {
-            // tests for the Country String syntax.
-            { "DE", true },
-            { "de", false },
-            { "SX", true },
-            { "12", false },
-            { "UK", true },
-            { "Xf", false },
-            { "ÖÄ", false }, // "\u00D6\u00C4"
+          { "+61 3 9896 7830", true},
+          { "+1 512 315 0280", true},
+          { "+1-512-315-0280", true},
+          { "3 9896 7830", false},
+          { "+1+512 315 0280", false},
+          { "+1x512x315x0280", false},
+          { "   ", false},
+          { "", false}
         };
     }
 
     /** {@inheritDoc} */
     @Override
-    protected Syntax getRule() {
-        return Schema.getCoreSchema().getSyntax(SYNTAX_COUNTRY_STRING_OID);
-    }
+  protected Syntax getRule()
+  {
+    SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, false);
+    return builder.toSchema().getSyntax(SYNTAX_TELEPHONE_OID);
+  }
+
 }

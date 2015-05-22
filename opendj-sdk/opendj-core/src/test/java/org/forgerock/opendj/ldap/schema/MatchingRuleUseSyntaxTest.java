@@ -29,10 +29,12 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Matching rule use syntax tests.
  */
+@Test
 public class MatchingRuleUseSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override

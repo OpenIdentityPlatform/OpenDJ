@@ -29,17 +29,21 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_TELEX_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Telex syntax tests.
  */
+@Test
 public class TelexSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-        return new Object[][] { { "123$france$456", true },
-            { "abcdefghijk$lmnopqr$stuvwxyz", true }, { "12345$67890$()+,-./:? ", true }, };
+        return new Object[][] {
+          { "123$france$456", true },
+          { "abcdefghijk$lmnopqr$stuvwxyz", true },
+          { "12345$67890$()+,-./:? ", true }, };
     }
 
     /** {@inheritDoc} */

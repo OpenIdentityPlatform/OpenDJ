@@ -22,40 +22,41 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Manuel Gaupp
  *      Portions copyright 2014 ForgeRock AS.
- *
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_COUNTRY_STRING_OID;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Country String syntax tests.
+ * Integer syntax tests.
  */
 @Test
-public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
+public class IntegerSyntaxTest extends AbstractSyntaxTestCase {
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-        return new Object[][] {
-            // tests for the Country String syntax.
-            { "DE", true },
-            { "de", false },
-            { "SX", true },
-            { "12", false },
-            { "UK", true },
-            { "Xf", false },
-            { "ÖÄ", false }, // "\u00D6\u00C4"
-        };
+      return new Object [][] {
+        {"123", true},
+        {"987654321", true},
+        {"-1", true},
+        {"10001", true},
+        {"001", false},
+        {"-01", false},
+        {"12345678\u2163", false},
+        {" 123", false},
+        {"123 ", false}
+    };
     }
 
     /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
-        return Schema.getCoreSchema().getSyntax(SYNTAX_COUNTRY_STRING_OID);
+        return Schema.getCoreSchema().getSyntax(SYNTAX_INTEGER_OID);
     }
+
 }

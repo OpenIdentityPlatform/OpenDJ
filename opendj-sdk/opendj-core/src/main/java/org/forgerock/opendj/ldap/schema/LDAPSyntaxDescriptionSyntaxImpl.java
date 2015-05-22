@@ -143,7 +143,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                     if (values.hasNext()) {
                         final String pattern = values.next();
                         try {
-                            Pattern.compile(values.next());
+                            Pattern.compile(pattern);
                         } catch (final Exception e) {
                             throwDecodeException(logger,
                                 WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid, pattern));
