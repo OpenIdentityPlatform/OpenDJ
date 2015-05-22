@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-simple-proxy'
@@ -221,7 +220,7 @@ fullname: Babs Jensen</computeroutput>
 
   <para>In the above output, the rewriter proxy listens on port 8389,
   connecting to a directory server listening on 1389. The directory server
-  contains data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  contains data from <link xlink:href="../resources/Example.ldif"
   xlink:show="new"><filename>Example.ldif</filename></link>.</para>
  </section>
 </chapter>

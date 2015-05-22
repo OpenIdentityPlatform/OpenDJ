@@ -197,6 +197,7 @@
          <jCiteSourcePaths>
            <jCiteSourcePath>${project.basedir}/opendj-ldap-sdk-examples/src/main/java</jCiteSourcePath>
          </jCiteSourcePaths>
+         <copyResourceFiles>true</copyResourceFiles>
         </configuration>
         <executions>
           <execution>

@@ -875,7 +875,7 @@ To see basic server configuration status and configuration you can launch
    the gateway translates between JSON and LDAP representations of your
    data. The default <literal>mappings</literal> are built to work with
    generated example data and also the sample content in <link xlink:show="new"
-   xlink:href="http://opendj.forgerock.org/Example.ldif"
+   xlink:href="../resources/Example.ldif"
    >Example.ldif</link>.</para>
 
    <para>At minimum, make sure that the host name and port numbers for

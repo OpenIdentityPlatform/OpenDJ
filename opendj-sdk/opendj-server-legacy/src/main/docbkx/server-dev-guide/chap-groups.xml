@@ -81,7 +81,7 @@
  <tip>
   <para>The examples in this chapter are written with the assumption that an
   <literal>ou=Groups,dc=example,dc=com</literal> entry already exists. If you
-  imported data from <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+  imported data from <link xlink:href="../resources/Example.ldif"
   xlink:show="new">Example.ldif</link>, then you already have the entry. If you
   generated data during setup and did not create an organizational unit for
   groups yet, create the entry before you try the examples.</para>
