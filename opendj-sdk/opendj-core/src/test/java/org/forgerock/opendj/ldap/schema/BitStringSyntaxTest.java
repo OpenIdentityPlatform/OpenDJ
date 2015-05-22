@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -40,13 +40,8 @@ public class BitStringSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-        return new Object[][] {
-          { "'0101'B", true },
-          { "'1'B", true },
-          { "'0'B", true },
-          { "invalid", false },
-          { "1", false },
-          { "'010100000111111010101000'B", true }, };
+        return new Object[][] { { "'0101'B", true }, { "'1'B", true }, { "'0'B", true }, { "invalid", false },
+            { "1", false }, { "'010100000111111010101000'B", true }, };
     }
 
     /** {@inheritDoc} */
