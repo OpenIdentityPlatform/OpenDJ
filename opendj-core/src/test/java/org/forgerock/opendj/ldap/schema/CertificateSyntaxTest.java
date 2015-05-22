@@ -117,16 +117,6 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
         assertEquals(liveResult, result,
                 syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
 
-        // call the getters
-        syntax.getApproximateMatchingRule();
-        syntax.getDescription();
-        syntax.getEqualityMatchingRule();
-        syntax.getOID();
-        syntax.getOrderingMatchingRule();
-        syntax.getSubstringMatchingRule();
-        syntax.hashCode();
-        syntax.isHumanReadable();
-        syntax.toString();
     }
 
     /**
@@ -139,7 +129,6 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
      */
     @Test(dataProvider = "acceptableValues")
     public void testAllowMalformedCertificates(ByteString value, Boolean result) {
-        // Make sure that the specified class can be instantiated as a task.
         SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_MALFORMED_CERTIFICATES, true);
         final Syntax syntax = builder.toSchema().getSyntax(SYNTAX_CERTIFICATE_OID);
 

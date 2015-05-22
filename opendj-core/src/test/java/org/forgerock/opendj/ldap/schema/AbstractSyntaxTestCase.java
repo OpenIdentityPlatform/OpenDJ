@@ -64,17 +64,6 @@ public abstract class AbstractSyntaxTestCase extends AbstractSchemaTestCase {
         if (!liveResult.equals(result)) {
             fail(syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
         }
-
-        // call the getters
-        syntax.getApproximateMatchingRule();
-        syntax.getDescription();
-        syntax.getEqualityMatchingRule();
-        syntax.getOID();
-        syntax.getOrderingMatchingRule();
-        syntax.getSubstringMatchingRule();
-        syntax.hashCode();
-        syntax.isHumanReadable();
-        syntax.toString();
     }
 
     /**

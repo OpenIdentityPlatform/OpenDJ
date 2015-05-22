@@ -1194,6 +1194,22 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 false);
     }
 
+    @Test
+    public final void testSchemaBuilderWithAttributeUsageDifferentFromSuperior() {
+      final SchemaBuilder scBuild = new SchemaBuilder();
+
+      // directoryOperation can't inherit from userApplications
+      scBuild.addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " NO-USER-MODIFICATION USAGE directoryOperation )", true);
+      scBuild.addSchema(Schema.getCoreSchema(), false);
+      Schema schema = scBuild.toSchema();
+      assertThat(schema.getWarnings()).hasSize(1);
+      assertThat(schema.getWarnings().toString()).contains("attribute usage directoryOperation is not the same");
+    }
+
     /**
      * The builder allows to have twin or more attributes if it can overwrite
      * them. Only the last is kept. Attributes may have same OID and name.

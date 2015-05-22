@@ -29,10 +29,12 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_UUID_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * UUID syntax tests.
  */
+@Test
 public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override

@@ -29,10 +29,12 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Attribute type syntax tests.
  */
+@Test
 public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override
@@ -52,8 +54,38 @@ public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
                         + " X-APPROX 'equalLengthApproximateMatch'"
                         + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                         + " COLLECTIVE USAGE userApplications )", true },
-            { "(1.2.8.5 NAME 'testtype' DESC 'full type')", true },
-            { "(1.2.8.5 USAGE directoryOperation )", true },
+            {
+                "(1.2.8.5 NAME 'testtype' DESC 'full type')", true },
+            {
+                "(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch "
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)", true},
+            {
+                "(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch "
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' )", true},
+            {   "(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch "
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' "
+                        + " X-SCHEMA-FILE '33-test.ldif' )", true},
+            {
+                "(1.2.8.5 USAGE directoryOperation )", true },
+
+            // Collective can inherit from non-collective
+            {   "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                        + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                        + " SUBSTR caseIgnoreSubstringsMatch"
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                        + " COLLECTIVE USAGE userApplications )", true},
+            // Collective can be operational
+            {   "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
+                        + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                        + " SUBSTR caseIgnoreSubstringsMatch"
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                        + " COLLECTIVE USAGE directoryOperation )", true},
+
+            // X-NAME is invalid extension (no value)
+            {   "(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch "
+                        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' "
+                        + " X-SCHEMA-FILE '33-test.ldif' X-NAME )", false},
+
             {
                 "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
                         + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
@@ -72,6 +104,8 @@ public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
                         + " SUBSTR caseIgnoreSubstringsMatch"
                         + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                         + " BADTOKEN USAGE directoryOperation )", false },
+
+            // NO-USER-MODIFICATION can't have non-operational usage
             {
                 "1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
                         + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
@@ -85,4 +119,5 @@ public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
     }
+
 }
