@@ -22,16 +22,20 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -52,10 +56,6 @@ import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
-
-import static com.forgerock.opendj.cli.Utils.*;
-
-import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class represents an application that can be run in the context of
@@ -640,7 +640,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected InitialLdapContext getRemoteConnection(ServerDescriptor server,
       String dn, String pwd, ApplicationTrustManager trustManager,
       int timeout,
-      LinkedHashSet<PreferredConnection> cnx)
+      Set<PreferredConnection> cnx)
   throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties =
