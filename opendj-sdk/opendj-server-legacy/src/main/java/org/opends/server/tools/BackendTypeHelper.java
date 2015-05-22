@@ -39,6 +39,7 @@ import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
+import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 
 /**
  * Helper class for setup applications. It helps applications to provide a
@@ -109,6 +110,7 @@ public class BackendTypeHelper
      * @return The old configuration framework backend object
      */
     @SuppressWarnings("unchecked")
+    @RemoveOnceNewConfigFrameworkIsUsed
     public org.opends.server.admin.ManagedObjectDefinition<
         ? extends org.opends.server.admin.std.client.BackendCfgClient,
         ? extends org.opends.server.admin.std.server.BackendCfg> getLegacyConfigurationFrameworkBackend()
