@@ -251,11 +251,7 @@
 
   <para>
    If you need additional precision when evaluating response times,
-   use the global configuration setting,
-   <link
-    xlink:show="new"
-    xlink:href="${configRefBase}global.html#etime-resolution"
-   ><literal>etime-resolution</literal></link>,
+   use the global configuration setting <literal>etime-resolution</literal>,
    to change elapsed processing time resolution
    from milliseconds (default) to nanoseconds.
   </para>

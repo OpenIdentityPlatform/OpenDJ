@@ -197,16 +197,12 @@
     </para>
 
     <para>
-     In addition to the
+     The <citetitle>Reference</citetitle> pages for the
      <link
       xlink:href="reference#dsconfig-1"
-      xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
-     that covers subcommands, the
-     <link
-      xlink:show="new" xlink:href="${configRefBase}"
-     ><citetitle>Configuration Reference</citetitle></link>
-     covers the properties that you can set
-     with the <command>dsconfig</command> command.
+      xlink:role="http://docbook.org/xlink/role/olink"
+      xlink:show="new"
+     >dsconfig</link> command cover subcommands and configuration properties.
     </para>
    </listitem>
   </varlistentry>

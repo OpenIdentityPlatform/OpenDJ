@@ -971,10 +971,7 @@ $ <userinput>dsconfig \
    <para>Consider the following global configuration settings.</para>
 
    <varlistentry>
-    <term><link
-     xlink:show="new"
-     xlink:href="${configRefBase}global.html#bind-with-dn-requires-password"
-    ><literal>bind-with-dn-requires-password</literal></link></term>
+    <term><literal>bind-with-dn-requires-password</literal></term>
     <listitem>
      <para>Whether the directory server should reject any simple bind request
      that contains a DN but no password. Default: <literal>true</literal></para>
@@ -994,10 +991,7 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><link
-     xlink:show="new"
-     xlink:href="${configRefBase}global.html#max-allowed-client-connections"
-    ><literal>max-allowed-client-connections</literal></link></term>
+    <term><literal>max-allowed-client-connections</literal></term>
     <listitem>
      <para>Restricts the number of concurrent client connections to the
      directory server. Default: 0, meaning no limit is set</para>
@@ -1017,10 +1011,7 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><link
-     xlink:show="new"
-     xlink:href="${configRefBase}global.html#reject-unauthenticated-requests"
-    ><literal>reject-unauthenticated-requests</literal></link></term>
+    <term><literal>reject-unauthenticated-requests</literal></term>
     <listitem>
      <para>Rejects any request (other than bind or StartTLS requests) received
      from a client that has not yet been authenticated, whose last
@@ -1042,10 +1033,7 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><link
-     xlink:show="new"
-     xlink:href="${configRefBase}global.html#return-bind-error-messages"
-    ><literal>return-bind-error-messages</literal></link></term>
+    <term><literal>return-bind-error-messages</literal></term>
     <listitem>
      <para>Does not restrict access, but by default prevents OpenDJ directory
      server from returning extra information about why a bind failed, as that
