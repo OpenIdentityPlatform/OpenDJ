@@ -138,7 +138,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>3.0.0-SNAPSHOT</frDocPluginVersion>
+    <frDocPluginVersion>3.0.0</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
