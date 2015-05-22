@@ -53,14 +53,15 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.naming.directory.DirContext;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.CoreMessages;
 import org.opends.messages.BackendMessages;
+import org.opends.messages.CoreMessages;
 import org.opends.messages.ReplicationMessages;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
@@ -363,26 +364,26 @@ public class InstallerHelper {
 
   /**
    * Creates a local database backend on the server.
-   * @param ctx the connection to the server.
-   * @param backendName the name of the backend to be created.
-   * @param baseDNs the list of base DNs to be defined on the server.
-   * @param serverDisplay the server display.
-   * @throws ApplicationException if something goes wrong.
+   *
+   * @param ctx
+   *          the connection to the server.
+   * @param backendName
+   *          the name of the backend to be created.
+   * @param baseDNs
+   *          the list of base DNs to be defined on the server.
+   * @param serverDisplay
+   *          the server display.
+   * @throws ApplicationException
+   *           if something goes wrong.
    */
-  public void createLocalDBBackend(InitialLdapContext ctx,
-      String backendName,
-      Set<String> baseDNs,
-      String serverDisplay)
-  throws ApplicationException
+  public void createLocalDBBackend(DirContext ctx, String backendName, Set<String> baseDNs, String serverDisplay)
+      throws ApplicationException
   {
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgDefn provider = LocalDBBackendCfgDefn.getInstance();
-      LocalDBBackendCfgClient backend = root.createBackend(provider,
-          backendName, null);
+      LocalDBBackendCfgClient backend = root.createBackend(LocalDBBackendCfgDefn.getInstance(), backendName, null);
       backend.setEnabled(true);
       Set<DN> setBaseDNs = new HashSet<DN>();
       for (String baseDN : baseDNs)
@@ -397,9 +398,7 @@ public class InstallerHelper {
     catch (Throwable t)
     {
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
-          t);
+          ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t), t);
     }
   }
 
