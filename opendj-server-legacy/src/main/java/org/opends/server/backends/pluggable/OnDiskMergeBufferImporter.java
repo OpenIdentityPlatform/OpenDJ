@@ -95,11 +95,11 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.backends.persistit.PersistItStorage;
+import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -3418,7 +3418,7 @@ final class OnDiskMergeBufferImporter
       try
       {
         returnValues.put("dn", DN.valueOf("ds-cfg-backend-id=importDNCache,cn=Backends,cn=config"));
-        storage = new PersistItStorage(newPersistitBackendCfgProxy(returnValues),
+        storage = new PDBStorage(newPDBBackendCfgProxy(returnValues),
             DirectoryServer.getInstance().getServerContext());
         storage.open(AccessMode.READ_WRITE);
         storage.write(new WriteOperation()
@@ -3436,11 +3436,11 @@ final class OnDiskMergeBufferImporter
       }
     }
 
-    private PersistitBackendCfg newPersistitBackendCfgProxy(Map<String, Object> returnValues)
+    private PDBBackendCfg newPDBBackendCfgProxy(Map<String, Object> returnValues)
     {
-      return (PersistitBackendCfg) Proxy.newProxyInstance(
+      return (PDBBackendCfg) Proxy.newProxyInstance(
           getClass().getClassLoader(),
-          new Class<?>[] { PersistitBackendCfg.class },
+          new Class<?>[] { PDBBackendCfg.class },
           new BackendCfgHandler(returnValues));
     }
 

@@ -39,8 +39,8 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.backends.persistit.PersistItStorage;
+import org.opends.server.admin.std.server.PDBBackendCfg;
+import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
@@ -66,7 +66,7 @@ public class DN2IDTest extends DirectoryServerTestCase
   private final TreeName dn2IDTreeName = new TreeName("base-dn", "index-id");
   private DN baseDN;
   private DN2ID dn2ID;
-  private PersistItStorage storage;
+  private PDBStorage storage;
 
   @BeforeClass
   public void startFakeServer() throws Exception
@@ -87,7 +87,7 @@ public class DN2IDTest extends DirectoryServerTestCase
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
-    storage = new PersistItStorage(createBackendCfg(), serverContext);
+    storage = new PDBStorage(createBackendCfg(), serverContext);
     try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
       importer.createTree(dn2IDTreeName);
     }
@@ -271,10 +271,10 @@ public class DN2IDTest extends DirectoryServerTestCase
     return new EntryID(id);
   }
 
-  private static PersistitBackendCfg createBackendCfg() throws ConfigException, DirectoryException
+  private static PDBBackendCfg createBackendCfg() throws ConfigException, DirectoryException
   {
     String homeDirName = "pdb_test";
-    PersistitBackendCfg backendCfg = mock(PersistitBackendCfg.class);
+    PDBBackendCfg backendCfg = mock(PDBBackendCfg.class);
 
     when(backendCfg.getBackendId()).thenReturn("persTest" + homeDirName);
     when(backendCfg.getDBDirectory()).thenReturn(homeDirName);

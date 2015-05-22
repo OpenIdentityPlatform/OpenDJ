@@ -23,7 +23,7 @@
  *
  *      Copyright 2014-2015 ForgeRock AS
  */
-package org.opends.server.backends.persistit;
+package org.opends.server.backends.pdb;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -97,7 +97,7 @@ import com.persistit.exception.RollbackException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
 @SuppressWarnings("javadoc")
-public final class PersistItStorage implements Storage, Backupable, ConfigurationChangeListener<PersistitBackendCfg>,
+public final class PDBStorage implements Storage, Backupable, ConfigurationChangeListener<PDBBackendCfg>,
   DiskSpaceMonitorHandler
 {
   private static final String VOLUME_NAME = "dj";
@@ -277,7 +277,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
         }
         map.clear();
       }
-      PersistItStorage.this.close();
+      PDBStorage.this.close();
     }
 
     @Override
@@ -559,7 +559,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
   private final File backendDirectory;
   private Persistit db;
   private Volume volume;
-  private PersistitBackendCfg config;
+  private PDBBackendCfg config;
   private DiskSpaceMonitor diskMonitor;
   private MemoryQuota memQuota;
   private StorageStatus storageStatus = StorageStatus.working();
@@ -574,12 +574,12 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
    * @throws ConfigException if memory cannot be reserved
    */
   // FIXME: should be package private once importer is decoupled.
-  public PersistItStorage(final PersistitBackendCfg cfg, ServerContext serverContext) throws ConfigException
+  public PDBStorage(final PDBBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     this.serverContext = serverContext;
     backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
     config = cfg;
-    cfg.addPersistitChangeListener(this);
+    cfg.addPDBChangeListener(this);
   }
 
   private Configuration buildConfiguration(AccessMode accessMode)
@@ -633,7 +633,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     {
       memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
     }
-    config.removePersistitChangeListener(this);
+    config.removePDBChangeListener(this);
     diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
   }
 
@@ -664,7 +664,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
       final long bufferCount = getBufferPoolCfg(dbCfg).computeBufferCount(db.getAvailableHeap());
       final long totalSize = bufferCount * BUFFER_SIZE / 1024;
-      logger.info(NOTE_PERSISTIT_MEMORY_CFG, config.getBackendId(), bufferCount, BUFFER_SIZE, totalSize);
+      logger.info(NOTE_PDB_MEMORY_CFG, config.getBackendId(), bufferCount, BUFFER_SIZE, totalSize);
 
       db.initialize();
       volume = db.loadVolume(VOLUME_NAME);
@@ -992,7 +992,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(PersistitBackendCfg newCfg,
+  public boolean isConfigurationChangeAcceptable(PDBBackendCfg newCfg,
       List<LocalizableMessage> unacceptableReasons)
   {
     long newSize = computeSize(newCfg);
@@ -1001,7 +1001,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
         && checkConfigurationDirectories(newCfg, unacceptableReasons);
   }
 
-  private long computeSize(PersistitBackendCfg cfg)
+  private long computeSize(PDBBackendCfg cfg)
   {
     return cfg.getDBCacheSize() > 0 ? cfg.getDBCacheSize() : memQuota.memPercentToBytes(cfg.getDBCachePercent());
   }
@@ -1013,7 +1013,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
    * @param context TODO
    * @return true if newly created backend has a valid configuration
    */
-  static boolean isConfigurationAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
+  static boolean isConfigurationAcceptable(PDBBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
       ServerContext context)
   {
     if (context != null)
@@ -1035,7 +1035,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     return checkConfigurationDirectories(cfg, unacceptableReasons);
   }
 
-  private static boolean checkConfigurationDirectories(PersistitBackendCfg cfg,
+  private static boolean checkConfigurationDirectories(PDBBackendCfg cfg,
     List<LocalizableMessage> unacceptableReasons)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
@@ -1086,7 +1086,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
    * @param ccr the current list of change results
    * @throws forwards a file exception
    */
-  private static void checkDBDirPermissions(PersistitBackendCfg cfg, ConfigChangeResult ccr)
+  private static void checkDBDirPermissions(PDBBackendCfg cfg, ConfigChangeResult ccr)
   {
     try
     {
@@ -1111,7 +1111,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
    * @param backendDir the directory to setup
    * @param curCfg a backend configuration
    */
-  private void setDBDirPermissions(PersistitBackendCfg curCfg, File backendDir) throws ConfigException
+  private void setDBDirPermissions(PDBBackendCfg curCfg, File backendDir) throws ConfigException
   {
     FilePermission backendPermission = decodeDBDirPermissions(curCfg);
 
@@ -1130,7 +1130,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
     }
   }
 
-  private static FilePermission decodeDBDirPermissions(PersistitBackendCfg curCfg) throws ConfigException
+  private static FilePermission decodeDBDirPermissions(PDBBackendCfg curCfg) throws ConfigException
   {
     try
     {
@@ -1144,7 +1144,7 @@ public final class PersistItStorage implements Storage, Backupable, Configuratio
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(PersistitBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(PDBBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 

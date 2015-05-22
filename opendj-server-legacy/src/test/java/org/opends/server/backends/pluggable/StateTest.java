@@ -36,8 +36,8 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.backends.persistit.PersistItStorage;
+import org.opends.server.admin.std.server.PDBBackendCfg;
+import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -64,7 +64,7 @@ public class StateTest extends DirectoryServerTestCase
 
   private final TreeName stateTreeName = new TreeName("base-dn", "index-id");
   private TreeName indexTreeName;
-  private PersistItStorage storage;
+  private PDBStorage storage;
   private State state;
 
   @BeforeClass
@@ -86,7 +86,7 @@ public class StateTest extends DirectoryServerTestCase
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
-    storage = new PersistItStorage(createBackendCfg(), serverContext);
+    storage = new PDBStorage(createBackendCfg(), serverContext);
     try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
       importer.createTree(stateTreeName);
     }
@@ -177,10 +177,10 @@ public class StateTest extends DirectoryServerTestCase
     assertThat(getFlags()).containsExactly(COMPACTED);
   }
 
-  private PersistitBackendCfg createBackendCfg() throws ConfigException, DirectoryException
+  private PDBBackendCfg createBackendCfg() throws ConfigException, DirectoryException
   {
     String homeDirName = "pdb_test";
-    PersistitBackendCfg backendCfg = mock(PersistitBackendCfg.class);
+    PDBBackendCfg backendCfg = mock(PDBBackendCfg.class);
 
     when(backendCfg.getBackendId()).thenReturn("persTest" + homeDirName);
     when(backendCfg.getDBDirectory()).thenReturn(homeDirName);

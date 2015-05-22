@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 
 /**
@@ -30,4 +30,4 @@
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.PRIVATE)
-package org.opends.server.backends.persistit;
+package org.opends.server.backends.pdb;

@@ -24,8 +24,8 @@
   !
   !      Copyright 2014-2015 ForgeRock AS.
   ! -->
-<adm:managed-object name="persistit-backend"
-  plural-name="persistit-backends" package="org.forgerock.opendj.server.config"
+<adm:managed-object name="pdb-backend" plural-name="pdb-backends"
+  package="org.forgerock.opendj.server.config"
   extends="pluggable-backend" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
   xmlns:cli="http://opendj.forgerock.org/admin-cli">
@@ -35,7 +35,7 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:name>ds-cfg-persistit-backend</ldap:name>
+      <ldap:name>ds-cfg-pdb-backend</ldap:name>
       <ldap:superior>ds-cfg-pluggable-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -43,7 +43,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.backends.persistit.PitBackend
+          org.opends.server.backends.pdb.PDBBackend
         </adm:value>
       </adm:defined>
     </adm:default-behavior>

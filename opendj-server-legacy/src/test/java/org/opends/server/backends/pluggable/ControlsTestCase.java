@@ -50,8 +50,8 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.backends.persistit.PitBackend;
+import org.opends.server.admin.std.server.PDBBackendCfg;
+import org.opends.server.backends.pdb.PDBBackend;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
@@ -120,7 +120,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
   /** Unindexed: ordered by {@link #SORT_ORDER_3} */
   private static final List<Integer> USERS_BY_SORT_ORDER_3 = Arrays.asList(4, 6, 1, 7, 3, 8, 5, 2, 0);
 
-  private PitBackend backend;
+  private PDBBackend backend;
 
   @BeforeClass
   public void beforeClass() throws Exception
@@ -129,7 +129,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
     final DN baseDN = DN.valueOf(BACKEND_BASE_DN);
 
-    final PersistitBackendCfg backendCfg = mock(PersistitBackendCfg.class);
+    final PDBBackendCfg backendCfg = mock(PDBBackendCfg.class);
     when(backendCfg.dn()).thenReturn(baseDN);
     when(backendCfg.getBackendId()).thenReturn(BACKEND_NAME);
     when(backendCfg.getBaseDN()).thenReturn(newSortedSet(baseDN));
@@ -144,7 +144,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     createVlvIndex(baseDN, backendCfg, SORT_ORDER_1);
     createVlvIndex(baseDN, backendCfg, SORT_ORDER_2);
 
-    backend = new PitBackend();
+    backend = new PDBBackend();
     backend.setBackendID(backendCfg.getBackendId());
     backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
     backend.openBackend();
@@ -156,7 +156,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     }
   }
 
-  private void createVlvIndex(final DN baseDN, final PersistitBackendCfg backendCfg, final String sortOrder)
+  private void createVlvIndex(final DN baseDN, final PDBBackendCfg backendCfg, final String sortOrder)
       throws ConfigException
   {
     final BackendVLVIndexCfg vlvIndexCfg = mock(BackendVLVIndexCfg.class);
