@@ -45,6 +45,7 @@ public class ReplicaDescriptor
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
   private String backendName;
+  private Set<String> objectClasses;
 
   /**
    * Returns the number of entries contained in the replica.
@@ -225,5 +226,26 @@ public class ReplicaDescriptor
   public void setBackendName(String backendName)
   {
     this.backendName = backendName;
+  }
+
+  /**
+   * Returns object classes of the backend attached to this replica.
+   *
+   * @return object classes of the backend attached to this replica.
+   */
+  public Set<String> getObjectClasses()
+  {
+    return objectClasses;
+  }
+
+  /**
+   * Sets the object classes of the backend attached to this replica.
+   *
+   * @param objectClasses
+   *          object classes of the backend attached to this replica.
+   */
+  public void setObjectClasses(Set<String> objectClasses)
+  {
+    this.objectClasses = objectClasses;
   }
 }

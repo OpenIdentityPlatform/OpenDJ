@@ -113,6 +113,7 @@ public class BackendTypeHelper
         ? extends org.opends.server.admin.std.client.BackendCfgClient,
         ? extends org.opends.server.admin.std.server.BackendCfg> getLegacyConfigurationFrameworkBackend()
     {
+      Utilities.initializeLegacyConfigurationFramework();
       if (isLocalDBBackend())
       {
         return org.opends.server.admin.std.meta.LocalDBBackendCfgDefn.getInstance();
@@ -221,6 +222,35 @@ public class BackendTypeHelper
     }
 
     return adaptors.toArray(new BackendTypeUIAdapter[adaptors.size()]);
+  }
+
+  /**
+   * Return a BackendTypeUIAdapter which adapts the backend identified by the
+   * provided backend name.
+   *
+   * @param backendName
+   *          the backend name which identifies the backend to adapt.
+   * @return a BackendTypeUIAdapter which adapts the backend identified by the
+   *         provided backend name.
+   */
+  public static BackendTypeUIAdapter getBackendTypeAdapter(String backendName)
+  {
+    ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend =
+        new BackendTypeHelper().retrieveBackendTypeFromName(backendName);
+    return backend != null ? getBackendTypeAdapter(backend) : null;
+  }
+
+  /**
+   * Return a BackendTypeUIAdapter which adapts the provided backend.
+   *
+   * @param backend
+   *          the backend type to adapt.
+   * @return a BackendTypeUIAdapter which adapts the provided backend.
+   */
+  public static BackendTypeUIAdapter getBackendTypeAdapter(
+      ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend)
+  {
+    return new BackendTypeUIAdapter(backend);
   }
 
 }

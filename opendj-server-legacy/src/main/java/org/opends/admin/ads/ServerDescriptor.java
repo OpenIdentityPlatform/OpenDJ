@@ -26,6 +26,8 @@
  */
 package org.opends.admin.ads;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +40,12 @@ import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.*;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -48,9 +55,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.schema.SchemaConstants;
-
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 /**
  * The object of this class represent an OpenDS server.
@@ -935,7 +941,8 @@ public class ServerDescriptor
     ctls.setReturningAttributes(
         new String[] {
             "ds-cfg-base-dn",
-            "ds-cfg-backend-id"
+            "ds-cfg-backend-id",
+            ConfigConstants.ATTR_OBJECTCLASS
         });
     String filter = "(objectclass=ds-cfg-backend)";
 
@@ -986,6 +993,7 @@ public class ServerDescriptor
               suffix.setDN(baseDn);
               ReplicaDescriptor replica = new ReplicaDescriptor();
               replica.setServer(desc);
+              replica.setObjectClasses(getValues(sr, ConfigConstants.ATTR_OBJECTCLASS));
               replica.setBackendName(id);
               replicas.add(replica);
               HashSet<ReplicaDescriptor> r = new HashSet<>();
