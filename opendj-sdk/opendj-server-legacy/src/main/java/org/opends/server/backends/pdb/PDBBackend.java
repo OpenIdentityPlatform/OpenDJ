@@ -24,34 +24,32 @@
  *      Copyright 2015 ForgeRock AS
  */
 
-package org.opends.server.backends.pluggable.persistit;
+package org.opends.server.backends.pdb;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.List;
 
-import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.backends.persistit.PitBackend;
-import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.PDBBackendCfg;
+import org.opends.server.backends.pluggable.BackendImpl;
+import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.core.ServerContext;
 
 /**
- * PersistIt Tester.
+ * Class defined in the configuration for this backend type.
  */
-public class PersistitTestCase extends PluggableBackendImplTestCase<PersistitBackendCfg>
+public final class PDBBackend extends BackendImpl<PDBBackendCfg>
 {
   @Override
-  protected PitBackend createBackend()
+  public boolean isConfigurationAcceptable(PDBBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
+      ServerContext serverContext)
   {
-    return new PitBackend();
+    return PDBStorage.isConfigurationAcceptable(cfg, unacceptableReasons, serverContext);
   }
 
   @Override
-  protected PersistitBackendCfg createBackendCfg()
+  protected Storage configureStorage(PDBBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
-    PersistitBackendCfg backendCfg = mock(PersistitBackendCfg.class);
-    when(backendCfg.getDBDirectory()).thenReturn(backendTestName);
-    when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
-    when(backendCfg.getDBCacheSize()).thenReturn(0L);
-    when(backendCfg.getDBCachePercent()).thenReturn(20);
-    return backendCfg;
+    return new PDBStorage(cfg, serverContext);
   }
 }

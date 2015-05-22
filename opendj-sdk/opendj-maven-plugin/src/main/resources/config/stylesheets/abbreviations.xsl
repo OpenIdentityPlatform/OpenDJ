@@ -22,7 +22,7 @@
   !
   !
   !      Copyright 2008-2009 Sun Microsystems, Inc.
-  !      Portions copyright 2011-2013 ForgeRock AS
+  !      Portions copyright 2011-2015 ForgeRock AS
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -54,7 +54,7 @@
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
               or $value = 'db' or $value = 'snmp' or $value = 'qos'
               or $value = 'ecl' or $value = 'ttl' or $value = 'jpeg'
-              or $value = 'pbkdf2' or $value = 'pkcs5s2'
+              or $value = 'pbkdf2' or $value = 'pkcs5s2' or $value = 'pdb'
              "/>
   </xsl:template>
 </xsl:stylesheet>

@@ -5755,7 +5755,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
         ds-cfg-index-filter-analyzer-max-filters )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
-  NAME 'ds-cfg-persistit-backend'
+  NAME 'ds-cfg-pdb-backend'
   SUP ds-cfg-pluggable-backend
   STRUCTURAL
   MUST ds-cfg-db-directory
