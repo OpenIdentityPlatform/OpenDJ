@@ -54,7 +54,7 @@
   from
   <link
    xlink:show="new"
-   xlink:href="http://opendj.forgerock.org/Example.ldif"
+   xlink:href="../resources/Example.ldif"
   >Example.ldif</link>.
  </para>
 
@@ -198,7 +198,7 @@ $ <userinput>dsconfig \
    When you install OpenDJ either with generated sample user entries
    or with data from
    <link
-    xlink:href="http://opendj.forgerock.org/Example.ldif"
+    xlink:href="../resources/Example.ldif"
     xlink:show="new">Example.ldif</link>,
    the relative distinguished name (DN) attribute for sample user entries
    is the user ID (<literal>uid</literal>) attribute.

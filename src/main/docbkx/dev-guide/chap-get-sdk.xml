@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -72,7 +71,7 @@
   <para>Install an LDAP server such as OpenDJ directory server that you can
   use to test the applications you develop. Also, load sample data into your
   server. The sample data used in this guide are available in LDIF form at
-  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif" />.</para>
+  <link xlink:show="new" xlink:href="../resources/Example.ldif" />.</para>
  </section>
 
  <section xml:id="getting-the-ldap-sdk">

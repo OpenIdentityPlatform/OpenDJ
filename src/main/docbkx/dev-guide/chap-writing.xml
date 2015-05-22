@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-writing'
@@ -238,17 +237,13 @@
 
   <para>Static groups enumerate user entries. Static groups can grow large.
   For an example, see the group entry at the end of <link xlink:show="new"
-  xlink:href="http://opendj.forgerock.org/big-group.ldif">big-group.ldif</link>:</para>
+  xlink:href="../resources/big-group.ldif">big-group.ldif</link>:</para>
 
-  <programlisting language="ldif">dn: cn=Static,ou=Groups,dc=example,dc=com
-objectClass: top
-objectClass: groupofnames
-cn: Static
-member: uid=user.0,ou=People,dc=example,dc=com
-member: uid=user.1,ou=People,dc=example,dc=com
-member: uid=user.2,ou=People,dc=example,dc=com
+  <programlisting language="ldif">
+[../resources/big-group.ldif:group-top]
 ...
-member: uid=user.10000,ou=People,dc=example,dc=com</programlisting>
+[../resources/big-group.ldif:group-bottom]
+  </programlisting>
 
   <para>To update a static group, you either add members or remove members.
   For sample code, see <link

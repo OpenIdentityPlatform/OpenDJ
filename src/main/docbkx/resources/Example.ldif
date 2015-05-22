@@ -1,0 +1,4103 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+# or http://forgerock.org/license/CDDLv1.0.html.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at legal-notices/CDDLv1_0.txt.
+# If applicable, add the following below this CDDL HEADER, with the
+# fields enclosed by brackets "[]" replaced with your own identifying
+# information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2012-2015 ForgeRock AS.
+#
+#
+# dc=com sample LDIF file
+#
+# Schema definition for use with Class of Service collective attributes:
+#
+#dn: cn=schema
+#changetype: modify
+#add: attributeTypes
+#attributeTypes: ( example-class-of-service-attribute-type NAME 'classOfService
+# ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnore
+# SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE USAGE user
+# Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+#-
+#add: attributeTypes
+#attributeTypes: ( example-class-of-service-disk-quota NAME 'diskQuota
+# ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+# IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+# Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+#-
+#add: attributeTypes
+#attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
+# ' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR case
+# IgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE user
+# Applications X-ORIGIN 'OpenDJ Documentation Examples' )
+#-
+#add: objectClasses
+#objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
+# ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
+# umentation Examples' )
+#
+
+dn: dc=com
+objectClass: domain
+objectClass: top
+dc: com
+
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "*")(version 3.0; acl "allow all Admin group"; allow(all,export,import,proxy
+ ) groupdn = "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+aci: (target="ldap:///dc=example,dc=com") (targetattr ="*
+ ")(version 3.0; acl "Allow apps proxied auth"; allow(all, proxy
+ )(userdn = "ldap:///cn=*,ou=Apps,dc=example,dc=com");)
+aci: (targetcontrol="1.2.840.113556.1.4.805") (version 3.0; acl "
+ Tree delete for Admins"; allow(all) groupdn ="
+ ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+
+dn: ou=Company Servers,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+description: Standard branch for Company Server registration
+ou: Company Servers
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Groups
+
+dn: cn=Accounting Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+description: People who can manage accounting entries
+uniquemember: uid=scarter, ou=People, dc=example,dc=com
+uniquemember: uid=tmorris, ou=People, dc=example,dc=com
+cn: Accounting Managers
+
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+objectClass: groupofuniquenames
+objectClass: top
+ou: Groups
+cn: Directory Administrators
+uniquemember: uid=kvaughan, ou=People, dc=example,dc=com
+uniquemember: uid=rdaugherty, ou=People, dc=example,dc=com
+uniquemember: uid=hmiller, ou=People, dc=example,dc=com
+
+dn: cn=HR Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+description: People who can manage HR entries
+uniquemember: uid=kvaughan, ou=People, dc=example,dc=com
+uniquemember: uid=cschmith, ou=People, dc=example,dc=com
+cn: HR Managers
+
+dn: cn=PD Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+description: People who can manage engineer entries
+uniquemember: uid=kwinters, ou=People, dc=example,dc=com
+uniquemember: uid=trigden, ou=People, dc=example,dc=com
+cn: PD Managers
+
+dn: cn=QA Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+description: People who can manage QA entries
+uniquemember: uid=abergin, ou=People, dc=example,dc=com
+uniquemember: uid=jwalker, ou=People, dc=example,dc=com
+cn: QA Managers
+
+dn: ou=People,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: People
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+ "userpassword || telephonenumber || facsimiletelephonenumber")(version 3.0;
+ acl "Allow self entry modification";allow (write)(userdn = "ldap:///self");)
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
+ "cn || sn || uid")(targetfilter ="(ou=Accounting)")(version 3.0;
+ acl "Accounting Managers Group Permissions";allow (write) (groupdn =
+  "ldap:///cn=Accounting Managers,ou=groups,dc=example,dc=com");)
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
+ "cn || sn || uid")(targetfilter ="(ou=Human Resources)")(version 3.0;
+ acl "HR Group Permissions";allow (write)(groupdn = "ldap:///cn=HR Managers,
+ ou=groups,dc=example,dc=com
+ ");)
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
+ "cn ||sn || uid")(targetfilter ="(ou=Product Testing)")(version 3.0;
+ acl "QA Group Permissions";allow (write)(groupdn = "ldap:///cn=QA Managers,
+ ou=groups,dc=example,dc=com");)
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
+ "cn || sn || uid")(targetfilter ="(ou=Product Development)")(version 3.0;
+ acl "Engineering Group Permissions";allow (write)(groupdn = "ldap:///
+ cn=PD Managers,ou=groups,dc=example,dc=com");)
+
+dn: uid=abarnes,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: abarnes
+#classOfService: gold
+userpassword: chevron
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Anne-Louise
+cn: Anne-Louise Barnes
+telephonenumber: +1 408 555 9445
+sn: Barnes
+roomnumber: 2290
+homeDirectory: /home/abarnes
+mail: abarnes@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1119
+gidNumber: 1000
+
+dn: uid=abergin,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: abergin
+departmentNumber: 4000
+#classOfService: bronze
+userpassword: inflict
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Andy
+cn: Andy Bergin
+telephonenumber: +1 408 555 8585
+sn: Bergin
+roomnumber: 3472
+homeDirectory: /home/abergin
+mail: abergin@example.com
+l: San Francisco
+ou: Product Testing
+ou: People
+uidNumber: 1005
+gidNumber: 1000
+
+dn: uid=achassin,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: achassin
+#classOfService: silver
+userpassword: duopolist
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Ashley
+cn: Ashley Chassin
+telephonenumber: +1 408 555 9972
+sn: Chassin
+roomnumber: 0466
+homeDirectory: /home/achassin
+mail: achassin@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1027
+gidNumber: 1000
+
+dn: uid=ahall,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ahall
+#classOfService: gold
+userpassword: slater
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Andy
+cn: Andy Hall
+telephonenumber: +1 408 555 6169
+sn: Hall
+roomnumber: 3050
+homeDirectory: /home/ahall
+mail: ahall@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1103
+gidNumber: 1000
+
+dn: uid=ahel,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ahel
+#classOfService: silver
+userpassword: sarsaparilla
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Andrew
+cn: Andrew Hel
+telephonenumber: +1 408 555 2666
+sn: Hel
+roomnumber: 0572
+homeDirectory: /home/ahel
+mail: ahel@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1066
+gidNumber: 1000
+
+dn: uid=ahunter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ahunter
+#classOfService: silver
+userpassword: egregious
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Allison
+cn: Allison Hunter
+telephonenumber: +1 408 555 7713
+sn: Hunter
+roomnumber: 1213
+homeDirectory: /home/ahunter
+mail: ahunter@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1106
+gidNumber: 1000
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ajensen
+#classOfService: silver
+userpassword: coltsfoot
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Allison
+cn: Allison Jensen
+telephonenumber: +1 408 555 7892
+sn: Jensen
+roomnumber: 0784
+homeDirectory: /home/ajensen
+mail: ajensen@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1095
+gidNumber: 1000
+
+dn: uid=aknutson,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: aknutson
+#classOfService: gold
+userpassword: maltose
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Ashley
+cn: Ashley Knutson
+telephonenumber: +1 408 555 2169
+sn: Knutson
+roomnumber: 4736
+homeDirectory: /home/aknutson
+mail: aknutson@example.com
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1112
+gidNumber: 1000
+
+dn: uid=alangdon,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: alangdon
+#classOfService: bronze
+userpassword: muzzle
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Andrew
+cn: Andrew Langdon
+telephonenumber: +1 408 555 8289
+sn: Langdon
+roomnumber: 2254
+homeDirectory: /home/alangdon
+mail: alangdon@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1133
+gidNumber: 1000
+
+dn: uid=alutz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: alutz
+#classOfService: gold
+userpassword: northward
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Alexander
+cn: Alexander Lutz
+telephonenumber: +1 408 555 6505
+sn: Lutz
+roomnumber: 1327
+homeDirectory: /home/alutz
+mail: alutz@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1025
+gidNumber: 1000
+
+dn: uid=ashelton,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ashelton
+#classOfService: gold
+userpassword: appointe
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Alexander
+cn: Alexander Shelton
+telephonenumber: +1 408 555 1081
+sn: Shelton
+roomnumber: 1987
+homeDirectory: /home/ashelton
+mail: ashelton@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1060
+gidNumber: 1000
+
+dn: uid=awalker,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: awalker
+#classOfService: silver
+userpassword: detonable
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Andy
+cn: Andy Walker
+telephonenumber: +1 408 555 9199
+sn: Walker
+roomnumber: 0061
+homeDirectory: /home/awalker
+mail: awalker@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1136
+gidNumber: 1000
+
+dn: uid=awhite,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: awhite
+#classOfService: gold
+userpassword: placeholder
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Alan
+cn: Alan White
+telephonenumber: +1 408 555 3232
+sn: White
+roomnumber: 0142
+homeDirectory: /home/awhite
+mail: awhite@example.com
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1082
+gidNumber: 1000
+
+dn: uid=aworrell,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: aworrell
+#classOfService: bronze
+userpassword: gargoyle
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Alan
+cn: Alan Worrell
+telephonenumber: +1 408 555 1591
+sn: Worrell
+roomnumber: 3966
+homeDirectory: /home/aworrell
+mail: aworrell@example.com
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1108
+gidNumber: 1000
+
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bfrancis
+#classOfService: silver
+userpassword: holystone
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Barbara
+cn: Barbara Francis
+telephonenumber: +1 408 555 9111
+sn: Francis
+roomnumber: 3743
+homeDirectory: /home/bfrancis
+mail: bfrancis@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1139
+gidNumber: 1000
+
+dn: uid=bfree,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bfree
+#classOfService: silver
+userpassword: etiquette
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Bjorn
+cn: Bjorn Free
+telephonenumber: +1 408 555 8588
+sn: Free
+roomnumber: 3307
+homeDirectory: /home/bfree
+mail: bfree@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1056
+gidNumber: 1000
+
+dn: uid=bhal2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bhal2
+#classOfService: silver
+userpassword: truths
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Barbara
+cn: Barbara Hall
+telephonenumber: +1 408 555 4491
+sn: Hall
+roomnumber: 2758
+homeDirectory: /home/bhal2
+mail: bhal2@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1024
+gidNumber: 1000
+
+dn: uid=bhall,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bhall
+#classOfService: silver
+userpassword: oranges
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Benjamin
+cn: Benjamin Hall
+telephonenumber: +1 408 555 6067
+sn: Hall
+roomnumber: 2511
+homeDirectory: /home/bhall
+mail: bhall@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1017
+gidNumber: 1000
+
+dn: uid=bjablons,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjablons
+#classOfService: bronze
+userpassword: strawberry
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Barbara
+cn: Barbara Jablonski
+telephonenumber: +1 408 555 8815
+sn: Jablonski
+roomnumber: 0906
+homeDirectory: /home/bjablons
+mail: bjablons@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1020
+gidNumber: 1000
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjense2
+#classOfService: gold
+userpassword: mortgage
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Bjorn
+cn: Bjorn Jensen
+telephonenumber: +1 408 555 5655
+sn: Jensen
+roomnumber: 4294
+homeDirectory: /home/bjense2
+mail: bjense2@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1101
+gidNumber: 1000
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+#classOfService: bronze
+userpassword: hifalutin
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephonenumber: +1 408 555 1862
+sn: Jensen
+roomnumber: 0209
+homeDirectory: /home/bjensen
+mail: bjensen@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+preferredLanguage: en, ko;q=0.8
+uidNumber: 1076
+gidNumber: 1000
+description: Original description
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bmaddox
+#classOfService: bronze
+userpassword: feedback
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Barbara
+cn: Barbara Maddox
+telephonenumber: +1 408 555 7783
+sn: Maddox
+roomnumber: 2207
+homeDirectory: /home/bmaddox
+mail: bmaddox@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1083
+gidNumber: 1000
+
+dn: uid=bparker,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bparker
+#classOfService: bronze
+userpassword: lenticular
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Barry
+cn: Barry Parker
+telephonenumber: +1 408 555 4647
+sn: Parker
+roomnumber: 1148
+homeDirectory: /home/bparker
+mail: bparker@example.com
+l: Bristol
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1146
+gidNumber: 1000
+
+dn: uid=bplante,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bplante
+#classOfService: gold
+userpassword: tangerine
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Brian
+cn: Brian Plante
+telephonenumber: +1 408 555 3550
+sn: Plante
+roomnumber: 4654
+homeDirectory: /home/bplante
+mail: bplante@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1044
+gidNumber: 1000
+
+dn: uid=brentz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: brentz
+#classOfService: gold
+userpassword: diachronic
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Bertram
+cn: Bertram Rentz
+telephonenumber: +1 408 555 5526
+sn: Rentz
+roomnumber: 0617
+homeDirectory: /home/brentz
+mail: brentz@example.com
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1048
+gidNumber: 1000
+
+dn: uid=brigden,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: brigden
+#classOfService: gold
+userpassword: purple
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Bjorn
+cn: Bjorn Rigden
+telephonenumber: +1 408 555 5263
+sn: Rigden
+roomnumber: 1643
+homeDirectory: /home/brigden
+mail: brigden@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1142
+gidNumber: 1000
+
+dn: uid=bschneid,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bschneid
+#classOfService: silver
+userpassword: biblical
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Benjamin
+cn: Benjamin Schneider
+telephonenumber: +1 408 555 1012
+sn: Schneider
+roomnumber: 4471
+homeDirectory: /home/bschneid
+mail: bschneid@example.com
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1046
+gidNumber: 1000
+
+dn: uid=btalbo2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: btalbo2
+#classOfService: bronze
+userpassword: corduroy
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Bjorn
+cn: Bjorn Talbot
+telephonenumber: +1 408 555 4234
+sn: Talbot
+roomnumber: 1205
+homeDirectory: /home/btalbo2
+mail: btalbo2@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1026
+gidNumber: 1000
+
+dn: uid=btalbot,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: btalbot
+#classOfService: silver
+userpassword: trident
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Brad
+cn: Brad Talbot
+telephonenumber: +1 408 555 4992
+sn: Talbot
+roomnumber: 3532
+homeDirectory: /home/btalbot
+mail: btalbot@example.com
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1018
+gidNumber: 1000
+
+dn: uid=bwalker,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: bwalker
+#classOfService: bronze
+userpassword: interruptible
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Brad
+cn: Brad Walker
+telephonenumber: +1 408 555 5476
+sn: Walker
+roomnumber: 3529
+homeDirectory: /home/bwalker
+mail: bwalker@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1038
+gidNumber: 1000
+
+dn: uid=calexand,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: calexand
+#classOfService: bronze
+userpassword: dauphin
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Chris
+cn: Chris Alexander
+telephonenumber: +1 408 555 9438
+sn: Alexander
+roomnumber: 2884
+homeDirectory: /home/calexand
+mail: calexand@example.com
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1070
+gidNumber: 1000
+
+dn: uid=charvey,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: charvey
+#classOfService: bronze
+userpassword: journalese
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Cecil
+cn: Cecil Harvey
+telephonenumber: +1 408 555 1815
+sn: Harvey
+roomnumber: 4583
+homeDirectory: /home/charvey
+mail: charvey@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1131
+gidNumber: 1000
+
+dn: uid=cnewport,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: cnewport
+#classOfService: gold
+userpassword: expertise
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Christoph
+cn: Christoph Newport
+telephonenumber: +1 408 555 0066
+sn: Newport
+roomnumber: 0056
+homeDirectory: /home/cnewport
+mail: cnewport@example.com
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1150
+gidNumber: 1000
+
+dn: uid=cschmith,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: cschmith
+departmentNumber: 2001
+#classOfService: gold
+userpassword: hypotenuse
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Chris
+cn: Chris Schmith
+telephonenumber: +1 408 555 8011
+sn: Schmith
+roomnumber: 0416
+homeDirectory: /home/cschmith
+mail: cschmith@example.com
+l: Lysaker
+ou: Human Resources
+ou: People
+uidNumber: 1010
+gidNumber: 1000
+
+dn: uid=cwallace,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: cwallace
+#classOfService: bronze
+userpassword: quintus
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Cecil
+cn: Cecil Wallace
+telephonenumber: +1 408 555 6438
+sn: Wallace
+roomnumber: 0349
+homeDirectory: /home/cwallace
+mail: cwallace@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1041
+gidNumber: 1000
+
+dn: uid=dakers,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dakers
+#classOfService: bronze
+userpassword: integument
+facsimiletelephonenumber: +1 408 555 8721
+givenname: David
+cn: David Akers
+telephonenumber: +1 408 555 4812
+sn: Akers
+roomnumber: 4944
+homeDirectory: /home/dakers
+mail: dakers@example.com
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1088
+gidNumber: 1000
+
+dn: uid=dcope,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dcope
+#classOfService: gold
+userpassword: snifter
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Dan
+cn: Dan Cope
+telephonenumber: +1 408 555 9813
+sn: Cope
+roomnumber: 1737
+homeDirectory: /home/dcope
+mail: dcope@example.com
+l: Bristol
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1126
+gidNumber: 1000
+
+dn: uid=dlangdon,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dlangdon
+#classOfService: bronze
+userpassword: botulin
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Dan
+cn: Dan Langdon
+telephonenumber: +1 408 555 7044
+sn: Langdon
+roomnumber: 3263
+homeDirectory: /home/dlangdon
+mail: dlangdon@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1111
+gidNumber: 1000
+
+dn: uid=dlanoway,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dlanoway
+#classOfService: silver
+userpassword: manhattan
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Dan
+cn: Dan Lanoway
+telephonenumber: +1 408 555 2017
+sn: Lanoway
+roomnumber: 3540
+homeDirectory: /home/dlanoway
+mail: dlanoway@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1117
+gidNumber: 1000
+
+dn: uid=dmiller,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dmiller
+#classOfService: silver
+userpassword: gosling
+facsimiletelephonenumber: +1 408 555 0111
+givenname: David
+cn: David Miller
+telephonenumber: +1 408 555 9423
+sn: Miller
+roomnumber: 4135
+homeDirectory: /home/dmiller
+mail: dmiller@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1006
+gidNumber: 1000
+
+dn: uid=drose,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: drose
+#classOfService: gold
+userpassword: gubernatorial
+facsimiletelephonenumber: +1 408 555 0111
+givenname: David
+cn: David Rose
+telephonenumber: +1 408 555 3963
+sn: Rose
+roomnumber: 4012
+homeDirectory: /home/drose
+mail: drose@example.com
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1134
+gidNumber: 1000
+
+dn: uid=dsmith,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dsmith
+#classOfService: gold
+userpassword: quantitative
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Daniel
+cn: Daniel Smith
+telephonenumber: +1 408 555 9519
+sn: Smith
+roomnumber: 0368
+homeDirectory: /home/dsmith
+mail: dsmith@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1049
+gidNumber: 1000
+
+dn: uid=dswain,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dswain
+#classOfService: silver
+userpassword: freedom
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Dietrich
+cn: Dietrich Swain
+telephonenumber: +1 408 555 9222
+sn: Swain
+roomnumber: 4396
+homeDirectory: /home/dswain
+mail: dswain@example.com
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1102
+gidNumber: 1000
+
+dn: uid=dthorud,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dthorud
+#classOfService: bronze
+userpassword: fulcrum
+facsimiletelephonenumber: +1 408 555 7472
+givenname: David
+cn: David Thorud
+telephonenumber: +1 408 555 6185
+sn: Thorud
+roomnumber: 1128
+homeDirectory: /home/dthorud
+mail: dthorud@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1051
+gidNumber: 1000
+
+dn: uid=dward,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: dward
+#classOfService: bronze
+userpassword: armload
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Daniel
+cn: Daniel Ward
+telephonenumber: +1 408 555 5322
+sn: Ward
+roomnumber: 3927
+homeDirectory: /home/dward
+mail: dward@example.com
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1090
+gidNumber: 1000
+
+dn: uid=ealexand,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ealexand
+#classOfService: gold
+userpassword: galactose
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Erin
+cn: Erin Alexander
+telephonenumber: +1 408 555 5563
+sn: Alexander
+roomnumber: 2434
+homeDirectory: /home/ealexand
+mail: ealexand@example.com
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1147
+gidNumber: 1000
+
+dn: uid=ecruse,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ecruse
+#classOfService: gold
+userpassword: platelet
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Eric
+cn: Eric Cruse
+telephonenumber: +1 408 555 0648
+sn: Cruse
+roomnumber: 4233
+homeDirectory: /home/ecruse
+mail: ecruse@example.com
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1143
+gidNumber: 1000
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ejohnson
+#classOfService: silver
+userpassword: marketwise
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Emanuel
+cn: Emanuel Johnson
+telephonenumber: +1 408 555 3287
+sn: Johnson
+roomnumber: 3737
+homeDirectory: /home/ejohnson
+mail: ejohnson@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1036
+gidNumber: 1000
+
+dn: uid=ekohler,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ekohler
+#classOfService: silver
+userpassword: guildhall
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Elba
+cn: Elba Kohler
+telephonenumber: +1 408 555 1926
+sn: Kohler
+roomnumber: 2721
+homeDirectory: /home/ekohler
+mail: ekohler@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1052
+gidNumber: 1000
+
+dn: uid=elott,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: elott
+#classOfService: gold
+userpassword: holdout
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Emanuel
+cn: Emanuel Lott
+telephonenumber: +1 408 555 0932
+sn: Lott
+roomnumber: 3906
+homeDirectory: /home/elott
+mail: elott@example.com
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1149
+gidNumber: 1000
+
+dn: uid=ewalker,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ewalker
+#classOfService: gold
+userpassword: beguile
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Eric
+cn: Eric Walker
+telephonenumber: +1 408 555 6387
+sn: Walker
+roomnumber: 2295
+homeDirectory: /home/ewalker
+mail: ewalker@example.com
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1140
+gidNumber: 1000
+
+dn: uid=eward,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: eward
+#classOfService: bronze
+userpassword: episcopal
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Eric
+cn: Eric Ward
+telephonenumber: +1 408 555 2320
+sn: Ward
+roomnumber: 4874
+homeDirectory: /home/eward
+mail: eward@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1129
+gidNumber: 1000
+
+dn: uid=falbers,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: falbers
+#classOfService: bronze
+userpassword: degradation
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Frank
+cn: Frank Albers
+telephonenumber: +1 408 555 3094
+sn: Albers
+roomnumber: 1439
+homeDirectory: /home/falbers
+mail: falbers@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1062
+gidNumber: 1000
+
+dn: uid=gfarmer,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: gfarmer
+#classOfService: silver
+userpassword: ruling
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Gern
+cn: Gern Farmer
+telephonenumber: +1 408 555 6201
+sn: Farmer
+roomnumber: 1269
+homeDirectory: /home/gfarmer
+mail: gfarmer@example.com
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1007
+gidNumber: 1000
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: gjensen
+#classOfService: silver
+userpassword: primitive
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Gern
+cn: Gern Jensen
+telephonenumber: +1 408 555 3299
+sn: Jensen
+roomnumber: 4609
+homeDirectory: /home/gjensen
+mail: gjensen@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1081
+gidNumber: 1000
+
+dn: uid=gtriplet,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: gtriplet
+#classOfService: bronze
+userpassword: placeable
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Gern
+cn: Gern Triplett
+telephonenumber: +1 408 555 2582
+sn: Triplett
+roomnumber: 4023
+homeDirectory: /home/gtriplet
+mail: gtriplet@example.com
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1033
+gidNumber: 1000
+
+dn: uid=gtyler,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: gtyler
+#classOfService: gold
+userpassword: typology
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Gern
+cn: Gern Tyler
+telephonenumber: +1 408 555 1020
+sn: Tyler
+roomnumber: 0312
+homeDirectory: /home/gtyler
+mail: gtyler@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1099
+gidNumber: 1000
+
+dn: uid=hmiller,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: hmiller
+#classOfService: silver
+userpassword: hillock
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Harry
+cn: Harry Miller
+telephonenumber: +1 408 555 9804
+sn: Miller
+roomnumber: 4304
+homeDirectory: /home/hmiller
+mail: hmiller@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1028
+gidNumber: 1000
+
+dn: uid=jbourke,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jbourke
+#classOfService: silver
+userpassword: brainwash
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Jon
+cn: Jon Bourke
+telephonenumber: +1 408 555 8541
+sn: Bourke
+roomnumber: 0034
+homeDirectory: /home/jbourke
+mail: jbourke@example.com
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1116
+gidNumber: 1000
+
+dn: uid=jbrown,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jbrown
+#classOfService: silver
+userpassword: militiamen
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Judy
+cn: Judy Brown
+telephonenumber: +1 408 555 6885
+sn: Brown
+roomnumber: 4224
+homeDirectory: /home/jbrown
+mail: jbrown@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1085
+gidNumber: 1000
+
+dn: uid=jburrell,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jburrell
+#classOfService: silver
+userpassword: degrease
+facsimiletelephonenumber: +1 408 555 4774
+givenname: James
+cn: James Burrell
+telephonenumber: +1 408 555 0751
+sn: Burrell
+roomnumber: 4926
+homeDirectory: /home/jburrell
+mail: jburrell@example.com
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1067
+gidNumber: 1000
+
+dn: uid=jcampai2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jcampai2
+#classOfService: gold
+userpassword: nominee
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Jeffrey
+cn: Jeffrey Campaigne
+telephonenumber: +1 408 555 7393
+sn: Campaigne
+roomnumber: 1377
+homeDirectory: /home/jcampai2
+mail: jcampai2@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1029
+gidNumber: 1000
+
+dn: uid=jcampaig,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jcampaig
+#classOfService: silver
+userpassword: grapevine
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Jody
+cn: Jody Campaigne
+telephonenumber: +1 408 555 1660
+sn: Campaigne
+roomnumber: 4385
+homeDirectory: /home/jcampaig
+mail: jcampaig@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1023
+gidNumber: 1000
+
+dn: uid=jcruse,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jcruse
+#classOfService: silver
+userpassword: bridgework
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Jim
+cn: Jim Cruse
+telephonenumber: +1 408 555 9482
+sn: Cruse
+roomnumber: 0083
+homeDirectory: /home/jcruse
+mail: jcruse@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1071
+gidNumber: 1000
+
+dn: uid=jfalena,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jfalena
+#classOfService: bronze
+userpassword: nightly
+facsimiletelephonenumber: +1 408 555 7472
+givenname: John
+cn: John Falena
+telephonenumber: +1 408 555 8133
+sn: Falena
+roomnumber: 1917
+homeDirectory: /home/jfalena
+mail: jfalena@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1034
+gidNumber: 1000
+
+dn: uid=jgoldste,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jgoldste
+#classOfService: gold
+userpassword: yellow
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Jon
+cn: Jon Goldstein
+telephonenumber: +1 408 555 5769
+sn: Goldstein
+roomnumber: 1454
+homeDirectory: /home/jgoldste
+mail: jgoldste@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1107
+gidNumber: 1000
+
+dn: uid=jhunter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jhunter
+#classOfService: bronze
+userpassword: nanometer
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Janet
+cn: Janet Hunter
+telephonenumber: +1 408 555 7665
+sn: Hunter
+roomnumber: 4856
+homeDirectory: /home/jhunter
+mail: jhunter@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1059
+gidNumber: 1000
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jjensen
+#classOfService: silver
+userpassword: borderland
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Jody
+cn: Jody Jensen
+telephonenumber: +1 408 555 7587
+sn: Jensen
+roomnumber: 4882
+homeDirectory: /home/jjensen
+mail: jjensen@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1086
+gidNumber: 1000
+
+dn: uid=jlange,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jlange
+#classOfService: gold
+userpassword: chastity
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Jim
+cn: Jim Lange
+telephonenumber: +1 408 555 0488
+sn: Lange
+roomnumber: 3798
+homeDirectory: /home/jlange
+mail: jlange@example.com
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1077
+gidNumber: 1000
+
+dn: uid=jlut2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jlut2
+#classOfService: silver
+userpassword: shrank
+facsimiletelephonenumber: +1 408 555 3825
+givenname: James
+cn: James Lutz
+telephonenumber: +1 408 555 9689
+sn: Lutz
+roomnumber: 3541
+homeDirectory: /home/jlut2
+mail: jlut2@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1123
+gidNumber: 1000
+
+dn: uid=jlutz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jlutz
+#classOfService: gold
+userpassword: autumn
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Janet
+cn: Janet Lutz
+telephonenumber: +1 408 555 4902
+sn: Lutz
+roomnumber: 2544
+homeDirectory: /home/jlutz
+mail: jlutz@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1110
+gidNumber: 1000
+
+dn: uid=jmcFarla,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jmcFarla
+#classOfService: gold
+userpassword: walnut
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Judy
+cn: Judy McFarland
+telephonenumber: +1 408 555 2567
+sn: McFarland
+roomnumber: 2359
+homeDirectory: /home/jmcFarla
+mail: jmcFarla@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1021
+gidNumber: 1000
+
+dn: uid=jmuffly,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jmuffly
+#classOfService: silver
+userpassword: dictate
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Jeff
+cn: Jeff Muffly
+telephonenumber: +1 408 555 5287
+sn: Muffly
+roomnumber: 0997
+homeDirectory: /home/jmuffly
+mail: jmuffly@example.com
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1104
+gidNumber: 1000
+
+dn: uid=jrent2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jrent2
+#classOfService: silver
+userpassword: tachistoscope
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Judy
+cn: Judy Rentz
+telephonenumber: +1 408 555 2523
+sn: Rentz
+roomnumber: 4405
+homeDirectory: /home/jrent2
+mail: jrent2@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1127
+gidNumber: 1000
+
+dn: uid=jrentz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jrentz
+#classOfService: bronze
+userpassword: meander
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Jody
+cn: Jody Rentz
+telephonenumber: +1 408 555 5829
+sn: Rentz
+roomnumber: 3025
+homeDirectory: /home/jrentz
+mail: jrentz@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1093
+gidNumber: 1000
+
+dn: uid=jreuter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jreuter
+#classOfService: gold
+userpassword: destroy
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Jayne
+cn: Jayne Reuter
+telephonenumber: +1 408 555 1122
+sn: Reuter
+roomnumber: 2942
+homeDirectory: /home/jreuter
+mail: jreuter@example.com
+l: San Francisco
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1015
+gidNumber: 1000
+
+dn: uid=jvaughan,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jvaughan
+#classOfService: silver
+userpassword: appoint
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Jeff
+cn: Jeff Vaughan
+telephonenumber: +1 408 555 4543
+sn: Vaughan
+roomnumber: 1734
+homeDirectory: /home/jvaughan
+mail: jvaughan@example.com
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1138
+gidNumber: 1000
+
+dn: uid=jvedder,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jvedder
+#classOfService: gold
+userpassword: befitting
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Jeff
+cn: Jeff Vedder
+telephonenumber: +1 408 555 4668
+sn: Vedder
+roomnumber: 3445
+homeDirectory: /home/jvedder
+mail: jvedder@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1151
+gidNumber: 1000
+
+dn: uid=jwalker,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jwalker
+departmentNumber: 4001
+#classOfService: silver
+userpassword: dogleg
+facsimiletelephonenumber: +1 408 555 1992
+givenname: John
+cn: John Walker
+telephonenumber: +1 408 555 1476
+sn: Walker
+roomnumber: 3915
+homeDirectory: /home/jwalker
+mail: jwalker@example.com
+l: San Francisco
+ou: Product Testing
+ou: People
+uidNumber: 1012
+gidNumber: 1000
+
+dn: uid=jwallace,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: jwallace
+#classOfService: silver
+userpassword: linear
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Judy
+cn: Judy Wallace
+telephonenumber: +1 408 555 0319
+sn: Wallace
+roomnumber: 1033
+homeDirectory: /home/jwallace
+mail: jwallace@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1011
+gidNumber: 1000
+
+dn: uid=kcarter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kcarter
+#classOfService: gold
+userpassword: radiosonde
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Karen
+cn: Karen Carter
+telephonenumber: +1 408 555 4675
+sn: Carter
+roomnumber: 2320
+homeDirectory: /home/kcarter
+mail: kcarter@example.com
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1072
+gidNumber: 1000
+
+dn: uid=kcope,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kcope
+#classOfService: bronze
+userpassword: forfeiture
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Karl
+cn: Karl Cope
+telephonenumber: +1 408 555 2709
+sn: Cope
+roomnumber: 3040
+homeDirectory: /home/kcope
+mail: kcope@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1118
+gidNumber: 1000
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kjensen
+#classOfService: gold
+userpassword: regulatory
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Kurt
+cn: Kurt Jensen
+telephonenumber: +1 408 555 6127
+sn: Jensen
+roomnumber: 1944
+homeDirectory: /home/kjensen
+mail: kjensen@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1039
+gidNumber: 1000
+
+dn: uid=kmcinnis,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kmcinnis
+#classOfService: bronze
+userpassword: stargaze
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Kelly
+cn: Kelly Mcinnis
+telephonenumber: +1 408 555 8596
+sn: Mcinnis
+roomnumber: 4312
+homeDirectory: /home/kmcinnis
+mail: kmcinnis@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1113
+gidNumber: 1000
+
+dn: uid=kschmith,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kschmith
+#classOfService: bronze
+userpassword: purvey
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Kelly
+cn: Kelly Schmith
+telephonenumber: +1 408 555 9749
+sn: Schmith
+roomnumber: 2221
+homeDirectory: /home/kschmith
+mail: kschmith@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1096
+gidNumber: 1000
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kvaughan
+departmentNumber: 2000
+#classOfService: silver
+userpassword: bribery
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Kirsten
+cn: Kirsten Vaughan
+telephonenumber: +1 408 555 5625
+sn: Vaughan
+roomnumber: 2871
+homeDirectory: /home/kvaughan
+mail: kvaughan@example.com
+l: Bristol
+ou: Human Resources
+ou: People
+preferredLanguage: en, ja;q=0.5
+uidNumber: 1004
+gidNumber: 1000
+
+dn: uid=kwinters,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: kwinters
+departmentNumber: 3000
+#classOfService: silver
+userpassword: forsook
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Kelly
+cn: Kelly Winters
+telephonenumber: +1 408 555 9069
+sn: Winters
+roomnumber: 4178
+homeDirectory: /home/kwinters
+mail: kwinters@example.com
+l: Lysaker
+ou: Product Development
+ou: People
+uidNumber: 1008
+gidNumber: 1000
+
+dn: uid=lcampbel,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: lcampbel
+#classOfService: silver
+userpassword: impress
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Laurel
+cn: Laurel Campbell
+telephonenumber: +1 408 555 2537
+sn: Campbell
+roomnumber: 2073
+homeDirectory: /home/lcampbel
+mail: lcampbel@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1053
+gidNumber: 1000
+
+dn: uid=llabonte,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: llabonte
+#classOfService: silver
+userpassword: sourdough
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Lee
+cn: Lee Labonte
+telephonenumber: +1 408 555 0957
+sn: Labonte
+roomnumber: 2854
+homeDirectory: /home/llabonte
+mail: llabonte@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1022
+gidNumber: 1000
+
+dn: uid=lrentz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: lrentz
+#classOfService: silver
+userpassword: calcium
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Lex
+cn: Lex Rentz
+telephonenumber: +1 408 555 2019
+sn: Rentz
+roomnumber: 2203
+homeDirectory: /home/lrentz
+mail: lrentz@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1137
+gidNumber: 1000
+
+dn: uid=lstockto,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: lstockto
+#classOfService: gold
+userpassword: brooklyn
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Lee
+cn: Lee Stockton
+telephonenumber: +1 408 555 0518
+sn: Stockton
+roomnumber: 0169
+homeDirectory: /home/lstockto
+mail: lstockto@example.com
+l: Lysaker
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1115
+gidNumber: 1000
+
+dn: uid=lulrich,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: lulrich
+#classOfService: silver
+userpassword: attribution
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Lee
+cn: Lee Ulrich
+telephonenumber: +1 408 555 8652
+sn: Ulrich
+roomnumber: 0985
+homeDirectory: /home/lulrich
+mail: lulrich@example.com
+l: Bristol
+manager: uid=abergin, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1030
+gidNumber: 1000
+
+dn: uid=mcarter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mcarter
+#classOfService: bronze
+userpassword: mainland
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Mike
+cn: Mike Carter
+telephonenumber: +1 408 555 1846
+sn: Carter
+roomnumber: 3819
+homeDirectory: /home/mcarter
+mail: mcarter@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1087
+gidNumber: 1000
+
+dn: uid=mjablons,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mjablons
+#classOfService: gold
+userpassword: minimal
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Morgan
+cn: Morgan Jablonski
+telephonenumber: +1 408 555 0813
+sn: Jablonski
+roomnumber: 3160
+homeDirectory: /home/mjablons
+mail: mjablons@example.com
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1124
+gidNumber: 1000
+
+dn: uid=mlangdon,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mlangdon
+#classOfService: gold
+userpassword: threat
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Marcus
+cn: Marcus Langdon
+telephonenumber: +1 408 555 6249
+sn: Langdon
+roomnumber: 4471
+homeDirectory: /home/mlangdon
+mail: mlangdon@example.com
+l: San Francisco
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1031
+gidNumber: 1000
+
+dn: uid=mlott,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mlott
+#classOfService: silver
+userpassword: cognac
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Mike
+cn: Mike Lott
+telephonenumber: +1 408 555 2234
+sn: Lott
+roomnumber: 0498
+homeDirectory: /home/mlott
+mail: mlott@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1040
+gidNumber: 1000
+
+dn: uid=mmcinnis,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mmcinnis
+#classOfService: gold
+userpassword: calcify
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Marcus
+cn: Marcus Mcinnis
+telephonenumber: +1 408 555 9655
+sn: Mcinnis
+roomnumber: 4818
+homeDirectory: /home/mmcinnis
+mail: mmcinnis@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1061
+gidNumber: 1000
+
+dn: uid=mreuter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mreuter
+#classOfService: bronze
+userpassword: oblivious
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Matthew
+cn: Matthew Reuter
+telephonenumber: +1 408 555 6879
+sn: Reuter
+roomnumber: 1356
+homeDirectory: /home/mreuter
+mail: mreuter@example.com
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1098
+gidNumber: 1000
+
+dn: uid=mschneid,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mschneid
+#classOfService: bronze
+userpassword: motorcycle
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Martin
+cn: Martin Schneider
+telephonenumber: +1 408 555 5017
+sn: Schneider
+roomnumber: 3153
+homeDirectory: /home/mschneid
+mail: mschneid@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1063
+gidNumber: 1000
+
+dn: uid=mtalbot,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mtalbot
+#classOfService: silver
+userpassword: currant
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Martin
+cn: Martin Talbot
+telephonenumber: +1 408 555 9228
+sn: Talbot
+roomnumber: 1415
+homeDirectory: /home/mtalbot
+mail: mtalbot@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1084
+gidNumber: 1000
+
+dn: uid=mtyler,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mtyler
+#classOfService: silver
+userpassword: instantiate
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Matthew
+cn: Matthew Tyler
+telephonenumber: +1 408 555 7907
+sn: Tyler
+roomnumber: 2701
+homeDirectory: /home/mtyler
+mail: mtyler@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1148
+gidNumber: 1000
+
+dn: uid=mvaughan,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mvaughan
+#classOfService: silver
+userpassword: submitted
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Matthew
+cn: Matthew Vaughan
+telephonenumber: +1 408 555 4692
+sn: Vaughan
+roomnumber: 4508
+homeDirectory: /home/mvaughan
+mail: mvaughan@example.com
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1122
+gidNumber: 1000
+
+dn: uid=mward,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mward
+#classOfService: bronze
+userpassword: normal
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Marcus
+cn: Marcus Ward
+telephonenumber: +1 408 555 5688
+sn: Ward
+roomnumber: 1707
+homeDirectory: /home/mward
+mail: mward@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1019
+gidNumber: 1000
+
+dn: uid=mwhite,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: mwhite
+#classOfService: gold
+userpassword: staple
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Morgan
+cn: Morgan White
+telephonenumber: +1 408 555 9620
+sn: White
+roomnumber: 3088
+homeDirectory: /home/mwhite
+mail: mwhite@example.com
+l: San Francisco
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1080
+gidNumber: 1000
+
+dn: uid=pchassin,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: pchassin
+#classOfService: silver
+userpassword: barbital
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Peter
+cn: Peter Chassin
+telephonenumber: +1 408 555 2816
+sn: Chassin
+roomnumber: 4524
+homeDirectory: /home/pchassin
+mail: pchassin@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1125
+gidNumber: 1000
+
+dn: uid=pcruse,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: pcruse
+#classOfService: gold
+userpassword: pauper
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Patricia
+cn: Patricia Cruse
+telephonenumber: +1 408 555 8641
+sn: Cruse
+roomnumber: 3967
+homeDirectory: /home/pcruse
+mail: pcruse@example.com
+l: Lysaker
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1064
+gidNumber: 1000
+
+dn: uid=phun2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: phun2
+#classOfService: silver
+userpassword: absorb
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Pete
+cn: Pete Hunt
+telephonenumber: +1 408 555 0342
+sn: Hunt
+roomnumber: 0087
+homeDirectory: /home/phun2
+mail: phun2@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1121
+gidNumber: 1000
+
+dn: uid=phunt,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: phunt
+#classOfService: bronze
+userpassword: wastewater
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Philip
+cn: Philip Hunt
+telephonenumber: +1 408 555 1242
+sn: Hunt
+roomnumber: 1183
+homeDirectory: /home/phunt
+mail: phunt@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1074
+gidNumber: 1000
+
+dn: uid=plorig,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: plorig
+#classOfService: bronze
+userpassword: calorimeter
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Peter
+cn: Peter Lorig
+telephonenumber: +1 408 555 0624
+sn: Lorig
+roomnumber: 1276
+homeDirectory: /home/plorig
+mail: plorig@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1094
+gidNumber: 1000
+
+dn: uid=polfield,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: polfield
+#classOfService: bronze
+userpassword: monologue
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Peter
+cn: Peter Olfield
+telephonenumber: +1 408 555 8231
+sn: Olfield
+roomnumber: 1376
+homeDirectory: /home/polfield
+mail: polfield@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1135
+gidNumber: 1000
+
+dn: uid=prigden,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: prigden
+#classOfService: bronze
+userpassword: epiphyseal
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Peter
+cn: Peter Rigden
+telephonenumber: +1 408 555 5099
+sn: Rigden
+roomnumber: 1271
+homeDirectory: /home/prigden
+mail: prigden@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1037
+gidNumber: 1000
+
+dn: uid=prose,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: prose
+#classOfService: silver
+userpassword: regatta
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Paula
+cn: Paula Rose
+telephonenumber: +1 408 555 9998
+sn: Rose
+roomnumber: 0542
+homeDirectory: /home/prose
+mail: prose@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1058
+gidNumber: 1000
+
+dn: uid=pshelton,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: pshelton
+#classOfService: gold
+userpassword: nosedive
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Patricia
+cn: Patricia Shelton
+telephonenumber: +1 408 555 6442
+sn: Shelton
+roomnumber: 2918
+homeDirectory: /home/pshelton
+mail: pshelton@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1092
+gidNumber: 1000
+
+dn: uid=ptyler,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ptyler
+#classOfService: gold
+userpassword: vinegar
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Pete
+cn: Pete Tyler
+telephonenumber: +1 408 555 3335
+sn: Tyler
+roomnumber: 0327
+homeDirectory: /home/ptyler
+mail: ptyler@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1069
+gidNumber: 1000
+
+dn: uid=pworrell,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: pworrell
+#classOfService: silver
+userpassword: solicitous
+facsimiletelephonenumber: +1 408 555 7472
+givenname: Pete
+cn: Pete Worrell
+telephonenumber: +1 408 555 1637
+sn: Worrell
+roomnumber: 2449
+homeDirectory: /home/pworrell
+mail: pworrell@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1097
+gidNumber: 1000
+
+dn: uid=rbannist,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rbannist
+#classOfService: gold
+userpassword: demonstrate
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Richard
+cn: Richard Bannister
+telephonenumber: +1 408 555 1833
+sn: Bannister
+roomnumber: 0983
+homeDirectory: /home/rbannist
+mail: rbannist@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1043
+gidNumber: 1000
+
+dn: uid=rdaugherty,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rdaugherty
+#classOfService: gold
+userpassword: apples
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Robert
+cn: Robert Daugherty
+telephonenumber: +1 408 555 1296
+sn: Daugherty
+roomnumber: 0194
+homeDirectory: /home/rdaugherty
+mail: rdaugherty@example.com
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1014
+gidNumber: 1000
+
+dn: uid=rfish,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rfish
+#classOfService: bronze
+userpassword: mailbox
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Randy
+cn: Randy Fish
+telephonenumber: +1 408 555 9865
+sn: Fish
+roomnumber: 2317
+homeDirectory: /home/rfish
+mail: rfish@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1073
+gidNumber: 1000
+
+dn: uid=rfisher,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rfisher
+#classOfService: silver
+userpassword: pomegranate
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Randy
+cn: Randy Fisher
+telephonenumber: +1 408 555 1506
+sn: Fisher
+roomnumber: 1579
+homeDirectory: /home/rfisher
+mail: rfisher@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1132
+gidNumber: 1000
+
+dn: uid=rfrancis,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rfrancis
+#classOfService: silver
+userpassword: hacienda
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Richard
+cn: Richard Francis
+telephonenumber: +1 408 555 8157
+sn: Francis
+roomnumber: 3482
+homeDirectory: /home/rfrancis
+mail: rfrancis@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1079
+gidNumber: 1000
+
+dn: uid=rhunt,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rhunt
+#classOfService: bronze
+userpassword: becloud
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Richard
+cn: Richard Hunt
+telephonenumber: +1 408 555 0139
+sn: Hunt
+roomnumber: 0718
+homeDirectory: /home/rhunt
+mail: rhunt@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1145
+gidNumber: 1000
+
+dn: uid=rjense2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rjense2
+#classOfService: bronze
+userpassword: transpose
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Randy
+cn: Randy Jensen
+telephonenumber: +1 408 555 9045
+sn: Jensen
+roomnumber: 1984
+homeDirectory: /home/rjense2
+mail: rjense2@example.com
+l: Bristol
+manager: uid=jwalker, ou=People, dc=example,dc=com
+ou: Product Testing
+ou: People
+uidNumber: 1144
+gidNumber: 1000
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rjensen
+#classOfService: gold
+userpassword: disciplinarian
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Richard
+cn: Richard Jensen
+telephonenumber: +1 408 555 5957
+sn: Jensen
+roomnumber: 2631
+homeDirectory: /home/rjensen
+mail: rjensen@example.com
+l: San Francisco
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1120
+gidNumber: 1000
+
+dn: uid=rmills,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rmills
+#classOfService: gold
+userpassword: condescend
+facsimiletelephonenumber: +1 408 555 3372
+givenname: Randy
+cn: Randy Mills
+telephonenumber: +1 408 555 2072
+sn: Mills
+roomnumber: 3823
+homeDirectory: /home/rmills
+mail: rmills@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1045
+gidNumber: 1000
+
+dn: uid=rschneid,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rschneid
+#classOfService: silver
+userpassword: decorous
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Rachel
+cn: Rachel Schneider
+telephonenumber: +1 408 555 9908
+sn: Schneider
+roomnumber: 4183
+homeDirectory: /home/rschneid
+mail: rschneid@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1075
+gidNumber: 1000
+
+dn: uid=rulrich,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: rulrich
+#classOfService: gold
+userpassword: twinkle
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Randy
+cn: Randy Ulrich
+telephonenumber: +1 408 555 5311
+sn: Ulrich
+roomnumber: 1282
+homeDirectory: /home/rulrich
+mail: rulrich@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1078
+gidNumber: 1000
+
+dn: uid=scarte2,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: scarte2
+#classOfService: bronze
+userpassword: scooter
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Stephen
+cn: Stephen Carter
+telephonenumber: +1 408 555 6022
+sn: Carter
+roomnumber: 2013
+homeDirectory: /home/scarte2
+mail: scarte2@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1050
+gidNumber: 1000
+
+dn: uid=scarter,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: scarter
+departmentNumber: 1000
+#classOfService: gold
+userpassword: sprain
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Sam
+cn: Sam Carter
+telephonenumber: +1 408 555 4798
+sn: Carter
+roomnumber: 4612
+homeDirectory: /home/scarter
+mail: scarter@example.com
+l: Bristol
+ou: Accounting
+ou: People
+uidNumber: 1002
+gidNumber: 1000
+
+dn: uid=sfarmer,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: sfarmer
+#classOfService: silver
+userpassword: triumphal
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Scott
+cn: Scott Farmer
+telephonenumber: +1 408 555 4228
+sn: Farmer
+roomnumber: 0019
+homeDirectory: /home/sfarmer
+mail: sfarmer@example.com
+l: Lysaker
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1089
+gidNumber: 1000
+
+dn: uid=skellehe,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: skellehe
+#classOfService: gold
+userpassword: sweltering
+facsimiletelephonenumber: +1 408 555 8721
+givenname: Sue
+cn: Sue Kelleher
+telephonenumber: +1 408 555 3480
+sn: Kelleher
+roomnumber: 1608
+homeDirectory: /home/skellehe
+mail: skellehe@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Payroll
+ou: People
+uidNumber: 1047
+gidNumber: 1000
+
+dn: uid=slee,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: slee
+#classOfService: silver
+userpassword: revertive
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Scott
+cn: Scott Lee
+telephonenumber: +1 408 555 2335
+sn: Lee
+roomnumber: 1806
+homeDirectory: /home/slee
+mail: slee@example.com
+l: Lysaker
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1055
+gidNumber: 1000
+
+dn: uid=smason,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: smason
+#classOfService: gold
+userpassword: sensible
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Sue
+cn: Sue Mason
+telephonenumber: +1 408 555 9780
+sn: Mason
+roomnumber: 4971
+homeDirectory: /home/smason
+mail: smason@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1068
+gidNumber: 1000
+
+dn: uid=speterso,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: speterso
+#classOfService: bronze
+userpassword: quinine
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Sue
+cn: Sue Peterson
+telephonenumber: +1 408 555 3613
+sn: Peterson
+roomnumber: 3073
+homeDirectory: /home/speterso
+mail: speterso@example.com
+l: San Francisco
+manager: uid=trigden, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1035
+gidNumber: 1000
+
+dn: uid=striplet,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: striplet
+#classOfService: silver
+userpassword: compactify
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Stephen
+cn: Stephen Triplett
+telephonenumber: +1 408 555 4519
+sn: Triplett
+roomnumber: 3083
+homeDirectory: /home/striplet
+mail: striplet@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1032
+gidNumber: 1000
+
+dn: uid=tclow,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tclow
+#classOfService: gold
+userpassword: cardreader
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Torrey
+cn: Torrey Clow
+telephonenumber: +1 408 555 8825
+sn: Clow
+roomnumber: 4376
+homeDirectory: /home/tclow
+mail: tclow@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1013
+gidNumber: 1000
+
+dn: uid=tcouzens,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tcouzens
+#classOfService: bronze
+userpassword: tambourine
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Trent
+cn: Trent Couzens
+telephonenumber: +1 408 555 8401
+sn: Couzens
+roomnumber: 3994
+homeDirectory: /home/tcouzens
+mail: tcouzens@example.com
+l: Bristol
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1114
+gidNumber: 1000
+
+dn: uid=tcruse,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tcruse
+#classOfService: gold
+userpassword: flinty
+facsimiletelephonenumber: +1 408 555 4774
+givenname: Tobias
+cn: Tobias Cruse
+telephonenumber: +1 408 555 5980
+sn: Cruse
+roomnumber: 4191
+homeDirectory: /home/tcruse
+mail: tcruse@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1128
+gidNumber: 1000
+
+dn: uid=tjames,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tjames
+#classOfService: bronze
+userpassword: turtle
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Tobias
+cn: Tobias James
+telephonenumber: +1 408 555 2458
+sn: James
+roomnumber: 0730
+homeDirectory: /home/tjames
+mail: tjames@example.com
+l: Lysaker
+manager: uid=tmorris, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1141
+gidNumber: 1000
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tjensen
+#classOfService: gold
+userpassword: ecosystem
+facsimiletelephonenumber: +1 408 555 3825
+givenname: Ted
+cn: Ted Jensen
+telephonenumber: +1 408 555 8622
+sn: Jensen
+roomnumber: 4717
+homeDirectory: /home/tjensen
+mail: tjensen@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1105
+gidNumber: 1000
+
+dn: uid=tkelly,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tkelly
+#classOfService: gold
+userpassword: risible
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Timothy
+cn: Timothy Kelly
+telephonenumber: +1 408 555 4295
+sn: Kelly
+roomnumber: 3107
+homeDirectory: /home/tkelly
+mail: tkelly@example.com
+l: Lysaker
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+uidNumber: 1065
+gidNumber: 1000
+
+dn: uid=tlabonte,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tlabonte
+#classOfService: gold
+userpassword: express
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Tim
+cn: Tim Labonte
+telephonenumber: +1 408 555 0058
+sn: Labonte
+roomnumber: 1426
+homeDirectory: /home/tlabonte
+mail: tlabonte@example.com
+l: San Francisco
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1054
+gidNumber: 1000
+
+dn: uid=tmason,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tmason
+#classOfService: silver
+userpassword: squatted
+facsimiletelephonenumber: +1 408 555 9751
+givenname: Torrey
+cn: Torrey Mason
+telephonenumber: +1 408 555 1596
+sn: Mason
+roomnumber: 1124
+homeDirectory: /home/tmason
+mail: tmason@example.com
+l: Bristol
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1016
+gidNumber: 1000
+
+dn: uid=tmorris,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tmorris
+departmentNumber: 1001
+#classOfService: gold
+userpassword: irrefutable
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Ted
+cn: Ted Morris
+telephonenumber: +1 408 555 9187
+sn: Morris
+roomnumber: 4117
+homeDirectory: /home/tmorris
+mail: tmorris@example.com
+l: Lysaker
+ou: Accounting
+ou: People
+uidNumber: 1003
+gidNumber: 1000
+
+dn: uid=tpierce,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tpierce
+#classOfService: gold
+userpassword: rascal
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Tobias
+cn: Tobias Pierce
+telephonenumber: +1 408 555 1531
+sn: Pierce
+roomnumber: 1383
+homeDirectory: /home/tpierce
+mail: tpierce@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1042
+gidNumber: 1000
+
+dn: uid=trigden,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: trigden
+departmentNumber: 3001
+#classOfService: gold
+userpassword: sensitive
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Torrey
+cn: Torrey Rigden
+telephonenumber: +1 408 555 9280
+sn: Rigden
+roomnumber: 3584
+homeDirectory: /home/trigden
+mail: trigden@example.com
+l: Lysaker
+ou: Product Development
+ou: People
+uidNumber: 1009
+gidNumber: 1000
+
+dn: uid=tschmith,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tschmith
+#classOfService: gold
+userpassword: compost
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Tobias
+cn: Tobias Schmith
+telephonenumber: +1 408 555 9626
+sn: Schmith
+roomnumber: 4607
+homeDirectory: /home/tschmith
+mail: tschmith@example.com
+l: San Francisco
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1100
+gidNumber: 1000
+
+dn: uid=tschneid,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tschneid
+#classOfService: silver
+userpassword: chaperone
+facsimiletelephonenumber: +1 408 555 8473
+givenname: Torrey
+cn: Torrey Schneider
+telephonenumber: +1 408 555 7086
+sn: Schneider
+roomnumber: 2292
+homeDirectory: /home/tschneid
+mail: tschneid@example.com
+l: Bristol
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1057
+gidNumber: 1000
+
+dn: uid=ttully,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: ttully
+#classOfService: silver
+userpassword: schooner
+facsimiletelephonenumber: +1 408 555 0111
+givenname: Torrey
+cn: Torrey Tully
+telephonenumber: +1 408 555 2274
+sn: Tully
+roomnumber: 3924
+homeDirectory: /home/ttully
+mail: ttully@example.com
+l: Bristol
+manager: uid=cschmith, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1130
+gidNumber: 1000
+
+dn: uid=tward,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: tward
+#classOfService: silver
+userpassword: cedilla
+facsimiletelephonenumber: +1 408 555 4661
+givenname: Tobias
+cn: Tobias Ward
+telephonenumber: +1 408 555 7202
+sn: Ward
+roomnumber: 2238
+homeDirectory: /home/tward
+mail: tward@example.com
+l: Lysaker
+manager: uid=kvaughan, ou=People, dc=example,dc=com
+ou: Human Resources
+ou: People
+uidNumber: 1091
+gidNumber: 1000
+
+dn: uid=wlutz,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: wlutz
+#classOfService: silver
+userpassword: bassinet
+facsimiletelephonenumber: +1 408 555 9332
+givenname: Wendy
+cn: Wendy Lutz
+telephonenumber: +1 408 555 3358
+sn: Lutz
+roomnumber: 4912
+homeDirectory: /home/wlutz
+mail: wlutz@example.com
+l: Lysaker
+manager: uid=scarter, ou=People, dc=example,dc=com
+ou: Accounting
+ou: People
+uidNumber: 1109
+gidNumber: 1000
+
+dn: uid=fdupont,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: fdupont
+#classOfService: gold
+userpassword: ratatouille
+facsimileTelephoneNumber: +33 1 23 45 67 88
+givenName: Fredérique
+cn: Frederique Dupont
+cn;lang-fr: Fredérique Dupont
+telephoneNumber: +33 1 23 45 67 89
+sn: Dupont
+roomNumber: 0042
+homeDirectory: /home/fdupont
+mail: fdupont@example.fr
+l: Montbonnot
+manager: uid=kwinters, ou=People, dc=example,dc=com
+ou: Product Development
+ou: People
+uidNumber: 1110
+gidNumber: 1000
+
+dn: uid=nbohr,ou=People,dc=example,dc=com
+objectClass: person
+#objectClass: cos
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: top
+uid: nbohr
+#classOfService: gold
+userpassword: password
+facsimileTelephoneNumber: +1 408 555 1213
+givenName: Niels
+cn: Niels Bohr
+telephoneNumber: +1 408 555 1212
+sn: Bohr
+roomNumber: 0007
+homeDirectory: /home/nbohr
+mail: nbohr@example.com
+l: San Francisco
+ou: People
+uidNumber: 1111
+gidNumber: 1000
+
+dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
+objectClass: device
+objectClass: top
+cn: quantum dot
+serialNumber: WI-3005
+owner: uid=nbohr,ou=People,dc=example,dc=com
+
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com
+objectClass: device
+objectClass: top
+cn: qubit generator
+serialNumber: XF551426
+owner: uid=nbohr,ou=People,dc=example,dc=com
+
+# Quotas by class of service
+dn: cn=Bronze Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Bronze Class of Service
+diskQuota;collective: 10 GB
+mailQuota;collective: 1 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ bronze)" }
+
+dn: cn=Silver Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Silver Class of Service
+diskQuota;collective: 50 GB
+mailQuota;collective: 5 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ silver)" }
+
+dn: cn=Gold Class of Service,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Gold Class of Service
+diskQuota;collective: 100 GB
+mailQuota;collective: 10 GB
+subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
+ gold)" }
+
+dn: ou=Special Users,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+description: Special Administrative Accounts
+ou: Special Users
+
+dn: ou=Apps,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Apps
+
+dn: cn=Inherit Department Number From Manager,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromDNCollectiveAttributeSubentry
+cn: Inherit Department Number From Manager
+subtreeSpecification: { base "ou=People" }
+inheritFromDNAttribute: manager
+inheritAttribute: departmentNumber
+
+dn: cn=Inherit From Locality,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: inheritedCollectiveAttributeSubentry
+objectClass: inheritedFromRDNCollectiveAttributeSubentry
+cn: Inherit From Locality
+subtreeSpecification: { base "ou=People" }
+inheritFromBaseRDN: ou=Locations
+inheritFromRDNAttribute: l
+inheritFromRDNType: l
+inheritAttribute: preferredLanguage
+inheritAttribute: street
+collectiveConflictBehavior: real-overrides-virtual
+
+dn: cn=My App,ou=Apps,dc=example,dc=com
+cn: My App
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+sn: App
+userPassword: password
+ds-privilege-name: proxied-auth
+
+dn: ou=Locations,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Locations
+
+dn: l=Bristol,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Bristol
+street: 60 Queen Square
+preferredLanguage: en-gb
+
+dn: l=Montbonnot,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Montbonnot
+street: 55 Rue Blaise Pascal
+preferredLanguage: fr
+
+dn: l=Lysaker,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: Lysaker
+street: Lysaker Torg 2
+preferredLanguage: no
+
+dn: l=San Francisco,ou=Locations,dc=example,dc=com
+objectClass: top 
+objectClass: locality 
+objectClass: extensibleObject 
+l: San Francisco
+street: 500 3rd Street
+preferredLanguage: en
+
+# Create a new base DN, dc=ref,dc=com, before importing these entries:
+dn: dc=ref,dc=com
+objectClass: domain
+objectClass: top
+dc: ref
+
+dn: dc=references,dc=ref,dc=com
+dc: references
+objectClass: extensibleObject
+objectClass: referral
+objectClass: top
+ref: ldap:///dc=example,dc=com
+

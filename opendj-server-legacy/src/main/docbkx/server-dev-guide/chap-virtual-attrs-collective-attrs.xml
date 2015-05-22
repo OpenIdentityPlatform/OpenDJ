@@ -226,7 +226,7 @@ description: Served by OpenDJ.Example.com</computeroutput>
      <para>The following example depends on the <literal>cos</literal> object
      class, and the <literal>classOfService</literal> attribute type defined but
      commented out in the <link xlink:show="new"
-     xlink:href="http://opendj.forgerock.org/Example.ldif"><filename
+     xlink:href="../resources/Example.ldif"><filename
      >Example.ldif</filename></link> file imported as sample data. To try this
      example for yourself, add the attribute type and object class definitions
      in comments near the top of the file, and then uncomment the
@@ -397,7 +397,7 @@ diskQuota: 100 GB</computeroutput>
 
    <para>This example demonstrates how to instruct OpenDJ to set an employee's
    department number using the manager's department number. To try the example,
-   first import <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   first import <link xlink:href="../resources/Example.ldif"
    xlink:show="new"><filename>Example.ldif</filename></link> into OpenDJ in
    order to load the appropriate sample data.</para>
 
@@ -455,7 +455,7 @@ departmentNumber: 3001</computeroutput>
 
    <para>This example demonstrates how to instruct OpenDJ to set a user's language
    preferences and street address based on locality. To try the example, first
-   import <link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   import <link xlink:href="../resources/Example.ldif"
    xlink:show="new"><filename>Example.ldif</filename></link> into OpenDJ in
    order to load the appropriate sample data.</para>
 

@@ -1185,7 +1185,7 @@ $ <userinput>dsconfig \
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
    Configuration</citetitle></link>. The default mapping works out of the box
    with Example.com data generated as part of the setup process and with
-   <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+   <link xlink:show="new" xlink:href="../resources/Example.ldif"
    >Example.ldif</link>.</para>
 
    <step>

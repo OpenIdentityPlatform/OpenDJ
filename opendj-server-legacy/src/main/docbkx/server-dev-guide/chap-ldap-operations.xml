@@ -1550,7 +1550,7 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
    create a certificate, then add the certificate attributes to the
    entry.</para>
 
-   <para><link xlink:href="http://opendj.forgerock.org/Example.ldif"
+   <para><link xlink:href="../resources/Example.ldif"
    xlink:show="new">Example.ldif</link> includes an entry for
    <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>. Examples in this
    section use that entry, and use the Java <command>keytool</command> command

@@ -1961,13 +1961,14 @@
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-doc-maven-plugin</artifactId>
             <inherited>false</inherited>
-            <!-- Use conditional text to exclude local-db related elements in hand-written docs.
             <configuration>
+              <copyResourceFiles>true</copyResourceFiles>
+              <!-- Use conditional text to exclude local-db related elements in hand-written docs.
               <exclusions>
                 <condition>local-db</condition>
               </exclusions>
+              -->
             </configuration>
-            -->
             <executions>
               <execution>
                 <id>build-doc</id>
