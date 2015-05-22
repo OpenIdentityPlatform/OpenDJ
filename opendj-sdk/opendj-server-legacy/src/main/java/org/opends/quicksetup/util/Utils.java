@@ -2260,29 +2260,6 @@ public class Utils
     cmdReplicationServer.addAll(connectionArgs);
 
     cmdLines.add(cmdReplicationServer);
-
-    for (String baseDN : getBaseDNs(userData))
-    {
-      List<String> cmdDomain = new ArrayList<>();
-      cmdDomain.add(cmdName);
-      cmdDomain.add("create-replication-domain");
-      cmdDomain.add("--provider-name");
-      cmdDomain.add("Multimaster Synchronization");
-      cmdDomain.add("--set");
-      cmdDomain.add("base-dn:" + baseDN);
-      cmdDomain.add("--set");
-      cmdDomain.add("replication-server:" + userData.getHostName() + ":"
-          + userData.getReplicationOptions().getReplicationPort());
-      cmdDomain.add("--set");
-      cmdDomain.add("server-id:1");
-      cmdDomain.add("--type");
-      cmdDomain.add("generic");
-      cmdDomain.add("--domain-name");
-      cmdDomain.add(baseDN);
-      cmdDomain.addAll(connectionArgs);
-      cmdLines.add(cmdDomain);
-    }
-
     return cmdLines;
   }
 }

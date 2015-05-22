@@ -71,6 +71,7 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.client.ManagementContext;
@@ -78,16 +79,15 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.CryptoManagerCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn;
 import org.opends.server.admin.std.meta.ReplicationSynchronizationProviderCfgDefn;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
@@ -361,9 +361,8 @@ public class InstallerHelper {
     }
   }
 
-
   /**
-   * Creates a local database backend on the server.
+   * Creates a database backend on the server.
    *
    * @param ctx
    *          the connection to the server.
@@ -373,17 +372,20 @@ public class InstallerHelper {
    *          the list of base DNs to be defined on the server.
    * @param serverDisplay
    *          the server display.
+   * @param backendType
+   *          the backend type.
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  public void createLocalDBBackend(DirContext ctx, String backendName, Set<String> baseDNs, String serverDisplay)
+  public void createBackend(DirContext ctx, String backendName, Set<String> baseDNs, String serverDisplay,
+      ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
       throws ApplicationException
   {
     try
     {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      LocalDBBackendCfgClient backend = root.createBackend(LocalDBBackendCfgDefn.getInstance(), backendName, null);
+      BackendCfgClient backend = root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
       Set<DN> setBaseDNs = new HashSet<DN>();
       for (String baseDN : baseDNs)

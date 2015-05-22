@@ -32,6 +32,7 @@ import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
+import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
 import static org.opends.quicksetup.util.Utils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -125,7 +126,9 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.BackendTypeHelper;
+import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
@@ -1545,56 +1548,40 @@ public abstract class Installer extends GuiApplication
    */
   protected void createReplicatedBackendsIfRequired() throws ApplicationException
   {
-    final boolean isFirstInTopology = getUserData().getReplicationOptions().getType() ==
-                                      DataReplicationOptions.Type.FIRST_IN_TOPOLOGY;
-    final List<String> baseDns = getUserData().getNewSuffixOptions().getBaseDns();
-
-    if (isFirstInTopology && baseDns.isEmpty())
+    if (FIRST_IN_TOPOLOGY == getUserData().getReplicationOptions().getType())
     {
-      // There is nothing to do.
       return;
     }
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_REPLICATED_BACKENDS.get()));
 
     // The keys are the backend IDs and the values the list of base DNs.
     final Map<String, Set<String>> hmBackendSuffix = new HashMap<>();
-    boolean deleteUserRoot = false;
-    if (isFirstInTopology)
-    {
-      hmBackendSuffix.put(ROOT_BACKEND_NAME, new HashSet<>(baseDns));
-    }
-    else
-    {
-      Set<SuffixDescriptor> suffixes = getUserData().getSuffixesToReplicateOptions().getSuffixes();
-      // The criteria to choose the name of the backend is to try to have the
-      // configuration of the other server.  The algorithm consists on putting
-      // the remote servers in a list and pick the backend as they appear on the list.
-      populateBackendsToCreate(hmBackendSuffix, suffixes);
-      deleteUserRoot = true;
-      for (String backendName : hmBackendSuffix.keySet())
-      {
-        if (ROOT_BACKEND_NAME.equalsIgnoreCase(backendName))
-        {
-          deleteUserRoot = false;
-          break;
-        }
-      }
-    }
-    createReplicatedBackends(hmBackendSuffix, deleteUserRoot);
+    final Map<String, BackendTypeUIAdapter> backendTypes = new HashMap<>();
+    final Set<SuffixDescriptor> suffixes = getUserData().getSuffixesToReplicateOptions().getSuffixes();
+
+    populateBackendsToCreate(hmBackendSuffix, suffixes, backendTypes);
+    createReplicatedBackends(hmBackendSuffix, backendTypes);
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
   }
 
-  private void populateBackendsToCreate(Map<String, Set<String>> hmBackendSuffix, Set<SuffixDescriptor> suffixes)
+  /**
+   * The criteria to choose the name of the backend is to try to have the
+   * configuration of the other server. The algorithm consists on putting the
+   * remote servers in a list and pick the backend as they appear on the list.
+   */
+  private void populateBackendsToCreate(Map<String, Set<String>> hmBackendSuffix, Set<SuffixDescriptor> suffixes,
+      Map<String, BackendTypeUIAdapter> backendTypes)
   {
     Set<ServerDescriptor> serverList = getServerListFromSuffixes(suffixes);
     for (SuffixDescriptor suffix : suffixes)
     {
-      final String backendName = retrieveBackendNameForSuffix(serverList, suffix);
-      if (backendName != null)
+      final ReplicaDescriptor replica = retrieveReplicaForSuffix(serverList, suffix);
+      if (replica != null)
       {
-        final String backendNameKey = getOrAddBackend(hmBackendSuffix, backendName);
+        final String backendNameKey = getOrAddBackend(hmBackendSuffix, replica.getBackendName());
         hmBackendSuffix.get(backendNameKey).add(suffix.getDN());
+        backendTypes.put(backendNameKey, getBackendType(replica.getObjectClasses()));
       }
     }
   }
@@ -1612,7 +1599,7 @@ public abstract class Installer extends GuiApplication
     return serverList;
   }
 
-  private String retrieveBackendNameForSuffix(Set<ServerDescriptor> serverList, SuffixDescriptor suffix)
+  private ReplicaDescriptor retrieveReplicaForSuffix(Set<ServerDescriptor> serverList, SuffixDescriptor suffix)
   {
     for (ServerDescriptor server : serverList)
     {
@@ -1620,8 +1607,22 @@ public abstract class Installer extends GuiApplication
       {
         if (replica.getServer() == server)
         {
-          return replica.getBackendName();
+          return replica;
         }
+      }
+    }
+    return null;
+  }
+
+  private BackendTypeUIAdapter getBackendType(Set<String> objectClasses)
+  {
+    for (String objectClass : objectClasses)
+    {
+      BackendTypeUIAdapter adapter =
+          BackendTypeHelper.getBackendTypeAdapter(objectClass.replace(ConfigConstants.NAME_PREFIX_CFG, ""));
+      if (adapter != null)
+      {
+        return adapter;
       }
     }
     return null;
@@ -1640,30 +1641,18 @@ public abstract class Installer extends GuiApplication
     return backendName;
   }
 
-  private void createReplicatedBackends(final Map<String, Set<String>> hmBackendSuffix, boolean deleteUserRoot)
-      throws ApplicationException
+  private void createReplicatedBackends(final Map<String, Set<String>> hmBackendSuffix,
+      final Map<String, BackendTypeUIAdapter> backendTypes) throws ApplicationException
   {
-    InstallerHelper helper = new InstallerHelper();
     InitialLdapContext ctx = null;
     try
     {
       ctx = createLocalContext();
-      if (deleteUserRoot)
-      {
-        // Delete the userRoot backend.
-        helper.deleteBackend(ctx, ROOT_BACKEND_NAME, ConnectionUtils.getHostPort(ctx));
-      }
+      final InstallerHelper helper = new InstallerHelper();
       for (String backendName : hmBackendSuffix.keySet())
       {
-        if (ROOT_BACKEND_NAME.equalsIgnoreCase(backendName))
-        {
-          helper.setBaseDns(ctx, backendName, hmBackendSuffix.get(backendName), ConnectionUtils.getHostPort(ctx));
-        }
-        else
-        {
-          helper.createLocalDBBackend(
-              ctx, backendName, hmBackendSuffix.get(backendName), ConnectionUtils.getHostPort(ctx));
-        }
+        helper.createBackend(ctx, backendName, hmBackendSuffix.get(backendName), ConnectionUtils.getHostPort(ctx),
+            backendTypes.get(backendName).getLegacyConfigurationFrameworkBackend());
       }
     }
     catch (NamingException ne)
@@ -2764,7 +2753,7 @@ public abstract class Installer extends GuiApplication
     adminProperties.put(ADSContext.AdministratorProperty.UID, userData.getGlobalAdministratorUID());
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD, userData.getGlobalAdministratorPassword());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
-                        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get());
+                        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
     return adminProperties;
   }
 
