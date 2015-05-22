@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.MonitorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -123,6 +123,7 @@ public class TraditionalWorkQueueMonitor
 
 
   /** {@inheritDoc} */
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -140,6 +141,7 @@ public class TraditionalWorkQueueMonitor
    *
    * @return  The name of this monitor provider.
    */
+  @Override
   public String getMonitorInstanceName()
   {
     return "Work Queue";
@@ -147,6 +149,7 @@ public class TraditionalWorkQueueMonitor
 
 
   /** {@inheritDoc} */
+  @Override
   public void run()
   {
     int backlog = workQueue.size();
@@ -169,6 +172,7 @@ public class TraditionalWorkQueueMonitor
    *          returned to the client if the corresponding monitor entry is
    *          requested.
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     int backlog = workQueue.size();
@@ -185,8 +189,7 @@ public class TraditionalWorkQueueMonitor
     long rejectedQueueFull = workQueue.getOpsRejectedDueToQueueFull();
 
     ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-    AttributeSyntax<?> integerSyntax = DirectoryServer
-        .getDefaultIntegerSyntax();
+    Syntax integerSyntax = DirectoryServer.getDefaultIntegerSyntax();
 
     // The current backlog.
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(

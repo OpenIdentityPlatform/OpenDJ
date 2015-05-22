@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.LinkedHashMap;
 
 import org.testng.annotations.BeforeClass;

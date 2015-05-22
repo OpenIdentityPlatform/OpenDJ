@@ -32,7 +32,7 @@ import java.util.Map;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
@@ -69,7 +69,7 @@ public final class AttributeType
   private final MatchingRule approximateMatchingRule;
 
   /** The syntax for this attribute type. */
-  private final AttributeSyntax<?> syntax;
+  private final Syntax syntax;
 
   /** The superior attribute type from which this attribute type inherits. */
   private final AttributeType superiorType;
@@ -168,7 +168,7 @@ public final class AttributeType
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
-                       AttributeSyntax<?> syntax,
+                       Syntax syntax,
                        AttributeUsage attributeUsage,
                        boolean isCollective,
                        boolean isNoUserModification,
@@ -247,7 +247,7 @@ public final class AttributeType
                        Collection<String> typeNames,
                        String oid, String description,
                        AttributeType superiorType,
-                       AttributeSyntax<?> syntax,
+                       Syntax syntax,
                        MatchingRule approximateMatchingRule,
                        MatchingRule equalityMatchingRule,
                        MatchingRule orderingMatchingRule,
@@ -433,7 +433,7 @@ public final class AttributeType
    *
    * @return  The syntax for this attribute type.
    */
-  public AttributeSyntax<?> getSyntax()
+  public Syntax getSyntax()
   {
     return syntax;
   }

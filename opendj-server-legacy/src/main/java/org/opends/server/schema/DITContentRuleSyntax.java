@@ -26,27 +26,28 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Schema;
 
 /**
  * This class implements the DIT content rule description syntax, which is used
@@ -56,18 +57,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DITContentRuleSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
-
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
@@ -81,35 +70,9 @@ public class DITContentRuleSyntax
 
   /** {@inheritDoc} */
   @Override
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException, InitializationException
+  public Syntax getSDKSyntax(org.forgerock.opendj.ldap.schema.Schema schema)
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
-      throw new InitializationException(message);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_DIT_CONTENT_RULE_OID);
   }
 
   /** {@inheritDoc} */
@@ -131,56 +94,6 @@ public class DITContentRuleSyntax
   public String getDescription()
   {
     return SYNTAX_DIT_CONTENT_RULE_DESCRIPTION;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getOrderingMatchingRule()
-  {
-    return defaultOrderingMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getSubstringMatchingRule()
-  {
-    return defaultSubstringMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getApproximateMatchingRule()
-  {
-    // There is no approximate matching rule by default.
-    return null;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    // We'll use the decodeDITContentRule method to determine if the value is
-    // acceptable.
-    try
-    {
-      decodeDITContentRule(value, DirectoryServer.getSchema(), true);
-      return true;
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      invalidReason.append(de.getMessageObject());
-      return false;
-    }
   }
 
   /**
@@ -1375,19 +1288,6 @@ public class DITContentRuleSyntax
     }
 
     return startPos;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }
 

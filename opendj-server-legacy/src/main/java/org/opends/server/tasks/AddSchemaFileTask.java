@@ -151,7 +151,7 @@ public class AddSchemaFileTask
     {
       try
       {
-        SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+        SchemaConfigManager.loadSchemaFile(getServerContext(), schema, schemaFile);
       }
       catch (ConfigException | InitializationException e)
       {
@@ -187,7 +187,7 @@ public class AddSchemaFileTask
         try
         {
           List<Modification> modList =
-               SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+               SchemaConfigManager.loadSchemaFile(getServerContext(), schema, schemaFile);
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();

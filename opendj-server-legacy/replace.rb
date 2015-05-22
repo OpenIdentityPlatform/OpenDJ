@@ -40,11 +40,59 @@ require 'fileutils'
 class Replace
 
   # All directories that contains java code
-  JAVA_DIRS = ["src/server", "src/quicksetup", "src/ads", "src/guitools", "tests/unit-tests-testng/src"]
+  JAVA_DIRS = ["src/main/java", "src/test/java"]
   TOOLS_DIR = ["src/server/org/opends/server/tools", "src/quicksetup", "src/ads", "src/guitools",
     "tests/unit-tests-testng/src/server/org/opends/server/tools" ]
   SNMP_DIR = ["src/snmp/src"]
   DSML_DIR = ["src/dsml/org"]
+
+  # Replacement for syntaxes
+  SYNTAXES_TO_SDK = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stoplist => ["Syntax"],
+    :replacements =>
+      [
+        /import org.opends.server.api.AttributeSyntax;/,
+        'import org.forgerock.opendj.ldap.schema.Syntax;',
+
+        /package org.opends.server.api;/,
+        "package org.opends.server.api;\n\nimport org.forgerock.opendj.ldap.schema.Syntax;",
+
+        /import org.opends.server.api.\*;/,
+        "import org.forgerock.opendj.ldap.schema.Syntax;\nimport org.opends.server.api.*;",
+
+        /\bAttributeSyntax\b(<AttributeSyntaxCfg>)/,
+        "Syntax",
+
+        /\bAttributeSyntax\b(<\w*>)?/,
+        "Syntax",
+
+        /\bSyntax\b<\w*>/,
+        "Syntax",
+
+        /\bSyntax\b<\?>/,
+        "Syntax",
+
+      ]
+  }
+  
+  SYNTAXES_TO_SDK_SCM = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :whitelist => ["SchemaConfigManager"],
+    :replacements =>
+      [
+        /\b\w*Syntax\b\s+(\w+Syntax);/,
+        'Syntax \1;',
+        
+        /\((\w*Syntax)\)\s*schema.getSyntax/m,
+        'schema.getSyntax',
+        
+        /\w*Syntax.initializeSyntax\(null\);\s/,
+        ''
+      ]
+  }
 
   # Replacement for matching rules
   MRULES_TO_SDK = {
@@ -109,30 +157,6 @@ class Replace
        ]
   }
 
- # Replacement for syntaxes
-  SYNTAX = {
-    :dirs => JAVA_DIRS + SNMP_DIR,
-    :extensions => ["java"],
-    :stoplist => ["Syntax"],
-    :replacements =>
-      [
-
-        /import org.opends.server.api.AttributeSyntax;/,
-        'import org.forgerock.opendj.ldap.schema.Syntax;',
-
-        /package org.opends.server.api;/,
-        "package org.opends.server.api;\n\nimport org.forgerock.opendj.ldap.schema.Syntax;",
-
-        /import org.opends.server.api.\*;/,
-        "import org.forgerock.opendj.ldap.schema.Syntax;\nimport org.opends.server.api.*;",
-
-        /\bAttributeSyntax\b<[^>]+>/,
-        'Syntax',
-
-        /\bAttributeSyntax\b/,
-        'Syntax'
-       ]
-  }
 
  # Replacement for attribute type
   ATTRTYPE = {
@@ -382,7 +406,7 @@ class Replace
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ MRULES_TO_SDK, MRULES_FACTORIES, MRULES_API_PACKAGE ]
+  REPLACEMENTS = [ SYNTAXES_TO_SDK, SYNTAXES_TO_SDK_SCM ]
 
   ################################### Processing methods ########################################
 

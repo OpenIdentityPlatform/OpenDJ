@@ -32,12 +32,14 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.AttributeType;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -48,6 +50,7 @@ import static org.testng.Assert.*;
 /**
  * Test the AttributeTypeSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -105,30 +108,10 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE directoryOperation )",
           true}, // Collective can be operational
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " NO-USER-MODIFICATION USAGE directoryOperation )",
-          false}, // directoryOperation can't inherit from userApplications
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " NO-USER-MODIFICATION USAGE userApplications )",
-          false}, // NO-USER-MODIFICATION can't have non-operational usage
         {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
           " X-SCHEMA-FILE '33-test.ldif' X-NAME )",
           false}, // X-NAME is invalid extension (no value)
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
-          " X-SCHEMA-FILE '../config.ldif' )",
-          false}, // X-SCHEMA-FILE is unsafe
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
-          " X-SCHEMA-FILE '..\\config.ldif' )",
-          false}, // X-SCHEMA-FILE is unsafe
     };
   }
 
@@ -147,9 +130,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 
     // Get a reference to the attribute type syntax implementation in the
     // server.
-    AttributeTypeSyntax attrTypeSyntax =
-      (AttributeTypeSyntax)
-      DirectoryServer.getSchema().getSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
+    Syntax attrTypeSyntax = DirectoryServer.getSchema().getSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
     assertNotNull(attrTypeSyntax);
 
 

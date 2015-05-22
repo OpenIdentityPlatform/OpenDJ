@@ -25,27 +25,26 @@
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.Schema;
 
 /**
  * This class implements the DIT structure rule description syntax, which is
@@ -55,17 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DITStructureRuleSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -79,98 +67,31 @@ public class DITStructureRuleSyntax
   }
 
   /** {@inheritDoc} */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException, InitializationException
+  @Override
+  public Syntax getSDKSyntax(org.forgerock.opendj.ldap.schema.Schema schema)
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(message);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_OID);
   }
 
   /** {@inheritDoc} */
+  @Override
   public String getName()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_NAME;
   }
 
   /** {@inheritDoc} */
+  @Override
   public String getOID()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_OID;
   }
 
   /** {@inheritDoc} */
+  @Override
   public String getDescription()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION;
-  }
-
-  /** {@inheritDoc} */
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  public MatchingRule getOrderingMatchingRule()
-  {
-    return defaultOrderingMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  public MatchingRule getSubstringMatchingRule()
-  {
-    return defaultSubstringMatchingRule;
-  }
-
-  /** {@inheritDoc} */
-  public MatchingRule getApproximateMatchingRule()
-  {
-    // There is no approximate matching rule by default.
-    return null;
-  }
-
-  /** {@inheritDoc} */
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    // We'll use the decodeDITStructureRule method to determine if the value is
-    // acceptable.
-    try
-    {
-      decodeDITStructureRule(value, DirectoryServer.getSchema(), true);
-      return true;
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      invalidReason.append(de.getMessageObject());
-      return false;
-    }
   }
 
   /**
@@ -1138,18 +1059,6 @@ public class DITStructureRuleSyntax
     }
 
     return startPos;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }
 

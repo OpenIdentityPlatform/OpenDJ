@@ -42,7 +42,7 @@ import org.opends.guitools.controlpanel.event.
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
@@ -271,7 +271,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    * @param syntax the attribute syntax.
    * @param schema the schema.
    */
-  public void updateAttributeSyntax(AttributeSyntax<?> syntax, Schema schema)
+  public void updateAttributeSyntax(Syntax syntax, Schema schema)
   {
     attributeSyntaxPanel.update(syntax, schema);
     schemaElementPanel = attributeSyntaxPanel;

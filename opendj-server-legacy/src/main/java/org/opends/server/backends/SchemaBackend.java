@@ -66,8 +66,11 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
@@ -91,6 +94,7 @@ import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.*;
 import org.opends.server.util.BackupManager;
 import org.opends.server.util.DynamicConstants;
@@ -233,7 +237,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private String stripMinUpperBoundRegEx = "\\{\\d+\\}";
 
-
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -251,6 +255,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public void configureBackend(SchemaBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
+
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (cfg == null)
@@ -1007,7 +1013,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               LDAPSyntaxDescription lsd;
               try
               {
-                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, newSchema, false);
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, serverContext, newSchema, false, false);
               }
               catch (DirectoryException de)
               {
@@ -1182,7 +1188,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               LDAPSyntaxDescription lsd;
               try
               {
-                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, newSchema, false);
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, serverContext, newSchema, false, true);
               }
               catch (DirectoryException de)
               {
@@ -2814,7 +2820,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
        //Check if there is an existing syntax with this oid.
-    String oid = ldapSyntaxDesc.getLdapSyntaxDescriptionSyntax().getOID();
+    String oid = ldapSyntaxDesc.getSyntax().getOID();
 
     // We allow only unimplemented syntaxes to be substituted.
     if(schema.getSyntax(oid) !=null)
@@ -2825,8 +2831,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                      message);
     }
 
-    LDAPSyntaxDescription existingLSD =
-         schema.getLdapSyntaxDescription(oid);
+    LDAPSyntaxDescription existingLSD = schema.getLdapSyntaxDescription(oid);
+    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    org.forgerock.opendj.ldap.schema.Schema newSchema = null;
 
     // If there is no existing lsd, then we're adding a new ldapsyntax.
     // Otherwise, we're replacing an existing one.
@@ -2834,14 +2841,23 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
       addNewSchemaElement(modifiedSchemaFiles, ldapSyntaxDesc);
+
+      // update schema NG
+      newSchema = schemaUpdater.getSchemaBuilder().buildSyntax(ldapSyntaxDesc.getSyntax()).addToSchema().toSchema();
+      schemaUpdater.updateSchema(newSchema);
     }
     else
     {
       schema.deregisterLdapSyntaxDescription(existingLSD);
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
+      // update schema NG
+      SchemaBuilder schemaBuilder = schemaUpdater.getSchemaBuilder();
+      schemaBuilder.removeSyntax(oid);
+      newSchema = schemaBuilder.buildSyntax(ldapSyntaxDesc.getSyntax()).addToSchema().toSchema();
+      schemaUpdater.updateSchema(newSchema);
+
       schema.rebuildDependentElements(existingLSD);
-      replaceExistingSchemaElement(modifiedSchemaFiles, ldapSyntaxDesc,
-          existingLSD);
+      replaceExistingSchemaElement(modifiedSchemaFiles, ldapSyntaxDesc, existingLSD);
     }
   }
 
@@ -2853,11 +2869,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                     Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    //See if the specified ldap syntax description is actually defined in the
-    //server schema.  If not, then fail. Note that we are checking only the
-     //real part of the ldapsyntaxes attribute. A virtual value is not searched
-      // and hence never deleted.
-    String oid = ldapSyntaxDesc.getLdapSyntaxDescriptionSyntax().getOID();
+    /*
+     * See if the specified ldap syntax description is actually defined in the
+     * server schema. If not, then fail. Note that we are checking only the real
+     * part of the ldapsyntaxes attribute. A virtual value is not searched and
+     * hence never deleted.
+     */
+    String oid = ldapSyntaxDesc.getSyntax().getOID();
     LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
 
     if (removeLSD == null || !removeLSD.equals(ldapSyntaxDesc))
@@ -2866,6 +2884,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
+
+    // update schema NG
+    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    SchemaBuilder schemaBuilder = schemaUpdater.getSchemaBuilder();
+    schemaBuilder.removeSyntax(oid);
+    schemaUpdater.updateSchema(schemaBuilder.toSchema());
 
     schema.deregisterLdapSyntaxDescription(removeLSD);
     String schemaFile = getSchemaFile(removeLSD);
@@ -3717,26 +3741,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
 
     // Get the attributeTypes attribute from the entry.
-    AttributeTypeSyntax attrTypeSyntax;
-    try
+    Syntax attrTypeSyntax = schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
+    if (attrTypeSyntax == null)
     {
-      attrTypeSyntax = (AttributeTypeSyntax)
-                       schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-      if (attrTypeSyntax == null)
-      {
-        attrTypeSyntax = new AttributeTypeSyntax();
-        attrTypeSyntax.initializeSyntax(null);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      attrTypeSyntax = new AttributeTypeSyntax();
+      attrTypeSyntax = CoreSchema.getAttributeTypeDescriptionSyntax();
     }
 
-    AttributeType attributeAttrType =
-         schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
+    AttributeType attributeAttrType = schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
     if (attributeAttrType == null)
     {
       attributeAttrType =
@@ -3822,21 +3833,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // loop on the objectClasses from the entry, search if they are
     // already in the current schema, add them if not.
-    ObjectClassSyntax ocSyntax;
-    try
+    Syntax ocSyntax = schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
+    if (ocSyntax == null)
     {
-      ocSyntax = (ObjectClassSyntax) schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
-      if (ocSyntax == null)
-      {
-        ocSyntax = new ObjectClassSyntax();
-        ocSyntax.initializeSyntax(null);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ocSyntax = new ObjectClassSyntax();
+      ocSyntax = CoreSchema.getObjectClassDescriptionSyntax();
     }
 
     AttributeType objectclassAttrType =

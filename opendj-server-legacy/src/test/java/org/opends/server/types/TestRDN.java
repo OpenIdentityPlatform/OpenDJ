@@ -212,7 +212,7 @@ public final class TestRDN extends TypesTestCase {
             "1.3.6.1.4.1.1466.0=hi", "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81", "CN=Lu\u010di\u0107" },
         { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8", "ou=%E5%96%B6%E6%A5%AD%E9%83%A8", "ou=\u55b6\u696d\u90e8" },
-        { "photo=\\ john \\ ", "photo=%20%6A%6F%68%6E%20%20", "photo=\\ john \\ " },
+        { "photo=\\ john \\ ", "photo=%20john%20%20", "photo=\\ john \\ " },
      //   { "AB-global=", "ab-global=", "AB-global=" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",

@@ -33,7 +33,7 @@ import java.awt.Component;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.CommonSchemaElements;
@@ -66,12 +66,12 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {
-    if (value instanceof AttributeSyntax<?>)
+    if (value instanceof Syntax)
     {
-      String syntaxName = ((AttributeSyntax<?>)value).getName();
+      String syntaxName = ((Syntax)value).getName();
       if (syntaxName == null)
       {
-        value = ((AttributeSyntax<?>)value).getOID();
+        value = ((Syntax)value).getOID();
       }
       else
       {

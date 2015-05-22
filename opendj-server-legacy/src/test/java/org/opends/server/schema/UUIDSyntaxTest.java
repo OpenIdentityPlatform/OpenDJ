@@ -27,11 +27,13 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 
 /**
  * Test the UUIDSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class UUIDSyntaxTest extends AttributeSyntaxTest
 {
 

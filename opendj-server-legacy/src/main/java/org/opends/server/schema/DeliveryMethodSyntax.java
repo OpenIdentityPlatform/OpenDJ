@@ -26,22 +26,12 @@
  */
 package org.opends.server.schema;
 
-import java.util.HashSet;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import java.util.StringTokenizer;
-
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.ByteSequence;
-
-
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
 
 /**
  * This class defines the delivery method attribute syntax.  This contains one
@@ -66,40 +56,6 @@ public class DeliveryMethodSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
 
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * The set of values that may be used as delivery methods.
-   */
-  private static final String[] ALLOWED_VALUES =
-  {
-    "any",
-    "mhs",
-    "physical",
-    "telex",
-    "teletex",
-    "g3fax",
-    "g4fax",
-    "ia5",
-    "videotex",
-    "telephone"
-  };
-
-  /** The hash set containing the allowed values. */
-  private HashSet<String> allowedValues;
-
-  /** The default approximate matching rule for this syntax. */
-  private MatchingRule defaultApproximateMatchingRule;
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
-
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
@@ -112,46 +68,10 @@ public class DeliveryMethodSyntax
   }
 
   /** {@inheritDoc} */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException
+  @Override
+  public Syntax getSDKSyntax(Schema schema)
   {
-    allowedValues = new HashSet<String>(ALLOWED_VALUES.length);
-    for (String s : ALLOWED_VALUES)
-    {
-      allowedValues.add(s);
-    }
-
-    defaultApproximateMatchingRule =
-         DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
-    if (defaultApproximateMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE,
-          AMR_DOUBLE_METAPHONE_OID, SYNTAX_DELIVERY_METHOD_NAME);
-    }
-
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-          EMR_CASE_IGNORE_OID, SYNTAX_DELIVERY_METHOD_NAME);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-          OMR_CASE_IGNORE_OID, SYNTAX_DELIVERY_METHOD_NAME);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-          SMR_CASE_IGNORE_OID, SYNTAX_DELIVERY_METHOD_NAME);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_DELIVERY_METHOD_OID);
   }
 
   /**
@@ -159,6 +79,7 @@ public class DeliveryMethodSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_DELIVERY_METHOD_NAME;
@@ -169,6 +90,7 @@ public class DeliveryMethodSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_DELIVERY_METHOD_OID;
@@ -179,109 +101,10 @@ public class DeliveryMethodSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_DELIVERY_METHOD_DESCRIPTION;
-  }
-
-  /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-  /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getOrderingMatchingRule()
-  {
-    return defaultOrderingMatchingRule;
-  }
-
-  /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getSubstringMatchingRule()
-  {
-    return defaultSubstringMatchingRule;
-  }
-
-  /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getApproximateMatchingRule()
-  {
-    return defaultApproximateMatchingRule;
-  }
-
-  /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
-   */
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    String stringValue = toLowerCase(value.toString());
-    StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");
-    if (! tokenizer.hasMoreTokens())
-    {
-      invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS.get(value));
-      return false;
-    }
-
-    while (tokenizer.hasMoreTokens())
-    {
-      String token = tokenizer.nextToken();
-      if (! allowedValues.contains(token))
-      {
-        invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT.get(value, token));
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }
 

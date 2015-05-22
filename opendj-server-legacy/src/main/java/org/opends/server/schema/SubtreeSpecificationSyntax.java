@@ -26,7 +26,6 @@
  */
 package org.opends.server.schema;
 
-import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -34,9 +33,11 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SubtreeSpecification;
@@ -49,16 +50,8 @@ import org.opends.server.types.SubtreeSpecification;
 public final class SubtreeSpecificationSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
 
   /**
    * Creates a new instance of this syntax. Note that the only thing
@@ -72,26 +65,23 @@ public final class SubtreeSpecificationSyntax
 
   /** {@inheritDoc} */
   @Override
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-      throws ConfigException {
+  public void initializeSyntax(AttributeSyntaxCfg configuration, ServerContext serverContext)
+      throws ConfigException
+  {
+    // Add the subtree specification syntax to the "new" schema
+    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    SchemaBuilder builder = schemaUpdater.getSchemaBuilder().buildSyntax(SYNTAX_SUBTREE_SPECIFICATION_OID)
+      .description(SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION)
+      .implementation(new SubtreeSpecificationSyntaxImpl())
+      .addToSchema();
+    schemaUpdater.updateSchema(builder.toSchema());
+  }
 
-    defaultEqualityMatchingRule = DirectoryServer.getMatchingRule(EMR_OCTET_STRING_OID);
-    if (defaultEqualityMatchingRule == null) {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-          EMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);
-    }
-
-    defaultOrderingMatchingRule = DirectoryServer.getMatchingRule(OMR_OCTET_STRING_OID);
-    if (defaultOrderingMatchingRule == null) {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-          OMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);
-    }
-
-    defaultSubstringMatchingRule = DirectoryServer.getMatchingRule(SMR_OCTET_STRING_OID);
-    if (defaultSubstringMatchingRule == null) {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-          SMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);
-    }
+  /** {@inheritDoc} */
+  @Override
+  public Syntax getSDKSyntax(Schema schema)
+  {
+    return schema.getSyntax(SchemaConstants.SYNTAX_SUBTREE_SPECIFICATION_OID);
   }
 
   /**
@@ -125,67 +115,6 @@ public final class SubtreeSpecificationSyntax
   public String getDescription() {
 
     return SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION;
-  }
-
-  /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return The default equality matching rule that will be used for
-   *         attributes with this syntax, or <CODE>null</CODE> if
-   *         equality matches will not be allowed for this type by
-   *         default.
-   */
-  @Override
-  public MatchingRule getEqualityMatchingRule() {
-
-    return defaultEqualityMatchingRule;
-  }
-
-  /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return The default ordering matching rule that will be used for
-   *         attributes with this syntax, or <CODE>null</CODE> if
-   *         ordering matches will not be allowed for this type by
-   *         default.
-   */
-  @Override
-  public MatchingRule getOrderingMatchingRule() {
-
-    return defaultOrderingMatchingRule;
-  }
-
-  /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return The default substring matching rule that will be used for
-   *         attributes with this syntax, or <CODE>null</CODE> if
-   *         substring matches will not be allowed for this type by
-   *         default.
-   */
-  @Override
-  public MatchingRule getSubstringMatchingRule() {
-
-    return defaultSubstringMatchingRule;
-  }
-
-  /**
-   * Retrieves the default approximate matching rule that will be used
-   * for attributes with this syntax.
-   *
-   * @return The default approximate matching rule that will be used for
-   *         attributes with this syntax, or <CODE>null</CODE> if
-   *         approximate matches will not be allowed for this type by
-   *         default.
-   */
-  @Override
-  public MatchingRule getApproximateMatchingRule() {
-
-    // There is no approximate matching rule by default.
-    return null;
   }
 
   /**

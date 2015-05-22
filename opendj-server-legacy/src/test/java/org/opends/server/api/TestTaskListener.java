@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;

@@ -954,8 +954,11 @@ public class MatchedValuesFilter
     {
       try
       {
-        substringAssertion =
-            getSubstringMatchingRule().getSubstringAssertion(subInitial, subAny, subFinal);
+        MatchingRule rule = getSubstringMatchingRule();
+        if (rule != null)
+        {
+          substringAssertion = rule.getSubstringAssertion(subInitial, subAny, subFinal);
+        }
       }
       catch (DecodeException e)
       {

@@ -69,6 +69,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -79,10 +80,8 @@ import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.CryptoManagerCfg;
-import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -92,7 +91,7 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -151,10 +150,7 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.BinarySyntax;
 import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
-import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.CaseExactEqualityMatchingRuleFactory;
 import org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory;
 import org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory;
@@ -165,19 +161,12 @@ import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory;
 import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory;
 import org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory;
 import org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
-import org.opends.server.schema.DistinguishedNameSyntax;
 import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory;
 import org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory;
 import org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.IA5StringSyntax;
 import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
 import org.opends.server.schema.IntegerOrderingMatchingRuleFactory;
-import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.schema.OIDSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
 import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
 import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
@@ -185,7 +174,6 @@ import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
 import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
-import org.opends.server.schema.TelephoneNumberSyntax;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AttributeType;
@@ -212,8 +200,11 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.util.ActivateOnceNewConfigFrameworkIsUsed;
+import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.MultiOutputStream;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
@@ -308,18 +299,18 @@ public final class DirectoryServer
   private AccountStatusNotificationHandlerConfigManager accountStatusNotificationHandlerConfigManager;
 
   /** The default syntax to use for binary attributes. */
-  private AttributeSyntax<AttributeSyntaxCfg> defaultBinarySyntax;
+  private Syntax defaultBinarySyntax;
   /** The default syntax to use for Boolean attributes. */
-  private AttributeSyntax<AttributeSyntaxCfg> defaultBooleanSyntax;
+  private Syntax defaultBooleanSyntax;
   /** The default syntax to use for DN attributes. */
-  private AttributeSyntax<AttributeSyntaxCfg> defaultDNSyntax;
+  private Syntax defaultDNSyntax;
   /** The default syntax to use for integer attributes. */
-  private AttributeSyntax<AttributeSyntaxCfg> defaultIntegerSyntax;
+  private Syntax defaultIntegerSyntax;
   /** The default syntax to use for string attributes. */
-  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultStringSyntax;
+  private Syntax defaultStringSyntax;
 
   /** The default attribute syntax to use for attributes with no defined syntax. */
-  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
+  private Syntax defaultSyntax;
   /** The attribute type used to reference the "objectclass" attribute. */
   private AttributeType objectClassAttributeType;
   /** The authenticated users manager for the server. */
@@ -721,8 +712,17 @@ public final class DirectoryServer
   /** The schema for the Directory Server. */
   private Schema schema;
 
-  /** The schema for the Directory Server. */
-  // TODO : temporary field to be removed once old schema is completely removed
+  /**
+   * The schema for the Directory Server.
+   * <p>
+   * This schema is synchronized indirectly to the existing schema, because
+   * syntaxes are defined in schemaNG (i.e, migrated to SDK classes) and there
+   * is currently no way to handle the SchemaOptions in the configuration (e.g.
+   * SchemaOptions.ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS).
+   * Thus, configuration of the legacy syntaxes are kept, and any change related
+   * to them is synchronized with this schema.
+   */
+  @RemoveOnceSDKSchemaIsUsed("'schema' field will then be a reference to a SDK schema")
   private org.forgerock.opendj.ldap.schema.Schema schemaNG;
 
   /** The schema configuration manager for the Directory Server. */
@@ -867,6 +867,13 @@ public final class DirectoryServer
 
     /** {@inheritDoc} */
     @Override
+    public org.forgerock.opendj.ldap.schema.Schema getSchemaNG()
+    {
+      return directoryServer.schemaNG;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public DirectoryEnvironmentConfig getEnvironment()
     {
       return directoryServer.environmentConfig;
@@ -879,9 +886,9 @@ public final class DirectoryServer
       return new SchemaUpdater()
       {
         @Override
-        public boolean updateSchema(SchemaBuilder schemaBuilder)
+        public boolean updateSchema(org.forgerock.opendj.ldap.schema.Schema schema)
         {
-          schemaNG = schemaBuilder.toSchema();
+          schemaNG = schema;
           return true;
         }
 
@@ -1040,8 +1047,7 @@ public final class DirectoryServer
 
   /**
    * Bootstraps the appropriate Directory Server structures that may be needed
-   * by client-side tools.  This is not intended for use in running the server
-   * itself.
+   * by both server and client-side tools.
    */
   public static void bootstrapClient()
   {
@@ -1056,6 +1062,7 @@ public final class DirectoryServer
       // Create the server schema and initialize and register a minimal set of
       // matching rules and attribute syntaxes.
       directoryServer.schema = new Schema();
+      directoryServer.schemaNG = new SchemaBuilder("mainSchema").addSchema(CoreSchema.getInstance(), true).toSchema();
       directoryServer.bootstrapMatchingRules();
       directoryServer.bootstrapAttributeSyntaxes();
 
@@ -1283,7 +1290,7 @@ public final class DirectoryServer
   }
 
   /**
-   * Initialize this server.
+   * Initializes this server.
    * <p>
    * Initialization involves the following steps:
    * <ul>
@@ -1292,6 +1299,8 @@ public final class DirectoryServer
    * </ul>
    * @throws InitializationException
    */
+  @ActivateOnceNewConfigFrameworkIsUsed("it will need adaptation to be activated before sdk schema is ready")
+  @ActivateOnceSDKSchemaIsUsed
   private void initializeNG() throws InitializationException
   {
     serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
@@ -1305,6 +1314,7 @@ public final class DirectoryServer
   /**
    * Initialize the schema of this server.
    */
+  @ActivateOnceSDKSchemaIsUsed
   private void initializeSchemaNG() throws InitializationException
   {
     SchemaHandler schemaHandler = new SchemaHandler();
@@ -1728,40 +1738,41 @@ public final class DirectoryServer
    */
   private void bootstrapAttributeSyntaxes()
   {
-    initAndRegister(new AttributeTypeSyntax());
-    defaultBinarySyntax = initAndRegister(new BinarySyntax());
-    defaultBooleanSyntax = initAndRegister(new BooleanSyntax());
-    defaultStringSyntax = initAndRegister(new DirectoryStringSyntax());
+    defaultBinarySyntax = CoreSchema.getBinarySyntax();
+    defaultBooleanSyntax = CoreSchema.getBooleanSyntax();
+    defaultStringSyntax = CoreSchema.getDirectoryStringSyntax();
+    defaultDNSyntax = CoreSchema.getDNSyntax();
+    defaultIntegerSyntax = CoreSchema.getIntegerSyntax();
     defaultSyntax = defaultStringSyntax;
     schema.registerDefaultSyntax(defaultSyntax);
-    defaultDNSyntax = initAndRegister(new DistinguishedNameSyntax());
-    initAndRegister(new IA5StringSyntax());
-    defaultIntegerSyntax = initAndRegister(new IntegerSyntax());
-    initAndRegister(new GeneralizedTimeSyntax());
-    initAndRegister(new ObjectClassSyntax());
-    initAndRegister(new OIDSyntax());
-    initAndRegister(new TelephoneNumberSyntax());
+
+    Syntax[] syntaxes = {
+      defaultBinarySyntax, defaultBooleanSyntax, defaultStringSyntax, defaultDNSyntax, defaultIntegerSyntax,
+      CoreSchema.getAttributeTypeDescriptionSyntax(),
+      CoreSchema.getIA5StringSyntax(),
+      CoreSchema.getGeneralizedTimeSyntax(),
+      CoreSchema.getObjectClassDescriptionSyntax(),
+      CoreSchema.getOIDSyntax(),
+      CoreSchema.getTelephoneNumberSyntax()
+    };
+    for (Syntax syntax : syntaxes)
+    {
+      registerSyntax(syntax);
+    }
   }
 
-
-  private <T extends AttributeSyntaxCfg> AttributeSyntax<T> initAndRegister(
-      AttributeSyntax<T> syntax)
+  private Syntax registerSyntax(Syntax syntax)
   {
     try
     {
-      syntax.initializeSyntax(null);
-      directoryServer.schema.registerSyntax(syntax, true);
+      schema.registerSyntax(syntax, true);
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX, syntax.getClass().getName(),
-          stackTraceToSingleLineString(e));
+      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX, syntax.getClass().getName(), stackTraceToSingleLineString(e));
     }
     return syntax;
   }
-
-
 
   /**
    * Retrieves the authenticated users manager for the Directory Server.
@@ -2988,14 +2999,12 @@ public final class DirectoryServer
 
       if (directoryServer.objectClassAttributeType == null)
       {
-        AttributeSyntax oidSyntax =
-             directoryServer.schema.getSyntax(SYNTAX_OID_NAME);
+        Syntax oidSyntax = directoryServer.schema.getSyntax(SYNTAX_OID_NAME);
         if (oidSyntax == null)
         {
           try
           {
-            OIDSyntax newOIDSyntax = new OIDSyntax();
-            newOIDSyntax.initializeSyntax(null);
+            Syntax newOIDSyntax = CoreSchema.getOIDSyntax();
             oidSyntax = newOIDSyntax;
             directoryServer.schema.registerSyntax(oidSyntax, true);
           }
@@ -3061,8 +3070,7 @@ public final class DirectoryServer
    *
    * @return  The constructed attribute type definition.
    */
-  public static AttributeType getDefaultAttributeType(String name,
-                                                      AttributeSyntax syntax)
+  public static AttributeType getDefaultAttributeType(String name, Syntax syntax)
   {
     String oid        = toLowerCase(name) + "-oid";
     String definition = "( " + oid + " NAME '" + name + "' SYNTAX " +
@@ -3082,8 +3090,7 @@ public final class DirectoryServer
    *
    * @return The set of attribute syntaxes defined in the Directory Server.
    */
-  public static ConcurrentMap<String,
-                                  AttributeSyntax<?>> getAttributeSyntaxes()
+  public static ConcurrentMap<String, Syntax> getAttributeSyntaxes()
   {
     return directoryServer.schema.getSyntaxes();
   }
@@ -3095,7 +3102,7 @@ public final class DirectoryServer
    * @return  The default attribute syntax that should be used for attributes
    *          that are not defined in the server schema.
    */
-  public static AttributeSyntax getDefaultAttributeSyntax()
+  public static Syntax getDefaultAttributeSyntax()
   {
     return directoryServer.defaultSyntax;
   }
@@ -3111,7 +3118,7 @@ public final class DirectoryServer
    *          that are not defined in the server schema and are meant to store
    *          binary values.
    */
-  public static AttributeSyntax getDefaultBinarySyntax()
+  public static Syntax getDefaultBinarySyntax()
   {
     return directoryServer.defaultBinarySyntax;
   }
@@ -3127,7 +3134,7 @@ public final class DirectoryServer
    *          that are not defined in the server schema and are meant to store
    *          Boolean values.
    */
-  public static AttributeSyntax getDefaultBooleanSyntax()
+  public static Syntax getDefaultBooleanSyntax()
   {
     return directoryServer.defaultBooleanSyntax;
   }
@@ -3142,7 +3149,7 @@ public final class DirectoryServer
    *          that are not defined in the server schema and are meant to store
    *          DN values.
    */
-  public static AttributeSyntax getDefaultDNSyntax()
+  public static Syntax getDefaultDNSyntax()
   {
     return directoryServer.defaultDNSyntax;
   }
@@ -3158,7 +3165,7 @@ public final class DirectoryServer
    *          that are not defined in the server schema and are meant to store
    *          integer values.
    */
-  public static AttributeSyntax getDefaultIntegerSyntax()
+  public static Syntax getDefaultIntegerSyntax()
   {
     return directoryServer.defaultIntegerSyntax;
   }
@@ -3174,7 +3181,7 @@ public final class DirectoryServer
    *          that are not defined in the server schema and are meant to store
    *          string values.
    */
-  public static AttributeSyntax getDefaultStringSyntax()
+  public static Syntax getDefaultStringSyntax()
   {
     return directoryServer.defaultStringSyntax;
   }

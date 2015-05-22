@@ -153,7 +153,7 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
 
     updateSchemaFromConfiguration(currentSchemaBuilder, configuration);
 
-    final boolean isUpdated = schemaUpdater.updateSchema(currentSchemaBuilder);
+    final boolean isUpdated = schemaUpdater.updateSchema(currentSchemaBuilder.toSchema());
 
     // TODO : fix result code + log an error in case of failure
     final ConfigChangeResult result = new ConfigChangeResult();

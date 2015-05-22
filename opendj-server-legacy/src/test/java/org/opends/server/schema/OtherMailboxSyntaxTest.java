@@ -27,11 +27,13 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 
 /**
  * Test the OtherMailboxSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class OtherMailboxSyntaxTest extends AttributeSyntaxTest
 {
 

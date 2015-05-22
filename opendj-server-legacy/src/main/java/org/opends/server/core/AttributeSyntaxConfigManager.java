@@ -48,6 +48,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -129,12 +130,11 @@ public class AttributeSyntaxConfigManager
         String className = syntaxConfiguration.getJavaClass();
         try
         {
-          AttributeSyntax syntax = loadSyntax(className, syntaxConfiguration,
-                                              true);
-
+          AttributeSyntax<?> syntax = loadSyntax(className, syntaxConfiguration, true);
           try
           {
-            serverContext.getSchema().registerSyntax(syntax, false);
+            Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
+            serverContext.getSchema().registerSyntax(sdkSyntax, false);
             syntaxes.put(syntaxConfiguration.dn(), syntax);
           }
           catch (DirectoryException de)
@@ -207,7 +207,8 @@ public class AttributeSyntaxConfigManager
 
       try
       {
-        serverContext.getSchema().registerSyntax(syntax, false);
+        Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
+        serverContext.getSchema().registerSyntax(sdkSyntax, false);
         syntaxes.put(configuration.dn(), syntax);
       }
       catch (DirectoryException de)
@@ -267,10 +268,11 @@ public class AttributeSyntaxConfigManager
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    AttributeSyntax syntax = syntaxes.remove(configuration.dn());
+    AttributeSyntax<?> syntax = syntaxes.remove(configuration.dn());
     if (syntax != null)
     {
-      serverContext.getSchema().deregisterSyntax(syntax);
+      Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
+      serverContext.getSchema().deregisterSyntax(sdkSyntax);
       syntax.finalizeSyntax();
     }
 
@@ -304,7 +306,7 @@ public class AttributeSyntaxConfigManager
     {
       // If the syntax is currently enabled and the change would make it
       // disabled, then only allow it if the syntax isn't already in use.
-      AttributeSyntax syntax = syntaxes.get(configuration.dn());
+      AttributeSyntax<?> syntax = syntaxes.get(configuration.dn());
       if (syntax != null)
       {
         String oid = syntax.getOID();
@@ -313,9 +315,7 @@ public class AttributeSyntaxConfigManager
           if (oid.equals(at.getSyntax().getOID()))
           {
             LocalizableMessage message =
-                    WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(
-                            syntax.getName(),
-                            at.getNameOrOID());
+                    WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(syntax.getName(), at.getNameOrOID());
             unacceptableReasons.add(message);
             return false;
           }
@@ -331,14 +331,13 @@ public class AttributeSyntaxConfigManager
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-                                 AttributeSyntaxCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(AttributeSyntaxCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing syntax if it's already enabled.
-    AttributeSyntax existingSyntax = syntaxes.get(configuration.dn());
+    AttributeSyntax<?> existingSyntax = syntaxes.get(configuration.dn());
 
 
     // If the new configuration has the syntax disabled, then disable it if it
@@ -347,9 +346,9 @@ public class AttributeSyntaxConfigManager
     {
       if (existingSyntax != null)
       {
-        serverContext.getSchema().deregisterSyntax(existingSyntax);
-
-        AttributeSyntax syntax = syntaxes.remove(configuration.dn());
+        Syntax sdkSyntax = existingSyntax.getSDKSyntax(serverContext.getSchemaNG());
+        serverContext.getSchema().deregisterSyntax(sdkSyntax);
+        AttributeSyntax<?> syntax = syntaxes.remove(configuration.dn());
         if (syntax != null)
         {
           syntax.finalizeSyntax();
@@ -376,14 +375,15 @@ public class AttributeSyntaxConfigManager
       return ccr;
     }
 
-    AttributeSyntax syntax = null;
+    AttributeSyntax<?> syntax = null;
     try
     {
       syntax = loadSyntax(className, configuration, true);
 
       try
       {
-        serverContext.getSchema().registerSyntax(syntax, false);
+        Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
+        serverContext.getSchema().registerSyntax(sdkSyntax, false);
         syntaxes.put(configuration.dn(), syntax);
       }
       catch (DirectoryException de)
@@ -420,7 +420,7 @@ public class AttributeSyntaxConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the attribute syntax.
    */
-  private AttributeSyntax loadSyntax(String className,
+  private AttributeSyntax<?> loadSyntax(String className,
                                      AttributeSyntaxCfg configuration,
                                      boolean initialize)
           throws InitializationException
@@ -437,7 +437,7 @@ public class AttributeSyntaxConfigManager
 
       if (initialize)
       {
-        syntax.initializeSyntax(configuration);
+        syntax.initializeSyntax(configuration, serverContext);
       }
       else
       {

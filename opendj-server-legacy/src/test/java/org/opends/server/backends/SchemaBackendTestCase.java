@@ -4556,37 +4556,6 @@ public class SchemaBackendTestCase extends BackendTestCase
   }
 
   /**
-   * Tests the behavior of schema backend when attribute type definitions
-   * are added without a space before closing parenthesis.
-   */
-  @Test
-  public void testAddAttributeTypeNoSpaceBeforeParenthesis() throws Exception
-  {
-    String path = TestCaseUtils.createTempFile(
-           "dn: cn=schema",
-           "changetype: modify",
-           "add: attributeTypes",
-           "attributeTypes: ( test-oid1)",
-           "attributeTypes: ( test-oid2 NAME 'test2')",
-           "attributeTypes: ( test-oid3 NAME ('test3'  'test4'))",
-           "attributeTypes: ( test-oid4 DESC 'test')",
-           "attributeTypes: ( test-oid5 OBSOLETE)",
-           "attributeTypes: ( test-oid6 SUP test-oid4)",
-           "attributeTypes: ( test-oid7 EQUALITY caseIgnoreMatch)",
-           "attributeTypes: ( test-oid8 SINGLE-VALUE)",
-           "attributeTypes: ( test-oid9 COLLECTIVE)",
-           "attributeTypes: ( test-oid10 NO-USER-MODIFICATION USAGE directoryOperation)",
-           "attributeTypes: ( test-oid11 USAGE userApplications)",
-           "attributeTypes: (test-oid12 EQUALITY caseIgnoreMatch" +
-             " SUBSTR caseIgnoreSubstringsMatch)",
-           "attributeTypes: (test-oid13 EQUALITY caseIgnoreMatch ORDERING " +
-              " caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch  " +
-              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 X-ORIGIN 'RFC 4519')");
-
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
-  }
-
-  /**
    * Tests to ensure that the schema subentry includes the lastmod attributes
    * and that the modifiersName and modifyTimestamp attributes get updated when
    * the schema is modified.

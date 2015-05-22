@@ -236,6 +236,7 @@ public final class TestCaseUtils {
    */
   public static void startServer() throws Exception
   {
+    System.setProperty(PROPERTY_RUNNING_UNIT_TESTS, "true");
     try {
       if (SERVER_STARTED)
       {

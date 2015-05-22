@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -40,6 +40,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
@@ -124,9 +125,14 @@ public class RecurringTask
   private final boolean[] monthArray;
   private final boolean[] weekdayArray;
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new recurring task based on the information in the provided
    * entry.
+   *
+   * @param serverContext
+   *            The server context.
    *
    * @param  taskScheduler       A reference to the task scheduler that may be
    *                             used to schedule new tasks.
@@ -136,9 +142,10 @@ public class RecurringTask
    * @throws  DirectoryException  If the provided entry does not contain a valid
    *                              recurring task definition.
    */
-  public RecurringTask(TaskScheduler taskScheduler, Entry recurringTaskEntry)
+  public RecurringTask(ServerContext serverContext, TaskScheduler taskScheduler, Entry recurringTaskEntry)
          throws DirectoryException
   {
+    this.serverContext = serverContext;
     this.taskScheduler = taskScheduler;
     this.recurringTaskEntry = recurringTaskEntry;
     this.recurringTaskEntryDN = recurringTaskEntry.getName();
@@ -308,7 +315,7 @@ public class RecurringTask
     // provided entry.
     try
     {
-      task.initializeTaskInternal(taskScheduler, recurringTaskEntry);
+      task.initializeTaskInternal(serverContext, taskScheduler, recurringTaskEntry);
     }
     catch (InitializationException ie)
     {
@@ -422,7 +429,7 @@ public class RecurringTask
         taskStartTimeAttrType, nextTaskStartTime);
       nextTaskEntry.replaceAttribute(nextTaskStartTimeAttr);
 
-      nextTask.initializeTaskInternal(taskScheduler, nextTaskEntry);
+      nextTask.initializeTaskInternal(serverContext, taskScheduler, nextTaskEntry);
       nextTask.initializeTask();
     } catch (Exception e) {
       // Should not happen, debug log it otherwise.

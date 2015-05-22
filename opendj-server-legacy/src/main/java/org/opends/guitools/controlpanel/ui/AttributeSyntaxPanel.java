@@ -47,7 +47,7 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Schema;
 
@@ -185,7 +185,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
    * @param syntax the attribute syntax that the panel must display.
    * @param schema the schema.
    */
-  public void update(AttributeSyntax<?> syntax, Schema schema)
+  public void update(Syntax syntax, Schema schema)
   {
     String n = syntax.getName();
     if (n == null)

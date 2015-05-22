@@ -27,11 +27,15 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the DITContentRuleSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
+@Test
 public class DITContentRuleSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -49,52 +53,52 @@ public class DITContentRuleSyntaxTest extends AttributeSyntaxTest
     return new Object [][] {
         {"( 2.5.6.4 DESC 'content rule for organization' NOT "
              + "( x121Address $ telexNumber ) )", true},
-        {"( 2.5.6.4 NAME 'full rule' DESC 'rule with all possible fields' "
+        {"( 2.5.6.4 NAME 'fullrule' DESC 'rule with all possible fields' "
               + " OBSOLETE"
               + " AUX ( posixAccount )"
               + " MUST ( cn $ sn )"
               + " MAY ( dc )"
               + " NOT ( x121Address $ telexNumber ) )"
                 , true},
-        {"( 2.5.6.4 NAME 'full rule' DESC 'ommit parenthesis' "
+        {"( 2.5.6.4 NAME 'fullrule' DESC 'ommit parenthesis' "
                   + " OBSOLETE"
                   + " AUX posixAccount "
                   + " MUST cn "
                   + " MAY dc "
                   + " NOT x121Address )"
               , true},
-         {"( 2.5.6.4 NAME 'full rule' DESC 'use numeric OIDs' "
+         {"( 2.5.6.4 NAME 'fullrule' DESC 'use numeric OIDs' "
                 + " OBSOLETE"
                 + " AUX 1.3.6.1.1.1.2.0"
                 + " MUST cn "
                 + " MAY dc "
                 + " NOT x121Address )"
                    , true},
-         {"( 2.5.6.4 NAME 'full rule' DESC 'illegal OIDs' "
+         {"( 2.5.6.4 NAME 'fullrule' DESC 'illegal OIDs' "
                + " OBSOLETE"
                + " AUX 2.5.6.."
                + " MUST cn "
                + " MAY dc "
                + " NOT x121Address )"
                , false},
-         {"( 2.5.6.4 NAME 'full rule' DESC 'illegal OIDs' "
+         {"( 2.5.6.4 NAME 'fullrule' DESC 'illegal OIDs' "
                  + " OBSOLETE"
                  + " AUX 2.5.6.x"
                  + " MUST cn "
                  + " MAY dc "
                  + " NOT x121Address )"
                  , false},
-         {"( 2.5.6.4 NAME 'full rule' DESC 'missing closing parenthesis' "
+         {"( 2.5.6.4 NAME 'fullrule' DESC 'missing closing parenthesis' "
                  + " OBSOLETE"
                  + " AUX posixAccount"
                  + " MUST cn "
                  + " MAY dc "
                  + " NOT x121Address"
              , false},
-         {"( 2.5.6.4 NAME 'full rule' DESC 'extra parameterss' "
+         {"( 2.5.6.4 NAME 'fullrule' DESC 'extra parameterss' "
                  + " MUST cn "
-                 + "( this is an extra parameter )"
-             , true},
+                 + " this is an extra parameter )"
+             , false},
 
     };
   }

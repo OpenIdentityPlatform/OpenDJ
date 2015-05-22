@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -1311,7 +1311,7 @@ public class LocalBackendModifyOperation
     if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
     {
       AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
-      AttributeSyntax<?> syntax = attr.getAttributeType().getSyntax();
+      Syntax syntax = attr.getAttributeType().getSyntax();
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
@@ -1512,7 +1512,7 @@ public class LocalBackendModifyOperation
     {
       AcceptRejectWarn syntaxPolicy = DirectoryServer
           .getSyntaxEnforcementPolicy();
-      AttributeSyntax<?> syntax = attr.getAttributeType().getSyntax();
+      Syntax syntax = attr.getAttributeType().getSyntax();
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {

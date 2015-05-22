@@ -88,7 +88,7 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
@@ -792,7 +792,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     TreeSet<String> syntaxNames = new TreeSet<>(lowerCaseComparator);
     HashMap<String, AttributeSyntaxTreeNode> hmSyntaxes = new HashMap<>();
-    for (AttributeSyntax<?> syntax : lastSchema.getSyntaxes().values())
+    for (Syntax syntax : lastSchema.getSyntaxes().values())
     {
       if (mustAdd(syntax))
       {
@@ -1519,7 +1519,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    * @return <CODE>true</CODE> if the attribute syntax must be added and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean mustAdd(AttributeSyntax<?> syntax)
+  private boolean mustAdd(Syntax syntax)
   {
     String f = filter.getText().trim();
     if (f.length () > 0)

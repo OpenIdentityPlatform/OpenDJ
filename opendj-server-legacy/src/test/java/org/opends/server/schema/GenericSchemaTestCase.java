@@ -38,7 +38,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -88,7 +88,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<String>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (AttributeSyntax<?> as : schema.getSyntaxes().values())
+    for (Syntax as : schema.getSyntaxes().values())
     {
       if (! isNumericOID(as.getOID()))
       {

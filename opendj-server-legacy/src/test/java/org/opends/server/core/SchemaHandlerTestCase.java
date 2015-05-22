@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -32,7 +32,7 @@ import java.io.File;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.opends.server.ServerContextBuilder.MockSchemaUpdater;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.InitializationException;
@@ -47,7 +47,7 @@ public class SchemaHandlerTestCase extends CoreTestCase
   @Test
   public void testSchemaInitialization() throws Exception
   {
-    MockSchemaUpdater schemaUpdater = new MockSchemaUpdater();
+    MockSchemaUpdater schemaUpdater = new MockSchemaUpdater(Schema.getEmptySchema());
     initializeSchemaHandler(schemaUpdater);
 
     assertThat(schemaUpdater.getSchemaBuilder()).isNotNull();
@@ -65,32 +65,14 @@ public class SchemaHandlerTestCase extends CoreTestCase
   private void initializeSchemaHandler(SchemaUpdater updater) throws InitializationException, ConfigException
   {
     final ServerContext serverContext = aServerContext().
-        setSchemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
-        setConfigFile(TestCaseUtils.getTestResource("config-small.ldif")).
-        setSchemaUpdater(updater).
+        schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
+        configFile(TestCaseUtils.getTestResource("config-small.ldif")).
+        schemaUpdater(updater).
         withConfigurationBootstrapped().
         build();
 
     SchemaHandler schemaHandler = new SchemaHandler();
     schemaHandler.initialize(serverContext);
-  }
-
-  private static final class MockSchemaUpdater implements SchemaUpdater
-  {
-    private SchemaBuilder schemaBuilder;
-
-    @Override
-    public boolean updateSchema(SchemaBuilder schemaBuilder)
-    {
-      this.schemaBuilder = schemaBuilder;
-      return true;
-    }
-
-    @Override
-    public SchemaBuilder getSchemaBuilder()
-    {
-      return schemaBuilder;
-    }
   }
 
 }

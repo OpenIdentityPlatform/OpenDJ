@@ -32,6 +32,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
@@ -41,6 +44,7 @@ import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclas
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -117,7 +121,7 @@ public class CoreConfigManager
 
 
     // Apply the configuration to the server.
-    applyGlobalConfiguration(globalConfig);
+    applyGlobalConfiguration(globalConfig, serverContext);
   }
 
 
@@ -127,7 +131,7 @@ public class CoreConfigManager
    *
    * @param  globalConfig  The configuration settings to be applied.
    */
-  private static void applyGlobalConfiguration(GlobalCfg globalConfig)
+  private static void applyGlobalConfiguration(GlobalCfg globalConfig, ServerContext serverContext)
   {
     setCheckSchema(globalConfig.isCheckSchema());
     setDefaultPasswordPolicyDN(globalConfig.getDefaultPasswordPolicyDN());
@@ -157,6 +161,18 @@ public class CoreConfigManager
     setMaxAllowedConnections(globalConfig.getMaxAllowedClientConnections());
     setMaxPersistentSearchLimit(globalConfig.getMaxPsearches());
     setMaxInternalBufferSize((int) globalConfig.getMaxInternalBufferSize());
+
+    // Update the "new" schema with configuration changes
+    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    SchemaBuilder schemaBuilder = schemaUpdater.getSchemaBuilder();
+    boolean allowMalformedNames = globalConfig.isAllowAttributeNameExceptions();
+    schemaBuilder.setOption(SchemaOptions.ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowMalformedNames);
+    Schema schema = schemaBuilder.toSchema();
+    if (!globalConfig.isCheckSchema())
+    {
+      schema = schema.asNonStrictSchema();
+    }
+    schemaUpdater.updateSchema(schema);
   }
 
   private static AcceptRejectWarn convert(InvalidAttributeSyntaxBehavior invalidAttributeSyntaxBehavior)
@@ -354,7 +370,7 @@ public class CoreConfigManager
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    applyGlobalConfiguration(configuration);
+    applyGlobalConfiguration(configuration, serverContext);
 
     return ccr;
   }

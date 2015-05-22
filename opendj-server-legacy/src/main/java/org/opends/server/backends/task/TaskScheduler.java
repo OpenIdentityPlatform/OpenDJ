@@ -42,6 +42,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
@@ -127,23 +128,25 @@ public class TaskScheduler
   /** The set of tasks that are currently running. */
   private TreeSet<Task> runningTasks;
 
-
+  private ServerContext serverContext;
 
   /**
    * Creates a new task scheduler that will be used to ensure that tasks are
    * invoked at the appropriate times.
-   *
+   * @param serverContext
+   *            The server context
    * @param  taskBackend  The task backend with which this scheduler is
    *                      associated.
    *
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   the scheduler from the backing file.
    */
-  public TaskScheduler(TaskBackend taskBackend)
+  public TaskScheduler(ServerContext serverContext, TaskBackend taskBackend)
          throws InitializationException
   {
     super("Task Scheduler Thread");
 
+    this.serverContext = serverContext;
 
     this.taskBackend = taskBackend;
 
@@ -1898,7 +1901,7 @@ public class TaskScheduler
     // Perform the necessary internal and external initialization for the task.
     try
     {
-      task.initializeTaskInternal(this, entry);
+      task.initializeTaskInternal(serverContext, this, entry);
     }
     catch (InitializationException ie)
     {
@@ -1949,7 +1952,7 @@ public class TaskScheduler
   public RecurringTask entryToRecurringTask(Entry entry)
          throws DirectoryException
   {
-    return new RecurringTask(this, entry);
+    return new RecurringTask(serverContext, this, entry);
   }
 
 

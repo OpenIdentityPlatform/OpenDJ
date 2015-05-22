@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -112,7 +112,7 @@ public final class SchemaHandler
     // Take schema files into account (TODO : or load files using provider mechanism ?)
     completeSchemaFromFiles(schemaBuilder);
 
-    schemaUpdater.updateSchema(schemaBuilder);
+    schemaUpdater.updateSchema(schemaBuilder.toSchema());
   }
 
   /**
