@@ -442,6 +442,7 @@ for a detailed log of this operation.</computeroutput>
     <listitem><para><xref linkend="init-repl-online" /></para></listitem>
     <listitem><para><xref linkend="init-repl-ldif" /></para></listitem>
     <listitem><para><xref linkend="init-repl-backup" /></para></listitem>
+    <listitem><para><xref linkend="reinit-repl" /></para></listitem>
    </itemizedlist>
    
    <procedure xml:id="init-repl-online">
@@ -606,6 +607,206 @@ for a detailed log of this operation.</computeroutput>
      replication purge delay runs out, updates processed by other servers after
      you created the backup are replicated to the new server after you restore
      the data.</para>
+    </step>
+   </procedure>
+
+   <procedure xml:id="reinit-repl">
+    <title>To Restore All Replicas to a Known State</title>
+
+    <para>
+     OpenDJ replication is designed to make directory data converge
+     across all replicas in a topology.
+     Directory replication mechanically applies new changes
+     to ensure that replicated data is the same everywhere,
+     with newer changes taking precedence over older changes.
+    </para>
+
+    <para>
+     When you restore older backup data, for example,
+     directory replication applies newer changes to the older data.
+     This behavior is a good thing when the newer changes are correct.
+    </para>
+
+    <itemizedlist>
+     <para>
+      This behavior can be problematic in the following cases:
+     </para>
+
+     <listitem>
+      <para>
+       A bug or serious user error results in unwanted new changes
+       that are hard to fix.
+      </para>
+     </listitem>
+
+     <listitem>
+      <para>
+       The data in a test or proof-of-concept environment
+       must regularly be reinitialized to a known state.
+      </para>
+     </listitem>
+    </itemizedlist>
+
+    <itemizedlist>
+     <para>
+      The <command>dsreplication</command> command has the following subcommands
+      that let you reinitialize directory data,
+      preventing replication from replaying changes
+      that occurred before reinitialization:
+     </para>
+
+     <listitem>
+      <para>
+       The <command>dsreplication pre-external-initialization</command> command
+       removes the setting for the <firstterm>generation ID</firstterm>
+       across the topology for a specified base DN.
+       The generation ID is an internal-use identifier
+       that replication uses to determine what changes to apply.
+       This has the effect of halting replication.
+      </para>
+     </listitem>
+
+     <listitem>
+      <para>
+       The <command>dsreplication post-external-initialization</command> command
+       sets a new generation ID across the topology,
+       effectively resuming replication.
+      </para>
+     </listitem>
+    </itemizedlist>
+
+    <caution>
+     <para>
+      The steps in this procedure reinitialize the replication changelog,
+      eliminating the history of changes
+      that occurred before replication resumed.
+      The replication changelog is described in
+      <xref linkend="repl-change-notification" />.
+      Applications that depend on the changelog for change notifications
+      must be reinitialized after this procedure is completed.
+     </para>
+    </caution>
+
+    <step performance="optional">
+     <para>
+      Prevent changes to the affected data during the procedure,
+      as such changes are lost for the purposes of replication.
+     </para>
+
+     <para>
+      For example, make each replica read-only as described in
+      <xref linkend="read-only-repl" />.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      On a single server in the topology,
+      run the <command>dsreplication pre-external-initialization</command> command
+      for the base DN holding the relevant data,
+      as shown in the following example:
+     </para>
+
+     <screen>
+$ <userinput>dsreplication \
+ pre-external-initialization \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
+Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
+
+Now you can proceed to the initialization of the contents of the base DNs on
+all the replicated servers.  You can use the command import-ldif or the binary
+copy to do so.  You must use the same LDIF file or binary copy on each server.
+
+When the initialization is completed you must use the subcommand
+'post-external-initialization' for replication to work with the new base DNs
+contents.</computeroutput>
+     </screen>
+
+     <para>
+      Replication halts as the command takes effect.
+     </para>
+
+     <para>
+      <emphasis>Changes made at this time are not replicated,
+       even after replication resumes.</emphasis>
+     </para>
+    </step>
+
+    <step>
+     <itemizedlist>
+      <para>
+       On each server in the topology,
+       restore the data in the topology to the known state
+       in one of the following ways:
+      </para>
+
+      <listitem>
+       <para>
+        Import the data from LDIF as described in
+        <link
+         xlink:href="admin-guide#import-ldif"
+         xlink:role="http://docbook.org/xlink/role/olink"
+         xlink:show="new"
+        ><citetitle>To Import LDIF Data</citetitle></link>.
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        Restore the data from backup as described in
+        <link
+         xlink:href="admin-guide#restore-standalone-server"
+         xlink:role="http://docbook.org/xlink/role/olink"
+         xlink:show="new"
+        ><citetitle>To Restore a Stand-alone Server</citetitle></link>.
+       </para>
+      </listitem>
+     </itemizedlist>
+    </step>
+
+    <step>
+     <para>
+      On a single server in the topology,
+      run the <command>dsreplication post-external-initialization</command> command
+      for the base DN holding the relevant data,
+      as shown in the following example:
+     </para>
+
+     <screen>
+$ <userinput>dsreplication \
+ post-external-initialization \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
+Updating replication information on base DN dc=example,dc=com ..... Done.
+
+
+Post initialization procedure completed successfully.
+</computeroutput>
+     </screen>
+
+     <para>
+      Replication resumes as the command takes effect.
+     </para>
+    </step>
+
+    <step performance="optional">
+     <para>
+      If you made replicas read-only, make them read-write again by setting
+      <literal>writability-mode:enabled</literal>.
+     </para>
     </step>
    </procedure>
   </section>
