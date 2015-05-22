@@ -1721,19 +1721,16 @@ public class LDAPConnectionConsoleInteraction
     {
       options = new LDAPConnectionOptions();
     }
+    options.setUseSSL(state.useSSL);
+    options.setStartTLS(state.useStartTLS);
     if (state.useSSL)
     {
-      options.setUseSSL(true);
       SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
       sslConnectionFactory.init(getTrustManager() == null, state.keystorePath,
           state.keystorePassword, state.certifNickname, state.truststorePath, state.truststorePassword);
       options.setSSLConnectionFactory(sslConnectionFactory);
     }
-    else
-    {
-      options.setUseSSL(false);
-    }
-    options.setStartTLS(!state.useStartTLS);
+
     return options;
   }
 
