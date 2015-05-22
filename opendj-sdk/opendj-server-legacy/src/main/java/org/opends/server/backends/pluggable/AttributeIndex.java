@@ -251,11 +251,11 @@ class AttributeIndex
       switch (indexType)
       {
       case PRESENCE:
-        indexers = Collections.singleton(PRESENCE_INDEXER);
+        indexers.add(PRESENCE_INDEXER);
         break;
       case EXTENSIBLE:
-        indexers =
-            getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions);
+        indexers.addAll(
+            getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions));
         break;
       case APPROXIMATE:
         rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule());
