@@ -111,7 +111,7 @@ public class BackendTypeHelper
     @SuppressWarnings("unchecked")
     public org.opends.server.admin.ManagedObjectDefinition<
         ? extends org.opends.server.admin.std.client.BackendCfgClient,
-        ? extends org.opends.server.admin.std.server.BackendCfg> getOldConfigFrameworkBackend()
+        ? extends org.opends.server.admin.std.server.BackendCfg> getLegacyConfigurationFrameworkBackend()
     {
       if (isLocalDBBackend())
       {
