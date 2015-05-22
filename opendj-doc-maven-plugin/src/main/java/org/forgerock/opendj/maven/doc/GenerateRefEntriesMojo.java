@@ -98,7 +98,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         // Prepare a ClassLoader capable of loading the command-line tools.
         final URLClassLoader toolsClassLoader = getBootToolsClassLoader();
         for (CommandLineTool tool : tools) {
-            if (tool.getEnabled()) {
+            if (tool.isEnabled()) {
                 generateManPageForTool(toolsClassLoader, tool);
             }
         }

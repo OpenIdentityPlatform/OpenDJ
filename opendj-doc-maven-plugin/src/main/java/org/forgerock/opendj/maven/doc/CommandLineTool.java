@@ -163,7 +163,7 @@ public class CommandLineTool {
      * Returns true if the tool is enabled.
      * @return true if the tool is enabled.
      */
-    public boolean getEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
