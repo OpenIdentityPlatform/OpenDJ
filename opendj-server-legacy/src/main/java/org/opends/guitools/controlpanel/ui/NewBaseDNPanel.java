@@ -110,6 +110,7 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;
@@ -968,16 +969,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         return;
       }
 
-      //FIXME GB This could be replaced by a call to BackendCreationHelper.createBackend(...)
-      // once the new configuration framework migration will be done
-      final RootCfgClient root = getRootConfigurationClient();
-      final BackendCfgClient backend =
-          root.createBackend(getSelectedBackendType().getLegacyConfigurationFrameworkBackend(), backendName, null);
-      backend.setEnabled(true);
-      backend.setBaseDN(Collections.singleton(DN.valueOf(newBaseDN)));
-      backend.setBackendId(backendName);
-      backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
-      backend.commit();
+      createBackendOnline(backendName);
     }
 
     private void createBackendOffline(String backendName) throws OpenDsException
@@ -991,6 +983,19 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         throw new OfflineUpdateException(ERROR_CTRL_PANEL_CREATE_NEW_BACKEND.get(backendName, e.getMessage()), e);
       }
+    }
+
+    @RemoveOnceNewConfigFrameworkIsUsed("Use BackendCreationHelper.createBackend(...)")
+    private void createBackendOnline(String backendName) throws OpenDsException
+    {
+      final RootCfgClient root = getRootConfigurationClient();
+      final BackendCfgClient backend =
+          root.createBackend(getSelectedBackendType().getLegacyConfigurationFrameworkBackend(), backendName, null);
+      backend.setEnabled(true);
+      backend.setBaseDN(Collections.singleton(DN.valueOf(newBaseDN)));
+      backend.setBackendId(backendName);
+      backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
+      backend.commit();
     }
 
     private RootCfgClient getRootConfigurationClient()
