@@ -393,7 +393,7 @@ public class ReplicationCliMain extends ConsoleApplication
     //  If we should just display usage or version information,
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed()) {
-      return 0;
+      return returnValue.getReturnCode();
     }
 
     // Checks the version - if upgrade required, the tool is unusable
