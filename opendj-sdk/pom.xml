@@ -157,7 +157,6 @@
     <!-- Permit doc build to override relative locations of non DocBook content -->
     <coreDocBase>http://opendj.forgerock.org/doc/bootstrap/</coreDocBase>
     <serverDocBase>http://opendj.forgerock.org/opendj-server/doc/bootstrap/</serverDocBase>
-    <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
     <!-- END Documentation properties -->
