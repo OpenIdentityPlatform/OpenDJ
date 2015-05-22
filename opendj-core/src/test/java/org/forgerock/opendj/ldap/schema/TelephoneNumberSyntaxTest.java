@@ -37,28 +37,28 @@ import org.testng.annotations.Test;
  */
 @Test
 public class TelephoneNumberSyntaxTest extends AbstractSyntaxTestCase {
+
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] {
-          { "+61 3 9896 7830", true},
-          { "+1 512 315 0280", true},
-          { "+1-512-315-0280", true},
-          { "3 9896 7830", false},
-          { "+1+512 315 0280", false},
-          { "+1x512x315x0280", false},
-          { "   ", false},
-          { "", false}
-        };
+            { "+61 3 9896 7830", true },
+            { "+1 512 315 0280", true },
+            { "+1-512-315-0280", true },
+            { "3 9896 7830", false },
+            { "+1+512 315 0280", false },
+            { "+1x512x315x0280", false },
+            { "   ", false },
+            { "", false } };
     }
 
     /** {@inheritDoc} */
     @Override
-  protected Syntax getRule()
-  {
-    SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, false);
-    return builder.toSchema().getSyntax(SYNTAX_TELEPHONE_OID);
-  }
+    protected Syntax getRule() {
+        SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS,
+                false);
+        return builder.toSchema().getSyntax(SYNTAX_TELEPHONE_OID);
+    }
 
 }

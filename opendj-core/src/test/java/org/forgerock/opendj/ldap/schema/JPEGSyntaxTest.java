@@ -45,59 +45,56 @@ public class JPEGSyntaxTest extends AbstractSchemaTestCase {
 
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-      String non_image =
-        "AAECAwQFBgcICQ==";
-      String jfif_image =
-        "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDACMYGh4aFiMeHB4nJSMpNFc4NDAwNGpM" +
-        "UD9Xfm+EgnxveneLnMipi5S9lnd6ru2wvc7V4OLgh6f1//PZ/8jb4Nf/2wBDASUn" +
-        "JzQuNGY4OGbXj3qP19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX" +
-        "19fX19fX19fX19fX19f/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEA" +
-        "AAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIh" +
-        "MUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6" +
-        "Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZ" +
-        "mqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx" +
-        "8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREA" +
-        "AgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAV" +
-        "YnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" +
-        "anN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPE" +
-        "xcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCC" +
-        "iiiuM9g//9k=";
-      String exif_image =
-        "/9j/4QD2RXhpZgAATU0AKgAAAAgACQESAAMAAAABAAEAAAEaAAUAAAABAAAAegEb" +
-        "AAUAAAABAAAAggEoAAMAAAABAAIAAAExAAIAAAAQAAAAigEyAAIAAAAUAAAAmgE8" +
-        "AAIAAAAOAAAArgITAAMAAAABAAEAAIdpAAQAAAABAAAAvAAAAAAASAAAAAEAAABI" +
-        "AAAAAQAAUXVpY2tUaW1lIDcuNy4xADIwMTI6MDg6MjAgMTI6MTE6MTIATWFjIE9T" +
-        "IFggMTAuOAAAApAAAAcAAAAEMDIyMJADAAIAAAAUAAAA2gAAAAAyMDEyOjA4OjIw" +
-        "IDEyOjEwOjA2AP/+AAxBcHBsZU1hcmsK/9sAQwAjGBoeGhYjHhweJyUjKTRXODQw" +
-        "MDRqTFA/V35vhIJ8b3p3i5zIqYuUvZZ3eq7tsL3O1eDi4Ien9f/z2f/I2+DX/9sA" +
-        "QwElJyc0LjRmODhm1496j9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX" +
-        "19fX19fX19fX19fX19fX19fX/8AAEQgAAQABAwEiAAIRAQMRAf/EAB8AAAEFAQEB" +
-        "AQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAE" +
-        "EQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2" +
-        "Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SV" +
-        "lpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn" +
-        "6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//E" +
-        "ALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkj" +
-        "M1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2Rl" +
-        "ZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5" +
-        "usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMR" +
-        "AD8AgooorjPYP//Z";
-      String png_image =
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAMAAAAoyzS7AAAABlBMVEX/JgAAAAAP" +
-        "IsinAAAACklEQVQImWNgAAAAAgAB9HFkpgAAAABJRU5ErkJggg==";
+        String nonImage =
+            "AAECAwQFBgcICQ==";
+        String jfifImage =
+            "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDACMYGh4aFiMeHB4nJSMpNFc4NDAwNGpM"
+            + "UD9Xfm+EgnxveneLnMipi5S9lnd6ru2wvc7V4OLgh6f1//PZ/8jb4Nf/2wBDASUn"
+            + "JzQuNGY4OGbXj3qP19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX"
+            + "19fX19fX19fX19fX19f/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEA"
+            + "AAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIh"
+            + "MUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6"
+            + "Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZ"
+            + "mqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx"
+            + "8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREA"
+            + "AgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAV"
+            + "YnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp"
+            + "anN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPE"
+            + "xcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCC"
+            + "iiiuM9g//9k=";
+        String exifImage =
+            "/9j/4QD2RXhpZgAATU0AKgAAAAgACQESAAMAAAABAAEAAAEaAAUAAAABAAAAegEb"
+            + "AAUAAAABAAAAggEoAAMAAAABAAIAAAExAAIAAAAQAAAAigEyAAIAAAAUAAAAmgE8"
+            + "AAIAAAAOAAAArgITAAMAAAABAAEAAIdpAAQAAAABAAAAvAAAAAAASAAAAAEAAABI"
+            + "AAAAAQAAUXVpY2tUaW1lIDcuNy4xADIwMTI6MDg6MjAgMTI6MTE6MTIATWFjIE9T"
+            + "IFggMTAuOAAAApAAAAcAAAAEMDIyMJADAAIAAAAUAAAA2gAAAAAyMDEyOjA4OjIw"
+            + "IDEyOjEwOjA2AP/+AAxBcHBsZU1hcmsK/9sAQwAjGBoeGhYjHhweJyUjKTRXODQw"
+            + "MDRqTFA/V35vhIJ8b3p3i5zIqYuUvZZ3eq7tsL3O1eDi4Ien9f/z2f/I2+DX/9sA"
+            + "QwElJyc0LjRmODhm1496j9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX"
+            + "19fX19fX19fX19fX19fX19fX/8AAEQgAAQABAwEiAAIRAQMRAf/EAB8AAAEFAQEB"
+            + "AQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAE"
+            + "EQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2"
+            + "Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SV"
+            + "lpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn"
+            + "6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//E"
+            + "ALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkj"
+            + "M1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2Rl"
+            + "ZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5"
+            + "usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMR"
+            + "AD8AgooorjPYP//Z";
+        String pngImage =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAMAAAAoyzS7AAAABlBMVEX/JgAAAAAP"
+            + "IsinAAAACklEQVQImWNgAAAAAgAB9HFkpgAAAABJRU5ErkJggg==";
 
-      try
-      {
-        return new Object[][] {
-          { ByteString.valueOfBase64(non_image), false },
-          { ByteString.valueOfBase64(jfif_image), true },
-          { ByteString.valueOfBase64(exif_image), true },
-          { ByteString.valueOfBase64(png_image), false } };
-      }
-      catch (Exception e)
-      {
-        return new Object[][] {};
-      }
+        try {
+            return new Object[][] {
+                { ByteString.valueOfBase64(nonImage), false },
+                { ByteString.valueOfBase64(jfifImage), true },
+                { ByteString.valueOfBase64(exifImage), true },
+                { ByteString.valueOfBase64(pngImage), false } };
+        } catch (Exception e) {
+            return new Object[][] {};
+        }
     }
 
     /** Test acceptable values for this syntax when not allowing malformed JPEG photos. */

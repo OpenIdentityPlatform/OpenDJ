@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -36,14 +36,15 @@ import org.testng.annotations.Test;
  */
 @Test
 public class TelexSyntaxTest extends AbstractSyntaxTestCase {
+
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] {
-          { "123$france$456", true },
-          { "abcdefghijk$lmnopqr$stuvwxyz", true },
-          { "12345$67890$()+,-./:? ", true }, };
+            { "123$france$456", true },
+            { "abcdefghijk$lmnopqr$stuvwxyz", true },
+            { "12345$67890$()+,-./:? ", true }, };
     }
 
     /** {@inheritDoc} */

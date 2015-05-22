@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -40,17 +40,17 @@ public class IntegerSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-      return new Object [][] {
-        {"123", true},
-        {"987654321", true},
-        {"-1", true},
-        {"10001", true},
-        {"001", false},
-        {"-01", false},
-        {"12345678\u2163", false},
-        {" 123", false},
-        {"123 ", false}
-    };
+        return new Object [][] {
+            {"123", true},
+            {"987654321", true},
+            {"-1", true},
+            {"10001", true},
+            {"001", false},
+            {"-01", false},
+            {"12345678\u2163", false},
+            {" 123", false},
+            {"123 ", false}
+        };
     }
 
     /** {@inheritDoc} */
