@@ -289,7 +289,7 @@ C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput
   </para>
 
   <para>
-   The following example shows two example messages from the recover log.
+   The following example shows two example messages from the recovery log.
    The first message is written at the beginning of the recovery process.
    The second message is written at the end of the process.
   </para>
