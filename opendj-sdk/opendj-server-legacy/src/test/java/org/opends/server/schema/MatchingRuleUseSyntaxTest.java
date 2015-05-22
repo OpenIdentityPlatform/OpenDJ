@@ -27,11 +27,15 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the MatchingRuleUseSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
+@Test
 public class MatchingRuleUseSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -48,11 +52,10 @@ public class MatchingRuleUseSyntaxTest extends AttributeSyntaxTest
   public Object[][] createAcceptableValues()
   {
     return new Object [][] {
-        {"( 2.5.13.10 NAME 'full matching rule' "
+        {"( 2.5.13.10 NAME 'fullMatchingRule' "
             + " DESC 'description of matching rule' OBSOLETE "
-            + " APPLIES 2.5.4.3 "
-            + " ( this is an extension ) )", true},
-        {"( 2.5.13.10 NAME 'missing closing parenthesis' "
+            + " APPLIES 2.5.4.3 )", true},
+        {"( 2.5.13.10 NAME 'missingClosingParenthesis' "
             + " DESC 'description of matching rule' "
             + " SYNTAX 2.5.4.3 "
             + " ( this is an extension ) ", false},

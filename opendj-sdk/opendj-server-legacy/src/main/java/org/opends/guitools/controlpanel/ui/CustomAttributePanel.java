@@ -86,7 +86,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.ObjectClass;
@@ -676,7 +676,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<AttributeSyntax<?>> newSyntaxes = new ArrayList<>();
+    ArrayList<Syntax> newSyntaxes = new ArrayList<>();
 
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
@@ -701,10 +701,10 @@ public class CustomAttributePanel extends SchemaElementPanel
     if (schemaChanged)
     {
       schema = s;
-      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<>();
+      HashMap<String, Syntax> syntaxNameMap = new HashMap<>();
       for (String key : schema.getSyntaxes().keySet())
       {
-        AttributeSyntax<?> syntax = schema.getSyntax(key);
+        Syntax syntax = schema.getSyntax(key);
         String name = syntax.getName();
         if (name == null)
         {
@@ -1246,7 +1246,7 @@ public class CustomAttributePanel extends SchemaElementPanel
         getOID(),
         getDescription(),
         getSuperior(),
-        (AttributeSyntax<?>)syntax.getSelectedItem(),
+        (Syntax)syntax.getSelectedItem(),
         getApproximateMatchingRule(),
         getEqualityMatchingRule(),
         getOrderingMatchingRule(),
@@ -1259,7 +1259,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private void updateDefaultMatchingRuleNames()
   {
-    AttributeSyntax<?> syn = (AttributeSyntax<?>)syntax.getSelectedItem();
+    Syntax syn = (Syntax)syntax.getSelectedItem();
     if (syn != null)
     {
       MatchingRule[] rules = {syn.getApproximateMatchingRule(),

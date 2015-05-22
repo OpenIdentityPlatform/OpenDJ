@@ -26,6 +26,12 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -33,25 +39,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaOptions;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeTypeDescriptionAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Schema;
 
 /**
  * This class defines the attribute type description syntax, which is used to
@@ -62,9 +68,6 @@ public class AttributeTypeSyntax
        extends AttributeSyntax<AttributeTypeDescriptionAttributeSyntaxCfg>
        implements
        ConfigurationChangeListener<AttributeTypeDescriptionAttributeSyntaxCfg> {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   /**
    * The reference to the configuration for this attribute type description
@@ -74,17 +77,10 @@ public class AttributeTypeSyntax
 
 
 
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
-
   /** If true strip the suggested minimum upper bound from the syntax OID. */
   private static boolean stripMinimumUpperBound;
+
+  private ServerContext serverContext;
 
 
   /**
@@ -103,35 +99,10 @@ public class AttributeTypeSyntax
   /** {@inheritDoc} */
   @Override
   public void
-  initializeSyntax(AttributeTypeDescriptionAttributeSyntaxCfg configuration)
+  initializeSyntax(AttributeTypeDescriptionAttributeSyntaxCfg configuration, ServerContext serverContext)
          throws ConfigException, InitializationException
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(message);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(message);
-    }
+    this.serverContext = serverContext;
 
     // This syntax is one of the Directory Server's core syntaxes and therefore
     // it may be instantiated at times without a configuration entry.  If that
@@ -145,9 +116,27 @@ public class AttributeTypeSyntax
     currentConfig = configuration;
     currentConfig.addAttributeTypeDescriptionChangeListener(this);
     stripMinimumUpperBound=configuration.isStripSyntaxMinUpperBound();
+    updateNewSchema();
   }
 
+  /** Update the option in new schema if it changes from current value. */
+  private void updateNewSchema()
+  {
+    Option<Boolean> option = SchemaOptions.STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE;
+    if (isStripSyntaxMinimumUpperBound() != serverContext.getSchemaNG().getOption(option))
+    {
+      SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+      schemaUpdater.updateSchema(
+          schemaUpdater.getSchemaBuilder().setOption(option, stripMinimumUpperBound).toSchema());
+    }
+  }
 
+  /** {@inheritDoc} */
+  @Override
+  public Syntax getSDKSyntax(org.forgerock.opendj.ldap.schema.Schema schema)
+  {
+    return schema.getSyntax(SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_OID);
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -172,66 +161,6 @@ public class AttributeTypeSyntax
   public String getDescription()
   {
     return SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getOrderingMatchingRule()
-  {
-    return defaultOrderingMatchingRule;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getSubstringMatchingRule()
-  {
-    return defaultSubstringMatchingRule;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public MatchingRule getApproximateMatchingRule()
-  {
-    // There is no approximate matching rule by default.
-    return null;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    // We'll use the decodeAttributeType method to determine if the value is
-    // acceptable.
-    try
-    {
-      decodeAttributeType(value, DirectoryServer.getSchema(), true);
-      return true;
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      invalidReason.append(de.getMessageObject());
-      return false;
-    }
   }
 
 
@@ -426,7 +355,7 @@ public class AttributeTypeSyntax
     List<String> typeNames = new LinkedList<String>();
     String description = null;
     AttributeType superiorType = null;
-    AttributeSyntax<?> syntax = DirectoryServer.getDefaultAttributeSyntax();
+    Syntax syntax = DirectoryServer.getDefaultAttributeSyntax();
     MatchingRule approximateMatchingRule = null;
     MatchingRule equalityMatchingRule = null;
     MatchingRule orderingMatchingRule = null;
@@ -1492,7 +1421,7 @@ public class AttributeTypeSyntax
   {
     currentConfig = configuration;
     stripMinimumUpperBound = configuration.isStripSyntaxMinUpperBound();
-
+    updateNewSchema();
     return new ConfigChangeResult();
   }
 
@@ -1516,23 +1445,5 @@ public class AttributeTypeSyntax
    */
   public static boolean isStripSyntaxMinimumUpperBound() {
     return stripMinimumUpperBound;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }

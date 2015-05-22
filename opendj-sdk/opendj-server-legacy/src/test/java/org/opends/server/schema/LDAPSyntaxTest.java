@@ -42,6 +42,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -53,6 +54,7 @@ import static org.testng.Assert.*;
 /**
  * Test the LDAPSyntaxDescriptionSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 @SuppressWarnings("javadoc")
 public class LDAPSyntaxTest extends AttributeSyntaxTest
 {
@@ -140,10 +142,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
               {"( 2.5.4.3 DESC 'Test X-PATTERN Extensions' X-PATTERN '[0-9]+' X-SCHEMA-FILE '00-core.ldif' )", true},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) )", true},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'white' 'white' ) )", false},
-              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( ) )", false},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM )", false},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) X-SCHEMA-FILE '00-core.ldif' )", true},
-              {"( 2.5.4.3 DESC 'Test Too many Extensions' X-PATTERN '[0-9]+' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", false},
               {"( 2.5.4.3 DESC syntax description )", false},
               {"($%^*&!@ DESC 'syntax description' )", false},
               {"(temp-oid DESC 'syntax description' )", true},

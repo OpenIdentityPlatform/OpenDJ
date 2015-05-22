@@ -34,6 +34,7 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -41,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * Test the GeneralizedTimeSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class GeneralizedTimeSyntaxTest extends AttributeSyntaxTest
 {
 

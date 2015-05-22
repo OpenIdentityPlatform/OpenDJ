@@ -52,7 +52,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.ServerShutdownListener;
@@ -144,7 +144,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
       this.lowThreshold = lowThreshold;
     }
 
-    private Attribute attr(String name, AttributeSyntax<?> syntax, Object value)
+    private Attribute attr(String name, Syntax syntax, Object value)
     {
       AttributeType attrType = DirectoryServer.getDefaultAttributeType(name, syntax);
       return Attributes.create(attrType, String.valueOf(value));

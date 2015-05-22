@@ -21,14 +21,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
 import java.util.Arrays;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.OIDSyntax;
 
 /**
@@ -39,7 +40,7 @@ import org.opends.server.schema.OIDSyntax;
 public interface AttributeTypeConstants
 {
 
-  AttributeSyntax<?> OID_SYNTAX = new OIDSyntax();
+  Syntax OID_SYNTAX = new OIDSyntax().getSDKSyntax(CoreSchema.getInstance());
 
   AttributeType OBJECT_CLASS = new AttributeType(
       "( 2.5.4.0 NAME 'objectClass' EQUALITY objectIdentifierMatch "

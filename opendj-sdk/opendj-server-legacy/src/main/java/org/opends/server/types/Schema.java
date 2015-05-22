@@ -43,8 +43,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
@@ -110,12 +109,12 @@ public final class Schema
    * The set of attribute syntaxes for this schema, mapped between the OID for
    * the syntax and the syntax itself.
    */
-  private ConcurrentHashMap<String,AttributeSyntax<?>> syntaxes;
+  private ConcurrentHashMap<String,Syntax> syntaxes;
 
   /**
    * The default attribute syntax to use for attributes with no defined syntax.
    */
-  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
+  private Syntax defaultSyntax;
 
   /**
    * The entire set of matching rules for this schema, mapped between the
@@ -198,7 +197,7 @@ public final class Schema
   {
     attributeTypes = new ConcurrentHashMap<String,AttributeType>();
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
-    syntaxes = new ConcurrentHashMap<String,AttributeSyntax<?>>();
+    syntaxes = new ConcurrentHashMap<String,Syntax>();
     matchingRules = new ConcurrentHashMap<String,MatchingRule>();
     matchingRuleUses =
          new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
@@ -624,7 +623,7 @@ public final class Schema
    *
    * @return  The attribute syntax definitions for this schema.
    */
-  public ConcurrentHashMap<String,AttributeSyntax<?>> getSyntaxes()
+  public ConcurrentHashMap<String,Syntax> getSyntaxes()
   {
     return syntaxes;
   }
@@ -659,9 +658,9 @@ public final class Schema
    *         syntax is unknown and the caller has indicated that the default is
    *         acceptable, or <CODE>null</CODE> otherwise.
    */
-  public AttributeSyntax<?> getSyntax(String oid, boolean allowDefault)
+  public Syntax getSyntax(String oid, boolean allowDefault)
   {
-    AttributeSyntax<?> syntax = getSyntax(oid);
+    Syntax syntax = getSyntax(oid);
     if (syntax == null && allowDefault)
     {
       return getDefaultSyntax();
@@ -679,7 +678,7 @@ public final class Schema
    * @return  The requested attribute syntax, or <CODE>null</CODE> if
    *          no syntax is registered with the provided OID.
    */
-  public AttributeSyntax<?> getSyntax(String lowerName)
+  public Syntax getSyntax(String lowerName)
   {
     return syntaxes.get(lowerName);
   }
@@ -691,7 +690,7 @@ public final class Schema
    * @return  The default attribute syntax that should be used for attributes
    *          that are not defined in the server schema.
    */
-  public AttributeSyntax<?> getDefaultSyntax()
+  public Syntax getDefaultSyntax()
   {
     return defaultSyntax;
   }
@@ -705,7 +704,7 @@ public final class Schema
    *            The defautl syntax to use.
    */
   public void registerDefaultSyntax(
-      AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax)
+      Syntax defaultSyntax)
   {
     this.defaultSyntax = defaultSyntax;
   }
@@ -727,7 +726,7 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerSyntax(AttributeSyntax<?> syntax,
+  public void registerSyntax(Syntax syntax,
                              boolean overwriteExisting)
          throws DirectoryException
   {
@@ -738,7 +737,7 @@ public final class Schema
         String oid = toLowerCase(syntax.getOID());
         if (syntaxes.containsKey(oid))
         {
-          AttributeSyntax<?> conflictingSyntax = syntaxes.get(oid);
+          Syntax conflictingSyntax = syntaxes.get(oid);
 
           LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
               get(syntax.getName(), oid,
@@ -761,7 +760,7 @@ public final class Schema
    * @param  syntax  The attribute syntax to deregister with this
    *                 schema.
    */
-  public void deregisterSyntax(AttributeSyntax<?> syntax)
+  public void deregisterSyntax(Syntax syntax)
   {
     synchronized (syntaxes)
     {
@@ -853,7 +852,7 @@ public final class Schema
      */
     synchronized (ldapSyntaxDescriptions)
     {
-      String oid = toLowerCase(syntax.getLdapSyntaxDescriptionSyntax().getOID());
+      String oid = toLowerCase(syntax.getSyntax().getOID());
       if (! overwriteExisting && ldapSyntaxDescriptions.containsKey(oid))
       {
          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -865,7 +864,7 @@ public final class Schema
       //Register the attribute syntax with the schema. It will ensure
       // syntax is available along with the other virtual values for
       // ldapsyntaxes.
-      registerSyntax(syntax.getLdapSyntaxDescriptionSyntax(), overwriteExisting);
+      registerSyntax(syntax.getSyntax(), overwriteExisting);
     }
   }
 
@@ -885,18 +884,17 @@ public final class Schema
     {
       //Remove the real value.
       ldapSyntaxDescriptions.remove(
-       toLowerCase(syntax.getLdapSyntaxDescriptionSyntax().getOID()),
+       toLowerCase(syntax.getSyntax().getOID()),
        syntax);
 
       try
       {
         //Get rid of this from the virtual ldapsyntaxes.
-        deregisterSyntax(syntax.getLdapSyntaxDescriptionSyntax());
-        syntax.getLdapSyntaxDescriptionSyntax().finalizeSyntax();
+        deregisterSyntax(syntax.getSyntax());
       }
       catch (Exception e)
       {
-        deregisterSyntax(syntax.getLdapSyntaxDescriptionSyntax());
+        deregisterSyntax(syntax.getSyntax());
       }
     }
   }

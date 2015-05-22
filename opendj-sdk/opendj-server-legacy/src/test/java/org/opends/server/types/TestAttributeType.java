@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.util.Utils;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
@@ -54,7 +54,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     private AttributeType superiorType;
 
     /** The syntax for this attribute type. */
-    private AttributeSyntax syntax;
+    private Syntax syntax;
 
     /** The approximate matching rule for this attribute type. */
     private MatchingRule approximateMatchingRule;
@@ -388,7 +388,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
      * @param syntax
      *          The syntax.
      */
-    public void setSyntax(AttributeSyntax syntax) {
+    public void setSyntax(Syntax syntax) {
       this.syntax = syntax;
     }
   }
@@ -534,7 +534,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
         "testType", "1.2.3");
     AttributeType type = builder.getInstance();
 
-    AttributeSyntax syntax = DirectoryServer
+    Syntax syntax = DirectoryServer
         .getDefaultAttributeSyntax();
     Assert.assertEquals(type.getApproximateMatchingRule(), syntax
         .getApproximateMatchingRule());
@@ -558,7 +558,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
   public void testConstructorMatchingRules() throws Exception {
     AttributeTypeBuilder builder = new AttributeTypeBuilder(
         "testType", "1.2.3");
-    AttributeSyntax syntax = DirectoryServer.getDefaultStringSyntax();
+    Syntax syntax = DirectoryServer.getDefaultStringSyntax();
     builder.setApproximateMatchingRule(syntax
         .getApproximateMatchingRule());
     builder.setEqualityMatchingRule(syntax.getEqualityMatchingRule());
@@ -590,7 +590,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
   public void testConstructorInheritsMatchingRules() throws Exception {
     AttributeTypeBuilder builder = new AttributeTypeBuilder(
         "parentType", "1.2.3");
-    AttributeSyntax syntax = DirectoryServer.getDefaultStringSyntax();
+    Syntax syntax = DirectoryServer.getDefaultStringSyntax();
     builder.setApproximateMatchingRule(syntax
         .getApproximateMatchingRule());
     builder.setEqualityMatchingRule(syntax.getEqualityMatchingRule());

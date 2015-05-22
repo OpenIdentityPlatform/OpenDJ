@@ -123,8 +123,8 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
@@ -2127,7 +2127,7 @@ public class Utilities
    * @param syntax the attribute syntax.
    * @return the string representation of an attribute syntax.
    */
-  public static String getSyntaxText(AttributeSyntax<?> syntax)
+  public static String getSyntaxText(Syntax syntax)
   {
     String syntaxName = syntax.getName();
     String syntaxOID = syntax.getOID();

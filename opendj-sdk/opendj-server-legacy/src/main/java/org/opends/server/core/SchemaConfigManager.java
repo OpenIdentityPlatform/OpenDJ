@@ -38,7 +38,9 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
@@ -298,7 +300,7 @@ public class SchemaConfigManager
     // from that entry and parse them to initialize the server schema.
     for (String schemaFile : fileNames)
     {
-      loadSchemaFile(schema, schemaFile, false);
+      loadSchemaFile(serverContext, schema, schemaFile, false);
     }
   }
 
@@ -306,6 +308,9 @@ public class SchemaConfigManager
 
   /**
    * Loads the contents of the specified schema file into the provided schema.
+   *
+   * @param serverContext
+   *          The server context.
    *
    * @param  schema      The schema in which the contents of the schema file are
    *                     to be loaded.
@@ -322,11 +327,10 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  public static List<Modification> loadSchemaFile(Schema schema,
-                                                  String schemaFile)
+  public static List<Modification> loadSchemaFile(ServerContext serverContext, Schema schema, String schemaFile)
          throws ConfigException, InitializationException
   {
-    return loadSchemaFile(schema, schemaFile, true);
+    return loadSchemaFile(serverContext, schema, schemaFile, true);
   }
 
 
@@ -356,10 +360,8 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  private static List<Modification> loadSchemaFile(Schema schema,
-                                                   String schemaFile,
-                                                   boolean failOnError)
-         throws ConfigException, InitializationException
+  private static List<Modification> loadSchemaFile(ServerContext serverContext, Schema schema, String schemaFile,
+      boolean failOnError) throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
     String schemaDirPath = getSchemaDirectoryPath();
@@ -465,7 +467,7 @@ public class SchemaConfigManager
       }
     }
 
-    parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError,
+    parseLdapSyntaxesDefinitions(serverContext, schema, schemaFile, failOnError,
         ldapSyntaxList);
     parseAttributeTypeDefinitions(schema, schemaFile, failOnError, attrList);
     parseObjectclassDefinitions(schema, schemaFile, failOnError, ocList);
@@ -480,27 +482,13 @@ public class SchemaConfigManager
   private static List<Attribute> getLdapSyntaxesAttributes(Schema schema,
       Entry entry, List<Modification> mods) throws ConfigException
   {
-    LDAPSyntaxDescriptionSyntax ldapSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_LDAP_SYNTAX_OID);
+    if (syntax == null)
     {
-      ldapSyntax = (LDAPSyntaxDescriptionSyntax) schema.getSyntax(
-              SYNTAX_LDAP_SYNTAX_OID);
-      if (ldapSyntax == null)
-      {
-        ldapSyntax = new LDAPSyntaxDescriptionSyntax();
-        ldapSyntax.initializeSyntax(null);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ldapSyntax = new LDAPSyntaxDescriptionSyntax();
-      ldapSyntax.initializeSyntax(null);
+      syntax = CoreSchema.getLDAPSyntaxDescriptionSyntax();
     }
 
-    AttributeType ldapSyntaxAttrType = getAttributeType(
-        schema, ATTR_LDAP_SYNTAXES, ATTR_LDAP_SYNTAXES_LC, ldapSyntax);
+    AttributeType ldapSyntaxAttrType = getAttributeType(schema, ATTR_LDAP_SYNTAXES, ATTR_LDAP_SYNTAXES_LC, syntax);
     return createAddModifications(entry, mods, ldapSyntaxAttrType);
   }
 
@@ -508,27 +496,13 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    AttributeTypeSyntax attrTypeSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
+    if (syntax == null)
     {
-      attrTypeSyntax = (AttributeTypeSyntax)
-                       schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-      if (attrTypeSyntax == null)
-      {
-        attrTypeSyntax = new AttributeTypeSyntax();
-        attrTypeSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getAttributeTypeDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      attrTypeSyntax = new AttributeTypeSyntax();
-      attrTypeSyntax.initializeSyntax(null);
-    }
-
     AttributeType attributeAttrType = getAttributeType(
-        schema, ATTR_ATTRIBUTE_TYPES, ATTR_ATTRIBUTE_TYPES_LC, attrTypeSyntax);
+        schema, ATTR_ATTRIBUTE_TYPES, ATTR_ATTRIBUTE_TYPES_LC, syntax);
     return createAddModifications(entry, mods, attributeAttrType);
   }
 
@@ -537,26 +511,12 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    ObjectClassSyntax ocSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
+    if (syntax == null)
     {
-      ocSyntax = (ObjectClassSyntax) schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
-      if (ocSyntax == null)
-      {
-        ocSyntax = new ObjectClassSyntax();
-        ocSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getObjectClassDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ocSyntax = new ObjectClassSyntax();
-      ocSyntax.initializeSyntax(null);
-    }
-
-    AttributeType objectclassAttrType = getAttributeType(
-        schema, ATTR_OBJECTCLASSES, ATTR_OBJECTCLASSES_LC, ocSyntax);
+    AttributeType objectclassAttrType = getAttributeType(schema, ATTR_OBJECTCLASSES, ATTR_OBJECTCLASSES_LC, syntax);
     return createAddModifications(entry, mods, objectclassAttrType);
   }
 
@@ -565,26 +525,13 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    NameFormSyntax nfSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_NAME_FORM_OID);
+    if (syntax == null)
     {
-      nfSyntax = (NameFormSyntax) schema.getSyntax(SYNTAX_NAME_FORM_OID);
-      if (nfSyntax == null)
-      {
-        nfSyntax = new NameFormSyntax();
-        nfSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getNameFormDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      nfSyntax = new NameFormSyntax();
-      nfSyntax.initializeSyntax(null);
-    }
-
     AttributeType nameFormAttrType = getAttributeType(
-        schema, ATTR_NAME_FORMS, ATTR_NAME_FORMS_LC, nfSyntax);
+        schema, ATTR_NAME_FORMS, ATTR_NAME_FORMS_LC, syntax);
     return createAddModifications(entry, mods, nameFormAttrType);
   }
 
@@ -593,27 +540,13 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    DITContentRuleSyntax dcrSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);
+    if (syntax == null)
     {
-      dcrSyntax = (DITContentRuleSyntax)
-                  schema.getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);
-      if (dcrSyntax == null)
-      {
-        dcrSyntax = new DITContentRuleSyntax();
-        dcrSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getDITContentRuleDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      dcrSyntax = new DITContentRuleSyntax();
-      dcrSyntax.initializeSyntax(null);
-    }
-
     AttributeType dcrAttrType = getAttributeType(
-        schema, ATTR_DIT_CONTENT_RULES, ATTR_DIT_CONTENT_RULES_LC, dcrSyntax);
+        schema, ATTR_DIT_CONTENT_RULES, ATTR_DIT_CONTENT_RULES_LC, syntax);
     return createAddModifications(entry, mods, dcrAttrType);
   }
 
@@ -622,27 +555,12 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    DITStructureRuleSyntax dsrSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID);
+    if (syntax == null)
     {
-      dsrSyntax = (DITStructureRuleSyntax)
-                  schema.getSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID);
-      if (dsrSyntax == null)
-      {
-        dsrSyntax = new DITStructureRuleSyntax();
-        dsrSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getDITStructureRuleDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      dsrSyntax = new DITStructureRuleSyntax();
-      dsrSyntax.initializeSyntax(null);
-    }
-
-    AttributeType dsrAttrType = getAttributeType(
-        schema, ATTR_DIT_STRUCTURE_RULES, ATTR_DIT_STRUCTURE_RULES_LC, dsrSyntax);
+    AttributeType dsrAttrType = getAttributeType(schema, ATTR_DIT_STRUCTURE_RULES, ATTR_DIT_STRUCTURE_RULES_LC, syntax);
     return createAddModifications(entry, mods, dsrAttrType);
   }
 
@@ -651,32 +569,17 @@ public class SchemaConfigManager
       Entry entry, List<Modification> mods) throws ConfigException,
       InitializationException
   {
-    MatchingRuleUseSyntax mruSyntax;
-    try
+    Syntax syntax = schema.getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
+    if (syntax == null)
     {
-      mruSyntax = (MatchingRuleUseSyntax)
-                  schema.getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
-      if (mruSyntax == null)
-      {
-        mruSyntax = new MatchingRuleUseSyntax();
-        mruSyntax.initializeSyntax(null);
-      }
+      syntax = CoreSchema.getMatchingRuleUseDescriptionSyntax();
     }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      mruSyntax = new MatchingRuleUseSyntax();
-      mruSyntax.initializeSyntax(null);
-    }
-
-    AttributeType mruAttrType = getAttributeType(
-        schema, ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULE_USE_LC, mruSyntax);
+    AttributeType mruAttrType = getAttributeType(schema, ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULE_USE_LC, syntax);
     return createAddModifications(entry, mods, mruAttrType);
   }
 
   private static AttributeType getAttributeType(Schema schema, String attrName,
-      String attrLowerName, AttributeSyntax<?> syntax)
+      String attrLowerName, Syntax syntax)
   {
     final AttributeType attrType = schema.getAttributeType(attrLowerName);
     if (attrType != null)
@@ -701,7 +604,7 @@ public class SchemaConfigManager
   }
 
   /** Parse the ldapsyntaxes definitions if there are any. */
-  private static void parseLdapSyntaxesDefinitions(Schema schema,
+  private static void parseLdapSyntaxesDefinitions(ServerContext serverContext, Schema schema,
       String schemaFile, boolean failOnError, List<Attribute> ldapSyntaxList)
       throws ConfigException
   {
@@ -714,7 +617,7 @@ public class SchemaConfigManager
           LDAPSyntaxDescription syntaxDescription;
           try
           {
-            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, schema, false);
+            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, serverContext, schema, false, false);
             setExtraProperty(syntaxDescription, SCHEMA_PROPERTY_FILENAME, null);
             setSchemaFile(syntaxDescription, schemaFile);
           }
@@ -743,8 +646,8 @@ public class SchemaConfigManager
           // to trap them and log a warning.
           try
           {
-            schema.registerLdapSyntaxDescription(
-                                  syntaxDescription, failOnError);
+            schema.registerLdapSyntaxDescription(syntaxDescription, failOnError);
+            registerLdapSyntaxInSchemaNG(serverContext, syntaxDescription, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -755,6 +658,7 @@ public class SchemaConfigManager
             try
             {
               schema.registerLdapSyntaxDescription(syntaxDescription, true);
+              registerLdapSyntaxInSchemaNG(serverContext, syntaxDescription, true);
             }
             catch (Exception e)
             {
@@ -765,6 +669,16 @@ public class SchemaConfigManager
         }
       }
     }
+  }
+
+  private static void registerLdapSyntaxInSchemaNG(ServerContext serverContext, LDAPSyntaxDescription syntaxDescription,
+      boolean overwrite)
+  {
+    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    Syntax.Builder builder = schemaUpdater.getSchemaBuilder()
+        .buildSyntax(syntaxDescription.getSyntax());
+    SchemaBuilder schemaBuilder = overwrite ? builder.addToSchemaOverwrite() : builder.addToSchema();
+    schemaUpdater.updateSchema(schemaBuilder.toSchema());
   }
 
   /** Parse the attribute type definitions if there are any. */

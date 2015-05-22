@@ -26,35 +26,33 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPSyntaxDescription;
 import org.opends.server.types.Schema;
-
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
@@ -88,29 +86,9 @@ public class LDAPSyntaxDescriptionSyntax
 
   /** {@inheritDoc} */
   @Override
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException
+  public Syntax getSDKSyntax(org.forgerock.opendj.ldap.schema.Schema schema)
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE, OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_LDAP_SYNTAX_OID);
   }
 
   /**
@@ -212,6 +190,8 @@ public class LDAPSyntaxDescriptionSyntax
    * @param  value                 The byte sequence containing the value
    *                               to decode (it does not need to be
    *                               normalized).
+   * @param serverContext
+   *            The server context.
    * @param  schema                The schema to use to resolve references to
    *                               other schema elements.
    * @param  allowUnknownElements  Indicates whether to allow values that are
@@ -219,15 +199,16 @@ public class LDAPSyntaxDescriptionSyntax
    *                               should only be true when called by
    *                               {@code valueIsAcceptable}.
    *                               Not used for LDAP Syntaxes
+   * @param forDelete
+   *            {@code true} if used for deletion.
    *
    * @return  The decoded ldapsyntax definition.
    *
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              ldapsyntax definition.
    */
-  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value,
-          Schema schema,
-          boolean allowUnknownElements) throws DirectoryException
+  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value, ServerContext serverContext,
+          Schema schema, boolean allowUnknownElements, boolean forDelete) throws DirectoryException
   {
     // Get string representations of the provided value using the provided form.
     String valueStr = value.toString();
@@ -355,11 +336,7 @@ public class LDAPSyntaxDescriptionSyntax
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
-    else
-    {
-      oid = toLowerCase(valueStr.substring(oidStartPos, pos));
-    }
-
+    oid = toLowerCase(valueStr.substring(oidStartPos, pos));
 
     // Skip over the space(s) after the OID.
     while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
@@ -385,9 +362,8 @@ public class LDAPSyntaxDescriptionSyntax
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
     String description = null;
-    LDAPSyntaxDescriptionSyntax syntax = null;
-    HashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    Syntax syntax = null;
+    HashMap<String,List<String>> extraProperties = new LinkedHashMap<String,List<String>>();
     boolean hasXSyntaxToken = false;
 
     while (true)
@@ -418,166 +394,144 @@ public class LDAPSyntaxDescriptionSyntax
         pos = readQuotedString(valueStr, descriptionBuffer, pos);
         description = descriptionBuffer.toString();
       }
-      else if (lowerTokenName.equals("x-subst"))
-      {
-        if (hasXSyntaxToken)
-        {
-          // We've already seen syntax extension. More than 1 is not allowed
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-        hasXSyntaxToken = true;
-        StringBuilder woidBuffer = new StringBuilder();
-        pos = readQuotedString(valueStr, woidBuffer, pos);
-        String syntaxOID = toLowerCase(woidBuffer.toString());
-        AttributeSyntax<?> subSyntax = schema.getSyntax(syntaxOID);
-        if (subSyntax == null)
-        {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(oid, syntaxOID);
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-        syntax = new SubstitutionSyntax(subSyntax,valueStr,description,oid);
-      }
-
-      else if(lowerTokenName.equals("x-pattern"))
-      {
-        if (hasXSyntaxToken)
-        {
-          // We've already seen syntax extension. More than 1 is not allowed
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-        hasXSyntaxToken = true;
-        StringBuilder regexBuffer = new StringBuilder();
-        pos = readQuotedString(valueStr, regexBuffer, pos);
-        String regex = regexBuffer.toString().trim();
-        if(regex.length() == 0)
-        {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
-               valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-
-        try
-        {
-          Pattern pattern = Pattern.compile(regex);
-          syntax = new RegexSyntax(pattern,valueStr,description,oid);
-        }
-        catch(Exception e)
-        {
-          LocalizableMessage message =
-              WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
-                  (valueStr,regex);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-      }
-      else if(lowerTokenName.equals("x-enum"))
-      {
-        if (hasXSyntaxToken)
-        {
-          // We've already seen syntax extension. More than 1 is not allowed
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-        hasXSyntaxToken = true;
-        LinkedList<String> values = new LinkedList<String>();
-        pos = readExtraParameterValues(valueStr, values, pos);
-
-        if (values.isEmpty())
-        {
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_ENUM_NO_VALUES.get(valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        }
-        // Parse all enum values, check for uniqueness
-        LinkedList<ByteSequence> entries = new LinkedList<ByteSequence>();
-        for (String v : values)
-        {
-          ByteString entry = ByteString.valueOf(v);
-          if (entries.contains(entry))
-          {
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
-                    valueStr, entry,pos));
-          }
-          entries.add(entry);
-        }
-        syntax = new EnumSyntax(entries, valueStr,description, oid);
-      }
-      else if (tokenName.matches("X\\-[_\\p{Alpha}-]+"))
-      {
-        // This must be a non-standard property and it must be followed by
-        // either a single value in single quotes or an open parenthesis
-        // followed by one or more values in single quotes separated by spaces
-        // followed by a close parenthesis.
-        List<String> valueList = new ArrayList<String>();
-        pos = readExtraParameterValues(valueStr, valueList, pos);
-        extraProperties.put(tokenName, valueList);
-      }
       else
       {
-        // Unknown Token
-        LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
-            valueStr, tokenName, pos);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
+        SchemaBuilder schemaBuilder = serverContext != null ?
+            serverContext.getSchemaUpdater().getSchemaBuilder() : new SchemaBuilder(CoreSchema.getInstance());
+
+        if (lowerTokenName.equals("x-subst"))
+        {
+          if (hasXSyntaxToken)
+          {
+            // We've already seen syntax extension. More than 1 is not allowed
+            LocalizableMessage message =
+                ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+          hasXSyntaxToken = true;
+          StringBuilder woidBuffer = new StringBuilder();
+          pos = readQuotedString(valueStr, woidBuffer, pos);
+          String syntaxOID = toLowerCase(woidBuffer.toString());
+          Syntax subSyntax = schema.getSyntax(syntaxOID);
+          if (subSyntax == null)
+          {
+            LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(oid, syntaxOID);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+          }
+          syntax = forDelete ? schema.getSyntax(oid) : schemaBuilder.buildSyntax(oid)
+              .extraProperties("x-subst", syntaxOID)
+              .addToSchema().toSchema().getSyntax(oid);
+        }
+
+        else if(lowerTokenName.equals("x-pattern"))
+        {
+          if (hasXSyntaxToken)
+          {
+            // We've already seen syntax extension. More than 1 is not allowed
+            LocalizableMessage message =
+                ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+          hasXSyntaxToken = true;
+          StringBuilder regexBuffer = new StringBuilder();
+          pos = readQuotedString(valueStr, regexBuffer, pos);
+          String regex = regexBuffer.toString().trim();
+          if(regex.length() == 0)
+          {
+            LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
+                 valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+
+          try
+          {
+            syntax = forDelete ? schema.getSyntax(oid) : schemaBuilder.buildSyntax(oid)
+                .extraProperties("x-pattern", regex)
+                .addToSchema().toSchema().getSyntax(oid);
+          }
+          catch(Exception e)
+          {
+            LocalizableMessage message =
+                WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                    (valueStr,regex);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+        }
+        else if(lowerTokenName.equals("x-enum"))
+        {
+          if (hasXSyntaxToken)
+          {
+            // We've already seen syntax extension. More than 1 is not allowed
+            LocalizableMessage message =
+                ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+          hasXSyntaxToken = true;
+          LinkedList<String> values = new LinkedList<String>();
+          pos = readExtraParameterValues(valueStr, values, pos);
+
+          if (values.isEmpty())
+          {
+            LocalizableMessage message =
+                ERR_ATTR_SYNTAX_LDAPSYNTAX_ENUM_NO_VALUES.get(valueStr);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
+          }
+          // Parse all enum values, check for uniqueness
+          List<String> entries = new LinkedList<>();
+          for (String v : values)
+          {
+            ByteString entry = ByteString.valueOf(v);
+            if (entries.contains(entry))
+            {
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                      valueStr, entry,pos));
+            }
+            entries.add(v);
+          }
+
+          syntax = forDelete ? schema.getSyntax(oid) : schemaBuilder
+              .addEnumerationSyntax(oid, description, true, entries.toArray(new String[0]))
+              .toSchema().getSyntax(oid);
+        }
+        else if (tokenName.matches("X\\-[_\\p{Alpha}-]+"))
+        {
+          // This must be a non-standard property and it must be followed by
+          // either a single value in single quotes or an open parenthesis
+          // followed by one or more values in single quotes separated by spaces
+          // followed by a close parenthesis.
+          List<String> valueList = new ArrayList<String>();
+          pos = readExtraParameterValues(valueStr, valueList, pos);
+          extraProperties.put(tokenName, valueList);
+        }
+        else
+        {
+          // Unknown Token
+          LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
+              valueStr, tokenName, pos);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
+        }
       }
     }
     if (syntax == null)
     {
-      // Create a plain Syntax. That seems to be required by export/import
-      // Schema backend.
-      syntax = new LDAPSyntaxDescriptionSyntax();
+      // TODO : add localized message
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          LocalizableMessage.raw("no LDAP syntax for:" + value));
     }
 
     CommonSchemaElements.checkSafeProperties(extraProperties);
 
     //Since we reached here it means everything is OK.
-    return new LDAPSyntaxDescription(valueStr,syntax,
-                                     description,extraProperties);
+    return new LDAPSyntaxDescription(valueStr, syntax, extraProperties);
   }
-
-  /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
-   */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    // We'll use the decodeAttributeType method to determine if the value is
-    // acceptable.
-    try
-    {
-      decodeLDAPSyntax(value, DirectoryServer.getSchema(), true);
-      return true;
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      invalidReason.append(de.getMessageObject());
-      return false;
-    }
-  }
-
 
   /**
    * Reads the next token name from the attribute syntax definition, skipping
@@ -869,513 +823,5 @@ public class LDAPSyntaxDescriptionSyntax
     }
 
     return startPos;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isHumanReadable()
-  {
-    return true;
-  }
-
-  /**
-   * This class provides a substitution mechanism where one unimplemented
-   * syntax can be substituted by another defined syntax. A substitution syntax
-   * is an LDAPSyntaxDescriptionSyntax with X-SUBST extension.
-   */
-  private static class SubstitutionSyntax extends
-          LDAPSyntaxDescriptionSyntax
-  {
-    /** The syntax that will substitute the unimplemented syntax. */
-    private AttributeSyntax<?> subSyntax;
-
-    /** The description of this syntax. */
-    private String description;
-
-    /** The definition of this syntax. */
-    private String definition;
-
-
-    /** The oid of this syntax. */
-    private String oid;
-
-    /** Creates a new instance of this syntax. */
-    private SubstitutionSyntax(AttributeSyntax<?> subSyntax,
-            String definition,
-            String description,
-            String oid)
-    {
-      super();
-      this.subSyntax = subSyntax;
-      this.definition = definition;
-      this.description = description;
-      this.oid = oid;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getName()
-    {
-      // There is no name for a substitution syntax.
-      return null;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getOID()
-    {
-      return oid;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getDescription()
-    {
-      return description;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString()
-    {
-      return definition;
-    }
-
-     /** {@inheritDoc} */
-    @Override
-    public boolean valueIsAcceptable(ByteSequence value,
-                                     LocalizableMessageBuilder invalidReason)
-    {
-      return  subSyntax.valueIsAcceptable(value, invalidReason);
-    }
-
-    /**
-     * Retrieves the default equality matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default equality matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if equality
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getEqualityMatchingRule()
-    {
-      return subSyntax.getEqualityMatchingRule();
-    }
-
-    /**
-     * Retrieves the default ordering matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default ordering matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if ordering
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getOrderingMatchingRule()
-    {
-      return subSyntax.getOrderingMatchingRule();
-    }
-
-    /**
-     * Retrieves the default substring matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default substring matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if substring
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getSubstringMatchingRule()
-    {
-      return subSyntax.getSubstringMatchingRule();
-    }
-
-    /**
-     * Retrieves the default approximate matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default approximate matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if approximate
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getApproximateMatchingRule()
-    {
-      return subSyntax.getApproximateMatchingRule();
-    }
-  }
-
-  /**
-   * This class provides a regex mechanism where a new syntax and its
-   * corresponding matching rules can be created on-the-fly. A regex
-   * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
-   */
-  private static class RegexSyntax extends
-          LDAPSyntaxDescriptionSyntax
-  {
-    /** The Pattern associated with the regex. */
-    private Pattern pattern;
-
-    /** The description of this syntax. */
-    private String description;
-
-    /** The oid of this syntax. */
-    private String oid;
-
-    /** The definition of this syntax. */
-    private String definition;
-
-    /** The equality matching rule. */
-    private MatchingRule equalityMatchingRule;
-
-    /** The substring matching rule. */
-    private MatchingRule substringMatchingRule;
-
-    /** The ordering matching rule. */
-    private MatchingRule orderingMatchingRule;
-
-    /** The approximate matching rule. */
-    private MatchingRule approximateMatchingRule;
-
-
-    /** Creates a new instance of this syntax. */
-    private RegexSyntax(Pattern pattern,
-            String definition,
-            String description,
-            String oid)
-    {
-      super();
-      this.definition = definition;
-      this.pattern = pattern;
-      this.description = description;
-      this.oid = oid;
-    }
-
-     /** {@inheritDoc} */
-     @Override
-    public String getName()
-    {
-      // There is no name for a regex syntax.
-      return null;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getOID()
-    {
-      return oid;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getDescription()
-    {
-      return description;
-    }
-
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString()
-    {
-      return definition;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean valueIsAcceptable(ByteSequence value,
-                                     LocalizableMessageBuilder invalidReason)
-    {
-      String strValue = value.toString();
-      boolean matches = pattern.matcher(strValue).matches();
-      if(!matches)
-      {
-        LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(
-                strValue,pattern.pattern());
-        invalidReason.append(message);
-      }
-      return matches;
-    }
-
-    /**
-     * Retrieves the default equality matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default equality matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if equality
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getEqualityMatchingRule()
-    {
-      if(equalityMatchingRule == null)
-      {
-        //This has already been verified.
-        equalityMatchingRule =
-                DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-      }
-      return equalityMatchingRule;
-    }
-
-    /**
-     * Retrieves the default ordering matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default ordering matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if ordering
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getOrderingMatchingRule()
-    {
-      if(orderingMatchingRule == null)
-      {
-        orderingMatchingRule =
-                DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
-      }
-      return orderingMatchingRule;
-    }
-
-    /**
-     * Retrieves the default substring matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default substring matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if substring
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getSubstringMatchingRule()
-    {
-      if(substringMatchingRule == null)
-      {
-        substringMatchingRule =
-                DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-      }
-      return substringMatchingRule;
-    }
-
-    /**
-     * Retrieves the default approximate matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default approximate matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if approximate
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getApproximateMatchingRule()
-    {
-      if(approximateMatchingRule == null)
-      {
-        approximateMatchingRule =
-                DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
-      }
-      return approximateMatchingRule;
-    }
-  }
-
-  /**
-   * This class provides an enumeration-based mechanism where a new syntax
-   * and its corresponding matching rules can be created on-the-fly. An enum
-   * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
-   */
-  private static class EnumSyntax extends
-          LDAPSyntaxDescriptionSyntax
-  {
-    /** Set of read-only enum entries. */
-    LinkedList<ByteSequence> entries;
-
-    /** The description of this syntax. */
-    private String description;
-
-    /** The oid of this syntax. */
-    private String oid;
-
-    /** The equality matching rule. */
-    private MatchingRule equalityMatchingRule;
-
-    /** The substring matching rule. */
-    private MatchingRule substringMatchingRule;
-
-    /** The ordering matching rule. */
-    private MatchingRule orderingMatchingRule;
-
-    /** The approximate matching rule. */
-    private MatchingRule approximateMatchingRule;
-
-    /** The definition of this syntax. */
-    private String definition;
-
-
-    /** Creates a new instance of this syntax. */
-    private EnumSyntax(LinkedList<ByteSequence> entries,
-            String definition,
-            String description,
-            String oid)
-    {
-      super();
-      this.entries = entries;
-      this.definition = definition;
-      this.description = description;
-      this.oid = oid;
-    }
-
-     /** {@inheritDoc} */
-     @Override
-    public String getName()
-    {
-      // There is no name for a enum syntax.
-      return null;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getOID()
-    {
-      return oid;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString()
-    {
-      return definition;
-    }
-
-    /** {@inheritDoc} */
-     @Override
-    public String getDescription()
-    {
-      return description;
-    }
-
-     /** {@inheritDoc} */
-    @Override
-    public void finalizeSyntax()
-    {
-      DirectoryServer.deregisterMatchingRule(orderingMatchingRule);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean valueIsAcceptable(ByteSequence value,
-                                     LocalizableMessageBuilder invalidReason)
-    {
-      //The value is acceptable if it belongs to the set.
-      boolean isAllowed = entries.contains(value);
-      if (!isAllowed)
-      {
-        invalidReason.append(WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value,oid));
-      }
-      return isAllowed;
-    }
-
-    /**
-     * Retrieves the default equality matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default equality matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if equality
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getEqualityMatchingRule()
-    {
-      if(equalityMatchingRule == null)
-      {
-        //This has already been verified.
-        equalityMatchingRule =
-                DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
-      }
-      return equalityMatchingRule;
-    }
-
-    /**
-     * Retrieves the default ordering matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default ordering matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if ordering
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getOrderingMatchingRule()
-    {
-      if (orderingMatchingRule == null)
-      {
-        /*
-         * It is not sufficient to build the enum matching rule alone here, we
-         * need to build enum syntax as well otherwise the schema is not valid. The
-         * enum matching rule is automatically built with the enum syntax by the
-         * builder.
-         */
-        String[] enumerations = new String[entries.size()];
-        Iterator<ByteSequence> it = entries.iterator();
-        for (int i=0; i < entries.size(); i++)
-        {
-          enumerations[i] = it.next().toString();
-        }
-        SchemaBuilder builder = new SchemaBuilder(CoreSchema.getInstance()).addEnumerationSyntax(
-            oid, getDescription(), true, enumerations);
-        orderingMatchingRule = builder.toSchema().getMatchingRule(OMR_OID_GENERIC_ENUM + "." + oid);
-        try
-        {
-          DirectoryServer.registerMatchingRule(orderingMatchingRule, false);
-        }
-        catch(DirectoryException de)
-        {
-          logger.error(de.getMessageObject());
-        }
-      }
-      return orderingMatchingRule;
-    }
-
-    /**
-     * Retrieves the default substring matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default substring matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if substring
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getSubstringMatchingRule()
-    {
-      if(substringMatchingRule == null)
-      {
-        substringMatchingRule =
-                DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
-      }
-      return substringMatchingRule;
-    }
-
-    /**
-     * Retrieves the default approximate matching rule that will be used for
-     * attributes with this syntax.
-     *
-     * @return  The default approximate matching rule that will be used for
-     *          attributes with this syntax, or <CODE>null</CODE> if approximate
-     *          matches will not be allowed for this type by default.
-     */
-    @Override
-    public MatchingRule getApproximateMatchingRule()
-    {
-      if(approximateMatchingRule == null)
-      {
-        approximateMatchingRule =
-                DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
-      }
-      return approximateMatchingRule;
-    }
-
   }
 }

@@ -59,6 +59,17 @@ public interface ServerContext
   Schema getSchema();
 
   /**
+   * Returns the new schema of the server (SDK schema).
+   * <p>
+   * This method will disappear once migration to new schema
+   * is finished. Meanwhile, it is necessary to keep both the
+   * legacy version and the new version.
+   *
+   * @return the new version of the schema
+   */
+  org.forgerock.opendj.ldap.schema.Schema getSchemaNG();
+
+  /**
    * Returns the schema updater, which provides
    * a mean to update the server's current schema.
    *

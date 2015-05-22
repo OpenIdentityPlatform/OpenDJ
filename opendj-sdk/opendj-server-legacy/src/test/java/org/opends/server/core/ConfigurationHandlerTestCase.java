@@ -61,8 +61,8 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
       throws InitializationException
   {
     final ServerContext context = aServerContext().
-        setSchemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
-        setConfigFile(TestCaseUtils.getTestResource("config-small.ldif")).
+        schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
+        configFile(TestCaseUtils.getTestResource("config-small.ldif")).
         build();
 
     final ConfigurationHandler configHandler = new ConfigurationHandler(context);

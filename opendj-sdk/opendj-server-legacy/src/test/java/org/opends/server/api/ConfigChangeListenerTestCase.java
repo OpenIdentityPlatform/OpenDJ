@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.ArrayList;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

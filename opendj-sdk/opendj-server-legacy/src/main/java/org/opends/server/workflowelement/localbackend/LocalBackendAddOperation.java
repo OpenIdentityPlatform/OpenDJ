@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -989,7 +989,7 @@ public class LocalBackendAddOperation
     {
       for (Attribute a : attrList)
       {
-        AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
+        Syntax syntax = a.getAttributeType().getSyntax();
         if (syntax != null)
         {
           for (ByteString v : a)

@@ -29,7 +29,10 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,6 +40,7 @@ import org.testng.annotations.Test;
 /**
  * Test the BitStringSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class BitStringSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -67,8 +71,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
   @Test(dataProvider= "acceptableValues")
   public void testAcceptableValues(String value, Boolean result) throws Exception
   {
-    BitStringSyntax syntax = new BitStringSyntax();
-    syntax.initializeSyntax(null);
+    Syntax syntax = new BitStringSyntax().getSDKSyntax(CoreSchema.getInstance());
 
     ByteString byteStringValue = ByteString.valueOf(value);
 
@@ -80,14 +83,5 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
       fail(syntax + ".valueIsAcceptable gave bad result for " + value +
           "reason : " + reason);
 
-    // call the getters
-    syntax.getApproximateMatchingRule();
-    syntax.getDescription();
-
-    syntax.getOID();
-    syntax.getOrderingMatchingRule();
-    syntax.getSubstringMatchingRule();
-    syntax.getName();
-    syntax.toString();
   }
 }

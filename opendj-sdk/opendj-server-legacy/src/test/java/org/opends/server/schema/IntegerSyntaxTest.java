@@ -26,11 +26,13 @@
 package org.opends.server.schema;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 
 /**
  * Test the IA5StringSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
 public class IntegerSyntaxTest extends AttributeSyntaxTest
 {
 

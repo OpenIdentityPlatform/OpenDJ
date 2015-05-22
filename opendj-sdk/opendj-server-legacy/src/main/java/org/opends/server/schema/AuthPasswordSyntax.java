@@ -25,23 +25,17 @@
  *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-
-
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteSequence;
-
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.types.DirectoryException;
 
 
 /**
@@ -52,11 +46,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class AuthPasswordSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -71,16 +60,9 @@ public class AuthPasswordSyntax
 
   /** {@inheritDoc} */
   @Override
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException
+  public Syntax getSDKSyntax(Schema schema)
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-          EMR_AUTH_PASSWORD_EXACT_NAME, SYNTAX_AUTH_PASSWORD_NAME);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_AUTH_PASSWORD_OID);
   }
 
   /**
@@ -114,93 +96,6 @@ public class AuthPasswordSyntax
   public String getDescription()
   {
     return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
-  }
-
-  /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-  /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public MatchingRule getOrderingMatchingRule()
-  {
-    // There is no ordering matching rule by default.
-    return null;
-  }
-
-  /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public MatchingRule getSubstringMatchingRule()
-  {
-    // There is no substring matching rule by default.
-    return null;
-  }
-
-  /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public MatchingRule getApproximateMatchingRule()
-  {
-    // There is no approximate matching rule by default.
-    return null;
-  }
-
-  /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
-   */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    try
-    {
-      decodeAuthPassword(value.toString());
-      return true;
-    }
-    catch (DirectoryException de)
-    {
-      invalidReason.append(de.getMessageObject());
-      return false;
-    }
   }
 
   /**
@@ -472,19 +367,6 @@ readAuthInfo:
     {
       return false;
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }
 

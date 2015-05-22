@@ -21,10 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 
 /**
@@ -40,12 +41,11 @@ public interface SchemaUpdater
   SchemaBuilder getSchemaBuilder();
 
   /**
-   * Update the current schema with the schema built from the
-   * provided schema builder.
+   * Replaces the current schema by the provided schema.
    *
-   * @param schemaBuilder
-   *          Builder representing the updated schema.
-   * @return {@code true} if the update succeeded, false otherwise
+   * @param schema
+   *          the new schema
+   * @return {@code true} if the replacement succeeds, false otherwise
    */
-  boolean updateSchema(SchemaBuilder schemaBuilder);
+  boolean updateSchema(Schema schema);
 }

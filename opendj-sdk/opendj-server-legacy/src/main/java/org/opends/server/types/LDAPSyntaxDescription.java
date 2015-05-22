@@ -26,15 +26,15 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.util.Reject.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.server.util.ServerConstants.*;
+import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -65,7 +65,7 @@ public final class LDAPSyntaxDescription
   private final String oid;
 
   /** The LDAPSyntaxDescritpionSyntax associated with this ldap syntax. */
-  private LDAPSyntaxDescriptionSyntax descriptionSyntax;
+  private Syntax syntax;
 
 
 
@@ -76,23 +76,18 @@ public final class LDAPSyntaxDescription
    * @param  definition          The definition string used to create
    *                             this ldap syntax.  It must not be
    *                             {@code null}.
-   * @param descriptionSyntax    The ldap syntax description syntax
+   * @param syntax    The ldap syntax description syntax
    *                            associated with this ldap syntax.
-   * @param  description         The description for this ldap
-   *                                        syntax.
    * @param  extraProperties     A set of extra properties for this
    *                             ldap syntax description.
    */
-  public LDAPSyntaxDescription(String definition,
-                  LDAPSyntaxDescriptionSyntax descriptionSyntax,
-                  String description,
-                  Map<String,List<String>> extraProperties)
+  public LDAPSyntaxDescription(String definition, Syntax syntax, Map<String,List<String>> extraProperties)
   {
-    ifNull(definition,descriptionSyntax);
+    ifNull(definition, syntax);
 
-    this.descriptionSyntax = descriptionSyntax;
-    this.oid = descriptionSyntax.getOID();
-    this.description     = description;
+    this.syntax = syntax;
+    this.oid = syntax.getOID();
+    this.description = syntax.getDescription();
 
     int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
     if (schemaFilePos > 0)
@@ -101,8 +96,7 @@ public final class LDAPSyntaxDescription
       try
       {
         int firstQuotePos = definition.indexOf('\'', schemaFilePos);
-        int secondQuotePos = definition.indexOf('\'',
-                                                firstQuotePos+1);
+        int secondQuotePos = definition.indexOf('\'', firstQuotePos+1);
 
         defStr = definition.substring(0, schemaFilePos).trim() + " "
                  + definition.substring(secondQuotePos+1).trim();
@@ -119,16 +113,13 @@ public final class LDAPSyntaxDescription
       this.definition = definition;
     }
 
-
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<String,List<String>>(0);
     }
     else
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<String,List<String>>(extraProperties);
     }
   }
 
@@ -140,9 +131,9 @@ public final class LDAPSyntaxDescription
    *
    * @return  The description syntax for this definition.
    */
-  public LDAPSyntaxDescriptionSyntax getLdapSyntaxDescriptionSyntax()
+  public Syntax getSyntax()
   {
-    return descriptionSyntax;
+    return syntax;
   }
 
 
@@ -158,7 +149,15 @@ public final class LDAPSyntaxDescription
     return description;
   }
 
-
+  /**
+   * Returns the oid.
+   *
+   * @return the oid
+   */
+  public String getOID()
+  {
+    return oid;
+  }
 
 
     /**

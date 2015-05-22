@@ -29,11 +29,17 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaOptions;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@RemoveOnceSDKSchemaIsUsed
 public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
 {
   /**
@@ -62,7 +68,10 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
-    AttributeSyntax syntax = getRule();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
+    schemaBuilder.setOption(SchemaOptions.ALLOW_MALFORMED_CERTIFICATES, false);
+    Schema schema = schemaBuilder.toSchema();
+    Syntax syntax = getRule().getSDKSyntax(schema);
 
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
 

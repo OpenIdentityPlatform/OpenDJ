@@ -22,18 +22,24 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaOptions;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@RemoveOnceSDKSchemaIsUsed
 public abstract class AttributeSyntaxTest extends SchemaTestCase
 {
   /**
@@ -52,7 +58,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
    *
    * @return An instance of the attribute syntax that must be tested.
    */
-  protected abstract AttributeSyntax getRule();
+  protected abstract AttributeSyntax<?> getRule();
 
   /**
    * Test the normalization and the approximate comparison.
@@ -62,7 +68,11 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
-    AttributeSyntax syntax = getRule();
+
+    SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
+    schemaBuilder.setOption(SchemaOptions.STRICT_FORMAT_FOR_COUNTRY_STRINGS, true);
+    Schema schema = schemaBuilder.toSchema();
+    Syntax syntax = getRule().getSDKSyntax(schema);
 
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
@@ -73,14 +83,5 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
       fail(syntax + ".valueIsAcceptable gave bad result for " + value +
           "reason : " + reason);
 
-    // call the getters
-    syntax.getApproximateMatchingRule();
-    syntax.getDescription();
-    syntax.getEqualityMatchingRule();
-    syntax.getOID();
-    syntax.getOrderingMatchingRule();
-    syntax.getSubstringMatchingRule();
-    syntax.getName();
-    syntax.toString();
   }
 }

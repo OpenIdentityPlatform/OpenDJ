@@ -122,7 +122,7 @@ public class TaskBackend
    */
   private TaskScheduler taskScheduler;
 
-
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -143,6 +143,7 @@ public class TaskBackend
   public void configureBackend(TaskBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(cfg);
+    this.serverContext = serverContext;
 
     final DN[] baseDNs = new DN[cfg.getBaseDN().size()];
     cfg.getBaseDN().toArray(baseDNs);
@@ -238,7 +239,7 @@ public class TaskBackend
          throws ConfigException, InitializationException
   {
     // Create the scheduler and initialize it from the backing file.
-    taskScheduler = new TaskScheduler(this);
+    taskScheduler = new TaskScheduler(serverContext, this);
     taskScheduler.start();
 
 

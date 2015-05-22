@@ -26,25 +26,14 @@
  */
 package org.opends.server.schema;
 
-import static org.testng.Assert.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
-import java.util.ArrayList;
-
 import org.opends.server.TestCaseUtils;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.TelephoneNumberAttributeSyntaxCfgDefn;
-import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
+@RemoveOnceSDKSchemaIsUsed
 public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 {
   /**
@@ -101,43 +90,4 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
     };
   }
 
-  /**
-   * Test the hasAcceptableConfiguration, applyNewConfiguration and
-   * valueIsAcceptable methods.
-   */
-  @Test(dataProvider= "acceptableValues")
-  public void testAcceptableValues(ConfigEntry config, String oid, String value,
-      Boolean result) throws Exception
-  {
-    TelephoneNumberAttributeSyntaxCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              TelephoneNumberAttributeSyntaxCfgDefn.getInstance(),
-              config.getEntry());
-
-    TelephoneNumberSyntax syntax =
-         (TelephoneNumberSyntax) DirectoryServer.getSchema().getSyntax(oid, false);
-
-    // apply the configuration.
-    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-    assertTrue(syntax.isConfigurationChangeAcceptable(configuration,
-                                                      unacceptableReasons));
-    ConfigChangeResult configResult =
-         syntax.applyConfigurationChange(configuration);
-    assertEquals(configResult.getResultCode(), ResultCode.SUCCESS);
-
-    // check the syntax of the given value.
-    Boolean liveResult = syntax.valueIsAcceptable(
-        ByteString.valueOf(value), new LocalizableMessageBuilder());
-    assertEquals(result, liveResult);
-
-    // call the getters to increase code coverage...
-    syntax.getApproximateMatchingRule();
-    syntax.getDescription();
-    syntax.getEqualityMatchingRule();
-    syntax.getOID();
-    syntax.getOrderingMatchingRule();
-    syntax.getSubstringMatchingRule();
-    syntax.getName();
-    syntax.toString();
-  }
 }

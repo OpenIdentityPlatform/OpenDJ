@@ -49,7 +49,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
- * This Test Class tests various collation matching rules.
+ * Integration tests for collation matching rules.
  */
 @SuppressWarnings("javadoc")
 public final class CollationMatchingRuleTest

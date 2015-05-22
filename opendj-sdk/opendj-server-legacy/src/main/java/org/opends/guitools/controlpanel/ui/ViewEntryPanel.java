@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
@@ -517,7 +517,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
           Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase());
       if (attr != null)
       {
-        AttributeSyntax<?> syntax = attr.getSyntax();
+        Syntax syntax = attr.getSyntax();
         if (syntax != null)
         {
           isCertificate = syntax.getOID().equals(

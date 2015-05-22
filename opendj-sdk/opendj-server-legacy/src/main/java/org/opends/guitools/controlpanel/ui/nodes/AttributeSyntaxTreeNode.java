@@ -22,11 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
+
 
 /**
  * Class of the nodes that represent an attribute syntax in the 'Manage Schema'
@@ -36,14 +38,14 @@ import org.opends.server.api.AttributeSyntax;
 public class AttributeSyntaxTreeNode extends SchemaElementTreeNode
 {
   private static final long serialVersionUID = 2439971368723239776L;
-  private AttributeSyntax<?> syntax;
+  private Syntax syntax;
 
   /**
    * Constructor of the node.
    * @param name the name of the node.
    * @param syntax the attribute syntax.
    */
-  public AttributeSyntaxTreeNode(String name, AttributeSyntax<?> syntax)
+  public AttributeSyntaxTreeNode(String name, Syntax syntax)
   {
     super(name, syntax);
     this.syntax = syntax;
@@ -53,7 +55,7 @@ public class AttributeSyntaxTreeNode extends SchemaElementTreeNode
    * Returns the attribute syntax represented by this node.
    * @return the attribute syntax represented by this node.
    */
-  public AttributeSyntax<?> getAttributeSyntax()
+  public Syntax getAttributeSyntax()
   {
     return syntax;
   }

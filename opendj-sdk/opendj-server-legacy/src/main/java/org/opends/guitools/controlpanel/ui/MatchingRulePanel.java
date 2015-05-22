@@ -45,7 +45,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Schema;
 
@@ -206,9 +206,9 @@ public class MatchingRulePanel extends SchemaElementPanel
     titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     oid.setText(matchingRule.getOID());
-    AttributeSyntax<?> s = null;
+    Syntax s = null;
     String syntaxOID = matchingRule.getSyntax().getOID();
-    for (AttributeSyntax<?> candidate : schema.getSyntaxes().values())
+    for (Syntax candidate : schema.getSyntaxes().values())
     {
       if (candidate.getOID().equals(syntaxOID))
       {

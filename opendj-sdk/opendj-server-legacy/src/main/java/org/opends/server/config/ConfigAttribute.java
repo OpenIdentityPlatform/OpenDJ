@@ -36,7 +36,7 @@ import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -274,7 +274,7 @@ public abstract class ConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public abstract AttributeSyntax<?> getSyntax();
+  public abstract Syntax getSyntax();
 
 
 

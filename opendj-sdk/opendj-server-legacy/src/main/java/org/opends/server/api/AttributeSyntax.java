@@ -31,10 +31,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
@@ -50,6 +54,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
+@RemoveOnceSDKSchemaIsUsed("All descendants classes can be removed as well")
 public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 {
   /**
@@ -58,6 +63,8 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @param  configuration  The configuration to use to initialize
    *                        this attribute syntax.
+   * @param serverContext
+   *            The server context.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -68,10 +75,25 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeSyntax(T configuration)
-         throws ConfigException, InitializationException;
+  public void initializeSyntax(T configuration, ServerContext serverContext)
+         throws ConfigException, InitializationException
+  {
+    // not implemented
+  }
 
-
+  /**
+   * Returns the SDK Syntax equivalent to this syntax.
+   * <p>
+   * This method allow smooth migration to SDK syntax. It will disappear
+   * once the the migration to SDK schema is complete, together with
+   * this class and all its implementation.
+   *
+   * @param schema
+   *            Schema to use to retrieve the syntax
+   *
+   * @return the equivalent SDK syntax.
+   */
+  public abstract Syntax getSDKSyntax(Schema schema);
 
   /**
    * Indicates whether the provided configuration is acceptable for
@@ -151,7 +173,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          attributes with this syntax, or {@code null} if equality
    *          matches will not be allowed for this type by default.
    */
-  public abstract MatchingRule getEqualityMatchingRule();
+  public MatchingRule getEqualityMatchingRule()
+  {
+    return null;
+  }
 
 
 
@@ -163,8 +188,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          attributes with this syntax, or {@code null} if ordering
    *          matches will not be allowed for this type by default.
    */
-  public abstract MatchingRule getOrderingMatchingRule();
-
+  public MatchingRule getOrderingMatchingRule()
+  {
+    return null;
+  }
 
 
   /**
@@ -176,8 +203,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          substring matches will not be allowed for this type by
    *          default.
    */
-  public abstract MatchingRule getSubstringMatchingRule();
-
+  public MatchingRule getSubstringMatchingRule()
+  {
+    return null;
+  }
 
 
   /**
@@ -189,7 +218,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          approximate matches will not be allowed for this type by
    *          default.
    */
-  public abstract MatchingRule getApproximateMatchingRule();
+  public MatchingRule getApproximateMatchingRule()
+  {
+    return null;
+  }
 
 
 
@@ -206,8 +238,11 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  {@code true} if the provided value is acceptable for use
    *          with this syntax, or {@code false} if not.
    */
-  public abstract boolean valueIsAcceptable(ByteSequence value,
-                               LocalizableMessageBuilder invalidReason);
+  public boolean valueIsAcceptable(ByteSequence value,
+                               LocalizableMessageBuilder invalidReason)
+  {
+    return true;
+  }
 
 
 
@@ -216,7 +251,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return {@code true} if this syntax required BER encoding.
    */
-  public abstract boolean isBEREncodingRequired();
+  public boolean isBEREncodingRequired()
+  {
+    return true;
+  }
 
 
 
@@ -225,8 +263,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return {@code true} if this syntax is human readable.
    */
-  public abstract boolean isHumanReadable();
-
+  public boolean isHumanReadable()
+  {
+    return true;
+  }
 
 
   /**
@@ -235,6 +275,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return  The hash code for this attribute syntax.
    */
+  @Override
   public final int hashCode()
   {
     int hashCode = 0;
@@ -262,6 +303,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  {@code true} if the provided object is equal to this
    *          attribute syntax, or {@code false} if it is not.
    */
+  @Override
   public final boolean equals(Object o)
   {
     if (this == o)
@@ -284,6 +326,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  A string representation of this attribute syntax in the
    *          format defined in RFC 2252.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

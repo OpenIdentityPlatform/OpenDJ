@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
@@ -406,7 +406,7 @@ public final class DirectoryConfig
    * @return  The set of attribute syntaxes defined in the Directory
    *          Server.
    */
-  public static Map<String,AttributeSyntax<?>>
+  public static Map<String,Syntax>
        getAttributeSyntaxes()
   {
     return DirectoryServer.getAttributeSyntaxes();
@@ -419,7 +419,7 @@ public final class DirectoryConfig
    * @return  The default attribute syntax that should be used for
    *          attributes that are not defined in the server schema.
    */
-  public static AttributeSyntax getDefaultAttributeSyntax()
+  public static Syntax getDefaultAttributeSyntax()
   {
     return DirectoryServer.getDefaultAttributeSyntax();
   }
@@ -435,7 +435,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store binary values.
    */
-  public static AttributeSyntax getDefaultBinarySyntax()
+  public static Syntax getDefaultBinarySyntax()
   {
     return DirectoryServer.getDefaultBinarySyntax();
   }
@@ -451,7 +451,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store Boolean values.
    */
-  public static AttributeSyntax getDefaultBooleanSyntax()
+  public static Syntax getDefaultBooleanSyntax()
   {
     return DirectoryServer.getDefaultBooleanSyntax();
   }
@@ -467,7 +467,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store DN values.
    */
-  public static AttributeSyntax getDefaultDNSyntax()
+  public static Syntax getDefaultDNSyntax()
   {
     return DirectoryServer.getDefaultDNSyntax();
   }
@@ -483,7 +483,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store integer values.
    */
-  public static AttributeSyntax getDefaultIntegerSyntax()
+  public static Syntax getDefaultIntegerSyntax()
   {
     return DirectoryServer.getDefaultIntegerSyntax();
   }
@@ -499,7 +499,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store string values.
    */
-  public static AttributeSyntax getDefaultStringSyntax()
+  public static Syntax getDefaultStringSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }

@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.config.ConfigConstants;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -69,8 +69,7 @@ public class SchemaLoader
       new ArrayList<AttributeType>();
   private final ArrayList<MatchingRule> matchingRulesToKeep =
       new ArrayList<MatchingRule>();
-  private final ArrayList<AttributeSyntax<?>> syntaxesToKeep =
-      new ArrayList<AttributeSyntax<?>>();
+  private final ArrayList<Syntax> syntaxesToKeep = new ArrayList<>();
 
   /**
    * Constructor.
@@ -147,6 +146,7 @@ public class SchemaLoader
       FileFilter ldifFiles = new FileFilter()
       {
         /** {@inheritDoc} */
+        @Override
         public boolean accept(File f)
         {
           boolean accept = false;
@@ -202,7 +202,8 @@ public class SchemaLoader
     //  initialize the server schema.
     for (String schemaFile : fileNames)
     {
-      SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+      // no server context to pass
+      SchemaConfigManager.loadSchemaFile(null, schema, schemaFile);
     }
   }
 
@@ -221,7 +222,7 @@ public class SchemaLoader
     {
       schema.registerMatchingRule(mr, true);
     }
-    for (AttributeSyntax<?> syntax : syntaxesToKeep)
+    for (Syntax syntax : syntaxesToKeep)
     {
       schema.registerSyntax(syntax, true);
     }

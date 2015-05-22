@@ -109,7 +109,7 @@ public class TestDN extends TypesTestCase {
         { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
             "ou=%E5%96%B6%E6%A5%AD%E9%83%A8,o=airius",
             "ou=\u55b6\u696d\u90e8,o=Airius" },
-        { "photo=\\ john \\ ,dc=com", "photo=%20%6A%6F%68%6E%20%20,dc=com",
+        { "photo=\\ john \\ ,dc=com", "photo=%20john%20%20,dc=com",
             "photo=\\ john \\ ,dc=com" },
         { "AB-global=", "ab-global=", "AB-global=" },
         { "OU= Sales + CN = J. Smith ,DC=example,DC=net",

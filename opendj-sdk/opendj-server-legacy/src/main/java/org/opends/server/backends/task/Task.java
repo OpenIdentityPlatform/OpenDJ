@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.EMailMessage;
@@ -137,6 +138,18 @@ public abstract class Task
   /** The scheduler with which this task is associated. */
   private TaskScheduler taskScheduler;
 
+  private ServerContext serverContext;
+
+  /**
+   * Returns the server context.
+   *
+   * @return the server context.
+   */
+  protected ServerContext getServerContext()
+  {
+    return serverContext;
+  }
+
   /**
    * Gets a message that identifies this type of task suitable for
    * presentation to humans in monitoring tools.
@@ -170,16 +183,19 @@ public abstract class Task
    * Performs generic initialization for this task based on the information in
    * the provided task entry.
    *
+   * @param serverContext
+   *            The server context.
    * @param  taskScheduler  The scheduler with which this task is associated.
    * @param  taskEntry      The entry containing the task configuration.
    *
    * @throws  InitializationException  If a problem occurs while performing the
    *                                   initialization.
    */
-  public final void initializeTaskInternal(TaskScheduler taskScheduler,
+  public final void initializeTaskInternal(ServerContext serverContext, TaskScheduler taskScheduler,
                                            Entry taskEntry)
          throws InitializationException
   {
+    this.serverContext = serverContext;
     this.taskScheduler = taskScheduler;
     this.taskEntry     = taskEntry;
     this.taskEntryDN   = taskEntry.getName();

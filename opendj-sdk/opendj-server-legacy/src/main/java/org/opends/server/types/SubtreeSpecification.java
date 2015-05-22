@@ -50,7 +50,7 @@ import static org.opends.messages.SchemaMessages.*;
  * </pre>
  *
  * @see <a href="http://tools.ietf.org/html/rfc3672">RFC 3672 -
- *      Subentries inthe Lightweight Directory Access Protocol (LDAP)
+ *      Subentries in the Lightweight Directory Access Protocol (LDAP)
  *      </a>
  */
 @org.opends.server.types.PublicAPI(

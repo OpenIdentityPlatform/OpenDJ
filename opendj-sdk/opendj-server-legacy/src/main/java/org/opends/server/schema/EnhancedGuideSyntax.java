@@ -26,19 +26,12 @@
  */
 package org.opends.server.schema;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.ByteSequence;
-
-
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
 
 /**
  * This class implements the enhanced guide attribute syntax, which may be used
@@ -48,17 +41,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class EnhancedGuideSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The default equality matching rule for this syntax. */
-  private MatchingRule defaultEqualityMatchingRule;
-
-  /** The default ordering matching rule for this syntax. */
-  private MatchingRule defaultOrderingMatchingRule;
-
-  /** The default substring matching rule for this syntax. */
-  private MatchingRule defaultSubstringMatchingRule;
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -72,32 +54,10 @@ public class EnhancedGuideSyntax
   }
 
   /** {@inheritDoc} */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException
+  @Override
+  public Syntax getSDKSyntax(Schema schema)
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_OCTET_STRING_OID);
-    if (defaultEqualityMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-          EMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
-    }
-
-    defaultOrderingMatchingRule =
-         DirectoryServer.getMatchingRule(OMR_OCTET_STRING_OID);
-    if (defaultOrderingMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-          OMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
-    }
-
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_OCTET_STRING_OID);
-    if (defaultSubstringMatchingRule == null)
-    {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-          SMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
-    }
+    return schema.getSyntax(SchemaConstants.SYNTAX_ENHANCED_GUIDE_OID);
   }
 
   /**
@@ -105,6 +65,7 @@ public class EnhancedGuideSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_ENHANCED_GUIDE_NAME;
@@ -115,6 +76,7 @@ public class EnhancedGuideSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_ENHANCED_GUIDE_OID;
@@ -125,164 +87,10 @@ public class EnhancedGuideSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_ENHANCED_GUIDE_DESCRIPTION;
-  }
-
-  /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getEqualityMatchingRule()
-  {
-    return defaultEqualityMatchingRule;
-  }
-
-  /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getOrderingMatchingRule()
-  {
-    return defaultOrderingMatchingRule;
-  }
-
-  /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getSubstringMatchingRule()
-  {
-    return defaultSubstringMatchingRule;
-  }
-
-  /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
-   */
-  public MatchingRule getApproximateMatchingRule()
-  {
-    // There is no approximate matching rule by default.
-    return null;
-  }
-
-  /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
-   */
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
-  {
-    // Get a lowercase string version of the provided value.
-    String valueStr = toLowerCase(value.toString());
-
-
-    // Find the position of the first octothorpe.  It should denote the end of
-    // the objectclass.
-    int sharpPos = valueStr.indexOf('#');
-    if (sharpPos < 0)
-    {
-      invalidReason.append(
-              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP.get(valueStr));
-      return false;
-    }
-
-
-    // Get the objectclass and see if it is a valid name or OID.
-    String ocName   = valueStr.substring(0, sharpPos).trim();
-    int    ocLength = ocName.length();
-    if (ocLength == 0)
-    {
-      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC.get(valueStr));
-      return false;
-    }
-
-    if (! isValidSchemaElement(ocName, 0, ocLength, invalidReason))
-    {
-      return false;
-    }
-
-
-    // Find the last octothorpe and make sure it is followed by a valid scope.
-    int lastSharpPos = valueStr.lastIndexOf('#');
-    if (lastSharpPos == sharpPos)
-    {
-      invalidReason.append(
-              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP.get(valueStr));
-      return false;
-    }
-
-    String scopeStr = valueStr.substring(lastSharpPos+1).trim();
-    if (!scopeStr.equals("baseobject")
-        && !scopeStr.equals("onelevel")
-        && !scopeStr.equals("wholesubtree")
-        && !scopeStr.equals("subordinatesubtree"))
-    {
-      if (scopeStr.length() == 0)
-      {
-        invalidReason.append(
-                ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
-      }
-      else
-      {
-        invalidReason.append(
-                ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(
-                        valueStr, scopeStr));
-      }
-
-      return false;
-    }
-
-
-    // Everything between the two octothorpes must be the criteria.  Make sure
-    // it is valid.
-    String criteria       = valueStr.substring(sharpPos+1, lastSharpPos).trim();
-    int    criteriaLength = criteria.length();
-    if (criteriaLength == 0)
-    {
-      invalidReason.append(
-              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA.get(valueStr));
-      return false;
-    }
-
-    return GuideSyntax.criteriaIsValid(criteria, valueStr, invalidReason);
-  }
-
-  /** {@inheritDoc} */
-  public boolean isBEREncodingRequired()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  public boolean isHumanReadable()
-  {
-    return true;
   }
 }
 

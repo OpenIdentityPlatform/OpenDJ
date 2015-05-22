@@ -26,19 +26,26 @@
  */
 package org.opends.server.schema;
 
+import org.opends.server.ServerContextBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.DN;
 import org.opends.server.util.Base64;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 /**
  * Test the CertificateSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
+@Test
 public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 {
 
@@ -49,11 +56,13 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
     CertificateSyntax syntax = new CertificateSyntax();
     CertificateAttributeSyntaxCfg cfg = new CertificateAttributeSyntaxCfg()
     {
+      @Override
       public DN dn()
       {
         return null;
       }
 
+      @Override
       public void removeChangeListener(
           ConfigurationChangeListener<AttributeSyntaxCfg> listener)
       {
@@ -62,6 +71,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public boolean isEnabled()
       {
         // Stub.
@@ -70,6 +80,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public void addChangeListener(
           ConfigurationChangeListener<AttributeSyntaxCfg> listener)
       {
@@ -78,6 +89,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public void removeCertificateChangeListener(
           ConfigurationChangeListener<CertificateAttributeSyntaxCfg> listener)
       {
@@ -86,6 +98,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public boolean isStrictFormat()
       {
         return true;
@@ -93,6 +106,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public String getJavaClass()
       {
         // Stub.
@@ -101,6 +115,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public Class<? extends CertificateAttributeSyntaxCfg> configurationClass()
       {
         // Stub.
@@ -109,6 +124,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
 
 
+      @Override
       public void addCertificateChangeListener(
           ConfigurationChangeListener<CertificateAttributeSyntaxCfg> listener)
       {
@@ -118,7 +134,11 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 
     try
     {
-      syntax.initializeSyntax(cfg);
+      Schema schema = Schema.getCoreSchema();
+      ServerContext serverContext = ServerContextBuilder.aServerContext()
+          .schemaNG(schema)
+          .schemaUpdater(new ServerContextBuilder.MockSchemaUpdater(schema)).build();
+      syntax.initializeSyntax(cfg, serverContext);
     }
     catch (ConfigException e)
     {

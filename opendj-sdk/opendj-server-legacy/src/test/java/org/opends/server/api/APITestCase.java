@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.api;
-
-
 
 import org.testng.annotations.Test;
 

@@ -65,7 +65,7 @@ import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
@@ -173,7 +173,7 @@ public class NewAttributePanel extends StatusGenericPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<AttributeSyntax<?>> newSyntaxes = new ArrayList<>();
+    ArrayList<Syntax> newSyntaxes = new ArrayList<>();
 
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
@@ -203,10 +203,11 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       schema = s;
 
-      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<>();
+      HashMap<String, Syntax> syntaxNameMap = new HashMap<>();
+
       for (String key : schema.getSyntaxes().keySet())
       {
-        AttributeSyntax<?> syntax = schema.getSyntax(key);
+        Syntax syntax = schema.getSyntax(key);
         String name = syntax.getName();
         if (name == null)
         {
@@ -316,8 +317,7 @@ public class NewAttributePanel extends StatusGenericPanel
         {
           for (int i=0; i<syntax.getModel().getSize(); i++)
           {
-            AttributeSyntax<?> syn =
-              (AttributeSyntax<?>)syntax.getModel().getElementAt(i);
+            Syntax syn = (Syntax)syntax.getModel().getElementAt(i);
             if ("DirectoryString".equals(syn.getName()))
             {
               syntax.setSelectedIndex(i);
@@ -508,7 +508,7 @@ public class NewAttributePanel extends StatusGenericPanel
       return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
     }
 
-    for (AttributeSyntax<?> attr : schema.getSyntaxes().values())
+    for (Syntax attr : schema.getSyntaxes().values())
     {
       if (name.equalsIgnoreCase(attr.getName()))
       {
@@ -675,7 +675,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private void updateDefaultMatchingRuleNames()
   {
-    AttributeSyntax<?> syn = (AttributeSyntax<?>)syntax.getSelectedItem();
+    Syntax syn = (Syntax)syntax.getSelectedItem();
     if (syn != null)
     {
       MatchingRule[] rules = {syn.getApproximateMatchingRule(),
@@ -810,7 +810,7 @@ public class NewAttributePanel extends StatusGenericPanel
         getOID(),
         getDescription(),
         getSuperior(),
-        (AttributeSyntax<?>)syntax.getSelectedItem(),
+        (Syntax)syntax.getSelectedItem(),
         getApproximateMatchingRule(),
         getEqualityMatchingRule(),
         getOrderingMatchingRule(),

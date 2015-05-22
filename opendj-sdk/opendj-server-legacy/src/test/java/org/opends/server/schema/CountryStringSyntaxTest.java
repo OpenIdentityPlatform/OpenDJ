@@ -27,18 +27,24 @@
  */
 package org.opends.server.schema;
 
+import org.opends.server.ServerContextBuilder;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.DN;
-
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the CountryStringSyntax.
  */
+@RemoveOnceSDKSchemaIsUsed
+@Test
 public class CountryStringSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -49,6 +55,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
     CountryStringSyntax syntax = new CountryStringSyntax();
     CountryStringAttributeSyntaxCfg cfg = new CountryStringAttributeSyntaxCfg()
     {
+      @Override
       public DN dn()
       {
         return null;
@@ -56,6 +63,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public void removeChangeListener(ConfigurationChangeListener<AttributeSyntaxCfg> listener)
       {
         // Stub.
@@ -63,6 +71,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public boolean isEnabled()
       {
         // Stub.
@@ -71,6 +80,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public void addChangeListener(
           ConfigurationChangeListener<AttributeSyntaxCfg> listener)
       {
@@ -79,6 +89,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public void removeCountryStringChangeListener(
           ConfigurationChangeListener<CountryStringAttributeSyntaxCfg> listener)
       {
@@ -87,6 +98,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public boolean isStrictFormat()
       {
         return true;
@@ -94,6 +106,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public String getJavaClass()
       {
         // Stub.
@@ -102,6 +115,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public Class<? extends CountryStringAttributeSyntaxCfg> configurationClass()
       {
         // Stub.
@@ -110,6 +124,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
 
 
+      @Override
       public void addCountryStringChangeListener(
           ConfigurationChangeListener<CountryStringAttributeSyntaxCfg> listener)
       {
@@ -119,7 +134,11 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
 
     try
     {
-      syntax.initializeSyntax(cfg);
+      Schema schema = Schema.getCoreSchema();
+      ServerContext serverContext = ServerContextBuilder.aServerContext()
+        .schemaNG(schema)
+        .schemaUpdater(new ServerContextBuilder.MockSchemaUpdater(schema)).build();
+      syntax.initializeSyntax(cfg, serverContext);
     }
     catch (ConfigException e)
     {
