@@ -41,8 +41,7 @@
   If you are building a Java-based Lightweight Directory Access Protocol (LDAP)
   client application, refer to the
   <link
-   xlink:href="dev-guide#dev-guide"
-   xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="${coreDocBase}dev-guide/"
    xlink:show="new"
   ><citetitle>LDAP SDK Developer's Guide</citetitle></link> instead.
  </para>
