@@ -558,7 +558,7 @@ public class DBTest
 
   private int listRootContainers()
   {
-    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    final Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends(null);
     int count = 0;
 
     // Create a table of their properties.
@@ -588,7 +588,6 @@ public class DBTest
     BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
-      printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
@@ -665,7 +664,6 @@ public class DBTest
     BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
-      printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
@@ -815,15 +813,28 @@ public class DBTest
 
   private BackendImpl getBackendById(Argument backendId)
   {
-    Collection<BackendImpl> backends = getJEBackends().values();
-    String backendID = backendId.getValue();
-    for (BackendImpl b : backends)
+    final String backendID = backendId.getValue();
+    final List<Backend<?>> otherBackends = new ArrayList<>();
+    final Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends(otherBackends);
+
+    for (BackendImpl b : jeBackends.values())
     {
       if (b.getBackendID().equalsIgnoreCase(backendID))
       {
         return b;
       }
     }
+
+    for (Backend<?> b : otherBackends)
+    {
+      if (b.getBackendID().equalsIgnoreCase(backendID))
+      {
+        printMessage(ERR_DBTEST_NOT_JE_BACKEND.get(backendID));
+        return null;
+      }
+    }
+
+    printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID));
     return null;
   }
 
@@ -832,7 +843,6 @@ public class DBTest
     BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
-      printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
@@ -1038,7 +1048,6 @@ public class DBTest
     BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
-      printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
@@ -1507,15 +1516,14 @@ public class DBTest
     }
   }
 
-  private Map<LocalDBBackendCfg, BackendImpl> getJEBackends()
+  private static Map<LocalDBBackendCfg, BackendImpl> getJEBackends(Collection<Backend<?>> otherBackends)
   {
-    ArrayList<Backend> backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    ArrayList<Backend> backendList = new ArrayList<>();
+    ArrayList<BackendCfg> entryList = new ArrayList<>();
+    ArrayList<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
-    LinkedHashMap<LocalDBBackendCfg, BackendImpl> jeBackends =
-        new LinkedHashMap<LocalDBBackendCfg, BackendImpl>();
+    final Map<LocalDBBackendCfg, BackendImpl> jeBackends = new LinkedHashMap<>();
     for(int i = 0; i < backendList.size(); i++)
     {
       Backend<?> backend = backendList.get(i);
@@ -1523,6 +1531,10 @@ public class DBTest
       {
         jeBackends.put((LocalDBBackendCfg)entryList.get(i),
                        (BackendImpl)backend);
+      }
+      else if (otherBackends != null)
+      {
+        otherBackends.add(backend);
       }
     }
     return jeBackends;
