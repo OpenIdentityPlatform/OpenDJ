@@ -56,12 +56,8 @@
 
     <para>
      The default lookthrough limit,
-     set by using the global server property,
-     <link
-      xlink:show="new"
-      xlink:href="${configRefBase}global.html#lookthrough-limit"
-     ><literal>lookthrough-limit</literal></link>,
-     is 5000.
+     which is set by using the global server property
+     <literal>lookthrough-limit</literal>, is 5000.
     </para>
 
     <para>
@@ -79,12 +75,8 @@
     </para>
 
     <para>
-     The default size limit, set by using the global server property,
-     <link
-      xlink:show="new"
-      xlink:href="${configRefBase}global.html#size-limit"
-     ><literal>size-limit</literal></link>,
-     is 1000.
+     The default size limit, which is set by using the global server property
+     <literal>size-limit</literal>, is 1000.
     </para>
 
     <para>
@@ -101,12 +93,8 @@
     </para>
 
     <para>
-     The default time limit, set by using the global server property,
-     <link
-      xlink:show="new"
-      xlink:href="${configRefBase}global.html#time-limit"
-     ><literal>time-limit</literal></link>,
-     is 1 minute.
+     The default time limit, which is set by using the global server property
+     <literal>time-limit</literal>, is 1 minute.
     </para>
 
     <para>
@@ -126,11 +114,8 @@
 
     <para>
      No default idle time limit is set.
-     You can set an idle time limit by using the global server property,
-     <link
-      xlink:show="new"
-      xlink:href="${configRefBase}global.html#idle-time-limit"
-     ><literal>idle-time-limit</literal></link>.
+     You can set an idle time limit by using the global server property
+     <literal>idle-time-limit</literal>.
     </para>
 
     <para>
@@ -145,11 +130,7 @@
    <listitem>
     <para>
      The maximum number of persistent searches can be set
-     by using the global server property,
-     <link
-      xlink:show="new"
-      xlink:href="${configRefBase}global.html#max-psearches"
-     ><literal>max-psearches</literal></link>.
+     by using the global server property <literal>max-psearches</literal>.
     </para>
    </listitem>
   </itemizedlist>

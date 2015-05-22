@@ -112,11 +112,15 @@ skip-validation-for-administrators        : false
 state-update-failure-policy               : reactive</computeroutput>
    </screen>
 
-   <para>See the <citetitle>OpenDJ Configuration Reference</citetitle> page
-   on <link xlink:show="new"
-   xlink:href="${configRefBase}password-policy.html"
-   ><citetitle>Password Policy</citetitle></link> for detailed descriptions of
-   each property.</para>
+   <para>
+    For detailed descriptions of each property,
+    see the <citetitle>Reference</citetitle> section on
+    <link
+     xlink:href="reference#dsconfig-create-password-policy-password-policy"
+     xlink:show="new"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><citetitle>Password Policy</citetitle></link>.
+   </para>
 
    <para>Here you notice that many capabilities are not set by default: no
    lockout, no password expiration, no multiple passwords, no password validator
@@ -856,8 +860,9 @@ Generated Password:  eak77qdi</computeroutput>
   <para>
    The default password policy shown in <xref linkend="default-pwp" /> uses the
    <link
+    xlink:href="reference#dsconfig-create-password-generator-random-password-generator"
+    xlink:role="http://docbook.org/xlink/role/olink"
     xlink:show="new"
-    xlink:href="${configRefBase}random-password-generator.html"
    >Random Password Generator</link>.
   </para>
 
@@ -945,8 +950,9 @@ Generated Password:  pld^06:)529HTq$'</computeroutput>
 
   <para>
    <link
+    xlink:href="reference#dsconfig-create-password-storage-scheme"
+    xlink:role="http://docbook.org/xlink/role/olink"
     xlink:show="new"
-    xlink:href="${configRefBase}password-storage-scheme.html"
    >Password storage schemes</link>
    encode new passwords provided by users
    so that they are stored in an encoded manner.
@@ -1112,8 +1118,9 @@ userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</computerou
 
   <para>
    <link
+    xlink:href="reference#dsconfig-create-password-validator"
+    xlink:role="http://docbook.org/xlink/role/olink"
     xlink:show="new"
-    xlink:href="${configRefBase}password-validator.html"
    >Password validators</link>
    are responsible for determining whether a proposed password is
    acceptable for use.
