@@ -972,7 +972,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       // once the new configuration framework migration will be done
       final RootCfgClient root = getRootConfigurationClient();
       final BackendCfgClient backend =
-          root.createBackend(getSelectedBackendType().getOldConfigFrameworkBackend(), backendName, null);
+          root.createBackend(getSelectedBackendType().getLegacyConfigurationFrameworkBackend(), backendName, null);
       backend.setEnabled(true);
       backend.setBaseDN(Collections.singleton(DN.valueOf(newBaseDN)));
       backend.setBackendId(backendName);
