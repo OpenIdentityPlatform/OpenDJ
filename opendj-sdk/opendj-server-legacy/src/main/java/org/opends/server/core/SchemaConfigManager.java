@@ -674,11 +674,14 @@ public class SchemaConfigManager
   private static void registerLdapSyntaxInSchemaNG(ServerContext serverContext, LDAPSyntaxDescription syntaxDescription,
       boolean overwrite)
   {
-    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-    Syntax.Builder builder = schemaUpdater.getSchemaBuilder()
-        .buildSyntax(syntaxDescription.getSyntax());
-    SchemaBuilder schemaBuilder = overwrite ? builder.addToSchemaOverwrite() : builder.addToSchema();
-    schemaUpdater.updateSchema(schemaBuilder.toSchema());
+     // The server context may be null when this code is reached through non-server code (e.g. gui tools)
+     if (serverContext != null)
+     {
+        SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+        Syntax.Builder builder = schemaUpdater.getSchemaBuilder().buildSyntax(syntaxDescription.getSyntax());
+        SchemaBuilder schemaBuilder = overwrite ? builder.addToSchemaOverwrite() : builder.addToSchema();
+        schemaUpdater.updateSchema(schemaBuilder.toSchema());
+     }
   }
 
   /** Parse the attribute type definitions if there are any. */
