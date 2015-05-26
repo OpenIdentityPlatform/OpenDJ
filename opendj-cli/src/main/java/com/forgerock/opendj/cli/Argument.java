@@ -157,6 +157,9 @@ public abstract class Argument implements DocDescriptionSupplement {
      *            argument.
      */
     public void addValue(final String valueString) {
+        if (!isMultiValued) {
+            clearValues();
+        }
         values.add(valueString);
     }
 
