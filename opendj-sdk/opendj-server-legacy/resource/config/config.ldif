@@ -1967,6 +1967,13 @@ ds-cfg-java-class: org.opends.server.schema.CertificateSyntax
 ds-cfg-enabled: true
 ds-cfg-strict-format: true
 
+dn: cn=Certificate Exact Assertion,cn=Syntaxes,cn=config
+objectClass: top
+objectClass: ds-cfg-attribute-syntax
+cn: Certificate Exact Assertion
+ds-cfg-java-class: org.opends.server.schema.CertificateExactAssertionSyntax
+ds-cfg-enabled: true
+
 dn: cn=Certificate List,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
