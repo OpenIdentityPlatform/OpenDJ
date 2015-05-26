@@ -41,11 +41,13 @@ import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -963,6 +965,25 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
     new BackupManager(config.getBackendId()).restoreBackup(this, restoreConfig);
+  }
+
+  @Override
+  public Set<TreeName> listTrees()
+  {
+    try
+    {
+      String[] treeNames = volume.getTreeNames();
+      final Set<TreeName> results = new HashSet<>(treeNames.length);
+      for (String treeName : treeNames)
+      {
+        results.add(TreeName.valueOf(treeName));
+      }
+      return results;
+    }
+    catch (PersistitException e)
+    {
+      throw new StorageRuntimeException(e);
+    }
   }
 
   /**
