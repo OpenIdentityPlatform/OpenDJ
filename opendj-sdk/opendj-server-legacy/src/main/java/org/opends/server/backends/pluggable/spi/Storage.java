@@ -26,6 +26,7 @@
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
+import java.util.Set;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.BackupConfig;
@@ -155,4 +156,11 @@ public interface Storage extends Closeable
    *           If a Directory Server error occurs.
    */
   void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException;
+
+  /**
+   * TODO JNR.
+   *
+   * @return TODO JNR
+   */
+  Set<TreeName> listTrees();
 }

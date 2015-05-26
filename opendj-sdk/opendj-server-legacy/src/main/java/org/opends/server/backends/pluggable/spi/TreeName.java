@@ -53,6 +53,18 @@ public final class TreeName
   }
 
   /**
+   * Builds a new {@link TreeName} object based on the provided string representation.
+   *
+   * @param treeName the string representation of the tree name
+   * @return a new {@link TreeName} object constructed from the provided string 
+   */
+  public static TreeName valueOf(String treeName)
+  {
+    final String[] split = treeName.split("/");
+    return new TreeName(split[0], split[1]);
+  }
+
+  /**
    * Returns the base DN.
    *
    * @return a {@code String} representing the base DN

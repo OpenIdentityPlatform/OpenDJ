@@ -25,6 +25,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import java.util.Set;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -375,6 +377,17 @@ final class TracedStorage implements Storage
     }
   }
 
+  @Override
+  public Set<TreeName> listTrees()
+  {
+    final Set<TreeName> results = storage.listTrees();
+    if (logger.isTraceEnabled())
+    {
+      logger.trace("Storage@%s.listTrees() = ", storageId(), results);
+    }
+    return results;
+  }
+
   private String hex(final ByteSequence bytes)
   {
     return bytes != null ? bytes.toByteString().toHexString() : null;
@@ -384,6 +397,4 @@ final class TracedStorage implements Storage
   {
     return System.identityHashCode(this);
   }
-
-
 }

@@ -44,8 +44,10 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.util.Reject;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -323,12 +325,39 @@ class ID2Entry extends AbstractTree
   public void put(WriteableTransaction txn, EntryID id, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
+    Reject.ifNull(txn);
     ByteString key = id.toByteString();
     EntryCodec codec = acquireEntryCodec();
     try
     {
       ByteString value = codec.encodeInternal(entry, dataConfig);
       txn.put(getName(), key, value);
+    }
+    finally
+    {
+      codec.release();
+    }
+  }
+
+  /**
+   * Write a record in the entry tree.
+   *
+   * @param importer a non null importer
+   * @param id The entry ID which forms the key.
+   * @param entry The LDAP entry.
+   * @throws StorageRuntimeException If an error occurs in the storage.
+   * @throws DirectoryException  If a problem occurs while attempting to encode the entry.
+   */
+  public void importPut(Importer importer, EntryID id, Entry entry)
+       throws StorageRuntimeException, DirectoryException
+  {
+    Reject.ifNull(importer);
+    ByteString key = id.toByteString();
+    EntryCodec codec = acquireEntryCodec();
+    try
+    {
+      ByteString value = codec.encodeInternal(entry, dataConfig);
+      importer.put(getName(), key, value);
     }
     finally
     {
