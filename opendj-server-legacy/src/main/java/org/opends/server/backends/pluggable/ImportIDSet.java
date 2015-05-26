@@ -42,6 +42,7 @@ import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
  * the configured ID limit. If the limit it reached, the class stops tracking
  * individual IDs and marks the set as undefined. This class is not thread safe.
  */
+@SuppressWarnings("javadoc")
 final class ImportIDSet implements Iterable<EntryID> {
 
   /** The encapsulated entryIDSet where elements are stored until reaching the limit. */
@@ -127,18 +128,23 @@ final class ImportIDSet implements Iterable<EntryID> {
   boolean merge(ImportIDSet importIdSet)
   {
     checkNotNull(importIdSet, "importIdSet must not be null");
+    return merge(importIdSet.entryIDSet);
+  }
 
-    boolean definedBeforeMerge = isDefined();
-    final long mergedSize = addWithoutOverflow(entryIDSet.size(), importIdSet.entryIDSet.size());
+  boolean merge(EntryIDSet entryIDSet)
+  {
+    checkNotNull(entryIDSet, "entryID must not be null");
+    boolean definedBeforeMerge = this.entryIDSet.isDefined();
+    final long mergedSize = addWithoutOverflow(this.entryIDSet.size(), entryIDSet.size());
 
-    if (!definedBeforeMerge || !importIdSet.isDefined() || mergedSize > indexEntryLimitSize)
+    if (!definedBeforeMerge || !entryIDSet.isDefined() || mergedSize > indexEntryLimitSize)
     {
-      entryIDSet = newUndefinedSetWithKey(key);
+      this.entryIDSet = newUndefinedSetWithKey(key);
       return definedBeforeMerge;
     }
-    else if (isDefined())
+    else if (this.entryIDSet.isDefined())
     {
-      entryIDSet.addAll(importIdSet.entryIDSet);
+      this.entryIDSet.addAll(entryIDSet);
     }
     return false;
   }
