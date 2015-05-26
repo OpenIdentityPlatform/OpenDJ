@@ -775,7 +775,7 @@ public class PasswordModifyExtendedOperation
       // If the password was changed by an end user, then clear any reset flag that might exist.
       // If the password was changed by an administrator, then see if we need to set the reset flag.
       pwPolicyState.setMustChangePassword(
-          selfChange && pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
+          !selfChange && pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
 
       // Clear any record of grace logins, auth failures, and expiration warnings.
       pwPolicyState.clearFailureLockout();
