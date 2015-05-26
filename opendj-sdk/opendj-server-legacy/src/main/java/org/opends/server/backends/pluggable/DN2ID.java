@@ -96,7 +96,7 @@ class DN2ID extends AbstractTree
    */
   void put(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
   {
-    txn.put(getName(), toKey(dn), entryID.toByteString());
+    txn.put(getName(), toKey(dn), toValue(entryID));
   }
 
   boolean insert(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
@@ -112,7 +112,7 @@ class DN2ID extends AbstractTree
           return oldEntryID;
         }
         // it did not exist before, insert the new value
-        return entryID.toByteString();
+        return toValue(entryID);
       }
     });
   }
@@ -120,6 +120,12 @@ class DN2ID extends AbstractTree
   ByteString toKey(DN dn)
   {
     return dnToDNKey(dn, baseDN.size());
+  }
+
+  ByteString toValue(final EntryID entryID)
+  {
+    // TODO JNR do we want to use compacted longs?
+    return entryID.toByteString();
   }
 
   /**

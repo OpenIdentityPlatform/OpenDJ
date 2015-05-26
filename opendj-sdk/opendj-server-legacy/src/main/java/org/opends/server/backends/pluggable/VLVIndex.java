@@ -357,6 +357,11 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return encodeVLVKey(entry, entryID.longValue());
   }
 
+  ByteString toValue()
+  {
+    return ByteString.empty();
+  }
+
   private boolean shouldInclude(final Entry entry) throws DirectoryException
   {
     return entry.getName().matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry);
@@ -437,7 +442,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     {
       if (nextDeletedKey == null || (nextAddedKey != null && nextAddedKey.compareTo(nextDeletedKey) < 0))
       {
-        txn.put(getName(), nextAddedKey, ByteString.empty());
+        txn.put(getName(), nextAddedKey, toValue());
         nextAddedKey = nextOrNull(ai);
         count.incrementAndGet();
       }

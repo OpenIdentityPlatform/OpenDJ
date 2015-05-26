@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -331,6 +332,7 @@ final class OnDiskMergeStorageImporter
       for (Map.Entry<ByteSequence, Set<ByteSequence>> mapEntry : inMemoryStore.entrySet())
       {
         ByteSequence key = mapEntry.getKey();
+        // FIXME JNR merge values before put
         for (ByteSequence value : mapEntry.getValue())
         {
           put(byteBuffer, key);
@@ -401,6 +403,118 @@ final class OnDiskMergeStorageImporter
           + "(treeName=\"" + treeName + "\""
           + ", currentBuffer has " + inMemoryStore.size() + " record(s)"
           + " and " + (bufferSize - maximumExpectedSizeOnDisk) + " byte(s) remaining)";
+    }
+  }
+
+  /** A cursor performing the "merge" phase of the on-disk merge. */
+  private static final class MergingCursor<K, V> implements Cursor<K, V>
+  {
+    private final Cursor<K, V> delegate;
+    private final MergingConsumer<V> merger;
+    private K key;
+    private V value;
+    private boolean isDefined;
+
+    private MergingCursor(Cursor<K, V> cursor, MergingConsumer<V> merger)
+    {
+      this.delegate = cursor;
+      this.merger = merger;
+    }
+
+    @Override
+    public boolean next()
+    {
+      if (key == null)
+      {
+        if (!delegate.next())
+        {
+          return isDefined = false;
+        }
+        key = delegate.getKey();
+        accumulateValues();
+        return isDefined = true;
+      }
+      else if (delegate.isDefined())
+      {
+        // we did yet not consume key/value from the delegate cursor
+        key = delegate.getKey();
+        accumulateValues();
+        return isDefined = true;
+      }
+      else
+      {
+        // no more data to compute
+        return isDefined = false;
+      }
+    }
+
+    private void accumulateValues()
+    {
+      while (delegate.isDefined() && key.equals(delegate.getKey()))
+      {
+        merger.accept(delegate.getValue());
+        delegate.next();
+      }
+      value = merger.merge();
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      return isDefined;
+    }
+
+    @Override
+    public K getKey() throws NoSuchElementException
+    {
+      throwIfNotDefined();
+      return key;
+    }
+
+    @Override
+    public V getValue() throws NoSuchElementException
+    {
+      throwIfNotDefined();
+      return value;
+    }
+
+    private void throwIfNotDefined()
+    {
+      if (!isDefined())
+      {
+        throw new NoSuchElementException();
+      }
+    }
+
+    @Override
+    public void close()
+    {
+      delegate.close();
+      isDefined = false;
+    }
+
+    @Override
+    public boolean positionToKey(ByteSequence key)
+    {
+      return delegate.positionToKey(key);
+    }
+
+    @Override
+    public boolean positionToKeyOrNext(ByteSequence key)
+    {
+      return delegate.positionToKeyOrNext(key);
+    }
+
+    @Override
+    public boolean positionToLastKey()
+    {
+      return delegate.positionToLastKey();
+    }
+
+    @Override
+    public boolean positionToIndex(int index)
+    {
+      return delegate.positionToIndex(index);
     }
   }
 
@@ -524,28 +638,24 @@ final class OnDiskMergeStorageImporter
       return "not defined";
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean positionToKey(ByteSequence key)
     {
       throw notImplemented();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean positionToKeyOrNext(ByteSequence key)
     {
       throw notImplemented();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean positionToLastKey()
     {
       throw notImplemented();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean positionToIndex(int index)
     {
@@ -1544,16 +1654,207 @@ final class OnDiskMergeStorageImporter
       @Override
       public Void run(ReadableTransaction txn) throws Exception
       {
-        try (Cursor<ByteString, ByteString> cursor = txn.openCursor(treeName))
+        try (Cursor<ByteString, ByteString> cursor =
+            new MergingCursor<ByteString, ByteString>(txn.openCursor(treeName), getMerger(treeName)))
         {
           while (cursor.next())
-          {// FIXME JNR add merge phase
+          {
             output.put(treeName, cursor.getKey(), cursor.getValue());
           }
         }
         return null;
       }
+
+      private MergingConsumer<ByteString> getMerger(final TreeName treeName) throws DirectoryException
+      {
+        EntryContainer entryContainer = rootContainer.getEntryContainer(DN.valueOf(treeName.getBaseDN()));
+        final MatchingRuleIndex index = getIndex(entryContainer, treeName);
+        if (index != null)
+        {
+          // key conflicts == merge EntryIDSets
+          return new ImportIDSetsMerger(index);
+        }
+        else if (treeName.getIndexId().equals(DN2ID_INDEX_NAME)
+            || treeName.getIndexId().equals(DN2URI_INDEX_NAME)
+            || isVLVIndex(entryContainer, treeName))
+        {
+          // key conflicts == exception
+          return new NoMultipleValuesConsumer<>();
+        }
+        throw new IllegalArgumentException("Unknown tree: " + treeName);
+      }
+
+      private boolean isVLVIndex(EntryContainer entryContainer, TreeName treeName)
+      {
+        for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+        {
+          if (treeName.equals(vlvIndex.getName()))
+          {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      private MatchingRuleIndex getIndex(EntryContainer entryContainer, TreeName treeName)
+      {
+        for (AttributeIndex attrIndex : entryContainer.getAttributeIndexes())
+        {
+          for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
+          {
+            if (treeName.equals(index.getName()))
+            {
+              return index;
+            }
+          }
+        }
+        return null;
+      }
     });
+  }
+
+  /**
+   * Copies JDK 8 Consumer.
+   * <p>
+   * FIXME Remove once we move to Java 8.
+   *
+   * @see java.util.function.Consumer Consumer from JDK 8
+   */
+  private static interface Consumer<T>
+  {
+    /**
+     * Performs this operation on the given argument.
+     *
+     * @param t
+     *          the input argument
+     */
+    void accept(T t);
+  }
+
+  /**
+   * A merging consumer that merges the supplied values.
+   * <p>
+   * Sample usage:
+   *
+   * <pre>
+   * while (it.hasNext())
+   * {
+   *   mergingConsumer.accept(it.next());
+   * }
+   * Object result = mergingConsumer.merge();
+   *
+   * <pre>
+   *
+   * @param <T>
+   *          the type of the arguments and the returned merged value
+   * @see java.util.function.Consumer Consumer from JDK 8
+   */
+  private static interface MergingConsumer<T> extends Consumer<T>
+  {
+    /**
+     * Merges the arguments provided via {@link Consumer#accept(Object)}.
+     *
+     * @return the merged value
+     */
+     T merge();
+  }
+
+  /** {@link MergingConsumer} that throws an exception when given several values to accept. */
+  private static final class NoMultipleValuesConsumer<V> implements MergingConsumer<V>
+  {
+    private V first;
+    private boolean moreThanOne;
+
+    @Override
+    public void accept(V value)
+    {
+      if (first == null)
+      {
+        this.first = value;
+      }
+      else
+      {
+        moreThanOne = true;
+      }
+    }
+
+    @Override
+    public V merge()
+    {
+      final boolean mustThrow = moreThanOne;
+      // clean up state
+      first = null;
+      moreThanOne = false;
+
+      if (mustThrow)
+      {
+        throw new IllegalArgumentException();
+      }
+      return first;
+    }
+  }
+
+  /**
+   * {@link MergingConsumer} that accepts {@link ByteSequence} objects
+   * and produces a {@link ByteSequence} representing the merged {@link ImportIDSet}.
+   */
+  private static final class ImportIDSetsMerger implements MergingConsumer<ByteString>
+  {
+    private final MatchingRuleIndex index;
+    private final Set<ByteString> values = new HashSet<>();
+    private boolean aboveIndexEntryLimit;
+
+    private ImportIDSetsMerger(MatchingRuleIndex index)
+    {
+      this.index = index;
+    }
+
+    @Override
+    public void accept(ByteString value)
+    {
+      if (!aboveIndexEntryLimit)
+      {
+        if (values.size() < index.getIndexEntryLimit())
+        {
+          values.add(value);
+        }
+        else
+        {
+          aboveIndexEntryLimit = true;
+        }
+      }
+    }
+
+    @Override
+    public ByteString merge()
+    {
+      try
+      {
+        if (aboveIndexEntryLimit)
+        {
+          return index.toValue(EntryIDSet.newUndefinedSet());
+        }
+        else if (values.size() == 1)
+        {
+          return values.iterator().next();
+        }
+
+        ImportIDSet idSet = new ImportIDSet(ByteString.empty(), EntryIDSet.newDefinedSet(), index.getIndexEntryLimit());
+        for (ByteString value : values)
+        {
+          // FIXME JNR Can we make this more efficient?
+          // go through long[] + sort in the end?
+          idSet.merge(index.decodeValue(ByteString.empty(), value));
+        }
+        return index.toValue(idSet);
+      }
+      finally
+      {
+        // reset state
+        aboveIndexEntryLimit = false;
+        values.clear();
+      }
+    }
   }
 
   /** Task used to migrate excluded branch. */
@@ -1828,7 +2129,7 @@ final class OnDiskMergeStorageImporter
     void processDN2ID(Suffix suffix, DN dn, EntryID entryID)
     {
       DN2ID dn2id = suffix.getDN2ID();
-      importer.put(dn2id.getName(), dn2id.toKey(dn), entryID.toByteString());
+      importer.put(dn2id.getName(), dn2id.toKey(dn), dn2id.toValue(entryID));
     }
 
     private void processDN2URI(Suffix suffix, Entry entry)
@@ -1845,7 +2146,6 @@ final class OnDiskMergeStorageImporter
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws StorageRuntimeException, InterruptedException
     {
-      final ByteString value = entryID.toByteString();
       for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
       {
         final AttributeType attrType = mapEntry.getKey();
@@ -1854,9 +2154,14 @@ final class OnDiskMergeStorageImporter
         {
           for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
           {
-            for (ByteString key : index.indexEntry(entry))
+            final Set<ByteString> keys = index.indexEntry(entry);
+            if (!keys.isEmpty())
             {
-              importer.put(index.getName(), key, value);
+              final ByteString value = index.toValue(entryID);
+              for (ByteString key : keys)
+              {
+                importer.put(index.getName(), key, value);
+              }
             }
           }
         }
@@ -1868,7 +2173,7 @@ final class OnDiskMergeStorageImporter
       for (VLVIndex vlvIndex : suffix.getEntryContainer().getVLVIndexes())
       {
         ByteString key = vlvIndex.toKey(entry, entryID);
-        importer.put(vlvIndex.getName(), key, ByteString.empty());
+        importer.put(vlvIndex.getName(), key, vlvIndex.toValue());
       }
     }
   }

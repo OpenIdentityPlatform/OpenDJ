@@ -60,12 +60,9 @@ class DefaultIndex extends AbstractTree implements Index
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
-  private int indexEntryLimit;
-
   private final State state;
-
   private final EntryContainer entryContainer;
-
+  private int indexEntryLimit;
   private EntryIDSetCodec codec;
 
   /**
@@ -124,11 +121,32 @@ class DefaultIndex extends AbstractTree implements Index
           @Override
           public EntryIDSet transform(ByteString key, ByteString value) throws NeverThrowsException
           {
-            return codec.decode(key, value);
+            return decodeValue(key, value);
           }
         });
   }
 
+  EntryIDSet decodeValue(ByteSequence key, ByteString value)
+  {
+    return codec.decode(key, value);
+  }
+
+  ByteString toValue(EntryID entryID)
+  {
+    return codec.encode(newDefinedSet(entryID.longValue()));
+  }
+
+  ByteString toValue(EntryIDSet entryIDSet)
+  {
+    return codec.encode(entryIDSet);
+  }
+
+  ByteString toValue(ImportIDSet importIDSet)
+  {
+    return importIDSet.valueToByteString(codec);
+  }
+
+  // TODO JNR rename to importUpsert() ?
   @Override
   public final void importPut(Importer importer, ImportIDSet idsToBeAdded) throws StorageRuntimeException
   {
@@ -138,14 +156,14 @@ class DefaultIndex extends AbstractTree implements Index
     ByteString value = importer.read(getName(), key);
     if (value != null)
     {
-      final EntryIDSet entryIDSet = codec.decode(key, value);
+      final EntryIDSet entryIDSet = decodeValue(key, value);
       final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
       importIDSet.merge(idsToBeAdded);
-      importer.put(getName(), key, importIDSet.valueToByteString(codec));
+      importer.put(getName(), key, toValue(importIDSet));
     }
     else
     {
-      importer.put(getName(), key, idsToBeAdded.valueToByteString(codec));
+      importer.put(getName(), key, toValue(idsToBeAdded));
     }
   }
 
@@ -162,7 +180,7 @@ class DefaultIndex extends AbstractTree implements Index
       throw new IllegalStateException("Expected to have a value associated to key " + key + " for index " + getName());
     }
 
-    final EntryIDSet entryIDSet = codec.decode(key, value);
+    final EntryIDSet entryIDSet = decodeValue(key, value);
     final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
     importIDSet.remove(idsToBeRemoved);
     if (importIDSet.isDefined() && importIDSet.size() == 0)
@@ -171,7 +189,7 @@ class DefaultIndex extends AbstractTree implements Index
     }
     else
     {
-      importer.put(getName(), key, importIDSet.valueToByteString(codec));
+      importer.put(getName(), key, toValue(importIDSet));
     }
   }
 
@@ -218,7 +236,7 @@ class DefaultIndex extends AbstractTree implements Index
         if (oldValue != null)
         {
           EntryIDSet entryIDSet = computeEntryIDSet(key, oldValue.toByteString(), deletedIDs, addedIDs);
-          ByteString after = codec.encode(entryIDSet);
+          ByteString after = toValue(entryIDSet);
           /*
            * If there are no more IDs then return null indicating that the record should be removed.
            * If index is not trusted then this will cause all subsequent reads for this key to
@@ -234,7 +252,7 @@ class DefaultIndex extends AbstractTree implements Index
           }
           if (isNotEmpty(addedIDs))
           {
-            return codec.encode(addedIDs);
+            return toValue(addedIDs);
           }
         }
         return null; // no change.
@@ -254,7 +272,7 @@ class DefaultIndex extends AbstractTree implements Index
 
   private EntryIDSet computeEntryIDSet(ByteString key, ByteString value, EntryIDSet deletedIDs, EntryIDSet addedIDs)
   {
-    EntryIDSet entryIDSet = codec.decode(key, value);
+    EntryIDSet entryIDSet = decodeValue(key, value);
     if (addedIDs != null)
     {
       if (entryIDSet.isDefined() && indexEntryLimit > 0)
@@ -300,7 +318,7 @@ class DefaultIndex extends AbstractTree implements Index
       ByteString value = txn.read(getName(), key);
       if (value != null)
       {
-        return codec.decode(key, value);
+        return decodeValue(key, value);
       }
       return trusted ? newDefinedSet() : newUndefinedSet();
     }
