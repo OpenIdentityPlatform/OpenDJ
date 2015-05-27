@@ -486,8 +486,8 @@ The Local DB Backend was created successfully</computeroutput>
   </screen>
 
   <para>
-   The following example creates a <literal>persistit</literal> backend,
-   which relies on a Persistit database for data storage and indexing.
+   The following example creates a <literal>pdb</literal> backend,
+   which relies on a PDB database for data storage and indexing.
   </para>
 
   <screen>
@@ -497,7 +497,7 @@ $ <userinput>dsconfig \
  --port 4444 \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
- --type persistit \
+ --type pdb \
  --backend-name myData \
  --set base-dn:dc=example,dc=net \
  --set enabled:true \

@@ -446,7 +446,7 @@ $ <userinput>dsconfig \
     <para>
      The following example creates a new equality index
      for the <literal>cn</literal> (common name) attribute
-     in a backend of type <literal>persistit</literal>
+     in a backend of type <literal>pdb</literal>
      named <literal>myData</literal>.
     </para>
 
@@ -495,7 +495,7 @@ $ <userinput>dsconfig \
     <para>
      The following example configures an approximate index for
      the <literal>cn</literal> (common name) attribute
-     in a backend of type <literal>persistit</literal>
+     in a backend of type <literal>pdb</literal>
      named <literal>myData</literal>.
     </para>
 
@@ -552,7 +552,7 @@ $ <userinput>dsconfig \
      The following example configures an extensible matching rule index
      for "later than" and "earlier than" generalized time matching
      on a <literal>lastLoginTime</literal> attribute
-     in a backend of type <literal>persistit</literal>
+     in a backend of type <literal>pdb</literal>
      named <literal>myData</literal>.
     </para>
 
@@ -639,7 +639,7 @@ $ <userinput>dsconfig \
 
    <para>
     The following example shows how to create the VLV index
-    for a backend of type <literal>persistit</literal>
+    for a backend of type <literal>pdb</literal>
     named <literal>myData</literal> serving <literal>dc=example,dc=net</literal>.
    </para>
 
@@ -948,7 +948,7 @@ $ <userinput>rebuild-index \
      The following example shows how to use
      the <command>dsconfig set-backend-index-prop</command> command
      to change the index entry limit
-     for a backend of type <literal>persistit</literal>.
+     for a backend of type <literal>pdb</literal>.
     </para>
 
     <screen>

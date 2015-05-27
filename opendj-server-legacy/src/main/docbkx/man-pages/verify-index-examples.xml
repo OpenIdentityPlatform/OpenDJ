@@ -33,13 +33,13 @@
  <para>
   The following example shows how to verify
   the <literal>sn</literal> (surname) index for completeness and for errors.
-  The messages shown are for a backend of type <literal>persistit</literal>.
+  The messages shown are for a backend of type <literal>pdb</literal>.
  </para>
 
   <screen>
 $ <userinput>verify-index -b dc=example,dc=com -i sn --clean --countErrors</userinput>
-<computeroutput>[20/05/2015:14:24:18 +0200] category=...persistit.PersistItStorage seq=0 severity=INFO
- msg=The Persistit storage for backend 'userRoot' initialized
+<computeroutput>[20/05/2015:14:24:18 +0200] category=...PDBStorage seq=0 severity=INFO
+ msg=The PDB storage for backend 'userRoot' initialized
  to use 57528 buffers of 16384 bytes (total 920448kb)
 [20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=1 severity=INFO
  msg=Checked 478 records and found 0 error(s) in 0 seconds

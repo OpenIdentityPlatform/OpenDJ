@@ -76,7 +76,7 @@
 
    <listitem>
     <para>
-     The backend type <literal>persistit</literal> limits key size to two KB.
+     The backend type <literal>pdb</literal> limits key size to two KB.
      In practice this means for example that DN size is limited to roughly two KB.
     </para>
 
