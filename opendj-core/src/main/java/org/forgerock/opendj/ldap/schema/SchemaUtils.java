@@ -135,7 +135,6 @@ final class SchemaUtils {
             if (c == '\'') {
                 reader.reset();
                 values = Collections.singletonList(readQuotedDescriptor(reader, allowCompatChars));
-                reader.read();
             } else if (c == '(') {
                 // Skip over any leading spaces
                 reader.skipWhitespaces();

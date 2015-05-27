@@ -79,6 +79,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE userApplications )",
           true},
+          {"(1.2.8.5 NAME 'testtype')", true},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type')",
               true},
         {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
