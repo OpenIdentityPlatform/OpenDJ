@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2015 ForgeRock AS
+ !      Portions Copyright 2011-2015 ForgeRock AS.
  !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
@@ -155,7 +155,8 @@
   <property name="admin.defn.dir"  location="${build.dir}/config/admin/defn" />
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
-  <property name="configguide.resource.dir" location="resource/admin/config-guide" />
+  <property name="configguide.resource.dir"
+            location="../opendj-doc-maven-plugin/src/main/resources/config-ref" />
 
   <!-- Properties for generating messages. -->
   <property name="msg.dir"         location="src/messages" />

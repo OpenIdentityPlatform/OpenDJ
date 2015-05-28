@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.admin.doc;
 
@@ -988,21 +988,31 @@ public class ConfigGuideGeneration {
   private void genMainTopPage() {
     htmlHeader(DynamicConstants.PRODUCT_NAME +
             " Configuration Reference - Main Top");
+    // "Home" might be depend on where this is published.
+    /*
     htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" +
       "<a href=\"" + OpenDJHome + "\" target=\"_parent\">" +
       "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" +
       "Back to " +
       DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
+    */
+    htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" +
+            "&nbsp;&nbsp;</span>&nbsp;&nbsp;</div>\n");
     htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " +
       "width=\"100%\">\n");
     htmlBuff.append("<tbody><tr>\n");
     htmlBuff.append("  <td><h2>"+
             DynamicConstants.PRODUCT_NAME +
             " Configuration Reference</h2></td>\n");
+    /*
     htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
       "<a href=\"" + OpenDJHome + "\" target=\"_parent\">" +
       "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" " +
       "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
+    */
+    htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
+            "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" " +
+            "border=\"0\" height=\"33\" width=\"114\"></td>\n");
     htmlBuff.append("</tr>\n");
     htmlBuff.append("</tbody></table>\n");
 
@@ -1067,7 +1077,11 @@ public class ConfigGuideGeneration {
 
       @Override
       public String visitACI(ACIPropertyDefinition prop, Void p) {
-        return getLink("An ACI Syntax", aciSyntaxPage);
+        // Rather than return a link that is coupled to a site location,
+        // assume that readers can find ACI syntax in the documentation.
+        // ACI syntax being difficult to understand and to explain,
+        // it is better not to have to maintain a separate page, either.
+        return "An ACI syntax"; // getLink("An ACI Syntax", aciSyntaxPage);
       }
 
       @Override
