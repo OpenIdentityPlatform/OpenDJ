@@ -33,7 +33,7 @@
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>2.8.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -64,9 +64,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/fr-branches/b2.8</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/fr-branches/b2.8</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/fr-branches/b2.8</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
@@ -118,7 +118,7 @@
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
 
     <!-- OSGi bundles properties -->
-    <opendj.osgi.import.additional/>
+    <opendj.osgi.import.additional />
     <!--
      | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
      | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
@@ -149,9 +149,9 @@
         -D"pubDate=Publication date: December 31, 1969"
       At all other times, the dates should be empty.
     -->
-    <releaseDate/>
+    <releaseDate />
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
-    <pubDate/>
+    <pubDate />
     <publicationDate>${pubDate}</publicationDate>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
@@ -533,7 +533,7 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-copyright-maven-plugin</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>2.8.0-SNAPSHOT</version>
             <executions>
                 <execution>
                     <id>check-copyright</id>
@@ -554,7 +554,7 @@
             <plugin>
               <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-copyright-maven-plugin</artifactId>
-              <version>1.0.0-SNAPSHOT</version>
+              <version>2.8.0-SNAPSHOT</version>
               <executions>
                   <execution>
                     <id>check-copyright</id>
