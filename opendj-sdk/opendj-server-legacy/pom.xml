@@ -1886,7 +1886,27 @@
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-doc-maven-plugin</artifactId>
             <version>${project.version}</version>
+            <!--
+              Configuration reference generation requires
+              that opendj-config be on the runtime classpath for the plugin.
+              It is not enough to declare it as a dependency of this module.
+            -->
+            <dependencies>
+              <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-config</artifactId>
+                <version>${project.version}</version>
+              </dependency>
+            </dependencies>
             <executions>
+              <execution>
+                <id>generate-configuration-reference-doc</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>generate-config-ref</goal>
+                </goals>
+              </execution>
+
               <execution>
                 <id>generate-schema-reference-doc</id>
                 <phase>prepare-package</phase>

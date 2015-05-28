@@ -25,7 +25,9 @@
  */
 package org.forgerock.opendj.maven.doc;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import static org.forgerock.opendj.maven.doc.Utils.*;
+import static org.forgerock.util.Utils.*;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -34,28 +36,20 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.forgerock.util.Utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,36 +90,16 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
 
         // A Maven plugin classpath does not include project files.
         // Prepare a ClassLoader capable of loading the command-line tools.
-        final URLClassLoader toolsClassLoader = getBootToolsClassLoader();
+        final URLClassLoader toolsClassLoader;
+        try {
+            toolsClassLoader = getRuntimeClassLoader(project, getLog());
+        } catch (Exception e) {
+            throw new MojoExecutionException("Failed to get class loader.", e);
+        }
         for (CommandLineTool tool : tools) {
             if (tool.isEnabled()) {
                 generateManPageForTool(toolsClassLoader, tool);
             }
-        }
-    }
-
-    /**
-     * Returns a ClassLoader capable of loading the command-line tools.
-     * @return A ClassLoader capable of loading the command-line tools.
-     * @throws MojoFailureException     Failed to build classpath.
-     */
-    private URLClassLoader getBootToolsClassLoader() throws MojoFailureException {
-        try {
-            List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-            Set<URL> runtimeUrls = new LinkedHashSet<>();
-            for (String element : runtimeClasspathElements) {
-                runtimeUrls.add(new File(element).toURI().toURL());
-            }
-
-            final URLClassLoader toolsClassLoader = new URLClassLoader(
-                    runtimeUrls.toArray(new URL[runtimeClasspathElements.size()]),
-                    Thread.currentThread().getContextClassLoader());
-            debugClassPathElements(toolsClassLoader);
-            return toolsClassLoader;
-        } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException("Failed to access the runtime classpath.", e);
-        } catch (MalformedURLException e) {
-            throw new MojoFailureException("Failed to add element to classpath.", e);
         }
     }
 
@@ -147,7 +121,11 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         commands.add(getJavaCommand());
         commands.addAll(getJavaArgs(toolScript, toolSects));
         commands.add("-classpath");
-        commands.add(getClassPath(toolsClassLoader));
+        try {
+            commands.add(getClassPath(toolsClassLoader));
+        } catch (URISyntaxException e) {
+            throw new MojoExecutionException("Failed to set the classpath.", e);
+        }
         commands.add(toolClass);
         commands.add(getUsageArgument(toolScript));
 
@@ -161,8 +139,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             final int result = process.exitValue();
             if (result != 0) {
                 final StringBuilder message = new StringBuilder();
-                message.append("Failed to write page. Tool exit code: ").append(result).append(EOL);
-                message.append("To debug the problem, run the following command and connect your IDE:").append(EOL);
+                message.append("Failed to write page. Tool exit code: ").append(result).append(EOL)
+                        .append("To debug the problem, run the following command and connect your IDE:").append(EOL);
                 commands.add(1, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000");
                 for (String arg: commands) {
                     // Surround with quotes to handle trailing sections.
@@ -196,14 +174,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     }
 
     /**
-     * Returns the path to the current Java executable.
-     * @return The path to the current Java executable.
-     */
-    private String getJavaCommand() {
-        return System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-    }
-
-    /**
      * Returns the Java args for running a tool.
      * @param scriptName        The name of the tool.
      * @param trailingSections  The man page sections to Xinclude.
@@ -216,47 +186,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         args.add("-Dcom.forgerock.opendj.ldap.tools.scriptName=" + scriptName);
         args.add("-Dorg.forgerock.opendj.gendoc.trailing=" + trailingSections + "");
         return args;
-    }
-
-    /**
-     * Returns the classpath for the class loader.
-     * @param classLoader   Contains the URLs of the class path to return.
-     * @return The classpath for the class loader.
-     */
-    private String getClassPath(final URLClassLoader classLoader) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        final URL[] urls = classLoader.getURLs();
-        for (int i = 0; i < urls.length; i++) {
-            if (i > 0) {
-                stringBuilder.append(File.pathSeparator);
-            }
-            try {
-                stringBuilder.append(new File(urls[i].toURI()).getPath());
-            } catch (URISyntaxException e) {
-                getLog().info("Failed to add classpath element", e);
-            }
-        }
-        return stringBuilder.toString();
-    }
-
-    /**
-     * Logs what is on the classpath for debugging.
-     * @param classLoader   The ClassLoader with the classpath.
-     */
-    private void debugClassPathElements(ClassLoader classLoader) {
-        if (null == classLoader) {
-            return;
-        }
-        getLog().debug("--------------------");
-        getLog().debug(classLoader.toString());
-        if (classLoader instanceof URLClassLoader) {
-            final URLClassLoader ucl = (URLClassLoader) classLoader;
-            int i = 0;
-            for (URL url : ucl.getURLs()) {
-                getLog().debug("url[" + (i++) + "]=" + url);
-            }
-        }
-        debugClassPathElements(classLoader.getParent());
     }
 
     /**
@@ -306,7 +235,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                 writer.write(EOL);
             }
         } finally {
-            Utils.closeSilently(writer);
+            closeSilently(writer);
         }
     }
 
@@ -347,7 +276,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                 throw new IOException("Failed to delete " +  pageCopy.getName());
             }
         } finally {
-            Utils.closeSilently(reader);
+            closeSilently(reader);
         }
     }
 
@@ -360,26 +289,5 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     private void writeToFile(final String input, final File output) throws IOException {
         InputStream is = new ByteArrayInputStream(input.getBytes(Charset.forName("UTF-8")));
         writeToFile(is, output);
-    }
-
-    /**
-     * Copies the content of the original file to the copy.
-     * @param original      The original file.
-     * @param copy          The copy.
-     * @throws IOException  Failed to make the copy.
-     */
-    private void copyFile(File original, File copy) throws IOException {
-        if (!copy.exists() && !copy.createNewFile()) {
-            throw new IOException("Failed to create " + copy);
-        }
-        FileChannel in  = null;
-        FileChannel out = null;
-        try {
-            in  = new FileInputStream(original).getChannel();
-            out = new FileOutputStream(copy).getChannel();
-            out.transferFrom(in, 0, in.size());
-        } finally {
-            Utils.closeSilently(in, out);
-        }
     }
 }
