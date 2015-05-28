@@ -23,7 +23,7 @@
   !      Copyright 2014-2015 ForgeRock AS.
   !    
 -->
-<book xml:id='release-notes'
+<book xml:id='sdk-release-notes'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook
