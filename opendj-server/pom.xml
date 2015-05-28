@@ -29,7 +29,7 @@
   <parent>
     <artifactId>opendj-project</artifactId>
     <groupId>org.forgerock.opendj</groupId>
-    <version>2.8.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server</name>

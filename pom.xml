@@ -33,7 +33,7 @@
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>2.8.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -64,9 +64,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/fr-branches/b2.8</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/fr-branches/b2.8</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/fr-branches/b2.8</developerConnection>
+    <url>https://svn.forgerock.org/opendj/trunk/opendj/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
@@ -533,7 +533,7 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-copyright-maven-plugin</artifactId>
-            <version>2.8.0-SNAPSHOT</version>
+            <version>3.0.0-SNAPSHOT</version>
             <executions>
                 <execution>
                     <id>check-copyright</id>
@@ -554,7 +554,7 @@
             <plugin>
               <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-copyright-maven-plugin</artifactId>
-              <version>2.8.0-SNAPSHOT</version>
+              <version>3.0.0-SNAPSHOT</version>
               <executions>
                   <execution>
                     <id>check-copyright</id>
