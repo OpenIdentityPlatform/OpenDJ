@@ -73,7 +73,7 @@
   <para>
    For a complete example in context, see
    <link
-    xlink:href="..resources/org/forgerock/opendj/examples/GetInfo.java"
+    xlink:href="../resources/org/forgerock/opendj/examples/GetInfo.java"
     xlink:show="new"
     >GetInfo.java</link>.
   </para>
