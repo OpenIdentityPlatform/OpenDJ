@@ -25,14 +25,13 @@
   !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-project</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>2.8.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -64,7 +63,7 @@
     <!-- Product information properties -->
     <shortProductName>OpenDJ</shortProductName>
     <lowerCaseProductName>opendj</lowerCaseProductName>
-    <patchFixIds></patchFixIds>
+    <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
     <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
     <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
@@ -271,7 +270,7 @@
                   <action>
                     <execute>
                       <runOnIncremental>false</runOnIncremental>
-                    </execute >
+                    </execute>
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -1046,12 +1045,8 @@
                   <fileset dir="${old.config.files.path}/config/xml/org/forgerock/opendj/server/config/" />
                 </move>
                 <delete dir="${old.config.files.path}/config" />
-                <replace dir="${old.config.files.path}"
-                         token="org.forgerock.opendj.server.config"
-                         value="org.opends.server.admin.std"/>
-                <replace dir="${old.config.files.path}"
-                         token="http://opendj.forgerock.org/admin"
-                         value="http://www.opends.org/admin"/>
+                <replace dir="${old.config.files.path}" token="org.forgerock.opendj.server.config" value="org.opends.server.admin.std" />
+                <replace dir="${old.config.files.path}" token="http://opendj.forgerock.org/admin" value="http://www.opends.org/admin" />
               </target>
             </configuration>
             <goals>
@@ -1081,7 +1076,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <target>
-                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif"/>
+                <copy todir="${project.build.directory}/template/config" file="${basedir}/resource/config/config.ldif" />
               </target>
             </configuration>
             <goals>
@@ -1098,33 +1093,14 @@
             </goals>
             <configuration>
               <target>
-                <zip
-                  destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
-                  <zipfileset
-                    dir="${project.build.directory}/package/${lowerCaseProductName}"
-                    includes="**/*"
-                    excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
-                    filemode="644" dirmode="755" prefix="opendj" />
-                  <zipfileset
-                    dir="${project.build.directory}/package/${lowerCaseProductName}"
-                    includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
-                    filemode="755" dirmode="755" prefix="opendj" />
-                  <zipfileset
-                    dir="${project.build.directory}/package/${lowerCaseProductName}"
-                    includes="bin/*" filemode="755" dirmode="755"
-                    prefix="opendj" />
-                  <zipfileset
-                    dir="${project.build.directory}/package/${lowerCaseProductName}"
-                    includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
-                    filemode="755" dirmode="755" prefix="opendj" />
-                  <zipfileset
-                    dir="${project.build.directory}/package/${lowerCaseProductName}"
-                    includes="template/**/*" filemode="444" dirmode="744"
-                    prefix="opendj" />
+                <zip destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
+                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub" filemode="644" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
                 </zip>
-                <attachartifact
-                  file="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip"
-                  type="zip" />
+                <attachartifact file="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip" type="zip" />
               </target>
             </configuration>
           </execution>
@@ -1225,7 +1201,7 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-svn-property-check-maven-plugin</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>2.8.0-SNAPSHOT</version>
             <executions>
               <execution>
                 <id>check-eol-property</id>
@@ -1331,7 +1307,7 @@
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
-                    <!-- <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}"/> -->
+                    <!-- <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}" /> -->
                     <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
@@ -1437,7 +1413,7 @@
                 <configuration>
                   <target>
                     <concat destfile="${project.build.directory}/template/config/config.ldif" append="true">
-                      <filelist dir="${snmp.dir}/resource/config" files="config.snmp.ldif"/>
+                      <filelist dir="${snmp.dir}/resource/config" files="config.snmp.ldif" />
                     </concat>
                   </target>
                 </configuration>
