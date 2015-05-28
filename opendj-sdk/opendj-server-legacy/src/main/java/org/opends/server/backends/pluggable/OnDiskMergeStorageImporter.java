@@ -406,7 +406,7 @@ final class OnDiskMergeStorageImporter
      * This will be persisted once {@link #maximumExpectedSizeOnDisk} reaches the
      * {@link #bufferSize}.
      * <p>
-     * This code uses a {@link ConcurrentHashMap} instead of a {@link ConcurrentSkipListMap} because
+     * This code uses a {@link ConcurrentHashMap} instead of a {@code ConcurrentSkipListMap} because
      * during performance testing it was found this code spent a lot of time in
      * {@link ByteString#compareTo(ByteSequence)} when putting entries to the map. However, at this
      * point, we only need to put very quickly data in the map, we do not need keys to be sorted.
@@ -1684,13 +1684,13 @@ final class OnDiskMergeStorageImporter
       {
         for (int i = 0; i < threadCount - 1; i++)
         {
-          tasks.add(new ImportTask(tmpImporter, id2EntryPutTask));
+          tasks.add(new ImportTask(tmpImporter, backendStorage, id2EntryPutTask));
         }
       }
       execService.invokeAll(tasks);
       tasks.clear();
 
-      execService.submit(new MigrateExcludedTask(backendStorage, tmpImporter, id2EntryPutTask)).get();
+      execService.submit(new MigrateExcludedTask(tmpImporter, backendStorage, id2EntryPutTask)).get();
       id2EntryPutTask.finishedWrites();
       dn2IdPutFuture.get();
     }
@@ -1972,12 +1972,9 @@ final class OnDiskMergeStorageImporter
   /** Task used to migrate excluded branch. */
   private final class MigrateExcludedTask extends ImportTask
   {
-    private final Storage storage;
-
-    private MigrateExcludedTask(Storage storage, Importer importer, Id2EntryPutTask id2EntryPutTask)
+    private MigrateExcludedTask(Importer importer, Storage storage, Id2EntryPutTask id2EntryPutTask)
     {
-      super(importer, id2EntryPutTask);
-      this.storage = storage;
+      super(importer, storage, id2EntryPutTask);
     }
 
     @Override
@@ -2050,12 +2047,9 @@ final class OnDiskMergeStorageImporter
   /** Task to migrate existing entries. */
   private final class MigrateExistingEntriesTask extends ImportTask
   {
-    private final Storage storage;
-
     private MigrateExistingEntriesTask(final Storage storage, Importer importer, Id2EntryPutTask id2EntryPutTask)
     {
-      super(importer, id2EntryPutTask);
-      this.storage = storage;
+      super(importer, storage, id2EntryPutTask);
     }
 
     @Override
@@ -2149,11 +2143,13 @@ final class OnDiskMergeStorageImporter
   private class ImportTask implements Callable<Void>
   {
     private final Importer importer;
+    final Storage storage;
     private final Id2EntryPutTask id2EntryPutTask;
 
-    public ImportTask(final Importer importer, Id2EntryPutTask id2EntryPutTask)
+    public ImportTask(Importer importer, Storage storage, Id2EntryPutTask id2EntryPutTask)
     {
       this.importer = importer;
+      this.storage = storage;
       this.id2EntryPutTask = id2EntryPutTask;
     }
 
@@ -2226,7 +2222,7 @@ final class OnDiskMergeStorageImporter
       //Perform parent checking.
       DN entryDN = entry.getName();
       DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
-      DNCache dnCache = new Dn2IdDnCache(suffix, rootContainer.getStorage());
+      DNCache dnCache = new Dn2IdDnCache(suffix, storage);
       if (parentDN != null && !suffix.isParentProcessed(parentDN, dnCache))
       {
         reader.rejectEntry(entry, ERR_IMPORT_PARENT_NOT_FOUND.get(parentDN));
