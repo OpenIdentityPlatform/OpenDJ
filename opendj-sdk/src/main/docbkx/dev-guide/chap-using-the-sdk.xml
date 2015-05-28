@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-using-the-sdk'
@@ -57,11 +56,13 @@
 [jcp:org.forgerock.opendj.examples.Search:--- JCite ---]
   </programlisting>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
-  xlink:show="new">Search.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/Search.java"
+    xlink:show="new"
+   >Search.java</link>.
+  </para>
 
   <para>
    For asynchronous operations,
@@ -96,11 +97,13 @@
    when you use asynchronous operations.
   </para>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchAsync.html"
-  xlink:show="new">SearchAsync.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/SearchAsync.java"
+    xlink:show="new"
+   >SearchAsync.java</link>.
+  </para>
  </section>
 
  <section xml:id="error-handling">

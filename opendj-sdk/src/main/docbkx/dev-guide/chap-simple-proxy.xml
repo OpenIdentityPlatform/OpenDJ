@@ -34,12 +34,18 @@
   <secondary>Proxy</secondary>
  </indexterm>
 
- <para>The OpenDJ LDAP SDK <link xlink:show="new"
- xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Proxy.html"
- >example Proxy</link> demonstrates a simple LDAP proxy that forwards requests
- to one or more remote directory servers. Although the implementation is
- intended as an example, it does demonstrate use of the asynchronous API,
- load balancing, and connection pooling.</para>
+ <para>
+  The OpenDJ LDAP SDK
+  <link
+   xlink:href="../resources/org/forgerock/opendj/examples/Proxy.java"
+   xlink:show="new"
+  >example Proxy</link> demonstrates a simple LDAP proxy
+  that forwards requests to one or more remote directory servers.
+  Although the implementation is intended as an example,
+  it does demonstrate use of the asynchronous API, load balancing,
+  and connection pooling.
+ </para>
+
  <indexterm>
   <primary>Connections</primary>
   <secondary>Asynchronous</secondary>
@@ -176,7 +182,7 @@ final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</progr
   <para>
    For details about the <literal>ProxyBackend</literal> implementation, see
    <link
-    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ProxyBackend.html"
+    xlink:href="../resources/org/forgerock/opendj/examples/ProxyBackend.java"
     xlink:show="new"
    >ProxyBackend.java</link>.
   </para>
@@ -212,11 +218,15 @@ fullname: Barbara Jensen
 fullname: Babs Jensen</computeroutput>
   </screen>
 
-  <para>The OpenDJ LDAP SDK <link xlink:show="new"
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/RewriterProxy.html"
-  >RewriterProxy</link> example builds on the Proxy example, rewriting requests
-  and search result entries. When you read the example, look for the
-  <literal>rewrite()</literal> methods.</para>
+  <para>
+   The OpenDJ LDAP SDK
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/RewriterProxy.java"
+    xlink:show="new"
+   >RewriterProxy</link> example builds on the Proxy example,
+   rewriting requests and search result entries.
+   When you read the example, look for the <literal>rewrite()</literal> methods.
+  </para>
 
   <para>In the above output, the rewriter proxy listens on port 8389,
   connecting to a directory server listening on 1389. The directory server

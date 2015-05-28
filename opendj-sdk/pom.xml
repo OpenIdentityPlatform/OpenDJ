@@ -168,13 +168,20 @@
         <inherited>false</inherited>
         <executions>
           <execution>
-            <id>unpack-sdk-man-pages</id>
+            <id>unpack-sdk-doc-prerequisites</id>
             <phase>pre-site</phase>
             <goals>
               <goal>unpack</goal>
             </goals>
             <configuration>
               <artifactItems>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-ldap-sdk-examples</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>examples</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources</outputDirectory>
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.forgerock.opendj</groupId>
                   <artifactId>opendj-ldap-toolkit</artifactId>
@@ -195,7 +202,7 @@
         <configuration>
          <!-- JCite SDK Example code -->
          <jCiteSourcePaths>
-           <jCiteSourcePath>${project.basedir}/opendj-ldap-sdk-examples/src/main/java</jCiteSourcePath>
+           <jCiteSourcePath>${project.build.directory}/docbkx-sources/resources</jCiteSourcePath>
          </jCiteSourcePaths>
          <copyResourceFiles>true</copyResourceFiles>
         </configuration>
