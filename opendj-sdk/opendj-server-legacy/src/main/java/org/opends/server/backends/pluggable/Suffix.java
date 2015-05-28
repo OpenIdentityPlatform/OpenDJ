@@ -46,6 +46,7 @@ import org.opends.server.types.DN;
  * during and import to support multiple suffixes in a backend. A rebuild
  * index has only one of these instances.
  */
+@SuppressWarnings("javadoc")
 final class Suffix
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -101,7 +102,7 @@ final class Suffix
    *
    * @return A DN2ID instance that can be used to manipulate the DN2ID tree.
    */
-  public DN2ID getDN2ID()
+  DN2ID getDN2ID()
   {
     return entryContainer.getDN2ID();
   }
@@ -111,7 +112,7 @@ final class Suffix
    *
    * @return A ID2Entry instance that can be used to manipulate the ID2Entry tree.
    */
-  public ID2Entry getID2Entry()
+  ID2Entry getID2Entry()
   {
     return entryContainer.getID2Entry();
   }
@@ -121,7 +122,7 @@ final class Suffix
    *
    * @return A DN2URI instance that can be used to manipulate the DN2URI tree.
    */
-  public DN2URI getDN2URI()
+  DN2URI getDN2URI()
   {
     return entryContainer.getDN2URI();
   }
@@ -131,7 +132,7 @@ final class Suffix
    *
    * @return The entry container used to create a suffix instance.
    */
-  public EntryContainer getEntryContainer()
+  EntryContainer getEntryContainer()
   {
     return entryContainer;
   }
@@ -142,7 +143,7 @@ final class Suffix
    *
    * @return A suffixes Attribute Type - Index map.
    */
-  public Map<AttributeType, AttributeIndex> getAttrIndexMap()
+  Map<AttributeType, AttributeIndex> getAttrIndexMap()
   {
     return entryContainer.getAttributeIndexMap();
   }
@@ -166,7 +167,7 @@ final class Suffix
    *
    * @param dn The DN to add to the map.
    */
-  public void addPending(DN dn)
+  void addPending(DN dn)
   {
     pendingMap.putIfAbsent(dn, new CountDownLatch(1));
   }
@@ -177,7 +178,7 @@ final class Suffix
    *
    * @param dn The DN to remove from the map.
    */
-  public void removePending(DN dn)
+  void removePending(DN dn)
   {
     CountDownLatch l = pendingMap.remove(dn);
     if(l != null)
@@ -200,7 +201,7 @@ final class Suffix
    * @throws StorageRuntimeException If an error occurred searching the DN cache, or dn2id tree.
    * @throws InterruptedException If an error occurred processing the pending map
    */
-  public boolean isParentProcessed(DN dn, DNCache dnCache) throws StorageRuntimeException, InterruptedException
+  boolean isParentProcessed(DN dn, DNCache dnCache) throws StorageRuntimeException, InterruptedException
   {
     synchronized(synchObject) {
       if(parentSet.contains(dn))
@@ -239,7 +240,7 @@ final class Suffix
    * @param trusted True if the indexes should be trusted or false otherwise.
    * @throws StorageRuntimeException If an error occurred setting the indexes to trusted.
    */
-  public void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
+  void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
   {
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
@@ -267,7 +268,7 @@ final class Suffix
    *
    * @return  The src entry container.
    */
-  public EntryContainer getSrcEntryContainer()
+  EntryContainer getSrcEntryContainer()
   {
     return this.srcEntryContainer;
   }
@@ -277,7 +278,7 @@ final class Suffix
    *
    * @return The include branches.
    */
-  public List<DN> getIncludeBranches()
+  List<DN> getIncludeBranches()
   {
     return this.includeBranches;
   }
@@ -287,7 +288,7 @@ final class Suffix
    *
    * @return the exclude branches.
    */
-  public List<DN> getExcludeBranches()
+  List<DN> getExcludeBranches()
   {
     return this.excludeBranches;
   }
@@ -297,7 +298,7 @@ final class Suffix
    *
    * @return The base DN.
    */
-  public DN getBaseDN()
+  DN getBaseDN()
   {
     return this.baseDN;
   }
