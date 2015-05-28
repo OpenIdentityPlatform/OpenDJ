@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-getting-directory-info'
@@ -71,11 +70,13 @@
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.GetInfo:--- JCite ---]</programlisting>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/GetInfo.html"
-  xlink:show="new">GetInfo.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="..resources/org/forgerock/opendj/examples/GetInfo.java"
+    xlink:show="new"
+    >GetInfo.java</link>.
+  </para>
 
   <para>Notice that by default you can access the root DSE after authenticating
   anonymously. When you look at the entry in LDIF, you see that supported

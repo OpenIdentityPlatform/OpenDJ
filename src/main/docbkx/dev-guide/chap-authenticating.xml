@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-authenticating'
@@ -78,11 +77,13 @@
   no doubt with fewer rights than the normal user, and surely fewer rights
   than an administrator.</para>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
-  xlink:show="new">SimpleAuth.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/SimpleAuth.java"
+    xlink:show="new"
+   >SimpleAuth.java</link>.
+  </para>
  </section>
  
  <section xml:id="simple-auth-with-starttls-or-ssl">
@@ -130,11 +131,13 @@
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite secure connect ---]</programlisting>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
-  xlink:show="new">SimpleAuth.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/SimpleAuth.java"
+    xlink:show="new"
+   >SimpleAuth.java</link>.
+  </para>
  </section>
  
  <section xml:id="sasl-auth">
@@ -198,10 +201,12 @@ supportedSASLMechanisms: CRAM-MD5</computeroutput>
   <literal>uid</literal> values. If you use another directory server, you might
   have to configure how it maps user IDs to user entries.</para>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SASLAuth.html"
-  xlink:show="new">SASLAuth.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/SASLAuth.java"
+    xlink:show="new"
+   >SASLAuth.java</link>.
+  </para>
  </section>
 </chapter>

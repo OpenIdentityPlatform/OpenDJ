@@ -110,11 +110,12 @@
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.SearchBind:--- JCite ---]</programlisting>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchBind.html"
-  xlink:show="new">SearchBind.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/SearchBind.java"
+    xlink:show="new"
+   >SearchBind.java</link>.</para>
  </section>
 
  <section xml:id="basedn-and-scope">
@@ -307,11 +308,13 @@ try {
   <literal>searchSingleEntry()</literal> methods. If you have the distinguished
   name, you can use <literal>readEntry()</literal> directly.</para>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
-  xlink:show="new">Search.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/Search.java"
+    xlink:show="new"
+   >Search.java</link>.
+  </para>
  </section>
 
  <section xml:id="get-search-results">
@@ -332,11 +335,13 @@ try {
     <programlisting language="java"
     >[jcp:org.forgerock.opendj.examples.Search:--- JCite ---]</programlisting>
 
-    <para>For a complete example in context, see <link
-    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
-    xlink:show="new">Search.java</link>, one of the <link
-    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-    xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+    <para>
+     For a complete example in context, see
+     <link
+      xlink:href="../resources/org/forgerock/opendj/examples/Search.java"
+      xlink:show="new"
+     >Search.java</link>.
+    </para>
    </listitem>
 
    <listitem>
@@ -376,11 +381,13 @@ try {
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.ParseAttributes:--- JCite ---]</programlisting>
 
-  <para>For a complete example in context, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ParseAttributes.html"
-  xlink:show="new">ParseAttributes.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   For a complete example in context, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/ParseAttributes.java"
+    xlink:show="new"
+   >ParseAttributes.java</link>.
+  </para>
  </section>
 
  <section xml:id="handle-ldap-urls">

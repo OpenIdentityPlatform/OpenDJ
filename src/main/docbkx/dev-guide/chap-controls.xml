@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -40,12 +39,12 @@
 
  <para>This chapter demonstrates how to use LDAP controls.</para>
 
- <para>For complete examples corresponding to the excerpts shown below, see
- <link
- xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Controls.html"
- xlink:show="new">Controls.java</link>, one of the <link
- xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
- xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ <para>
+  For complete examples corresponding to the excerpts shown below, see
+  <link
+   xlink:href="../resources/org/forgerock/opendj/examples/Controls.java"
+   xlink:show="new">Controls.java</link>.
+ </para>
 
  <section xml:id="about-ldap-controls">
   <title>About LDAP Controls</title>

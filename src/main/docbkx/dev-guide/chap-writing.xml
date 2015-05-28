@@ -33,12 +33,13 @@
  <para>Modern directory servers like OpenDJ can handle a high load of write
  requests, replicating changes quickly both on the LAN and over the WAN.</para>
 
- <para>For a complete example corresponding to the excerpts shown below, see
- <link
- xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ShortLife.html"
- xlink:show="new">ShortLife.java</link>, one of the <link
- xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
- xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ <para>
+  For a complete example corresponding to the excerpts shown below, see
+  <link
+   xlink:href="../resources/org/forgerock/opendj/examples/ShortLife.java"
+   xlink:show="new"
+  >ShortLife.java</link>.
+ </para>
 
  <section xml:id="about-writes">
   <title>About Add, Modify, Rename, &amp; Delete</title>
@@ -245,12 +246,14 @@
 [../resources/big-group.ldif:group-bottom]
   </programlisting>
 
-  <para>To update a static group, you either add members or remove members.
-  For sample code, see <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/UpdateGroup.html"
-  xlink:show="new">UpdateGroup.java</link>, one of the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+  <para>
+   To update a static group, you either add members or remove members.
+   For sample code, see
+   <link
+    xlink:href="../resources/org/forgerock/opendj/examples/UpdateGroup.java"
+    xlink:show="new"
+   >UpdateGroup.java</link>.
+  </para>
 
   <para>The <literal>UpdateGroup</literal> example checks that the directory
   server supports the Permissive Modify control. With directory servers such

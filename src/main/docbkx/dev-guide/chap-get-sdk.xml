@@ -279,9 +279,10 @@ facsimileTelephoneNumber: +1 408 555 1992</computeroutput>
    <secondary>Java</secondary>
   </indexterm>
 
-  <para>A number of OpenDJ LDAP SDK examples are available online on the <link
-  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
-  xlink:show="new">OpenDJ community site</link>. There you find samples
-  whose excerpts are shown in this guide.</para>
+  <para>
+   To read OpenDJ LDAP SDK samples, browse the examples folder of this guide,
+   <link xlink:href="../resources/org/forgerock/opendj/examples/" xlink:show="new" />.
+   There you find the samples whose excerpts are shown in this guide.
+  </para>
  </section>
 </chapter>
