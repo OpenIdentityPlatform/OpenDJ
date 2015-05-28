@@ -29,11 +29,11 @@
   <parent>
      <artifactId>opendj-project</artifactId>
      <groupId>org.forgerock.opendj</groupId>
-     <version>2.8.0-SNAPSHOT</version>
+     <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>opendj-svn-property-check-maven-plugin</artifactId>
-  <version>2.8.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <name>OpenDJ Check SVN property maven plugin</name>
   <description>
     Checks ForgeRock source file copyrights.
