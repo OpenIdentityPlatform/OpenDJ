@@ -46,6 +46,7 @@ import com.forgerock.opendj.util.Iterators;
  * Represents a set of Entry IDs. It can represent a set where the IDs are not defined, for example when the index entry
  * limit has been exceeded.
  */
+@SuppressWarnings("javadoc")
 final class EntryIDSet implements Iterable<EntryID>
 {
   public static final EntryIDSetCodec CODEC_V1 = new EntryIDSetCodecV1();
@@ -92,18 +93,19 @@ final class EntryIDSet implements Iterable<EntryID>
     EntryIDSet decode(ByteSequence key, ByteString value);
   }
 
-  /**
-   * Concrete implements representing a set of EntryIDs, sorted in ascending order.
-   */
+  /** Concrete implementation representing a set of EntryIDs, sorted in ascending order. */
   private static final class DefinedImpl implements EntryIDSetImplementor
   {
     /**
-     * The IDs are stored here in an array in ascending order. A null array implies not defined, rather than zero IDs.
+     * The IDs are stored here in an array in ascending order.
+     * <p>
+     * \@NotNull
      */
     private long[] entryIDs;
 
     DefinedImpl(long... entryIDs)
     {
+      Reject.ifNull(entryIDs, "entryIDs must not be null");
       this.entryIDs = entryIDs;
     }
 
@@ -153,7 +155,7 @@ final class EntryIDSet implements Iterable<EntryID>
         // the sorted order of the array.
         pos = -(pos + 1);
 
-        long[] updatedValues = new long[entryIDs.length + 1];
+        final long[] updatedValues = new long[entryIDs.length + 1];
         System.arraycopy(entryIDs, 0, updatedValues, 0, pos);
         System.arraycopy(entryIDs, pos, updatedValues, pos + 1, entryIDs.length - pos);
         updatedValues[pos] = id;
@@ -287,7 +289,8 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Concrete implementation the EntryIDs are not defined, for example when the index entry limit has been exceeded.
+   * Concrete implementation where the EntryIDs are not defined, for example when the index entry
+   * limit has been exceeded.
    */
   private static final class UndefinedImpl implements EntryIDSetImplementor
   {
@@ -377,9 +380,7 @@ final class EntryIDSet implements Iterable<EntryID>
     }
   }
 
-  /**
-   * Iterator for a set of Entry IDs. It must return values in order of ID.
-   */
+  /** Iterator for a set of Entry IDs. It must return values in order of ID. */
   private static final class IDSetIterator implements Iterator<EntryID>
   {
     private final long[] entryIDSet;
@@ -574,17 +575,20 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
-   * Creates a new defined entry ID set with the specified ids.
+   * Creates a new defined entry ID set with the specified sorted entryIDs.
+   * <p>
+   * If the provided array is not sorted, then the resulting EntryIDSet will misbehave.
    *
-   * @param ids
-   *          Entry IDs contained in the set.
+   * @param entryIDs
+   *          Sorted Entry IDs contained in the set.
+   * @return A new defined {@link EntryIDSet} containing the provided entryIDs
    * @throws NullPointerException
-   *           if ids is null
+   *           if entryIDs is null
    */
-  static EntryIDSet newDefinedSet(long... ids)
+  static EntryIDSet newDefinedSet(long... entryIDs)
   {
-    checkNotNull(ids, "ids must not be null");
-    return new EntryIDSet(new DefinedImpl(ids));
+    checkNotNull(entryIDs, "ids must not be null");
+    return new EntryIDSet(new DefinedImpl(entryIDs));
   }
 
   private static long[] intersection(long[] set1, long[] set2)
@@ -883,7 +887,7 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   static long addWithoutOverflow(long a, long b) {
-    /** a and b must be > 0 */
+    // a and b must be > 0
     final long result = a + b;
     return result >= 0 ? result : Long.MAX_VALUE;
   }
@@ -981,5 +985,4 @@ final class EntryIDSet implements Iterable<EntryID>
       return 0;
     }
   }
-
 }
