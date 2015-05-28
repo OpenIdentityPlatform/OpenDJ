@@ -24,24 +24,24 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.admin.ads;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The object of this class represent a topology of replicas across servers
- * that have the same suffix DN.  If there is more than one replica on the
- * suffix, the contents of the replicas are replicated.
+ * The object of this class represent a topology of replicas across servers that
+ * have the same suffix DN. If there is more than one replica on the suffix, the
+ * contents of the replicas are replicated.
  */
 public class SuffixDescriptor
 {
   private String suffixDN;
-  private Set<ReplicaDescriptor> replicas = new HashSet<>();
+  private final Set<ReplicaDescriptor> replicas = new HashSet<>();
 
   /**
    * Returns the DN associated with this suffix descriptor.
+   *
    * @return the DN associated with this suffix descriptor.
    */
   public String getDN()
@@ -51,7 +51,9 @@ public class SuffixDescriptor
 
   /**
    * Sets the DN associated with this suffix descriptor.
-   * @param suffixDN the DN associated with this suffix descriptor.
+   *
+   * @param suffixDN
+   *          the DN associated with this suffix descriptor.
    */
   public void setDN(String suffixDN)
   {
@@ -60,8 +62,9 @@ public class SuffixDescriptor
 
   /**
    * Returns the replicas associated with this SuffixDescriptor.
+   *
    * @return a Set containing the replicas associated with this
-   * SuffixDescriptor.
+   *         SuffixDescriptor.
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
@@ -70,8 +73,10 @@ public class SuffixDescriptor
 
   /**
    * Sets the replicas associated with this SuffixDescriptor.
-   * @param replicas a Set containing the replicas associated with this
-   * SuffixDescriptor.
+   *
+   * @param replicas
+   *          a Set containing the replicas associated with this
+   *          SuffixDescriptor.
    */
   public void setReplicas(Set<ReplicaDescriptor> replicas)
   {
@@ -80,8 +85,9 @@ public class SuffixDescriptor
   }
 
   /**
-   * Returns the Set of Replication servers for the whole suffix topology.  The
+   * Returns the Set of Replication servers for the whole suffix topology. The
    * servers are provided in their String representation.
+   *
    * @return the Set of Replication servers for the whole suffix topology.
    */
   public Set<String> getReplicationServers()
@@ -94,7 +100,7 @@ public class SuffixDescriptor
     return replicationServers;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return getId().hashCode();
@@ -102,6 +108,7 @@ public class SuffixDescriptor
 
   /**
    * Returns an Id that is unique for this suffix.
+   *
    * @return an Id that is unique for this suffix.
    */
   public String getId()

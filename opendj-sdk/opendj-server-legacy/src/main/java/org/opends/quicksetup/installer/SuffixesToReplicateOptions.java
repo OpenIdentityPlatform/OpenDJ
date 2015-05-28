@@ -24,8 +24,6 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS
  */
-
-
 package org.opends.quicksetup.installer;
 
 import java.util.LinkedHashSet;
@@ -36,28 +34,22 @@ import org.opends.admin.ads.SuffixDescriptor;
 /**
  * This class is used to provide a data model for the Suffix to Replicate
  * Options panel of the installer.
- *
  */
 public class SuffixesToReplicateOptions
 {
   /**
    * This enumeration is used to know what the user wants to do for the data
    * (import data or not, what use as source of the data...).
-   *
    */
   public enum Type
   {
-    /**
-     * Do not replicate suffix.
-     */
+    /** Do not replicate suffix. */
     NO_SUFFIX_TO_REPLICATE,
-    /**
-     * This is a new suffix in topology..
-     */
+
+    /** This is a new suffix in topology.. */
     NEW_SUFFIX_IN_TOPOLOGY,
-    /**
-     * Replicate Contents of the new Suffix with existings server.
-     */
+
+    /** Replicate Contents of the new Suffix with existings server. */
     REPLICATE_WITH_EXISTING_SUFFIXES
   }
 
@@ -68,55 +60,19 @@ public class SuffixesToReplicateOptions
   /**
    * Constructor for the SuffixesToReplicateOptions object.
    *
-   * If the Data Replicate Options is NO_SUFFIX_TO_REPLICATE or
-   * NEW_SUFFIX_IN_TOPOLOGY no args are considered.
-   *
-   * If the Data Options is REPLICATE_WITH_EXISTING_SUFFIXES a Set of
-   * SuffixDescriptor is passed as argument.
-   *
-   * @param type the Type of DataReplicationOptions.
-   * @param args the different argument objects (depending on the Type
-   * specified)
+   * @param type
+   *          the Type of DataReplicationOptions.
+   * @param availableSuffixes
+   *          The set of suffixes which are available for replication.
+   * @param suffixesToReplicate
+   *          The set of suffixes which user wants to replicate.
    */
-  public SuffixesToReplicateOptions(Type type, Object... args)
+  public SuffixesToReplicateOptions(Type type, Set<SuffixDescriptor> availableSuffixes,
+      Set<SuffixDescriptor> suffixesToReplicate)
   {
     this.type = type;
-
-    switch (type)
-    {
-    case REPLICATE_WITH_EXISTING_SUFFIXES:
-      Set<?> s = (Set<?>)args[0];
-      availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
-      for (Object o: s)
-      {
-        availableSuffixes.add((SuffixDescriptor)o);
-      }
-      s = (Set<?>)args[1];
-      suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
-      for (Object o: s)
-      {
-        suffixesToReplicate.add((SuffixDescriptor)o);
-      }
-      break;
-
-    default:
-      // If there is something put it.
-      if ((args != null) && (args.length > 0))
-      {
-        s = (Set<?>)args[0];
-        availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
-        for (Object o: s)
-        {
-          availableSuffixes.add((SuffixDescriptor)o);
-        }
-        s = (Set<?>)args[1];
-        suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
-        for (Object o: s)
-        {
-          suffixesToReplicate.add((SuffixDescriptor)o);
-        }
-      }
-    }
+    this.availableSuffixes = new LinkedHashSet<>(availableSuffixes);
+    this.suffixesToReplicate = new LinkedHashSet<>(suffixesToReplicate);
   }
 
   /**
@@ -131,25 +87,22 @@ public class SuffixesToReplicateOptions
   }
 
   /**
-   * Returns the set of suffixes that we must replicate with.
-   * If there are no suffixes to replicate with returns null.
+   * Returns the set of suffixes available for replication.
    *
-   * @return the set of suffixes that we must replicate with.
+   * @return the set of suffixes available for replication.
    */
   public Set<SuffixDescriptor> getAvailableSuffixes()
   {
-    return new LinkedHashSet<SuffixDescriptor>(availableSuffixes);
+    return availableSuffixes;
   }
 
   /**
-   * Returns the set of suffixes that we must replicate with.
-   * If there are no suffixes to replicate with returns null.
+   * The set of suffixes that we must replicate with.
    *
    * @return the set of suffixes that we must replicate with.
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
-    return new LinkedHashSet<SuffixDescriptor>(suffixesToReplicate);
+    return suffixesToReplicate;
   }
 }
-

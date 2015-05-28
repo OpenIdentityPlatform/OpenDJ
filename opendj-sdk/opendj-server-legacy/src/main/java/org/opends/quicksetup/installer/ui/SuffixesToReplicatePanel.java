@@ -26,12 +26,15 @@
  */
 package org.opends.quicksetup.installer.ui;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -43,11 +46,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
-
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
@@ -58,22 +62,16 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.messages.QuickSetupMessages.*;
-
 /**
- * This class is used to provide a data model for the list of suffixes that
- * we have to replicate on the new server.
+ * This class is used to provide a data model for the list of suffixes that we
+ * have to replicate on the new server.
  */
-public class SuffixesToReplicatePanel extends QuickSetupStepPanel
-implements Comparator<SuffixDescriptor>
+public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Comparator<SuffixDescriptor>
 {
   private static final long serialVersionUID = -8051367953737385327L;
-  private TreeSet<SuffixDescriptor> orderedSuffixes =
-    new TreeSet<SuffixDescriptor>(this);
-  private HashMap<String, JCheckBox> hmCheckBoxes =
-    new HashMap<String, JCheckBox>();
+
+  private final Set<SuffixDescriptor> orderedSuffixes = new TreeSet<>(this);
+  private final Map<String, JCheckBox> hmCheckBoxes = new HashMap<>();
   /**
    * The display of the server the user provided in the replication options
    * panel.
@@ -87,8 +85,10 @@ implements Comparator<SuffixDescriptor>
 
   /**
    * Constructor of the panel.
-   * @param application Application represented by this panel and used to
-   * initialize the fields of the panel.
+   *
+   * @param application
+   *          Application represented by this panel and used to initialize the
+   *          fields of the panel.
    */
   public SuffixesToReplicatePanel(GuiApplication application)
   {
@@ -96,32 +96,30 @@ implements Comparator<SuffixDescriptor>
     createComponents();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
-    Object value = null;
-
     if (fieldName == FieldName.SUFFIXES_TO_REPLICATE_OPTIONS)
     {
-      value = SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
+      return SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
     }
     else if (fieldName == FieldName.SUFFIXES_TO_REPLICATE)
     {
-      Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
-      for (SuffixDescriptor suffix:orderedSuffixes)
+      Set<SuffixDescriptor> suffixes = new HashSet<>();
+      for (SuffixDescriptor suffix : orderedSuffixes)
       {
         if (hmCheckBoxes.get(suffix.getId()).isSelected())
         {
           suffixes.add(suffix);
         }
       }
-      value = suffixes;
+      return suffixes;
     }
 
-    return value;
+    return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compare(SuffixDescriptor desc1, SuffixDescriptor desc2)
   {
     int result = compareSuffixDN(desc1, desc2);
@@ -132,7 +130,7 @@ implements Comparator<SuffixDescriptor>
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -175,46 +173,36 @@ implements Comparator<SuffixDescriptor>
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void beginDisplay(UserData data)
   {
-    TreeSet<SuffixDescriptor> array = orderSuffixes(
-        data.getSuffixesToReplicateOptions().getAvailableSuffixes());
-
-    AuthenticationData authData =
-      data.getReplicationOptions().getAuthenticationData();
+    Set<SuffixDescriptor> array = orderSuffixes(data.getSuffixesToReplicateOptions().getAvailableSuffixes());
+    AuthenticationData authData = data.getReplicationOptions().getAuthenticationData();
     String newServerDisplay;
-    if (authData != null)
-    {
-      newServerDisplay = authData.getHostName()+":"+authData.getPort();
-    }
-    else
-    {
-      newServerDisplay = "";
-    }
-    if (!array.equals(orderedSuffixes) ||
-        !newServerDisplay.equals(serverToConnectDisplay))
+    newServerDisplay = authData != null ? authData.getHostName() + ":" + authData.getPort() : "";
+
+    if (!array.equals(orderedSuffixes) || !newServerDisplay.equals(serverToConnectDisplay))
     {
       serverToConnectDisplay = newServerDisplay;
-      HashMap<String, Boolean> hmOldValues = new HashMap<String, Boolean>();
+      Map<String, Boolean> hmOldValues = new HashMap<>();
       for (String id : hmCheckBoxes.keySet())
       {
         hmOldValues.put(id, hmCheckBoxes.get(id).isSelected());
@@ -222,10 +210,9 @@ implements Comparator<SuffixDescriptor>
       orderedSuffixes.clear();
       for (SuffixDescriptor suffix : array)
       {
-        if (!Utils.areDnsEqual(suffix.getDN(),
-            ADSContext.getAdministrationSuffixDN()) &&
-            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN) &&
-            !Utils.areDnsEqual(suffix.getDN(), Constants.REPLICATION_CHANGES_DN))
+        if (!Utils.areDnsEqual(suffix.getDN(), ADSContext.getAdministrationSuffixDN())
+            && !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN)
+            && !Utils.areDnsEqual(suffix.getDN(), Constants.REPLICATION_CHANGES_DN))
         {
           orderedSuffixes.add(suffix);
         }
@@ -234,8 +221,7 @@ implements Comparator<SuffixDescriptor>
       for (SuffixDescriptor suffix : orderedSuffixes)
       {
         JCheckBox cb = UIFactory.makeJCheckBox(LocalizableMessage.raw(suffix.getDN()),
-            INFO_SUFFIXES_TO_REPLICATE_DN_TOOLTIP.get(),
-            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+                INFO_SUFFIXES_TO_REPLICATE_DN_TOOLTIP.get(), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         cb.setOpaque(false);
         Boolean v = hmOldValues.get(suffix.getId());
         if (v != null)
@@ -246,21 +232,18 @@ implements Comparator<SuffixDescriptor>
       }
       populateCheckBoxPanel();
     }
-    boolean display = orderedSuffixes.size() > 0;
 
+    boolean display = !orderedSuffixes.isEmpty();
     noSuffixLabel.setVisible(!display);
     labelGlue.setVisible(!display);
     scroll.setVisible(display);
   }
 
-  /**
-   * Creates the components of this panel.
-   */
+  /** Creates the components of this panel. */
   private void createComponents()
   {
-    noSuffixLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        INFO_SUFFIX_LIST_EMPTY.get(),
-        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    noSuffixLabel = UIFactory.makeJLabel(
+        UIFactory.IconType.NO_ICON, INFO_SUFFIX_LIST_EMPTY.get(), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
   private void populateCheckBoxPanel()
@@ -290,19 +273,16 @@ implements Comparator<SuffixDescriptor>
       JEditorPane l = UIFactory.makeTextPane(
               LocalizableMessage.raw(getSuffixString(suffix)),
               UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-      l.setOpaque(false);
 
       /* Use a prototype label to get the additional insets */
-      JEditorPane proto = UIFactory.makeTextPane(
-              LocalizableMessage.raw(suffix.getDN()),
-          UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+      JEditorPane proto =
+          UIFactory.makeTextPane(LocalizableMessage.raw(suffix.getDN()), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
-      gbc.insets.top += Math.abs(cb.getPreferredSize().height -
-          proto.getPreferredSize().height) / 2;
+      gbc.insets.top += Math.abs(cb.getPreferredSize().height - proto.getPreferredSize().height) / 2;
       gbc.gridx = 1;
       checkBoxPanel.add(l, gbc);
       first = false;
-      gbc.gridy ++;
+      gbc.gridy++;
     }
     gbc.weighty = 1.0;
     gbc.insets = UIFactory.getEmptyInsets();
@@ -312,13 +292,13 @@ implements Comparator<SuffixDescriptor>
 
   private String getSuffixString(SuffixDescriptor desc)
   {
-    TreeSet<LocalizableMessage> replicaDisplays = new TreeSet<LocalizableMessage>();
-    for (ReplicaDescriptor rep: desc.getReplicas())
+    Set<LocalizableMessage> replicaDisplays = new TreeSet<>();
+    for (ReplicaDescriptor rep : desc.getReplicas())
     {
       replicaDisplays.add(getReplicaDisplay(rep));
     }
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-    for (LocalizableMessage display: replicaDisplays)
+    for (LocalizableMessage display : replicaDisplays)
     {
       if (buf.length() > 0)
       {
@@ -331,42 +311,28 @@ implements Comparator<SuffixDescriptor>
 
   private LocalizableMessage getReplicaDisplay(ReplicaDescriptor replica)
   {
-    LocalizableMessage display;
-
     ServerDescriptor server = replica.getServer();
-
-    String serverDisplay;
-    if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
-    {
-      serverDisplay = serverToConnectDisplay;
-    }
-    else
-    {
-      serverDisplay = server.getHostPort(true);
-    }
+    boolean isServerToConnect = server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay);
+    String serverDisplay = isServerToConnect ? serverToConnectDisplay : server.getHostPort(true);
 
     int nEntries = replica.getEntries();
-
     if (nEntries > 0)
     {
-      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(serverDisplay, nEntries);
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(serverDisplay, nEntries);
     }
     else if (nEntries == 0)
     {
-      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_NO_ENTRIES.get(serverDisplay);
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_NO_ENTRIES.get(serverDisplay);
     }
     else
     {
-      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(serverDisplay);
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(serverDisplay);
     }
-
-    return display;
   }
 
-  private TreeSet<SuffixDescriptor> orderSuffixes(
-      Set<SuffixDescriptor> suffixes)
+  private Set<SuffixDescriptor> orderSuffixes(Set<SuffixDescriptor> suffixes)
   {
-    TreeSet<SuffixDescriptor> ordered = new TreeSet<SuffixDescriptor>(this);
+    Set<SuffixDescriptor> ordered = new TreeSet<>(this);
     ordered.addAll(suffixes);
 
     return ordered;
@@ -377,10 +343,9 @@ implements Comparator<SuffixDescriptor>
     return desc1.getDN().compareTo(desc2.getDN());
   }
 
-  private int compareSuffixStrings(SuffixDescriptor desc1,
-      SuffixDescriptor desc2)
+  private int compareSuffixStrings(SuffixDescriptor desc1, SuffixDescriptor desc2)
   {
     return getSuffixString(desc1).compareTo(getSuffixString(desc2));
   }
-}
 
+}
