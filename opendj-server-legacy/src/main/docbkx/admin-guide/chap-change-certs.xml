@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013-2014 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS.
   !
 -->
 <chapter xml:id='chap-change-certs'
@@ -163,8 +162,8 @@ Keystore provider: SUN
 
 Your keystore contains 1 entry
 
-admin-cert, Mar 15, 2013, PrivateKeyEntry,
-Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</computeroutput>
+admin-cert, May 20, 2015, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 21:9F:F0:E8:A3:22:A3:62:1D:C7:04:BD:12:44:A6:FA:0C:3F:3A:35</computeroutput>
 $ <userinput>keytool -list -keystore admin-truststore -storepass `cat admin-keystore.pin`</userinput>
 
 <computeroutput>Keystore type: JKS
@@ -172,8 +171,8 @@ Keystore provider: SUN
 
 Your keystore contains 1 entry
 
-admin-cert, Mar 15, 2013, trustedCertEntry,
-Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</computeroutput>
+admin-cert, May 20, 2015, trustedCertEntry,
+Certificate fingerprint (SHA1): 21:9F:F0:E8:A3:22:A3:62:1D:C7:04:BD:12:44:A6:FA:0C:3F:3A:35</computeroutput>
    </screen>
 
    <para>This alias is also stored in the server configuration.</para>
@@ -234,6 +233,7 @@ $ <userinput>keytool \
 $ <userinput>keytool \
  -selfcert \
  -alias admin-cert \
+ -validity 7300 \
  -keystore admin-keystore \
  -storepass `cat admin-keystore.pin`</userinput>
      </screen>
@@ -278,12 +278,12 @@ $ <userinput>keytool \
  -file admin-cert.crt</userinput>
 <computeroutput>Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 Issuer: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
-Serial number: 904fc2b
-Valid from: Fri Mar 15 15:15:20 CET 2013 until: Thu Jun 13 16:15:20 CEST 2013
+Serial number: 4cdd42a
+Valid from: Thu May 28 11:32:05 CEST 2015 until: Wed May 23 11:32:05 CEST 2035
 Certificate fingerprints:
-  MD5:  DD:2A:A1:3A:39:87:DF:02:15:A4:8A:9D:77:89:F1:E4
-  SHA1: E1:99:82:92:D7:9B:28:B7:93:D2:B5:5B:C9:DA:4E:D2:62:C2:E7:B0
-  SHA256: C5:34:9C:04:E2:87:A9:B1:72:B5:...:99:86:3A:02:28:D0:AB:02:5F:F4:BE
+  MD5:  40:38:24:5D:DD:BE:EC:D6:07:56:08:25:95:D9:61:FE
+  SHA1: BC:3D:A9:26:CD:4E:71:04:44:16:1E:A5:79:DA:43:2A:65:E8:85:85
+  SHA256: D3:41:EE:44:5A:54:74:11:5A:...:9F:8F:08:13:09:DD:71:52:7E:35:66:7E
   Signature algorithm name: SHA256withRSA
   Version: 3
 
@@ -297,8 +297,8 @@ SubjectAlternativeName [
 #2: ObjectId: 2.5.29.14 Criticality=false
 SubjectKeyIdentifier [
 KeyIdentifier [
-0000: FE 33 69 67 FF E8 64 F6   D3 FB CD 14 1C D3 01 44  .3ig..d........D
-0010: EE 62 40 DD                                        .b@.
+0000: 08 E3 D3 62 AA 68 E6 02   52 25 F8 22 C4 43 82 2D  ...b.h..R%.".C.-
+0010: 20 C1 39 99                                         .9.
 ]
 ]
 
