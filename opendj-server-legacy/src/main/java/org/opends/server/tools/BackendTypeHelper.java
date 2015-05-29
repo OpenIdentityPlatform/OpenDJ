@@ -94,6 +94,18 @@ public class BackendTypeHelper
       return backend.getUserFriendlyName().toString();
     }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+      return obj instanceof BackendTypeUIAdapter && ((BackendTypeUIAdapter) obj).toString().equals(toString());
+    }
+
+    @Override
+    public int hashCode()
+    {
+      return super.hashCode();
+    }
+
     /**
      * Return the adapted backend object.
      *

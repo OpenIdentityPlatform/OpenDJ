@@ -157,6 +157,9 @@ public enum FieldName
   /** The value associated with this is a Set of SuffixDescriptor. */
   SUFFIXES_TO_REPLICATE,
 
+  /** The value associated with this is a Map with String keys and BackendTypeUIAdapter values. */
+  SUFFIXES_TO_REPLICATE_BACKEND_TYPE,
+
   /** The value associated with this is a SuffixesToReplicateOptions.Type. */
   SUFFIXES_TO_REPLICATE_OPTIONS
 }

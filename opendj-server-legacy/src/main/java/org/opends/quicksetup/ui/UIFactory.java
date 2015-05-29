@@ -404,6 +404,8 @@ public class UIFactory
     SUBSECTION_RIGHT,
     /** Question icon. */
     HELP_SMALL,
+    /** Question medium icon. */
+    HELP_MEDIUM,
     /** Hourglass to display when the user must wait. */
     WAIT,
     /** 8 x 8 Hourglass to display when the user must wait. */
@@ -1340,6 +1342,10 @@ public class UIFactory
       key = INFO_HELP_SMALL_ICON.get();
       break;
 
+    case HELP_MEDIUM:
+      key = INFO_HELP_MEDIUM_ICON.get();
+      break;
+
     case ERROR:
       key = INFO_ERROR_ICON.get();
       break;
@@ -1413,6 +1419,7 @@ public class UIFactory
       return INFO_SUBSECTION_RIGHT_ICON_DESCRIPTION.get();
 
     case HELP_SMALL:
+    case HELP_MEDIUM:
       return INFO_HELP_SMALL_ICON_DESCRIPTION.get();
 
     case WAIT_TINY:
@@ -1480,6 +1487,7 @@ public class UIFactory
     case SUBSECTION_LEFT:
     case SUBSECTION_RIGHT:
     case HELP_SMALL:
+    case HELP_MEDIUM:
     case WAIT_TINY:
     case WAIT:
     case NO_ICON:
