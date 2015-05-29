@@ -196,6 +196,26 @@
       </plugin>
 
       <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-doc-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>generate-result-code-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-result-code-doc</goal>
+            </goals>
+            <configuration>
+              <resultCodeSource>opendj-core/src/main/java/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
+              <xmlFile>${project.build.directory}/docbkx-sources/dev-guide/appendix-ldap-result-codes.xml</xmlFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
         <inherited>false</inherited>

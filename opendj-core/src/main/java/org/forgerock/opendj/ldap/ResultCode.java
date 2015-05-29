@@ -196,9 +196,6 @@ public final class ResultCode {
 
     private static final Map<Integer, ResultCode> ELEMENTS = new LinkedHashMap<>();
 
-    private static final List<ResultCode> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(new ArrayList<ResultCode>(
-            ELEMENTS.values()));
-
     /**
      * The result code that should only be used if the actual result code has
      * not yet been determined.
@@ -866,6 +863,9 @@ public final class ResultCode {
         }
         return result;
     }
+
+    private static final List<ResultCode> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(new ArrayList<ResultCode>(
+            ELEMENTS.values()));
 
     /**
      * Returns an unmodifiable list containing the set of available result codes

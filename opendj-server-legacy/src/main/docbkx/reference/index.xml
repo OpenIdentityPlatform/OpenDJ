@@ -194,6 +194,14 @@
  <xinclude:include href="../shared/glossary.xml" />
 
  <xinclude:include href="appendix-rest2ldap.xml" />
+ <xinclude:include href="appendix-ldap-result-codes.xml">
+  <xinclude:fallback>
+   <appendix>
+    <title>LDAP Result Codes Missing</title>
+    <para>The generated LDAP result codes appendix is missing.</para>
+   </appendix>
+  </xinclude:fallback>
+ </xinclude:include>
  <xinclude:include href='appendix-file-layout.xml' />
  <xinclude:include href='appendix-ports-used.xml' />
  <xinclude:include href='appendix-standards.xml' />
