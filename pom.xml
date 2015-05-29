@@ -179,8 +179,8 @@
                   <groupId>org.forgerock.opendj</groupId>
                   <artifactId>opendj-ldap-sdk-examples</artifactId>
                   <version>${project.version}</version>
-                  <classifier>examples</classifier>
-                  <outputDirectory>${project.build.directory}/docbkx-sources</outputDirectory>
+                  <classifier>sources</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/resources</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.forgerock.opendj</groupId>
