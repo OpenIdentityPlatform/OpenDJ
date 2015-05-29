@@ -28,7 +28,8 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Troubleshooting Server Problems</title>
  <indexterm><primary>Troubleshooting</primary></indexterm>
  
@@ -80,6 +81,13 @@
   lines in the command output of the following form.</para>
   
   <literallayout class="monospaced">See /var/....log for a detailed log of this operation.</literallayout>
+
+  <para>
+   Prevent anti-virus and intrusion detection systems from interfering
+   with OpenDJ directory server.
+  </para>
+
+  <xinclude:include href="../shared/para-disable-anti-virus.xml" />
  </section>
 
  <section xml:id="troubleshoot-reset-admin-passwords">

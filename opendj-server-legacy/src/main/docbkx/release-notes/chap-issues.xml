@@ -27,7 +27,8 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
 
  <para>This chapter covers the status of key issues and limitations for OpenDJ
@@ -95,6 +96,10 @@
     <para>OpenDJ replication is designed to permit an unlimited number
     of replication servers in your topology. Project testing has, however,
     focused only on topologies of up to eight replication servers.</para>
+   </listitem>
+
+   <listitem>
+    <xinclude:include href="../shared/para-disable-anti-virus.xml" />
    </listitem>
 
    <listitem>

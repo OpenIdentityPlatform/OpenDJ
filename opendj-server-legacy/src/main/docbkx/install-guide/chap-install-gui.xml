@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -201,6 +200,15 @@ $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></user
     First, you install the files by using the Windows installer package wizard.
     Second, you configure OpenDJ by using the <command>setup</command> command.
    </para>
+
+   <step>
+    <para>
+     Prevent anti-virus and intrusion detection systems from interfering
+     with OpenDJ directory server.
+    </para>
+
+    <xinclude:include href="../shared/para-disable-anti-virus.xml" />
+   </step>
 
    <step>
     <para>
