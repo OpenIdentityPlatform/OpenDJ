@@ -63,6 +63,15 @@
    version.</para>
   </step>
 
+  <step>
+   <para>
+    Prevent anti-virus and intrusion detection systems from interfering
+    with OpenDJ directory server.
+   </para>
+
+   <xinclude:include href="../shared/para-disable-anti-virus.xml" />
+  </step>
+
   <step xml:id="download-opendj">
    <indexterm><primary>Downloading OpenDJ</primary></indexterm>
    
