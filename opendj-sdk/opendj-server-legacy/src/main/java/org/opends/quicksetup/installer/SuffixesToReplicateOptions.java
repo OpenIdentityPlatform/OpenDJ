@@ -26,10 +26,13 @@
  */
 package org.opends.quicksetup.installer;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 
 /**
  * This class is used to provide a data model for the Suffix to Replicate
@@ -56,6 +59,7 @@ public class SuffixesToReplicateOptions
   private Type type;
   private Set<SuffixDescriptor> availableSuffixes;
   private Set<SuffixDescriptor> suffixesToReplicate;
+  private Map<String, BackendTypeUIAdapter> backendsToReplicate;
 
   /**
    * Constructor for the SuffixesToReplicateOptions object.
@@ -70,9 +74,29 @@ public class SuffixesToReplicateOptions
   public SuffixesToReplicateOptions(Type type, Set<SuffixDescriptor> availableSuffixes,
       Set<SuffixDescriptor> suffixesToReplicate)
   {
+    this(type, availableSuffixes, suffixesToReplicate, new HashMap<String, BackendTypeUIAdapter>());
+  }
+
+  /**
+   * Constructor for the SuffixesToReplicateOptions object.
+   *
+   * @param type
+   *          the Type of DataReplicationOptions.
+   * @param availableSuffixes
+   *          The set of suffixes which are available for replication.
+   * @param suffixesToReplicate
+   *          The set of suffixes which user wants to replicate.
+   * @param backendsToReplicate
+   *          The map with backend name as keys and their associated backend type
+   *          as value.
+   */
+  public SuffixesToReplicateOptions(Type type, Set<SuffixDescriptor> availableSuffixes,
+      Set<SuffixDescriptor> suffixesToReplicate, Map<String, BackendTypeUIAdapter> backendsToReplicate)
+  {
     this.type = type;
     this.availableSuffixes = new LinkedHashSet<>(availableSuffixes);
     this.suffixesToReplicate = new LinkedHashSet<>(suffixesToReplicate);
+    this.backendsToReplicate = new HashMap<>(backendsToReplicate);
   }
 
   /**
@@ -104,5 +128,15 @@ public class SuffixesToReplicateOptions
   public Set<SuffixDescriptor> getSuffixes()
   {
     return suffixesToReplicate;
+  }
+
+  /**
+   * Returns a map which associate backend names and backend types.
+   *
+   * @return A map which associate backend names and backend types.
+   */
+  public Map<String, BackendTypeUIAdapter> getSuffixBackendTypes()
+  {
+    return backendsToReplicate;
   }
 }

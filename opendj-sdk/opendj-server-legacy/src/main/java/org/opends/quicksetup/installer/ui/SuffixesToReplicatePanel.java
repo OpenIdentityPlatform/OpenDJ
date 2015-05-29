@@ -31,26 +31,30 @@ import static org.opends.messages.QuickSetupMessages.*;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.Box;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
-import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
@@ -60,7 +64,11 @@ import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.UIFactory.IconType;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.tools.BackendTypeHelper;
+import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 
 /**
  * This class is used to provide a data model for the list of suffixes that we
@@ -70,8 +78,11 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
 {
   private static final long serialVersionUID = -8051367953737385327L;
 
+  private static final Insets SUFFIXES_TO_REPLICATE_INSETS = new Insets(4, 4, 4, 4);
+
   private final Set<SuffixDescriptor> orderedSuffixes = new TreeSet<>(this);
   private final Map<String, JCheckBox> hmCheckBoxes = new HashMap<>();
+  private final Map<String, JComboBox<BackendTypeUIAdapter>> backendTypeComboBoxes = new HashMap<>();
   /**
    * The display of the server the user provided in the replication options
    * panel.
@@ -105,18 +116,38 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     }
     else if (fieldName == FieldName.SUFFIXES_TO_REPLICATE)
     {
-      Set<SuffixDescriptor> suffixes = new HashSet<>();
-      for (SuffixDescriptor suffix : orderedSuffixes)
-      {
-        if (hmCheckBoxes.get(suffix.getId()).isSelected())
-        {
-          suffixes.add(suffix);
-        }
-      }
-      return suffixes;
+      return getSelectedSuffixes();
+    }
+    else if (fieldName == FieldName.SUFFIXES_TO_REPLICATE_BACKEND_TYPE)
+    {
+      return getSelectedSuffixBackendTypes();
     }
 
     return null;
+  }
+
+  private Set<SuffixDescriptor> getSelectedSuffixes()
+  {
+    Set<SuffixDescriptor> suffixes = new HashSet<>();
+    for (SuffixDescriptor suffix : orderedSuffixes)
+    {
+      if (hmCheckBoxes.get(suffix.getId()).isSelected())
+      {
+        suffixes.add(suffix);
+      }
+    }
+    return suffixes;
+  }
+
+  private Map<String, BackendTypeUIAdapter> getSelectedSuffixBackendTypes()
+  {
+    final Map<String, BackendTypeUIAdapter> backendTypes = new HashMap<>();
+    for (SuffixDescriptor suffix : getSelectedSuffixes())
+    {
+      final String backendName = suffix.getReplicas().iterator().next().getBackendName();
+      backendTypes.put(backendName, (BackendTypeUIAdapter) backendTypeComboBoxes.get(backendName).getSelectedItem());
+    }
+    return backendTypes;
   }
 
   @Override
@@ -142,9 +173,8 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets = UIFactory.getEmptyInsets();
-
     gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
-    gbc.insets.left = UIFactory.LEFT_INSET_SUBPANEL_SUBORDINATE;
+    gbc.insets.left = UIFactory.LEFT_INSET_BACKGROUND;
 
     // Add the checkboxes
     checkBoxPanel = new JPanel(new GridBagLayout());
@@ -154,9 +184,9 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     scroll = UIFactory.createBorderLessScrollBar(checkBoxPanel);
-
     panel.add(scroll, gbc);
 
+    gbc.insets.left = UIFactory.LEFT_INSET_SUBPANEL_SUBORDINATE;
     gbc.weighty = 0.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
@@ -249,40 +279,27 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
   private void populateCheckBoxPanel()
   {
     checkBoxPanel.removeAll();
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridy = 0;
+    final GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.anchor = GridBagConstraints.NORTH;
-    boolean first = true;
-    for (SuffixDescriptor suffix : orderedSuffixes)
+    gbc.insets = SUFFIXES_TO_REPLICATE_INSETS;
+    gbc.gridy = 0;
+
+    final Map<String, Set<SuffixDescriptor>> backendToSuffixes = getSuffixesForBackends();
+    for (Map.Entry<String, Set<SuffixDescriptor>> backendData : backendToSuffixes.entrySet())
     {
-      gbc.insets.left = 0;
-      gbc.weightx = 0.0;
-      if (!first)
+      gbc.anchor = GridBagConstraints.LINE_START;
+      gbc.gridwidth = 1;
+      gbc.gridheight = 1;
+      for (SuffixDescriptor suffix : backendData.getValue())
       {
-        gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
+        gbc.gridx = 0;
+        final JCheckBox cb = hmCheckBoxes.get(suffix.getId());
+        checkBoxPanel.add(cb, gbc);
+        printReplicaTooltipButton(suffix, gbc);
+        gbc.gridy++;
       }
-      gbc.gridwidth = GridBagConstraints.RELATIVE;
-      JCheckBox cb = hmCheckBoxes.get(suffix.getId());
-      cb.setVerticalAlignment(SwingConstants.TOP);
-      gbc.gridx = 0;
-      checkBoxPanel.add(cb, gbc);
-      gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
-      gbc.weightx = 1.0;
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      JEditorPane l = UIFactory.makeTextPane(
-              LocalizableMessage.raw(getSuffixString(suffix)),
-              UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-
-      /* Use a prototype label to get the additional insets */
-      JEditorPane proto =
-          UIFactory.makeTextPane(LocalizableMessage.raw(suffix.getDN()), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-
-      gbc.insets.top += Math.abs(cb.getPreferredSize().height - proto.getPreferredSize().height) / 2;
-      gbc.gridx = 1;
-      checkBoxPanel.add(l, gbc);
-      first = false;
-      gbc.gridy++;
+      printBackendInformations(backendData, gbc);
+      printSeparatorLine(gbc);
     }
     gbc.weighty = 1.0;
     gbc.insets = UIFactory.getEmptyInsets();
@@ -290,15 +307,135 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     checkBoxPanel.add(Box.createVerticalGlue(), gbc);
   }
 
+  private Map<String, Set<SuffixDescriptor>> getSuffixesForBackends()
+  {
+    final Map<String, Set<SuffixDescriptor>> backendToSuffixes = new HashMap<>();
+    for (SuffixDescriptor suffix : orderedSuffixes)
+    {
+      final String backendName = suffix.getReplicas().iterator().next().getBackendName();
+      if (!backendToSuffixes.containsKey(backendName))
+      {
+        backendToSuffixes.put(backendName, new LinkedHashSet<SuffixDescriptor>());
+      }
+      backendToSuffixes.get(backendName).add(suffix);
+    }
+
+    return backendToSuffixes;
+  }
+
+  private void printReplicaTooltipButton(SuffixDescriptor suffix, GridBagConstraints gbc)
+  {
+    gbc.gridx++;
+    String imageDesc = "<html>";
+    for (ReplicaDescriptor replica : suffix.getReplicas())
+    {
+      imageDesc += getServerDisplay(replica) + "<br>";
+    }
+    final int entriesNb = suffix.getReplicas().iterator().next().getEntries();
+    final LocalizableMessage entriesNbToPrint = getNumberOfEntriesMsg(entriesNb);
+    imageDesc += entriesNbToPrint + "</html>";
+
+    final JLabel helpReplicasTooltip = new JLabel();
+    helpReplicasTooltip.setIcon(UIFactory.getImageIcon(IconType.HELP_MEDIUM));
+    helpReplicasTooltip.setToolTipText(imageDesc);
+    UIFactory.setTextStyle(helpReplicasTooltip, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    checkBoxPanel.add(helpReplicasTooltip, gbc);
+  }
+
+  private LocalizableMessage getNumberOfEntriesMsg(int nEntries)
+  {
+    if (nEntries > 0)
+    {
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(nEntries);
+    }
+    else if (nEntries == 0)
+    {
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_NO_ENTRIES.get();
+    }
+    else
+    {
+      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get();
+    }
+  }
+
+  private void printBackendInformations(Map.Entry<String, Set<SuffixDescriptor>> backendData, GridBagConstraints gbc)
+  {
+    final int nbSuffixForBackend = backendData.getValue().size();
+    gbc.gridy -= nbSuffixForBackend;
+    printBackendNameText(backendData, gbc);
+    printComboBoxForSuffix(backendData.getValue().iterator().next(), gbc);
+    gbc.gridy += nbSuffixForBackend;
+  }
+
+  private void printSeparatorLine(GridBagConstraints gbc)
+  {
+    gbc.gridwidth = gbc.gridx;
+    gbc.gridx = 0;
+    checkBoxPanel.add(new JSeparator(SwingConstants.HORIZONTAL), gbc);
+    gbc.gridy++;
+  }
+
+  private void printBackendNameText(Entry<String, Set<SuffixDescriptor>> backendData, GridBagConstraints gbc)
+  {
+    gbc.gridx++;
+    final JEditorPane backendNameText = UIFactory.makeTextPane(
+        LocalizableMessage.raw(backendData.getKey()), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    backendNameText.setToolTipText(INFO_REPLICATED_SUFFIXES_BACKEND_NAME_TOOLTIP.get().toString());
+    gbc.anchor = GridBagConstraints.CENTER;
+    checkBoxPanel.add(backendNameText, gbc);
+  }
+
+  private void printComboBoxForSuffix(SuffixDescriptor suffix, GridBagConstraints gbc)
+  {
+    gbc.gridx++;
+    gbc.anchor = GridBagConstraints.LINE_END;
+    gbc.insets = UIFactory.getEmptyInsets();
+    final ReplicaDescriptor backendData = suffix.getReplicas().iterator().next();
+    final JComboBox<BackendTypeUIAdapter> backendTypeComboBox =
+        new JComboBox<>(new BackendTypeHelper().getBackendTypeUIAdaptors());
+    backendTypeComboBox.setToolTipText(INFO_REPLICATED_SUFFIXES_BACKEND_TYPE_TOOLTIP.get().toString());
+    final Set<String> objectClasses = backendData.getObjectClasses();
+    backendTypeComboBox.setSelectedItem(getBackendTypeFromObjectClasses(objectClasses));
+    backendTypeComboBoxes.put(backendData.getBackendName(), backendTypeComboBox);
+    checkBoxPanel.add(backendTypeComboBox, gbc);
+    gbc.insets = SUFFIXES_TO_REPLICATE_INSETS;
+  }
+
+  /**
+   * Returns the concrete backend type corresponding to the provided object
+   * classes. If the backend is not found, returns the default backend of this
+   * server configuration.
+   *
+   * @param objectClasses
+   *          The set of object class with one should be a concrete backend
+   *          type.
+   * @return The concrete backend type corresponding to object classes or this
+   *         server default one.
+   */
+  private BackendTypeUIAdapter getBackendTypeFromObjectClasses(Set<String> objectClasses)
+  {
+    for (String objectClass : objectClasses)
+    {
+      BackendTypeUIAdapter adapter =
+          BackendTypeHelper.getBackendTypeAdapter(objectClass.replace(ConfigConstants.NAME_PREFIX_CFG, ""));
+      if (adapter != null)
+      {
+        return adapter;
+      }
+    }
+
+    return new BackendTypeHelper().getBackendTypeUIAdaptors()[0];
+  }
+
   private String getSuffixString(SuffixDescriptor desc)
   {
-    Set<LocalizableMessage> replicaDisplays = new TreeSet<>();
+    Set<String> replicaDisplays = new TreeSet<>();
     for (ReplicaDescriptor rep : desc.getReplicas())
     {
-      replicaDisplays.add(getReplicaDisplay(rep));
+      replicaDisplays.add(getServerDisplay(rep));
     }
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-    for (LocalizableMessage display : replicaDisplays)
+    for (String display : replicaDisplays)
     {
       if (buf.length() > 0)
       {
@@ -309,25 +446,10 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     return buf.toString();
   }
 
-  private LocalizableMessage getReplicaDisplay(ReplicaDescriptor replica)
+  private String getServerDisplay(ReplicaDescriptor replica)
   {
-    ServerDescriptor server = replica.getServer();
-    boolean isServerToConnect = server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay);
-    String serverDisplay = isServerToConnect ? serverToConnectDisplay : server.getHostPort(true);
-
-    int nEntries = replica.getEntries();
-    if (nEntries > 0)
-    {
-      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(serverDisplay, nEntries);
-    }
-    else if (nEntries == 0)
-    {
-      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_NO_ENTRIES.get(serverDisplay);
-    }
-    else
-    {
-      return INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(serverDisplay);
-    }
+    final boolean isServerToConnect = replica.getServer().getHostPort(false).equalsIgnoreCase(serverToConnectDisplay);
+    return isServerToConnect ? serverToConnectDisplay : replica.getServer().getHostPort(true);
   }
 
   private Set<SuffixDescriptor> orderSuffixes(Set<SuffixDescriptor> suffixes)

@@ -126,7 +126,6 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.util.CertificateManager;
@@ -1556,11 +1555,9 @@ public abstract class Installer extends GuiApplication
 
     // The keys are the backend IDs and the values the list of base DNs.
     final Map<String, Set<String>> hmBackendSuffix = new HashMap<>();
-    final Map<String, BackendTypeUIAdapter> backendTypes = new HashMap<>();
-    final Set<SuffixDescriptor> suffixes = getUserData().getSuffixesToReplicateOptions().getSuffixes();
-
-    populateBackendsToCreate(hmBackendSuffix, suffixes, backendTypes);
-    createReplicatedBackends(hmBackendSuffix, backendTypes);
+    final SuffixesToReplicateOptions suffixData = getUserData().getSuffixesToReplicateOptions();
+    populateBackendsToCreate(hmBackendSuffix, suffixData.getSuffixes());
+    createReplicatedBackends(hmBackendSuffix, suffixData.getSuffixBackendTypes());
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
   }
@@ -1570,8 +1567,7 @@ public abstract class Installer extends GuiApplication
    * configuration of the other server. The algorithm consists on putting the
    * remote servers in a list and pick the backend as they appear on the list.
    */
-  private void populateBackendsToCreate(Map<String, Set<String>> hmBackendSuffix, Set<SuffixDescriptor> suffixes,
-      Map<String, BackendTypeUIAdapter> backendTypes)
+  private void populateBackendsToCreate(Map<String, Set<String>> hmBackendSuffix, Set<SuffixDescriptor> suffixes)
   {
     Set<ServerDescriptor> serverList = getServerListFromSuffixes(suffixes);
     for (SuffixDescriptor suffix : suffixes)
@@ -1581,7 +1577,6 @@ public abstract class Installer extends GuiApplication
       {
         final String backendNameKey = getOrAddBackend(hmBackendSuffix, replica.getBackendName());
         hmBackendSuffix.get(backendNameKey).add(suffix.getDN());
-        backendTypes.put(backendNameKey, getBackendType(replica.getObjectClasses()));
       }
     }
   }
@@ -1609,20 +1604,6 @@ public abstract class Installer extends GuiApplication
         {
           return replica;
         }
-      }
-    }
-    return null;
-  }
-
-  private BackendTypeUIAdapter getBackendType(Set<String> objectClasses)
-  {
-    for (String objectClass : objectClasses)
-    {
-      BackendTypeUIAdapter adapter =
-          BackendTypeHelper.getBackendTypeAdapter(objectClass.replace(ConfigConstants.NAME_PREFIX_CFG, ""));
-      if (adapter != null)
-      {
-        return adapter;
       }
     }
     return null;
@@ -3509,6 +3490,7 @@ public abstract class Installer extends GuiApplication
    * @throws UserDataException
    *           if the data provided by the user is not valid.
    */
+  @SuppressWarnings("unchecked")
   private void updateUserDataForSuffixesOptionsPanel(QuickSetup qs) throws UserDataException
   {
     List<LocalizableMessage> errorMsgs = new ArrayList<>();
@@ -3530,10 +3512,10 @@ public abstract class Installer extends GuiApplication
         }
         qs.displayFieldInvalid(FieldName.SUFFIXES_TO_REPLICATE, false);
         Set<SuffixDescriptor> available = getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes();
-
-        SuffixesToReplicateOptions options =
-            new SuffixesToReplicateOptions(SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES, available,
-                chosen);
+        Map<String, BackendTypeUIAdapter> suffixesBackendTypes =
+            (Map<String, BackendTypeUIAdapter>) qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE_BACKEND_TYPE);
+        SuffixesToReplicateOptions options = new SuffixesToReplicateOptions(
+            SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES, available, chosen, suffixesBackendTypes);
         getUserData().setSuffixesToReplicateOptions(options);
       }
       getUserData().setRemoteWithNoReplicationPort(getRemoteWithNoReplicationPort(getUserData()));
