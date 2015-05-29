@@ -25,10 +25,8 @@
 package org.forgerock.opendj.maven.doc;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.maven.doc.Utils.*;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateExceptionHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,13 +34,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.forgerock.opendj.ldap.schema.CoreSchemaSupportedLocales;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,12 +70,9 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
         final String localeReference = getLocalesAndSubTypesDocumentation(currentLocale);
         final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.xml");
         try {
-            createOutputDirectory();
             writeStringToFile(localeReference, localeReferenceFile);
-        } catch (FileNotFoundException e) {
-            throw new MojoFailureException("Failed to write doc reference file.", e);
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to create output directory");
+            throw new MojoExecutionException("Failed to write " + localeReferenceFile.getPath());
         }
     }
 
@@ -102,73 +92,8 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
         return applyTemplate("sec-locales-subtypes.ftl", map);
     }
 
-    /**
-     * Create the output directory if it does not exist.
-     * @throws IOException  Failed to create the directory.
-     */
-    private void createOutputDirectory() throws IOException {
-        if (outputDirectory != null && !outputDirectory.exists()) {
-            if (!outputDirectory.mkdirs()) {
-                throw new IOException("Failed to create output directory.");
-            }
-        }
-    }
-
-    /**
-     * Writes a string to a file.
-     * @param string    The string to write.
-     * @param file      The file to write to.
-     * @throws FileNotFoundException The file did not exist, or could not be created for writing.
-     */
-    private void writeStringToFile(final String string, final File file) throws FileNotFoundException {
-        PrintWriter printWriter = new PrintWriter(file);
-        printWriter.print(string);
-        printWriter.close();
-    }
-
     private final Map<String, String> localeTagsToOids =
             CoreSchemaSupportedLocales.getJvmSupportedLocaleNamesToOids();
-
-    /** FreeMarker template configuration. */
-    private Configuration configuration;
-
-    /**
-     * Returns a FreeMarker configuration for applying templates.
-     * @return A FreeMarker configuration for applying templates.
-     */
-    private Configuration getConfiguration() {
-        if (configuration == null) {
-            configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
-            configuration.setClassForTemplateLoading(GenerateSchemaDocMojo.class, "/templates");
-            configuration.setDefaultEncoding("UTF-8");
-            configuration.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
-        }
-        return configuration;
-    }
-
-    /**
-     * Returns the String result from applying a FreeMarker template.
-     * @param template The name of a template file found in {@code resources/templates/}.
-     * @param map      The map holding the data to use in the template.
-     * @return The String result from applying a FreeMarker template.
-     */
-    private String applyTemplate(final String template, final Map<String, Object> map) {
-        // FreeMarker requires a configuration to find the template.
-        configuration = getConfiguration();
-
-        // FreeMarker takes the data and a Writer to process the template.
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Writer writer = new OutputStreamWriter(outputStream);
-        try {
-            Template configurationTemplate = configuration.getTemplate(template);
-            configurationTemplate.process(map, writer);
-            return outputStream.toString();
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            org.forgerock.util.Utils.closeSilently(writer, outputStream);
-        }
-    }
 
     /** Container for documentation regarding a locale. */
     private class LocaleDoc {

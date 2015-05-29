@@ -27,16 +27,23 @@ package org.forgerock.opendj.maven.doc;
 
 import static org.forgerock.util.Utils.*;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -44,6 +51,7 @@ import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -96,9 +104,7 @@ public final class Utils {
         if (original == null) {
             throw new IOException("Could not read input to copy.");
         }
-        if (!copy.exists() && !copy.createNewFile()) {
-            throw new IOException("Failed to create " + copy);
-        }
+        createFile(copy);
         OutputStream outputStream = new FileOutputStream(copy);
         int bytesRead;
         byte[] buffer = new byte[4096];
@@ -108,6 +114,32 @@ public final class Utils {
         closeSilently(original, outputStream);
     }
 
+    /**
+     * Writes a string to a file.
+     * @param string    The string to write
+     * @param file      The file to write to
+     * @throws IOException  The file did not exist, or could not be created for writing.
+     */
+    static void writeStringToFile(final String string, final File file) throws IOException {
+        createFile(file);
+        PrintWriter printWriter = new PrintWriter(file);
+        printWriter.print(string);
+        printWriter.close();
+    }
+
+    /**
+     * Creates a file including parent directories if it does not yet exist.
+     * @param file          The file to create
+     * @throws IOException  Failed to create the file
+     */
+    private static void createFile(File file) throws IOException {
+        if (!file.exists()) {
+            createDirectory(file.getParent());
+            if (!file.createNewFile()) {
+                throw new IOException("Failed to create " + file.getPath());
+            }
+        }
+    }
 
     /**
      * Returns the classpath for the class loader and its parent.
@@ -169,6 +201,47 @@ public final class Utils {
             }
         }
         debugClassPathElements(classLoader.getParent(), log);
+    }
+
+    /** FreeMarker template configuration. */
+    static Configuration configuration;
+
+    /**
+     * Returns a FreeMarker configuration for applying templates.
+     * @return A FreeMarker configuration for applying templates.
+     */
+    static Configuration getConfiguration() {
+        if (configuration == null) {
+            configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+            configuration.setClassForTemplateLoading(Utils.class, "/templates");
+            configuration.setDefaultEncoding("UTF-8");
+            configuration.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
+        }
+        return configuration;
+    }
+
+    /**
+     * Returns the String result from applying a FreeMarker template.
+     * @param template The name of a template file found in {@code resources/templates/}.
+     * @param map      The map holding the data to use in the template.
+     * @return The String result from applying a FreeMarker template.
+     */
+    static String applyTemplate(final String template, final Map<String, Object> map) {
+        // FreeMarker requires a configuration to find the template.
+        configuration = getConfiguration();
+
+        // FreeMarker takes the data and a Writer to process the template.
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Writer writer = new OutputStreamWriter(outputStream);
+        try {
+            Template configurationTemplate = configuration.getTemplate(template);
+            configurationTemplate.process(map, writer);
+            return outputStream.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            org.forgerock.util.Utils.closeSilently(writer, outputStream);
+        }
     }
 
     private Utils() {

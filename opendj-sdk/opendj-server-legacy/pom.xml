@@ -1950,6 +1950,18 @@
                   </messageFileNames>
                 </configuration>
               </execution>
+
+              <execution>
+                <id>generate-result-code-doc</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>generate-result-code-doc</goal>
+                </goals>
+                <configuration>
+                  <resultCodeSource>../opendj-core/src/main/java/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
+                  <xmlFile>${project.build.directory}/docbkx-sources/reference/appendix-ldap-result-codes.xml</xmlFile>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
 

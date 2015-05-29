@@ -131,6 +131,14 @@
   </xinclude:include>
  </reference>
 
+ <xinclude:include href="appendix-ldap-result-codes.xml">
+  <xinclude:fallback>
+   <appendix>
+    <title>LDAP Result Codes Missing</title>
+    <para>The generated LDAP result codes appendix is missing.</para>
+   </appendix>
+  </xinclude:fallback>
+ </xinclude:include>
  <xinclude:include href="../shared/glossary.xml" />
 
  <index />
