@@ -105,13 +105,15 @@ public final class Utils {
             throw new IOException("Could not read input to copy.");
         }
         createFile(copy);
-        OutputStream outputStream = new FileOutputStream(copy);
-        int bytesRead;
-        byte[] buffer = new byte[4096];
-        while ((bytesRead = original.read(buffer)) > 0) {
-            outputStream.write(buffer, 0, bytesRead);
+        try (OutputStream outputStream = new FileOutputStream(copy)) {
+            int bytesRead;
+            byte[] buffer = new byte[4096];
+            while ((bytesRead = original.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } finally {
+            closeSilently(original);
         }
-        closeSilently(original, outputStream);
     }
 
     /**
@@ -231,16 +233,13 @@ public final class Utils {
         configuration = getConfiguration();
 
         // FreeMarker takes the data and a Writer to process the template.
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Writer writer = new OutputStreamWriter(outputStream);
-        try {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                Writer writer = new OutputStreamWriter(outputStream)) {
             Template configurationTemplate = configuration.getTemplate(template);
             configurationTemplate.process(map, writer);
             return outputStream.toString();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            org.forgerock.util.Utils.closeSilently(writer, outputStream);
         }
     }
 
