@@ -103,7 +103,7 @@ public class BackendTypeHelper
     @Override
     public int hashCode()
     {
-      return super.hashCode();
+      return toString().hashCode();
     }
 
     /**

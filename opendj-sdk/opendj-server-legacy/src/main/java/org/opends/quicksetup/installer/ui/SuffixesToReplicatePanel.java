@@ -26,6 +26,7 @@
  */
 package org.opends.quicksetup.installer.ui;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -52,7 +53,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -434,16 +434,7 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     {
       replicaDisplays.add(getServerDisplay(rep));
     }
-    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-    for (String display : replicaDisplays)
-    {
-      if (buf.length() > 0)
-      {
-        buf.append("\n");
-      }
-      buf.append(display);
-    }
-    return buf.toString();
+    return joinAsString("\n", replicaDisplays);
   }
 
   private String getServerDisplay(ReplicaDescriptor replica)
