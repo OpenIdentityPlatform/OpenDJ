@@ -26,7 +26,6 @@
 package org.forgerock.opendj.maven.doc;
 
 import static org.forgerock.opendj.maven.doc.Utils.*;
-import static org.forgerock.util.Utils.*;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -225,17 +224,13 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      * @throws IOException  Failed to write the content of the input stream.
      */
     private void writeToFile(final InputStream input, final File output) throws IOException {
-        FileWriter writer = null;
-        try {
-            writer = new FileWriter(output);
+        try (FileWriter writer = new FileWriter(output)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
             String line;
             while ((line = reader.readLine()) != null) {
                 writer.write(line);
                 writer.write(EOL);
             }
-        } finally {
-            closeSilently(writer);
         }
     }
 
@@ -252,8 +247,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         // Read from a copy of the page.
         final File pageCopy = new File(page.getPath() + ".tmp");
         copyFile(page, pageCopy);
-        final BufferedReader reader = new BufferedReader(new FileReader(pageCopy));
-        try {
+        try (final BufferedReader reader = new BufferedReader(new FileReader(pageCopy))) {
             // Write first to the page, then to pages named according to marker values.
             File output = page;
             getLog().info("Rewriting man page: " + page.getPath());
@@ -275,8 +269,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             if (!pageCopy.delete()) {
                 throw new IOException("Failed to delete " +  pageCopy.getName());
             }
-        } finally {
-            closeSilently(reader);
         }
     }
 
