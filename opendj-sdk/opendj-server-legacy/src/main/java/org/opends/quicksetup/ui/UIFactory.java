@@ -1291,81 +1291,50 @@ public class UIFactory
    */
   private static String getIconPath(IconType iconType)
   {
-    LocalizableMessage key;
+    return getParentPackagePath() + "/" + getKey(iconType);
+  }
+
+  private static LocalizableMessage getKey(IconType iconType)
+  {
     switch (iconType)
     {
     case CURRENT_STEP:
-      key = INFO_CURRENT_STEP_ICON.get();
-      break;
-
+      return INFO_CURRENT_STEP_ICON.get();
     case SPLASH:
-      key = INFO_SPLASH_ICON.get();
-      break;
-
+      return INFO_SPLASH_ICON.get();
     case BACKGROUND:
-      key = INFO_BACKGROUND_ICON.get();
-      break;
-
+      return INFO_BACKGROUND_ICON.get();
     case MINIMIZED:
-      key = INFO_MINIMIZED_ICON.get();
-      break;
-
+      return INFO_MINIMIZED_ICON.get();
     case MINIMIZED_MAC:
-      key = INFO_MINIMIZED_MAC_ICON.get();
-      break;
-
+      return INFO_MINIMIZED_MAC_ICON.get();
     case WARNING:
-      key = INFO_WARNING_ICON.get();
-      break;
-
+      return INFO_WARNING_ICON.get();
     case WARNING_LARGE:
-      key = INFO_WARNING_LARGE_ICON.get();
-      break;
-
+      return INFO_WARNING_LARGE_ICON.get();
     case INFORMATION:
-      key = INFO_INFORMATION_ICON.get();
-      break;
-
+      return INFO_INFORMATION_ICON.get();
     case INFORMATION_LARGE:
-      key = INFO_INFORMATION_LARGE_ICON.get();
-      break;
-
+      return INFO_INFORMATION_LARGE_ICON.get();
     case SUBSECTION_LEFT:
-      key = INFO_SUBSECTION_LEFT_ICON.get();
-      break;
-
+      return INFO_SUBSECTION_LEFT_ICON.get();
     case SUBSECTION_RIGHT:
-      key = INFO_SUBSECTION_RIGHT_ICON.get();
-      break;
-
+      return INFO_SUBSECTION_RIGHT_ICON.get();
     case HELP_SMALL:
-      key = INFO_HELP_SMALL_ICON.get();
-      break;
-
+      return INFO_HELP_SMALL_ICON.get();
     case HELP_MEDIUM:
-      key = INFO_HELP_MEDIUM_ICON.get();
-      break;
-
+      return INFO_HELP_MEDIUM_ICON.get();
     case ERROR:
-      key = INFO_ERROR_ICON.get();
-      break;
-
+      return INFO_ERROR_ICON.get();
     case ERROR_LARGE:
-      key = INFO_ERROR_LARGE_ICON.get();
-      break;
-
+      return INFO_ERROR_LARGE_ICON.get();
     case WAIT_TINY:
-      key = INFO_WAIT_TINY.get();
-      break;
-
+      return INFO_WAIT_TINY.get();
     case WAIT:
-      key = INFO_WAIT.get();
-      break;
-
+      return INFO_WAIT.get();
     default:
       throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
-    return getParentPackagePath() + "/" + key;
   }
 
   /**
