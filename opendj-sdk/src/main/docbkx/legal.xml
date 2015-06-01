@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <legalnotice xml:id='legalnotice'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -41,12 +40,12 @@
   >Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported
   License</link>.</para></caption>
  </mediaobject>
- 
+
  <para>To view a copy of this license, visit
  <link>http://creativecommons.org/licenses/by-nc-nd/3.0/</link> or send a
  letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View,
  California, 94041, USA.</para>
-  
+
  <para>Trademarks are the property of their respective owners.</para>
 
  <para>UNLESS OTHERWISE MUTUALLY AGREED BY THE PARTIES IN WRITING, LICENSOR
@@ -57,13 +56,13 @@
  DEFECTS, ACCURACY, OR THE PRESENCE OF ABSENCE OF ERRORS, WHETHER OR NOT
  DISCOVERABLE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED
  WARRANTIES, SO SUCH EXCLUSION MAY NOT APPLY TO YOU.</para>
- 
+
  <para>EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL
  LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INCIDENTAL,
  CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR
  THE USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF
  SUCH DAMAGES.</para>
- 
+
  <para>DejaVu Fonts</para>
  <para>Bitstream Vera Fonts Copyright</para>
  <para>Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream

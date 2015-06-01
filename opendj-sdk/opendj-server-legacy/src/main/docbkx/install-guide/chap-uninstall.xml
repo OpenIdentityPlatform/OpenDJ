@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-uninstall'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -31,7 +30,7 @@
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Removing OpenDJ Servers</title>
  <indexterm><primary>Uninstalling</primary></indexterm>
- 
+
  <itemizedlist>
   <para>This chapter includes the following procedures.</para>
 
@@ -41,7 +40,7 @@
   <listitem><para><xref linkend="uninstall-msi" /></para></listitem>
   <listitem><para><xref linkend="uninstall-rpm" /></para></listitem>
  </itemizedlist>
- 
+
  <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
@@ -71,7 +70,7 @@
   <step>
    <para>When the process is finished, you might still have some files
    to remove manually.</para>
-   
+
    <mediaobject xml:id="figure-uninstall-finished">
     <imageobject>
      <imagedata fileref="images/uninstall-finished.png" format="PNG" />
@@ -85,19 +84,19 @@
 
  <procedure xml:id="uninstall-cli">
   <title>To Uninstall OpenDJ On the Command Line</title>
-  
+
   <step>
    <para>Login as the user who installed and runs the server.</para>
   </step>
-  
+
   <step>
    <para>Run the <command>/path/to/opendj/uninstall --cli</command> command.</para>
-   
+
    <para>This command starts the removal program in interactive mode on the
    command line, prompting you for each option. Alternatively, use additional
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
-   
+
    <screen>
 $ <userinput>/path/to/opendj/uninstall --cli</userinput>
 <computeroutput>Do you want to remove all components of the server or select the components to
@@ -108,11 +107,11 @@ remove?
 
     q)  quit
 
-Enter choice [1]: 
+Enter choice [1]:
 
 The server is currently running and must be stopped before uninstallation can
 continue.
-Stop the Server and permanently delete the files? (yes / no) [yes]: 
+Stop the Server and permanently delete the files? (yes / no) [yes]:
 
 Stopping Directory Server ..... Done.
 Deleting Files under the Installation Path ..... Done.
@@ -128,7 +127,7 @@ See /var/....log for a detailed log of this operation.</computeroutput>
   <step>
    <para>If the command output tells you to delete files manually, then remove
    those remaining files to complete the process.</para>
- 
+
    <screen>
 $ <userinput>rm -rf /path/to/opendj</userinput>
    </screen>

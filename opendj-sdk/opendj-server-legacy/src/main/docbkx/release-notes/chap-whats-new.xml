@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-whats-new'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -33,7 +32,7 @@
 
   <para>Compared to the OpenDJ <?eval ${docPreviousVersion}?> release, OpenDJ
   <?eval ${docTargetVersion}?> provides the following new features.</para>
-  
+
   <itemizedlist>
 
     <listitem>

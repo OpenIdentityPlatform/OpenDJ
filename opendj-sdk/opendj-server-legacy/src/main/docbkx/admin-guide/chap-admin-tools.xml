@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-admin-tools'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -35,7 +34,7 @@
  <para>OpenDJ server software installs with a cross-platform, Java Swing-based
  Control Panel for many day-to-day tasks. OpenDJ server software also installs
  command-line tools for configuration and management tasks.</para>
- 
+
  <para>This chapter is one of the few to include screen shots of the control
  panel. Most examples make use of the command-line tools. Once you understand
  the concepts, and how to perform a task using the command-line tools, you
@@ -45,10 +44,10 @@
  <para>At a protocol level, administration tools and interfaces connect to
  servers through a different network port than that used to listen for traffic
  from other client applications.</para>
- 
+
  <para>This chapter takes a quick look at the tools for managing directory
  services.</para>
- 
+
  <section xml:id="control-panel">
   <title>Control Panel</title>
   <indexterm><primary>Control panel</primary></indexterm>
@@ -56,7 +55,7 @@
   managing both local and remote servers. You choose the server to manage
   when you start the Control Panel. The Control Panel connects to the
   administration server port, making a secure LDAPS connection.</para>
-  
+
   <itemizedlist>
    <para>
     Start OpenDJ Control Panel by running the
@@ -77,7 +76,7 @@
     <para>(Mac OS X) Double-click <filename>/path/to/opendj/bin/ControlPanel.app</filename>.</para>
    </listitem>
   </itemizedlist>
-  
+
   <para>When you login to OpenDJ Control Panel, you authenticate over LDAP.
   This means that if users can run the Control Panel, they can use it to manage
   a running server. Yet, to start and stop the server process through OpenDJ
@@ -85,7 +84,7 @@
   runs, as the user who owns the OpenDJ server files (such as the user who
   installed OpenDJ). In other words, the OpenDJ Control Panel does not do
   remote process management.</para>
-  
+
   <mediaobject xml:id="figure-opendj-control-panel">
    <imageobject>
     <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
@@ -166,7 +165,7 @@
     </listitem>
    </varlistentry>
   </variablelist>
-   
+
  </section>
 
  <xinclude:include href="../shared/sec-cli-overview.xml" />

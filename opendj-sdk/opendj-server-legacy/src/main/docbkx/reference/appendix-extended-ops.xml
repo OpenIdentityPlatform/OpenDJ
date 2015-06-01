@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <appendix xml:id='appendix-extended-ops'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,12 +29,12 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>LDAP Extended Operations</title>
- 
+
  <para>Extended operations allow additional operations to be defined for
  services not already available in the protocol</para>
 
  <para>OpenDJ software supports the following LDAP extended operations.</para>
- 
+
  <variablelist>
   <varlistentry xml:id="cancel-extended-request">
    <term>Cancel Extended Request</term>

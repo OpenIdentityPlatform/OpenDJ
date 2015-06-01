@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <chapter xml:id='chap-mv-servers'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -31,7 +30,7 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Moving Servers</title>
  <indexterm><primary>Moving servers</primary></indexterm>
- 
+
  <para>When you change where OpenDJ is deployed, you must take host names,
  port numbers, and certificates into account. The changes can also affect
  your replication configuration. This chapter shows what to do when moving
@@ -40,15 +39,15 @@
   <primary>Replication</primary>
   <secondary>Moving servers</secondary>
  </indexterm>
- 
+
  <section xml:id="moving-servers-overview">
   <title>Overview</title>
-  
+
   <para>From time to time you might change server hardware, file system layout,
   or host names. At those times you move the services running on the system.
   You can move OpenDJ data between servers and operating systems. Most of the
   configuration is also portable.</para>
- 
+
   <indexterm><primary>Certificates</primary></indexterm>
   <itemizedlist>
    <para>Two aspects of the configuration are not portable.</para>
@@ -67,19 +66,19 @@
     disabling replication for the server before the move, and then enabling and
     initializing replication again after the move.</para>
    </listitem>
-  </itemizedlist>  
+  </itemizedlist>
  </section>
- 
+
  <section xml:id="before-moving-servers">
   <title>Before You Move</title>
-  
+
   <para>Take a moment to determine whether you find it quicker and easier to
   move your server, or instead to recreate a copy. To recreate a copy, install
   a new server, set up the new server configuration to match the old, and then
   copy only the data from the old server to the new server, initializing
   replication from existing data, or even from LDIF if your database is not
   too large.</para>
-  
+
   <para>After you decide to move a server, start by taking it out of
   service. Taking it out of service means directing client applications
   elsewhere, and then preventing updates from client applications, and finally
@@ -88,10 +87,10 @@
   configuration. The other two steps can be completed with the
   <command>dsconfig</command> and <command>dsreplication</command>
   commands.</para>
-  
+
   <procedure xml:id="remove-server">
    <title>To Take the Server Out of Service</title>
-   
+
    <step>
     <para>Direct client applications to other servers.</para>
     <para>How you do this depends on your network and client application
@@ -158,19 +157,19 @@ $ <userinput>stop-ds</userinput>
     <para>You might also choose to remove extra log files from the server
     <filename>logs/</filename> directory before moving the server.</para>
    </step>
-  </procedure>  
+  </procedure>
  </section>
 
  <section xml:id="moving-servers">
   <title>Moving a Server</title>
-  
+
   <para>Now that you have decided to move your server, and prepared for the
   move, you must not only move the files but also fix the configuration and
   the server certificates, and then enable replication.</para>
-  
+
   <procedure xml:id="mv-one-server">
    <title>To Move the Server</title>
-   
+
    <step>
     <para>Move the contents of the server installation directory to the new
     location.</para>

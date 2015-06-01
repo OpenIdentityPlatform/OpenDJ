@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-backup-restore'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -36,7 +35,7 @@
  to backup and to restore OpenDJ data from archives, and explains portability
  of backup archives, as well as backing up server configuration
  information.</para>
- 
+
  <section xml:id="backup">
   <title>Backing Up Directory Data</title>
   <indexterm><primary>Backup</primary></indexterm>
@@ -44,7 +43,7 @@
   OpenDJ, as a location to save binary backups. When you create a backup,
   the <filename>bak/backup.info</filename> contains information about the
   archive.</para>
-  
+
   <para>Archives produced by the <command>backup</command> command contain
   backups only of the directory data. Backups of server configuration are
   found in <filename>config/archived-configs/</filename>.</para>
@@ -158,13 +157,13 @@ $ <userinput>backup \
     </stepalternatives>
    </step>
   </procedure>
-  
+
   <procedure xml:id="schedule-backup">
    <title>To Schedule Data Backup</title>
-   
+
    <para>You can schedule online data backup using <command>crontab</command>
    format.</para>
-   
+
    <step>
     <para>Back up all user data every night at 2 AM, and notify
     diradmin@example.com when finished, or on error.</para>
@@ -227,10 +226,10 @@ scheduled successfully</computeroutput>
    <primary>Restoring</primary>
    <secondary>From backup</secondary>
   </indexterm>
-  
+
   <para>When you restore data, the procedure to follow depends on whether
   the OpenDJ directory server is replicated.</para>
-  
+
   <procedure xml:id="restore-standalone-server">
    <title>To Restore a Stand-alone Server</title>
 
@@ -302,14 +301,14 @@ $ <userinput>restore \
     </stepalternatives>
    </step>
   </procedure>
-  
+
   <procedure xml:id="restore-replica">
    <title>To Restore a Replica</title>
    <indexterm>
     <primary>Replication</primary>
     <secondary>Restoring from backup</secondary>
    </indexterm>
-   
+
    <para>After you restore a replica from backup, replication brings the replica
    up to date with changes that happened after you created the backup. In order
    to bring the replica up to date, replication must apply changes that

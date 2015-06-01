@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-account-lockout'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,7 +29,7 @@
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Implementing Account Lockout &amp; Notification</title>
- 
+
  <para>OpenDJ directory server supports automatic account lockout.
  The aim of account lockout is not to punish users who mistype their
  passwords, but instead to protect the directory against attacks
@@ -42,7 +41,7 @@
  lockout, you can opt to have OpenDJ directory server unlock the account
  again after a specified interval, or you can leave the account locked
  until the password is reset.</para>
- 
+
  <note>
   <para>When you configure account lockout as part of password policy, OpenDJ
   locks an account after the specified number of consecutive authentication
@@ -52,7 +51,7 @@
   access to multiple replicas could try to authenticate up to the specified
   number of times on each replica before being locked out on all replicas.</para>
  </note>
-  
+
  <para>
   This chapter shows you how to set up account lockout policies by using the
   <link
@@ -67,7 +66,7 @@
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>manage-account</command></link> command.
  </para>
- 
+
  <section xml:id="configure-account-lockout">
   <title>Configuring Account Lockout</title>
   <indexterm><primary>Accounts</primary><secondary>Lockout</secondary></indexterm>
@@ -75,12 +74,12 @@
   demonstrates configuring account lockout as part of the default password
   policy. Users are allowed three consecutive failures before being locked out
   for five minutes. Failures themselves also expire after five minutes.</para>
-  
+
   <para>Change the default password policy to activate lockout using the
   <command>dsconfig</command> command. As the password policy is part of
   the server configuration, you must manually apply the changes to each
   replica in a replication topology.</para>
-  
+
   <screen>
 $ <userinput>dsconfig \
  set-password-policy-prop \
@@ -98,7 +97,7 @@ $ <userinput>dsconfig \
 
   <para>Users having the default password policy are then locked out after
   three failed attempts in succession.</para>
-  
+
   <screen>
 $ <userinput>ldapsearch \
  --port 1389 \
@@ -151,14 +150,14 @@ $ <userinput>ldapsearch \
 Result Code:  49 (Invalid Credentials)</computeroutput>
   </screen>
  </section>
- 
+
  <section xml:id="manage-accounts">
   <title>Managing Accounts Manually</title>
-  
+
   <para>This section covers disabling and enabling accounts by using the
   <command>manage-account</command> command. Password reset is covered in
   the chapter on performing LDAP operations.</para>
-  
+
   <para>For the following examples, the directory admin user, Kirsten Vaughan,
   has <literal>ds-privilege-name: password-reset</literal>, and the following
   ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
@@ -168,7 +167,7 @@ Result Code:  49 (Invalid Credentials)</computeroutput>
  version 3.0;acl "Admins can run amok"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
   </programlisting>
-  
+
   <procedure xml:id="disable-account">
    <title>To Disable an Account</title>
    <indexterm>
@@ -179,7 +178,7 @@ Result Code:  49 (Invalid Credentials)</computeroutput>
    <step>
     <para>Set the account status to disabled with the
     <command>manage-account</command> command.</para>
-    
+
     <screen>
 $ <userinput>manage-account \
  set-account-is-disabled \
@@ -193,7 +192,7 @@ $ <userinput>manage-account \
     </screen>
    </step>
   </procedure>
-  
+
   <procedure xml:id="reactivate-account">
    <title>To Activate a Disabled Account</title>
    <indexterm>
@@ -204,7 +203,7 @@ $ <userinput>manage-account \
    <step>
     <para>Clear the disabled status using the <command>manage-account</command>
     command.</para>
-    
+
     <screen>
 $ <userinput>manage-account \
  clear-account-is-disabled \
@@ -218,7 +217,7 @@ $ <userinput>manage-account \
    </step>
   </procedure>
  </section>
- 
+
  <section xml:id="account-status-notification">
   <title>Managing Account Status Notification</title>
   <indexterm>
@@ -230,14 +229,14 @@ $ <userinput>manage-account \
   SMTP server to send messages, and needs templates for the mail it sends.
   By default, message templates are in English, under
   <filename>/path/to/opendj/config/messages/</filename>.</para>
-  
+
   <para>OpenDJ generates notifications only when OpenDJ writes to an entry or
   evaluates a user entry for authentication. OpenDJ generates account enabled
   and account disabled notifications when the user account is enabled or
   disabled with the <command>manage-account</command> command, which writes
   to the entry. OpenDJ generates password expiration notifications when a
   user tries to bind.</para>
-  
+
   <para>For example, if you set up OpenDJ to send a notification about password
   expiration, that notification gets triggered when the user authenticates
   during the password expiration warning interval. OpenDJ does not
@@ -248,14 +247,14 @@ $ <userinput>manage-account \
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
   Controls</citetitle></link> for a list. You can send notifications then
   based on the results of your search.</para>
-  
+
   <procedure xml:id="mail-account-status-notifications">
    <title>To Mail Users About Account Status</title>
-   
+
    <para>The following steps demonstrate how to set up notifications. Whether
    OpenDJ sends notifications depends on the settings in the password policy,
    and on account activity as described above.</para>
-   
+
    <step>
     <para>Identify the SMTP server to which OpenDJ sends messages.</para>
 
@@ -271,7 +270,7 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
     </screen>
    </step>
-   
+
    <step>
     <para>Set up OpenDJ to be able to mail users about account status.</para>
 
@@ -299,7 +298,7 @@ $ <userinput>dsconfig \
     <filename>config/messages</filename> directory. You can edit the templates
     to suit your purposes.</para>
    </step>
-   
+
    <step>
     <para>Adjust applicable password policies to use the account status
     notification handler you configured.</para>
@@ -318,7 +317,7 @@ $ <userinput>dsconfig \
     </screen>
    </step>
   </procedure>
-  
+
   <variablelist xml:id="about-message-templates">
    <title>About Notification Message Templates</title>
    <indexterm>
