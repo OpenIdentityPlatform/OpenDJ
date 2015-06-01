@@ -41,6 +41,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * Store a counter associated to a key. Counter value is sharded amongst multiple keys to allow concurrent
  * update without contention (at the price of a slower read).
  */
+@SuppressWarnings("javadoc")
 final class ID2Count extends AbstractTree
 {
   /**
@@ -70,7 +71,7 @@ final class ID2Count extends AbstractTree
           @Override
           public Long transform(ByteString key, ByteString value) throws NeverThrowsException
           {
-            return value.toLong();
+            return fromValue(value);
           }
         });
   }
@@ -98,7 +99,7 @@ final class ID2Count extends AbstractTree
       public ByteSequence computeNewValue(ByteSequence oldValue)
       {
         final long currentValue = oldValue != null ? oldValue.asReader().getLong() : 0;
-        return ByteString.valueOf(currentValue + delta);
+        return toValue(currentValue + delta);
       }
     });
   }
@@ -118,13 +119,32 @@ final class ID2Count extends AbstractTree
   {
     Reject.ifNull(importer, "importer must not be null");
     final ByteSequence shardedKey = getShardedKey(entryID);
-    importer.put(getName(), shardedKey, ByteString.valueOf(delta));
+    importer.put(getName(), shardedKey, toValue(delta));
   }
 
   private ByteSequence getShardedKey(EntryID entryID)
   {
     final long bucket = (Thread.currentThread().getId() & (SHARD_COUNT - 1));
     return getKeyFromEntryIDAndBucket(entryID, bucket);
+  }
+
+  ByteSequence toKey(EntryID entryID)
+  {
+    if (entryID == null)
+    {
+      entryID = TOTAL_COUNT_ENTRY_ID;
+    }
+    return getShardedKey(entryID);
+  }
+
+  ByteString toValue(final long count)
+  {
+    return ByteString.valueOf(count);
+  }
+
+  long fromValue(ByteString value)
+  {
+    return value.toLong();
   }
 
   /**
@@ -144,7 +164,6 @@ final class ID2Count extends AbstractTree
         cursor.next();
       }
     }
-
     return counterValue;
   }
 
