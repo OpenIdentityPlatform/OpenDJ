@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -94,7 +93,7 @@
    <item name="SDK Developer Guide" href="./doc/bootstrap/dev-guide/index.html" />
    <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />
   </menu>
-  
+
   <menu name="OpenDJ Development" inherit="top">
     <item name="Source Repository" href="source-repository.html" />
     <item name="Continuous Integration" href="integration.html" />

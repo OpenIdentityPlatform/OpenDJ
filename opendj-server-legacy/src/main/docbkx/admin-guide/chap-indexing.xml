@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-indexing'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -34,48 +33,48 @@
  <indexterm>
   <primary>Indexes</primary>
  </indexterm>
- 
+
  <para>OpenDJ provides several indexing schemes to speed up searches.</para>
- 
+
  <para>When a client requests a directory search operation, the client sends
  the server a filter expression such as
  <literal>(&amp;(uid=*jensen*)(l=Stavanger))</literal>. The server then uses
  applicable indexes to find entries with attribute values likely to match
  the search. If no indexes are applicable, then the server potentially has
  to go through all entries to look for candidate matches.</para>
- 
+
  <para>Looking through all entries is resource-intensive for large directories.
  For this reason, the <literal>unindexed-search</literal> privilege, allowing
  users to request searches for which no applicable index exists, is reserved
  for the directory root user by default.</para>
- 
+
  <para>Rather than granting the <literal>unindexed-search</literal> privilege
  to more users and client applications, you configure indexes to correspond
  to the searches that clients need to perform. See
  <xref linkend="debug-search-indexes" /> for details.</para>
- 
+
  <para>This chapter first describes index types, and demonstrates how to
  index attribute values. This chapter also lists the default indexing
  configuration for OpenDJ directory server.</para>
- 
+
  <section xml:id="indexes-overview">
   <title>Index Types &amp; What Each Does</title>
-  
+
   <para>OpenDJ provides several different index types, each corresponding
   to a different type of search.</para>
-  
+
   <section xml:id="indexes-approximate">
    <title>Approximate Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Approximate</secondary>
    </indexterm>
-   
+
    <para>An approximate index is used to match values that "sound like" those
    provided in the filter. An approximate index on <literal>cn</literal>
    allows clients to find people even when they misspell names as in the
    following example.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn~=Babs Jansen)" cn</userinput>
 <computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -83,40 +82,40 @@ cn: Barbara Jensen
 cn: Babs Jensen</computeroutput>
    </screen>
   </section>
-  
+
   <section xml:id="indexes-equality">
    <title>Equality Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Equality</secondary>
    </indexterm>
-   
+
    <para>An equality index is used to match values that correspond exactly
    (though generally without case sensitivity) to the value provided in
    the search filter. An equality index requires clients to match values
    without wildcards or misspellings.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)" mail</userinput>
 <computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com</computeroutput>
    </screen>
   </section>
-  
+
   <section xml:id="indexes-ordering">
    <title>Ordering Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Ordering</secondary>
    </indexterm>
-   
+
    <para>An ordering index is used to match values for a filter that
    specifies a range. The <literal>ds-sync-hist</literal> has an ordering
    index by default because searches on that attribute often seek entries
    with changes more recent than the last time a search was performed.</para>
-   
+
    <para>The following example shows a search that specifies ranges.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com \
  "(&amp;(uidNumber&gt;=1120)(roomNumber&gt;=4500))" uid</userinput>
@@ -133,19 +132,19 @@ dn: uid=pchassin,ou=People,dc=example,dc=com
 uid: pchassin</computeroutput>
    </screen>
   </section>
-  
+
   <section xml:id="indexes-presence">
    <title>Presence Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Presence</secondary>
    </indexterm>
-   
+
    <para>A presence index is used to match the fact that an attribute is
    present on the entry, regardless of the value. The <literal>aci</literal>
    attribute is indexed for presence by default to allow quick retrieval
    of entries with ACIs.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(aci=*)" -</userinput>
 <computeroutput>dn: dc=example,dc=com
@@ -153,18 +152,18 @@ $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(aci=*)" -</user
 dn: ou=People,dc=example,dc=com</computeroutput>
    </screen>
   </section>
-  
+
   <section xml:id="indexes-substring">
    <title>Substring Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Substring</secondary>
    </indexterm>
-   
+
    <para>A substring index is used to match values specified with wildcards
    in the filter. Substring indexes can be expensive to maintain, especially
    for large attribute values.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Barb*)" cn</userinput>
 <computeroutput>dn: uid=bfrancis,ou=People,dc=example,dc=com
@@ -184,19 +183,19 @@ dn: uid=bmaddox,ou=People,dc=example,dc=com
 cn: Barbara Maddox</computeroutput>
    </screen>
   </section>
-  
+
   <section xml:id="indexes-vlv">
    <title>Virtual List View (Browsing) Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Virtual list view (browsing)</secondary>
    </indexterm>
-   
+
    <para>A VLV or browsing index are designed to help the server respond to
    client applications that need virtual list view results, for example to
    browse through a long list in a GUI. They also help the server respond
    to clients that request server-side sorting of the search results.</para>
-   
+
    <para>VLV indexes correspond to particular searches. Configure your
    VLV indexes using the Control Panel, and copy the command-line
    equivalent from the Details pane for the operation, if necessary.</para>
@@ -385,7 +384,7 @@ $ <userinput>dsconfig \
    <primary>Indexes</primary>
    <secondary>Configuring</secondary>
   </indexterm>
-  
+
   <para>
    You modify index configurations by using the
    <link
@@ -405,30 +404,30 @@ $ <userinput>dsconfig \
    The <command>dsconfig --help-database</command> command lists subcommands
    for creating, reading, updating, and deleting index configuration.
   </para>
-  
+
   <tip>
    <para>Indexes are per directory backend rather than per suffix. To maintain
    separate indexes for different suffixes on the same directory server, put
    the suffixes in different backends.</para>
   </tip>
-  
+
   <section xml:id="configure-standard-index">
    <title>Configuring a Standard Index</title>
-   
+
    <para>You can configure standard indexes from the Control Panel, and also
    on the command line using the <command>dsconfig</command> command. After
    you finish configuring the index, you must rebuild the index for the changes
    to take effect.</para>
-   
+
    <example xml:id="create-index-example">
     <title>Create a New Index</title>
-    
+
     <para condition="local-db">
      The following example creates a new substring index
      for the <literal>description</literal> attribute
      in a backend of type <literal>local-db</literal>.
     </para>
-    
+
     <screen condition="local-db">
 $ <userinput>dsconfig \
  create-local-db-index \
@@ -464,7 +463,7 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
     </screen>
    </example>
-   
+
    <example xml:id="approx-index-example">
     <title>Configure an Approximate Index</title>
     <indexterm>
@@ -477,7 +476,7 @@ $ <userinput>dsconfig \
      the <literal>cn</literal> (common name) attribute
      in a backend of type <literal>local-db</literal>.
     </para>
-    
+
     <screen condition="local-db">
 $ <userinput>dsconfig \
  set-local-db-index-prop \
@@ -573,18 +572,18 @@ $ <userinput>dsconfig \
     </screen>
    </example>
   </section>
-  
+
   <section xml:id="configure-vlv">
    <title>Configuring a Virtual List View Index</title>
    <indexterm>
     <primary>Indexes</primary>
     <secondary>Virtual list view (browsing)</secondary>
    </indexterm>
-   
+
    <para>In the OpenDJ Control Panel, select Manage Indexes >
    New VLV Index, and then set up your VLV index using the New VLV
    Index window.</para>
-  
+
    <mediaobject xml:id="figure-create-vlv-index">
     <alt>New VLV Index window</alt>
     <imageobject>
@@ -600,7 +599,7 @@ $ <userinput>dsconfig \
    <para>After you finish configuring your index and click OK, the Control
    Panel prompts you to make the additional changes necessary to complete the
    VLV index configuration, and then to build the index.</para>
-   
+
    <para>
     You can also create the equivalent index configuration
     by using the <command>dsconfig</command> command.
@@ -610,7 +609,7 @@ $ <userinput>dsconfig \
     The following example shows how to create the VLV index
     for a backend of type <literal>local-db</literal>.
    </para>
-   
+
    <screen condition="local-db">
 $ <userinput>dsconfig \
  create-local-db-vlv-index \
@@ -667,7 +666,7 @@ $ <userinput>dsconfig \
     <primary>Indexes</primary>
     <secondary>Rebuilding</secondary>
    </indexterm>
-   
+
    <para>After you change an index configuration, or when you find that
    an index is corrupt, you can rebuild the index. When you rebuild indexes,
    you specify the base DN of the data to index, and either the list of indexes
@@ -675,13 +674,13 @@ $ <userinput>dsconfig \
    the server is offline, or while the server is online. If you rebuild the
    index while the server is online, then you must schedule the rebuild process
    as a task.</para>
-   
+
    <example xml:id="rebuild-index-example">
     <title>Rebuild Index</title>
 
     <para>The following example rebuilds the <literal>cn</literal> index
     immediately with the server online.</para>
-    
+
     <screen>
 $ <userinput>rebuild-index \
  --port 4444 \
@@ -808,7 +807,7 @@ newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  true...</c
     <primary>Indexes</primary>
     <secondary>Entry limits</secondary>
    </indexterm>
-   
+
    <para>As the number of entries in your directory grows, it can make sense
    not to maintain indexes for particular values. For example, every entry
    in the directory has the value <literal>top</literal> for the
@@ -817,16 +816,16 @@ newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  true...</c
    reasonable use of resources. In a very, very large directory, the same can
    be true for <literal>(givenName=John)</literal> and
    <literal>(sn=Smith)</literal>.</para>
-   
+
    <para>In an index, each index key points to a list of entries that
    are candidates to match. For the <literal>objectClass</literal> index key
    that corresponds to <literal>=top</literal>, the list of entries can
    include every entry in the directory.</para>
-   
+
    <para>OpenDJ directory server therefore defines an index entry limit. When
    the number of entries that an index key points to exceeds the index entry
    limit, OpenDJ stops maintaining the list of entries for that index key.</para>
-   
+
    <para>The default index entry limit value is 4000. 4000 is intended to be
    large enough for most index keys, though it prevents OpenDJ from maintaining
    indexes at any cost.
@@ -901,7 +900,7 @@ Undefined keys: [1] [2]</computeroutput>
 
    <example xml:id="change-index-entry-limit">
     <title>Change Index Entry Limit</title>
-    
+
     <para>The following example changes the index entry limit for the
     <literal>objectClass</literal> index, and then rebuilds the index for the
     configuration change to take effect. The example is contrived, but the
@@ -976,7 +975,7 @@ $ <userinput>rebuild-index \
 PM CEST</computeroutput>
     </screen>
    </example>
-   
+
    <para>Alternatively, you can configure the index entry limit for all
    indexes stored in a backend by using the <command>dsconfig
    set-backend-prop</command> command with the <option>--backend-name
@@ -992,7 +991,7 @@ PM CEST</computeroutput>
    <primary>Indexes</primary>
    <secondary>Verifying</secondary>
   </indexterm>
-  
+
   <para>
    You can verify that indexes correspond to current directory data,
    and that indexes do not contain errors by using the
@@ -1002,10 +1001,10 @@ PM CEST</computeroutput>
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>verify-index</command></link> command.
   </para>
-  
+
   <example xml:id="verify-index-example">
    <title>Verify Index</title>
-   
+
    <para>The following example verifies the <literal>cn</literal> (common
    name) index for completeness and for errors.</para>
 
@@ -1034,10 +1033,10 @@ $ <userinput>verify-index \
     <primary>Indexes</primary>
     <secondary>Default settings</secondary>
    </indexterm>
-  
+
   <para>When you first install OpenDJ directory server and import your
   data from LDIF, the following indexes are configured.</para>
-  
+
   <table pgwide="1" rules="none">
    <title>Default Indexes</title>
    <tgroup cols="7">

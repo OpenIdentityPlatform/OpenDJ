@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <chapter xml:id='chap-understanding-ldap'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -40,7 +39,7 @@
  phone book to find the telephone number and street address associated with the
  name. If you are bored, curious, or have lots of time, you can also read
  through the dictionary, phone book, or directory, entry after entry.</para>
- 
+
  <para>Where a directory differs from a paper dictionary or phone book is
  in how entries are indexed. Dictionaries typically have one index: words
  in alphabetical order. Phone books, too: names in alphabetical order.
@@ -52,11 +51,11 @@
 
  <section xml:id="ldap-directory-history">
   <title>How Directories &amp; LDAP Evolved</title>
-  
+
   <para>Phone companies have been managing directories for many decades. The
   Internet itself has relied on distributed directory services like DNS since
   the mid 1980s.</para>
-  
+
   <para>It was not until the late 1980s, however, that experts from what is now
   the International Telecommunications Union brought forth the X.500 set of
   international standards, including Directory Access Protocol. The X.500
@@ -64,13 +63,13 @@
   data definitions for general-purpose directory services. The X.500 standards
   were designed to meet the needs of systems built according to the X.400
   standards, covering electronic mail services.</para>
-  
+
   <para>Lightweight Directory Access Protocol has been around since the early
   1990s. LDAP was originally developed as an alternative protocol that would
   allow directory access over Internet protocols rather than OSI protocols,
   and be lightweight enough for desktop implementations. By the mid 1990s, LDAP
   directory servers became generally available and widely used.</para>
-  
+
   <para>Until the late 1990s, LDAP directory servers were designed primarily
   with quick lookups and high availability for lookups in mind. LDAP directory
   servers replicate data, so when an update is made, that update gets pushed
@@ -78,7 +77,7 @@
   lookups can continue on other servers. Furthermore, if a directory service
   needs to support more lookups, the administrator can simply add another
   directory server to replicate with its peers.</para>
-  
+
   <para>As organizations rolled out larger and larger directories serving more
   and more applications, they discovered that they needed high availability
   not only for lookups, but also for updates. Around the year 2000 directories
@@ -86,7 +85,7 @@
   read-write servers. Soon thereafter the organizations with the very largest
   directories started to need higher update performance as well as
   availability.</para>
-  
+
   <para>The OpenDJ code base began in the mid 2000s, when engineers solving the
   update performance issue decided the cost of adapting the existing C-based
   directory technology for high performance updates would be higher than the
@@ -149,8 +148,8 @@ uidNumber: 1076
   directory server can retrieve them more quickly.<footnote><para>Attribute
   values do not have to be strings. Some attribute values are pure binary like
   certificates and photos.</para></footnote></para>
-  
-  <para>The entry also has a unique identifier, shown at the top of the entry, 
+
+  <para>The entry also has a unique identifier, shown at the top of the entry,
   <literal>dn: uid=bjensen,ou=People,dc=example,dc=com</literal>. DN stands
   for distinguished name. No two entries in the directory have the same
   distinguished name. Yet, DNs are typically composed of case insensitive
@@ -171,7 +170,7 @@ cn: " # + , ; &lt; = &gt; \ DN Escape Characters
 sn: DN Escape Characters
 mail: escape@example.com</computeroutput>
   </screen></footnote></para>
-  
+
   <para>LDAP entries are arranged hierarchically in the directory. The
   hierarchical organization resembles a file system on a PC or a web server,
   often imagined as an upside-down tree structure, looking similar to a
@@ -180,7 +179,7 @@ mail: escape@example.com</computeroutput>
   separated by commas,
   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>. The names are
   little-endian. The components reflect the hierarchy of directory entries.</para>
-  
+
   <mediaobject xml:id="figure-data-organization">
    <alt>Directory data hierarchy as seen in OpenDJ Control Panel.</alt>
    <imageobject>
@@ -191,7 +190,7 @@ mail: escape@example.com</computeroutput>
     the Manage Entries browser.</para>
    </textobject>
   </mediaobject>
-  
+
   <para>Barbara Jensen's entry is located under an entry with DN
   <literal>ou=People,dc=example,dc=com</literal>, an organization unit and
   parent entry for the people at Example.com. The
@@ -235,7 +234,7 @@ mail: escape@example.com</computeroutput>
    which are operational attributes used to control access to directory data.
   </para>
  </section>
- 
+
  <section xml:id="ldap-client-server-communication">
   <title>LDAP Client &amp; Server Communication</title>
   <indexterm>
@@ -340,7 +339,7 @@ mail: escape@example.com</computeroutput>
    </listitem>
   </itemizedlist>
  </section>
- 
+
  <section xml:id="standard-ldapv3-extensions">
   <title>Standard LDAPv3 &amp; Extensions</title>
   <para>LDAP has standardized two mechanisms for extending what directory
@@ -373,7 +372,7 @@ mail: escape@example.com</computeroutput>
   server after the cancel is complete. The StartTLS Extended Operation allows
   a client to connect to a server on an unsecure port, but then start
   Transport Layer Security negotiations to protect communications.</para>
-  
+
   <para>Both LDAP controls and extended operations are demonstrated later in
   this guide. OpenDJ directory server supports many LDAP controls and a few
   LDAP extended operations, controls and extended operations matching those

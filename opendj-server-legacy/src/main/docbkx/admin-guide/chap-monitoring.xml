@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-monitoring'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,25 +29,25 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Monitoring, Logging, &amp; Alerts</title>
- 
+
  <para>This chapter describes the monitoring capabilities that OpenDJ
  implements, and shows how to configure them.</para>
- 
+
  <indexterm><primary>Monitoring</primary></indexterm>
- 
+
  <para>OpenDJ Control Panel provides basic monitoring capabilities under
  Monitoring &gt; General Information, Monitoring &gt; Connection Handler, and
  Monitoring &gt; Manage Tasks. This chapter covers the other options for
  monitoring OpenDJ.</para>
- 
+
  <section xml:id="ldap-monitoring">
   <title>LDAP-Based Monitoring</title>
-  
+
   <para>OpenDJ exposes monitoring information over LDAP under the entry
   <literal>cn=monitor</literal>. Many different types of information are
   exposed. The following example shows monitoring information about the
   <literal>userRoot</literal> backend holding Example.com data.</para>
-  
+
   <para>Interface stability: <link xlink:href="reference#interface-stability"
   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
   >Evolving</link></para>
@@ -84,12 +83,12 @@ ds-backend-base-dn: dc=example,dc=com</computeroutput>
  <section xml:id="snmp-monitoring">
   <title>SNMP-Based Monitoring</title>
   <indexterm><primary>SNMP</primary></indexterm>
-  
+
   <para>OpenDJ lets you monitor the server over the Simple Network Management
   Protocol (SNMP), with support for the Management Information Base described
   in <link xlink:href="http://tools.ietf.org/html/rfc2605">RFC 2605: Directory
   Server Monitoring MIB</link>.</para>
-  
+
   <para>OpenDJ SNMP-based monitoring depends on OpenDMK, which you must
   <link xlink:href="http://opendmk.java.net/download/" xlink:show="new">download
   separately</link>. Install the <link xlink:show="new"
@@ -114,7 +113,7 @@ $ <userinput>java -jar ~/Downloads/opendmk-1.0-b02-*.jar</userinput>
   <para>Once you have installed OpenDMK, you can set up a connection handler
   for SNMP by enabling the connection handler, and pointing OpenDJ to your
   installation of the OpenDMK <filename>jdmkrt.jar</filename> library.</para>
-  
+
   <screen>
 $ <userinput>dsconfig \
  set-connection-handler-prop \
@@ -128,12 +127,12 @@ $ <userinput>dsconfig \
  --trustAll \
  --no-prompt</userinput>
   </screen>
-  
+
   <para>By default, the SNMP Connection Handler listens on port 161 and uses
   port 162 for traps. On UNIX and Linux systems, only root can normally open
   these ports. Therefore if you install as a normal user, you might want
   to change the listen and trap ports.</para>
-  
+
   <screen>
 $ <userinput>dsconfig \
  set-connection-handler-prop \
@@ -191,14 +190,14 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
  <section xml:id="jmx-monitoring">
   <title>JMX-Based Monitoring</title>
   <indexterm><primary>JMX</primary></indexterm>
-  
+
   <para>OpenDJ provides Java Management eXtensions (JMX) based monitoring. A
   number of tools support JMX, including <command>jconsole</command> and
   <command>jvisualvm</command>, which are bundled with the Sun/Oracle Java
   platform. JMX is not configured by default. Use the
   <command>dsconfig</command> command to configure the JMX connection
   handler.</para>
-  
+
   <para>Interface stability: <link xlink:href="reference#interface-stability"
   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
   >Evolving</link></para>
@@ -238,7 +237,7 @@ $ <userinput>dsconfig \
   xlink:href="http://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#SSL_enabled"
   xlink:show="new"><citetitle>Monitoring and Management Using
   JMX</citetitle></link> for hints.</para>
-  
+
   <para>Alternatively, you can connect to a local server process by using the
   server process identifier.</para>
 
@@ -251,7 +250,7 @@ $ <userinput>jvisualvm --openpid 3363 &amp;</userinput>
 
  <section xml:id="monitoring-status-and-tasks">
   <title>Server Operation &amp; Tasks</title>
-  
+
   <para>
    OpenDJ comes with two commands for monitoring server processes and tasks.
    The
@@ -270,7 +269,7 @@ $ <userinput>jvisualvm --openpid 3363 &amp;</userinput>
    ><command>manage-tasks</command></link> command
    lets you manage tasks scheduled on a server, such as nightly backup.
   </para>
-  
+
   <para>The <command>status</command> command takes administrative credentials
   to read the configuration, as does the Control Panel.</para>
   <screen>
@@ -306,7 +305,7 @@ Replication: Disabled</computeroutput>
   <para>The <command>manage-tasks</command> command connects over the
   administration port, and so can connect to both local and remote
   servers.</para>
-  
+
   <screen>
 $ <userinput>manage-tasks \
  --hostname opendj.example.com \
@@ -330,14 +329,14 @@ example-20110623030000000  Backup  Waiting on start time</computeroutput>
    <primary>Replication</primary>
    <secondary>Log</secondary>
   </indexterm>
-  
+
   <para>By default OpenDJ stores access and errors logs as well as a
   server process ID file under the <filename>logs/</filename> directory.
   For the replication service, OpenDJ also keeps a replication log there.
   You can also configure a debug log. Furthermore, you can configure policies
   about how logs are rotated, and how they are retained. You configure logging
   using the <command>dsconfig</command> command.</para>
-  
+
   <itemizedlist>
    <listitem>
     <para>The <firstterm>access log</firstterm> traces the operations the
@@ -559,7 +558,7 @@ example-20110623030000000  Backup  Waiting on start time</computeroutput>
     <programlisting language="none">
 [22/Jun/2011:14:37:34 +0200] category=SYNC severity=NOTICE msgID=15139026
  msg=Finished total update: exported domain "dc=example,dc=com" from this
- directory server DS(24065) to all remote directory servers. 
+ directory server DS(24065) to all remote directory servers.
 [22/Jun/2011:14:37:35 +0200] category=SYNC severity=MILD_WARNING msgID=14745663
  msg=Replication server RS(23947) at opendj.example.com/10.10.0.168:8989 has
  closed the connection to this directory server DS(24065). This directory
@@ -580,12 +579,12 @@ example-20110623030000000  Backup  Waiting on start time</computeroutput>
     and therefore no debug logs are enabled by default.</para>
    </listitem>
   </itemizedlist>
-  
+
   <para>Each log depends on a <firstterm>log publisher</firstterm>, whose
   type corresponds to the type of log. OpenDJ uses file-based log publishers.
   The design allows for custom log publishers, however, which could publish
   the logs elsewhere besides a file.</para>
-  
+
   <para>For debug logging, you also set a <firstterm>debug target</firstterm>
   to control what gets logged.</para>
 
@@ -678,19 +677,19 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
     <primary>Logs</primary>
     <secondary>Filtering</secondary>
    </indexterm>
-   
+
    <para>Each time a client application sends a request to OpenDJ, the server
    writes to its access log. As shown above, a simple search operation results
    in five messages written to the access log. This volume of logging gives you
    the information to analyze overall access patterns, or to audit access when
    you do not know in advance what you are looking for.</para>
-   
+
    <para>Yet when you do know what you are looking for, log filtering
    lets you limit what the server logs, and focus on what you want to see.
    You define the filter criteria, and also set the filtering policy.</para>
-   
+
    <para>You can filter both access and also audit logs.</para>
-   
+
    <itemizedlist>
     <para>Log filtering lets you define rules based these criteria.</para>
     <listitem>
@@ -724,10 +723,10 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
    whether to include or exclude log messages that match the criteria you
    define. OpenDJ does not filter logs until you update the log publisher
    configuration.</para>
-   
+
    <example xml:id="log-filtering-exclude-control-panel">
     <title>Example: Exclude Control Panel-Related Messages</title>
-    
+
     <para>A common development troubleshooting technique consists of sending
     client requests while tailing the access log:</para>
     <screen>$ tail -f /path/to/opendj/logs/access</screen>
@@ -736,10 +735,10 @@ rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
     command, OpenDJ writes access log messages related to administration.
     These might prevent you from noticing the messages that interest
     you.</para>
-    
+
     <para>This example demonstrates how to filter out access log messages
     due to administrative connections over LDAPS on ports 1636 and 4444.</para>
-    
+
     <para>Create access log filtering criteria rules.</para>
 
     <screen>
@@ -758,7 +757,7 @@ $ <userinput>dsconfig \
  --trustAll \
  --no-prompt</userinput>
     </screen>
-    
+
     <para>Activate filtering to exclude messages from the default access log
     according to the criteria you specified.</para>
 
@@ -774,7 +773,7 @@ $ <userinput>dsconfig \
  --trustAll \
  --no-prompt</userinput>
     </screen>
-    
+
     <para>At this point, OpenDJ filters out connections over LDAPS to ports
     1636 and 4444. While performing operations in OpenDJ Control Panel, if
     you perform a simple <command>ldapsearch --port 1389 --baseDN
@@ -793,7 +792,7 @@ $ <userinput>tail -f /path/to/opendj/logs/access</userinput>
 [19/Oct/2011:16:37:16 +0200] DISCONNECT conn=8 reason="Client Unbind"</computeroutput>
     </screen>
    </example>
-   
+
    <para>In addition to the filtering policy, you can also adjust how OpenDJ
    writes log messages. By default, OpenDJ writes one log message for a
    request, and another for a response. You can set the log publisher
@@ -809,11 +808,11 @@ $ <userinput>tail -f /path/to/opendj/logs/access</userinput>
  <section xml:id="alert-notifications">
   <title>Alert Notifications</title>
   <indexterm><primary>Alerts</primary></indexterm>
-  
+
   <para>OpenDJ can send alerts to provide notifications of significant server
   events. Yet alert notifications are not enabled by default. You can use
   the <command>dsconfig</command> command to enable alert notifications.</para>
-  
+
   <screen>
 $ <userinput>dsconfig \
  set-alert-handler-prop \
@@ -830,7 +829,7 @@ $ <userinput>dsconfig \
   <para>OpenDJ can also send mail over SMTP instead of JMX notifications.
   Before you set up the SMTP-based alert handler, you must identify an SMTP
   server to which OpenDJ sends messages.</para>
-  
+
   <screen>
 $ <userinput>dsconfig \
  set-global-configuration-prop \

@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <book xml:id='dev-guide'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -57,9 +56,9 @@
  </info>
 
  <toc />
- 
+
  <xinclude:include href="preface.xml" />
- 
+
  <xinclude:include href='chap-understanding-ldap.xml' />
  <xinclude:include href='chap-best-practices.xml' />
  <xinclude:include href='chap-get-sdk.xml' />
@@ -73,7 +72,7 @@
  <xinclude:include href='chap-extended-ops.xml' />
  <xinclude:include href='chap-i18n.xml' />
  <xinclude:include href='chap-simple-proxy.xml' />
- 
+
  <reference xml:id="dev-tools-ref">
   <title>Tools Reference</title>
 

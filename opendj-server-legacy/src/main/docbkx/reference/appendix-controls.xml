@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <appendix xml:id='appendix-controls'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -328,7 +327,7 @@
     Control</link></para>
    </listitem>
   </varlistentry>
-  
+
   <varlistentry xml:id="public-changelog-exchange-control">
    <term>Public Changelog Exchange Control</term>
    <listitem>
@@ -378,7 +377,7 @@
      <secondary>Simple paged results</secondary>
     </indexterm>
     <para>Object Identifier: 1.2.840.113556.1.4.319</para>
-    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc2696'>RFC 2696 
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc2696'>RFC 2696
     - LDAP Control Extension for Simple Paged Results Manipulation</link>
     </para>
    </listitem>

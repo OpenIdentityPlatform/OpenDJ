@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <chapter xml:id='chap-pta'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,24 +29,24 @@
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Configuring Pass Through Authentication</title>
  <indexterm><primary>Pass through authentication</primary></indexterm>
- 
+
  <para>This chapter focuses on pass through authentication (PTA), whereby you
  configure another server to determine the response to an authentication
  request. A typical use case for pass through authentication involves
  passing authentication through to Active Directory for users coming
  from Microsoft Windows systems.</para>
- 
+
  <section xml:id="about-pta">
   <title>About Pass Through Authentication</title>
-  
+
   <para>You use <firstterm>LDAP pass through authentication</firstterm> when
   the credentials for authenticating are stored not in OpenDJ, but instead
   in a remote directory service. In effect OpenDJ redirects the bind operation
   against a remote LDAP server.</para>
-  
+
   <para>Exactly how OpenDJ redirects the bind depends on how the user entry
   in OpenDJ maps to the corresponding user entry in the remote directory.</para>
-  
+
   <itemizedlist>
    <para>OpenDJ provides you several choices to set up the mapping.</para>
    <listitem>
@@ -72,30 +71,30 @@
     redirects the bind with the DN from the remote entry.</para>
    </listitem>
   </itemizedlist>
-  
+
   <para>You configure pass through authentication as an authentication policy
   that you associate with a user's entry in the same way that you associate
   a password policy with a user's entry. Either a user has an authentication
   policy for pass through authentication, or the user has a local password
   policy.</para>
  </section>
- 
+
  <section xml:id="configure-pta">
   <title>Setting Up Pass Through Authentication</title>
-  
+
   <para>When setting up pass through authentication, you need to know to which
   remote server or servers to redirect binds, and you need to know how you map
   user entries in OpenDJ to user entries in the remote directory.</para>
-  
+
   <procedure xml:id="configure-ssl-to-test-pta">
    <title>To Set Up SSL Communication For Testing</title>
-   
+
    <para>When performing pass through authentication, you no doubt protect
    communications between OpenDJ and the server providing authentication. If
    you test using SSL with self-signed certificates, and you do not want
    the client blindly to trust the server, follow these steps to import
    the authentication server's certificate into the OpenDJ key store.</para>
-   
+
    <step>
     <para>Export the server certificate from the authentication server.</para>
     <para>How you perform this step depends on the authentication directory
@@ -168,14 +167,14 @@ Trust this certificate? [no]:</computeroutput>  <userinput>yes</userinput>
     </screen>
    </step>
   </procedure>
-  
+
   <procedure xml:id="configure-pta-policy">
    <title>To Configure an LDAP Pass Through Authentication Policy</title>
-   
+
    <para>You configure authentication policies with the
    <command>dsconfig</command> command. Notice that authentication policies
    are part of the server configuration, and therefore not replicated.</para>
-   
+
    <step>
     <para>Set up an authentication policy for pass through
     authentication to the authentication server.</para>
@@ -224,24 +223,24 @@ Root Password Policy    : password-policy   : -</computeroutput>
     </screen>
    </step>
   </procedure>
-  
+
   <procedure xml:id="configure-pta-to-ad">
    <title>To Configure Pass Through Authentication To Active Directory</title>
    <indexterm>
     <primary>Active Directory</primary>
     <see>Pass through authentication</see>
    </indexterm>
-   
+
    <para>The steps below demonstrate setting up pass through authentication
    to Active Directory. Here is some background to help you make sense of the
    steps.</para>
-   
+
    <para>Entries on the OpenDJ side use <literal>uid</literal> as the naming
    attribute, and entries also have <literal>cn</literal> attributes. Active
    Directory entries use <literal>cn</literal> as the naming attribute.
    User entries on both sides share the same <literal>cn</literal> values. The
    mapping between entries therefore uses <literal>cn</literal>.</para>
-   
+
    <para>Consider the example where an OpenDJ account with <literal>cn=LDAP
    PTA User</literal> and DN
    <literal>uid=ldapptauser,ou=People,dc=example,dc=com</literal> corresponds
@@ -249,7 +248,7 @@ Root Password Policy    : password-policy   : -</computeroutput>
    User,CN=Users,DC=internal,DC=forgerock,DC=com</literal>. The steps below
    enable the user with <literal>cn=LDAP PTA User</literal> on OpenDJ
    authenticate through to Active Directory.</para>
-   
+
    <screen>
 $ <userinput>ldapsearch \
  --hostname opendj.example.com \
@@ -269,7 +268,7 @@ $ <userinput>ldapsearch \
 <computeroutput>dn: CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com
 cn: LDAP PTA User</computeroutput>
    </screen>
-   
+
    <para>OpenDJ must map its
    <literal>uid=ldapptauser,ou=People,dc=example,dc=com</literal> entry to the
    Active Directory entry, <literal>CN=LDAP PTA
@@ -279,11 +278,11 @@ cn: LDAP PTA User</computeroutput>
    user. Active Directory does not allow anonymous searches, so part of the
    authentication policy configuration consists of the administrator DN and
    password OpenDJ uses to bind to Active Directory to be able to search.</para>
-   
+
    <para>Finally, before setting up the pass through authentication policy,
    make sure OpenDJ can connect to Active Directory over a secure connection
    to avoid sending passwords in the clear.</para>
-   
+
    <step>
     <para>Export the certificate from the Windows server.</para>
     <substeps>
@@ -330,7 +329,7 @@ Certificate fingerprints:
   Signature algorithm name: SHA1withRSA
   Version: 3
 
-Extensions: 
+Extensions:
 
 #1: ObjectId: 2.5.29.19 Criticality=true
 BasicConstraints:[
@@ -427,14 +426,14 @@ cn: LDAP PTA User</computeroutput>
    </step>
   </procedure>
  </section>
- 
+
  <section xml:id="assigning-pta">
   <title>Assigning Pass Through Authentication Policies</title>
-  
+
   <para>You assign authentication policies in the same way as you
   assign password policies, by using the
   <literal>ds-pwp-password-policy-dn</literal> attribute.</para>
-  
+
   <note>
    <para>Although you assign the pass through authentication policy using
    the same attribute as for password policy, the authentication policy is
@@ -451,18 +450,18 @@ $ <userinput>ldapsearch \
 <computeroutput>dn: uid=user.0,ou=People,dc=example,dc=com</computeroutput>
 </screen>
   </note>
-  
+
   <procedure xml:id="assign-pta-to-user">
    <title>To Assign a Pass Through Authentication Policy To a User</title>
-   
+
    <para>Users depending on pass through authentication no longer need a local
    password policy, as they no longer authenticate locally.</para>
-   
+
    <para>Examples in the following procedure work for this user, whose
    entry on OpenDJ is as shown. Notice that the user has no password set. The
    user's password on the authentication server is
    <literal>password</literal>.</para>
-   
+
    <programlisting language="ldif">
 dn: uid=user.0,ou=People,dc=example,dc=com
 cn: Aaccf Amar
@@ -487,12 +486,12 @@ street: 01251 Chestnut Street
 telephoneNumber: +1 685 622 6202
 uid: user.0
 </programlisting>
-   
+
    <para>This user's entry on the authentication server also has
    <literal>uid=user.0</literal>, and the pass through authentication policy
    performs the mapping to find the user entry in the authentication
    server.</para>
-   
+
    <step>
     <para>Prevent users from changing their own password policies.</para>
 
@@ -524,7 +523,7 @@ $ <userinput>ldapmodify \
  --bindDN "cn=Directory Manager" \
  --bindPassword password
 dn: uid=user.0,ou=People,dc=example,dc=com
-changetype: modify 
+changetype: modify
 add: ds-pwp-password-policy-dn
 ds-pwp-password-policy-dn: cn=PTA Policy,cn=Password Policies,cn=config</userinput>
 
@@ -550,20 +549,20 @@ sn: Amar</computeroutput>
     </screen>
    </step>
   </procedure>
-  
+
   <procedure xml:id="assign-pta-to-group">
    <title>To Assign a Pass Through Authentication Policy To a Group</title>
-   
+
    <para>Examples in the following steps use the pass through authentication
    policy as defined above. Kirsten Vaughan's entry has been reproduced on
    the authentication server under <literal>dc=PTA
    Server,dc=com</literal>.</para>
-   
+
    <step>
     <para>Create a subentry to assign a collective attribute that sets the
     <literal>ds-pwp-password-policy-dn</literal> attribute for group
     members' entries.</para>
-    
+
     <screen>
 $ <userinput>cat pta-coll.ldif</userinput>
 <computeroutput>dn: cn=PTA Policy for Dir Admins,dc=example,dc=com

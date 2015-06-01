@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -21,7 +20,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <chapter xml:id='chap-before-you-install'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -45,13 +44,13 @@
    <primary>Java</primary>
    <secondary>Requirements</secondary>
   </indexterm>
-  
+
   <para>OpenDJ software consists of pure Java applications. OpenDJ servers
   and clients therefore should run on any system with full Java support.
   OpenDJ is tested on a variety of operating systems, including Solaris
   SPARC and x86, various Linux distributions, Microsoft Windows,
   and Apple Mac OS X.</para>
-  
+
   <para>OpenDJ software requires Java 7 or 8, specifically at least the Java
   Standard Edition runtime environment. ForgeRock has tested most with Oracle
   Java Platform, Standard Edition.</para>

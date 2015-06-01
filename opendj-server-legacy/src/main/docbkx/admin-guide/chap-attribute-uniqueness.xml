@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <chapter xml:id='chap-attribute-uniqueness'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,7 +29,7 @@
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Implementing Attribute Value Uniqueness</title>
- 
+
  <para>Some attribute values ought to remain unique. If you are using
  <literal>uid</literal> values as RDNs to distinguish between millions of
  user entries stored under <literal>ou=People</literal>, then you do not
@@ -39,9 +38,9 @@
  stored as an attribute value on your directory entry, you certainly do not
  want to share that credit card or mobile number with another customer.
  The same is true for your email address.</para>
- 
+
  <indexterm><primary>Unique attribute values</primary></indexterm>
- 
+
  <para>The difficulty for you as directory administrator lies in
  implementing attribute value uniqueness without sacrificing the high
  availability that comes from using OpenDJ's loosely consistent,
@@ -70,12 +69,12 @@
 
  <procedure xml:id="enable-unique-uids">
   <title>To Enable Unique UIDs</title>
-  
+
   <para>OpenDJ provides a unique attribute plugin that you configure by using
   the <command>dsconfig</command> command. By default, the plugin is prepared
   to ensure attribute values are unique for <literal>uid</literal>
   attributes.</para>
-  
+
   <step>
    <para>Set the base DN where <literal>uid</literal> should have unique
    values, and enable the plugin.</para>
@@ -166,14 +165,14 @@ Additional Information:  A unique attribute conflict was detected for attribute
    </screen>
   </step>
  </procedure>
- 
+
  <procedure xml:id="enable-unique-attributes">
   <title>To Enable Unique Values For Other Attributes</title>
-  
+
   <para>You can also configure the unique attribute plugin for use with
   other attributes, such as <literal>mail</literal>, <literal>mobile</literal>,
   or attributes you define, for example <literal>cardNumber</literal>.</para>
-  
+
   <step>
    <para>Before you set up the plugin, index the attribute for equality.</para>
 
@@ -403,7 +402,7 @@ Additional Information:  A unique attribute conflict was detected for
   separately write the same attribute value at the same time on different
   directory replicas, it is possible that both servers consider the duplicate
   value unique, especially if the network is down between the replicas.</para>
-  
+
   <step>
    <para>Enable the plugin identically on all replicas.</para>
   </step>

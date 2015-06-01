@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +19,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2012 ForgeRock AS
-  !    
+  !      Copyright 2012-2015 ForgeRock AS.
+  !
 -->
 <glossary xml:id='glossary'
  xmlns='http://docbook.org/ns/docbook'
@@ -579,7 +578,7 @@
  <glossentry>
   <glossterm>Password policy</glossterm>
   <glossdef>
-   <para>A set of rules regarding what sequence of characters constitutes an 
+   <para>A set of rules regarding what sequence of characters constitutes an
    acceptable password. Acceptable passwords are generally those that would be
    too difficult for another user or an automated program to guess and thereby
    defeat the password mechanism. Password policies may require a minimum
