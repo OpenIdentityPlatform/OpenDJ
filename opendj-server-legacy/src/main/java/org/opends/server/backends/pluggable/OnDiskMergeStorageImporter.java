@@ -1765,7 +1765,7 @@ final class OnDiskMergeStorageImporter
         else if (treeName.getIndexId().equals(ID2CHILDREN_COUNT_NAME))
         {
           // key conflicts == sum values
-          // TODO JNR
+          return new AddLongMerger(entryContainer.getID2ChildrenCount());
         }
         else if (treeName.getIndexId().equals(DN2ID_INDEX_NAME)
             || treeName.getIndexId().equals(DN2URI_INDEX_NAME)
@@ -1874,7 +1874,10 @@ final class OnDiskMergeStorageImporter
     @Override
     public V merge()
     {
+      // copy before cleaning state
       final boolean mustThrow = moreThanOne;
+      final V mergedValue = first;
+
       // clean up state
       first = null;
       moreThanOne = false;
@@ -1883,7 +1886,7 @@ final class OnDiskMergeStorageImporter
       {
         throw new IllegalArgumentException();
       }
-      return first;
+      return mergedValue;
     }
   }
 
@@ -1966,6 +1969,35 @@ final class OnDiskMergeStorageImporter
       // due to how the entryIDSets are built, there should not be any duplicate entryIDs
       Arrays.sort(entryIDs);
       return EntryIDSet.newDefinedSet(entryIDs);
+    }
+  }
+
+  /**
+   * {@link MergingConsumer} that accepts {@link ByteSequence} objects
+   * and produces a {@link ByteSequence} representing the added {@code long}s.
+   */
+  private static final class AddLongMerger implements MergingConsumer<ByteString>
+  {
+    private final ID2Count id2ChildrenCount;
+    private long count;
+
+    AddLongMerger(ID2Count id2ChildrenCount)
+    {
+      this.id2ChildrenCount = id2ChildrenCount;
+    }
+
+    @Override
+    public void accept(ByteString value)
+    {
+      this.count += id2ChildrenCount.fromValue(value);
+    }
+
+    @Override
+    public ByteString merge()
+    {
+      final ByteString result = id2ChildrenCount.toValue(count);
+      count = 0;
+      return result;
     }
   }
 
