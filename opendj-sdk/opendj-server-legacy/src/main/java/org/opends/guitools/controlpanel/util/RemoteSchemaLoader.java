@@ -37,13 +37,27 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigConstants;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
+import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
+import org.opends.server.schema.AciSyntax;
 import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.SchemaConstants;
+import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDAPSyntaxDescription;
 import org.opends.server.types.Schema;
 
 /** Class used to retrieve the schema from the schema files. */
@@ -51,6 +65,17 @@ public class RemoteSchemaLoader extends SchemaLoader
 {
   private Schema schema;
 
+  /**
+   * In remote mode we cannot load the matching rules and syntaxes from local
+   * configuration, so we should instead bootstrap them from the SDK's core schema.
+   */
+  public RemoteSchemaLoader()
+  {
+    matchingRulesToKeep.clear();
+    syntaxesToKeep.clear();
+    matchingRulesToKeep.addAll(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema().getMatchingRules());
+    syntaxesToKeep.addAll(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema().getSyntaxes());
+  }
   /**
    * Reads the schema.
    *
@@ -69,8 +94,8 @@ public class RemoteSchemaLoader extends SchemaLoader
   public void readSchema(InitialLdapContext ctx) throws NamingException, DirectoryException, InitializationException,
       ConfigException
   {
-    final String[] schemaAttrs = { ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC, ConfigConstants.ATTR_OBJECTCLASSES_LC };
-
+    final String[] schemaAttrs = { ConfigConstants.ATTR_LDAP_SYNTAXES_LC, ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
+      ConfigConstants.ATTR_OBJECTCLASSES_LC };
     final SearchControls searchControls = new SearchControls();
     searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
     searchControls.setReturningAttributes(schemaAttrs);
@@ -91,15 +116,59 @@ public class RemoteSchemaLoader extends SchemaLoader
 
     final CustomSearchResult csr = new CustomSearchResult(sr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
     schema = getBaseSchema();
+    // Add missing matching rules and attribute syntaxes to base schema to allow read of remote server schema
+    // (see OPENDJ-1122 for more details)
+    addMissingSyntaxesToBaseSchema(new AciSyntax(), new SubtreeSpecificationSyntax());
+    addMissingMatchingRuleToBaseSchema("1.3.6.1.4.1.26027.1.4.4", "historicalCsnOrderingMatch",
+        "1.3.6.1.4.1.1466.115.121.1.40", new HistoricalCsnOrderingMatchingRuleImpl());
     for (final String str : schemaAttrs)
     {
       registerSchemaAttr(csr, str);
     }
   }
 
+  private void addMissingSyntaxesToBaseSchema(final AttributeSyntax<?>... syntaxes)
+      throws DirectoryException, InitializationException, ConfigException
+  {
+    for (AttributeSyntax<?> syntax : syntaxes)
+    {
+      final ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+      if (!serverContext.getSchemaNG().hasSyntax(syntax.getOID()))
+      {
+        syntax.initializeSyntax(null, serverContext);
+      }
+      schema.registerSyntax(syntax.getSDKSyntax(serverContext.getSchemaNG()), true);
+    }
+  }
+
+  private void addMissingMatchingRuleToBaseSchema(final String oid, final String name, final String syntaxOID,
+      final MatchingRuleImpl impl)
+      throws InitializationException, ConfigException, DirectoryException
+  {
+    final MatchingRule matchingRule;
+    if (CoreSchema.getInstance().hasMatchingRule(name))
+    {
+      matchingRule = CoreSchema.getInstance().getMatchingRule(name);
+    }
+    else
+    {
+      matchingRule = new SchemaBuilder(CoreSchema.getInstance()).buildMatchingRule(oid)
+                                                                .names(name)
+                                                                .syntaxOID(syntaxOID)
+                                                                .implementation(impl)
+                                                                .addToSchema().toSchema().getMatchingRule(oid);
+    }
+    schema.registerMatchingRule(matchingRule, true);
+  }
+
   private void registerSchemaAttr(final CustomSearchResult csr, final String schemaAttr) throws DirectoryException
   {
     final Set<Object> remainingAttrs = new HashSet<>(csr.getAttributeValues(schemaAttr));
+    if (schemaAttr.equals(ConfigConstants.ATTR_LDAP_SYNTAXES_LC))
+    {
+      registerSchemaLdapSyntaxDefinitions(remainingAttrs);
+      return;
+    }
 
     while (!remainingAttrs.isEmpty())
     {
@@ -132,6 +201,32 @@ public class RemoteSchemaLoader extends SchemaLoader
         throw lastException;
       }
       remainingAttrs.removeAll(registered);
+    }
+  }
+
+  private void registerSchemaLdapSyntaxDefinitions(Set<Object> remainingAttrs) throws DirectoryException
+  {
+    for (final Object definition : remainingAttrs)
+    {
+      final ByteStringBuilder sb = new ByteStringBuilder();
+      sb.append(definition);
+      if (definition.toString().contains(SchemaConstants.OID_OPENDS_SERVER_BASE))
+      {
+        try
+        {
+          final LDAPSyntaxDescription syntaxDesc = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
+              sb, DirectoryServer.getInstance().getServerContext(), schema, false, false);
+          schema.registerLdapSyntaxDescription(syntaxDesc, true);
+        }
+        catch (DirectoryException e)
+        {
+          // Filter error code to ignore exceptions raised on description syntaxes.
+          if (e.getResultCode() != ResultCode.UNWILLING_TO_PERFORM)
+          {
+            throw e;
+          }
+        }
+      }
     }
   }
 
