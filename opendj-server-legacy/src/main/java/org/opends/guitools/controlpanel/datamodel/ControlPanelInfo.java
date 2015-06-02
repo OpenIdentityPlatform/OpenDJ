@@ -553,6 +553,7 @@ public class ControlPanelInfo
         }
         else
         {
+          Utilities.initializeLegacyConfigurationFramework();
           reader = createNewConfigFromDirContextReader();
           ((ConfigFromDirContext)reader).readConfiguration(ctx);
 

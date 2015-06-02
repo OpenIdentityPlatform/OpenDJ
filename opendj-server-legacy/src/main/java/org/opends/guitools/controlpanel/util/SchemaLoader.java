@@ -65,8 +65,10 @@ public class SchemaLoader
 
   private final List<ObjectClass> objectclassesToKeep = new ArrayList<>();
   private final List<AttributeType> attributesToKeep = new ArrayList<>();
-  private final List<MatchingRule> matchingRulesToKeep = new ArrayList<>();
-  private final List<Syntax> syntaxesToKeep = new ArrayList<>();
+  /** List of matching rules to keep in the schema. */
+  protected final List<MatchingRule> matchingRulesToKeep = new ArrayList<>();
+  /** List of attribute syntaxes to keep in the schema. */
+  protected final List<Syntax> syntaxesToKeep = new ArrayList<>();
 
   /** Constructor. */
   public SchemaLoader()
