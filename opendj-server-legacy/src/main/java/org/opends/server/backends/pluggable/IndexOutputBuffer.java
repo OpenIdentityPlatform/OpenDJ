@@ -30,6 +30,8 @@ import static org.opends.server.backends.pluggable.ImportRecord.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.IndexKey;
@@ -228,8 +230,25 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   /**
    * Sort the buffer.
    */
-  public void sort() {
-    sort(0, keys);
+  public void sort()
+  {
+    Integer[] keyArray = new Integer[keys];
+
+    for (int i = 0; i < keys; i++)
+    {
+      keyArray[i] = readInt(i * INT_SIZE);
+    }
+    Arrays.sort(keyArray, new Comparator<Integer>()
+      {
+        public int compare(Integer i1, Integer i2)
+        {
+          return offsetToRecord(i1).compareTo(offsetToRecord(i2));
+        }
+      });
+    for (int i = 0; i < keys; i++)
+    {
+      writeInt(buffer, i * INT_SIZE, keyArray[i]);
+    }
   }
 
   /**
@@ -325,9 +344,9 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return readInt(position * INT_SIZE);
   }
 
-  private int compare(int xPosition, int yPosition)
+  private ImportRecord offsetToRecord(int offset)
   {
-    return toRecord(xPosition).compareTo(toRecord(yPosition));
+    return ImportRecord.fromBufferAndOffset(buffer, offset);
   }
 
   private ImportRecord toRecord(int position)
@@ -451,117 +470,6 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
       answer |= (b & 0xff);
     }
     return answer;
-  }
-
-  private int med3(int a, int b, int c)
-  {
-    ImportRecord ra = toRecord(a);
-    ImportRecord rb = toRecord(b);
-    ImportRecord rc = toRecord(c);
-    return ra.compareTo(rb) < 0
-        ? (rb.compareTo(rc) < 0 ? b : ra.compareTo(rc) < 0 ? c : a)
-        : (rb.compareTo(rc) > 0 ? b : ra.compareTo(rc) > 0 ? c : a);
-  }
-
-  private void sort(int off, int len)
-  {
-    if (len < 7) {
-      for (int i=off; i<len+off; i++)
-      {
-        for (int j=i; j>off && compare(j-1, j)>0; j--)
-        {
-          swap(j, j-1);
-        }
-      }
-      return;
-    }
-
-    int m = off + (len >> 1);
-    if (len > 7) {
-      int l = off;
-      int n = off + len - 1;
-      if (len > 40) {
-        int s = len/8;
-        l = med3(l, l+s, l+2*s);
-        m = med3(m-s, m,  m+s);
-        n = med3(n-2*s, n-s, n);
-      }
-      m = med3(l, m, n);
-    }
-
-    int a = off, b = a, c = off + len - 1, d = c;
-    while(true)
-    {
-      ImportRecord rm = toRecord(m);
-      while (b <= c)
-      {
-        int cmp = toRecord(b).compareTo(rm);
-        if (cmp > 0)
-        {
-          break;
-        }
-        else if (cmp == 0)
-        {
-          swap(a++, b);
-        }
-        b++;
-      }
-
-      while (c >= b) {
-        int cmp = toRecord(c).compareTo(rm);
-        if (cmp < 0)
-        {
-          break;
-        }
-        else if (cmp == 0)
-        {
-          swap(c, d--);
-        }
-        c--;
-      }
-
-      if (b > c)
-      {
-        break;
-      }
-      swap(b++, c--);
-    }
-
-    // Swap partition elements back to middle
-    int s, n = off + len;
-    s = Math.min(a-off, b-a );
-    vectorSwap(off, b-s, s);
-    s = Math.min(d-c,   n-d-1);
-    vectorSwap(b, n-s, s);
-
-    s = b - a;
-    // Recursively sort non-partition-elements
-    if (s > 1)
-    {
-      sort(off, s);
-    }
-    s = d - c;
-    if (s > 1)
-    {
-      sort(n-s, s);
-    }
-  }
-
-  private void swap(int a, int b)
-  {
-    int aOffset = a * INT_SIZE;
-    int bOffset = b * INT_SIZE;
-    int tmp = readInt(bOffset);
-    System.arraycopy(buffer, aOffset, buffer, bOffset, INT_SIZE);
-    writeInt(buffer, aOffset, tmp);
-  }
-
-  private void vectorSwap(int a, int b, int n)
-  {
-    for (int i=0; i<n; i++, a++, b++)
-    {
-      swap(a, b);
-    }
   }
 
   /**
