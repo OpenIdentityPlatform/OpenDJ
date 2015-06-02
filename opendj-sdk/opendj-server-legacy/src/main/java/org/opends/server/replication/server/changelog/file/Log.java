@@ -83,7 +83,6 @@ import org.opends.server.util.StaticUtils;
  * <p>
  * Usage example:
  * <pre>
- * {@code
  *   Log<K, V> log = null;
  *   try
  *   {

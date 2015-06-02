@@ -56,7 +56,7 @@ import static org.opends.server.util.StaticUtils.*;
  * Only changes older than the medium consistency point are inserted in the
  * CNIndexDB. As a consequence this class is also responsible for maintaining
  * the medium consistency point (indirectly through an
- * {@code ECLMultiDomainDBCursor}).
+ * {@link ECLMultiDomainDBCursor}).
  */
 public class ChangeNumberIndexer extends DirectoryThread
 {

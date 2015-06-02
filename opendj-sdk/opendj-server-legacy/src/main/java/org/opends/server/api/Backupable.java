@@ -34,7 +34,7 @@ import org.opends.server.types.DirectoryException;
  * Represents an entity (storage, backend) that can be backed up.
  * <p>
  * The files to backup must be located under a root directory given by
- * {@code getDirectory()} method. They can be located at any depth level
+ * {@link #getDirectory()} method. They can be located at any depth level
  * in a sub-directory. For example, file1, file2 and file3 can be returned as
  * files to backup:
  * <pre>
@@ -60,7 +60,7 @@ import org.opends.server.types.DirectoryException;
  * otherwise it is an indirect restore.
  * <p>
  * Actions taken before and after the restore should be handled in the {@code beforeRestore()} and
- * {@code afterRestore()} methods.
+ * {@link #afterRestore(Path, Path)} methods.
  *
  * @see {@link BackupManager}
  */

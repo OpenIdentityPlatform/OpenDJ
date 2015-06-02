@@ -52,7 +52,7 @@ import org.opends.server.util.StaticUtils;
  * </ul>
  * <p>
  * A log file is NOT intended to be used directly, but only has part of a
- * {@code Log}. In particular, there is no concurrency management and no checks
+ * {@link Log}. In particular, there is no concurrency management and no checks
  * to ensure that log is not closed when performing any operation on it. Those
  * are managed at the {@code Log} level.
  *
