@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at legal-notices/CDDLv1_0.txt.
+  ! If applicable, add the following below this CDDL HEADER, with the
+  ! fields enclosed by brackets "[]" replaced with your own identifying
+  ! information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.forgerock</groupId>
+    <artifactId>forgerock-parent</artifactId>
+    <version>2.0.0</version>
+  </parent>
+  <groupId>org.forgerock.opendj</groupId>
+  <artifactId>opendj-docs</artifactId>
+  <version>3.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>OpenDJ Directory Services Documentation</name>
+  <description>
+    This project provides hand-written documentation for OpenDJ.
+    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
+    platform, providing a high performance, highly available and secure store
+    for the identities managed by enterprises.
+  </description>
+  <inceptionYear>2011</inceptionYear>
+  <url>http://opendj.forgerock.org</url>
+  <issueManagement>
+    <system>Jira</system>
+    <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
+  </issueManagement>
+  <mailingLists>
+    <mailingList>
+      <name>OpenDJ Users Mailing List</name>
+      <archive>http://lists.forgerock.org/pipermail/opendj/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</unsubscribe>
+      <post>opendj@forgerock.org</post>
+    </mailingList>
+    <mailingList>
+      <name>OpenDJ Developers Mailing List</name>
+      <archive>http://lists.forgerock.org/pipermail/opendj-dev/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</unsubscribe>
+      <post>opendj-dev@forgerock.org</post>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <url>https://svn.forgerock.org/opendj/trunk/docs/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/docs/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/docs/</developerConnection>
+  </scm>
+  <ciManagement>
+    <system>jenkins</system>
+    <url>https://builds.forgerock.org/view/Docs/job/OpenDJ%20Community%20Site%20(core%20docs)/</url>
+    <notifiers>
+      <notifier>
+        <type>mail</type>
+        <sendOnError>true</sendOnError>
+        <sendOnFailure>true</sendOnFailure>
+        <sendOnSuccess>false</sendOnSuccess>
+        <sendOnWarning>false</sendOnWarning>
+        <address>opendj-dev@forgerock.org</address>
+      </notifier>
+    </notifiers>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>forgerock.org</id>
+      <name>OpenDJ Community</name>
+      <url>${siteDistributionURL}</url>
+    </site>
+  </distributionManagement>
+  <properties>
+    <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
+    <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
+
+    <!-- Keep aligned with OpenDJ for this version: -->
+    <slf4jVersion>1.7.5</slf4jVersion>
+
+    <!-- START Documentation properties -->
+    <shortProductName>OpenDJ</shortProductName>
+    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
+    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+
+    <frDocPluginVersion>3.0.0</frDocPluginVersion>
+    <gaId>UA-23412190-8</gaId>
+
+    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+
+    <!--
+      Release date and publication date are set at release build time.
+        -D"releaseDate=Software release date: January 1, 1970"
+        -D"pubDate=Publication date: December 31, 1969"
+      At all other times, the dates should be empty.
+    -->
+    <releaseDate />
+    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
+    <pubDate />
+    <publicationDate>${pubDate}</publicationDate>
+
+    <!-- Permit doc build to override relative locations of non DocBook content -->
+    <coreDocBase>http://opendj.forgerock.org/doc/bootstrap/</coreDocBase>
+    <serverDocBase>http://opendj.forgerock.org/opendj-server/doc/bootstrap/</serverDocBase>
+    <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
+    <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
+    <!-- END Documentation properties -->
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>unpack-sdk-doc-prerequisites</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-ldap-sdk-examples</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>sources</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/resources</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-core</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>sources</classifier>
+                  <outputDirectory>${project.build.directory}/core-sources</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-ldap-toolkit</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>man-pages</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-doc-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-result-code-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-result-code-doc</goal>
+            </goals>
+            <configuration>
+              <resultCodeSource>${project.build.directory}/core-sources/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
+              <xmlFile>${project.build.directory}/docbkx-sources/dev-guide/appendix-ldap-result-codes.xml</xmlFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>forgerock-doc-maven-plugin</artifactId>
+        <configuration>
+         <!-- JCite SDK Example code -->
+         <jCiteSourcePaths>
+           <jCiteSourcePath>${project.build.directory}/docbkx-sources/resources</jCiteSourcePath>
+         </jCiteSourcePaths>
+         <copyResourceFiles>true</copyResourceFiles>
+        </configuration>
+        <executions>
+          <execution>
+            <id>pre-process-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>process</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>build-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>layout-doc</id>
+            <phase>site</phase>
+            <goals>
+              <goal>site</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>layout-release</id>
+            <phase>site</phase>
+            <goals>
+              <goal>release</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <locales>en</locales>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.forgerock.commons</groupId>
+          <artifactId>forgerock-doc-maven-plugin</artifactId>
+          <version>${frDocPluginVersion}</version>
+          <configuration>
+            <projectName>${shortProductName}</projectName>
+            <projectVersion>${docTargetVersion}</projectVersion>
+            <releaseVersion>${docTargetVersion}</releaseVersion>
+            <googleAnalyticsId>${gaId}</googleAnalyticsId>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj-doc-maven-plugin</artifactId>
+          <version>${project.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <repositories>
+    <repository>
+      <id>forgerock-staging-repository</id>
+      <name>ForgeRock Release Repository</name>
+      <url>http://maven.forgerock.org/repo/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>forgerock-snapshots-repository</id>
+      <name>ForgeRock Snapshot Repository</name>
+      <url>http://maven.forgerock.org/repo/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+  <licenses>
+   <license>
+    <name>CC BY-NC-ND 3.0</name>
+    <url>http://creativecommons.org/licenses/by-nc-nd/3.0/</url>
+    <comments>Creative Commons Attribution-NonCommercial-NoDerivs 3.0
+    Unported. This license applies to the site content, and to the
+    documentation as indicated in the documentation source code.</comments>
+    <distribution>repo</distribution>
+   </license>
+  </licenses>
+</project>
