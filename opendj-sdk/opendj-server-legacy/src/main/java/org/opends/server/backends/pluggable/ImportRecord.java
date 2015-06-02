@@ -45,7 +45,7 @@ final class ImportRecord implements Comparable<ImportRecord>
   {
     return fromBufferAndOffset(buffer, readOffset(buffer, position));
   }
-  
+
   static ImportRecord fromBufferAndOffset(byte[] buffer, int offSet)
   {
     int indexID = readIndexIDFromOffset(buffer, offSet);
