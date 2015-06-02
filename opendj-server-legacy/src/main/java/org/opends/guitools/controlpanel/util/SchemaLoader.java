@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -33,6 +32,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -41,43 +41,38 @@ import org.opends.server.config.ConfigConstants;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
+
 import com.forgerock.opendj.util.OperatingSystem;
 
-/**
- * Class used to retrieve the schema from the schema files.
- */
+/** Class used to retrieve the schema from the schema files. */
 public class SchemaLoader
 {
   private Schema schema;
-  private final String[] attrsToKeep = {
+  private static final String[] ATTRIBUTES_TO_KEEP = {
     ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
     ConfigConstants.ATTR_OBJECTCLASSES_LC,
     ConfigConstants.ATTR_NAME_FORMS_LC,
     ConfigConstants.ATTR_DIT_CONTENT_RULES_LC,
     ConfigConstants.ATTR_DIT_STRUCTURE_RULES_LC,
     ConfigConstants.ATTR_MATCHING_RULE_USE_LC };
-  private final String[] ocsToKeep = { "top" };
+  private static final String[] OBJECTCLASS_TO_KEEP = { SchemaConstants.TOP_OBJECTCLASS_NAME };
 
-  private final ArrayList<ObjectClass> objectclassesToKeep =
-      new ArrayList<ObjectClass>();
-  private final ArrayList<AttributeType> attributesToKeep =
-      new ArrayList<AttributeType>();
-  private final ArrayList<MatchingRule> matchingRulesToKeep =
-      new ArrayList<MatchingRule>();
-  private final ArrayList<Syntax> syntaxesToKeep = new ArrayList<>();
+  private final List<ObjectClass> objectclassesToKeep = new ArrayList<>();
+  private final List<AttributeType> attributesToKeep = new ArrayList<>();
+  private final List<MatchingRule> matchingRulesToKeep = new ArrayList<>();
+  private final List<Syntax> syntaxesToKeep = new ArrayList<>();
 
-  /**
-   * Constructor.
-   */
+  /** Constructor. */
   public SchemaLoader()
   {
     Schema sc = DirectoryServer.getSchema();
-    for (String name : ocsToKeep)
+    for (String name : OBJECTCLASS_TO_KEEP)
     {
       ObjectClass oc = sc.getObjectClass(name.toLowerCase());
       if (oc != null)
@@ -85,7 +80,7 @@ public class SchemaLoader
         objectclassesToKeep.add(oc);
       }
     }
-    for (String name : attrsToKeep)
+    for (String name : ATTRIBUTES_TO_KEEP)
     {
       AttributeType attr = sc.getAttributeType(name.toLowerCase());
       if (attr != null)
@@ -99,16 +94,8 @@ public class SchemaLoader
 
   private static String getSchemaDirectoryPath()
   {
-    File schemaDir =
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
-    if (schemaDir != null)
-    {
-      return schemaDir.getAbsolutePath();
-    }
-    else
-    {
-      return null;
-    }
+    File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
   }
 
   /**
@@ -121,8 +108,7 @@ public class SchemaLoader
    * @throws DirectoryException
    *           if there is an error registering the minimal objectclasses.
    */
-  public void readSchema() throws DirectoryException, ConfigException,
-      InitializationException
+  public void readSchema() throws DirectoryException, ConfigException, InitializationException
   {
     schema = getBaseSchema();
 
@@ -139,39 +125,28 @@ public class SchemaLoader
       }
       else if (!schemaDir.isDirectory())
       {
-        LocalizableMessage message =
-            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
+        LocalizableMessage message = ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
         throw new InitializationException(message);
       }
-      FileFilter ldifFiles = new FileFilter()
+      FileFilter ldifFilesFilter = new FileFilter()
       {
-        /** {@inheritDoc} */
         @Override
         public boolean accept(File f)
         {
-          boolean accept = false;
           if (f != null)
           {
             if (f.isDirectory())
             {
-              accept = true;
+              return true;
             }
-            else if (OperatingSystem.isWindows())
-            {
-              accept = f.getName().toLowerCase().endsWith(".ldif");
-            }
-            else
-            {
-              accept = f.getName().endsWith(".ldif");
-            }
+            return OperatingSystem.isWindows() ? f.getName().toLowerCase().endsWith(".ldif")
+                                               : f.getName().endsWith(".ldif");
           }
-          return accept;
+          return false;
         }
       };
-      File[] schemaFiles = schemaDir.listFiles(ldifFiles);
-      int size = schemaFiles.length;
-
-      ArrayList<String> fileList = new ArrayList<String>(size);
+      File[] schemaFiles = schemaDir.listFiles(ldifFilesFilter);
+      List<String> fileList = new ArrayList<>(schemaFiles.length);
       for (File f : schemaFiles)
       {
         if (f.isFile())
@@ -184,16 +159,9 @@ public class SchemaLoader
       fileList.toArray(fileNames);
       Arrays.sort(fileNames);
     }
-    catch (InitializationException ie)
-    {
-      throw ie;
-    }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES
-              .get(schemaDirPath, e.getMessage());
-      throw new InitializationException(message, e);
+      throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirPath, e.getMessage()), e);
     }
 
     //  Iterate through the schema files and read them as an LDIF file
