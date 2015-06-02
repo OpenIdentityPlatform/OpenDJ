@@ -121,7 +121,7 @@ import org.opends.server.util.StaticUtils;
 /**
  * A backend that provides access to the changelog, i.e. the "cn=changelog"
  * suffix. It is a read-only backend that is created by a
- * {@code ReplicationServer} and is not configurable.
+ * {@link ReplicationServer} and is not configurable.
  * <p>
  * There are two modes to search the changelog:
  * <ul>

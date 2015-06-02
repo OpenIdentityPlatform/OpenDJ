@@ -38,7 +38,6 @@ import java.io.Closeable;
  * <p>
  * Usage:
  * <pre>
- * {@code
  *  DBCursor cursor = ...;
  *  try {
  *    while (cursor.next()) {
