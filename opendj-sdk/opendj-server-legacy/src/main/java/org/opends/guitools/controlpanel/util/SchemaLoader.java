@@ -161,6 +161,10 @@ public class SchemaLoader
       fileList.toArray(fileNames);
       Arrays.sort(fileNames);
     }
+    catch (InitializationException ie)
+    {
+      throw ie;
+    }
     catch (Exception e)
     {
       throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirPath, e.getMessage()), e);
