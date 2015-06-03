@@ -925,6 +925,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
     // Notify even if time-based rotation is not enabled, as it could be enabled at any time
     replicationEnv.notifyLogFileRotation(this);
+    lastRotationTime = timeService.now();
   }
 
   private void renameHeadLogFileTo(final File rotatedLogFile) throws ChangelogException
