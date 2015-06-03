@@ -32,6 +32,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -63,6 +64,7 @@ import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
@@ -96,6 +98,7 @@ import com.persistit.VolumeSpecification;
 import com.persistit.exception.InUseException;
 import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
+import com.persistit.exception.TreeNotFoundException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
 @SuppressWarnings("javadoc")
@@ -110,7 +113,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private static final int BUFFER_SIZE = 16 * 1024;
 
   /** PersistIt implementation of the {@link Cursor} interface. */
-  private final class CursorImpl implements Cursor<ByteString, ByteString>
+  private static final class CursorImpl implements Cursor<ByteString, ByteString>
   {
     private ByteString currentKey;
     private ByteString currentValue;
@@ -125,7 +128,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     public void close()
     {
       // Release immediately because this exchange did not come from the txn cache
-      db.releaseExchange(exchange);
+      exchange.getPersistitInstance().releaseExchange(exchange);
     }
 
     @Override
@@ -255,7 +258,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   /** PersistIt implementation of the {@link Importer} interface. */
   private final class ImporterImpl implements Importer
   {
-    private final Map<TreeName, Tree> trees = new HashMap<TreeName, Tree>();
+    private final Map<TreeName, Tree> trees = new HashMap<>();
     private final Queue<Map<TreeName, Exchange>> allExchanges = new ConcurrentLinkedDeque<>();
     private final ThreadLocal<Map<TreeName, Exchange>> exchanges = new ThreadLocal<Map<TreeName, Exchange>>()
     {
@@ -356,10 +359,14 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
   }
 
+  /** Common interface for internal WriteableTransaction implementations. */
+  private interface StorageImpl extends WriteableTransaction, Closeable {
+  }
+
   /** PersistIt implementation of the {@link WriteableTransaction} interface. */
-  private final class StorageImpl implements WriteableTransaction
+  private final class WriteableStorageImpl implements StorageImpl
   {
-    private final Map<TreeName, Exchange> exchanges = new HashMap<TreeName, Exchange>();
+    private final Map<TreeName, Exchange> exchanges = new HashMap<>();
 
     @Override
     public void put(final TreeName treeName, final ByteSequence key, final ByteSequence value)
@@ -541,7 +548,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       return exchange;
     }
 
-    private void release()
+    @Override
+    public void close()
     {
       for (final Exchange ex : exchanges.values())
       {
@@ -551,14 +559,107 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
   }
 
+  /** PersistIt read-only implementation of {@link StorageImpl} interface. */
+  private final class ReadOnlyStorageImpl implements StorageImpl {
+
+    private final WriteableStorageImpl delegate;
+
+    ReadOnlyStorageImpl(WriteableStorageImpl delegate)
+    {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public ByteString read(TreeName treeName, ByteSequence key)
+    {
+      return delegate.read(treeName, key);
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openCursor(TreeName treeName)
+    {
+      return delegate.openCursor(treeName);
+    }
+
+    @Override
+    public long getRecordCount(TreeName treeName)
+    {
+      return delegate.getRecordCount(treeName);
+    }
+
+    @Override
+    public void openTree(TreeName treeName)
+    {
+      Exchange ex = null;
+      try
+      {
+        ex = getNewExchange(treeName, false);
+      }
+      catch (final TreeNotFoundException e)
+      {
+        throw new ReadOnlyStorageException();
+      }
+      catch (final PersistitException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+      finally
+      {
+        db.releaseExchange(ex);
+      }
+    }
+
+    @Override
+    public void close()
+    {
+      delegate.close();
+    }
+
+    @Override
+    public void renameTree(TreeName oldName, TreeName newName)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public void deleteTree(TreeName name)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public void put(TreeName treeName, ByteSequence key, ByteSequence value)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean update(TreeName treeName, ByteSequence key, UpdateFunction f)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean delete(TreeName treeName, ByteSequence key)
+    {
+      throw new ReadOnlyStorageException();
+    }
+  }
+
   private Exchange getNewExchange(final TreeName treeName, final boolean create) throws PersistitException
   {
     return db.getExchange(volume, mangleTreeName(treeName), create);
   }
 
+  private StorageImpl newStorageImpl() {
+    final WriteableStorageImpl writeableStorage = new WriteableStorageImpl();
+    return accessMode.equals(AccessMode.READ_ONLY) ? new ReadOnlyStorageImpl(writeableStorage) : writeableStorage;
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private final ServerContext serverContext;
   private final File backendDirectory;
+  private AccessMode accessMode;
   private Persistit db;
   private Volume volume;
   private PDBBackendCfg config;
@@ -586,11 +687,13 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private Configuration buildConfiguration(AccessMode accessMode)
   {
+    this.accessMode = accessMode;
+
     final Configuration dbCfg = new Configuration();
     dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
     dbCfg.setJournalPath(new File(backendDirectory, JOURNAL_NAME).getPath());
     dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
-        BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, accessMode.equals(AccessMode.READ_ONLY))));
+        BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg(dbCfg);
     bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
 
@@ -696,8 +799,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       txn.begin();
       try
       {
-        final StorageImpl storageImpl = new StorageImpl();
-        try
+        try (final StorageImpl storageImpl = newStorageImpl())
         {
           final T result = operation.run(storageImpl);
           txn.commit();
@@ -710,10 +812,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
               throw (Exception) e.getCause();
           }
           throw e;
-        }
-        finally
-        {
-          storageImpl.release();
         }
       }
       catch (final RollbackException e)
@@ -767,8 +865,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       txn.begin();
       try
       {
-        final StorageImpl storageImpl = new StorageImpl();
-        try
+        try (final StorageImpl storageImpl = newStorageImpl())
         {
           operation.run(storageImpl);
           txn.commit();
@@ -778,13 +875,9 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         {
           if (e.getCause() != null)
           {
-              throw (Exception) e.getCause();
+            throw (Exception) e.getCause();
           }
           throw e;
-        }
-        finally
-        {
-          storageImpl.release();
         }
       }
       catch (final RollbackException e)
