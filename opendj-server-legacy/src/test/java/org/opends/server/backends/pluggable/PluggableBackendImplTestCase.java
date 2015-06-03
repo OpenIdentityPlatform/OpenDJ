@@ -57,6 +57,12 @@ import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
+import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -921,5 +927,39 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     String ldifString = ldifData.toString();
     assertEquals(ldifString.contains(testBaseDN.toString()), true, "Export without rootDN");
     assertEquals(ldifString.contains(searchDN.toString()), true, "Export without rootDN");
+  }
+
+  @Test(expectedExceptions=ReadOnlyStorageException.class)
+  public void testReadOnly() throws Exception
+  {
+    C backendCfg = createBackendCfg();
+    when(backendCfg.dn()).thenReturn(testBaseDN);
+    when(backendCfg.getBackendId()).thenReturn(backendTestName);
+    when(backendCfg.getBaseDN()).thenReturn(newSortedSet(testBaseDN));
+    when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
+    when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
+
+    final Storage storage = backend.configureStorage(backendCfg, DirectoryServer.getInstance().getServerContext());
+    final RootContainer readOnlyContainer = new RootContainer(backend.getBackendID(), storage, backendCfg);
+
+    // Put backend offline so that export LDIF open read-only container
+    backend.finalizeBackend();
+    try
+    {
+      readOnlyContainer.open(AccessMode.READ_ONLY);
+      readOnlyContainer.getStorage().write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          txn.put(new TreeName("dc=test,dc=com", "id2entry"), ByteString.valueOf("key"), ByteString.valueOf("value"));
+        }
+      });
+    }
+    finally
+    {
+      readOnlyContainer.close();
+      backend.openBackend();
+    }
   }
 }
