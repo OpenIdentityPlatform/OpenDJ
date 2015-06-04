@@ -35,8 +35,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
@@ -414,57 +412,9 @@ public class LocalBackendCompareOperation
                 ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
         {
-          // Log usage of legacy proxy authz V1 control.
-          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
-              "obsoleteProxiedAuthzV1Control"));
-
-          // The requester must have the PROXIED_AUTH privilege in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV1Control proxyControl =
-                getRequestControl(ProxiedAuthV1Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
-        }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
-        {
-          // The requester must have the PROXIED_AUTH privilege in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV2Control proxyControl =
-              getRequestControl(ProxiedAuthV2Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
+          continue;
         }
 
         // NYI -- Add support for additional controls.

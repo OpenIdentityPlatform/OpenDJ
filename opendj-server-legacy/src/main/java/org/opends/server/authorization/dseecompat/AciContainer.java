@@ -118,18 +118,6 @@ implements AciTargetMatchContext, AciEvalContext {
     private Entry authorizationEntry;
 
     /**
-     * Used to save the current authorization entry when the authorization
-     * entry is switched during a proxy access check.
-     */
-    private final Entry saveAuthorizationEntry;
-
-    /**
-     * This entry is only used if proxied authorization is being used.  It is
-     * the original authorization entry before the proxied authorization change.
-     */
-    private Entry origAuthorizationEntry;
-
-    /**
      * True if proxied authorization is being used.
      */
     private boolean proxiedAuthorization;
@@ -248,8 +236,7 @@ implements AciTargetMatchContext, AciEvalContext {
 
       //If the proxied authorization control was processed, then the operation
       //will contain an attachment containing the original authorization entry.
-      this.origAuthorizationEntry =
-                      (Entry) operation.getAttachment(ORIG_AUTH_ENTRY);
+      final Entry origAuthorizationEntry = (Entry) operation.getAttachment(ORIG_AUTH_ENTRY);
       this.proxiedAuthorization = origAuthorizationEntry != null;
       this.authorizationEntry=operation.getAuthorizationEntry();
 
@@ -292,8 +279,7 @@ implements AciTargetMatchContext, AciEvalContext {
 
       //Reference the current authorization entry, so it can be put back
       //if an access proxy check was performed.
-      this.saveAuthorizationEntry=this.authorizationEntry;
-      this.rightsMask = rights;
+        this.rightsMask = rights;
     }
 
     /**
@@ -312,7 +298,6 @@ implements AciTargetMatchContext, AciEvalContext {
         this.clientConnection=operation.getClientConnection();
         this.authInfo = authInfo;
         this.authorizationEntry = authInfo.getAuthorizationEntry();
-        this.saveAuthorizationEntry=this.authorizationEntry;
         this.rightsMask = rights;
     }
   /**
@@ -487,21 +472,6 @@ implements AciTargetMatchContext, AciEvalContext {
    */
     public boolean isAuthzidAuthorizationDN() {
      return this.authzid.equals(this.authorizationEntry.getName());
-    }
-
-  /**
-   * If the specified value is true, then the original authorization entry,
-   * which is the  entry before the switch performed by the proxied
-   * authorization control processing should be set to the current
-   * authorization entry. If the specified value is false then the proxied
-   * authorization entry is switched back using the saved copy.
-   * @param val The value used to select the authorization entry to use.
-   */
-    public void useOrigAuthorizationEntry(boolean val) {
-      if(val)
-        authorizationEntry=origAuthorizationEntry;
-      else
-        authorizationEntry=saveAuthorizationEntry;
     }
 
     /** {@inheritDoc} */

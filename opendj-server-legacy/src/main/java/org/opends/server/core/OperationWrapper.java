@@ -160,6 +160,20 @@ public class OperationWrapper<W extends Operation> implements Operation
 
   /** {@inheritDoc} */
   @Override
+  public DN getProxiedAuthorizationDN()
+  {
+    return operation.getProxiedAuthorizationDN();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
+  {
+    operation.setProxiedAuthorizationDN(proxiedAuthorizationDN);
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public CancelRequest getCancelRequest()
   {
     return operation.getCancelRequest();

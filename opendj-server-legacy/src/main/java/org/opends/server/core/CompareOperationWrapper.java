@@ -140,19 +140,4 @@ public abstract class CompareOperationWrapper extends
   }
 
 
-  /** {@inheritDoc} */
-  @Override
-  public DN getProxiedAuthorizationDN()
-  {
-    return getOperation().getProxiedAuthorizationDN();
-  }
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
-  {
-    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
-  }
-
 }

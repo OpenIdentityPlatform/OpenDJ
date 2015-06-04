@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -377,43 +377,9 @@ public class LocalBackendSearchOperation
                                 de.getMessageObject()), de);
           }
         }
-        else if (OID_PROXIED_AUTH_V1.equals(oid))
+        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
         {
-          // Log usage of legacy proxy authz V1 control.
-          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
-              "obsoleteProxiedAuthzV1Control"));
-
-          // The requester must have the PROXIED_AUTH privilege in order to be
-          // able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV1Control proxyControl =
-              getRequestControl(ProxiedAuthV1Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          setProxiedAuthorizationDN(getName(authorizationEntry));
-        }
-        else if (OID_PROXIED_AUTH_V2.equals(oid))
-        {
-          // The requester must have the PROXIED_AUTH privilege in order to be
-          // able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV2Control proxyControl =
-              getRequestControl(ProxiedAuthV2Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          setProxiedAuthorizationDN(getName(authorizationEntry));
+          continue;
         }
         else if (OID_PERSISTENT_SEARCH.equals(oid))
         {

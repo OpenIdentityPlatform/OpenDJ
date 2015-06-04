@@ -53,8 +53,6 @@ import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -68,7 +66,6 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
@@ -741,43 +738,9 @@ public class LocalBackendModifyOperation
             iter.set(postReadRequest);
           }
         }
-        else if (OID_PROXIED_AUTH_V1.equals(oid))
+        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
         {
-          // Log usage of legacy proxy authz V1 control.
-          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
-              "obsoleteProxiedAuthzV1Control"));
-
-          // The requester must have the PROXIED_AUTH privilege in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV1Control proxyControl =
-                  getRequestControl(ProxiedAuthV1Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          setProxiedAuthorizationDN(getName(authorizationEntry));
-        }
-        else if (OID_PROXIED_AUTH_V2.equals(oid))
-        {
-          // The requester must have the PROXIED_AUTH privilege in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
-          {
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-          }
-
-          ProxiedAuthV2Control proxyControl =
-              getRequestControl(ProxiedAuthV2Control.DECODER);
-
-          Entry authorizationEntry = proxyControl.getAuthorizationEntry();
-          setAuthorizationEntry(authorizationEntry);
-          setProxiedAuthorizationDN(getName(authorizationEntry));
+          continue;
         }
         else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
         {

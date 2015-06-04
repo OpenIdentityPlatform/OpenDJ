@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -368,19 +368,6 @@ public abstract class SearchOperationWrapper extends
       throws DirectoryException
   {
     return getOperation().sendSearchReference(reference);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public DN getProxiedAuthorizationDN()
-  {
-    return getOperation().getProxiedAuthorizationDN();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN){
-    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }

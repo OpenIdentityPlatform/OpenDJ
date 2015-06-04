@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -94,12 +94,6 @@ public abstract class ModifyDNOperationWrapper extends
 
   /** {@inheritDoc} */
   @Override
-  public DN getProxiedAuthorizationDN() {
-    return getOperation().getProxiedAuthorizationDN();
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public ByteString getRawEntryDN() {
     return getOperation().getRawEntryDN();
   }
@@ -144,13 +138,6 @@ public abstract class ModifyDNOperationWrapper extends
   @Override
   public void setRawNewSuperior(ByteString rawNewSuperior) {
     getOperation().setRawNewSuperior(rawNewSuperior);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setProxiedAuthorizationDN(DN dn)
-  {
-    getOperation().setProxiedAuthorizationDN(dn);
   }
 
   /** {@inheritDoc} */
