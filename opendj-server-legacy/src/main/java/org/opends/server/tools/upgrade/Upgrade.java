@@ -47,7 +47,6 @@ import com.forgerock.opendj.cli.ReturnCode;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static javax.security.auth.callback.TextOutputCallback.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.LicenseFile.*;
@@ -180,16 +179,15 @@ public final class Upgrade
         "ds-cfg-strict-format: false"));
 
     register("2.5.0.8214",
-        modifyConfigEntryOptional(INFO_UPGRADE_TASK_8214_SUMMARY.get(),
-        INFO_UPGRADE_TASK_8214_DESCRIPTION.get(),
-        "(ds-cfg-java-class=org.opends.server.extensions."
-            + "IsMemberOfVirtualAttributeProvider)",
-        "add: ds-cfg-filter",
-        "ds-cfg-filter: (|(objectClass=person)(objectClass=groupOfNames)"
-            + "(objectClass=groupOfUniqueNames)(objectClass=groupOfEntries))",
-        "-",
-        "delete: ds-cfg-filter",
-        "ds-cfg-filter: (objectClass=person)"));
+        requireConfirmation(INFO_UPGRADE_TASK_8214_DESCRIPTION.get(),
+            modifyConfigEntry(INFO_UPGRADE_TASK_8214_SUMMARY.get(),
+                "(ds-cfg-java-class=org.opends.server.extensions.IsMemberOfVirtualAttributeProvider)",
+                "add: ds-cfg-filter",
+                "ds-cfg-filter: (|(objectClass=person)(objectClass=groupOfNames)"
+                    + "(objectClass=groupOfUniqueNames)(objectClass=groupOfEntries))",
+                "-",
+                "delete: ds-cfg-filter",
+                "ds-cfg-filter: (objectClass=person)")));
 
     register("2.5.0.8387",
         modifyConfigEntry(INFO_UPGRADE_TASK_8387_SUMMARY.get(),
@@ -479,22 +477,12 @@ public final class Upgrade
     }
 
     /*
-     * Verify tasks requirements. E.g. if a task requires mandatory user
-     * interaction and the application is non-interactive then, the process may
-     * abort immediately.
-     */
-    for (final UpgradeTask task : tasks)
-    {
-      task.verify(context);
-    }
-
-    /*
      * Let tasks interact with the user in order to obtain user's selection.
      */
     context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
     for (final UpgradeTask task : tasks)
     {
-      task.interact(context);
+      task.prepare(context);
     }
 
     // Starts upgrade

@@ -42,7 +42,7 @@ abstract class AbstractUpgradeTask implements UpgradeTask
 
   /** {@inheritDoc} */
   @Override
-  public void interact(UpgradeContext context)
+  public void prepare(UpgradeContext context)
       throws ClientException
   {
     // Nothing to do.
@@ -53,14 +53,6 @@ abstract class AbstractUpgradeTask implements UpgradeTask
   public void perform(UpgradeContext context) throws ClientException
   {
     // Must be implemented.
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void verify(UpgradeContext context)
-      throws ClientException
-  {
-    // Nothing to do.
   }
 
   /** {@inheritDoc} */

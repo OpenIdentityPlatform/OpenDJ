@@ -46,7 +46,6 @@ import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
 import static javax.security.auth.callback.ConfirmationCallback.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
@@ -86,26 +85,7 @@ public final class UpgradeTasks
   public static UpgradeTask addConfigEntry(final LocalizableMessage summary,
       final String... ldif)
   {
-    return addConfigEntry0(summary, summary, false, ldif);
-  }
-
-  /**
-   * Returns a new upgrade task which applies an LDIF record to all
-   * configuration entries matching the provided filter.
-   *
-   * @param summary
-   *          The summary of this upgrade task.
-   * @param description
-   *          The detailed description of this upgrade task.
-   * @param ldif
-   *          The LDIF record which will be applied to matching entries.
-   * @return A new upgrade task which applies an LDIF record to all
-   *         configuration entries matching the provided filter.
-   */
-  public static UpgradeTask addConfigEntryOptional(final LocalizableMessage summary,
-      final LocalizableMessage description, final String... ldif)
-  {
-    return addConfigEntry0(summary, description, true, ldif);
+    return updateConfigEntry(summary, null, ChangeOperationType.ADD, ldif);
   }
 
   /**
@@ -208,14 +188,7 @@ public final class UpgradeTasks
   public static UpgradeTask deleteConfigEntry(final LocalizableMessage summary,
       final String dnInLDIF)
   {
-    return new AbstractUpgradeTask()
-    {
-      @Override
-      public void perform(final UpgradeContext context) throws ClientException
-      {
-        perform0(summary, null, ChangeOperationType.DELETE, context, dnInLDIF);
-      }
-    };
+    return updateConfigEntry(summary, null, ChangeOperationType.DELETE, dnInLDIF);
   }
 
   /**
@@ -234,28 +207,7 @@ public final class UpgradeTasks
   public static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
       final String filter, final String... ldif)
   {
-    return modifyConfigEntry(summary, summary, false, filter, ldif);
-  }
-
-  /**
-   * Returns a new upgrade task which applies an LDIF record to all
-   * configuration entries matching the provided filter.
-   *
-   * @param summary
-   *          The summary of this upgrade task.
-   * @param description
-   *          The detailed description of this upgrade task.
-   * @param filter
-   *          The LDAP filter which configuration entries must match.
-   * @param ldif
-   *          The LDIF record which will be applied to matching entries.
-   * @return A new upgrade task which applies an LDIF record to all
-   *         configuration entries matching the provided filter.
-   */
-  public static UpgradeTask modifyConfigEntryOptional(final LocalizableMessage summary,
-      final LocalizableMessage description, final String filter, final String... ldif)
-  {
-    return modifyConfigEntry(summary, description, true, filter, ldif);
+    return updateConfigEntry(summary, filter, ChangeOperationType.MODIFY, ldif);
   }
 
   /**
@@ -398,41 +350,73 @@ public final class UpgradeTasks
    * @return An upgrade task which will only be invoked if the current version
    *         is more recent than the provided version.
    */
-  public static UpgradeTask regressionInVersion(final String versionString,
-      final UpgradeTask... tasks)
+  public static UpgradeTask regressionInVersion(final String versionString, final UpgradeTask... tasks)
   {
     final BuildVersion version = BuildVersion.valueOf(versionString);
+    return conditionalUpgradeTasks(new UpgradeCondition()
+    {
+      @Override
+      public boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException
+      {
+        return context.getFromVersion().compareTo(version) >= 0;
+      }
+    }, tasks);
+  }
+
+  /**
+   * Creates a group of tasks which will only be invoked if the user confirms agreement. This may be
+   * useful in cases where a feature is deprecated and the upgrade is capable of migrating the
+   * configuration to the new replacement feature.
+   *
+   * @param message
+   *          The confirmation message.
+   * @param tasks
+   *          The group of tasks to invoke if the user agrees.
+   * @return An upgrade task which will only be invoked if the user confirms agreement.
+   */
+  public static UpgradeTask requireConfirmation(final LocalizableMessage message, final UpgradeTask... tasks)
+  {
+    return conditionalUpgradeTasks(new UpgradeCondition()
+    {
+      @Override
+      public boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException
+      {
+        return context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(message), YES) == YES;
+      }
+    }, tasks);
+  }
+
+  /**
+   * Determines whether conditional tasks should be performed.
+   */
+  private static interface UpgradeCondition
+  {
+    boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException;
+  }
+
+  private static UpgradeTask conditionalUpgradeTasks(final UpgradeCondition condition, final UpgradeTask... tasks)
+  {
     return new AbstractUpgradeTask()
     {
+      private boolean shouldPerformUpgradeTasks = true;
 
       @Override
-      public void verify(UpgradeContext context) throws ClientException
+      public void prepare(final UpgradeContext context) throws ClientException
       {
-        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        shouldPerformUpgradeTasks = condition.shouldPerformUpgradeTasks(context);
+        if (shouldPerformUpgradeTasks)
         {
           for (UpgradeTask task : tasks)
           {
-            task.verify(context);
+            task.prepare(context);
           }
         }
       }
 
       @Override
-      public void interact(UpgradeContext context) throws ClientException
+      public void perform(final UpgradeContext context) throws ClientException
       {
-        if (currentVersionEqualToOrMoreRecentThan(context, version))
-        {
-          for (UpgradeTask task : tasks)
-          {
-            task.interact(context);
-          }
-        }
-      }
-
-      @Override
-      public void perform(UpgradeContext context) throws ClientException
-      {
-        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        if (shouldPerformUpgradeTasks)
         {
           for (UpgradeTask task : tasks)
           {
@@ -444,7 +428,7 @@ public final class UpgradeTasks
       @Override
       public void postUpgrade(UpgradeContext context) throws ClientException
       {
-        if (currentVersionEqualToOrMoreRecentThan(context, version))
+        if (shouldPerformUpgradeTasks)
         {
           boolean isOk = true;
           for (final UpgradeTask task : tasks)
@@ -469,12 +453,6 @@ public final class UpgradeTasks
         }
       }
 
-
-      private boolean currentVersionEqualToOrMoreRecentThan(
-          UpgradeContext context, final BuildVersion version)
-      {
-        return context.getFromVersion().compareTo(version) >= 0;
-      }
     };
   }
 
@@ -492,7 +470,7 @@ public final class UpgradeTasks
       private boolean isATaskToPerform = false;
 
       @Override
-      public void interact(UpgradeContext context) throws ClientException
+      public void prepare(UpgradeContext context) throws ClientException
       {
         Upgrade.setHasPostUpgradeTask(true);
         // Requires answer from the user.
@@ -544,7 +522,7 @@ public final class UpgradeTasks
       private boolean isATaskToPerform = false;
 
       @Override
-      public void interact(UpgradeContext context) throws ClientException
+      public void prepare(UpgradeContext context) throws ClientException
       {
         Upgrade.setHasPostUpgradeTask(true);
         // Requires answer from the user.
@@ -759,40 +737,6 @@ public final class UpgradeTasks
     };
   }
 
-  private static UpgradeTask addConfigEntry0(final LocalizableMessage summary,
-      final LocalizableMessage description, final boolean needsUserConfirmation,
-      final String... ldif)
-  {
-    return new AbstractUpgradeTask()
-    {
-      private boolean userConfirmation = true;
-
-      @Override
-      public void interact(final UpgradeContext context) throws ClientException
-      {
-        if (needsUserConfirmation)
-        {
-          // Process needs to have user's response to perform the current modification.
-          LocalizableMessage msg = INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description);
-          if (context.confirmYN(msg, YES) == NO)
-          {
-            // The user refuses to perform this task.
-            userConfirmation = false;
-          }
-        }
-      }
-
-      @Override
-      public void perform(final UpgradeContext context) throws ClientException
-      {
-        if (userConfirmation)
-        {
-          perform0(summary, null, ChangeOperationType.ADD, context, ldif);
-        }
-      }
-    };
-  }
-
   private static void displayChangeCount(final String fileName,
       final int changeCount)
   {
@@ -833,42 +777,20 @@ public final class UpgradeTasks
     }
   }
 
-  private static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
-      final LocalizableMessage description, final boolean needsUserConfirmation,
-      final String filter, final String... ldif)
+  private static UpgradeTask updateConfigEntry(final LocalizableMessage summary, final String filter,
+      final ChangeOperationType changeOperationType, final String... ldif)
   {
     return new AbstractUpgradeTask()
     {
-      private boolean userConfirmation = true;
-
-      @Override
-      public void interact(final UpgradeContext context) throws ClientException
-      {
-        if (needsUserConfirmation)
-        {
-          // Process needs to have user's response to perform the current modification
-          LocalizableMessage msg = INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description);
-          if (context.confirmYN(msg, YES) == NO)
-          {
-            // The user refuses to perform this task.
-            userConfirmation = false;
-          }
-        }
-      }
-
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        if (userConfirmation)
-        {
-          perform0(summary, filter, ChangeOperationType.MODIFY, context, ldif);
-        }
+        performConfigFileUpdate(summary, filter, changeOperationType, context, ldif);
       }
-
     };
   }
 
-  private static void perform0(final LocalizableMessage summary, final String filter,
+  private static void performConfigFileUpdate(final LocalizableMessage summary, final String filter,
       final ChangeOperationType changeOperationType,
       final UpgradeContext context, final String... ldif)
       throws ClientException
