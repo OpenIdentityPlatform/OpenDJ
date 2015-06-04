@@ -304,7 +304,7 @@ public final class Upgrade
     register("2.7.0.10215",
         copySchemaFile("03-pwpolicyextension.ldif"));
 
-    register("3.0.0.10214",
+    register("2.8.0.10214",
         modifyConfigEntry(INFO_UPGRADE_TASK_10214_SUMMARY.get(),
           "(ds-cfg-java-class=org.opends.server.loggers.debug.TextDebugLogPublisher)",
           "delete:ds-cfg-java-class",
@@ -312,12 +312,12 @@ public final class Upgrade
           "add:ds-cfg-java-class",
           "ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher"));
 
-    register("3.0.0.10232",
+    register("2.8.0.10232",
         modifyConfigEntry(INFO_UPGRADE_TASK_10232_SUMMARY.get(),
           "(objectclass=ds-cfg-file-based-debug-log-publisher)",
           "delete:ds-cfg-default-debug-level"));
 
-    register("3.0.0.10329",
+    register("2.8.0.10329",
         modifyConfigEntry(INFO_UPGRADE_TASK_10329_SUMMARY.get(),
             "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=File-Based Error Logger)",
             "delete:ds-cfg-default-severity",
@@ -330,7 +330,7 @@ public final class Upgrade
             "ds-cfg-default-severity: warning"
             ));
 
-    register("3.0.0.10339",
+    register("2.8.0.10339",
         modifyConfigEntry(INFO_UPGRADE_TASK_10339_SUMMARY.get(),
             "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=Replication Repair Logger)",
             "delete:ds-cfg-override-severity",
@@ -371,31 +371,31 @@ public final class Upgrade
             "ds-cfg-enabled: true"));
 
     /** See OPENDJ-1545 */
-    register("3.0.0.11237",
+    register("2.8.0.11237",
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_1_SUMMARY.get(),
             "dn: cn=Network Groups,cn=config"),
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_2_SUMMARY.get(),
             "dn: cn=Workflows,cn=config"),
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_3_SUMMARY.get(),
             "dn: cn=Workflow Elements,cn=config"));
-    register("3.0.0.11239",
+    register("2.8.0.11239",
         deleteConfigEntry(INFO_UPGRADE_TASK_11239_SUMMARY.get(),
             "dn: cn=Network Group,cn=Plugins,cn=config"));
-    register("3.0.0.11339",
+    register("2.8.0.11339",
         deleteConfigEntry(INFO_UPGRADE_TASK_11339_SUMMARY.get(),
             "dn: cn=Extensions,cn=config"));
 
     /** See OPENDJ-1637 */
-    register("3.0.0.11260",
+    register("2.8.0.11260",
         rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
 
     /** See OPENDJ-1701 */
-    register("3.0.0.11476",
+    register("2.8.0.11476",
         deleteConfigEntry(INFO_UPGRADE_TASK_11476_SUMMARY.get(),
             "dn: cn=File System,cn=Entry Caches,cn=config"));
 
     /** See OPENDJ-1869 */
-    register("3.0.0.12226",
+    register("2.8.0.12226",
         modifyConfigEntry(INFO_UPGRADE_TASK_12226_SUMMARY.get(),
             "(objectclass=ds-cfg-root-config)",
             "delete: ds-cfg-entry-cache-preload"));
