@@ -147,6 +147,22 @@ public class ExtendedOperationBasis
 
   /** {@inheritDoc} */
   @Override
+  public DN getProxiedAuthorizationDN()
+  {
+    return null;
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
+  {
+  }
+
+
+  /** {@inheritDoc} */
+  @Override
   public final ByteString getRequestValue()
   {
     return requestValue;

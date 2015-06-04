@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -74,20 +74,6 @@ public abstract class DeleteOperationWrapper extends
   public String toString()
   {
     return getOperation().toString();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public DN getProxiedAuthorizationDN()
-  {
-    return getOperation().getProxiedAuthorizationDN();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
-  {
-    getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
   }
 
 }

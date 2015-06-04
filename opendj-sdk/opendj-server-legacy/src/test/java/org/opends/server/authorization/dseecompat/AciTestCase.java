@@ -432,6 +432,32 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       Assert.assertEquals(LDAPResultCode.SUCCESS, expectedRc, "");
   }
 
+  void proxyModify(String ldif, String bindDn, String bindPassword,
+      String proxyUser, int expectedRc)
+      throws IOException
+  {
+      File tempFile = getTemporaryLdifFile();
+      TestCaseUtils.writeFile(tempFile, ldif);
+
+      ArrayList<String> argList=new ArrayList<>();
+      argList.add("-h");
+      argList.add("127.0.0.1");
+      argList.add("-p");
+      argList.add(String.valueOf(TestCaseUtils.getServerLdapPort()));
+      argList.add("-D");
+      argList.add(bindDn);
+      argList.add("-w");
+      argList.add(bindPassword);
+      if (proxyUser != null) {
+          argList.add("-Y");
+          argList.add("dn:" + proxyUser);
+      }
+      argList.add("-f");
+      argList.add(tempFile.getAbsolutePath());
+      String[] args = new String[argList.size()];
+      ldapModify(argList.toArray(args), expectedRc);
+  }
+
   private void ldapModify(String[] args, int expectedRc)
   {
     oStream.reset();

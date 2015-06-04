@@ -78,6 +78,20 @@ public class UnbindOperationBasis
     // candidate for being called by the logging subsystem.
     return OperationType.UNBIND;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public DN getProxiedAuthorizationDN()
+  {
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
+  {
+  }
+
   /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()

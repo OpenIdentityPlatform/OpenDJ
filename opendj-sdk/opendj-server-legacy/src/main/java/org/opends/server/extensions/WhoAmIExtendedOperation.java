@@ -35,12 +35,14 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.ExtendedOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -110,6 +112,15 @@ public class WhoAmIExtendedOperation
               "obsoleteProxiedAuthzV1Control"));
 
           authorizationEntry = proxyControlV1.getAuthorizationEntry();
+        }
+        // Check the requester has the authz user in scope of their proxy aci.
+        if (! AccessControlConfigManager.getInstance().getAccessControlHandler()
+                .mayProxy(clientConnection.getAuthenticationInfo().getAuthenticationEntry(),
+                        authorizationEntry, operation))
+        {
+          final DN dn = authorizationEntry.getName();
+          throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
+              ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED.get(dn));
         }
         operation.setAuthorizationEntry(authorizationEntry);
       }

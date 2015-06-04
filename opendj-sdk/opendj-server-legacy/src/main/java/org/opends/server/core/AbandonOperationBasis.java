@@ -97,6 +97,23 @@ public class AbandonOperationBasis extends AbstractOperation
 
   /** {@inheritDoc} */
   @Override
+  public DN getProxiedAuthorizationDN()
+  {
+    return null;
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
+  {
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
