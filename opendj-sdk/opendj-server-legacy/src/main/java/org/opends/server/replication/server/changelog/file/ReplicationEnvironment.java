@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -37,6 +37,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -104,7 +108,7 @@ import static org.opends.messages.ReplicationMessages.*;
  * |   \---changenumberindex
  * |      \--- head.log [contains last records written]
  * |      \--- 1_50.log [contains records with keys in interval [1, 50]]
- * |      \--- rtime198745512.last
+ * |      \--- rotationtime198745512.last
  * |   \---1.domain
  * |       \---generation1.id
  * |       \---22.server
@@ -122,6 +126,7 @@ import static org.opends.messages.ReplicationMessages.*;
  */
 class ReplicationEnvironment
 {
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final long CN_INDEX_DB_MAX_LOG_FILE_SIZE_IN_BYTES = 1024 * 1024;
@@ -129,6 +134,9 @@ class ReplicationEnvironment
   private static final long REPLICA_DB_MAX_LOG_FILE_SIZE_IN_BYTES = 10 * CN_INDEX_DB_MAX_LOG_FILE_SIZE_IN_BYTES;
 
   private static final int NO_GENERATION_ID = -1;
+
+  /** Extension for the temporary file used when modifying an environment file. */
+  private static final String FILE_EXTENSION_TEMP = ".tmp";
 
   private static final String CN_INDEX_DB_DIRNAME = "changenumberindex";
 
@@ -204,15 +212,14 @@ class ReplicationEnvironment
   private final ChangelogState changelogState;
 
   /** The list of logs that are in use for Replica DBs. */
-  private final List<Log<CSN, UpdateMsg>> logsReplicaDB = new CopyOnWriteArrayList<Log<CSN, UpdateMsg>>();
+  private final List<Log<CSN, UpdateMsg>> logsReplicaDB = new CopyOnWriteArrayList<>();
 
   /**
    * The list of logs that are in use for the CN Index DB.
    * There is a single CN Index DB for a ReplicationServer, but there can be multiple references opened on it.
-   * This is the responsability of Log class to handle properly these multiple references.
+   * This is the responsibility of Log class to handle properly these multiple references.
    */
-  private List<Log<Long, ChangeNumberIndexRecord>> logsCNIndexDB =
-      new CopyOnWriteArrayList<Log<Long, ChangeNumberIndexRecord>>();;
+  private List<Log<Long, ChangeNumberIndexRecord>> logsCNIndexDB = new CopyOnWriteArrayList<>();
 
   /**
    * Maps each domain DN to a domain id that is used to name directory in file system.
@@ -532,22 +539,18 @@ class ReplicationEnvironment
         return; // no serverId anymore => no-op
       }
       final File offlineFile = new File(serverIdPath, REPLICA_OFFLINE_STATE_FILENAME);
-      Writer writer = null;
-      try
+      try (Writer writer = newTempFileWriter(offlineFile))
       {
-        // Overwrite file, only the last sent offline CSN is kept
-        writer = newFileWriter(offlineFile);
+        // Only the last sent offline CSN is kept
         writer.write(offlineCSN.toString());
+        StaticUtils.close(writer);
         changelogState.addOfflineReplica(domainDN, offlineCSN);
+        commitFile(offlineFile);
       }
       catch (IOException e)
       {
         throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_WRITE_REPLICA_OFFLINE_STATE_FILE.get(
             domainDN.toString(), offlineCSN.getServerId(), offlineFile.getPath(), offlineCSN.toString()), e);
-      }
-      finally
-      {
-        StaticUtils.close(writer);
       }
     }
   }
@@ -715,23 +718,19 @@ class ReplicationEnvironment
     final String nextDomainId = findNextDomainId();
     domains.put(domainDN, nextDomainId);
     final File domainsStateFile = new File(replicationRootPath, DOMAINS_STATE_FILENAME);
-    Writer writer = null;
-    try
+    try (Writer writer = newTempFileWriter(domainsStateFile))
     {
-      writer = newFileWriter(domainsStateFile);
       for (final Entry<DN, String> entry : domains.entrySet())
       {
         writer.write(String.format("%s%s%s%n", entry.getValue(), DOMAIN_STATE_SEPARATOR, entry.getKey()));
       }
+      StaticUtils.close(writer);
+      commitFile(domainsStateFile);
     }
     catch (IOException e)
     {
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_UPDATE_DOMAIN_STATE_FILE.get(nextDomainId,
           domainDN.toString(), domainsStateFile.getPath()), e);
-    }
-    finally
-    {
-      StaticUtils.close(writer);
     }
     return nextDomainId;
   }
@@ -1016,10 +1015,53 @@ class ReplicationEnvironment
     }
   }
 
-  /** Returns a buffered writer on the provided file. */
-  private BufferedWriter newFileWriter(final File file) throws UnsupportedEncodingException, FileNotFoundException
+  /**
+   * Returns a buffered writer on the temp file (".tmp") corresponding to the provided file.
+   * <p>
+   * Once writes are finished, the {@code commitFile()} method should be called to finish the update
+   * of the provided file.
+   */
+  private BufferedWriter newTempFileWriter(final File file) throws UnsupportedEncodingException, FileNotFoundException
   {
-    return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8_ENCODING));
+    File tempFile = getTempFileFor(file);
+    return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempFile), UTF8_ENCODING));
+  }
+
+  /**
+   * "Commit" the provided file by moving the ".tmp" file to its final location.
+   * <p>
+   * In order to prevent partially written environment files, update of files is always
+   * performed by writing first a ".tmp" version and then switching the ".tmp" version to
+   * the final version once update is finished.
+   * <p>
+   * This method effectively moves the ".tmp" version to the final version.
+   *
+   * @param file
+   *          the final file location.
+   */
+  private void commitFile(final File file) throws IOException
+  {
+    File tempFile = getTempFileFor(file);
+    try
+    {
+      Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+    }
+    catch (FileAlreadyExistsException | AtomicMoveNotSupportedException e)
+    {
+      // The atomic move could fail depending on OS (mostly on old Windows versions)
+      // See OPENDJ-1811 for details
+      // Try to proceed with a non-atomic move
+      if (file.exists())
+      {
+        file.delete();
+      }
+      Files.move(tempFile.toPath(), file.toPath());
+    }
+  }
+
+  /** Returns a temporary file from provided file, by adding the ".tmp" suffix. */
+  private File getTempFileFor(File file) {
+    return new File(file.getParentFile(), file.getName() + FILE_EXTENSION_TEMP);
   }
 
   /** Returns a buffered reader on the provided file. */
