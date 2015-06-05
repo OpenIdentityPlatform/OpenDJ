@@ -434,8 +434,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       }
       LogFile<K, V> headLogFile = getHeadLogFile();
       if (mustRotate(headLogFile))
-      {
-        logger.info(INFO_CHANGELOG_LOG_FILE_ROTATION.get(logPath.getPath(), headLogFile.getSizeInBytes()));
+      { 
+        logger.debug(INFO_CHANGELOG_LOG_FILE_ROTATION.get(logPath.getPath(), headLogFile.getSizeInBytes()));
 
         rotateHeadLogFile();
         headLogFile = getHeadLogFile();
@@ -853,18 +853,26 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   <V2 extends Comparable<V2>> K findBoundaryKeyFromRecord(Record.Mapper<V, V2> mapper, V2 limitValue)
       throws ChangelogException
   {
-    K key = null;
-    for (LogFile<K, V> logFile : logFiles.values())
+    sharedLock.lock();
+    try
     {
-      final Record<K, V> record = logFile.getOldestRecord();
-      final V2 oldestValue = mapper.map(record.getValue());
-      if (oldestValue.compareTo(limitValue) > 0)
+      K key = null;
+      for (LogFile<K, V> logFile : logFiles.values())
       {
-        return key;
+        final Record<K, V> record = logFile.getOldestRecord();
+        final V2 oldestValue = mapper.map(record.getValue());
+        if (oldestValue.compareTo(limitValue) > 0)
+        {
+          return key;
+        }
+        key = record.getKey();
       }
-      key = record.getKey();
+      return key;
     }
-    return key;
+    finally
+    {
+      sharedLock.unlock();
+    }
   }
 
   /** Effectively close this log. */
