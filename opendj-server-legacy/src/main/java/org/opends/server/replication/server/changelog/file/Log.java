@@ -434,7 +434,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       }
       LogFile<K, V> headLogFile = getHeadLogFile();
       if (mustRotate(headLogFile))
-      { 
+      {
         logger.debug(INFO_CHANGELOG_LOG_FILE_ROTATION.get(logPath.getPath(), headLogFile.getSizeInBytes()));
 
         rotateHeadLogFile();
