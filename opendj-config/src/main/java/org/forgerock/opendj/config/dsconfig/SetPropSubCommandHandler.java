@@ -248,10 +248,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             if (app.isInteractive()) {
                 SortedSet<PropertyDefinition<?>> properties = new TreeSet<>();
                 for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-                    if (pd.hasOption(PropertyOption.HIDDEN)) {
-                        continue;
-                    }
-                    if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+                    if (cannotDisplay(app, pd)) {
                         continue;
                     }
                     properties.add(pd);
@@ -344,6 +341,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 throw new IllegalStateException(e);
             }
         }
+    }
+
+    private static boolean cannotDisplay(ConsoleApplication app, PropertyDefinition<?> pd) {
+        return pd.hasOption(PropertyOption.HIDDEN)
+                || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED));
     }
 
     /**

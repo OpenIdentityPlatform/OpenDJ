@@ -251,10 +251,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
 
             boolean isFirst = true;
             for (ManagedObjectDefinition<?, ?> mod : getSubTypes(d).values()) {
-                // Only display advanced types and custom types in advanced mode.
-                if (!app.isAdvancedMode()
-                        && (mod.hasOption(ManagedObjectOption.ADVANCED)
-                                || CLIProfile.getInstance().isForCustomization(mod))) {
+                if (cannotDisplayAdvancedOrCustomTypes(app, mod)) {
                     continue;
                 }
 
@@ -616,8 +613,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             if (app.isInteractive()) {
                 SortedSet<PropertyDefinition<?>> properties = new TreeSet<>();
                 for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-                    if (pd.hasOption(PropertyOption.HIDDEN)
-                            || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED))) {
+                    if (cannotDisplay(app, pd)) {
                         continue;
                     }
                     properties.add(pd);
@@ -705,6 +701,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                 return interactivePrintOrThrowError(app, msg, ENTRY_ALREADY_EXISTS);
             }
         }
+    }
+
+    private static boolean cannotDisplay(ConsoleApplication app, PropertyDefinition<?> pd) {
+        return pd.hasOption(PropertyOption.HIDDEN)
+                || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED));
     }
 
     /** Interactively create the child by prompting for the name. */
@@ -813,17 +814,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         Iterator<ManagedObjectDefinition<? extends C, ? extends S>> i;
         for (i = filteredTypes.iterator(); i.hasNext();) {
             ManagedObjectDefinition<? extends C, ? extends S> cd = i.next();
-
-            if (prohibitedTypes.contains(cd.getName())) {
-                // Remove filtered types.
+            if (prohibitedTypes.contains(cd.getName())
+                    || cannotDisplayAdvancedOrCustomTypes(app, cd)) {
                 i.remove();
-            } else if (!app.isAdvancedMode()) {
-                // Only display advanced types and custom types in advanced mode.
-                if (cd.hasOption(ManagedObjectOption.ADVANCED)) {
-                    i.remove();
-                } else if (CLIProfile.getInstance().isForCustomization(cd)) {
-                    i.remove();
-                }
             }
         }
 
@@ -866,6 +859,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             builder.addQuitOption();
             return builder.toMenu().run();
         }
+    }
+
+    /** Only display advanced types and custom types in advanced mode. */
+    private static boolean cannotDisplayAdvancedOrCustomTypes(
+            ConsoleApplication app, ManagedObjectDefinition<?, ?> defn) {
+        return !app.isAdvancedMode()
+                && (defn.hasOption(ManagedObjectOption.ADVANCED) || CLIProfile.getInstance().isForCustomization(defn));
     }
 
     /** The sub-commands naming arguments. */

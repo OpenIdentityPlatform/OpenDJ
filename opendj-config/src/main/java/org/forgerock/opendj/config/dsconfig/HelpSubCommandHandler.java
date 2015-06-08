@@ -26,9 +26,9 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
-import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -51,7 +51,6 @@ import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.EnumPropertyDefinition;
-import org.forgerock.opendj.config.ManagedObjectOption;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
@@ -64,12 +63,12 @@ import org.forgerock.opendj.config.client.ManagedObject;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.SubCommand;
-import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TablePrinter;
 import com.forgerock.opendj.cli.TextTablePrinter;
@@ -138,7 +137,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
             public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
                 return INFO_DSCFG_HELP_FIELD_UNDEFINED.get();
             }
-
         }
 
         /**
@@ -466,29 +464,17 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         builder.startRow();
         builder.appendCell(INFO_DSCFG_HELP_HEADING_ADVANCED.get());
         builder.appendCell(HEADING_SEPARATOR);
-        if (pd.hasOption(PropertyOption.ADVANCED)) {
-            builder.appendCell(INFO_GENERAL_YES.get());
-        } else {
-            builder.appendCell(INFO_GENERAL_NO.get());
-        }
+        builder.appendCell(hasOptionYN(pd, PropertyOption.ADVANCED));
 
         builder.startRow();
         builder.appendCell(INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get());
         builder.appendCell(HEADING_SEPARATOR);
-        if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-            builder.appendCell(INFO_GENERAL_YES.get());
-        } else {
-            builder.appendCell(INFO_GENERAL_NO.get());
-        }
+        builder.appendCell(hasOptionYN(pd, PropertyOption.MULTI_VALUED));
 
         builder.startRow();
         builder.appendCell(INFO_DSCFG_HELP_HEADING_MANDATORY.get());
         builder.appendCell(HEADING_SEPARATOR);
-        if (pd.hasOption(PropertyOption.MANDATORY)) {
-            builder.appendCell(INFO_GENERAL_YES.get());
-        } else {
-            builder.appendCell(INFO_GENERAL_NO.get());
-        }
+        builder.appendCell(hasOptionYN(pd, PropertyOption.MANDATORY));
 
         builder.startRow();
         builder.appendCell(INFO_DSCFG_HELP_HEADING_READ_ONLY.get());
@@ -509,25 +495,31 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         builder.print(factory);
 
         // Administrator action.
-        AdministratorAction action = pd.getAdministratorAction();
-        LocalizableMessage synopsis = action.getSynopsis();
-        if (synopsis == null) {
-            switch (action.getType()) {
-            case COMPONENT_RESTART:
-                synopsis = INFO_DSCFG_HELP_FIELD_COMPONENT_RESTART.get(d.getUserFriendlyName());
-                break;
-            case SERVER_RESTART:
-                synopsis = INFO_DSCFG_HELP_FIELD_SERVER_RESTART.get();
-                break;
-            default:
-                // Do nothing.
-                break;
-            }
-        }
-
+        LocalizableMessage synopsis = getSynopsis(d, pd);
         if (synopsis != null) {
             app.println();
             app.println(synopsis);
+        }
+    }
+
+    private static LocalizableMessage hasOptionYN(PropertyDefinition<?> pd, PropertyOption option) {
+        return pd.hasOption(option) ? INFO_GENERAL_YES.get() : INFO_GENERAL_NO.get();
+    }
+
+    private static LocalizableMessage getSynopsis(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
+        AdministratorAction action = pd.getAdministratorAction();
+        LocalizableMessage synopsis = action.getSynopsis();
+        if (synopsis != null) {
+            return synopsis;
+        }
+
+        switch (action.getType()) {
+        case COMPONENT_RESTART:
+            return INFO_DSCFG_HELP_FIELD_COMPONENT_RESTART.get(d.getUserFriendlyName());
+        case SERVER_RESTART:
+            return INFO_DSCFG_HELP_FIELD_SERVER_RESTART.get();
+        default:
+            return null;
         }
     }
 
@@ -854,52 +846,25 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
                 // Display help for each property.
                 AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
-
-                // Skip hidden types.
-                if (mod.hasOption(ManagedObjectOption.HIDDEN)) {
-                    continue;
-                }
-
-                // Skip advanced types if required.
-                if (!app.isAdvancedMode() && mod.hasOption(ManagedObjectOption.ADVANCED)) {
-                    continue;
-                }
-
-                // Skip if this does not have the required tag.
-                if (tag != null && !mod.hasTag(tag)) {
+                if (cannotDisplay(app, mod, tag)) {
                     continue;
                 }
 
                 Set<PropertyDefinition<?>> pds = getPropertyDefinitions(mod);
                 for (PropertyDefinition<?> pd : pds) {
-                    if (pd.hasOption(PropertyOption.HIDDEN)) {
+                    if (cannotDisplay(app, pd, propertyNames)) {
                         continue;
                     }
 
-                    if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-                        continue;
-                    }
-
-                    if (!propertyNames.isEmpty() && !propertyNames.contains(pd.getName())) {
-                        continue;
-                    }
-
-                    // Display the property.
+                    // Display the property:
+                    // - component category and type,
+                    // - property name, options
+                    // - syntax
                     builder.startRow();
-
-                    // Display the component category.
                     builder.appendCell(category);
-
-                    // Display the component type.
                     builder.appendCell(type);
-
-                    // Display the property name.
                     builder.appendCell(pd.getName());
-
-                    // Display the options.
                     builder.appendCell(getPropertyOptionSummary(pd));
-
-                    // Display the syntax.
                     PropertyDefinitionUsageBuilder v = new PropertyDefinitionUsageBuilder(false);
                     builder.appendCell(v.getUsage(pd));
                 }
@@ -940,35 +905,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
                 // Display help for each property.
                 AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
-
-                // Skip hidden types.
-                if (mod.hasOption(ManagedObjectOption.HIDDEN)) {
+                if (cannotDisplay(app, mod, tag)) {
                     continue;
                 }
-
-                // Skip advanced types if required.
-                if (!app.isAdvancedMode() && mod.hasOption(ManagedObjectOption.ADVANCED)) {
-                    continue;
-                }
-
-                // Skip if this does not have the required tag.
-                if (tag != null && !mod.hasTag(tag)) {
-                    continue;
-                }
-
-                Set<PropertyDefinition<?>> pds = getPropertyDefinitions(mod);
 
                 boolean isFirstProperty = true;
+                Set<PropertyDefinition<?>> pds = getPropertyDefinitions(mod);
                 for (PropertyDefinition<?> pd : pds) {
-                    if (pd.hasOption(PropertyOption.HIDDEN)) {
-                        continue;
-                    }
-
-                    if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-                        continue;
-                    }
-
-                    if (!propertyNames.isEmpty() && !propertyNames.contains(pd.getName())) {
+                    if (cannotDisplay(app, pd, propertyNames)) {
                         continue;
                     }
 
