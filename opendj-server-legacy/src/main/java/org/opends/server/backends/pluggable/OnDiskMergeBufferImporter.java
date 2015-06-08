@@ -696,7 +696,11 @@ final class OnDiskMergeBufferImporter
         sourceEntryContainer = entryContainer;
 
         // Create a temp entry container
-        DN tempDN = baseDN.child(DN.valueOf("dc=importTmp"));
+        DN tempDN = DN.valueOf(baseDN.rdn() + "_importTmp");
+        if (baseDN.size() > 1)
+        {
+          tempDN = baseDN.parent().child(tempDN);
+        }
         entryContainer = rootContainer.openEntryContainer(tempDN, txn);
       }
     }
@@ -916,11 +920,12 @@ final class OnDiskMergeBufferImporter
   {
     for (Suffix suffix : dnSuffixMap.values())
     {
-      DN baseDN = suffix.getBaseDN();
-      EntryContainer entryContainer = suffix.getSrcEntryContainer();
-      if (entryContainer != null)
+      final EntryContainer toDelete = suffix.getSrcEntryContainer();
+      if (toDelete != null)
       {
-        final EntryContainer toDelete = rootContainer.unregisterEntryContainer(baseDN);
+        final DN baseDN = toDelete.getBaseDN();
+
+        rootContainer.unregisterEntryContainer(baseDN);
         toDelete.lock();
         toDelete.close();
         toDelete.delete(txn);
@@ -928,7 +933,7 @@ final class OnDiskMergeBufferImporter
 
         final EntryContainer replacement = suffix.getEntryContainer();
         replacement.lock();
-        replacement.setTreePrefix(baseDN.toNormalizedUrlSafeString());
+        replacement.setTreePrefix(txn, baseDN.toNormalizedUrlSafeString());
         replacement.unlock();
         rootContainer.registerEntryContainer(baseDN, replacement);
       }
