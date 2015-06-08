@@ -2638,28 +2638,22 @@ public class EntryContainer
    * Sets a new tree prefix for this entry container and rename all
    * existing trees in use by this entry container.
    *
+   * @param txn the transaction for renaming Trees
    * @param newBaseDN The new tree prefix to use.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  void setTreePrefix(final String newBaseDN) throws StorageRuntimeException
+  void setTreePrefix(WriteableTransaction txn, final String newBaseDN) throws StorageRuntimeException
   {
     final List<Tree> allTrees = listTrees();
     try
     {
       // Rename in transaction.
-      storage.write(new WriteOperation()
+      for(Tree tree : allTrees)
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
-        {
-          for(Tree tree : allTrees)
-          {
-            TreeName oldName = tree.getName();
-            TreeName newName = oldName.replaceBaseDN(newBaseDN);
-            txn.renameTree(oldName, newName);
-          }
-        }
-      });
+        TreeName oldName = tree.getName();
+        TreeName newName = oldName.replaceBaseDN(newBaseDN);
+        txn.renameTree(oldName, newName);
+      }
       // Only rename the containers if the txn succeeded.
       for (Tree tree : allTrees)
       {
@@ -2677,32 +2671,21 @@ public class EntryContainer
       }
       throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
     }
-    finally
+    try
     {
-      try
+      for(Tree tree : allTrees)
       {
-        storage.write(new WriteOperation()
-        {
-          @Override
-          public void run(WriteableTransaction txn) throws Exception
-          {
-            // Open the containers backup.
-            for(Tree tree : allTrees)
-            {
-              tree.open(txn);
-            }
-          }
-        });
+        tree.open(txn);
       }
-      catch (Exception e)
+    }
+    catch (Exception e)
+    {
+      String msg = e.getMessage();
+      if (msg == null)
       {
-        String msg = e.getMessage();
-        if (msg == null)
-        {
-          msg = stackTraceToSingleLineString(e);
-        }
-        throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
+        msg = stackTraceToSingleLineString(e);
       }
+      throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
     }
   }
 

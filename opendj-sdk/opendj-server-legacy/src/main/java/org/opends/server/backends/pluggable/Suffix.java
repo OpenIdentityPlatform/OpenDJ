@@ -53,7 +53,19 @@ final class Suffix
 
   private final List<DN> includeBranches, excludeBranches;
   private final DN baseDN;
+ /**
+  * If not null this is the original entry container for the suffix in the backend before the
+  * import begins.
+  * <p>
+  * Then its data is completely deleted only at the very end of the import when calling
+  * *Importer.switchEntryContainers().
+  */
   private final EntryContainer srcEntryContainer;
+  /**
+   * If {@link #srcEntryContainer} is null, it is the original entry container for the suffix in the
+   * backend. Otherwise it is a temporary entry container that will eventually replace the existing
+   * {@link #srcEntryContainer} at the end of the import.
+   */
   private final EntryContainer entryContainer;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
@@ -78,7 +90,7 @@ final class Suffix
   {
     this.entryContainer = entryContainer;
     this.srcEntryContainer = srcEntryContainer;
-    this.baseDN = entryContainer.getBaseDN();
+    this.baseDN = srcEntryContainer != null ? srcEntryContainer.getBaseDN() : entryContainer.getBaseDN();
     if (includeBranches != null)
     {
       this.includeBranches = includeBranches;
