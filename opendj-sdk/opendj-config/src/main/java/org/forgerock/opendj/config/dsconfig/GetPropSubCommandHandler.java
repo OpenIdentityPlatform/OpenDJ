@@ -48,7 +48,6 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
@@ -273,18 +272,12 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_VALUE.get());
         builder.addSortKey(0);
         for (PropertyDefinition<?> pd : pdList) {
-            if (pd.hasOption(PropertyOption.HIDDEN)) {
+            if (cannotDisplay(app, pd, propertyNames)) {
                 continue;
             }
 
-            if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-                continue;
-            }
-
-            if (propertyNames.isEmpty() || propertyNames.contains(pd.getName())) {
-                displayProperty(app, builder, child, pd, valuePrinter);
-                setCommandBuilderUseful(true);
-            }
+            displayProperty(app, builder, child, pd, valuePrinter);
+            setCommandBuilderUseful(true);
         }
 
         PrintStream out = app.getOutputStream();

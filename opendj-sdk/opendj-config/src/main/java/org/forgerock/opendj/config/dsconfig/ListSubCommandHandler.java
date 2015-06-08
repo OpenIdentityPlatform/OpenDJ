@@ -345,7 +345,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
             // Output just the names of the children.
             for (String name : children.keySet()) {
                 ManagedObjectDefinition<?, ?> d = children.get(name).getManagedObjectDefinition();
-                if (!canDisplay(app, d)) {
+                if (!cannotDisplay(app, d)) {
                     app.println(LocalizableMessage.raw(name));
                 }
             }
@@ -370,8 +370,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
             for (String name : children.keySet()) {
                 ManagedObject<?> child = children.get(name);
                 ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
-
-                if (canDisplay(app, d)) {
+                if (cannotDisplay(app, d)) {
                     continue;
                 }
 
@@ -441,7 +440,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         return MenuResult.success(0);
     }
 
-    private boolean canDisplay(ConsoleApplication app, ManagedObjectDefinition<?, ?> d) {
+    private boolean cannotDisplay(ConsoleApplication app, ManagedObjectDefinition<?, ?> d) {
         return !app.isAdvancedMode() && (d.hasOption(HIDDEN) || d.hasOption(ADVANCED));
     }
 

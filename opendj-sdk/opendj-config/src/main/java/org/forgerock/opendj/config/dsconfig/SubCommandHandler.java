@@ -58,6 +58,7 @@ import org.forgerock.opendj.config.ManagedObjectPathSerializer;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
+import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.config.SingletonRelationDefinition;
@@ -86,9 +87,7 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.TabSeparatedTablePrinter;
 import com.forgerock.opendj.cli.TablePrinter;
 
-/**
- * An interface for sub-command implementations.
- */
+/** An interface for sub-command implementations. */
 abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
     /**
@@ -430,9 +429,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
     }
 
-    /**
-     * A path serializer which is used to register a sub-command's naming arguments.
-     */
+    /** A path serializer which is used to register a sub-command's naming arguments. */
     private static final class NamingArgumentBuilder implements ManagedObjectPathSerializer {
 
         /**
@@ -563,12 +560,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             sz--;
         }
-
     }
 
-    /**
-     * The threshold above which choice menus should be displayed in multiple columns.
-     */
+    /** The threshold above which choice menus should be displayed in multiple columns. */
     public static final int MULTI_COLUMN_THRESHOLD = 8;
 
     /** The value for the long option property. */
@@ -588,9 +582,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     /** The value for the short option unit-time. */
     private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'm';
 
-    /**
-     * The argument which should be used to specify zero or more property names.
-     */
+    /** The argument which should be used to specify zero or more property names. */
     private StringArgument propertyArgument;
     /** The argument which should be used to request record mode. */
     private BooleanArgument recordModeArgument;
@@ -962,12 +954,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 }
 
                 ManagedObjectDefinition<?, ?> cd = child.getManagedObjectDefinition();
-
-                if (cd.hasOption(ManagedObjectOption.HIDDEN)) {
-                    continue;
-                }
-
-                if (!app.isAdvancedMode() && cd.hasOption(ManagedObjectOption.ADVANCED)) {
+                if (cannotDisplay(app, cd, null)) {
                     continue;
                 }
 
@@ -1076,6 +1063,27 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             return result;
         }
         }
+    }
+
+    /**
+     * Skips:
+     *
+     * <ul>
+     * <li>hidden types</li>
+     * <li>advanced types if required</li>
+     * <li>if this does not have the required tag</li>
+     * </ul>.
+     */
+    static boolean cannotDisplay(ConsoleApplication app, AbstractManagedObjectDefinition<?, ?> defn, Tag tag) {
+        return defn.hasOption(ManagedObjectOption.HIDDEN)
+                || (!app.isAdvancedMode() && defn.hasOption(ManagedObjectOption.ADVANCED))
+                || (tag != null && !defn.hasTag(tag));
+    }
+
+    static boolean cannotDisplay(ConsoleApplication app, PropertyDefinition<?> pd, Set<String> allowedPropertyNames) {
+        return pd.hasOption(PropertyOption.HIDDEN)
+                || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED))
+                || !allowedPropertyNames.contains(pd.getName());
     }
 
     /**
