@@ -87,10 +87,12 @@ import org.forgerock.opendj.config.IPAddressMaskPropertyDefinition;
 import org.forgerock.opendj.config.IPAddressPropertyDefinition;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.IntegerPropertyDefinition;
+import org.forgerock.opendj.config.ManagedObjectOption;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.RelationOption;
 import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.config.SizePropertyDefinition;
@@ -146,7 +148,7 @@ public final class DSConfig extends ConsoleApplication {
         public String getArgumentAdditionalInfo(SubCommand sc, Argument a, String nameOption) {
             StringBuilder sb = new StringBuilder();
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
-            if (defn == null) {
+            if (isHidden(defn)) {
                 return "";
             }
             if (doesHandleProperties(a)) {
@@ -158,8 +160,16 @@ public final class DSConfig extends ConsoleApplication {
             return sb.toString();
         }
 
+        private boolean isHidden(AbstractManagedObjectDefinition defn) {
+            return defn == null || defn.hasOption(ManagedObjectOption.HIDDEN);
+        }
+
         private void listSubtypes(StringBuilder sb, SubCommand sc, Argument a,
                                   AbstractManagedObjectDefinition<?, ?> defn) {
+            if (a.isHidden()) {
+                return;
+            }
+
             final LocalizableMessage placeholder = a.getValuePlaceholder();
 
             Map<String, Object> map = new HashMap<>();
@@ -170,7 +180,9 @@ public final class DSConfig extends ConsoleApplication {
 
             List<Map<String, Object>> children = new LinkedList<>();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
-
+                if (isHidden(childDefn)) {
+                    continue;
+                }
                 Map<String, Object> child = new HashMap<>();
 
                 child.put("name", childDefn.getName());
@@ -188,6 +200,9 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         private boolean propertyExists(AbstractManagedObjectDefinition<?, ?> defn, String name) {
+            if (isHidden(defn)) {
+                return false;
+            }
             try {
                 return defn.getPropertyDefinition(name) != null;
             } catch (IllegalArgumentException e) {
@@ -199,12 +214,15 @@ public final class DSConfig extends ConsoleApplication {
         @Override
         public String getProperties(SubCommand sc) {
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
-            if (defn == null) {
+            if (isHidden(defn)) {
                 return "";
             }
 
             StringBuilder sb = new StringBuilder();
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
+                if (isHidden(childDefn)) {
+                    continue;
+                }
                 final List<PropertyDefinition<?>> props = new ArrayList<>(childDefn.getAllPropertyDefinitions());
                 Collections.sort(props);
                 Map<String, Object> map = new HashMap<>();
@@ -224,8 +242,16 @@ public final class DSConfig extends ConsoleApplication {
                 return null;
             }
             final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
+            if (isHidden(rd)) {
+                return null;
+            }
             return rd.getChildDefinition();
         }
+
+        private boolean isHidden(RelationDefinition defn) {
+            return defn == null || defn.hasOption(RelationOption.HIDDEN);
+        }
+
 
         private List<AbstractManagedObjectDefinition<?, ?>> getLeafChildren(
                 AbstractManagedObjectDefinition<?, ?> defn) {
@@ -272,6 +298,9 @@ public final class DSConfig extends ConsoleApplication {
 
             List<Map<String, Object>> properties = new LinkedList<>();
             for (PropertyDefinition<?> prop : props) {
+                if (prop.hasOption(HIDDEN)) {
+                    continue;
+                }
                 Map<String, Object> property = new HashMap<>();
                 property.put("term", prop.getName());
                 property.put("descTitle", REF_TITLE_DESCRIPTION.get());
@@ -406,6 +435,9 @@ public final class DSConfig extends ConsoleApplication {
                 public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
                     b.append(op);
                     final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
+                    if (isHidden(rel)) {
+                        return null;
+                    }
                     final String relFriendlyName = rel.getUserFriendlyName().toString();
                     b.append(REF_DSCFG_AGGREGATION.get(relFriendlyName)).append(". ");
                     final LocalizableMessage synopsis = prop.getSourceConstraintSynopsis();
