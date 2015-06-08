@@ -28,16 +28,14 @@
 package org.opends.server.admin.client.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
+import static com.forgerock.opendj.cli.ReturnCode.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -241,12 +239,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    *           to create this argument.
    * @return a ArrayList with the options created.
    */
-  protected LinkedHashSet<Argument> createGlobalArguments(
-      OutputStream outStream, boolean alwaysSSL)
-  throws ArgumentException
+  protected Set<Argument> createGlobalArguments(OutputStream outStream, boolean alwaysSSL) throws ArgumentException
   {
     secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
-    LinkedHashSet<Argument> set = secureArgsList.createGlobalArguments();
+    Set<Argument> set = secureArgsList.createGlobalArguments();
 
     showUsageArg = CommonArguments.getShowUsage();
     setUsageArgument(showUsageArg, outStream);

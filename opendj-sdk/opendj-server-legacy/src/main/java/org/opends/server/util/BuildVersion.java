@@ -22,22 +22,20 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.util;
 
-import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_NOT_FOUND;
-import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MALFORMED;
-import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MISMATCH;
-import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
-import static org.forgerock.util.Utils.closeSilently;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
@@ -78,37 +76,23 @@ public final class BuildVersion implements Comparable<BuildVersion>
    */
   public static BuildVersion instanceVersion() throws InitializationException
   {
-    final String buildInfo =
-        DirectoryServer.getInstanceRoot() + File.separator + CONFIG_DIR_NAME
-            + File.separator + "buildinfo";
-    BufferedReader reader = null;
-    try
+    final String buildInfo = Paths.get(DirectoryServer.getInstanceRoot(), CONFIG_DIR_NAME, "buildinfo").toString();
+    try (final BufferedReader reader = new BufferedReader(new FileReader(buildInfo)))
     {
-      reader = new BufferedReader(new FileReader(buildInfo));
       final String s = reader.readLine();
-      if (s != null)
+      if (s == null)
       {
-        return valueOf(s);
+        throw new InitializationException(ERR_BUILDVERSION_MALFORMED.get(buildInfo));
       }
-      else
-      {
-        throw new InitializationException(ERR_BUILDVERSION_MALFORMED
-            .get(buildInfo));
-      }
+      return valueOf(s);
     }
     catch (IOException e)
     {
-      throw new InitializationException(ERR_BUILDVERSION_NOT_FOUND
-          .get(buildInfo));
+      throw new InitializationException(ERR_BUILDVERSION_NOT_FOUND.get(buildInfo));
     }
     catch (final IllegalArgumentException e)
     {
-      throw new InitializationException(ERR_BUILDVERSION_MALFORMED
-          .get(buildInfo));
-    }
-    finally
-    {
-      closeSilently(reader);
+      throw new InitializationException(ERR_BUILDVERSION_MALFORMED.get(buildInfo));
     }
   }
 
@@ -120,11 +104,10 @@ public final class BuildVersion implements Comparable<BuildVersion>
    */
   public static void checkVersionMismatch() throws InitializationException
   {
-    if (!BuildVersion.binaryVersion().toString().equals(
-        BuildVersion.instanceVersion().toString()))
+    if (!BuildVersion.binaryVersion().toString().equals(BuildVersion.instanceVersion().toString()))
     {
-      throw new InitializationException(ERR_BUILDVERSION_MISMATCH.get(
-          BuildVersion.binaryVersion(), BuildVersion.instanceVersion()));
+      throw new InitializationException(
+          ERR_BUILDVERSION_MISMATCH.get(BuildVersion.binaryVersion(), BuildVersion.instanceVersion()));
     }
   }
 
@@ -142,8 +125,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * @throws IllegalArgumentException
    *           If the string does not contain a parsable build version.
    */
-  public static BuildVersion valueOf(final String s)
-      throws IllegalArgumentException
+  public static BuildVersion valueOf(final String s) throws IllegalArgumentException
   {
     final String[] fields = s.split("\\.");
     if (fields.length != 4)
@@ -169,8 +151,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * @param rev
    *          VCS revision number.
    */
-  public BuildVersion(final int major, final int minor, final int point,
-      final long rev)
+  public BuildVersion(final int major, final int minor, final int point, final long rev)
   {
     this.major = major;
     this.minor = minor;
@@ -178,7 +159,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     this.rev = rev;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compareTo(final BuildVersion version)
   {
     if (major == version.major)
@@ -213,7 +194,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     return 1;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(final Object obj)
   {
     if (this == obj)
@@ -223,8 +204,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     else if (obj instanceof BuildVersion)
     {
       final BuildVersion other = (BuildVersion) obj;
-      return major == other.major && minor == other.minor
-          && point == other.point && rev == other.rev;
+      return major == other.major && minor == other.minor && point == other.point && rev == other.rev;
     }
     else
     {
@@ -272,25 +252,15 @@ public final class BuildVersion implements Comparable<BuildVersion>
     return rev;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
-    return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32),
-      (int) (rev & 0xFFFFL) });
+    return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32), (int) (rev & 0xFFFFL) });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String toString()
   {
-    final StringBuilder builder = new StringBuilder();
-    builder.append(major);
-    builder.append('.');
-    builder.append(minor);
-    builder.append('.');
-    builder.append(point);
-    builder.append('.');
-    builder.append(rev);
-    return builder.toString();
+    return Utils.joinAsString(".", major, minor, point, rev);
   }
-
 }
