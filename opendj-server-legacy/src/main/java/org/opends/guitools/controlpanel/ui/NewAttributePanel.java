@@ -35,10 +35,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -80,107 +82,90 @@ import org.opends.server.util.StaticUtils;
 public class NewAttributePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2340170241535771321L;
-  private JLabel lName = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get());
-  private JLabel lParent = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get());
-  private JLabel lOID = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get());
-  private JLabel lAliases = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get());
-  private JLabel lOrigin = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get());
-  private JLabel lFile = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_FILE_LABEL.get());
-  private JLabel lDescription = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get());
-  private JLabel lUsage = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get());
-  private JLabel lSyntax = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get());
-  private JLabel lApproximate = Utilities.createPrimaryLabel(
+
+  private static final LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
+  private static final LocalizableMessage NO_MATCHING_RULE = INFO_CTRL_PANEL_NO_MATCHING_RULE_FOR_ATTRIBUTE.get();
+
+  private final JLabel lName = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get());
+  private final JLabel lParent = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get());
+  private final JLabel lOID = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get());
+  private final JLabel lAliases = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get());
+  private final JLabel lOrigin = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get());
+  private final JLabel lFile = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_FILE_LABEL.get());
+  private final JLabel lDescription = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get());
+  private final JLabel lUsage = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get());
+  private final JLabel lSyntax = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get());
+  private final JLabel lApproximate = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_APPROXIMATE_MATCHING_RULE_LABEL.get());
-  private JLabel lEquality = Utilities.createPrimaryLabel(
+  private final JLabel lEquality = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get());
-  private JLabel lOrdering = Utilities.createPrimaryLabel(
+  private final JLabel lOrdering = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get());
-  private JLabel lSubstring = Utilities.createPrimaryLabel(
+  private final JLabel lSubstring = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get());
-  private JLabel lType = Utilities.createPrimaryLabel();
+  private final JLabel lType = Utilities.createPrimaryLabel();
 
-  private JLabel[] labels = {lName, lParent, lOID, lAliases, lOrigin, lFile,
-      lDescription, lUsage, lSyntax, lApproximate,
-      lEquality, lOrdering, lSubstring, lType
-  };
+  private final JLabel[] labels = { lName, lParent, lOID, lAliases, lOrigin, lFile, lDescription, lUsage, lSyntax,
+    lApproximate, lEquality, lOrdering, lSubstring, lType };
 
-  private JTextField name = Utilities.createMediumTextField();
-  private JComboBox parent = Utilities.createComboBox();
-  private JTextField oid = Utilities.createMediumTextField();
-  private JTextField aliases = Utilities.createLongTextField();
-  private JTextField description = Utilities.createLongTextField();
-  private JTextField origin = Utilities.createLongTextField();
-  private JTextField file = Utilities.createLongTextField();
-  private JComboBox usage = Utilities.createComboBox();
-  private JComboBox syntax = Utilities.createComboBox();
-  private JComboBox approximate = Utilities.createComboBox();
-  private JComboBox equality = Utilities.createComboBox();
-  private JComboBox ordering = Utilities.createComboBox();
-  private JComboBox substring = Utilities.createComboBox();
-  private JCheckBox nonModifiable = Utilities.createCheckBox(
+  private final JTextField name = Utilities.createMediumTextField();
+  private final JComboBox parent = Utilities.createComboBox();
+  private final JTextField oid = Utilities.createMediumTextField();
+  private final JTextField aliases = Utilities.createLongTextField();
+  private final JTextField description = Utilities.createLongTextField();
+  private final JTextField origin = Utilities.createLongTextField();
+  private final JTextField file = Utilities.createLongTextField();
+  private final JComboBox<AttributeUsage> usage = Utilities.createComboBox();
+  private final JComboBox syntax = Utilities.createComboBox();
+  private final JComboBox approximate = Utilities.createComboBox();
+  private final JComboBox equality = Utilities.createComboBox();
+  private final JComboBox ordering = Utilities.createComboBox();
+  private final JComboBox substring = Utilities.createComboBox();
+  private final JCheckBox nonModifiable = Utilities.createCheckBox(
       INFO_CTRL_PANEL_ATTRIBUTE_NON_MODIFIABLE_LABEL.get());
-  private JCheckBox singleValued = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get());
-  private JCheckBox collective = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_COLLECTIVE_LABEL.get());
-  private JCheckBox obsolete = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_OBSOLETE_LABEL.get());
+  private final JCheckBox singleValued = Utilities.createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get());
+  private final JCheckBox collective = Utilities.createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_COLLECTIVE_LABEL.get());
+  private final JCheckBox obsolete = Utilities.createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_OBSOLETE_LABEL.get());
 
   private Schema schema;
 
-  private Component relativeComponent;
-
-  private LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
-  private LocalizableMessage NO_MATCHING_RULE =
-    INFO_CTRL_PANEL_NO_MATCHING_RULE_FOR_ATTRIBUTE.get();
+  private final Component relativeComponent;
 
   /**
    * Constructor of the new attribute panel.
-   * @param relativeComponent the component relative to which the dialog
-   * containing this panel must be centered.
+   *
+   * @param relativeComponent
+   *          the component relative to which the dialog containing this panel
+   *          must be centered.
    */
   public NewAttributePanel(Component relativeComponent)
   {
-    super();
     this.relativeComponent = relativeComponent;
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<Syntax> newSyntaxes = new ArrayList<>();
-
+    List<Syntax> newSyntaxes = new ArrayList<>();
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
 
     final boolean firstSchema = schema == null;
-    final boolean[] repack = {firstSchema};
-    final boolean[] error = {false};
+    final boolean[] repack = { firstSchema };
+    final boolean[] error = { false };
 
     boolean schemaChanged;
     if (schema != null && s != null)
@@ -202,8 +187,7 @@ public class NewAttributePanel extends StatusGenericPanel
     if (schemaChanged)
     {
       schema = s;
-
-      HashMap<String, Syntax> syntaxNameMap = new HashMap<>();
+      Map<String, Syntax> syntaxNameMap = new HashMap<>();
 
       for (String key : schema.getSyntaxes().keySet())
       {
@@ -224,7 +208,7 @@ public class NewAttributePanel extends StatusGenericPanel
       }
       updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
-      HashMap<String, AttributeType> attributeNameMap = new HashMap<>();
+      Map<String, AttributeType> attributeNameMap = new HashMap<>();
       for (String key : schema.getAttributeTypes().keySet())
       {
         AttributeType attr = schema.getAttributeType(key);
@@ -232,7 +216,7 @@ public class NewAttributePanel extends StatusGenericPanel
       }
       orderedKeys.clear();
       orderedKeys.addAll(attributeNameMap.keySet());
-      ArrayList<Object> newParents = new ArrayList<>();
+      List<Object> newParents = new ArrayList<>();
       for (String key : orderedKeys)
       {
         newParents.add(attributeNameMap.get(key));
@@ -240,12 +224,11 @@ public class NewAttributePanel extends StatusGenericPanel
       newParents.add(0, NO_PARENT);
       updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
-      ArrayList<MatchingRule> approximateElements = new ArrayList<>();
-      ArrayList<MatchingRule> equalityElements = new ArrayList<>();
-      ArrayList<MatchingRule> orderingElements = new ArrayList<>();
-      ArrayList<MatchingRule> substringElements = new ArrayList<>();
-
-      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
+      List<MatchingRule> approximateElements = new ArrayList<>();
+      List<MatchingRule> equalityElements = new ArrayList<>();
+      List<MatchingRule> orderingElements = new ArrayList<>();
+      List<MatchingRule> substringElements = new ArrayList<>();
+      Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
       for (String key : schema.getMatchingRules().keySet())
       {
         MatchingRule rule = schema.getMatchingRule(key);
@@ -274,24 +257,17 @@ public class NewAttributePanel extends StatusGenericPanel
           substringElements.add(matchingRule);
         }
       }
-      JComboBox[] combos = {approximate, equality, ordering, substring};
-      ArrayList<ArrayList<MatchingRule>> ruleNames = new ArrayList<>();
+      JComboBox[] combos = { approximate, equality, ordering, substring };
+      List<List<MatchingRule>> ruleNames = new ArrayList<>();
       ruleNames.add(approximateElements);
       ruleNames.add(equalityElements);
       ruleNames.add(orderingElements);
       ruleNames.add(substringElements);
-      for (int i=0; i<combos.length; i++)
+      for (int i = 0; i < combos.length; i++)
       {
-        DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
-        ArrayList<Object> el = new ArrayList<Object>(ruleNames.get(i));
-        if (model.getSize() == 0)
-        {
-          el.add(0, NO_MATCHING_RULE);
-        }
-        else
-        {
-          el.add(0, model.getElementAt(0));
-        }
+        DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
+        List<Object> el = new ArrayList<Object>(ruleNames.get(i));
+        el.add(0, model.getSize() == 0 ? NO_MATCHING_RULE : model.getElementAt(0));
         updateComboBoxModel(el, model);
       }
     }
@@ -307,7 +283,6 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -315,9 +290,9 @@ public class NewAttributePanel extends StatusGenericPanel
         errorPane.setVisible(error[0]);
         if (firstSchema)
         {
-          for (int i=0; i<syntax.getModel().getSize(); i++)
+          for (int i = 0; i < syntax.getModel().getSize(); i++)
           {
-            Syntax syn = (Syntax)syntax.getModel().getElementAt(i);
+            Syntax syn = (Syntax) syntax.getModel().getElementAt(i);
             if ("DirectoryString".equals(syn.getName()))
             {
               syntax.setSelectedIndex(i);
@@ -335,9 +310,7 @@ public class NewAttributePanel extends StatusGenericPanel
           packParentDialog();
           if (relativeComponent != null)
           {
-            Utilities.centerGoldenMean(
-                Utilities.getParentDialog(NewAttributePanel.this),
-                relativeComponent);
+            Utilities.centerGoldenMean(Utilities.getParentDialog(NewAttributePanel.this), relativeComponent);
           }
         }
       }
@@ -345,17 +318,15 @@ public class NewAttributePanel extends StatusGenericPanel
     if (!error[0])
     {
       updateErrorPaneAndOKButtonIfAuthRequired(desc,
-          isLocal() ?
-     INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_TO_CREATE_ATTRIBUTE_SUMMARY.get() :
-     INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+          isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_TO_CREATE_ATTRIBUTE_SUMMARY.get()
+                    : INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
@@ -429,30 +400,26 @@ public class NewAttributePanel extends StatusGenericPanel
     }
 
     setPrimaryValid(lUsage);
-    if (nonModifiable.isSelected()
-        && AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
+    if (nonModifiable.isSelected() && AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
     {
       errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
       setPrimaryInvalid(lUsage);
     }
 
-    ProgressDialog dlg = new ProgressDialog(
-        Utilities.createFrame(),
-        Utilities.getParentDialog(this),
+    ProgressDialog dlg = new ProgressDialog(Utilities.createFrame(), Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get(), getInfo());
     NewSchemaElementsTask newTask = null;
     if (errors.isEmpty())
     {
-      LinkedHashSet<AttributeType> attributes = new LinkedHashSet<>();
+      Set<AttributeType> attributes = new LinkedHashSet<>();
       attributes.add(getAttribute());
-      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<>(0);
+      Set<ObjectClass> ocs = new LinkedHashSet<>(0);
       newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, attributes);
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
       }
-      for (ConfigurationElementCreatedListener listener :
-        getConfigurationElementCreatedListeners())
+      for (ConfigurationElementCreatedListener listener : getConfigurationElementCreatedListeners())
       {
         newTask.addConfigurationElementCreatedListener(listener);
       }
@@ -461,13 +428,13 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       String attrName = getAttributeName();
       launchOperation(newTask,
-          INFO_CTRL_PANEL_CREATING_ATTRIBUTE_SUMMARY.get(attrName),
-          INFO_CTRL_PANEL_CREATING_ATTRIBUTE_COMPLETE.get(),
-          INFO_CTRL_PANEL_CREATING_ATTRIBUTE_SUCCESSFUL.get(attrName),
-          ERR_CTRL_PANEL_CREATING_ATTRIBUTE_ERROR_SUMMARY.get(),
-          ERR_CTRL_PANEL_CREATING_ATTRIBUTE_ERROR_DETAILS.get(attrName),
-          null,
-          dlg);
+                      INFO_CTRL_PANEL_CREATING_ATTRIBUTE_SUMMARY.get(attrName),
+                      INFO_CTRL_PANEL_CREATING_ATTRIBUTE_COMPLETE.get(),
+                      INFO_CTRL_PANEL_CREATING_ATTRIBUTE_SUCCESSFUL.get(attrName),
+                      ERR_CTRL_PANEL_CREATING_ATTRIBUTE_ERROR_SUMMARY.get(),
+                      ERR_CTRL_PANEL_CREATING_ATTRIBUTE_ERROR_DETAILS.get(attrName),
+                      null,
+                      dlg);
       dlg.setVisible(true);
       name.setText("");
       oid.setText("");
@@ -484,8 +451,11 @@ public class NewAttributePanel extends StatusGenericPanel
 
   /**
    * Returns the message representing the schema element type.
-   * @param name the name of the schema element.
-   * @param schema the schema.
+   *
+   * @param name
+   *          the name of the schema element.
+   * @param schema
+   *          the schema.
    * @return the message representing the schema element type.
    */
   static LocalizableMessage getSchemaElementType(String name, Schema schema)
@@ -528,10 +498,7 @@ public class NewAttributePanel extends StatusGenericPanel
     return null;
   }
 
-
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -541,7 +508,7 @@ public class NewAttributePanel extends StatusGenericPanel
     gbc.gridy = 0;
     addErrorPane(gbc);
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.gridwidth = 1;
     gbc.weighty = 0.0;
     gbc.gridx = 1;
@@ -551,27 +518,23 @@ public class NewAttributePanel extends StatusGenericPanel
     gbc.insets.bottom = 10;
     add(requiredLabel, gbc);
 
-    gbc.gridy ++;
+    gbc.gridy++;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.insets.bottom = 0;
 
-    JComboBox[] comboBoxes = {parent, syntax, approximate,
-        equality, ordering, substring};
-    LocalizableMessage[] defaultValues = {NO_PARENT, LocalizableMessage.EMPTY, NO_MATCHING_RULE,
-        NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE
-    };
-    SchemaElementComboBoxCellRenderer renderer = new
-    SchemaElementComboBoxCellRenderer(syntax);
-    for (int i=0; i<comboBoxes.length; i++)
+    JComboBox[] comboBoxes = { parent, syntax, approximate, equality, ordering, substring };
+    LocalizableMessage[] defaultValues =
+        { NO_PARENT, LocalizableMessage.EMPTY, NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE };
+    SchemaElementComboBoxCellRenderer renderer = new SchemaElementComboBoxCellRenderer(syntax);
+    for (int i = 0; i < comboBoxes.length; i++)
     {
-      DefaultComboBoxModel model = new DefaultComboBoxModel(
-          new Object[]{defaultValues[i]});
+      DefaultComboBoxModel model = new DefaultComboBoxModel(new Object[] { defaultValues[i] });
       comboBoxes[i].setModel(model);
       comboBoxes[i].setRenderer(renderer);
     }
 
-    DefaultComboBoxModel model = new DefaultComboBoxModel();
+    DefaultComboBoxModel<AttributeUsage> model = new DefaultComboBoxModel<AttributeUsage>();
     for (AttributeUsage us : AttributeUsage.values())
     {
       model.addElement(us);
@@ -580,44 +543,32 @@ public class NewAttributePanel extends StatusGenericPanel
     usage.setSelectedItem(AttributeUsage.USER_APPLICATIONS);
     usage.setRenderer(renderer);
 
-    Component[] basicComps = {name, oid, description,
-        syntax};
-    JLabel[] basicLabels = {lName, lOID, lDescription, lSyntax};
-    JLabel[] basicInlineHelp = new JLabel[] {null, null, null,
-        Utilities.createInlineHelpLabel(
-            INFO_CTRL_PANEL_SYNTAX_INLINE_HELP.get())};
+    Component[] basicComps = { name, oid, description, syntax };
+    JLabel[] basicLabels = { lName, lOID, lDescription, lSyntax };
+    JLabel[] basicInlineHelp = new JLabel[] {
+      null, null, null, Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_SYNTAX_INLINE_HELP.get()) };
     add(basicLabels, basicComps, basicInlineHelp, this, gbc);
 
     BasicExpander[] expanders = new BasicExpander[] {
-        new BasicExpander(INFO_CTRL_PANEL_EXTRA_OPTIONS_EXPANDER.get()),
-        new BasicExpander(
-            INFO_CTRL_PANEL_ATTRIBUTE_TYPE_OPTIONS_EXPANDER.get()),
-        new BasicExpander(INFO_CTRL_PANEL_MATCHING_RULE_OPTIONS_EXPANDER.get())
-    };
+          new BasicExpander(INFO_CTRL_PANEL_EXTRA_OPTIONS_EXPANDER.get()),
+          new BasicExpander(INFO_CTRL_PANEL_ATTRIBUTE_TYPE_OPTIONS_EXPANDER.get()),
+          new BasicExpander(INFO_CTRL_PANEL_MATCHING_RULE_OPTIONS_EXPANDER.get()) };
 
-    Component[][] comps = {{parent, aliases, origin, file},
-        {usage, singleValued, nonModifiable, collective, obsolete},
-        {approximate, equality, ordering, substring}};
-    JLabel[][] labels = {{lParent, lAliases, lOrigin, lFile},
-        {lUsage, lType, null, null, null},
-        {lApproximate, lEquality, lOrdering, lSubstring}};
-    JLabel[][] inlineHelps = {{null,
-      Utilities.createInlineHelpLabel(
-          INFO_CTRL_PANEL_SEPARATED_WITH_COMMAS_HELP.get()), null,
-      Utilities.createInlineHelpLabel(
-          INFO_CTRL_PANEL_SCHEMA_FILE_ATTRIBUTE_HELP.get(File.separator))},
-      {null, null, null, null, null, null},
-      {Utilities.createInlineHelpLabel(
-          INFO_CTRL_PANEL_MATCHING_RULE_APPROXIMATE_HELP.get()),
-        Utilities.createInlineHelpLabel(
-            INFO_CTRL_PANEL_MATCHING_RULE_EQUALITY_HELP.get()),
-        Utilities.createInlineHelpLabel(
-            INFO_CTRL_PANEL_MATCHING_RULE_ORDERING_HELP.get()),
-        Utilities.createInlineHelpLabel(
-            INFO_CTRL_PANEL_MATCHING_RULE_SUBSTRING_HELP.get())
-      }
-    };
-    for (int i=0; i<expanders.length; i++)
+    Component[][] comps = { { parent, aliases, origin, file },
+                            { usage, singleValued, nonModifiable, collective, obsolete },
+                            { approximate, equality, ordering, substring } };
+    JLabel[][] labels ={ { lParent, lAliases, lOrigin, lFile },
+                         { lUsage, lType, null, null, null },
+                         { lApproximate, lEquality, lOrdering, lSubstring } };
+    JLabel[][] inlineHelps = {
+          { null, Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_SEPARATED_WITH_COMMAS_HELP.get()), null,
+            Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_SCHEMA_FILE_ATTRIBUTE_HELP.get(File.separator)) },
+          { null, null, null, null, null, null },
+          { Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_MATCHING_RULE_APPROXIMATE_HELP.get()),
+            Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_MATCHING_RULE_EQUALITY_HELP.get()),
+            Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_MATCHING_RULE_ORDERING_HELP.get()),
+            Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_MATCHING_RULE_SUBSTRING_HELP.get()) } };
+    for (int i = 0; i < expanders.length; i++)
     {
       gbc.gridwidth = 2;
       gbc.gridx = 0;
@@ -625,9 +576,9 @@ public class NewAttributePanel extends StatusGenericPanel
       add(expanders[i], gbc);
       final JPanel p = new JPanel(new GridBagLayout());
       gbc.insets.left = 15;
-      gbc.gridy ++;
+      gbc.gridy++;
       add(p, gbc);
-      gbc.gridy ++;
+      gbc.gridy++;
       p.setOpaque(false);
 
       GridBagConstraints gbc1 = new GridBagConstraints();
@@ -638,7 +589,6 @@ public class NewAttributePanel extends StatusGenericPanel
       final BasicExpander expander = expanders[i];
       ChangeListener changeListener = new ChangeListener()
       {
-        /** {@inheritDoc} */
         @Override
         public void stateChanged(ChangeEvent e)
         {
@@ -653,7 +603,6 @@ public class NewAttributePanel extends StatusGenericPanel
 
     ItemListener itemListener = new ItemListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void itemStateChanged(ItemEvent ev)
       {
@@ -672,29 +621,26 @@ public class NewAttributePanel extends StatusGenericPanel
     file.setText(ConfigConstants.FILE_USER_SCHEMA_ELEMENTS);
   }
 
-
   private void updateDefaultMatchingRuleNames()
   {
-    Syntax syn = (Syntax)syntax.getSelectedItem();
+    Syntax syn = (Syntax) syntax.getSelectedItem();
     if (syn != null)
     {
-      MatchingRule[] rules = {syn.getApproximateMatchingRule(),
-          syn.getSubstringMatchingRule(),
-          syn.getEqualityMatchingRule(),
-          syn.getOrderingMatchingRule()};
-      JComboBox[] combos = {approximate, substring, equality, ordering};
-      for (int i=0; i<rules.length; i++)
+      MatchingRule[] rules = { syn.getApproximateMatchingRule(), syn.getSubstringMatchingRule(),
+        syn.getEqualityMatchingRule(), syn.getOrderingMatchingRule() };
+      JComboBox[] combos = { approximate, substring, equality, ordering };
+      for (int i = 0; i < rules.length; i++)
       {
-        DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
+        DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
         int index = combos[i].getSelectedIndex();
         if (model.getSize() > 0)
         {
           model.removeElementAt(0);
         }
 
-        final LocalizableMessage msg = rules[i] != null
-            ? INFO_CTRL_PANEL_DEFAULT_DEFINED_IN_SYNTAX.get(rules[i].getNameOrOID())
-            : NO_MATCHING_RULE;
+        final LocalizableMessage msg =
+            rules[i] != null ? INFO_CTRL_PANEL_DEFAULT_DEFINED_IN_SYNTAX.get(rules[i].getNameOrOID())
+                             : NO_MATCHING_RULE;
         model.insertElementAt(msg, 0);
         combos[i].setSelectedIndex(index);
       }
@@ -711,14 +657,14 @@ public class NewAttributePanel extends StatusGenericPanel
     String o = oid.getText().trim();
     if (o.length() == 0)
     {
-      o = getAttributeName()+"-oid";
+      o = getAttributeName() + "-oid";
     }
     return o;
   }
 
-  private ArrayList<String> getAliases()
+  private List<String> getAliases()
   {
-    ArrayList<String> al = new ArrayList<>();
+    List<String> al = new ArrayList<>();
     String s = aliases.getText().trim();
     if (s.length() > 0)
     {
@@ -731,9 +677,9 @@ public class NewAttributePanel extends StatusGenericPanel
     return al;
   }
 
-  private ArrayList<String> getAllNames()
+  private List<String> getAllNames()
   {
-    ArrayList<String> al = new ArrayList<>();
+    List<String> al = new ArrayList<>();
     al.add(getAttributeName());
     al.addAll(getAliases());
     return al;
@@ -780,22 +726,20 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private Map<String, List<String>> getExtraProperties()
   {
-    Map<String, List<String>> map = new HashMap<>();
-    String f = file.getText().trim();
-    if (f.length() > 0)
-    {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(f);
-      map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
-    }
-    String or = origin.getText().trim();
-    if (or.length() > 0)
-    {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(or);
-      map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
-    }
+    final Map<String, List<String>> map = new HashMap<>();
+    addExtraPropertyFromTextField(file, ServerConstants.SCHEMA_PROPERTY_FILENAME, map);
+    addExtraPropertyFromTextField(origin, ServerConstants.SCHEMA_PROPERTY_ORIGIN, map);
     return map;
+  }
+
+  private void addExtraPropertyFromTextField(
+      final JTextField value, final String key, final Map<String, List<String>> map)
+  {
+    final String trimmedValue = value.getText().trim();
+    if (!trimmedValue.trim().isEmpty())
+    {
+      map.put(key, Arrays.asList(trimmedValue));
+    }
   }
 
   private String getDescription()
@@ -805,19 +749,22 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private AttributeType getAttribute()
   {
-    return new AttributeType("", getAttributeName(),
-        getAllNames(),
-        getOID(),
-        getDescription(),
-        getSuperior(),
-        (Syntax)syntax.getSelectedItem(),
-        getApproximateMatchingRule(),
-        getEqualityMatchingRule(),
-        getOrderingMatchingRule(),
-        getSubstringMatchingRule(),
-        (AttributeUsage)usage.getSelectedItem(),
-        collective.isSelected(), nonModifiable.isSelected(),
-        obsolete.isSelected(), singleValued.isSelected(),
-        getExtraProperties());
+    return new AttributeType("",
+                             getAttributeName(),
+                             getAllNames(),
+                             getOID(),
+                             getDescription(),
+                             getSuperior(),
+                             (Syntax) syntax.getSelectedItem(),
+                             getApproximateMatchingRule(),
+                             getEqualityMatchingRule(),
+                             getOrderingMatchingRule(),
+                             getSubstringMatchingRule(),
+                             (AttributeUsage) usage.getSelectedItem(),
+                             collective.isSelected(),
+                             nonModifiable.isSelected(),
+                             obsolete.isSelected(),
+                             singleValued.isSelected(),
+                             getExtraProperties());
   }
 }

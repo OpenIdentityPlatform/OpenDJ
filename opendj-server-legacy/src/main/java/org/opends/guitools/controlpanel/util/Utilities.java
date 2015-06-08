@@ -170,11 +170,14 @@ public class Utilities
 
   /**
    * Creates a combo box.
+   *
+   * @param <T>
+   *          The combo box data type.
    * @return a combo box.
    */
-  public static JComboBox createComboBox()
+  public static <T> JComboBox<T> createComboBox()
   {
-    JComboBox combo = new JComboBox();
+    JComboBox<T> combo = new JComboBox<>();
     if (isMacOS())
     {
       combo.setOpaque(false);

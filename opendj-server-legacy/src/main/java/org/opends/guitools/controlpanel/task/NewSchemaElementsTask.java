@@ -28,6 +28,7 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.types.CommonSchemaElements.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,84 +46,79 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
-
-import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
  * An abstract class used to re-factor some code between the different tasks
  * that create elements in the schema.
- *
  */
 public class NewSchemaElementsTask extends Task
 {
-  LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
-  LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<>();
+  final Set<ObjectClass> ocsToAdd = new LinkedHashSet<>();
+  final Set<AttributeType> attrsToAdd = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
-   * @param info the control panel information.
-   * @param dlg the progress dialog where the task progress will be displayed.
-   * @param ocsToAdd the object classes that must be created in order.
-   * @param attrsToAdd the attributes that must be created in order.
+   *
+   * @param info
+   *          the control panel information.
+   * @param dlg
+   *          the progress dialog where the task progress will be displayed.
+   * @param ocsToAdd
+   *          the object classes that must be created in order.
+   * @param attrsToAdd
+   *          the attributes that must be created in order.
    */
-  public NewSchemaElementsTask(ControlPanelInfo info, ProgressDialog dlg,
-      LinkedHashSet<ObjectClass> ocsToAdd,
-      LinkedHashSet<AttributeType> attrsToAdd)
+  public NewSchemaElementsTask(
+      ControlPanelInfo info, ProgressDialog dlg, Set<ObjectClass> ocsToAdd, Set<AttributeType> attrsToAdd)
   {
     super(info, dlg);
     this.ocsToAdd.addAll(ocsToAdd);
     this.attrsToAdd.addAll(attrsToAdd);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean canLaunch(Task taskToBeLaunched,
-      Collection<LocalizableMessage> incompatibilityReasons)
+  public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
   {
-    boolean canLaunch = true;
     if (state == State.RUNNING &&
         (taskToBeLaunched.getType() == Task.Type.DELETE_SCHEMA_ELEMENT ||
          taskToBeLaunched.getType() == Task.Type.MODIFY_SCHEMA_ELEMENT ||
          taskToBeLaunched.getType() == Task.Type.NEW_SCHEMA_ELEMENT))
     {
-      incompatibilityReasons.add(getIncompatibilityMessage(this,
-            taskToBeLaunched));
-      canLaunch = false;
+      incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
+      return false;
     }
-    return canLaunch;
+    return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -141,39 +137,27 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {
     if (attrsToAdd.size() == 1 && ocsToAdd.isEmpty())
     {
-      String attributeName = attrsToAdd.iterator().next().getNameOrOID();
-      return INFO_CTRL_PANEL_NEW_ATTRIBUTE_TASK_DESCRIPTION.get(attributeName);
+      return INFO_CTRL_PANEL_NEW_ATTRIBUTE_TASK_DESCRIPTION.get(attrsToAdd.iterator().next().getNameOrOID());
     }
     else if (ocsToAdd.size() == 1 && attrsToAdd.isEmpty())
     {
-      String ocName = ocsToAdd.iterator().next().getNameOrOID();
-      return INFO_CTRL_PANEL_NEW_OBJECTCLASS_TASK_DESCRIPTION.get(ocName);
+      return INFO_CTRL_PANEL_NEW_OBJECTCLASS_TASK_DESCRIPTION.get(ocsToAdd.iterator().next().getNameOrOID());
     }
     else
     {
-      ArrayList<String> attrNames = new ArrayList<>();
-      for (AttributeType attribute : attrsToAdd)
-      {
-        attrNames.add(attribute.getNameOrOID());
-      }
-      ArrayList<String> ocNames = new ArrayList<>();
-      for (ObjectClass oc : ocsToAdd)
-      {
-        ocNames.add(oc.getNameOrOID());
-      }
+      final List<String> attrNames = getElementsNameOrOID(attrsToAdd);
+      final List<String> ocNames = getElementsNameOrOID(ocsToAdd);
       if (ocNames.isEmpty())
       {
         return INFO_CTRL_PANEL_NEW_ATTRIBUTES_TASK_DESCRIPTION.get(joinAsString(", ", attrNames));
@@ -185,15 +169,26 @@ public class NewSchemaElementsTask extends Task
       else
       {
         return INFO_CTRL_PANEL_NEW_SCHEMA_ELEMENTS_TASK_DESCRIPTION.get(
-            joinAsString(", ", attrNames),
-            joinAsString(", ", ocNames));
+            joinAsString(", ", attrNames), joinAsString(", ", ocNames));
       }
     }
   }
 
+  private <T extends CommonSchemaElements> List<String> getElementsNameOrOID(final Set<T> schemaElements)
+  {
+    final List<String> nameOrOIDs = new ArrayList<>();
+    for (CommonSchemaElements schemaElement : schemaElements)
+    {
+      nameOrOIDs.add(schemaElement.getNameOrOID());
+    }
+    return nameOrOIDs;
+  }
+
   /**
    * Update the schema.
-   * @throws OpenDsException if an error occurs.
+   *
+   * @throws OpenDsException
+   *           if an error occurs.
    */
   private void updateSchema() throws OpenDsException
   {
@@ -207,85 +202,74 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
   }
 
+  /**
+   * Add the schema elements one by one: we are not sure that the server will
+   * handle the adds sequentially if we only send one modification.
+   *
+   * @throws OpenDsException
+   */
   private void updateSchemaOnline() throws OpenDsException
   {
-    // Add the schema elements one by one: we are not sure that the server
-    // will handle the adds sequentially if we only send one modification.
     for (AttributeType attr : attrsToAdd)
     {
       addAttributeOnline(attr);
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
-              ColorAndFontConstants.progressFont));
-        }
-      });
+      appendNewLinesToProgress();
     }
+
     for (ObjectClass oc : ocsToAdd)
     {
       addObjectClassOnline(oc);
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
-              ColorAndFontConstants.progressFont));
-        }
-      });
+      appendNewLinesToProgress();
     }
+  }
+
+  private void appendNewLinesToProgress()
+  {
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>", ColorAndFontConstants.progressFont));
+      }
+    });
   }
 
   private void updateSchemaOffline() throws OpenDsException
   {
     // Group the changes in the same schema file.
-    LinkedHashMap<String, List<AttributeType>> hmAttrs = copy(attrsToAdd);
-    LinkedHashMap<String, List<ObjectClass>> hmOcs = copy(ocsToAdd);
-
-    LinkedHashSet<String> allFileNames = new LinkedHashSet<>();
-    allFileNames.addAll(hmAttrs.keySet());
+    final Map<String, List<AttributeType>> hmAttrs = copy(attrsToAdd);
+    final Map<String, List<ObjectClass>> hmOcs = copy(ocsToAdd);
+    final Set<String> allFileNames = new LinkedHashSet<>(hmAttrs.keySet());
     allFileNames.addAll(hmOcs.keySet());
+
     for (String fileName : allFileNames)
     {
       List<AttributeType> attrs = get(hmAttrs, fileName);
       List<ObjectClass> ocs = get(hmOcs, fileName);
 
-      if (fileName.equals(""))
+      if ("".equals(fileName))
       {
         fileName = null;
       }
       updateSchemaOffline(fileName, attrs, ocs);
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
-              ColorAndFontConstants.progressFont));
-        }
-      });
+      appendNewLinesToProgress();
     }
   }
 
-  private <T extends SchemaFileElement> List<T> get(
-      LinkedHashMap<String, List<T>> hmElems, String fileName)
+  private <T extends SchemaFileElement> List<T> get(Map<String, List<T>> hmElems, String fileName)
   {
     List<T> elems = hmElems.get(fileName);
     if (elems != null)
@@ -295,10 +279,9 @@ public class NewSchemaElementsTask extends Task
     return Collections.emptyList();
   }
 
-  private <T extends SchemaFileElement> LinkedHashMap<String, List<T>> copy(
-      LinkedHashSet<T> elemsToAdd)
+  private <T extends SchemaFileElement> Map<String, List<T>> copy(Set<T> elemsToAdd)
   {
-    LinkedHashMap<String, List<T>> hmElems = new LinkedHashMap<>();
+    Map<String, List<T>> hmElems = new LinkedHashMap<>();
     for (T elem : elemsToAdd)
     {
       String fileName = CommonSchemaElements.getSchemaFile(elem);
@@ -317,90 +300,48 @@ public class NewSchemaElementsTask extends Task
     return hmElems;
   }
 
-  private void addAttributeOnline(final AttributeType attribute)
-  throws OpenDsException
+  private void addAttributeOnline(final AttributeType attribute) throws OpenDsException
   {
-    SwingUtilities.invokeLater(new Runnable()
-    {
-      /** {@inheritDoc} */
-      @Override
-      public void run()
-      {
-        printEquivalentCommandLineToAddOnline(attribute);
-        getProgressDialog().appendProgressHtml(
-            Utilities.getProgressWithPoints(
-                INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(
-                    attribute.getNameOrOID()),
-                    ColorAndFontConstants.progressFont));
-      }
-    });
-    try
-    {
-      BasicAttribute attr = new BasicAttribute(getAttributeName(attribute));
-      attr.add(getValueOnline(attribute));
-      ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE,
-          attr);
-      getInfo().getDirContext().modifyAttributes(
-          ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-          new ModificationItem[]  { mod });
-    }
-    catch (NamingException ne)
-    {
-      throw new OnlineUpdateException(
-          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
-    }
-    notifyConfigurationElementCreated(attribute);
-    SwingUtilities.invokeLater(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        getProgressDialog().appendProgressHtml(
-            Utilities.getProgressDone(ColorAndFontConstants.progressFont));
-      }
-    });
+    addSchemaElementOnline(attribute, INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(attribute.getNameOrOID()));
   }
 
-  private void addObjectClassOnline(final ObjectClass objectClass)
-  throws OpenDsException
+  private void addObjectClassOnline(final ObjectClass objectClass) throws OpenDsException
+  {
+    addSchemaElementOnline(objectClass, INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(objectClass.getNameOrOID()));
+  }
+
+  private void addSchemaElementOnline(final CommonSchemaElements schemaElement, final LocalizableMessage progressMsg)
+      throws OpenDsException
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
-        printEquivalentCommandLineToAddOnline(objectClass);
+        printEquivalentCommandLineToAddOnline(schemaElement);
         getProgressDialog().appendProgressHtml(
-            Utilities.getProgressWithPoints(
-                INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(
-                    objectClass.getNameOrOID()),
-                    ColorAndFontConstants.progressFont));
+            Utilities.getProgressWithPoints(progressMsg, ColorAndFontConstants.progressFont));
       }
     });
     try
     {
-      BasicAttribute attr = new BasicAttribute(getAttributeName(objectClass));
-      attr.add(getValueOnline(objectClass));
-      ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE,
-          attr);
+      final BasicAttribute attr = new BasicAttribute(getAttributeName(schemaElement));
+      attr.add(getValueOnline(schemaElement));
+      final ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
       getInfo().getDirContext().modifyAttributes(
-          ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-          new ModificationItem[]  { mod });
+          ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, new ModificationItem[] { mod });
     }
     catch (NamingException ne)
     {
-      throw new OnlineUpdateException(
-          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
+      throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
     }
-    notifyConfigurationElementCreated(objectClass);
+    notifyConfigurationElementCreated(schemaElement);
     SwingUtilities.invokeLater(new Runnable()
     {
       @Override
       public void run()
       {
-        getProgressDialog().appendProgressHtml(
-            Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+        getProgressDialog().appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
       }
     });
   }
@@ -413,72 +354,50 @@ public class NewSchemaElementsTask extends Task
   private String getValueOffline(CommonSchemaElements element)
   {
     final Map<String, List<String>> props = element.getExtraProperties();
-    List<String> previousValues =
-        props.get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    List<String> previousValues = props.get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
     setExtraProperty(element, ServerConstants.SCHEMA_PROPERTY_FILENAME, null);
     String attributeWithoutFileDefinition = element.toString();
 
     if (previousValues != null && !previousValues.isEmpty())
     {
-      ArrayList<String> vs = new ArrayList<>(previousValues);
-      element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, vs);
+      element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, new ArrayList<String>(previousValues));
     }
     return attributeWithoutFileDefinition;
   }
 
-  private void printEquivalentCommandLineToAddOnline(
-      CommonSchemaElements element)
+  private void printEquivalentCommandLineToAddOnline(CommonSchemaElements element)
   {
-    ArrayList<String> args = new ArrayList<>();
+    List<String> args = new ArrayList<>();
     args.add("-a");
-    args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments(true, true)));
+    args.addAll(getObfuscatedCommandLineArguments(getConnectionCommandLineArguments(true, true)));
     args.add(getNoPropertiesFileArgument());
 
-    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
-        args);
-
-    StringBuilder sb = new StringBuilder();
-    LocalizableMessage msg;
-    if (element instanceof AttributeType)
-    {
-      msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_ATTRIBUTE_ONLINE.get(
-          element.getNameOrOID());
-    }
-    else
-    {
-      msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_OBJECTCLASS_ONLINE.get(
-          element.getNameOrOID());
-    }
-    sb.append(msg).append("<br><b>");
-    sb.append(equiv);
-    sb.append("<br>");
-    sb.append("dn: cn=schema<br>");
-    sb.append("changetype: modify<br>");
-    sb.append("add: ").append(getAttributeName(element)).append("<br>");
-    sb.append(getAttributeName(element)).append(": ")
-        .append(getValueOnline(element));
-    sb.append("</b><br><br>");
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
-        ColorAndFontConstants.progressFont));
+    final String equivalentCmdLine = getEquivalentCommandLine(getCommandLinePath("ldapmodify"), args);
+    final String elementID = element.getNameOrOID();
+    final LocalizableMessage msg = element instanceof AttributeType ?
+        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_ATTRIBUTE_ONLINE.get(elementID)
+      : INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_OBJECTCLASS_ONLINE.get(elementID);
+    final StringBuilder sb = new StringBuilder();
+    final String attName = getAttributeName(element);
+    sb.append(msg).append("<br><b>")
+      .append(equivalentCmdLine).append("<br>")
+      .append("dn: cn=schema<br>")
+      .append("changetype: modify<br>")
+      .append("add: ").append(attName).append("<br>")
+      .append(attName).append(": ").append(getValueOnline(element)).append("</b><br><br>");
+    getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(), ColorAndFontConstants.progressFont));
   }
 
   private String getAttributeName(CommonSchemaElements element)
   {
-    if (element instanceof AttributeType)
-    {
-      return ConfigConstants.ATTR_ATTRIBUTE_TYPES;
-    }
-    else
-    {
-      return ConfigConstants.ATTR_OBJECTCLASSES;
-    }
+    return element instanceof AttributeType ? ConfigConstants.ATTR_ATTRIBUTE_TYPES : ConfigConstants.ATTR_OBJECTCLASSES;
   }
 
-  private void updateSchemaOffline(String file,
-      final List<AttributeType> attributes,
-      final List<ObjectClass> objectClasses) throws OpenDsException
+  private void updateSchemaOffline(
+      String file, final List<AttributeType> attributes, final List<ObjectClass> objectClasses) throws OpenDsException
   {
+    final List<CommonSchemaElements> schemaElements = new ArrayList<CommonSchemaElements>(attributes);
+    schemaElements.addAll(objectClasses);
     if (file == null)
     {
       file = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
@@ -486,88 +405,72 @@ public class NewSchemaElementsTask extends Task
     File f = new File(file);
     if (!f.isAbsolute())
     {
-      f = new File(
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
-        file);
+      f = new File(DirectoryServer.getEnvironmentConfig().getSchemaDirectory(), file);
     }
     final String fileName = f.getAbsolutePath();
     final boolean isSchemaFileDefined = isSchemaFileDefined(fileName);
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
         final ProgressDialog progressDialog = getProgressDialog();
-        final String command = equivalentCommandToAddOffline(
-            fileName, isSchemaFileDefined, attributes, objectClasses);
-        progressDialog.appendProgressHtml(
-            Utilities.applyFont(command,
-                ColorAndFontConstants.progressFont));
+        final String command = equivalentCommandToAddOffline(fileName, isSchemaFileDefined, schemaElements);
+        progressDialog.appendProgressHtml(Utilities.applyFont(command, ColorAndFontConstants.progressFont));
 
         if (attributes.size() == 1 && objectClasses.isEmpty())
         {
           String attributeName = attributes.get(0).getNameOrOID();
-          progressDialog.appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(attributeName),
-                      ColorAndFontConstants.progressFont));
+          progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
+              INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(attributeName), ColorAndFontConstants.progressFont));
         }
         else if (objectClasses.size() == 1 && attributes.isEmpty())
         {
           String ocName = objectClasses.get(0).getNameOrOID();
-          progressDialog.appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(ocName),
-                      ColorAndFontConstants.progressFont));
+          progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
+              INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(ocName), ColorAndFontConstants.progressFont));
         }
         else
         {
-          progressDialog.appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_UPDATING_SCHEMA_FILE_PROGRESS.get(fileName),
-                      ColorAndFontConstants.progressFont));
+          progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
+              INFO_CTRL_PANEL_UPDATING_SCHEMA_FILE_PROGRESS.get(fileName), ColorAndFontConstants.progressFont));
         }
       }
     });
 
-    updateSchemaFile(fileName, isSchemaFileDefined, attributes, objectClasses);
-
-    for (AttributeType attr : attributes)
+    if (isSchemaFileDefined)
     {
-      notifyConfigurationElementCreated(attr);
+      updateSchemaFile(fileName, schemaElements);
     }
-    for (ObjectClass oc : objectClasses)
+    else
     {
-      notifyConfigurationElementCreated(oc);
+      updateSchemaUndefinedFile(fileName, schemaElements);
+    }
+
+    for (CommonSchemaElements schemaElement : schemaElements)
+    {
+      notifyConfigurationElementCreated(schemaElement);
     }
     SwingUtilities.invokeLater(new Runnable()
     {
       @Override
       public void run()
       {
-        getProgressDialog().appendProgressHtml(
-            Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+        getProgressDialog().appendProgressHtml(Utilities.getProgressDone(ColorAndFontConstants.progressFont));
       }
     });
   }
 
-  private String equivalentCommandToAddOffline(String schemaFile,
-      boolean isSchemaFileDefined,
-      List<AttributeType> attributes,
-      List<ObjectClass> objectClasses)
+  private String equivalentCommandToAddOffline(
+      String schemaFile, boolean isSchemaFileDefined, List<CommonSchemaElements> schemaElements)
   {
-    ArrayList<String> names = new ArrayList<>();
-    for (AttributeType attr : attributes)
+    List<String> names = new ArrayList<>();
+    for (CommonSchemaElements schemaElement : schemaElements)
     {
-      names.add(attr.getNameOrOID());
+      names.add(schemaElement.getNameOrOID());
     }
-    for (ObjectClass oc : objectClasses)
-    {
-      names.add(oc.getNameOrOID());
-    }
-    final String namesString = joinAsString(", ", names);
 
+    final String namesString = joinAsString(", ", names);
     final StringBuilder sb = new StringBuilder();
     if (isSchemaFileDefined)
     {
@@ -585,59 +488,45 @@ public class NewSchemaElementsTask extends Task
       }
     }
 
-    for (AttributeType attribute : attributes)
+    for (CommonSchemaElements schemaElement : schemaElements)
     {
-      sb.append(getAttributeName(attribute)).append(": ")
-          .append(getValueOffline(attribute)).append("<br>");
-    }
-    for (ObjectClass oc : objectClasses)
-    {
-      sb.append(getAttributeName(oc)).append(": ")
-          .append(getValueOffline(oc)).append("<br>");
+      sb.append(getAttributeName(schemaElement)).append(": ").append(getValueOffline(schemaElement)).append("<br>");
     }
     sb.append("</b><br><br>");
+
     return sb.toString();
   }
 
   /**
    * Returns whether the file defined in the schema element exists or not.
-   * @param schemaFile the path to the schema file.
+   *
+   * @param schemaFile
+   *          the path to the schema file.
    * @return <CODE>true</CODE> if the schema file is defined and
-   * <CODE>false</CODE> otherwise.
+   *         <CODE>false</CODE> otherwise.
    */
   private boolean isSchemaFileDefined(String schemaFile)
   {
-    boolean schemaDefined = false;
-    LDIFReader reader = null;
-    try
+    try (LDIFReader reader = new LDIFReader(new LDIFImportConfig(schemaFile)))
     {
-      reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-      Entry entry = reader.readEntry();
-      if (entry != null)
-      {
-        schemaDefined = true;
-      }
+      return reader.readEntry() != null;
     }
     catch (Throwable t)
     {
+      return false;
     }
-    finally
-    {
-      StaticUtils.close(reader);
-    }
-
-    return schemaDefined;
   }
 
   /**
    * Returns the list of LDIF lines that are enough to create the entry
    * containing only the schema element associated with this task.
+   *
    * @return the list of LDIF lines that are enough to create the entry
-   * containing only the schema element associated with this task.
+   *         containing only the schema element associated with this task.
    */
-  private ArrayList<String> getSchemaEntryLines()
+  private List<String> getSchemaEntryLines()
   {
-    ArrayList<String> lines = new ArrayList<>();
+    List<String> lines = new ArrayList<>();
     lines.add("dn: cn=schema");
     lines.add("objectClass: top");
     lines.add("objectClass: ldapSubentry");
@@ -645,96 +534,75 @@ public class NewSchemaElementsTask extends Task
     return lines;
   }
 
-
   /**
    * Updates the contents of the schema file.
    *
-   * @param schemaFile the schema file.
-   * @param isSchemaFileDefined whether the schema is defined or not.
-   * @param attributes the attributes to add.
-   * @param objectClasses the object classes to add.
-   * @throws OpenDsException if an error occurs updating the schema file.
+   * @param schemaFile
+   *          the schema file.
+   * @param isSchemaFileDefined
+   *          whether the schema is defined or not.
+   * @param attributes
+   *          the attributes to add.
+   * @param objectClasses
+   *          the object classes to add.
+   * @throws OpenDsException
+   *           if an error occurs updating the schema file.
    */
-  private void updateSchemaFile(String schemaFile,
-      boolean isSchemaFileDefined,
-      List<AttributeType> attributes,
-      List<ObjectClass> objectClasses) throws OpenDsException
+  private void updateSchemaFile(String schemaFile, List<CommonSchemaElements> schemaElements)
+      throws OpenDsException
   {
-    if (isSchemaFileDefined)
+    try (final LDIFExportConfig exportConfig = new LDIFExportConfig(schemaFile, ExistingFileBehavior.OVERWRITE))
     {
-      LDIFExportConfig exportConfig =
-        new LDIFExportConfig(schemaFile,
-                             ExistingFileBehavior.OVERWRITE);
-      LDIFReader reader = null;
-      LDIFWriter writer = null;
-      try
+      try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(schemaFile)))
       {
-        reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-        Entry schemaEntry = reader.readEntry();
-
-        for (AttributeType attribute : attributes)
+        final Entry schemaEntry = reader.readEntry();
+        addElementsToEntry(schemaElements, schemaEntry);
+        try (final LDIFWriter writer = new LDIFWriter(exportConfig))
         {
-          Modification mod = new Modification(ModificationType.ADD,
-              Attributes.create(getAttributeName(attribute).toLowerCase(),
-                  getValueOffline(attribute)));
-          schemaEntry.applyModification(mod);
+          writer.writeEntry(schemaEntry);
+          exportConfig.getWriter().newLine();
         }
-        for (ObjectClass oc : objectClasses)
-        {
-          Modification mod = new Modification(ModificationType.ADD,
-              Attributes.create(getAttributeName(oc).toLowerCase(),
-                  getValueOffline(oc)));
-          schemaEntry.applyModification(mod);
-        }
-        writer = new LDIFWriter(exportConfig);
-        writer.writeEntry(schemaEntry);
-        exportConfig.getWriter().newLine();
       }
       catch (Throwable t)
       {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
-      }
-      finally
-      {
-        StaticUtils.close(reader, exportConfig, writer);
-      }
-    }
-    else
-    {
-      LDIFExportConfig exportConfig =
-        new LDIFExportConfig(schemaFile,
-                             ExistingFileBehavior.FAIL);
-      try
-      {
-        ArrayList<String> lines = getSchemaEntryLines();
-        for (AttributeType attribute : attributes)
-        {
-          lines.add(
-              getAttributeName(attribute)+": "+getValueOffline(attribute));
-        }
-        for (ObjectClass oc : objectClasses)
-        {
-          lines.add(getAttributeName(oc)+": "+getValueOffline(oc));
-        }
-        for (String line : lines)
-        {
-          LDIFWriter.writeLDIFLine(new StringBuilder(line),
-              exportConfig.getWriter(), exportConfig.getWrapColumn() > 1,
-              exportConfig.getWrapColumn());
-        }
-
-        exportConfig.getWriter().newLine();
-      }
-      catch (Throwable t)
-      {
-        throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
-      }
-      finally
-      {
-        StaticUtils.close(exportConfig);
+        throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
       }
     }
   }
+
+  private void addElementsToEntry(List<CommonSchemaElements> schemaElements, Entry schemaEntry)
+      throws DirectoryException
+  {
+    for (CommonSchemaElements schemaElement : schemaElements)
+    {
+      final Modification mod = new Modification(ModificationType.ADD,
+          Attributes.create(getAttributeName(schemaElement).toLowerCase(), getValueOffline(schemaElement)));
+      schemaEntry.applyModification(mod);
+    }
+  }
+
+  private void updateSchemaUndefinedFile(String schemaFile, List<CommonSchemaElements> schemaElements)
+      throws OfflineUpdateException
+  {
+    try (LDIFExportConfig exportConfig = new LDIFExportConfig(schemaFile, ExistingFileBehavior.FAIL))
+    {
+      List<String> lines = getSchemaEntryLines();
+      for (final CommonSchemaElements schemaElement : schemaElements)
+      {
+        lines.add(getAttributeName(schemaElement) + ": " + getValueOffline(schemaElement));
+      }
+      for (String line : lines)
+      {
+        final boolean wrapLines = exportConfig.getWrapColumn() > 1;
+        LDIFWriter.writeLDIFLine(
+            new StringBuilder(line), exportConfig.getWriter(), wrapLines, exportConfig.getWrapColumn());
+      }
+      exportConfig.getWriter().newLine();
+    }
+    catch (Throwable t)
+    {
+      throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
+    }
+  }
+
 }
