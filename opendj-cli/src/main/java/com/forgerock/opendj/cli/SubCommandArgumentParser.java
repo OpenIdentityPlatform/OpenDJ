@@ -1185,6 +1185,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
         List<String> scUsageList = new ArrayList<>();
         for (SubCommand subCommand : subCommands) {
+            if (subCommand.isHidden()) {
+                continue;
+            }
             if (scriptName.equals("dsconfig")) {
                 scUsageList.add(getSubCommandListItem(scriptName, subCommand));
             } else {
@@ -1254,6 +1257,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
             List<Map<String, Object>> options = new LinkedList<>();
             String nameOption = null;
             for (Argument a : subCommand.getArguments()) {
+                if (a.isHidden()) {
+                    continue;
+                }
                 // Return a generic FQDN for localhost as the default hostname
                 // in reference documentation.
                 if (isHostNameArgument(a)) {
@@ -1303,6 +1309,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private void appendSubCommandPages(StringBuilder builder, String scriptName, Collection<SubCommand> subCommands) {
         for (SubCommand subCommand : subCommands) {
+            if (subCommand.isHidden()) {
+                continue;
+            }
             Map<String, Object> map = new HashMap<>();
             map.put("marker", "@@@" + scriptName + "-" + subCommand.getName() + "@@@");
             map.put("locale", Locale.getDefault().getLanguage());
