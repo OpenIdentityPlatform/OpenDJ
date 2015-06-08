@@ -43,8 +43,94 @@
  <section xml:id="virtual-attributes">
   <title>Virtual Attributes</title>
   <indexterm><primary>Virtual attributes</primary></indexterm>
-  
-  <para>OpenDJ defines a number of virtual attributes by default.</para>
+
+  <para>
+   Virtual attributes augment directory entries with attribute values
+   that OpenDJ directory server computes or obtains dynamically.
+   Virtual attribute values do not exist in persistent storage.
+   They help to limit the amount of data that needs to be stored
+   and are great for some uses,
+   such as determining the groups a users belongs to
+   or adding an ETag to an entry.
+  </para>
+
+  <para>
+   Do not index virtual attributes.
+   Virtual attribute values generated on the fly when they are read.
+   They are not designed to be stored in a persistent index.
+  </para>
+
+  <para>
+   Since you do not index virtual attributes,
+   generally avoid searches that use a simple filter with a virtual attribute.
+   Instead, consider the alternatives.
+   For example, you can assign a password policy to a group
+   as described in the procedure,
+   <link
+    xlink:href="admin-guide#assign-pwp-to-group"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>To Assign a Password Policy to a Group</citetitle></link>.
+   The procedure use a virtual attribute only in a subtree specification filter.
+   If you must use a virtual attribute in a search filter,
+   use it in a complex search filter
+   after narrowing the search by filtering on an indexed attribute.
+   For example, the following filter first narrows the search
+   based on the user's ID before checking group membership.
+   Make sure that the user performing the search has
+   access to read <literal>isMemberOf</literal> in the results.
+  </para>
+
+  <literallayout class="monospaced">
+(&amp;(uid=<replaceable>user-id</replaceable>)(isMemberOf=<replaceable>group-dn</replaceable>))
+  </literallayout>
+
+  <para>
+   Two virtual attributes,
+   <literal>entryDN</literal> and <literal>isMemberOf</literal>,
+   can also be used in simple equality filters.
+   The following example shows how to
+   add access to read <literal>isMemberOf</literal>
+   and then run a search that returns the common names for members of a group.
+  </para>
+
+  <screen>
+$ <userinput>ldapmodify \
+ --hostname opendj.example.com \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="isMemberOf")(version 3.0;
+  acl "See isMemberOf"; allow (read,search,compare) groupdn=
+  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</userinput>
+
+<computeroutput>Processing MODIFY request for dc=example,dc=com
+MODIFY operation successful for DN dc=example,dc=com</computeroutput>
+$ <userinput>ldapsearch \
+ --hostname opendj.example.com \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" \
+ cn</userinput>
+<computeroutput>dn: uid=hmiller,ou=People,dc=example,dc=com
+cn: Harry Miller
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+cn: Kirsten Vaughan
+
+dn: uid=rdaugherty,ou=People,dc=example,dc=com
+cn: Robert Daugherty
+</computeroutput>
+  </screen>
+
+  <para>
+   OpenDJ defines the following virtual attributes by default:
+  </para>
   
   <variablelist>
    <varlistentry>
@@ -178,7 +264,7 @@ $ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen descr
 <computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 description: Served by OpenDJ.Example.com</computeroutput>
   </screen>
-  
+
   <para>Collective attributes cover many use cases better than virtual
   attributes.</para>
  </section>
