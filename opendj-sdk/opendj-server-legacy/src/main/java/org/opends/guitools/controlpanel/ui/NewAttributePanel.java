@@ -690,9 +690,9 @@ public class NewAttributePanel extends StatusGenericPanel
     Object o = parent.getSelectedItem();
     if (NO_PARENT.equals(o))
     {
-      return (AttributeType) o;
+      return null;
     }
-    return null;
+    return (AttributeType) o;
   }
 
   private MatchingRule getApproximateMatchingRule()
