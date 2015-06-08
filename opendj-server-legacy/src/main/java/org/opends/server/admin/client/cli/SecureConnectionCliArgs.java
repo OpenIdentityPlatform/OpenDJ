@@ -26,12 +26,10 @@
  */
 package org.opends.server.admin.client.cli;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_ADMIN_UID;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
-import static com.forgerock.opendj.cli.ReturnCode.SUCCESS;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
-import static org.forgerock.util.Utils.closeSilently;
+import static com.forgerock.opendj.cli.ReturnCode.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,10 +41,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -54,7 +55,6 @@ import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.cli.Argument;
@@ -74,106 +74,69 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public final class SecureConnectionCliArgs
 {
-  /**
-   * The 'hostName' global argument.
-   */
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** The 'hostName' global argument. */
   public StringArgument hostNameArg;
 
-  /**
-   * The 'port' global argument.
-   */
+  /** The 'port' global argument. */
   public IntegerArgument portArg;
 
-  /**
-   * The 'bindDN' global argument.
-   */
+  /** The 'bindDN' global argument. */
   public StringArgument bindDnArg;
 
-  /**
-   * The 'adminUID' global argument.
-   */
+  /** The 'adminUID' global argument. */
   public StringArgument adminUidArg;
 
-  /**
-   * The 'bindPasswordFile' global argument.
-   */
+  /** The 'bindPasswordFile' global argument. */
   public FileBasedArgument bindPasswordFileArg;
 
-  /**
-   * The 'bindPassword' global argument.
-   */
+  /** The 'bindPassword' global argument. */
   public StringArgument bindPasswordArg;
 
-  /**
-   * The 'trustAllArg' global argument.
-   */
+  /** The 'trustAllArg' global argument. */
   public BooleanArgument trustAllArg;
 
-  /**
-   * The 'trustStore' global argument.
-   */
+  /** The 'trustStore' global argument. */
   public StringArgument trustStorePathArg;
 
-  /**
-   * The 'trustStorePassword' global argument.
-   */
+  /** The 'trustStorePassword' global argument. */
   public StringArgument trustStorePasswordArg;
 
-  /**
-   * The 'trustStorePasswordFile' global argument.
-   */
+  /** The 'trustStorePasswordFile' global argument. */
   public FileBasedArgument trustStorePasswordFileArg;
 
-  /**
-   * The 'keyStore' global argument.
-   */
+  /** The 'keyStore' global argument. */
   public StringArgument keyStorePathArg;
 
-  /**
-   * The 'keyStorePassword' global argument.
-   */
+  /** The 'keyStorePassword' global argument. */
   public StringArgument keyStorePasswordArg;
 
-  /**
-   * The 'keyStorePasswordFile' global argument.
-   */
+  /** The 'keyStorePasswordFile' global argument. */
   public FileBasedArgument keyStorePasswordFileArg;
 
-  /**
-   * The 'certNicknameArg' global argument.
-   */
+  /** The 'certNicknameArg' global argument. */
   public StringArgument certNicknameArg;
 
-  /**
-   * The 'useSSLArg' global argument.
-   */
+  /** The 'useSSLArg' global argument. */
   public BooleanArgument useSSLArg;
 
-  /**
-   * The 'useStartTLSArg' global argument.
-   */
+  /** The 'useStartTLSArg' global argument. */
   public BooleanArgument useStartTLSArg;
 
-  /**
-   * Argument indicating a SASL option.
-   */
-  public StringArgument  saslOptionArg;
+  /** Argument indicating a SASL option. */
+  public StringArgument saslOptionArg;
 
-  /**
-   * Argument to specify the connection timeout.
-   */
+  /** Argument to specify the connection timeout. */
   public IntegerArgument connectTimeoutArg;
 
-  /**
-   * Private container for global arguments.
-   */
-  private LinkedHashSet<Argument> argList;
+  /** Private container for global arguments. */
+  private Set<Argument> argList;
 
   /** The trust manager. */
   private ApplicationTrustManager trustManager;
 
   private boolean configurationInitialized;
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Defines if the CLI always use the SSL connection type. */
   private boolean alwaysSSL;
@@ -181,33 +144,34 @@ public final class SecureConnectionCliArgs
   /**
    * Creates a new instance of secure arguments.
    *
-   * @param alwaysSSL If true, always use the SSL connection type. In this case,
-   * the arguments useSSL and startTLS are not present.
+   * @param alwaysSSL
+   *          If true, always use the SSL connection type. In this case, the
+   *          arguments useSSL and startTLS are not present.
    */
   public SecureConnectionCliArgs(boolean alwaysSSL)
   {
-    if (alwaysSSL) {
-      this.alwaysSSL = true;
-    }
+    this.alwaysSSL = alwaysSSL;
   }
 
   /**
    * Indicates whether or not any of the arguments are present.
    *
-   * @return boolean where true indicates that at least one of the
-   *         arguments is present
+   * @return boolean where true indicates that at least one of the arguments is
+   *         present
    */
-  public boolean argumentsPresent() {
-    boolean present = false;
-    if (argList != null) {
-      for (Argument arg : argList) {
-        if (arg.isPresent()) {
-          present = true;
-          break;
+  public boolean argumentsPresent()
+  {
+    if (argList != null)
+    {
+      for (Argument arg : argList)
+      {
+        if (arg.isPresent())
+        {
+          return true;
         }
       }
     }
-    return present;
+    return false;
   }
 
   /**
@@ -240,8 +204,8 @@ public final class SecureConnectionCliArgs
   /**
    * Get the bindDN which has to be used for the command.
    *
-   * @return The bindDN specified by the command line argument, or the
-   *         default value, if not specified.
+   * @return The bindDN specified by the command line argument, or the default
+   *         value, if not specified.
    */
   public String getBindDN()
   {
@@ -256,54 +220,55 @@ public final class SecureConnectionCliArgs
    * Initialize Global option.
    *
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used
-   *           to create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    * @return a ArrayList with the options created.
    */
-  public LinkedHashSet<Argument> createGlobalArguments()
-  throws ArgumentException
+  public Set<Argument> createGlobalArguments() throws ArgumentException
   {
-    argList = new LinkedHashSet<Argument>();
+    argList = new LinkedHashSet<>();
 
     useSSLArg = CommonArguments.getUseSSL();
-    if (!alwaysSSL) {
+    if (!alwaysSSL)
+    {
       argList.add(useSSLArg);
-    } else {
+    }
+    else
+    {
       // simulate that the useSSL arg has been given in the CLI
       useSSLArg.setPresent(true);
     }
 
     useStartTLSArg = CommonArguments.getStartTLS();
-    if (!alwaysSSL) {
+    if (!alwaysSSL)
+    {
       argList.add(useStartTLSArg);
     }
 
     String defaultHostName;
-    try {
+    try
+    {
       defaultHostName = InetAddress.getLocalHost().getHostName();
-    } catch (Exception e) {
-      defaultHostName="Unknown (" + e + ")";
+    }
+    catch (Exception e)
+    {
+      defaultHostName = "Unknown (" + e + ")";
     }
     hostNameArg = CommonArguments.getHostName(defaultHostName);
     argList.add(hostNameArg);
 
-    portArg =
-        CommonArguments.getPort(
-            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
-            alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get()
-                : INFO_DESCRIPTION_PORT.get());
+    portArg = CommonArguments.getPort(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
+                                      alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
     argList.add(portArg);
 
-    bindDnArg = CommonArguments.getBindDN("cn=Directory Manager");
+    bindDnArg = CommonArguments.getBindDN(CliConstants.DEFAULT_ROOT_USER_DN);
     argList.add(bindDnArg);
 
     // It is up to the classes that required admin UID to make this argument
     // visible and add it.
-    adminUidArg = new StringArgument("adminUID", 'I',
-        OPTION_LONG_ADMIN_UID, false, false, true,
-        INFO_ADMINUID_PLACEHOLDER.get(),
-        CliConstants.GLOBAL_ADMIN_UID, null,
-        INFO_DESCRIPTION_ADMIN_UID.get());
+    adminUidArg = new StringArgument("adminUID", 'I', OPTION_LONG_ADMIN_UID, false, false, true,
+                                     INFO_ADMINUID_PLACEHOLDER.get(), CliConstants.GLOBAL_ADMIN_UID,
+                                     null, INFO_DESCRIPTION_ADMIN_UID.get());
     adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
     adminUidArg.setHidden(true);
 
@@ -350,8 +315,8 @@ public final class SecureConnectionCliArgs
   /**
    * Get the host name which has to be used for the command.
    *
-   * @return The host name specified by the command line argument, or
-   *         the default value, if not specified.
+   * @return The host name specified by the command line argument, or the
+   *         default value, if not specified.
    */
   public String getHostName()
   {
@@ -380,85 +345,55 @@ public final class SecureConnectionCliArgs
   /**
    * Indication if provided global options are validate.
    *
-   * @param buf the LocalizableMessageBuilder to write the error messages.
+   * @param buf
+   *          the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> errors = new ArrayList<>();
     // Couldn't have at the same time bindPassword and bindPasswordFile
-    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          bindPasswordArg.getLongIdentifier(),
-          bindPasswordFileArg.getLongIdentifier());
-      errors.add(message);
+    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
+    {
+      errors.add(
+          ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArg.getLongIdentifier(), bindPasswordFileArg.getLongIdentifier()));
     }
 
-    // Couldn't have at the same time trustAll and
-    // trustStore related arg
-    if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(),
-          trustStorePathArg.getLongIdentifier());
-      errors.add(message);
+    // Couldn't have at the same time trustAll and trustStore related arg
+    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
+    {
+      errors.add(
+          ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePathArg.getLongIdentifier()));
     }
-    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(),
-          trustStorePasswordArg.getLongIdentifier());
-      errors.add(message);
+    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
+    {
+      errors.add(
+          ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePasswordArg.getLongIdentifier()));
     }
-    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(),
-          trustStorePasswordFileArg.getLongIdentifier());
-      errors.add(message);
+    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
+    {
+      errors.add(
+         ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier()));
     }
 
     // Couldn't have at the same time trustStorePasswordArg and
     // trustStorePasswordFileArg
-    if (trustStorePasswordArg.isPresent()
-        && trustStorePasswordFileArg.isPresent()) {
+    if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent())
+    {
       LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustStorePasswordArg.getLongIdentifier(),
-          trustStorePasswordFileArg.getLongIdentifier());
+          trustStorePasswordArg.getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
-
-    if (trustStorePathArg.isPresent())
+    checkIfPathArgumentIsReadable(
+        trustStorePathArg, errors, ERR_CANNOT_READ_TRUSTSTORE.get(trustStorePathArg.getValue()));
+    checkIfPathArgumentIsReadable(
+        keyStorePathArg, errors, ERR_CANNOT_READ_KEYSTORE.get(keyStorePasswordArg.getValue()));
+    // Couldn't have at the same time startTLSArg and useSSLArg
+    if (useStartTLSArg.isPresent() && useSSLArg.isPresent())
     {
-      // Check that the path exists and is readable
-      String value = trustStorePathArg.getValue();
-      if (!canRead(trustStorePathArg.getValue()))
-      {
-        LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE.get(
-            value);
-        errors.add(message);
-      }
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg.getLongIdentifier()));
     }
-
-    if (keyStorePathArg.isPresent())
-    {
-      // Check that the path exists and is readable
-      String value = keyStorePathArg.getValue();
-      if (!canRead(trustStorePathArg.getValue()))
-      {
-        LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(
-            value);
-        errors.add(message);
-      }
-    }
-
-    // Couldn't have at the same time startTLSArg and
-    // useSSLArg
-    if (useStartTLSArg.isPresent()
-        && useSSLArg.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          useStartTLSArg
-          .getLongIdentifier(), useSSLArg.getLongIdentifier());
-      errors.add(message);
-    }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       for (LocalizableMessage error : errors)
       {
@@ -472,6 +407,15 @@ public final class SecureConnectionCliArgs
     }
 
     return SUCCESS.get();
+  }
+
+  private void checkIfPathArgumentIsReadable(
+      StringArgument pathArgument, List<LocalizableMessage> errors, LocalizableMessage errorMessage)
+  {
+    if (pathArgument.isPresent() && !canRead(pathArgument.getValue()))
+    {
+      errors.add(errorMessage);
+    }
   }
 
   /**
@@ -513,76 +457,62 @@ public final class SecureConnectionCliArgs
   {
     if (trustManager == null)
     {
-      KeyStore truststore = null ;
+      KeyStore truststore = null;
       if (trustAllArg.isPresent())
       {
         // Running a null TrustManager  will force createLdapsContext and
         // createStartTLSContext to use a bindTrustManager.
-        return null ;
+        return null;
       }
-      else
-        if (trustStorePathArg.isPresent())
+      else if (trustStorePathArg.isPresent())
+      {
+        try (final FileInputStream fos = new FileInputStream(trustStorePathArg.getValue()))
         {
-          FileInputStream fos = null;
-
-          try
+          String trustStorePasswordStringValue = null;
+          if (trustStorePasswordArg.isPresent())
           {
-            fos = new FileInputStream(trustStorePathArg.getValue());
-            String trustStorePasswordStringValue = null;
-            char[] trustStorePasswordValue = null;
-            if (trustStorePasswordArg.isPresent())
-            {
-              trustStorePasswordStringValue = trustStorePasswordArg.getValue();
-            }
-            else if (trustStorePasswordFileArg.isPresent())
-            {
-              trustStorePasswordStringValue =
-                trustStorePasswordFileArg.getValue();
-            }
-
-            if (trustStorePasswordStringValue !=  null)
-            {
-              trustStorePasswordStringValue = System
-              .getProperty("javax.net.ssl.trustStorePassword");
-            }
-
-
-            if (trustStorePasswordStringValue !=  null)
-            {
-              trustStorePasswordValue =
-                trustStorePasswordStringValue.toCharArray();
-            }
-
-            truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-            truststore.load(fos, trustStorePasswordValue);
+            trustStorePasswordStringValue = trustStorePasswordArg.getValue();
           }
-          catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
+          else if (trustStorePasswordFileArg.isPresent())
           {
-            // Nothing to do: if this occurs we will systematically refuse the
-            // certificates.  Maybe we should avoid this and be strict, but we
-            // are in a best effort mode.
-            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
+            trustStorePasswordStringValue = trustStorePasswordFileArg.getValue();
           }
-          finally
+
+          if (trustStorePasswordStringValue != null)
           {
-            closeSilently(fos);
+            trustStorePasswordStringValue = System.getProperty("javax.net.ssl.trustStorePassword");
           }
+
+          char[] trustStorePasswordValue = null;
+          if (trustStorePasswordStringValue != null)
+          {
+            trustStorePasswordValue = trustStorePasswordStringValue.toCharArray();
+          }
+
+          truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+          truststore.load(fos, trustStorePasswordValue);
         }
+        catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
+        {
+          // Nothing to do: if this occurs we will systematically refuse the
+          // certificates.  Maybe we should avoid this and be strict, but we
+          // are in a best effort mode.
+          logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
+        }
+      }
       trustManager = new ApplicationTrustManager(truststore);
     }
     return trustManager;
   }
 
-
-
   /**
-   * Returns {@code true} if we can read on the provided path and
-   * {@code false} otherwise.
+   * Returns {@code true} if we can read on the provided path and {@code false}
+   * otherwise.
    *
    * @param path
    *          the path.
-   * @return {@code true} if we can read on the provided path and
-   *         {@code false} otherwise.
+   * @return {@code true} if we can read on the provided path and {@code false}
+   *         otherwise.
    */
   private boolean canRead(String path)
   {
@@ -592,8 +522,8 @@ public final class SecureConnectionCliArgs
 
   /**
    * Returns the absolute path of the trust store file that appears on the
-   * config. Returns {@code null} if the trust store is not defined or it
-   * does not exist.
+   * config. Returns {@code null} if the trust store is not defined or it does
+   * not exist.
    *
    * @return the absolute path of the trust store file that appears on the
    *         config.
@@ -608,29 +538,30 @@ public final class SecureConnectionCliArgs
 
     boolean couldInitializeConfig = configurationInitialized;
     // Initialization for admin framework
-    if (!configurationInitialized) {
+    if (!configurationInitialized)
+    {
       couldInitializeConfig = initializeConfiguration();
     }
     if (couldInitializeConfig)
     {
       // Get the Directory Server configuration handler and use it.
-      RootCfg root =
-        ServerManagementContext.getInstance().getRootConfiguration();
+      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
       administrationConnectorCfg = root.getAdministrationConnector();
 
-      String trustManagerStr =
-        administrationConnectorCfg.getTrustManagerProvider();
+      String trustManagerStr = administrationConnectorCfg.getTrustManagerProvider();
       trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
-      if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
-        FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
-          (FileBasedTrustManagerProviderCfg) trustManagerCfg;
+      if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg)
+      {
+        FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg = (FileBasedTrustManagerProviderCfg) trustManagerCfg;
         String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
         // Check the file
-        if (truststoreFile.startsWith(File.separator)) {
+        if (truststoreFile.startsWith(File.separator))
+        {
           truststoreFileAbsolute = truststoreFile;
-        } else {
-          truststoreFileAbsolute =
-            DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
+        }
+        else
+        {
+          truststoreFileAbsolute = DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
         }
         File f = new File(truststoreFileAbsolute);
         if (!f.exists() || !f.canRead() || f.isDirectory())
@@ -663,36 +594,40 @@ public final class SecureConnectionCliArgs
    */
   public int getAdminPortFromConfig() throws ConfigException
   {
-    int port;
     // Initialization for admin framework
     boolean couldInitializeConfiguration = configurationInitialized;
-    if (!configurationInitialized) {
+    if (!configurationInitialized)
+    {
       couldInitializeConfiguration = initializeConfiguration();
     }
     if (couldInitializeConfiguration)
     {
-      RootCfg root =
-        ServerManagementContext.getInstance().getRootConfiguration();
-      port = root.getAdministrationConnector().getListenPort();
+      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      return root.getAdministrationConnector().getListenPort();
     }
     else
     {
-      port = AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+      return AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
     }
-    return port;
   }
 
-  private boolean initializeConfiguration() {
+  private boolean initializeConfiguration()
+  {
     // check if the initialization is required
-    try {
-      ServerManagementContext.getInstance().getRootConfiguration().
-      getAdministrationConnector();
-    } catch (java.lang.Throwable th) {
-      try {
+    try
+    {
+      ServerManagementContext.getInstance().getRootConfiguration().getAdministrationConnector();
+    }
+    catch (java.lang.Throwable th)
+    {
+      try
+      {
         DirectoryServer.bootstrapClient();
         DirectoryServer.initializeJMX();
         DirectoryServer.getInstance().initializeConfiguration();
-      } catch (Exception ex) {
+      }
+      catch (Exception ex)
+      {
         // do nothing
         return false;
       }
@@ -712,17 +647,21 @@ public final class SecureConnectionCliArgs
   public int getPortFromConfig()
   {
     int portNumber;
-    if (alwaysSSL()) {
-      portNumber =
-        AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+    if (alwaysSSL())
+    {
+      portNumber = AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
       // Try to get the port from the config file
       try
       {
         portNumber = getAdminPortFromConfig();
-      } catch (ConfigException ex) {
+      }
+      catch (ConfigException ex)
+      {
         // Nothing to do
       }
-    } else {
+    }
+    else
+    {
       portNumber = CliConstants.DEFAULT_SSL_PORT;
     }
     return portNumber;
@@ -737,8 +676,7 @@ public final class SecureConnectionCliArgs
    */
   public void initArgumentsWithConfiguration() throws ConfigException
   {
-    int portNumber = getPortFromConfig();
-    portArg.setDefaultValue(String.valueOf(portNumber));
+    portArg.setDefaultValue(String.valueOf(getPortFromConfig()));
 
     String truststoreFileAbsolute = getTruststoreFileFromConfig();
     if (truststoreFileAbsolute != null)

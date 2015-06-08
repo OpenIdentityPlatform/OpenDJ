@@ -26,13 +26,13 @@
  */
 package org.opends.server.util.args;
 
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ToolMessages.*;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import java.io.PrintStream;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
@@ -61,123 +61,116 @@ import com.forgerock.opendj.cli.StringArgument;
  * Creates an argument parser pre-populated with arguments for specifying
  * information for opening and LDAPConnection an LDAP connection.
  */
-public class LDAPConnectionArgumentParser extends ArgumentParser {
+public class LDAPConnectionArgumentParser extends ArgumentParser
+{
 
   private SecureConnectionCliArgs args;
 
   /**
-   * Creates a new instance of this argument parser with no arguments.
-   * Unnamed trailing arguments will not be allowed.
+   * Creates a new instance of this argument parser with no arguments. Unnamed
+   * trailing arguments will not be allowed.
    *
-   * @param  mainClassName               The fully-qualified name of the Java
-   *                                     class that should be invoked to launch
-   *                                     the program with which this argument
-   *                                     parser is associated.
-   * @param  toolDescription             A human-readable description for the
-   *                                     tool, which will be included when
-   *                                     displaying usage information.
-   * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
-   * @param  argumentGroup               Group to which LDAP arguments will be
-   *                                     added to the parser.  May be null to
-   *                                     indicate that arguments should be
-   *                                     added to the default group
-   * @param alwaysSSL If true, always use the SSL connection type. In this case,
-   * the arguments useSSL and startTLS are not present.
-    */
-  public LDAPConnectionArgumentParser(String mainClassName,
-                                      LocalizableMessage toolDescription,
-                                      boolean longArgumentsCaseSensitive,
-                                      ArgumentGroup argumentGroup,
-                                      boolean alwaysSSL) {
+   * @param mainClassName
+   *          The fully-qualified name of the Java class that should be invoked
+   *          to launch the program with which this argument parser is
+   *          associated.
+   * @param toolDescription
+   *          A human-readable description for the tool, which will be included
+   *          when displaying usage information.
+   * @param longArgumentsCaseSensitive
+   *          Indicates whether long arguments should
+   * @param argumentGroup
+   *          Group to which LDAP arguments will be added to the parser. May be
+   *          null to indicate that arguments should be added to the default
+   *          group
+   * @param alwaysSSL
+   *          If true, always use the SSL connection type. In this case, the
+   *          arguments useSSL and startTLS are not present.
+   */
+  public LDAPConnectionArgumentParser(String mainClassName, LocalizableMessage toolDescription,
+      boolean longArgumentsCaseSensitive, ArgumentGroup argumentGroup, boolean alwaysSSL)
+  {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
     addLdapConnectionArguments(argumentGroup, alwaysSSL);
     setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
-   * Indicates whether or not the user has indicated that they would like
-   * to perform a remote operation based on the arguments.
+   * Indicates whether or not the user has indicated that they would like to
+   * perform a remote operation based on the arguments.
    *
-   * @return true if the user wants to perform a remote operation;
-   *         false otherwise
+   * @return true if the user wants to perform a remote operation; false
+   *         otherwise
    */
-  public boolean connectionArgumentsPresent() {
+  public boolean connectionArgumentsPresent()
+  {
     return args != null && args.argumentsPresent();
   }
 
   /**
    * Creates a new LDAPConnection and invokes a connect operation using
-   * information provided in the parsed set of arguments that were provided
-   * by the user.
+   * information provided in the parsed set of arguments that were provided by
+   * the user.
    *
-   * @param out stream to write messages
-   * @param err stream to write error messages
+   * @param out
+   *          stream to write messages
+   * @param err
+   *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException if there was a problem connecting
-   *         to the server indicated by the input arguments
-   * @throws ArgumentException if there was a problem processing the input
-   *         arguments
+   * @throws LDAPConnectionException
+   *           if there was a problem connecting to the server indicated by the
+   *           input arguments
+   * @throws ArgumentException
+   *           if there was a problem processing the input arguments
    */
-  public LDAPConnection connect(PrintStream out, PrintStream err)
-          throws LDAPConnectionException, ArgumentException
+  public LDAPConnection connect(PrintStream out, PrintStream err) throws LDAPConnectionException, ArgumentException
   {
     return connect(this.args, out, err);
   }
 
-
   /**
    * Creates a new LDAPConnection and invokes a connect operation using
-   * information provided in the parsed set of arguments that were provided
-   * by the user.
+   * information provided in the parsed set of arguments that were provided by
+   * the user.
    *
-   * @param args with which to connect
-   * @param out stream to write messages
-   * @param err stream to write error messages
+   * @param args
+   *          with which to connect
+   * @param out
+   *          stream to write messages
+   * @param err
+   *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException if there was a problem connecting
-   *         to the server indicated by the input arguments
-   * @throws ArgumentException if there was a problem processing the input
-   *         arguments
+   * @throws LDAPConnectionException
+   *           if there was a problem connecting to the server indicated by the
+   *           input arguments
+   * @throws ArgumentException
+   *           if there was a problem processing the input arguments
    */
-  private LDAPConnection connect(SecureConnectionCliArgs args,
-                                PrintStream out, PrintStream err)
-          throws LDAPConnectionException, ArgumentException
+  private LDAPConnection connect(SecureConnectionCliArgs args, PrintStream out, PrintStream err)
+      throws LDAPConnectionException, ArgumentException
   {
     // If both a bind password and bind password file were provided, then return
     // an error.
-    if (args.bindPasswordArg.isPresent() &&
-            args.bindPasswordFileArg.isPresent())
+    if (args.bindPasswordArg.isPresent() && args.bindPasswordFileArg.isPresent())
     {
-      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              args.bindPasswordArg.getLongIdentifier(),
-              args.bindPasswordFileArg.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      throw new ArgumentException(message);
+      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+          args.bindPasswordArg.getLongIdentifier(), args.bindPasswordFileArg.getLongIdentifier()));
     }
-
 
     // If both a key store password and key store password file were provided,
     // then return an error.
-    if (args.keyStorePasswordArg.isPresent() &&
-            args.keyStorePasswordFileArg.isPresent())
+    if (args.keyStorePasswordArg.isPresent() && args.keyStorePasswordFileArg.isPresent())
     {
-      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              args.keyStorePasswordArg.getLongIdentifier(),
-              args.keyStorePasswordFileArg.getLongIdentifier());
-      throw new ArgumentException(message);
+      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+          args.keyStorePasswordArg.getLongIdentifier(), args.keyStorePasswordFileArg.getLongIdentifier()));
     }
-
 
     // If both a trust store password and trust store password file were
     // provided, then return an error.
-    if (args.trustStorePasswordArg.isPresent() &&
-            args.trustStorePasswordFileArg.isPresent())
+    if (args.trustStorePasswordArg.isPresent() && args.trustStorePasswordFileArg.isPresent())
     {
-      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              args.trustStorePasswordArg.getLongIdentifier(),
-              args.trustStorePasswordFileArg.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      throw new ArgumentException(message);
+      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+          args.trustStorePasswordArg.getLongIdentifier(), args.trustStorePasswordFileArg.getLongIdentifier()));
     }
 
     // Create the LDAP connection options object, which will be used to
@@ -186,18 +179,14 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     connectionOptions.setVersionNumber(3);
 
-
     // See if we should use SSL or StartTLS when establishing the connection.
     // If so, then make sure only one of them was specified.
     if (args.useSSLArg.isPresent())
     {
       if (args.useStartTLSArg.isPresent())
       {
-        LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-                args.useSSLArg.getLongIdentifier(),
-                args.useSSLArg.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        throw new ArgumentException(message);
+        printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+            args.useSSLArg.getLongIdentifier(), args.useSSLArg.getLongIdentifier()));
       }
       connectionOptions.setUseSSL(true);
     }
@@ -205,7 +194,6 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     {
       connectionOptions.setStartTLS(true);
     }
-
 
     // If we should blindly trust any certificate, then install the appropriate
     // SSL connection factory.
@@ -225,44 +213,37 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(args.trustAllArg.isPresent(),
-                args.keyStorePathArg.getValue(),
-                args.keyStorePasswordArg.getValue(),
-                clientAlias,
-                args.trustStorePathArg.getValue(),
-                args.trustStorePasswordArg.getValue());
-
+                                  args.keyStorePathArg.getValue(),
+                                  args.keyStorePasswordArg.getValue(),
+                                  clientAlias,
+                                  args.trustStorePathArg.getValue(),
+                                  args.trustStorePasswordArg.getValue());
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
       catch (SSLConnectionException sce)
       {
-        LocalizableMessage message =
-                ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(wrapText(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(sce.getMessage()), MAX_LINE_WIDTH));
       }
     }
-
 
     // If one or more SASL options were provided, then make sure that one of
     // them was "mech" and specified a valid SASL mechanism.
     if (args.saslOptionArg.isPresent())
     {
-      String             mechanism = null;
-      LinkedList<String> options   = new LinkedList<String>();
+      String mechanism = null;
+      LinkedList<String> options = new LinkedList<>();
 
       for (String s : args.saslOptionArg.getValues())
       {
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          LocalizableMessage message = ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(s);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          throw new ArgumentException(message);
+          printAndThrowException(err, ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(s));
         }
         else
         {
-          String name  = s.substring(0, equalPos);
-
-          if (name.equalsIgnoreCase("mech"))
+          String name = s.substring(0, equalPos);
+          if ("mech".equalsIgnoreCase(name))
           {
             mechanism = s;
           }
@@ -275,13 +256,10 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
       if (mechanism == null)
       {
-        LocalizableMessage message = ERR_LDAP_CONN_NO_SASL_MECHANISM.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        throw new ArgumentException(message);
+        printAndThrowException(err, ERR_LDAP_CONN_NO_SASL_MECHANISM.get());
       }
 
       connectionOptions.setSASLMechanism(mechanism);
-
       for (String option : options)
       {
         connectionOptions.addSASLProperty(option);
@@ -290,114 +268,123 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
     int timeout = args.connectTimeoutArg.getIntValue();
 
+    final String passwordValue = getPasswordValue(
+        args.bindPasswordArg, args.bindPasswordFileArg, args.bindDnArg, out, err);
     return connect(
             args.hostNameArg.getValue(),
             args.portArg.getIntValue(),
             args.bindDnArg.getValue(),
-            getPasswordValue(args.bindPasswordArg,
-                             args.bindPasswordFileArg,
-                             args.bindDnArg, out, err),
+            passwordValue,
             connectionOptions, timeout, out, err);
   }
 
-  /**
-   * Creates a connection using a console interaction that will be used
-   * to potentially interact with the user to prompt for necessary
-   * information for establishing the connection.
-   *
-   * @param ui user interaction for prompting the user
-   * @param out stream to write messages
-   * @param err stream to write error messages
-   * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException if there was a problem connecting
-   *         to the server indicated by the input arguments
-   */
-  public LDAPConnection connect(LDAPConnectionConsoleInteraction ui,
-                                PrintStream out, PrintStream err)
-          throws LDAPConnectionException
+  private void printAndThrowException(PrintStream err, LocalizableMessage message) throws ArgumentException
   {
-    LDAPConnection connection = null;
-    try {
+    err.println(wrapText(message, MAX_LINE_WIDTH));
+    throw new ArgumentException(message);
+  }
+
+  /**
+   * Creates a connection using a console interaction that will be used to
+   * potentially interact with the user to prompt for necessary information for
+   * establishing the connection.
+   *
+   * @param ui
+   *          user interaction for prompting the user
+   * @param out
+   *          stream to write messages
+   * @param err
+   *          stream to write error messages
+   * @return LDAPConnection created by this class from parsed arguments
+   * @throws LDAPConnectionException
+   *           if there was a problem connecting to the server indicated by the
+   *           input arguments
+   */
+  public LDAPConnection connect(LDAPConnectionConsoleInteraction ui, PrintStream out, PrintStream err)
+      throws LDAPConnectionException
+  {
+    try
+    {
       ui.run();
       LDAPConnectionOptions options = new LDAPConnectionOptions();
       options.setVersionNumber(3);
-      connection = connect(
-              ui.getHostName(),
-              ui.getPortNumber(),
-              ui.getBindDN(),
-              ui.getBindPassword(),
-              ui.populateLDAPOptions(options),
-              ui.getConnectTimeout(),
-              out, err);
-    } catch (ArgumentException | OpenDsException e) {
-      if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
-        e.getCause().getCause() instanceof SSLException) {
+      return connect(ui.getHostName(), ui.getPortNumber(), ui.getBindDN(),
+          ui.getBindPassword(), ui.populateLDAPOptions(options), ui.getConnectTimeout(), out, err);
+    }
+    catch (ArgumentException | OpenDsException e)
+    {
+      if (e.getCause() != null && e.getCause().getCause() != null && e.getCause().getCause() instanceof SSLException)
+      {
         err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));
-      } else {
+      }
+      else
+      {
         err.println(e.getMessageObject());
       }
     }
-    return connection;
+    return null;
   }
-
 
   /**
    * Creates a connection from information provided.
    *
-   * @param host of the server
-   * @param port of the server
-   * @param bindDN with which to connect
-   * @param bindPw with which to connect
-   * @param options with which to connect
-   * @param out stream to write messages
-   * @param err stream to write error messages
+   * @param host
+   *          of the server
+   * @param port
+   *          of the server
+   * @param bindDN
+   *          with which to connect
+   * @param bindPw
+   *          with which to connect
+   * @param options
+   *          with which to connect
+   * @param out
+   *          stream to write messages
+   * @param err
+   *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException if there was a problem connecting
-   *         to the server indicated by the input arguments
+   * @throws LDAPConnectionException
+   *           if there was a problem connecting to the server indicated by the
+   *           input arguments
    */
-  public LDAPConnection connect(String host, int port,
-                                String bindDN, String bindPw,
-                                LDAPConnectionOptions options,
-                                PrintStream out,
-                                PrintStream err)
-          throws LDAPConnectionException
+  public LDAPConnection connect(String host, int port, String bindDN, String bindPw, LDAPConnectionOptions options,
+      PrintStream out, PrintStream err) throws LDAPConnectionException
   {
     return connect(host, port, bindDN, bindPw, options, 0, out, err);
   }
 
-
   /**
    * Creates a connection from information provided.
    *
-   * @param host of the server
-   * @param port of the server
-   * @param bindDN with which to connect
-   * @param bindPw with which to connect
-   * @param options with which to connect
-   * @param timeout the timeout to establish the connection in milliseconds.
-   *        Use {@code 0} to express no timeout
-   * @param out stream to write messages
-   * @param err stream to write error messages
+   * @param host
+   *          of the server
+   * @param port
+   *          of the server
+   * @param bindDN
+   *          with which to connect
+   * @param bindPw
+   *          with which to connect
+   * @param options
+   *          with which to connect
+   * @param timeout
+   *          the timeout to establish the connection in milliseconds. Use
+   *          {@code 0} to express no timeout
+   * @param out
+   *          stream to write messages
+   * @param err
+   *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException if there was a problem connecting
-   *         to the server indicated by the input arguments
+   * @throws LDAPConnectionException
+   *           if there was a problem connecting to the server indicated by the
+   *           input arguments
    */
-  public LDAPConnection connect(String host, int port,
-                                String bindDN, String bindPw,
-                                LDAPConnectionOptions options,
-                                int timeout,
-                                PrintStream out,
-                                PrintStream err)
-  throws LDAPConnectionException
+  public LDAPConnection connect(String host, int port, String bindDN, String bindPw, LDAPConnectionOptions options,
+      int timeout, PrintStream out, PrintStream err) throws LDAPConnectionException
   {
     // Attempt to connect and authenticate to the Directory Server.
     AtomicInteger nextMessageID = new AtomicInteger(1);
-
-    LDAPConnection connection = new LDAPConnection(
-            host, port, options, out, err);
-
+    LDAPConnection connection = new LDAPConnection(host, port, options, out, err);
     connection.connectToHost(bindDN, bindPw, nextMessageID, timeout);
-
     return connection;
   }
 
@@ -406,29 +393,31 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *
    * @return arguments for this parser.
    */
-  public SecureConnectionCliArgs getArguments() {
+  public SecureConnectionCliArgs getArguments()
+  {
     return args;
   }
 
   /**
    * Commodity method that retrieves the password value analyzing the contents
-   * of a string argument and of a file based argument.  It assumes that the
-   * arguments have already been parsed and validated.
-   * If the string is a dash, or no password is available, it will prompt for
-   * it on the command line.
+   * of a string argument and of a file based argument. It assumes that the
+   * arguments have already been parsed and validated. If the string is a dash,
+   * or no password is available, it will prompt for it on the command line.
    *
-   * @param bindPwdArg the string argument for the password.
-   * @param bindPwdFileArg the file based argument for the password.
-   * @param bindDnArg the string argument for the bindDN.
-   * @param out stream to write message.
-   * @param err stream to write error message.
+   * @param bindPwdArg
+   *          the string argument for the password.
+   * @param bindPwdFileArg
+   *          the file based argument for the password.
+   * @param bindDnArg
+   *          the string argument for the bindDN.
+   * @param out
+   *          stream to write message.
+   * @param err
+   *          stream to write error message.
    * @return the password value.
    */
-  public static String getPasswordValue(StringArgument bindPwdArg,
-                                        FileBasedArgument bindPwdFileArg,
-                                        StringArgument bindDnArg,
-                                        PrintStream out,
-                                        PrintStream err)
+  public static String getPasswordValue(StringArgument bindPwdArg, FileBasedArgument bindPwdFileArg,
+      StringArgument bindDnArg, PrintStream out, PrintStream err)
   {
     try
     {
@@ -443,28 +432,30 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
   /**
    * Commodity method that retrieves the password value analyzing the contents
-   * of a string argument and of a file based argument.  It assumes that the
-   * arguments have already been parsed and validated.
-   * If the string is a dash, or no password is available, it will prompt for
-   * it on the command line.
+   * of a string argument and of a file based argument. It assumes that the
+   * arguments have already been parsed and validated. If the string is a dash,
+   * or no password is available, it will prompt for it on the command line.
    *
-   * @param bindPassword the string argument for the password.
-   * @param bindPasswordFile the file based argument for the password.
-   * @param bindDNValue the string value for the bindDN.
-   * @param out stream to write message.
-   * @param err stream to write error message.
+   * @param bindPassword
+   *          the string argument for the password.
+   * @param bindPasswordFile
+   *          the file based argument for the password.
+   * @param bindDNValue
+   *          the string value for the bindDN.
+   * @param out
+   *          stream to write message.
+   * @param err
+   *          stream to write error message.
    * @return the password value.
-   * @throws ClientException if the password cannot be read
+   * @throws ClientException
+   *           if the password cannot be read
    */
-  public static String getPasswordValue(StringArgument bindPassword,
-      FileBasedArgument bindPasswordFile, String bindDNValue, PrintStream out,
-      PrintStream err) throws ClientException
+  public static String getPasswordValue(StringArgument bindPassword, FileBasedArgument bindPasswordFile,
+      String bindDNValue, PrintStream out, PrintStream err) throws ClientException
   {
     String bindPasswordValue = bindPassword.getValue();
     if ("-".equals(bindPasswordValue)
-        || (!bindPasswordFile.isPresent()
-            && bindDNValue != null
-            && bindPasswordValue == null))
+        || (!bindPasswordFile.isPresent() && bindDNValue != null && bindPasswordValue == null))
     {
       // read the password from the stdin.
       out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
@@ -473,8 +464,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
       // an empty password to the server.
       while (pwChars.length == 0)
       {
-        err.println(wrapText(INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
-            MAX_LINE_WIDTH));
+        err.println(wrapText(INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(), MAX_LINE_WIDTH));
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         pwChars = ConsoleApplication.readPassword();
       }
@@ -488,15 +478,19 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     return bindPasswordValue;
   }
 
-  private void addLdapConnectionArguments(ArgumentGroup argGroup, boolean alwaysSSL) {
+  private void addLdapConnectionArguments(ArgumentGroup argGroup, boolean alwaysSSL)
+  {
     args = new SecureConnectionCliArgs(alwaysSSL);
-    try {
-      LinkedHashSet<Argument> argSet = args.createGlobalArguments();
-      for (Argument arg : argSet) {
+    try
+    {
+      Set<Argument> argSet = args.createGlobalArguments();
+      for (Argument arg : argSet)
+      {
         addArgument(arg, argGroup);
       }
     }
-    catch (ArgumentException ae) {
+    catch (ArgumentException ae)
+    {
       ae.printStackTrace(); // Should never happen
     }
   }
