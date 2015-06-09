@@ -380,16 +380,15 @@ public class LocalBackendBindOperation
     List<Control> requestControls = getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
-        String  oid = c.getOID();
+        final String  oid = c.getOID();
 
-        if (oid.equals(OID_AUTHZID_REQUEST))
+        if (OID_AUTHZID_REQUEST.equals(oid))
         {
           returnAuthzID = true;
         }
-        else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
         {
           pwPolicyControlRequested = true;
         }

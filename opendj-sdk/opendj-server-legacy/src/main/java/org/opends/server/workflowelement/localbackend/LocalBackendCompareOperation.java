@@ -354,6 +354,7 @@ public class LocalBackendCompareOperation
    */
   private void handleRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
     List<Control> requestControls = getRequestControls();
@@ -361,9 +362,9 @@ public class LocalBackendCompareOperation
     {
       for (Control c : requestControls)
       {
-        String  oid = c.getOID();
+        final String  oid = c.getOID();
 
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
@@ -412,7 +413,7 @@ public class LocalBackendCompareOperation
                 ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
-        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
+        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
         {
           continue;
         }
