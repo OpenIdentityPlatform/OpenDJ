@@ -46,6 +46,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -78,55 +79,38 @@ public final class SecureConnectionCliArgs
 
   /** The 'hostName' global argument. */
   public StringArgument hostNameArg;
-
   /** The 'port' global argument. */
   public IntegerArgument portArg;
-
   /** The 'bindDN' global argument. */
   public StringArgument bindDnArg;
-
   /** The 'adminUID' global argument. */
   public StringArgument adminUidArg;
-
   /** The 'bindPasswordFile' global argument. */
   public FileBasedArgument bindPasswordFileArg;
-
   /** The 'bindPassword' global argument. */
   public StringArgument bindPasswordArg;
-
   /** The 'trustAllArg' global argument. */
   public BooleanArgument trustAllArg;
-
   /** The 'trustStore' global argument. */
   public StringArgument trustStorePathArg;
-
   /** The 'trustStorePassword' global argument. */
   public StringArgument trustStorePasswordArg;
-
   /** The 'trustStorePasswordFile' global argument. */
   public FileBasedArgument trustStorePasswordFileArg;
-
   /** The 'keyStore' global argument. */
   public StringArgument keyStorePathArg;
-
   /** The 'keyStorePassword' global argument. */
   public StringArgument keyStorePasswordArg;
-
   /** The 'keyStorePasswordFile' global argument. */
   public FileBasedArgument keyStorePasswordFileArg;
-
   /** The 'certNicknameArg' global argument. */
   public StringArgument certNicknameArg;
-
   /** The 'useSSLArg' global argument. */
   public BooleanArgument useSSLArg;
-
   /** The 'useStartTLSArg' global argument. */
   public BooleanArgument useStartTLSArg;
-
   /** Argument indicating a SASL option. */
   public StringArgument saslOptionArg;
-
   /** Argument to specify the connection timeout. */
   public IntegerArgument connectTimeoutArg;
 
@@ -352,47 +336,21 @@ public final class SecureConnectionCliArgs
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     List<LocalizableMessage> errors = new ArrayList<>();
-    // Couldn't have at the same time bindPassword and bindPasswordFile
-    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
-    {
-      errors.add(
-          ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArg.getLongIdentifier(), bindPasswordFileArg.getLongIdentifier()));
-    }
 
-    // Couldn't have at the same time trustAll and trustStore related arg
-    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
-    {
-      errors.add(
-          ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePathArg.getLongIdentifier()));
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
-    {
-      errors.add(
-          ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePasswordArg.getLongIdentifier()));
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
-    {
-      errors.add(
-         ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier()));
-    }
+    addIfArgsAreConflicting(errors, bindPasswordArg, bindPasswordFileArg);
 
-    // Couldn't have at the same time trustStorePasswordArg and
-    // trustStorePasswordFileArg
-    if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent())
-    {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustStorePasswordArg.getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
-      errors.add(message);
-    }
-    checkIfPathArgumentIsReadable(
-        trustStorePathArg, errors, ERR_CANNOT_READ_TRUSTSTORE.get(trustStorePathArg.getValue()));
-    checkIfPathArgumentIsReadable(
-        keyStorePathArg, errors, ERR_CANNOT_READ_KEYSTORE.get(keyStorePasswordArg.getValue()));
-    // Couldn't have at the same time startTLSArg and useSSLArg
-    if (useStartTLSArg.isPresent() && useSSLArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg.getLongIdentifier()));
-    }
+    // Couldn't have at the same time trustAll and trustStore related args
+    addIfArgsAreConflicting(errors, trustAllArg, trustStorePathArg);
+    addIfArgsAreConflicting(errors, trustAllArg, trustStorePasswordArg);
+    addIfArgsAreConflicting(errors, trustAllArg, trustStorePasswordFileArg);
+
+    addIfArgsAreConflicting(errors, trustStorePasswordArg, trustStorePasswordFileArg);
+
+    checkIfPathArgumentIsReadable(errors, trustStorePathArg, ERR_CANNOT_READ_TRUSTSTORE);
+    checkIfPathArgumentIsReadable(errors, keyStorePathArg, ERR_CANNOT_READ_KEYSTORE);
+
+    addIfArgsAreConflicting(errors, useStartTLSArg, useSSLArg);
+
     if (!errors.isEmpty())
     {
       for (LocalizableMessage error : errors)
@@ -409,12 +367,19 @@ public final class SecureConnectionCliArgs
     return SUCCESS.get();
   }
 
-  private void checkIfPathArgumentIsReadable(
-      StringArgument pathArgument, List<LocalizableMessage> errors, LocalizableMessage errorMessage)
+  private void addIfArgsAreConflicting(List<LocalizableMessage> errors, Argument arg1, Argument arg2)
   {
-    if (pathArgument.isPresent() && !canRead(pathArgument.getValue()))
+    if (arg1.isPresent() && arg2.isPresent())
     {
-      errors.add(errorMessage);
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
+    }
+  }
+
+  private void checkIfPathArgumentIsReadable(List<LocalizableMessage> errors, StringArgument pathArg, Arg1<Object> msg)
+  {
+    if (pathArg.isPresent() && !canRead(pathArg.getValue()))
+    {
+      errors.add(msg.get(pathArg.getValue()));
     }
   }
 
