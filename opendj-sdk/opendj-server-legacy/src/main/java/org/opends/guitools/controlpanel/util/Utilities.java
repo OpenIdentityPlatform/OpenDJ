@@ -1831,9 +1831,12 @@ public class Utilities
 
   /**
    * Returns the server root directory (the path where the server is installed).
+   * <p>
+   * Note: this method is called by SNMP code.
+   *
    * @return the server root directory (the path where the server is installed).
    */
-  static File getServerRootDirectory()
+  public static File getServerRootDirectory()
   {
     if (rootDirectory == null)
     {
