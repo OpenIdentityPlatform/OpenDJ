@@ -76,8 +76,8 @@ import org.opends.server.util.ServerConstants;
  */
 public class NewSchemaElementsTask extends Task
 {
-  final Set<ObjectClass> ocsToAdd = new LinkedHashSet<>();
-  final Set<AttributeType> attrsToAdd = new LinkedHashSet<>();
+  private final Set<ObjectClass> ocsToAdd = new LinkedHashSet<>();
+  private final Set<AttributeType> attrsToAdd = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
@@ -174,7 +174,7 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private <T extends CommonSchemaElements> List<String> getElementsNameOrOID(final Set<T> schemaElements)
+  private <T extends CommonSchemaElements> List<String> getElementsNameOrOID(final Collection<T> schemaElements)
   {
     final List<String> nameOrOIDs = new ArrayList<>();
     for (CommonSchemaElements schemaElement : schemaElements)
@@ -464,11 +464,7 @@ public class NewSchemaElementsTask extends Task
   private String equivalentCommandToAddOffline(
       String schemaFile, boolean isSchemaFileDefined, List<CommonSchemaElements> schemaElements)
   {
-    List<String> names = new ArrayList<>();
-    for (CommonSchemaElements schemaElement : schemaElements)
-    {
-      names.add(schemaElement.getNameOrOID());
-    }
+    List<String> names = getElementsNameOrOID(schemaElements);
 
     final String namesString = joinAsString(", ", names);
     final StringBuilder sb = new StringBuilder();
