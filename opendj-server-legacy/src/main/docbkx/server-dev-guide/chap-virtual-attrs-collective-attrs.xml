@@ -62,7 +62,13 @@
 
   <para>
    Since you do not index virtual attributes,
-   generally avoid searches that use a simple filter with a virtual attribute.
+   searching on a virtual attribute can result in an unindexed search.
+   For an unindexed search OpenDJ directory server
+   potentially has to go through all entries to look for candidate matches.
+   Looking through all entries is resource-intensive for large directories.
+   By default, OpenDJ directory server allows only the Directory Manager superuser
+   to perform unindexed searches.
+   Generally avoid searches that use a simple filter with a virtual attribute.
    Instead, consider the alternatives.
    For example, you can assign a password policy to a group
    as described in the procedure,
