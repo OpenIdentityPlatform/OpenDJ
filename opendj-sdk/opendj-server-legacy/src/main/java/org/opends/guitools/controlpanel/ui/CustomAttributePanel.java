@@ -739,50 +739,24 @@ public class CustomAttributePanel extends SchemaElementPanel
       updateComboBoxModel(newParents,
           ((DefaultComboBoxModel)parent.getModel()));
 
-      ArrayList<MatchingRule> approximateElements = new ArrayList<>();
-      ArrayList<MatchingRule> equalityElements = new ArrayList<>();
-      ArrayList<MatchingRule> orderingElements = new ArrayList<>();
-      ArrayList<MatchingRule> substringElements = new ArrayList<>();
-
-      HashMap<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
+      final List<MatchingRule> availableMatchingRules = new ArrayList<>();
+      final Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
       for (String key : schema.getMatchingRules().keySet())
       {
-        MatchingRule rule = schema.getMatchingRule(key);
-        matchingRuleNameMap.put(rule.getNameOrOID(), rule);
+        matchingRuleNameMap.put(schema.getMatchingRule(key).getNameOrOID(), schema.getMatchingRule(key));
       }
 
       orderedKeys.clear();
       orderedKeys.addAll(matchingRuleNameMap.keySet());
       for (String key : orderedKeys)
       {
-        MatchingRule matchingRule = matchingRuleNameMap.get(key);
-        if (Utilities.isApproximateMatchingRule(matchingRule))
-        {
-          approximateElements.add(matchingRule);
-        }
-        else if (Utilities.isEqualityMatchingRule(matchingRule))
-        {
-          equalityElements.add(matchingRule);
-        }
-        else if (Utilities.isOrderingMatchingRule(matchingRule))
-        {
-          orderingElements.add(matchingRule);
-        }
-        else if (Utilities.isSubstringMatchingRule(matchingRule))
-        {
-          substringElements.add(matchingRule);
-        }
+        availableMatchingRules.add(matchingRuleNameMap.get(key));
       }
       JComboBox[] combos = {approximate, equality, ordering, substring};
-      ArrayList<ArrayList<MatchingRule>> ruleNames = new ArrayList<>();
-      ruleNames.add(approximateElements);
-      ruleNames.add(equalityElements);
-      ruleNames.add(orderingElements);
-      ruleNames.add(substringElements);
-      for (int i=0; i<combos.length; i++)
+      for (int i = 0; i < combos.length; i++)
       {
-        DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
-        ArrayList<Object> el = new ArrayList<Object>(ruleNames.get(i));
+        final DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
+        final List<Object> el = new ArrayList<Object>(availableMatchingRules);
         if (model.getSize() == 0)
         {
           el.add(0, NO_MATCHING_RULE);
