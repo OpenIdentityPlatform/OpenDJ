@@ -652,6 +652,7 @@ public class LocalBackendModifyOperation
    */
   private void processRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
     List<Control> requestControls = getRequestControls();
@@ -659,8 +660,8 @@ public class LocalBackendModifyOperation
     {
       for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
       {
-        Control c = iter.next();
-        String  oid = c.getOID();
+        final Control c = iter.next();
+        final String  oid = c.getOID();
 
         if (OID_LDAP_ASSERTION.equals(oid))
         {
@@ -738,7 +739,7 @@ public class LocalBackendModifyOperation
             iter.set(postReadRequest);
           }
         }
-        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
+        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
         {
           continue;
         }

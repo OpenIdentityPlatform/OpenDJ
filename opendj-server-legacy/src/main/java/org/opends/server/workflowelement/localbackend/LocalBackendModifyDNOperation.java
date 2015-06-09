@@ -540,15 +540,16 @@ public class LocalBackendModifyDNOperation
    */
   private void handleRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
-    List<Control> requestControls = getRequestControls();
+    final List<Control> requestControls = getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
     {
       for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
       {
-        Control c = iter.next();
-        String  oid = c.getOID();
+        final Control c = iter.next();
+        final String  oid = c.getOID();
 
         if (OID_LDAP_ASSERTION.equals(oid))
         {
@@ -621,7 +622,7 @@ public class LocalBackendModifyDNOperation
             iter.set(postReadRequest);
           }
         }
-        else if (LocalBackendWorkflowElement.processProxyAuthControls(this, oid))
+        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
         {
           continue;
         }
