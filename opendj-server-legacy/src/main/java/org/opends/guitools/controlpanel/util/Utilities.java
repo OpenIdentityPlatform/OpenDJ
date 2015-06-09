@@ -55,7 +55,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.naming.CompositeName;
@@ -104,6 +103,7 @@ import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -123,7 +123,6 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
@@ -163,10 +162,8 @@ public class Utilities
   private static ImageIcon warningIcon;
   private static ImageIcon requiredIcon;
 
-  private static LocalizableMessage NO_VALUE_SET =
-    INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private static LocalizableMessage NOT_IMPLEMENTED =
-    INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
+  private final static LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private final static LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /**
    * Creates a combo box.
@@ -227,7 +224,7 @@ public class Utilities
   /**
    * Derives a color by adding the specified offsets to the base color's
    * hue, saturation, and brightness values.   The resulting hue, saturation,
-   * and brightness values will be contrained to be between 0 and 1.
+   * and brightness values will be constrained to be between 0 and 1.
    * @param base the color to which the HSV offsets will be added
    * @param dH the offset for hue
    * @param dS the offset for saturation
@@ -1521,28 +1518,26 @@ public class Utilities
    * @param separator  the separator string to remove
    * @return resulting string
    */
-  public static String stripStringToSingleLine(String s, String separator)
+  private static String stripStringToSingleLine(String s, String separator)
   {
-    String o = null;
     if (s != null)
     {
-      o = s.replaceAll(separator, "");
+      return s.replaceAll(separator, "");
     }
-    return o;
+    return null;
   }
 
   /** The pattern for control characters. */
-  private static Pattern cntrl_pattern = Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
+  private final static Pattern cntrl_pattern = Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
 
   /**
    * Checks if a string contains control characters.
    * @param s : the string to check
    * @return true if s contains control characters, false otherwise
    */
-  public static Boolean hasControlCharaters(String s)
+  public static boolean hasControlCharaters(String s)
   {
-    Matcher m = cntrl_pattern.matcher(s);
-    return m.find();
+    return cntrl_pattern.matcher(s).find();
   }
 
   /**
@@ -1556,8 +1551,7 @@ public class Utilities
    *          the separator String to be used.
    * @return the String representation for the collection.
    */
-  public static String getStringFromCollection(Collection<String> col,
-      String separator)
+  public static String getStringFromCollection(Collection<String> col, String separator)
   {
     StringBuilder msg = new StringBuilder();
     for (String m : col)
@@ -1588,23 +1582,6 @@ public class Utilities
     }
     return name;
   }
-
-  /**
-   * Returns a String representing an LDIF file from a set of lines.
-   * @param lines the lines of the LDIF file.
-   * @return a String representing an LDIF file from a set of lines.
-   */
-  public static String makeLdif(String... lines)
-  {
-    StringBuilder buffer = new StringBuilder();
-    for (String line : lines) {
-      buffer.append(line).append(ServerConstants.EOL);
-    }
-    // Append an extra line so we can append LDIF Strings.
-    buffer.append(ServerConstants.EOL);
-    return buffer.toString();
-  }
-
 
   /**
    * Returns the HTML representation of the 'Done' string.
@@ -1856,7 +1833,7 @@ public class Utilities
    * Returns the server root directory (the path where the server is installed).
    * @return the server root directory (the path where the server is installed).
    */
-  public static File getServerRootDirectory()
+  static File getServerRootDirectory()
   {
     if (rootDirectory == null)
     {
@@ -1976,7 +1953,7 @@ public class Utilities
    * @return <CODE>true</CODE> if the provided string can be used as objectclass
    * name and <CODE>false</CODE> otherwise.
    */
-  public static boolean isValidObjectclassName(String s)
+  private static boolean isValidObjectclassName(String s)
   {
     if (s == null || s.length() == 0)
     {
@@ -2326,7 +2303,7 @@ public class Utilities
    * @param ctx the connection to be tested.
    * @throws NamingException if an error occurs while reading cn=config.
    */
-  public static void checkCanReadConfig(InitialLdapContext ctx)
+  private static void checkCanReadConfig(InitialLdapContext ctx)
   throws NamingException
   {
     // Search for the config to check that it is the directory manager.
@@ -2619,7 +2596,7 @@ public class Utilities
    * @return <CODE>true</CODE> if the provided monitoring value represents the
    * non implemented label and <CODE>false</CODE> otherwise.
    */
-  public static boolean isNotImplemented(MonitoringAttributes attr,
+  private static boolean isNotImplemented(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)
   {
     String monitoringValue = getFirstValueAsString(monitoringEntry, attr.getAttributeName());
