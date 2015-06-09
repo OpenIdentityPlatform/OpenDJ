@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,6 +49,7 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -326,7 +328,7 @@ public class NewSchemaElementsTask extends Task
     try
     {
       final BasicAttribute attr = new BasicAttribute(getAttributeName(schemaElement));
-      attr.add(getValueOnline(schemaElement));
+      attr.add(getElementDefinition(schemaElement));
       final ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
       getInfo().getDirContext().modifyAttributes(
           ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, new ModificationItem[] { mod });
@@ -346,23 +348,174 @@ public class NewSchemaElementsTask extends Task
     });
   }
 
-  private String getValueOnline(CommonSchemaElements element)
-  {
-    return element.toString();
-  }
-
   private String getValueOffline(CommonSchemaElements element)
   {
     final Map<String, List<String>> props = element.getExtraProperties();
     List<String> previousValues = props.get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
     setExtraProperty(element, ServerConstants.SCHEMA_PROPERTY_FILENAME, null);
-    String attributeWithoutFileDefinition = element.toString();
+    String attributeWithoutFileDefinition = getElementDefinition(element);
 
     if (previousValues != null && !previousValues.isEmpty())
     {
       element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, new ArrayList<String>(previousValues));
     }
     return attributeWithoutFileDefinition;
+  }
+
+  private String getElementDefinition(CommonSchemaElements element)
+  {
+    final List<String> names = new ArrayList<>();
+    for (final String name : element.getNormalizedNames())
+    {
+      names.add(name);
+    }
+
+    if (element instanceof AttributeType)
+    {
+      return getAttributeTypeDefinition((AttributeType) element, names);
+    }
+    else if (element instanceof ObjectClass)
+    {
+      return getObjectClassDefinition((ObjectClass) element, names);
+    }
+    else
+    {
+      throw new IllegalArgumentException("Unsupported schema element: " + element.getClass().getName());
+    }
+  }
+
+  private String getAttributeTypeDefinition(final AttributeType attributeType, final List<String> names)
+  {
+    final StringBuilder buffer = new StringBuilder();
+    buffer.append("( ").append(attributeType.getOID());
+    appendCollection(buffer, "NAME", names);
+    appendDescription(buffer, attributeType.getDescription());
+    appendIfTrue(buffer, " OBSOLETE", attributeType.isObsolete());
+
+    final AttributeType superiorType = attributeType.getSuperiorType();
+    final String superiorTypeOID = superiorType != null ? superiorType.getOID() : null;
+    appendIfNotNull(buffer, " SUP ", superiorTypeOID);
+    addMatchingRuleIfNotNull(buffer, " EQUALITY ", attributeType.getEqualityMatchingRule());
+    addMatchingRuleIfNotNull(buffer, " ORDERING ", attributeType.getOrderingMatchingRule());
+    addMatchingRuleIfNotNull(buffer, " SUBSTR ", attributeType.getSubstringMatchingRule());
+    appendIfNotNull(buffer, " SYNTAX ", attributeType.getSyntax().getOID());
+    appendIfTrue(buffer, " SINGLE-VALUE", attributeType.isSingleValue());
+    appendIfTrue(buffer, " COLLECTIVE", attributeType.isCollective());
+    appendIfTrue(buffer, " NO-USER-MODIFICATION", attributeType.isNoUserModification());
+    appendIfNotNull(buffer, " USAGE ", attributeType.getUsage());
+
+    final MatchingRule approximateMatchingRule = attributeType.getApproximateMatchingRule();
+    if (approximateMatchingRule != null)
+    {
+      buffer.append(" ").append(ServerConstants.SCHEMA_PROPERTY_APPROX_RULE).append(" '")
+            .append(approximateMatchingRule.getOID()).append("'");
+    }
+    appendExtraProperties(buffer, attributeType.getExtraProperties());
+    buffer.append(")");
+
+    return buffer.toString();
+  }
+
+  private void addMatchingRuleIfNotNull(final StringBuilder buffer, final String label, final MatchingRule matchingRule)
+  {
+    if (matchingRule != null)
+    {
+      append(buffer, label, matchingRule.getOID());
+    }
+  }
+
+  private String getObjectClassDefinition(final ObjectClass objectClass, final List<String> names)
+  {
+    final StringBuilder buffer = new StringBuilder();
+    buffer.append("( ");
+    buffer.append(objectClass.getOID());
+    appendCollection(buffer, "NAME", names);
+    appendDescription(buffer, objectClass.getDescription());
+    appendIfTrue(buffer, " OBSOLETE", objectClass.isObsolete());
+    appendOIDs(buffer, "SUP", objectClass.getSuperiorClasses());
+    appendIfNotNull(buffer, " ", objectClass.getObjectClassType());
+    appendOIDs(buffer, "MUST", objectClass.getRequiredAttributes());
+    appendOIDs(buffer, "MAY", objectClass.getOptionalAttributes());
+    appendExtraProperties(buffer, objectClass.getExtraProperties());
+    buffer.append(")");
+
+    return buffer.toString();
+  }
+
+  private <T extends CommonSchemaElements> void appendOIDs(final StringBuilder buffer, final String label,
+      final Collection<T> schemaElements)
+  {
+    if (!schemaElements.isEmpty())
+    {
+      final Iterator<T> iterator = schemaElements.iterator();
+      final String firstOID = iterator.next().getOID();
+      buffer.append(" ").append(label).append(" ( ").append(firstOID);
+      while (iterator.hasNext())
+      {
+        buffer.append(" $ ").append(iterator.next().getOID());
+      }
+      buffer.append(" )");
+    }
+  }
+
+  private void appendIfTrue(final StringBuilder buffer, final String label, final boolean labelIsActive)
+  {
+    if (labelIsActive)
+    {
+      buffer.append(label);
+    }
+  }
+
+  private void appendIfNotNull(final StringBuilder buffer, final String label, final Object value)
+  {
+    if (value != null)
+    {
+      append(buffer, label, value.toString());
+    }
+  }
+
+  private void append(final StringBuilder buffer, final String label, final String value)
+  {
+    buffer.append(label).append(value);
+  }
+
+  private void appendDescription(final StringBuilder buffer, final String description)
+  {
+    if (description != null && !description.isEmpty())
+    {
+      buffer.append(" DESC '");
+      buffer.append(description);
+      buffer.append("'");
+    }
+  }
+
+  private void appendExtraProperties(
+      final StringBuilder buffer, final Map<String, List<String>> extraProperties)
+  {
+    for (final Map.Entry<String, List<String>> e : extraProperties.entrySet())
+    {
+      appendCollection(buffer, e.getKey(), e.getValue());
+    }
+  }
+
+  private void appendCollection(final StringBuilder buffer, final String property, final Collection<String> values)
+  {
+    final Iterator<String> iterator = values.iterator();
+    final boolean isMultiValued = values.size() > 1;
+    if (iterator.hasNext())
+    {
+      final String first = iterator.next();
+      buffer.append(" ").append(property);
+      buffer.append(isMultiValued ? " ( '" : " '").append(first).append("' ");
+      while (iterator.hasNext())
+      {
+        buffer.append("'").append(iterator.next()).append("' ");
+      }
+      if (isMultiValued)
+      {
+        buffer.append(")");
+      }
+    }
   }
 
   private void printEquivalentCommandLineToAddOnline(CommonSchemaElements element)
@@ -384,7 +537,7 @@ public class NewSchemaElementsTask extends Task
       .append("dn: cn=schema<br>")
       .append("changetype: modify<br>")
       .append("add: ").append(attName).append("<br>")
-      .append(attName).append(": ").append(getValueOnline(element)).append("</b><br><br>");
+      .append(attName).append(": ").append(getElementDefinition(element)).append("</b><br><br>");
     getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(), ColorAndFontConstants.progressFont));
   }
 
@@ -600,5 +753,4 @@ public class NewSchemaElementsTask extends Task
       throw new OfflineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
     }
   }
-
 }
