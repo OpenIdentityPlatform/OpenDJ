@@ -555,38 +555,50 @@ public class ServerDescriptor
       return false;
     }
 
-    // Just compare exhaustively objectclasses and attributes.
-    Map<String, AttributeType> attrs1 = schema1.getAttributeTypes();
-    Map<String, AttributeType> attrs2 = schema2.getAttributeTypes();
-    if (attrs1.size() == attrs2.size())
-    {
-      for (String name : attrs1.keySet())
-      {
-        AttributeType attr1 = attrs1.get(name);
-        AttributeType attr2 = attrs2.get(name);
-        if (attr2 == null && !areAttributesEqual(attr1, attr2))
-        {
-          return false;
-        }
-      }
-    }
-
-    Map<String, ObjectClass> ocs1 = schema1.getObjectClasses();
-    Map<String, ObjectClass> ocs2 = schema2.getObjectClasses();
-    if (ocs1.size() == ocs2.size())
-    {
-      for (String name : ocs1.keySet())
-      {
-        ObjectClass oc1 = ocs1.get(name);
-        ObjectClass oc2 = ocs2.get(name);
-        if (oc2 == null || !areObjectClassesEqual(oc1, oc2))
-        {
-          return false;
-        }
-      }
-    }
-    return areEqual(schema1.getMatchingRules(), schema2.getMatchingRules())
+    return areAttributeTypesEqual(schema1, schema2)
+        && areObjectClassesEqual(schema1, schema2)
+        && areEqual(schema1.getMatchingRules(), schema2.getMatchingRules())
         && areEqual(schema1.getSyntaxes(), schema2.getSyntaxes());
+  }
+
+  private static boolean areAttributeTypesEqual(Schema schema1, Schema schema2)
+  {
+    final Map<String, AttributeType> attrs1 = schema1.getAttributeTypes();
+    final Map<String, AttributeType> attrs2 = schema2.getAttributeTypes();
+    if (attrs1.size() != attrs2.size())
+    {
+      return false;
+    }
+    for (String name : attrs1.keySet())
+    {
+      AttributeType attr1 = attrs1.get(name);
+      AttributeType attr2 = attrs2.get(name);
+      if (attr2 == null && !areAttributesEqual(attr1, attr2))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean areObjectClassesEqual(Schema schema1, Schema schema2)
+  {
+    final Map<String, ObjectClass> ocs1 = schema1.getObjectClasses();
+    final Map<String, ObjectClass> ocs2 = schema2.getObjectClasses();
+    if (ocs1.size() != ocs2.size())
+    {
+      return false;
+    }
+    for (String name : ocs1.keySet())
+    {
+      ObjectClass oc1 = ocs1.get(name);
+      ObjectClass oc2 = ocs2.get(name);
+      if (oc2 == null || !areObjectClassesEqual(oc1, oc2))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
