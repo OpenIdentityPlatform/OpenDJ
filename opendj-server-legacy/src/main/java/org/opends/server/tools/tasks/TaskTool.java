@@ -26,11 +26,11 @@
  */
 package org.opends.server.tools.tasks;
 
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -49,8 +49,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
@@ -434,5 +436,17 @@ public abstract class TaskTool implements TaskScheduleInformation {
       returnValue = testIfOfflineArg.isPresent();
     }
     return returnValue;
+  }
+
+  /**
+   * Checks that binary version and instance version are the same.
+   *
+   * @throws InitializationException
+   *           If versions mismatch
+   */
+  protected void checkVersion() throws InitializationException
+  {
+    // FIXME Do not perform this check if the tool is use in remote mode (see OPENDJ-1166)
+    BuildVersion.checkVersionMismatch();
   }
 }

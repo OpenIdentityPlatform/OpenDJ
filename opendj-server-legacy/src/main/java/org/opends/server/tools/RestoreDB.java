@@ -26,12 +26,12 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -62,8 +62,14 @@ import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.RestoreTask;
 import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.types.*;
-import org.opends.server.util.BuildVersion;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.BackupInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
@@ -271,7 +277,7 @@ public class RestoreDB extends TaskTool {
     // Checks the version - if upgrade required, the tool is unusable
     try
     {
-      BuildVersion.checkVersionMismatch();
+      checkVersion();
     }
     catch (InitializationException e)
     {

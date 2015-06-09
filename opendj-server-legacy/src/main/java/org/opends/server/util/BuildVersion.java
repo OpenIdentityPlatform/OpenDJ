@@ -30,6 +30,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -85,6 +86,10 @@ public final class BuildVersion implements Comparable<BuildVersion>
         throw new InitializationException(ERR_BUILDVERSION_MALFORMED.get(buildInfo));
       }
       return valueOf(s);
+    }
+    catch (FileNotFoundException e)
+    {
+      throw new InitializationException(ERR_INSTANCE_NOT_CONFIGURED.get(), e);
     }
     catch (IOException e)
     {
