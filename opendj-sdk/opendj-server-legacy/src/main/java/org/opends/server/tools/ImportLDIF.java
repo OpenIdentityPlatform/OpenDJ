@@ -26,12 +26,12 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -75,7 +75,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
@@ -301,7 +300,7 @@ public class ImportLDIF extends TaskTool {
     // Checks the version - if upgrade required, the tool is unusable
     try
     {
-      BuildVersion.checkVersionMismatch();
+      checkVersion();
     }
     catch (InitializationException e)
     {
