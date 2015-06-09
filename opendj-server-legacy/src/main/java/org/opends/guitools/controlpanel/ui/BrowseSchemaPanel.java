@@ -1501,10 +1501,6 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       {
         return mustAdd(f, matchingRule.getOID(), matchingRule.getNameOrOID());
       }
-      else if (TYPE.equals(filterAttribute.getSelectedItem()))
-      {
-        return mustAddType(f, MatchingRulePanel.getTypeValue(matchingRule));
-      }
       else
       {
         return false;

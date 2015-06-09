@@ -64,7 +64,6 @@ public class MatchingRulePanel extends SchemaElementPanel
   private JLabel oid = Utilities.createDefaultLabel();
   private JLabel description = Utilities.createDefaultLabel();
   private JLabel syntax = Utilities.createDefaultLabel();
-  private JLabel type = Utilities.createDefaultLabel();
   private JList usedByAttributes = new JList(new DefaultListModel());
 
   /**
@@ -124,10 +123,9 @@ public class MatchingRulePanel extends SchemaElementPanel
         INFO_CTRL_PANEL_MATCHING_RULE_NAME.get(),
         INFO_CTRL_PANEL_MATCHING_RULE_OID.get(),
         INFO_CTRL_PANEL_MATCHING_RULE_DESCRIPTION.get(),
-        INFO_CTRL_PANEL_MATCHING_RULE_TYPE.get(),
         INFO_CTRL_PANEL_MATCHING_RULE_SYNTAX.get()
         };
-    JLabel[] values = {name, oid, description, type, syntax};
+    JLabel[] values = {name, oid, description, syntax};
     gbc.gridy ++;
     gbc.gridwidth = 1;
     gbc.anchor = GridBagConstraints.WEST;
@@ -232,8 +230,6 @@ public class MatchingRulePanel extends SchemaElementPanel
     }
     description.setText(n);
 
-    type.setText(getTypeValue(matchingRule).toString());
-
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
     TreeSet<String> attributes = new TreeSet<>(lowerCaseComparator);
     for (AttributeType attr : schema.getAttributeTypes().values())
@@ -252,37 +248,6 @@ public class MatchingRulePanel extends SchemaElementPanel
     {
       model.addElement(attr);
     }
-  }
-
-  /**
-   * Returns the message for the type of the provided matching rule.
-   * @param matchingRule the matching rule.
-   * @return the message for the type of the provided matching rule.
-   */
-  static LocalizableMessage getTypeValue(MatchingRule matchingRule)
-  {
-    LocalizableMessage text;
-    if (Utilities.isEqualityMatchingRule(matchingRule))
-    {
-      text = INFO_CTRL_PANEL_INDEX_EQUALITY.get();
-    }
-    else if (Utilities.isOrderingMatchingRule(matchingRule))
-    {
-      text = INFO_CTRL_PANEL_INDEX_ORDERING.get();
-    }
-    else if (Utilities.isSubstringMatchingRule(matchingRule))
-    {
-      text = INFO_CTRL_PANEL_INDEX_SUBSTRING.get();
-    }
-    else if (Utilities.isApproximateMatchingRule(matchingRule))
-    {
-      text = INFO_CTRL_PANEL_INDEX_APPROXIMATE.get();
-    }
-    else
-    {
-      text = NOT_APPLICABLE;
-    }
-    return text;
   }
 
   private void usedBySelected()

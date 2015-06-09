@@ -2715,50 +2715,6 @@ public class Utilities
   }
 
   /**
-   * Indicates if the provided matching rule is an equality matching rule.
-   *
-   * @param matchingRule
-   *            The matching rule.
-   * @return {@code true} if this matching rule is an equality mathing rule.
-   */
-  public static boolean isEqualityMatchingRule(MatchingRule matchingRule) {
-    return false;
-  }
-
-  /**
-   * Indicates if the provided matching rule is an approximate matching rule.
-   *
-   * @param matchingRule
-   *            The matching rule.
-   * @return {@code true} if this matching rule is an approximate mathing rule.
-   */
-  public static boolean isApproximateMatchingRule(MatchingRule matchingRule) {
-    return false;
-  }
-
-  /**
-   * Indicates if the provided matching rule is a substring matching rule.
-   *
-   * @param matchingRule
-   *            The matching rule.
-   * @return {@code true} if this matching rule is a substring mathing rule.
-   */
-  public static boolean isSubstringMatchingRule(MatchingRule matchingRule) {
-    return false;
-  }
-
-  /**
-   * Indicates if the provided matching rule is an ordering matching rule.
-   *
-   * @param matchingRule
-   *            The matching rule.
-   * @return {@code true} if this matching rule is an ordering mathing rule.
-   */
-  public static boolean isOrderingMatchingRule(MatchingRule matchingRule) {
-    return false;
-  }
-
-  /**
    * Computes the possible comparison results for monitoring information.
    *
    * @param monitor1
