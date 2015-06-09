@@ -737,6 +737,37 @@ public final class UpgradeTasks
     };
   }
 
+  /**
+   * Removes the specified file from the file-system.
+   *
+   * @param file
+   *          The file to be removed.
+   * @return An upgrade task which removes the specified file from the file-system.
+   */
+  public static UpgradeTask deleteFile(final File file)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        LocalizableMessage msg = UPGRADE_TASK_DELETE_FILE.get(file);
+        ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, msg, 0);
+        context.notifyProgress(pnc);
+        try
+        {
+          FileManager.deleteRecursively(file);
+          context.notifyProgress(pnc.setProgress(100));
+        }
+        catch (Exception e)
+        {
+          logger.error(LocalizableMessage.raw(e.getMessage()));
+          context.notifyProgress(pnc.setProgress(-1));
+        }
+      }
+    };
+  }
+
   private static void displayChangeCount(final String fileName,
       final int changeCount)
   {

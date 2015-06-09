@@ -51,6 +51,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.LicenseFile.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
+import static org.opends.server.tools.upgrade.UpgradeUtils.batDirectory;
+import static org.opends.server.tools.upgrade.UpgradeUtils.binDirectory;
 
 /**
  * This class contains the table of upgrade tasks that need performing when
@@ -397,6 +399,11 @@ public final class Upgrade
         modifyConfigEntry(INFO_UPGRADE_TASK_12226_SUMMARY.get(),
             "(objectclass=ds-cfg-root-config)",
             "delete: ds-cfg-entry-cache-preload"));
+
+    /** See OPENDJ-2054 */
+    register("2.8.0.12451",
+        deleteFile(new File(binDirectory, "dsframework")),
+        deleteFile(new File(batDirectory, "dsframework.bat")));
 
     /*
      * All upgrades will refresh the server configuration schema and generate

@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -91,6 +90,12 @@ final class UpgradeUtils
   static final File configSnmpSecurityDirectory = new File(
       configDirectory + File.separator + Installation.SNMP_PATH_RELATIVE
           + File.separator + Installation.SECURITY_PATH_RELATIVE);
+
+  /** The bin folder of the current installation. */
+  static final File binDirectory = new File(getInstallationPath(), Installation.UNIX_BINARIES_PATH_RELATIVE);
+
+  /** The bat folder of the current installation. */
+  static final File batDirectory = new File(getInstallationPath(), Installation.WINDOWS_BINARIES_PATH_RELATIVE);
 
   /**
    * Returns the path of the installation of the directory server. Note that
