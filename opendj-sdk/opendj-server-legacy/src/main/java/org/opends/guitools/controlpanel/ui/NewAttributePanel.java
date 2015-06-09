@@ -224,11 +224,8 @@ public class NewAttributePanel extends StatusGenericPanel
       newParents.add(0, NO_PARENT);
       updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
-      List<MatchingRule> approximateElements = new ArrayList<>();
-      List<MatchingRule> equalityElements = new ArrayList<>();
-      List<MatchingRule> orderingElements = new ArrayList<>();
-      List<MatchingRule> substringElements = new ArrayList<>();
-      Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
+      final List<MatchingRule> availableMatchingRules = new ArrayList<>();
+      final Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
       for (String key : schema.getMatchingRules().keySet())
       {
         MatchingRule rule = schema.getMatchingRule(key);
@@ -237,36 +234,16 @@ public class NewAttributePanel extends StatusGenericPanel
 
       orderedKeys.clear();
       orderedKeys.addAll(matchingRuleNameMap.keySet());
-      for (String key : orderedKeys)
+      for (final String key : orderedKeys)
       {
-        MatchingRule matchingRule = matchingRuleNameMap.get(key);
-        if (Utilities.isApproximateMatchingRule(matchingRule))
-        {
-          approximateElements.add(matchingRule);
-        }
-        else if (Utilities.isEqualityMatchingRule(matchingRule))
-        {
-          equalityElements.add(matchingRule);
-        }
-        else if (Utilities.isOrderingMatchingRule(matchingRule))
-        {
-          orderingElements.add(matchingRule);
-        }
-        else if (Utilities.isSubstringMatchingRule(matchingRule))
-        {
-          substringElements.add(matchingRule);
-        }
+        availableMatchingRules.add(matchingRuleNameMap.get(key));
       }
-      JComboBox[] combos = { approximate, equality, ordering, substring };
-      List<List<MatchingRule>> ruleNames = new ArrayList<>();
-      ruleNames.add(approximateElements);
-      ruleNames.add(equalityElements);
-      ruleNames.add(orderingElements);
-      ruleNames.add(substringElements);
+
+      final JComboBox[] combos = { approximate, equality, ordering, substring };
       for (int i = 0; i < combos.length; i++)
       {
-        DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
-        List<Object> el = new ArrayList<Object>(ruleNames.get(i));
+        final DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
+        final List<Object> el = new ArrayList<Object>(availableMatchingRules);
         el.add(0, model.getSize() == 0 ? NO_MATCHING_RULE : model.getElementAt(0));
         updateComboBoxModel(el, model);
       }
