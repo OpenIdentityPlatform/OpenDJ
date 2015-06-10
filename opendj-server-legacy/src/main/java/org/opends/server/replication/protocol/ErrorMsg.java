@@ -45,7 +45,6 @@ public class ErrorMsg extends RoutableMsg
 
   /** Specifies the messageID built from the error that was detected. */
   private final String msgID;
-
   /** Specifies the complementary details about the error that was detected. */
   private final LocalizableMessage details;
 
@@ -71,29 +70,24 @@ public class ErrorMsg extends RoutableMsg
     this.creationTime = System.currentTimeMillis();
 
     if (logger.isTraceEnabled())
+    {
       logger.trace(" Creating error message" + this
           + " " + stackTraceToSingleLineString(new Exception("trace")));
+    }
   }
 
   /**
    * Creates an ErrorMsg.
    *
-   * @param i replication server id
+   * @param destination replication server id
    * @param details details of the error
    */
-  public ErrorMsg(int i, LocalizableMessage details)
+  public ErrorMsg(int destination, LocalizableMessage details)
   {
-    super(-2, i);
-    this.msgID  = getMessageId(details);
-    this.details = details;
-    this.creationTime = System.currentTimeMillis();
-
-    logger.trace("new ErrorMsg=%s", this);
+    this(-2, destination, details);
   }
 
-  /**
-   * Returns the unique message Id.
-   */
+  /** Returns the unique message Id. */
   private String getMessageId(LocalizableMessage details)
   {
     return details.resourceName() + "-" + details.ordinal();
@@ -205,5 +199,4 @@ public class ErrorMsg extends RoutableMsg
   {
     this.creationTime = creationTime;
   }
-
 }
