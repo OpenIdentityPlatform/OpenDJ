@@ -206,14 +206,14 @@ class DN2ID extends AbstractTree
    */
   private static final class ChildrenCursor extends SequentialCursorForwarding {
     private final ByteStringBuilder builder;
-    private final ByteString parentDN;
+    private final ByteString limit;
     private boolean cursorOnParent;
 
     ChildrenCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
       builder = new ByteStringBuilder(128);
-      parentDN = delegate.isDefined() ? delegate.getKey() : null;
+      limit = delegate.isDefined() ? afterKey(delegate.getKey()).toByteString() : null;
       cursorOnParent = true;
     }
 
@@ -228,7 +228,7 @@ class DN2ID extends AbstractTree
         // Go to the next sibling
         delegate.positionToKeyOrNext(nextSibling());
       }
-      return isDefined() && delegate.getKey().startsWith(parentDN);
+      return isDefined() && delegate.getKey().compareTo(limit) < 0;
     }
 
     private ByteStringBuilder nextSibling()
@@ -242,18 +242,18 @@ class DN2ID extends AbstractTree
    * at creation.
    */
   private static final class SubtreeCursor extends SequentialCursorForwarding {
-    private final ByteString baseDN;
+    private final ByteString limit;
 
     SubtreeCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
-      baseDN = delegate.isDefined() ? delegate.getKey() : null;
+      limit = delegate.isDefined() ? afterKey(delegate.getKey()).toByteString() : null;
     }
 
     @Override
     public boolean next()
     {
-      return delegate.next() && delegate.getKey().startsWith(baseDN);
+      return delegate.next() && delegate.getKey().compareTo(limit) < 0;
     }
   }
 

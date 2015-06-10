@@ -83,6 +83,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperatio
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -527,7 +528,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     dnToMod = workEntries.get(0).getName();
     dnToDel = workEntries.get(1).getName();
-    searchDN = entries.get(8).getName();
+    searchDN = entries.get(1).getName();
     badEntryDN = testBaseDN.child(DN.valueOf("ou=bogus")).child(DN.valueOf("ou=dummy"));
     backupID = "backupID1";
 
@@ -759,20 +760,36 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         "Subtree search should return a correct number of entries");
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
-  public void testUserEntrySearch() throws Exception
+
+  @DataProvider(name = "userEntrySearchData")
+  protected Object[][] userEntrySearchData()
   {
-    userEntrySearch(false);
-    userEntrySearch(true);
+    return new Object[][] {
+      // @formatter:off
+      { true,  SearchScope.BASE_OBJECT, 1 },
+      { false, SearchScope.BASE_OBJECT, 1 },
+      { true,  SearchScope.SINGLE_LEVEL, 0 },
+      { false, SearchScope.SINGLE_LEVEL, 0 },
+      { true,  SearchScope.WHOLE_SUBTREE, 1 },
+      { false, SearchScope.WHOLE_SUBTREE, 1 },
+      // @formatter:on
+    };
   }
 
-  private void userEntrySearch(boolean useInternalConnection) throws Exception
+  @Test(dataProvider = "userEntrySearchData",
+      dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  public void testUserEntrySearch(boolean useInternalConnection, SearchScope scope, int expectedEntryCount)
+      throws Exception
   {
-    SearchRequest request = newSearchRequest(searchDN, SearchScope.BASE_OBJECT, "objectclass=*");
+    SearchRequest request = newSearchRequest(searchDN, scope, "objectclass=*");
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
 
-    assertEquals(result.size(), 1, "User entry search should return a single child entry");
-    assertEquals(searchDN, result.get(0).getName(), "User entry search should return the expected entry");
+    assertEquals(result.size(), expectedEntryCount, "User entry search should return " + expectedEntryCount
+        + " child entry");
+    if (expectedEntryCount > 0)
+    {
+      assertEquals(searchDN, result.get(0).getName(), "User entry search should return the expected entry");
+    }
   }
 
   @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })

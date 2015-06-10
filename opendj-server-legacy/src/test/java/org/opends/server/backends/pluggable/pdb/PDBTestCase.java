@@ -32,10 +32,12 @@ import static org.mockito.Mockito.when;
 import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBBackend;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
+import org.testng.annotations.Test;
 
 /**
  * PDBBackend Tester.
  */
+@Test
 public class PDBTestCase extends PluggableBackendImplTestCase<PDBBackendCfg>
 {
   @Override
