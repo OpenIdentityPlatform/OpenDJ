@@ -1083,7 +1083,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     static boolean cannotDisplay(ConsoleApplication app, PropertyDefinition<?> pd, Set<String> allowedPropertyNames) {
         return pd.hasOption(PropertyOption.HIDDEN)
                 || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED))
-                || !allowedPropertyNames.contains(pd.getName());
+                || (!allowedPropertyNames.isEmpty() && !allowedPropertyNames.contains(pd.getName()));
     }
 
     /**
