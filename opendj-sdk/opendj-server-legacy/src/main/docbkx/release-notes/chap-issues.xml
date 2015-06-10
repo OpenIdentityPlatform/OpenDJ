@@ -64,6 +64,23 @@
 
   <itemizedlist>
    <listitem>
+    <para>
+     The <command>import</command> command options
+     <option>--excludeBranch</option> and <option>--includeBranch</option>
+     are not supported for backends of type <literal>pdb</literal>.
+    </para>
+
+    <para>
+     In addition, backends of type <literal>pdb</literal>
+     do not support configurations where
+     one backend is the parent of another.
+     For example, backends of type <literal>pdb</literal> do not support
+     having one backend for <literal>dc=com</literal>
+     and another backend for <literal>dc=example,dc=com</literal>.
+    </para>
+   </listitem>
+
+   <listitem>
     <para>OpenDJ directory server provides full LDAP v3 support, except for
     alias dereferencing, and limited support for LDAPv2.</para>
    </listitem>
