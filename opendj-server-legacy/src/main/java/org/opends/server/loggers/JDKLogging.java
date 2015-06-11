@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -71,6 +71,9 @@ public class JDKLogging
     }
   }
 
+  /**
+   * Custom handler to log to either stdout or stderr depending on the log level
+   */
   private static final class OpenDJHandler extends Handler
   {
     @Override
