@@ -359,7 +359,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
       returnValue = CANNOT_INITIALIZE_ARGS;
     }
@@ -382,9 +382,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-        println();
-        println(LocalizableMessage.raw(argParser.getUsage()));
+        errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+        errPrintln();
+        errPrintln(LocalizableMessage.raw(argParser.getUsage()));
         logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
         returnValue = ERROR_USER_DATA;
       }
@@ -403,7 +403,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (InitializationException e)
     {
-      println(e.getMessageObject());
+      errPrintln(e.getMessageObject());
       return 1;
     }
 
@@ -417,8 +417,8 @@ public class ReplicationCliMain extends ConsoleApplication
         argParser.validateOptions(buf);
         if (buf.length() > 0)
         {
-          println(buf.toMessage());
-          println(LocalizableMessage.raw(argParser.getUsage()));
+          errPrintln(buf.toMessage());
+          errPrintln(LocalizableMessage.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
         }
       }
@@ -441,7 +441,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (InitializationException ie)
         {
-          println(ie.getMessageObject());
+          errPrintln(ie.getMessageObject());
           returnValue = ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK;
         }
       }
@@ -505,9 +505,9 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else
         {
-          println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
+          errPrintln(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
               "--"+OPTION_LONG_NO_PROMPT));
-          println(LocalizableMessage.raw(argParser.getUsage()));
+          errPrintln(LocalizableMessage.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
           subcommandLaunched = false;
         }
@@ -676,9 +676,9 @@ public class ReplicationCliMain extends ConsoleApplication
         catch (NumberFormatException e)
         {
           // Try again...
-          app.println();
-          app.println(ERR_BAD_INTEGER.get(ninput));
-          app.println();
+          app.errPrintln();
+          app.errPrintln(ERR_BAD_INTEGER.get(ninput));
+          app.errPrintln();
           return null;
         }
       }
@@ -728,8 +728,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         return rce.getErrorCode();
       }
     }
@@ -764,8 +764,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         return rce.getErrorCode();
       }
     }
@@ -884,8 +884,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         return rce.getErrorCode();
       }
     }
@@ -961,8 +961,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         return rce.getErrorCode();
       }
@@ -1343,8 +1343,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         return rce.getErrorCode();
       }
@@ -1372,8 +1372,8 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       String hostPort = getServerRepresentation(uData.getHostName(), uData.getPort());
-      println();
-      println(getMessageForException(ne, hostPort));
+      errPrintln();
+      errPrintln(getMessageForException(ne, hostPort));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
       return null;
     }
@@ -1501,7 +1501,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (helper.isCompletedWithErrors(state))
           {
             logger.warn(LocalizableMessage.raw("Completed with error: "+errorMsg));
-            println(errorMsg);
+            errPrintln(errorMsg);
           }
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
@@ -1632,8 +1632,8 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     if (availableSuffixes.isEmpty())
     {
-      println();
-      println(ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL.get());
+      errPrintln();
+      errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL.get());
       suffixes.clear();
     }
     else
@@ -1659,8 +1659,8 @@ public class ReplicationCliMain extends ConsoleApplication
       suffixes.removeAll(alreadyNotReplicated);
       if (notFound.size() > 0)
       {
-        println();
-        println(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
+        errPrintln();
+        errPrintln(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (interactive)
       {
@@ -1679,15 +1679,15 @@ public class ReplicationCliMain extends ConsoleApplication
     if (containsOnlySchemaOrAdminSuffix(availableSuffixes))
     {
       // In interactive mode we do not propose to manage the administration suffix.
-      println();
-      println(noSuffixAvailableMsg.get());
+      errPrintln();
+      errPrintln(noSuffixAvailableMsg.get());
       return;
     }
 
     while (suffixes.isEmpty())
     {
-      println();
-      println(noSuffixSelectedMsg.get());
+      errPrintln();
+      errPrintln(noSuffixSelectedMsg.get());
       boolean confirmationLimitReached = askConfirmations(confirmationMsgPromt, availableSuffixes, suffixes);
       if (confirmationLimitReached)
       {
@@ -1805,7 +1805,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           return false;
         }
       }
@@ -1842,7 +1842,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           catch (ClientException ce)
           {
-            println(ce.getMessageObject());
+            errPrintln(ce.getMessageObject());
           }
 
           if (!promptForConnection)
@@ -1872,17 +1872,17 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception " + ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception " + ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         return null;
       }
       firstTry = false;
@@ -1993,17 +1993,17 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         cancelled = true;
       }
     }
@@ -2052,7 +2052,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           cancelled = true;
         }
       }
@@ -2079,9 +2079,9 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             if (!SetupUtils.canUseAsPort(replicationPort1))
             {
-              println();
-              println(getCannotBindToPortError(replicationPort1));
-              println();
+              errPrintln();
+              errPrintln(getCannotBindToPortError(replicationPort1));
+              errPrintln();
               replicationPort1 = -1;
             }
           }
@@ -2089,9 +2089,9 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             // This is something that we must do in any case... this test is
             // already included when we call SetupUtils.canUseAsPort
-            println();
-            println(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
-            println();
+            errPrintln();
+            errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
+            errPrintln();
             replicationPort1 = -1;
           }
         }
@@ -2105,7 +2105,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           catch (ClientException ce)
           {
-            println(ce.getMessageObject());
+            errPrintln(ce.getMessageObject());
             cancelled = true;
           }
           println();
@@ -2125,7 +2125,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           cancelled = true;
         }
       }
@@ -2234,9 +2234,9 @@ public class ReplicationCliMain extends ConsoleApplication
         if (host1.equalsIgnoreCase(host2) && port1 == port2)
         {
           port2 = -1;
-          println();
-          println(ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(host1, port1));
-          println();
+          errPrintln();
+          errPrintln(ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(host1, port1));
+          errPrintln();
           error = true;
         }
 
@@ -2254,9 +2254,9 @@ public class ReplicationCliMain extends ConsoleApplication
         logger.warn(LocalizableMessage.raw("Client exception "+ce));
         if (!doNotDisplayFirstError)
         {
-          println();
-          println(ce.getMessageObject());
-          println();
+          errPrintln();
+          errPrintln(ce.getMessageObject());
+          errPrintln();
           ci.resetConnectionArguments();
         }
         else
@@ -2269,9 +2269,9 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         cancelled = true;
       }
       finally
@@ -2326,7 +2326,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           catch (ClientException ce)
           {
-            println(ce.getMessageObject());
+            errPrintln(ce.getMessageObject());
             cancelled = true;
           }
         }
@@ -2354,9 +2354,9 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               if (!SetupUtils.canUseAsPort(replicationPort2))
               {
-                println();
-                println(getCannotBindToPortError(replicationPort2));
-                println();
+                errPrintln();
+                errPrintln(getCannotBindToPortError(replicationPort2));
+                errPrintln();
                 replicationPort2 = -1;
               }
             }
@@ -2364,17 +2364,17 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               // This is something that we must do in any case... this test is
               // already included when we call SetupUtils.canUseAsPort
-              println();
-              println(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
+              errPrintln();
+              errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
               replicationPort2 = -1;
             }
             if (host1.equalsIgnoreCase(host2)
                 && replicationPort1 > 0
                 && replicationPort1 == replicationPort2)
             {
-              println();
-              println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
-              println();
+              errPrintln();
+              errPrintln(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
+              errPrintln();
               replicationPort2 = -1;
             }
           }
@@ -2387,7 +2387,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             catch (ClientException ce)
             {
-              println(ce.getMessageObject());
+              errPrintln(ce.getMessageObject());
               cancelled = true;
             }
             println();
@@ -2408,7 +2408,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           cancelled = true;
         }
       }
@@ -2467,7 +2467,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         if (nPasswordPrompts > CONFIRMATION_MAX_TRIES)
         {
-          println(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+          errPrintln(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
               CONFIRMATION_MAX_TRIES));
           cancelled = true;
           break;
@@ -2500,7 +2500,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!adminPwd.equals(adminPwdConfirm))
         {
           println();
-          println(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
+          errPrintln(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
           println();
           adminPwd = null;
         }
@@ -2574,17 +2574,17 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         cancelled = true;
       }
     }
@@ -2624,7 +2624,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ClientException ce)
       {
-        println(ce.getMessageObject());
+        errPrintln(ce.getMessageObject());
         cancelled = true;
       }
     }
@@ -2642,7 +2642,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ClientException ce)
       {
-        println(ce.getMessageObject());
+        errPrintln(ce.getMessageObject());
         cancelled = true;
       }
     }
@@ -2656,7 +2656,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ClientException ce)
       {
-        println(ce.getMessageObject());
+        errPrintln(ce.getMessageObject());
         cancelled = true;
       }
     }
@@ -2687,7 +2687,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           cancelled = true;
         }
       }
@@ -2800,7 +2800,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ClientException ce)
     {
-      println(ce.getMessageObject());
+      errPrintln(ce.getMessageObject());
       return false;
     }
   }
@@ -2865,17 +2865,17 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception " + ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception " + ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         return null;
       }
     }
@@ -2988,17 +2988,17 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ae.getMessageObject());
+        errPrintln();
         cancelled = true;
       }
     }
@@ -3047,9 +3047,9 @@ public class ReplicationCliMain extends ConsoleApplication
             && portSource == portDestination)
         {
           portDestination = -1;
-          println();
-          println(ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(hostSource, portSource));
-          println();
+          errPrintln();
+          errPrintln(ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(hostSource, portSource));
+          errPrintln();
           error = true;
         }
 
@@ -3066,9 +3066,9 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
         ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
@@ -3558,12 +3558,12 @@ public class ReplicationCliMain extends ConsoleApplication
                   }
                   catch (Throwable t)
                   {
-                    println();
-                    println(
+                    errPrintln();
+                    errPrintln(
                         ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
                           getServerRepresentation(host, port), t.getMessage()));
                     logger.warn(LocalizableMessage.raw("Complete error stack:", t));
-                    println();
+                    errPrintln();
                   }
                 }
                 uData.setAdminUid(adminUid);
@@ -3606,11 +3606,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (uData instanceof StatusReplicationUserData)
           {
-            println(
+            errPrintln(
                 ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                     getMessageFromCollection(exceptionMsgs,
                         Constants.LINE_SEPARATOR)));
-            println();
+            errPrintln();
           }
           else
           {
@@ -4003,8 +4003,8 @@ public class ReplicationCliMain extends ConsoleApplication
         catch (ReplicationCliException rce)
         {
           returnValue = rce.getErrorCode();
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
       }
@@ -4018,8 +4018,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (LocalizableMessage msg : errorMessages)
     {
-      println();
-      println(msg);
+      errPrintln();
+      errPrintln(msg);
     }
 
     if (returnValue == SUCCESSFUL)
@@ -4141,8 +4141,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ReplicationCliException rce)
         {
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           return rce.getErrorCode();
         }
@@ -4184,8 +4184,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ReplicationCliException rce)
       {
-        println();
-        println(getCriticalExceptionMessage(rce));
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
         logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         return rce.getErrorCode();
       }
@@ -4242,8 +4242,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ReplicationCliException rce)
         {
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           returnValue = rce.getErrorCode();
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
@@ -4270,8 +4270,8 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       final String hostPort = getServerRepresentation(host, port);
-      println();
-      println(getMessageForException(ne, hostPort));
+      errPrintln();
+      errPrintln(getMessageForException(ne, hostPort));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
       return null;
     }
@@ -4322,8 +4322,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ReplicationCliException rce)
         {
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           returnValue = rce.getErrorCode();
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
@@ -4382,8 +4382,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ReplicationCliException rce)
         {
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           returnValue = rce.getErrorCode();
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
@@ -4445,8 +4445,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ReplicationCliException rce)
         {
-          println();
-          println(getCriticalExceptionMessage(rce));
+          errPrintln();
+          errPrintln(getCriticalExceptionMessage(rce));
           returnValue = rce.getErrorCode();
           logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
@@ -4515,11 +4515,11 @@ public class ReplicationCliMain extends ConsoleApplication
           alreadyReplicatedSuffixes.isEmpty())
       {
         // Use a clarifying message: there is no replicated base DN.
-        println(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION_NO_DOMAIN.get());
+        errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION_NO_DOMAIN.get());
       }
       else
       {
-        println(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
+        errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
       }
 
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
@@ -4565,8 +4565,8 @@ public class ReplicationCliMain extends ConsoleApplication
       suffixes.removeAll(alreadyReplicated);
       if (notFound.size() > 0)
       {
-        println();
-        println(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
+        errPrintln();
+        errPrintln(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyReplicated.size() > 0)
       {
@@ -4621,8 +4621,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (displayErrors)
       {
-        println();
-        println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+        errPrintln();
+        errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
       }
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes = new TreeSet<String>();
@@ -4667,8 +4667,8 @@ public class ReplicationCliMain extends ConsoleApplication
       suffixes.removeAll(alreadyNotReplicated);
       if (notFound.size() > 0 && displayErrors)
       {
-        println();
-        println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
+        errPrintln();
+        errPrintln(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyNotReplicated.size() > 0 && displayErrors)
       {
@@ -4684,16 +4684,16 @@ public class ReplicationCliMain extends ConsoleApplication
             // In interactive mode we do not propose to manage the administration suffix.
             if (displayErrors)
             {
-              println();
-              println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+              errPrintln();
+              errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
             }
             break;
           }
 
           if (areSuffixRequired)
           {
-            println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
+            errPrintln();
+            errPrintln(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
           }
           boolean confirmationLimitReached =
               askConfirmations(INFO_REPLICATION_DISABLE_SUFFIX_PROMPT, availableSuffixes, suffixes);
@@ -4727,7 +4727,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (ClientException ce)
         {
-          println(ce.getMessageObject());
+          errPrintln(ce.getMessageObject());
           return true;
         }
       }
@@ -4769,11 +4769,11 @@ public class ReplicationCliMain extends ConsoleApplication
       println();
       if (argParser.isInitializeAllReplicationSubcommand())
       {
-        println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+        errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
       }
       else
       {
-        println(
+        errPrintln(
             ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
       }
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
@@ -4820,8 +4820,8 @@ public class ReplicationCliMain extends ConsoleApplication
       suffixes.removeAll(alreadyNotReplicated);
       if (notFound.size() > 0)
       {
-        println();
-        println(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
+        errPrintln();
+        errPrintln(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyNotReplicated.size() > 0)
       {
@@ -4839,11 +4839,11 @@ public class ReplicationCliMain extends ConsoleApplication
             // In interactive mode we do not propose to manage the administration suffix.
             if (argParser.isInitializeAllReplicationSubcommand())
             {
-              println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+              errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
             }
             else
             {
-              println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
+              errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
             }
             break;
           }
@@ -4851,15 +4851,15 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             if (argParser.isInitializeAllReplicationSubcommand())
             {
-              println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
+              errPrintln(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
             }
             else if (argParser.isPreExternalInitializationSubcommand())
             {
-              println(ERR_NO_SUFFIXES_SELECTED_TO_PRE_EXTERNAL_INITIALIZATION.get());
+              errPrintln(ERR_NO_SUFFIXES_SELECTED_TO_PRE_EXTERNAL_INITIALIZATION.get());
             }
             else if (argParser.isPostExternalInitializationSubcommand())
             {
-              println(ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
+              errPrintln(ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
             }
 
             for (String dn : availableSuffixes)
@@ -4890,7 +4890,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 }
                 catch (ClientException ce)
                 {
-                  println(ce.getMessageObject());
+                  errPrintln(ce.getMessageObject());
                   confirmationLimitReached = true;
                   break;
                 }
@@ -4935,8 +4935,8 @@ public class ReplicationCliMain extends ConsoleApplication
             SuffixRelationType.REPLICATED));
     if (availableSuffixes.isEmpty())
     {
-      println();
-      println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
+      errPrintln();
+      errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
       suffixes.clear();
     }
     else
@@ -4953,8 +4953,8 @@ public class ReplicationCliMain extends ConsoleApplication
       suffixes.removeAll(notFound);
       if (notFound.size() > 0)
       {
-        println();
-        println(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(toSingleLine(notFound)));
+        errPrintln();
+        errPrintln(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(toSingleLine(notFound)));
       }
       if (interactive)
       {
@@ -5033,7 +5033,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (!messages.isEmpty())
       {
-        println(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
+        errPrintln(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR)));
       }
@@ -5076,8 +5076,8 @@ public class ReplicationCliMain extends ConsoleApplication
         LocalizableMessage warningMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
               toSingleLine(baseDNsWithOneReplicationServer));
-        println(warningMsg);
-        println();
+        errPrintln(warningMsg);
+        errPrintln();
       }
     }
 
@@ -5423,7 +5423,7 @@ public class ReplicationCliMain extends ConsoleApplication
             "Ignoring provided replication port for "
                 + "first server (already configured with port "
                 + server1.getReplicationServerPort() + ")"));
-        println(WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+        errPrintln(WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
             server1.getReplicationServerPort(), uData.getReplicationPort1()));
       }
     }
@@ -5462,7 +5462,7 @@ public class ReplicationCliMain extends ConsoleApplication
             "Ignoring provided replication port for "
                 + "second server (already configured with port "
                 + server2.getReplicationServerPort() + ")"));
-        println(WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+        errPrintln(WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
             server2.getReplicationServerPort(), uData.getReplicationPort2()));
       }
     }
@@ -5685,7 +5685,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (!messages.isEmpty())
       {
-        println(
+        errPrintln(
             ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR)));
@@ -6084,7 +6084,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<LocalizableMessage> messages = new LinkedHashSet<LocalizableMessage>(cache.getErrorMessages());
       if (!messages.isEmpty())
       {
-        println(ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
+        errPrintln(ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
             getMessageFromCollection(messages, Constants.LINE_SEPARATOR)));
       }
     }
@@ -7387,7 +7387,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (helper.isCompletedWithErrors(state))
           {
             logger.warn(LocalizableMessage.raw("Completed with error: "+errorMsg));
-            println(errorMsg);
+            errPrintln(errorMsg);
           }
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
@@ -7598,7 +7598,7 @@ public class ReplicationCliMain extends ConsoleApplication
             logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
             if (displayProgress)
             {
-              println(errorMsg);
+              errPrintln(errorMsg);
             }
           }
           else if (!helper.isSuccessful(state) ||
@@ -8476,7 +8476,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (IOException ioe)
         {
-          println(ERR_REPLICATION_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
+          errPrintln(ERR_REPLICATION_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
         }
       }
     }
