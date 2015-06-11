@@ -500,6 +500,12 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     return logfile.equals(other.logfile);
   }
 
+  @Override
+  public String toString()
+  {
+    return "LogFile [logfile=" + logfile + ", isWriteEnabled=" + isWriteEnabled + "]";
+  }
+
   /** Implements a repositionable cursor on the log file. */
   static final class LogFileCursor<K extends Comparable<K>, V> implements RepositionableCursor<K,V>
   {

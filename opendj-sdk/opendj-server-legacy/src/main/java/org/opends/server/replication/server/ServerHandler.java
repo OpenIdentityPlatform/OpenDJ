@@ -46,6 +46,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -925,8 +926,10 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @return the next update that must be sent to the server managed by this
    *         ServerHandler.
+   * @throws ChangelogException
+   *            If a problem occurs when reading the changelog
    */
-  public UpdateMsg take()
+  public UpdateMsg take() throws ChangelogException
   {
     final UpdateMsg msg = getNextMessage(serverId);
 

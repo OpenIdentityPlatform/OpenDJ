@@ -64,6 +64,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingSt
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -125,8 +126,9 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   private final ReplicationServer replicationServer;
   private final AtomicBoolean shutdown = new AtomicBoolean();
 
+  private static final RepositionableCursor<CSN, UpdateMsg> EMPTY_CURSOR = Log.getEmptyCursor();
   private static final DBCursor<UpdateMsg> EMPTY_CURSOR_REPLICA_DB =
-      new FileReplicaDBCursor(new Log.EmptyLogCursor<CSN, UpdateMsg>(), null, AFTER_MATCHING_KEY);
+      new FileReplicaDBCursor(EMPTY_CURSOR, null, AFTER_MATCHING_KEY);
 
   /**
    * Creates a new changelog DB.
