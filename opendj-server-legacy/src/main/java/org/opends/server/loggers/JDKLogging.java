@@ -25,12 +25,14 @@
  */
 package org.opends.server.loggers;
 
-import java.util.logging.ConsoleHandler;
+import java.util.logging.ErrorManager;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Utility class for java.util.logging support.
@@ -58,7 +60,7 @@ public class JDKLogging
   public static void enableConsoleLoggingForOpenDJ(Level level)
   {
     LogManager.getLogManager().reset();
-    Handler handler = new ConsoleHandler();
+    Handler handler = new OpenDJHandler();
     handler.setFormatter(getFormatter());
     handler.setLevel(level);
     for (String loggingRoot : LOGGING_ROOTS)
@@ -66,6 +68,48 @@ public class JDKLogging
       Logger logger = Logger.getLogger(loggingRoot);
       logger.setLevel(level);
       logger.addHandler(handler);
+    }
+  }
+
+  private static final class OpenDJHandler extends Handler
+  {
+    @Override
+    public void publish(LogRecord record)
+    {
+      if (getFormatter() == null)
+      {
+        setFormatter(new SimpleFormatter());
+      }
+
+      try
+      {
+        String message = getFormatter().format(record);
+        if (record.getLevel().intValue() >= Level.WARNING.intValue())
+        {
+          System.err.write(message.getBytes());
+        }
+        else
+        {
+          System.out.write(message.getBytes());
+        }
+      }
+      catch (Exception exception)
+      {
+        reportError(null, exception, ErrorManager.FORMAT_FAILURE);
+        return;
+      }
+    }
+
+    @Override
+    public void close() throws SecurityException
+    {
+    }
+
+    @Override
+    public void flush()
+    {
+      System.out.flush();
+      System.err.flush();
     }
   }
 
