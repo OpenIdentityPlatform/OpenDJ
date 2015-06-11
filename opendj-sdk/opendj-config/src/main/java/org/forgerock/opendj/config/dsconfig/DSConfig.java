@@ -683,10 +683,10 @@ public final class DSConfig extends ConsoleApplication {
 
             if (lh != null) {
                 final SubCommandHandlerMenuCallback callback = new SubCommandHandlerMenuCallback(lh);
-                final Arg1<Object> msg = userFriendlyPluralName != null
-                    ? INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL
-                    : INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR;
-                builder.addNumberedOption(msg.get(userFriendlyPluralName), callback);
+                final LocalizableMessage msg = getMsg(
+                    INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR, userFriendlyName,
+                    INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL, userFriendlyPluralName);
+                builder.addNumberedOption(msg, callback);
             }
 
             if (ch != null) {
@@ -696,10 +696,10 @@ public final class DSConfig extends ConsoleApplication {
 
             if (sh != null) {
                 final SubCommandHandlerMenuCallback callback = new SubCommandHandlerMenuCallback(sh);
-                final Arg1<Object> msg = userFriendlyPluralName != null
-                    ? INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
-                    : INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR;
-                builder.addNumberedOption(msg.get(userFriendlyName), callback);
+                final LocalizableMessage msg = getMsg(
+                    INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR, userFriendlyName,
+                    INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL, userFriendlyPluralName);
+                builder.addNumberedOption(msg, callback);
             }
 
             if (dh != null) {
@@ -711,6 +711,14 @@ public final class DSConfig extends ConsoleApplication {
             builder.addQuitOption();
 
             this.menu = builder.toMenu();
+        }
+
+        private LocalizableMessage getMsg(Arg1<Object> singularMsg, LocalizableMessage userFriendlyName,
+            Arg1<Object> pluralMsg, LocalizableMessage userFriendlyPluralName)
+        {
+          return userFriendlyPluralName != null
+              ? pluralMsg.get(userFriendlyPluralName)
+              : singularMsg.get(userFriendlyName);
         }
 
         /** {@inheritDoc} */
