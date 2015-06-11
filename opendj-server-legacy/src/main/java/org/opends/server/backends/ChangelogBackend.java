@@ -462,7 +462,8 @@ public class ChangelogBackend extends Backend<Configuration>
   public void notifyChangeNumberEntryAdded(DN baseDN, long changeNumber, String cookieString, UpdateMsg updateMsg)
       throws ChangelogException
   {
-    if (!(updateMsg instanceof LDAPUpdateMsg))
+    if (!(updateMsg instanceof LDAPUpdateMsg)
+        || changeNumberBasedPersistentSearches.isEmpty())
     {
       return;
     }
