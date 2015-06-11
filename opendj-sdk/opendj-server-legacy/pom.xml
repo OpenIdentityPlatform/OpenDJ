@@ -2311,6 +2311,9 @@
               <url>${docHomepageUrl}</url>
               <needarch>noarch</needarch>
               <targetOS>linux</targetOS>
+              <requires>
+                <require>jre >= 1.7</require>
+              </requires>
 
               <defineStatements>
                 <defineStatement>arch noarch</defineStatement>
