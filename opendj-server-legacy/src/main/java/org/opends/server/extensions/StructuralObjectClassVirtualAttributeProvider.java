@@ -80,8 +80,7 @@ public class StructuralObjectClassVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    //A structural object class is always present in an entry.
-    return true;
+    return entry.getStructuralObjectClass() != null;
   }
 
   /** {@inheritDoc} */
