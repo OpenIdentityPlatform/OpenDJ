@@ -108,6 +108,11 @@ public class IdleTimeLimitThread
         {
           for (ClientConnection c : ch.getClientConnections())
           {
+            if (c==null) {
+              logger.trace("Null client connection found in \"" + ch.getConnectionHandlerName() + "\"");
+              continue;
+            }
+
             long idleTime = c.getIdleTime();
             if (idleTime > 0)
             {
