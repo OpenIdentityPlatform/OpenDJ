@@ -184,9 +184,11 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** Finds the appropriate DIT structure rule for an entry. */
-  private DITStructureRule getDITStructureRule(Entry entry)
-  {
+  private DITStructureRule getDITStructureRule(Entry entry) {
     ObjectClass oc = entry.getStructuralObjectClass();
+    if (oc == null) {
+      return null;
+    }
     List<NameForm> listForms = DirectoryServer.getNameForm(oc);
     NameForm nameForm = null;
     DITStructureRule ditRule = null;
