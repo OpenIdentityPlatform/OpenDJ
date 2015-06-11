@@ -714,11 +714,10 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         private LocalizableMessage getMsg(Arg1<Object> singularMsg, LocalizableMessage userFriendlyName,
-            Arg1<Object> pluralMsg, LocalizableMessage userFriendlyPluralName)
-        {
-          return userFriendlyPluralName != null
-              ? pluralMsg.get(userFriendlyPluralName)
-              : singularMsg.get(userFriendlyName);
+                Arg1<Object> pluralMsg, LocalizableMessage userFriendlyPluralName) {
+            return userFriendlyPluralName != null
+                ? pluralMsg.get(userFriendlyPluralName)
+                : singularMsg.get(userFriendlyName);
         }
 
         /** {@inheritDoc} */
