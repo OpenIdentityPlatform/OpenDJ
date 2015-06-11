@@ -38,6 +38,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
+import org.opends.server.replication.server.changelog.api.AbortedChangelogCursorException;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -436,12 +437,12 @@ public class ChangeNumberIndexer extends DirectoryThread
               wait();
             }
             // check whether new changes have been added to the ReplicaDBs
-            nextChangeForInsertDBCursor.next();
+            moveToNextChange();
             continue;
           }
           else if (msg instanceof ReplicaOfflineMsg)
           {
-            nextChangeForInsertDBCursor.next();
+            moveToNextChange();
             continue;
           }
 
@@ -501,6 +502,26 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       nextChangeForInsertDBCursor.close();
       nextChangeForInsertDBCursor = null;
+    }
+  }
+
+  private void moveToNextChange() throws ChangelogException
+  {
+    try
+    {
+      nextChangeForInsertDBCursor.next();
+    }
+    catch (AbortedChangelogCursorException e) {
+      if (domainsToClear.size() == 0)
+      {
+        // There is no domain to clear, thus it is
+        // not expected that a cursor is aborted
+        throw e;
+      }
+      // else assumes the aborted cursor is part of a domain
+      // that will be removed on the next iteration
+      logger.trace("Cursor was aborted: %s, but continuing because domainsToClear has size %s",
+          e, domainsToClear.size());
     }
   }
 

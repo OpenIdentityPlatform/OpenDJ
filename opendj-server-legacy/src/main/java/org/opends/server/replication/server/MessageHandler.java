@@ -239,8 +239,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * @param sendToServerId
    *          serverId of the replica where changes will be sent
    * @return The next update that must be sent to the consumer, or {@code null} when queue is empty
+   * @throws ChangelogException
+   *            If a problem occurs when reading the changelog
    */
-  protected UpdateMsg getNextMessage(int sendToServerId)
+  protected UpdateMsg getNextMessage(int sendToServerId) throws ChangelogException
   {
     while (activeConsumer)
     {
@@ -371,7 +373,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * Fills the late queue with the most recent changes, accepting only the
    * messages from provided replica ids.
    */
-  private void fillLateQueue(int sendToServerId)
+  private void fillLateQueue(int sendToServerId) throws ChangelogException
   {
     try (DBCursor<UpdateMsg> cursor = replicationServerDomain.getCursorFrom(serverState);)
     {
@@ -383,10 +385,6 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           lateQueue.add(record);
         }
       }
-    }
-    catch (ChangelogException e)
-    {
-      logger.traceException(e);
     }
   }
 
