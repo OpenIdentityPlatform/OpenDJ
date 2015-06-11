@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -101,7 +101,7 @@ public class ServerWriter extends DirectoryThread
       while (!shutdown
           || !dsrsShutdownSync.canShutdown(replicationServerDomain.getBaseDN()))
       {
-        final UpdateMsg updateMsg = replicationServerDomain.take(this.handler);
+        final UpdateMsg updateMsg = this.handler.take();
         if (updateMsg == null)
         {
           // this connection is closing

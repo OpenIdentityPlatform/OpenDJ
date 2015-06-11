@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1262,21 +1261,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         oldRsHandler.getServerAddressURL(), rsHandler.getServerAddressURL(),
         rsHandler.getServerId());
     throw new DirectoryException(ResultCode.OTHER, message);
-  }
-
-  /**
-   * Get the next update that need to be sent to a given LDAP server.
-   * This call is blocking when no update is available or when dependencies
-   * do not allow to send the next available change
-   *
-   * @param sHandler The server handler for the target directory server.
-   *
-   * @return the update that must be forwarded
-   */
-  public UpdateMsg take(ServerHandler sHandler)
-  {
-    // Next message can only be taken from connected DSs
-    return sHandler.take(new HashSet<Integer>(getConnectedDSs().keySet()));
   }
 
   /**
