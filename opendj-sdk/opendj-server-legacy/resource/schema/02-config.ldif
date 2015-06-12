@@ -5764,7 +5764,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
         ds-cfg-db-cache-size $
         ds-cfg-db-txn-no-sync $
         ds-cfg-disk-full-threshold $
-        ds-cfg-disk-low-threshold )
+        ds-cfg-disk-low-threshold $
+        ds-cfg-db-checkpointer-wakeup-interval )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.24
   NAME 'ds-cfg-backend-index'
