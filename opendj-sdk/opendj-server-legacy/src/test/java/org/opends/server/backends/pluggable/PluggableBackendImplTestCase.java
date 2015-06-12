@@ -57,7 +57,10 @@ import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
+import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -906,6 +909,41 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.getNumberOfChildren(testBaseDN), 1, "Not enough entries in DIT.");
     /** -2 for baseDn and People entry */
     assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), ldifNumberOfEntries - 2, "Not enough entries in DIT.");
+  }
+
+  @Test(dependsOnMethods = "testImportLDIF")
+  public void testVerifyID2ChildrenCount() throws Exception
+  {
+    final Storage storage = backend.getRootContainer().getStorage();
+    final DN2ID dn2ID = backend.getRootContainer().getEntryContainer(testBaseDN).getDN2ID();
+    final ID2Count id2ChildrenCount = backend.getRootContainer().getEntryContainer(testBaseDN).getID2ChildrenCount();
+
+    final VerifyConfig config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCleanIndex("dn2id");
+
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+
+    // Insert an error
+    final EntryID peopleID = storage.read(new ReadOperation<EntryID>()
+    {
+      @Override
+      public EntryID run(ReadableTransaction txn) throws Exception
+      {
+        return dn2ID.get(txn, testBaseDN.child(DN.valueOf("ou=People")));
+      }
+    });
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        id2ChildrenCount.deleteCount(txn, peopleID);
+        id2ChildrenCount.addDelta(txn, peopleID, 1);
+      }
+    });
+
+    assertThat(backend.verifyBackend(config)).isEqualTo(1);
   }
 
   @Test(dependsOnMethods = "testImportLDIF")

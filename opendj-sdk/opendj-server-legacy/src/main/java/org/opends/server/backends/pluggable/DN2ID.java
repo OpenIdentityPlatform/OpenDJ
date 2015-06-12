@@ -190,14 +190,19 @@ class DN2ID extends AbstractTree
       return false;
     }
     // Immediate children should only have one RDN separator past the parent length
-    for (int i = child.length(); i >= parent.length(); i--)
+    int nbSeparator = 0;
+    for (int i = parent.length() ; i < child.length(); i++)
     {
-      if (child.byteAt(i) == DN.NORMALIZED_RDN_SEPARATOR && i != parent.length())
+      if (child.byteAt(i) == DN.NORMALIZED_RDN_SEPARATOR)
       {
-        return false;
+        nbSeparator++;
+        if (nbSeparator > 1)
+        {
+          return false;
+        }
       }
     }
-    return true;
+    return (nbSeparator == 1);
   }
 
   /**
