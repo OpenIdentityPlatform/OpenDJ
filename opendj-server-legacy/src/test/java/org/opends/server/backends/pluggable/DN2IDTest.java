@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.PromiseImpl;
 import org.opends.server.DirectoryServerTestCase;
@@ -41,6 +42,7 @@ import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBStorage;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
@@ -54,7 +56,6 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -68,16 +69,12 @@ public class DN2IDTest extends DirectoryServerTestCase
   private DN2ID dn2ID;
   private PDBStorage storage;
 
+  // FIXME: This is required since PDBStorage is now using
+  // DirectoryServer static method.
   @BeforeClass
-  public void startFakeServer() throws Exception
+  public void startServer() throws Exception
   {
-    TestCaseUtils.startFakeServer();
-  }
-
-  @AfterClass
-  public void stopFakeServer() throws Exception
-  {
-    TestCaseUtils.shutdownFakeServer();
+    TestCaseUtils.startServer();
   }
 
   @BeforeMethod
@@ -135,6 +132,47 @@ public class DN2IDTest extends DirectoryServerTestCase
     assertThat(get("dc=example,dc=com")).isEqualTo(id(1));
     assertThat(get("ou=People,dc=example,dc=com")).isEqualTo(id(4));
     assertThat(get("cn=dev1,cn=bar,ou=People,dc=example,dc=com")).isEqualTo(id(10));
+  }
+
+  @Test
+  public void testIsChild() throws DirectoryException, Exception {
+    put(dn("dc=example,dc=com"), 1);
+    put(dn("ou=People,dc=example,dc=com"), 2);
+    put(dn("uid=user.0,ou=People,dc=example,dc=com"), 3);
+    put(dn("uid=user.1,ou=People,dc=example,dc=com"), 4);
+    put(dn("uid=user.10,ou=People,dc=example,dc=com"), 5);
+
+    storage.read(new ReadOperation<Void>()
+    {
+      @Override
+      public Void run(ReadableTransaction txn) throws Exception
+      {
+        try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2ID.getName()))
+        {
+          cursor.next();
+          final ByteString rootDN = cursor.getKey();
+          cursor.next();
+          final ByteString parentDN = cursor.getKey();
+          cursor.next();
+          assertThat(DN2ID.isChild(rootDN, parentDN)).isTrue();
+
+          final ByteString childDN = cursor.getKey();
+          assertThat(DN2ID.isChild(parentDN, childDN)).isTrue();
+
+          cursor.next();
+          final ByteString otherChildDN = cursor.getKey();
+          assertThat(DN2ID.isChild(parentDN, otherChildDN)).isTrue();
+          assertThat(DN2ID.isChild(childDN, otherChildDN)).isFalse();
+
+          final ByteString lastChildDN = cursor.getKey();
+          assertThat(DN2ID.isChild(parentDN, lastChildDN)).isTrue();
+          assertThat(DN2ID.isChild(otherChildDN, lastChildDN)).isFalse();
+          assertThat(DN2ID.isChild(childDN, lastChildDN)).isFalse();
+        }
+        return null;
+      }
+    });
+
   }
 
   @Test

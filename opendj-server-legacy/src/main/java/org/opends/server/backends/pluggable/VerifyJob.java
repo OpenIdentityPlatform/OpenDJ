@@ -35,13 +35,13 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -443,7 +443,7 @@ class VerifyJob
    */
   private void iterateDN2ID(ReadableTransaction txn) throws StorageRuntimeException
   {
-    final Queue<ChildrenCount> childrenCounters = new LinkedList<>();
+    final Deque<ChildrenCount> childrenCounters = new LinkedList<>();
     ChildrenCount currentNode = null;
 
     try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName()))
@@ -491,27 +491,29 @@ class VerifyJob
         }
       }
 
-      while ((currentNode = childrenCounters.poll()) != null)
+      while ((currentNode = childrenCounters.pollLast()) != null)
       {
         verifyID2ChildrenCount(txn, currentNode);
       }
     }
   }
 
-  private ChildrenCount verifyID2ChildrenCount(ReadableTransaction txn, final Queue<ChildrenCount> childrenCounters,
+  private ChildrenCount verifyID2ChildrenCount(ReadableTransaction txn, final Deque<ChildrenCount> childrenCounters,
       final ByteString key, final EntryID entryID)
   {
-    while (childrenCounters.peek() != null && !DN2ID.isChild(childrenCounters.peek().baseDN, key))
+    ChildrenCount currentParent = childrenCounters.peekLast();
+    while (currentParent != null && !DN2ID.isChild(currentParent.baseDN, key))
     {
       // This subtree is fully processed, pop the counter of the parent DN from the stack and verify it's value
-      verifyID2ChildrenCount(txn, childrenCounters.remove());
+      verifyID2ChildrenCount(txn, childrenCounters.removeLast());
+      currentParent = childrenCounters.getLast();
     }
-    if (childrenCounters.peek() != null)
+    if (currentParent != null)
     {
-      childrenCounters.peek().numberOfChildren++;
+      currentParent.numberOfChildren++;
     }
     final ChildrenCount node = new ChildrenCount(key, entryID);
-    childrenCounters.add(node);
+    childrenCounters.addLast(node);
     return node;
   }
 
