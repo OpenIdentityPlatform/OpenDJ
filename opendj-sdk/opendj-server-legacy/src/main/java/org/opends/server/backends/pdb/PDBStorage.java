@@ -664,6 +664,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private Volume volume;
   private PDBBackendCfg config;
   private DiskSpaceMonitor diskMonitor;
+  private PDBMonitor pdbMonitor;
   private MemoryQuota memQuota;
   private StorageStatus storageStatus = StorageStatus.working();
 
@@ -720,6 +721,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   {
     if (db != null)
     {
+      DirectoryServer.deregisterMonitorProvider(pdbMonitor);
+      pdbMonitor = null;
       try
       {
         db.close();
@@ -773,6 +776,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
       db.initialize();
       volume = db.loadVolume(VOLUME_NAME);
+      pdbMonitor = new PDBMonitor(config.getBackendId() + " PDB Database", db);
+      DirectoryServer.registerMonitorProvider(pdbMonitor);
     }
     catch(final InUseException e) {
       throw new StorageInUseException(e);
