@@ -52,9 +52,11 @@ abstract class IndexQuery
    * @param debugMessage If not null, diagnostic message will be written
    *                      which will help to determine why the returned
    *                      EntryIDSet is not defined.
+   * @param indexNameOut If not null, output parameter for the name of the index type actually used to return
+   *                      index results.
    * @return The non null EntryIDSet as a result of evaluating this query
    */
-  public abstract EntryIDSet evaluate(LocalizableMessageBuilder debugMessage);
+  public abstract EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut);
 
   /**
    * Creates an IntersectionIndexQuery object from a collection of
@@ -101,7 +103,7 @@ abstract class IndexQuery
   private static final class NullIndexQuery extends IndexQuery
   {
     @Override
-    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
     {
       return newUndefinedSet();
     }
@@ -134,12 +136,12 @@ abstract class IndexQuery
     }
 
     @Override
-    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
     {
       final EntryIDSet entryIDs = newUndefinedSet();
       for (IndexQuery query : subIndexQueries)
       {
-        entryIDs.retainAll(query.evaluate(debugMessage));
+        entryIDs.retainAll(query.evaluate(debugMessage, indexNameOut));
         if (isBelowFilterThreshold(entryIDs))
         {
           break;
@@ -173,12 +175,12 @@ abstract class IndexQuery
     }
 
     @Override
-    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
     {
       final EntryIDSet entryIDs = newDefinedSet();
       for (IndexQuery query : subIndexQueries)
       {
-        entryIDs.addAll(query.evaluate(debugMessage));
+        entryIDs.addAll(query.evaluate(debugMessage, indexNameOut));
         if (entryIDs.isDefined() && entryIDs.size() >= CURSOR_ENTRY_LIMIT)
         {
           break;
