@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -77,7 +78,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     return new IndexQuery()
       {
         @Override
-        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
         {
           // Read the tree and get Record for the key.
           // Select the right index to be used.
@@ -89,7 +90,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
               debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
                   attributeIndex.getAttributeType().getNameOrOID()));
             }
-            return createMatchAllQuery().evaluate(debugMessage);
+            return createMatchAllQuery().evaluate(debugMessage, indexNameOut);
           }
 
           final EntryIDSet entrySet = index.get(txn, key);
@@ -116,7 +117,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     return new IndexQuery()
     {
       @Override
-      public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+      public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
       {
         final Index index = attributeIndex.getNameToIndexes().get(indexID);
         if (index == null)
@@ -126,7 +127,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
             debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
                   attributeIndex.getAttributeType().getNameOrOID()));
           }
-          return createMatchAllQuery().evaluate(debugMessage);
+          return createMatchAllQuery().evaluate(debugMessage, indexNameOut);
         }
 
         final EntryIDSet entrySet = readRange(index, txn, lowerBound, upperBound, includeLowerBound, includeUpperBound);
@@ -263,7 +264,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     return new IndexQuery()
       {
         @Override
-        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
+        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
         {
           final String indexID = PRESENCE_INDEX_KEY;
           final Index index = attributeIndex.getNameToIndexes().get(indexID);
@@ -281,6 +282,10 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
+          }
+          if (indexNameOut != null)
+          {
+            indexNameOut.append(IndexFilterType.PRESENCE.toString());
           }
           return entrySet;
         }

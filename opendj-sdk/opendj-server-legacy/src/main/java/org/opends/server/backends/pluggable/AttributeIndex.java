@@ -498,12 +498,13 @@ class AttributeIndex
       StringBuilder debugBuffer, BackendMonitor monitor)
   {
     LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
-    EntryIDSet results = indexQuery.evaluate(debugMessage);
+    StringBuilder indexNameOut = debugBuffer == null ? null : new StringBuilder();
+    EntryIDSet results = indexQuery.evaluate(debugMessage, indexNameOut);
 
     if (debugBuffer != null)
     {
-      debugBuffer.append("[INDEX:").append(config.getAttribute().getNameOrOID())
-        .append(".").append(indexName).append("]");
+      appendDebugIndexInformation(debugBuffer, indexName);
+      appendDebugUnindexedInformation(debugBuffer, indexNameOut);
     }
 
     if (monitor.isFilterUseEnabled())
@@ -518,6 +519,27 @@ class AttributeIndex
       }
     }
     return results;
+  }
+
+  /**
+   * Appends additional traces to {@code debugsearchindex} when a filter successfully used
+   * an auxiliary index type during index query.
+   *
+   * @param debugBuffer the current debugsearchindex buffer
+   * @param indexNameOut the name of the index type
+   */
+  private void appendDebugUnindexedInformation(StringBuilder debugBuffer, StringBuilder indexNameOut)
+  {
+    if (indexNameOut.length() > 0)
+    {
+      debugBuffer.append(newUndefinedSet().toString());
+      appendDebugIndexInformation(debugBuffer, indexNameOut.toString());
+    }
+  }
+
+  private void appendDebugIndexInformation(final StringBuilder debugBuffer, final String infos)
+  {
+    debugBuffer.append("[INDEX:").append(config.getAttribute().getNameOrOID()).append(".").append(infos).append("]");
   }
 
   /**
@@ -881,11 +903,16 @@ class AttributeIndex
         monitor.updateStats(filter,
             INFO_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(matchRuleOID, config.getAttribute().getNameOrOID()));
       }
-      return IndexQuery.createNullIndexQuery().evaluate(null);
+      return IndexQuery.createNullIndexQuery().evaluate(null, null);
     }
 
     try
     {
+      final IndexQuery indexQuery = rule.getAssertion(filter.getAssertionValue()).createIndexQuery(indexQueryFactory);
+      LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
+      StringBuilder indexNameOut = debugBuffer == null ? null : new StringBuilder();
+      EntryIDSet results = indexQuery.evaluate(debugMessage, indexNameOut);
+
       if (debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
@@ -897,11 +924,9 @@ class AttributeIndex
               .append(indexer.getIndexID());
         }
         debugBuffer.append("]");
+        appendDebugUnindexedInformation(debugBuffer, indexNameOut);
       }
 
-      final IndexQuery indexQuery = rule.getAssertion(filter.getAssertionValue()).createIndexQuery(indexQueryFactory);
-      LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
-      EntryIDSet results = indexQuery.evaluate(debugMessage);
       if (monitor.isFilterUseEnabled())
       {
         if (results.isDefined())
@@ -918,7 +943,7 @@ class AttributeIndex
     catch (DecodeException e)
     {
       logger.traceException(e);
-      return IndexQuery.createNullIndexQuery().evaluate(null);
+      return IndexQuery.createNullIndexQuery().evaluate(null, null);
     }
   }
 

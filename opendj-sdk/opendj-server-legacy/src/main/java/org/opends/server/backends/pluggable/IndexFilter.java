@@ -351,7 +351,7 @@ class IndexFilter
       // This will always be unindexed since the filter potentially matches
       // entries containing the specified attribute type as well as any entry
       // containing the attribute in its DN as part of a superior RDN.
-      return IndexQuery.createNullIndexQuery().evaluate(null);
+      return IndexQuery.createNullIndexQuery().evaluate(null, null);
     }
 
     AttributeIndex attributeIndex = entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
@@ -360,7 +360,7 @@ class IndexFilter
       final IndexQueryFactoryImpl indexQueryFactory = new IndexQueryFactoryImpl(txn, attributeIndex);
       return attributeIndex.evaluateExtensibleFilter(indexQueryFactory, extensibleFilter, buffer, monitor);
     }
-    return IndexQuery.createNullIndexQuery().evaluate(null);
+    return IndexQuery.createNullIndexQuery().evaluate(null, null);
   }
 
   private void appendToDebugBuffer(String content)
