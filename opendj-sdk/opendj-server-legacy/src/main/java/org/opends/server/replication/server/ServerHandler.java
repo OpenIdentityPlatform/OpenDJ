@@ -931,7 +931,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public UpdateMsg take() throws ChangelogException
   {
-    final UpdateMsg msg = getNextMessage(serverId);
+    final UpdateMsg msg = getNextMessage();
 
     acquirePermitInSendWindow();
 
