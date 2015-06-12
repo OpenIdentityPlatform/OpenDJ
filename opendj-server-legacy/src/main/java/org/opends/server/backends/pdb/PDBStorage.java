@@ -693,7 +693,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     final Configuration dbCfg = new Configuration();
     dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
     dbCfg.setJournalPath(new File(backendDirectory, JOURNAL_NAME).getPath());
-    dbCfg.setCheckpointInterval(config.getDBCheckpointInterval());
+    dbCfg.setCheckpointInterval(config.getDBCheckpointerWakeupInterval());
     dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
         BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg(dbCfg);

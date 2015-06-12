@@ -246,29 +246,29 @@
           </ldap:attribute>
       </adm:profile>
   </adm:property>
-  <adm:property name="db-checkpoint-interval" advanced="true">
-  	  <adm:synopsis>
-        Checkpoint interval in seconds
-      </adm:synopsis>
-      <adm:description>
+  <adm:property name="db-checkpointer-wakeup-interval" advanced="true">
+    <adm:synopsis>
+      Specifies the maximum length of time that may pass between checkpoints.
+    </adm:synopsis>
+    <adm:description>
         This setting controls the elapsed time between attempts to write 
         a checkpoint to the journal. A longer interval allows more updates
         to accumulate in buffers before they are required to be written to
         disk, but also potentially causes recovery from an abrupt termination
         (crash) to take more time.
-      </adm:description>
-      <adm:default-behavior>
-          <adm:defined>
-              <adm:value>15</adm:value>
-          </adm:defined>
-      </adm:default-behavior>
-      <adm:syntax>
-          <adm:size lower-limit="0" />
-      </adm:syntax>
-      <adm:profile name="ldap">
-          <ldap:attribute>
-              <ldap:name>ds-cfg-db-checkpoint-interval</ldap:name>
-          </ldap:attribute>
-      </adm:profile>
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>15s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="10" upper-limit="3600" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-checkpointer-wakeup-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
   </adm:property>
 </adm:managed-object>
