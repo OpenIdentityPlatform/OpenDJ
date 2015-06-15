@@ -924,6 +924,28 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
     }
 
     /**
+     * Tests schema checking for an entry that contains an undefined objectclass
+     * when there is no structural objectclass and no structural objectclass checking.
+     *
+     * @throws Exception
+     *             If an unexpected problem occurs.
+     */
+    @Test
+    public void testUndefinedObjectClassNoStructural() throws Exception {
+        // @formatter:off
+        final Entry e = newEntry(
+                "dn: o=test",
+                "objectClass: top",
+                "objectClass: xxxundefinedxxx");
+        // @formatter:on
+
+        assertDoesNotConformToSchema(e, defaultPolicy().requireSingleStructuralObjectClass(Action.IGNORE));
+
+        e.removeAttribute("objectClass", "xxxundefinedxxx");
+        assertConformsToSchema(e, defaultPolicy().requireSingleStructuralObjectClass(Action.IGNORE));
+    }
+
+    /**
      * Tests schema checking for an entry with a valid single structural
      * objectclass.
      *
