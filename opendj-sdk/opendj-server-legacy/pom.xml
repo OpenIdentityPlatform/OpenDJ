@@ -66,8 +66,8 @@
     <isDebugBuild>false</isDebugBuild>
     <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
     <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
-    <docGuideRefUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideRefUrl>
-    <docGuideAdminUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideAdminUrl>
+    <docGuideRefUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideRefUrl>
+    <docGuideAdminUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideAdminUrl>
     <locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</locales>
 
     <!-- Dependencies version properties -->
@@ -1520,6 +1520,18 @@
 
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>forgerock-release</id>
+
+      <properties>
+        <!-- Released documentation is published at ForgeRock.com -->
+        <docHomepageUrl>https://backstage.forgerock.com/#!/docs/opendj</docHomepageUrl>
+        <docWikiUrl>https://backstage.forgerock.com/#!/docs/opendj</docWikiUrl>
+        <docGuideRefUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideRefUrl>
+        <docGuideAdminUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideAdminUrl>
+      </properties>
     </profile>
 
     <profile>
