@@ -70,7 +70,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
-import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -292,7 +291,6 @@ public class ConfigureDS
 
   private int run()
   {
-    JDKLogging.disableLogging();
     try
     {
       initializeArguments();
