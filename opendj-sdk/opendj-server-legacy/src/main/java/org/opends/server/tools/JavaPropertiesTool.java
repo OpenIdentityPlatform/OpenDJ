@@ -26,10 +26,11 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -47,11 +48,10 @@ import java.util.Properties;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
-import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-import com.forgerock.opendj.cli.ConsoleApplication;
 
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 
 /**
@@ -185,8 +185,6 @@ public class JavaPropertiesTool extends ConsoleApplication
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-
-    JDKLogging.disableLogging();
 
     JavaPropertiesTool tool = new JavaPropertiesTool(out, err, inStream);
 
