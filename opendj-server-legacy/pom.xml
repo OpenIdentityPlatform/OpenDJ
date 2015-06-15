@@ -578,7 +578,6 @@
               <goal>create</goal>
             </goals>
             <configuration>
-              <useLastCommittedRevision>true</useLastCommittedRevision>
               <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
               <revisionOnScmFailure>-1</revisionOnScmFailure>
             </configuration>
