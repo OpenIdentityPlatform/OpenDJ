@@ -48,76 +48,68 @@
    <see>Replication</see>
   </indexterm>
 
-  <para>You can set up replication during installation by choosing to
-  configure replication through the setup wizard.</para>
+  <itemizedlist>
+   <para>
+    You can set up replication during installation by using the setup wizard,
+    starting with the Topology Options screen.
+   </para>
 
-  <para>In the Topology Options screen for the first server you set up, select
-  This server will be part of a replication topology. If you also choose
-  Configure as Secure, then replication traffic is protected by SSL.</para>
+   <listitem>
+    <para>
+     In the Topology Options screen for the first server you set up,
+     select This server will be part of a replication topology.
+    </para>
 
-  <mediaobject xml:id="figure-repla-setup">
-   <imageobject>
-    <imagedata fileref="images/replA-setup.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>QuickSetup makes it easy to configure replication.</para>
-   </textobject>
-  </mediaobject>
+    <para>
+     If you also choose Configure as Secure,
+     then replication traffic is protected by Transport Layer Security.
+    </para>
+   </listitem>
 
-  <para>In the Topology Options screen for subsequent servers, also select
-  There is already a server in the topology, providing the Host Name,
-  Administration Connector Port number, Admin User, and Admin Password for
-  the first replica you set up.</para>
+   <listitem>
+    <para>
+     In the Topology Options screen for subsequent servers,
+     select There is already a server in the topology.
+    </para>
 
-  <mediaobject xml:id="figure-replb-setup">
-   <imageobject>
-    <imagedata fileref="images/replB-setup.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>Subsequent servers can point to the first server at setup time.</para>
-   </textobject>
-  </mediaobject>
+    <para>
+     Provide the Host Name, Administration Connector Port number,
+     global Admin User identifier, and Admin Password for the first server.
+    </para>
+   </listitem>
 
-  <para>You also set up a global administrator account, stored under
-  <literal>cn=admin data</literal> across replicas, used to manage replication
-  in the topology.</para>
+   <listitem>
+    <para>
+     When presented with the Create Global Administrator screen,
+     provide a Global Administrator ID and Global Administrator Password.
+    </para>
 
-  <mediaobject xml:id="figure-replb-global-admin">
-   <imageobject>
-    <imagedata fileref="images/replB-global-admin.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>The global administrator account exists on all servers in the
-    replication topology.</para>
-   </textobject>
-  </mediaobject>
+    <para>
+     The Global Administrator account exists on all servers
+     in the replication topology.
+     The account is stored under <literal>cn=admin data</literal>.
+     It provides an account to administer replication
+     with the same credentials on every server in the topology.
+    </para>
+   </listitem>
 
-  <para>You further set up what to replicate.</para>
+   <listitem>
+    <para>
+     In the Data Replication screen,
+     select the user and application data base DN(s) to replicate.
+    </para>
 
-  <mediaobject xml:id="figure-replb-data-repl">
-   <imageobject>
-    <imagedata fileref="images/replB-data-repl.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>You choose the user data to replicate. OpenDJ automatically replicates
-    administrative data and directory schema.</para>
-   </textobject>
-  </mediaobject>
+    <para>
+     OpenDJ directory server automatically replicates
+     configuration data and directory schema.
+    </para>
+   </listitem>
+  </itemizedlist>
 
-  <para>Once replication is set up, it works for all the replicas. You can
-  monitor the replication connection and status through the OpenDJ Control
-  Panel.</para>
-
-  <mediaobject xml:id="figure-repla-monitor-repl">
-   <imageobject>
-    <imagedata fileref="images/replA-monitor-repl.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>OpenDJ Control Panel indicates the status of data being
-    replicated.</para>
-   </textobject>
-  </mediaobject>
-
+  <para>
+   Once replication is set up, it works for all the replicas.
+   You can monitor replication status through OpenDJ Control Panel.
+  </para>
  </section>
 
  <section xml:id="about-repl">

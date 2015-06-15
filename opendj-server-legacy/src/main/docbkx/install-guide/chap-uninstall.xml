@@ -57,28 +57,23 @@
    <para>(Windows) Double-click <filename>/path/to/opendj\uninstall.bat</filename>.</para>
    <para>(Mac OS X) Double-click <filename>/path/to/opendj/Uninstall.app</filename>.</para>
 
-   <mediaobject xml:id="figure-uninstall-start">
-    <imageobject>
-     <imagedata fileref="images/uninstall-start.png" format="PNG" />
-    </imageobject>
-    <textobject>
-     <para>Select what to remove in the initial screen.</para>
-    </textobject>
-   </mediaobject>
+   <para>
+    The Uninstall Options screen appears.
+   </para>
   </step>
 
   <step>
-   <para>When the process is finished, you might still have some files
-   to remove manually.</para>
+   <para>
+    Select the components to remove in the Uninstall Options screen,
+    and then click Uninstall to proceed.
+   </para>
+  </step>
 
-   <mediaobject xml:id="figure-uninstall-finished">
-    <imageobject>
-     <imagedata fileref="images/uninstall-finished.png" format="PNG" />
-    </imageobject>
-    <textobject>
-     <para>The final screen indicates what must be removed manually.</para>
-    </textobject>
-   </mediaobject>
+  <step>
+   <para>
+    To complete the process,
+    manually remove any remaining components indicated in the Finished screen.
+   </para>
   </step>
  </procedure>
 
