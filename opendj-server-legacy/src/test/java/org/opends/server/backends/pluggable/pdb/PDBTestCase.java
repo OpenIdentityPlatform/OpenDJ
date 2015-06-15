@@ -26,8 +26,8 @@
 
 package org.opends.server.backends.pluggable.pdb;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.opends.server.ConfigurationMock.legacyMockCfg;
 
 import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBBackend;
@@ -49,7 +49,7 @@ public class PDBTestCase extends PluggableBackendImplTestCase<PDBBackendCfg>
   @Override
   protected PDBBackendCfg createBackendCfg()
   {
-    PDBBackendCfg backendCfg = mock(PDBBackendCfg.class);
+    PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
     when(backendCfg.getDBDirectory()).thenReturn(backendTestName);
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
     when(backendCfg.getDBCacheSize()).thenReturn(0L);
