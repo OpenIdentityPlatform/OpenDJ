@@ -27,6 +27,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.ConfigurationMock.legacyMockCfg;
 import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 
 import java.util.UUID;
@@ -180,7 +181,7 @@ public class StateTest extends DirectoryServerTestCase
   private PDBBackendCfg createBackendCfg() throws ConfigException, DirectoryException
   {
     String homeDirName = "pdb_test";
-    PDBBackendCfg backendCfg = mock(PDBBackendCfg.class);
+    PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
 
     when(backendCfg.getBackendId()).thenReturn("persTest" + homeDirName);
     when(backendCfg.getDBDirectory()).thenReturn(homeDirName);
@@ -192,7 +193,7 @@ public class StateTest extends DirectoryServerTestCase
     when(backendCfg.listBackendIndexes()).thenReturn(new String[] { "sn" });
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 
-    BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
+    BackendIndexCfg indexCfg = legacyMockCfg(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(TestCaseUtils.newSortedSet(IndexType.PRESENCE, IndexType.EQUALITY));
     when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);

@@ -3416,6 +3416,7 @@ final class OnDiskMergeBufferImporter
       returnValues.put("getBackendId", DB_NAME);
       returnValues.put("getDBCacheSize", 0L);
       returnValues.put("getDBCachePercent", 10);
+      returnValues.put("getDBCheckpointerWakeupInterval", 15L);
       returnValues.put("isDBTxnNoSync", true);
       returnValues.put("getDBDirectoryPermissions", "700");
       returnValues.put("getDiskLowThreshold", Long.valueOf(200 * MB));
