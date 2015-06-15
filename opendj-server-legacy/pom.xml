@@ -80,6 +80,9 @@
     <!-- Could be removed once migration to new config framework will be done-->
     <old.config.files.path>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</old.config.files.path>
 
+    <!-- If we release this project, we need to include the Forgerock binary license -->
+    <include.binary.license>${project.build.directory}/legal-notices/</include.binary.license>
+
   </properties>
 
   <dependencies>
