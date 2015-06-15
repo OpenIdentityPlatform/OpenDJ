@@ -48,19 +48,11 @@
  quick test installation.</para>
 
  <note>
-  <para>OpenDJ directory server relies on Java 6 or later, so if your browser
-  picks up an old installation of Java 5 for example, installation can
-  fail. You might see an application error message such as this:</para>
- 
-  <mediaobject xml:id="figure-missing-java6">
-   <alt>Application error due to old Java version</alt>
-   <imageobject>
-    <imagedata fileref="images/missing-java6.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>Message showing the browser is unable to launch the application</para>
-   </textobject>
-  </mediaobject>
+  <para>
+   If your environment picks up an old installation of Java,
+   installation can fail.
+   You might see an application error due to an old Java version.
+  </para>
  </note>
 
  <para>If the WebStart installation does not work in your browser, copy
@@ -89,95 +81,102 @@ $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></user
   or <command>opendj/QuickSetup.app</command> (Mac OS X).
  </para>
 
- <para>Java WebStart launches the the QuickSetup wizard, and soon the
- Welcome screen appears.</para>
+ <para>
+  Java WebStart launches the the QuickSetup wizard,
+  and soon the Welcome screen appears.
+ </para>
 
- <mediaobject xml:id="figure-quicksetup-welcome">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-welcome.png" format="PNG" />
-  </imageobject>
-  <textobject>
-   <para>The Welcome screen summarizes the setup process.</para>
-  </textobject>
- </mediaobject>
+  <itemizedlist>
+   <para>
+    The QuickSetup wizard presents the following screens:
+   </para>
 
- <mediaobject xml:id="figure-quicksetup-license">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-license.png" format="PNG" />
-  </imageobject>
-  <textobject>
-   <para>Accept the license to install OpenDJ directory server if QuickSetup
-   presents a license text.</para>
-  </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Welcome</emphasis>: summarizes the setup process
+     and indicates the minimum required Java version
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-svrconf">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-svrconf.png" format="PNG" />
-  </imageobject>
-  <textobject>
-   <para>In the Server Settings screen that the default ports
-   are 389 or 1389 for LDAP, 4444 for administrative access.</para>
-  </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>License</emphasis>: presents the license agreement to accept
+     before installing OpenDJ software
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-replopts">
-   <imageobject>
-     <imagedata fileref="images/QuickSetup-replopts.png" format="PNG" />
-   </imageobject>
-   <textobject>
-    <para>You can replicate data for high availability through the
-    Topology Options screen.</para>
-   </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Server Settings</emphasis>: prompts for basic server settings
+     including installation path, host name, port numbers, secure connections,
+     and credentials for the directory superuser
+     (default bind DN: <literal>cn=Directory Manager</literal>)
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-gendata">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-gendata.png" format="PNG" />
-  </imageobject>
-   <textobject>
-    <para>You can generate test data as part of server setup in the Directory
-    Data screen.</para>
-   </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Topology Options</emphasis>: prompts for data replication options
+     including whether this server is part of a replication topology,
+     and if so the port number and security settings for this server,
+     as well as the connection settings for a remote replica if available
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-jvmopts">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-jvmopts.png" format="PNG" />
-  </imageobject>
-   <textobject>
-    <para>For a real installation, you can adjust JVM parameters for
-    your server, for example to allow OpenDJ to use more memory.</para>
-   </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Directory Data</emphasis>: allows you to import or to generate
+     LDAP directory data as part of the setup process
+    </para>
 
- <mediaobject xml:id="figure-quicksetup-review">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-review.png" format="PNG" />
-  </imageobject>
-   <textobject>
-    <para>You can opt to start your server when setup completes.</para>
-   </textobject>
- </mediaobject>
+    <para>
+     This screen also allows you to select the backend type for data storage.
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-finished">
-  <imageobject>
-   <imagedata fileref="images/QuickSetup-finished.png" format="PNG" />
-  </imageobject>
-   <textobject>
-    <para>Click the Launch Control Panel button to check your newly
-    installed server.</para>
-   </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Runtime Options</emphasis>: allows you to adjust
+     JVM settings as part of the setup process,
+     for example to allow OpenDJ to use more memory if necessary
+    </para>
+   </listitem>
 
- <mediaobject xml:id="figure-quicksetup-control-panel">
-  <imageobject>
-   <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
-  </imageobject>
-   <textobject>
-    <para>OpenDJ Control Panel offers basic administration capabilities.</para>
-   </textobject>
- </mediaobject>
+   <listitem>
+    <para>
+     <emphasis>Review</emphasis>: presents current selections
+     so that you can check everything is correct before running setup,
+     with the option to start OpenDJ directory server after setup completes
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <emphasis>Finished</emphasis>: summarizes how setup completed,
+     with the option to launch the OpenDJ Control Panel
+    </para>
+   </listitem>
+  </itemizedlist>
+
+  <para>
+   <xref linkend="figure-quicksetup-control-panel" />
+   shows the top-level window with status information.
+   OpenDJ Control Panel helps to manage directory data, LDAP schema, indexes,
+   monitoring, and JVM runtime options through a graphical user interface.
+  </para>
+
+  <figure xml:id="figure-quicksetup-control-panel">
+   <title>OpenDJ Control Panel</title>
+
+   <mediaobject>
+    <imageobject>
+     <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
+    </imageobject>
+     <textobject>
+      <para>OpenDJ Control Panel offers basic administration capabilities.</para>
+     </textobject>
+   </mediaobject>
+  </figure>
  </section>
 
  <section xml:id="install-gui-windows-msi">
