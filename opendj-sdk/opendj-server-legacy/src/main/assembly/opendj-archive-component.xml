@@ -74,6 +74,12 @@
       <outputDirectory>legal-notices</outputDirectory>
     </fileSet>
 
+    <!-- Include the Forgerock binary license file if exists -->
+    <fileSet>
+       <directory>${project.build.directory}/legal-notices</directory>
+       <outputDirectory>legal-notices</outputDirectory>
+    </fileSet>
+
     <!-- Adds sh in lib/ directory -->
     <fileSet>
       <directory>${basedir}/resource/bin</directory>
