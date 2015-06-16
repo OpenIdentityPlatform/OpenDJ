@@ -1554,7 +1554,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
           : value.toLowerCase().contains(filter.toLowerCase());
       if (matchFilter)
       {
-        break;
+        return true;
       }
     }
     return false;
