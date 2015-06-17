@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -898,6 +899,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.setInvokeImportPlugins(true);
       importConf.setClearBackend(true);
       importConf.writeRejectedEntries(rejectedEntries);
+      importConf.setIncludeBranches(Collections.singleton(testBaseDN));
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }
     assertEquals(rejectedEntries.size(), 0, "No entries should be rejected");
