@@ -1048,7 +1048,7 @@ Please:
        This target should only be called from targets which have defined the
        pdir property, such as prepackage and rebuild.
 
-       The license file will be copied to ${pdir}/Legal/license_to_accept.txt.
+       The license file will be copied to ${pdir}/legal-notices/Forgerock_License.txt.
        This file location is hard-coded in the following classes:
 
        org.opends.server.tools.upgrade.LicenseFile
@@ -1057,8 +1057,8 @@ Please:
        Care must be taken to keep these filenames synchronized.
   -->
   <target name="copylicense" if="include.license.file" >
-    <mkdir dir="${pdir}/Legal" />
-    <copy tofile="${pdir}/Legal/license_to_accept.txt" file="${license.file}" />
+    <mkdir dir="${pdir}/legal-notices" />
+    <copy tofile="${pdir}/legal-notices/Forgerock_License.txt" file="${license.file}" />
   </target>
 
   <!-- Populate the Directory Server package, but don't zip it up. -->
