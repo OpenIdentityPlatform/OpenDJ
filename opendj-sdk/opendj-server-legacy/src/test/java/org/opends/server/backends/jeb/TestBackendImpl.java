@@ -1240,7 +1240,7 @@ public class TestBackendImpl extends JebTestCase {
     //No indexes should be used.
     String debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertThat(debugString).contains("not-indexed");
+    assertThat(debugString).containsIgnoringCase("not-indexed");
 
     resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index, ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
@@ -1374,7 +1374,7 @@ public class TestBackendImpl extends JebTestCase {
     //No indexes should be used.
     String debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertThat(debugString).contains("not-indexed");
+    assertThat(debugString).containsIgnoringCase("not-indexed");
   }
 
   @Test(dependsOnMethods = "testSearchNotIndexed")

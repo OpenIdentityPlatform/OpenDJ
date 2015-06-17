@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 import java.util.*;
@@ -1635,7 +1636,7 @@ public class AttributeBuilderTest extends TypesTestCase
         try
         {
           i.remove();
-          Assert.fail("value iterator() supports remove");
+          Assert.fail("iterator() should not support remove");
         }
         catch (UnsupportedOperationException e)
         {
@@ -1802,55 +1803,33 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(a.size(), values.length);
   }
 
-
-
   /**
-   * Tests that the generated attribute is optimized correctly for
-   * storage of attribute values. This test is very implementation
-   * dependent, but because Attributes are so performance sensitive it
-   * is worth doing.
-   *
-   * @param testCase
-   *          Test case index (useful for debugging).
-   * @param a
-   *          The attribute.
-   * @param type
-   *          The expected attribute type.
-   * @param name
-   *          The expected user provided attribute name.
-   * @param options
-   *          The expected attribute options.
-   * @param values
-   *          The expected attribute values.
+   * Test that normalization of attribute value is performed lazily when there is one
+   * attribute value.
    */
-  @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeIterator")
-  public void testAttributeValueOptimization(int testCase, Attribute a,
-      AttributeType type, String name, String[] options, String[] values)
-      throws Exception
+  @Test
+  public void testAttributeValueNormalization() throws Exception
   {
-    // Determine the value set implementation class.
-    Class<?> actualClass = a.iterator().getClass();
-    Class<?> expectedClass = null;
-    switch (values.length)
-    {
-    case 0:
-      // Attribute must be optimized for zero values.
-      expectedClass = Collections.emptySet().iterator().getClass();
-      break;
-    case 1:
-      // Attribute must be optimized for single value.
-      expectedClass = Collections.singleton(0).iterator().getClass();
-      break;
-    default:
-      // Attribute must be optimized for many values.
-      expectedClass = Collections.unmodifiableCollection(new HashSet<Object>())
-          .iterator().getClass();
-      break;
-    }
-    Assert.assertEquals(actualClass, expectedClass);
+    AttributeBuilder a1 = new AttributeBuilder("cn");
+    assertThat(a1.isNormalized()).isFalse();
+
+    AttributeBuilder a2 = new AttributeBuilder("cn");
+    a2.add("one");
+    assertThat(a2.isNormalized()).isFalse();
+
+    AttributeBuilder a3 = new AttributeBuilder("cn");
+    a3.add("one");
+    a3.add("two");
+    assertThat(a3.isNormalized()).isTrue();
+
+    // no normalization on contains for 0-element and 1-element set
+    a1.contains(ByteString.valueOf("one"));
+    assertThat(a1.isNormalized()).isFalse();
+
+    // normalization on contains for 1-element set
+    a2.contains(ByteString.valueOf("one"));
+    assertThat(a2.isNormalized()).isTrue();
   }
-
-
 
   /** Creates a new attribute. */
   private Attribute createAttribute(AttributeType type, String name,

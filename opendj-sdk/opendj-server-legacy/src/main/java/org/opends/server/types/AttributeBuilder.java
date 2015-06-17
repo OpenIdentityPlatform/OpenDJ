@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
@@ -106,9 +104,10 @@ import static org.opends.server.util.StaticUtils.*;
     mayInstantiate = true,
     mayExtend = false,
     mayInvoke = true)
-public final class AttributeBuilder
-  implements Iterable<ByteString>
+public final class AttributeBuilder implements Iterable<ByteString>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * A real attribute - options handled by sub-classes.
@@ -125,13 +124,12 @@ public final class AttributeBuilder
     private final String name;
 
     /**
-     * The unmodifiable map of values for this attribute. The key is the
-     * attribute value normalized according to the equality matching rule and
-     * the value is the non normalized value.
+     * The unmodifiable set of attribute values, which are lazily normalized.
+     * <p>
+     * When required, the attribute values are normalized according to the equality
+     * matching rule.
      */
-    private final Map<ByteString, ByteString> values;
-
-
+    private final Set<AttributeValue> values;
 
     /**
      * Creates a new real attribute.
@@ -143,10 +141,7 @@ public final class AttributeBuilder
      * @param values
      *          The attribute values.
      */
-    private RealAttribute(
-        AttributeType attributeType,
-        String name,
-        Map<ByteString, ByteString> values)
+    private RealAttribute(AttributeType attributeType, String name, Set<AttributeValue> values)
     {
       this.attributeType = attributeType;
       this.name = name;
@@ -154,7 +149,6 @@ public final class AttributeBuilder
     }
 
 
-    /** {@inheritDoc} */
     @Override
     public final ConditionResult approximatelyEqualTo(ByteString assertionValue)
     {
@@ -176,11 +170,11 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (ByteString v : values.values())
+      for (AttributeValue v : values)
       {
         try
         {
-          result = assertion.matches(matchingRule.normalizeAttributeValue(v));
+          result = assertion.matches(matchingRule.normalizeAttributeValue(v.getValue()));
         }
         catch (Exception e)
         {
@@ -197,14 +191,12 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final boolean contains(ByteString value)
     {
-      return values.containsKey(normalize(attributeType, value));
+      return values.contains(createAttributeValue(attributeType, value));
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
     {
@@ -212,9 +204,9 @@ public final class AttributeBuilder
       {
         MatchingRule eqRule = getAttributeType().getEqualityMatchingRule();
         final Assertion assertion = eqRule.getAssertion(assertionValue);
-        for (ByteString normalizedValue : values.keySet())
+        for (AttributeValue value : values)
         {
-          if (assertion.matches(normalizedValue).toBoolean())
+          if (assertion.matches(value.getNormalizedValue()).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -227,7 +219,6 @@ public final class AttributeBuilder
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final AttributeType getAttributeType()
     {
@@ -236,7 +227,6 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final String getName()
     {
@@ -245,7 +235,6 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
     {
@@ -267,11 +256,11 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (ByteString v : values.values())
+      for (AttributeValue v : values)
       {
         try
         {
-          if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
+          if (assertion.matches(matchingRule.normalizeAttributeValue(v.getValue())).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -290,7 +279,6 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final boolean isVirtual()
     {
@@ -298,17 +286,12 @@ public final class AttributeBuilder
     }
 
 
-
-    /** {@inheritDoc} */
     @Override
     public final Iterator<ByteString> iterator()
     {
-      return values.values().iterator();
+      return getUnmodifiableIterator(values);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public final ConditionResult lessThanOrEqualTo(ByteString assertionValue)
     {
@@ -330,11 +313,11 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (ByteString v : values.values())
+      for (AttributeValue v : values)
       {
         try
         {
-          if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
+          if (assertion.matches(matchingRule.normalizeAttributeValue(v.getValue())).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -354,11 +337,8 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
-    public final ConditionResult matchesSubstring(
-        ByteString subInitial,
-        List<ByteString> subAny, ByteString subFinal)
+    public final ConditionResult matchesSubstring(ByteString subInitial, List<ByteString> subAny, ByteString subFinal)
     {
       MatchingRule matchingRule = attributeType.getSubstringMatchingRule();
       if (matchingRule == null)
@@ -379,11 +359,11 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (ByteString value : values.values())
+      for (AttributeValue value : values)
       {
         try
         {
-          if (assertion.matches(matchingRule.normalizeAttributeValue(value)).toBoolean())
+          if (assertion.matches(matchingRule.normalizeAttributeValue(value.getValue())).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -403,33 +383,30 @@ public final class AttributeBuilder
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final int size()
     {
       return values.size();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       int hashCode = getAttributeType().hashCode();
-      for (ByteString value : values.keySet())
+      for (AttributeValue value : values)
       {
         hashCode += value.hashCode();
       }
       return hashCode;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
       buffer.append("Attribute(");
       buffer.append(getNameWithOptions());
       buffer.append(", {");
-      buffer.append(Utils.joinAsString(", ", values.keySet()));
+      buffer.append(Utils.joinAsString(", ", values));
       buffer.append("})");
     }
 
@@ -467,10 +444,7 @@ public final class AttributeBuilder
      *          The normalized attribute options.
      */
     private RealAttributeManyOptions(
-        AttributeType attributeType,
-        String name,
-        Map<ByteString, ByteString> values,
-        Set<String> options,
+        AttributeType attributeType, String name, Set<AttributeValue> values, Set<String> options,
         SortedSet<String> normalizedOptions)
     {
       super(attributeType, name, values);
@@ -513,8 +487,7 @@ public final class AttributeBuilder
   /**
    * A real attribute with no options.
    */
-  private static final class RealAttributeNoOptions
-    extends RealAttribute
+  private static final class RealAttributeNoOptions extends RealAttribute
   {
 
     /**
@@ -527,10 +500,7 @@ public final class AttributeBuilder
      * @param values
      *          The attribute values.
      */
-    private RealAttributeNoOptions(
-        AttributeType attributeType,
-        String name,
-        Map<ByteString, ByteString> values)
+    private RealAttributeNoOptions(AttributeType attributeType, String name, Set<AttributeValue> values)
     {
       super(attributeType, name, values);
     }
@@ -623,7 +593,7 @@ public final class AttributeBuilder
     private RealAttributeSingleOption(
         AttributeType attributeType,
         String name,
-        Map<ByteString, ByteString> values,
+        Set<AttributeValue> values,
         String option)
     {
       super(attributeType, name, values);
@@ -674,8 +644,7 @@ public final class AttributeBuilder
    * @param <T>
    *          The type of elements to be contained in this small set.
    */
-  private static final class SmallSet<T>
-    extends AbstractSet<T>
+  private static final class SmallSet<T> extends AbstractSet<T>
   {
 
     /** The set of elements if there are more than one. */
@@ -683,8 +652,6 @@ public final class AttributeBuilder
 
     /** The first element. */
     private T firstElement;
-
-
 
     /**
      * Creates a new small set which is initially empty.
@@ -694,8 +661,22 @@ public final class AttributeBuilder
       // No implementation required.
     }
 
+    /**
+     * Creates a new small set with an initial capacity.
+     *
+     * @param initialCapacity
+     *          The capacity of the set
+     */
+    public SmallSet(int initialCapacity)
+    {
+      Reject.ifFalse(initialCapacity >= 0);
 
-    /** {@inheritDoc} */
+      if (initialCapacity > 1)
+      {
+        elements = new LinkedHashSet<T>(initialCapacity);
+      }
+    }
+
     @Override
     public boolean add(T e)
     {
@@ -725,9 +706,6 @@ public final class AttributeBuilder
       return elements.add(e);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean addAll(Collection<? extends T> c)
     {
@@ -759,9 +737,6 @@ public final class AttributeBuilder
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void clear()
     {
@@ -769,9 +744,6 @@ public final class AttributeBuilder
       elements = null;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Iterator<T> iterator()
     {
@@ -783,18 +755,13 @@ public final class AttributeBuilder
       {
         return new Iterator<T>()
         {
-
           private boolean hasNext = true;
-
-
 
           @Override
           public boolean hasNext()
           {
             return hasNext;
           }
-
-
 
           @Override
           public T next()
@@ -808,17 +775,10 @@ public final class AttributeBuilder
             return firstElement;
           }
 
-
-
           @Override
           public void remove()
           {
-            if (hasNext || firstElement == null)
-            {
-              throw new IllegalStateException();
-            }
-
-            firstElement = null;
+            throw new UnsupportedOperationException();
           }
 
         };
@@ -829,9 +789,6 @@ public final class AttributeBuilder
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean remove(Object o)
     {
@@ -853,7 +810,6 @@ public final class AttributeBuilder
       return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean contains(Object o)
     {
@@ -864,7 +820,6 @@ public final class AttributeBuilder
 
       return (firstElement != null && firstElement.equals(o));
     }
-
 
     /**
      * Sets the initial capacity of this small set. If this small set
@@ -893,9 +848,6 @@ public final class AttributeBuilder
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int size()
     {
@@ -915,7 +867,130 @@ public final class AttributeBuilder
 
   }
 
+  /**
+   * An attribute value which is lazily normalized.
+   * <p>
+   * Stores the value in user-provided form and a reference to the associated
+   * attribute type. The normalized form of the value will be initialized upon
+   * first request. The normalized form of the value should only be used in
+   * cases where equality matching between two values can be performed with
+   * byte-for-byte comparisons of the normalized values.
+   */
+  private static final class AttributeValue
+  {
 
+    private final AttributeType attributeType;
+
+    /** User-provided value. */
+    private final ByteString value;
+
+    /** Normalized value, which is {@code null} until computation is required. */
+    private ByteString normalizedValue;
+
+    /**
+     * Construct a new attribute value.
+     *
+     * @param attributeType
+     *          The attribute type.
+     * @param value
+     *          The value of the attribute.
+     */
+    private AttributeValue(AttributeType attributeType, ByteString value)
+    {
+      this.attributeType = attributeType;
+      this.value = value;
+    }
+
+    /**
+     * Retrieves the normalized form of this attribute value.
+     *
+     * @return The normalized form of this attribute value.
+     */
+    public ByteString getNormalizedValue()
+    {
+      if (normalizedValue == null)
+      {
+        normalizedValue = normalize(attributeType, value);
+      }
+      return normalizedValue;
+    }
+
+    boolean isNormalized()
+    {
+      return normalizedValue != null;
+    }
+
+    /**
+     * Retrieves the user-defined form of this attribute value.
+     *
+     * @return The user-defined form of this attribute value.
+     */
+    public ByteString getValue()
+    {
+      return value;
+    }
+
+    /**
+     * Indicates whether the provided object is an attribute value that is equal
+     * to this attribute value. It will be considered equal if the normalized
+     * representations of both attribute values are equal.
+     *
+     * @param o
+     *          The object for which to make the determination.
+     * @return <CODE>true</CODE> if the provided object is an attribute value
+     *         that is equal to this attribute value, or <CODE>false</CODE> if
+     *         not.
+     */
+    @Override
+    public boolean equals(Object o)
+    {
+      if (this == o)
+      {
+        return true;
+      }
+      else if (o instanceof AttributeValue)
+      {
+        AttributeValue attrValue = (AttributeValue) o;
+        try
+        {
+          return getNormalizedValue().equals(attrValue.getNormalizedValue());
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
+          return value.equals(attrValue.getValue());
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Retrieves the hash code for this attribute value. It will be calculated
+     * using the normalized representation of the value.
+     *
+     * @return The hash code for this attribute value.
+     */
+    @Override
+    public int hashCode()
+    {
+      try
+      {
+        return getNormalizedValue().hashCode();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+        return value.hashCode();
+      }
+    }
+
+    @Override
+    public String toString()
+    {
+      return value != null ? value.toString() : "null";
+    }
+
+  }
 
   /**
    * Creates an attribute that has no options.
@@ -973,11 +1048,8 @@ public final class AttributeBuilder
   /** The set of options. */
   private final SmallSet<String> options = new SmallSet<String>();
 
-  /** The map of normalized values => values for this attribute. */
-  private Map<ByteString, ByteString> values =
-      new SmallMap<ByteString, ByteString>();
-
-
+  /** The set of attribute values, which are lazily normalized. */
+  private Set<AttributeValue> values = new SmallSet<>();
 
   /**
    * Creates a new attribute builder with an undefined attribute type
@@ -991,8 +1063,6 @@ public final class AttributeBuilder
   {
     // No implementation required.
   }
-
-
 
   /**
    * Creates a new attribute builder from an existing attribute.
@@ -1119,16 +1189,26 @@ public final class AttributeBuilder
    */
   public boolean add(ByteString attributeValue)
   {
-    return values.put(normalize(attributeValue), attributeValue) == null;
+    AttributeValue value = createAttributeValue(attributeType, attributeValue);
+    boolean isNewValue = values.add(value);
+    if (!isNewValue)
+    {
+      // AttributeValue is already present, but the user-provided value may be different
+      // There is no direct way to check this, so remove and add to ensure
+      // the last user-provided value is recorded
+      values.remove(value);
+      values.add(value);
+    }
+    return isNewValue;
   }
 
-  private ByteString normalize(ByteString attributeValue)
+  /** Creates an attribute value with delayed normalization. */
+  private static AttributeValue createAttributeValue(AttributeType attributeType, ByteString attributeValue)
   {
-    return normalize(attributeType, attributeValue);
+    return new AttributeValue(attributeType, attributeValue);
   }
 
-  private static ByteString normalize(AttributeType attributeType,
-      ByteString attributeValue)
+  private static ByteString normalize(AttributeType attributeType, ByteString attributeValue)
   {
     try
     {
@@ -1210,7 +1290,7 @@ public final class AttributeBuilder
    */
   public boolean contains(ByteString value)
   {
-    return values.containsKey(normalize(value));
+    return values.contains(createAttributeValue(attributeType, value));
   }
 
 
@@ -1280,7 +1360,7 @@ public final class AttributeBuilder
   @Override
   public Iterator<ByteString> iterator()
   {
-    return values.values().iterator();
+    return getUnmodifiableIterator(values);
   }
 
 
@@ -1297,10 +1377,8 @@ public final class AttributeBuilder
    */
   public boolean remove(ByteString value)
   {
-    return values.remove(normalize(value)) != null;
+    return values.remove(createAttributeValue(attributeType, value));
   }
-
-
 
   /**
    * Removes the specified attribute value from this attribute builder
@@ -1623,7 +1701,49 @@ public final class AttributeBuilder
     return values.size();
   }
 
+  /** Returns an iterator on values corresponding to the provided attribute values set. */
+  private static Iterator<ByteString> getUnmodifiableIterator(Set<AttributeValue> set)
+  {
+    final Iterator<AttributeValue> iterator = set.iterator();
+    return new Iterator<ByteString>()
+    {
+      @Override
+      public boolean hasNext()
+      {
+        return iterator.hasNext();
+      }
 
+      @Override
+      public ByteString next()
+      {
+         return iterator.next().getValue();
+      }
+
+      @Override
+      public void remove()
+      {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
+
+  /**
+   * Indicates if the values for this attribute have been normalized.
+   * <p>
+   * This method is intended for tests.
+   */
+  boolean isNormalized()
+  {
+    Iterator<AttributeValue> iterator = values.iterator();
+    while (iterator.hasNext())
+    {
+      if (iterator.next().isNormalized())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Returns an attribute representing the content of this attribute
@@ -1647,43 +1767,21 @@ public final class AttributeBuilder
           "Undefined attribute type or name");
     }
 
-    // First determine the minimum representation required for the set
-    // of values.
-    final int size = values.size();
-    Map<ByteString, ByteString> newValues;
-    if (size == 0)
-    {
-      newValues = Collections.emptyMap();
-    }
-    else if (size == 1)
-    {
-      Entry<ByteString, ByteString> entry = values.entrySet().iterator().next();
-      newValues = Collections.singletonMap(entry.getKey(), entry.getValue());
-      values.clear();
-    }
-    else
-    {
-      newValues = Collections.unmodifiableMap(values);
-      values = new SmallMap<ByteString, ByteString>();
-    }
-
     // Now create the appropriate attribute based on the options.
     Attribute attribute;
     switch (options.size())
     {
     case 0:
-      attribute = new RealAttributeNoOptions(attributeType, name, newValues);
+      attribute = new RealAttributeNoOptions(attributeType, name, values);
       break;
     case 1:
       attribute =
-        new RealAttributeSingleOption(attributeType, name, newValues,
-          options.firstElement);
+        new RealAttributeSingleOption(attributeType, name, values, options.firstElement);
       break;
     default:
       attribute =
-        new RealAttributeManyOptions(attributeType, name, newValues,
-          Collections.unmodifiableSet(options.elements), Collections
-              .unmodifiableSortedSet(normalizedOptions));
+        new RealAttributeManyOptions(attributeType, name, values,
+          Collections.unmodifiableSet(options.elements), Collections.unmodifiableSortedSet(normalizedOptions));
       break;
     }
 
@@ -1692,6 +1790,7 @@ public final class AttributeBuilder
     name = null;
     normalizedOptions = null;
     options.clear();
+    values = new SmallSet<AttributeValue>();
 
     return attribute;
   }
@@ -1714,7 +1813,7 @@ public final class AttributeBuilder
     }
 
     builder.append(", {");
-    builder.append(Utils.joinAsString(", ", values.keySet()));
+    builder.append(Utils.joinAsString(", ", values));
     builder.append("})");
 
     return builder.toString();
