@@ -97,6 +97,7 @@ import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.pdb.PDBStorage;
@@ -682,9 +683,8 @@ final class OnDiskMergeBufferImporter
         }
       }
 
-      if (excludeBranches.isEmpty()
-          && includeBranches.size() == 1
-          && includeBranches.get(0).equals(baseDN))
+      if (!Backend.importIncludesOrExcludesBranches(Collections.singleton(baseDN), includeBranches, excludeBranches))
+
       {
         // This entire base DN is explicitly included in the import with
         // no exclude branches that we need to migrate.

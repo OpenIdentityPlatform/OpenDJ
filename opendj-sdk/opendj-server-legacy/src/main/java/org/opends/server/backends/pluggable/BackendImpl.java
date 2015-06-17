@@ -664,6 +664,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       throw new DirectoryException(getServerErrorResultCode(), ERR_IMPORT_BACKEND_ONLINE.get());
     }
+    if (importIncludesOrExcludesBranches(cfg.getBaseDN(), importConfig.getIncludeBranches(),
+        importConfig.getExcludeBranches()))
+    {
+      // fail-fast to avoid ending up in an unrecoverable state for the server
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_IMPORT_UNSUPPORTED_WITH_BRANCH.get());
+    }
 
     try
     {
