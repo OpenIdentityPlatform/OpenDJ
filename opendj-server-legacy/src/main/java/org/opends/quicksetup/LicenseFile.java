@@ -51,12 +51,12 @@ public class LicenseFile
   /**
    * The license file name in Legal directory.
    */
-  private static final String LICENSE_FILE_NAME = "license_to_accept.txt";
+  private static final String LICENSE_FILE_NAME = "Forgerock_License.txt";
 
   /**
    * The Legal folder which contains license file.
    */
-  private static final String LEGAL_FOLDER_NAME = "Legal";
+  private static final String LEGAL_FOLDER_NAME = "legal-notices";
 
   /**
    * The accepted license file name.

@@ -175,12 +175,12 @@ do
 done
 
 # Create and sign the licence.jar file if exists.
-if [ -d ${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/Legal ]
+if [ -d ${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/legal-notices ]
 then
 echo "Creating license.jar ..."
-cp "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/Legal" "${INSTALL_DIR}/lib"
+cp "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/legal-notices" "${INSTALL_DIR}/lib"
 cd "${BUILD_DIR}/package"
-"${JAR}" -cf "${INSTALL_DIR}/lib/license.jar" -C "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/" "Legal"
+"${JAR}" -cf "${INSTALL_DIR}/lib/license.jar" -C "${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/" "legal-notices"
 cd "${INSTALL_DIR}/lib"
 echo "Signing license.jar ..."
 "${JARSIGNER}" -keystore "${CERT_KEYSTORE}" -keypass "${CERT_KEYSTORE_PIN}" \

@@ -41,24 +41,48 @@ import org.opends.server.util.StaticUtils;
  */
 class LicenseFile
 {
+  private static final String INSTALL_ROOT_SYSTEM_PROPERTY = "INSTALL_ROOT";
+
   /**
-   * Get the directory in which legal files are stored.
+   * The license file name in Legal directory.
    */
+  private static final String LICENSE_FILE_NAME = "Forgerock_License.txt";
+
+  /**
+   * The Legal folder which contains license file.
+   */
+  private static final String LEGAL_FOLDER_NAME = "legal-notices";
+
+  /** List of possible folder of the accepted license file. */
+  private static final String[] ACCEPTED_LICENSE_FOLDER_NAMES = new String[] { LEGAL_FOLDER_NAME, "Legal" };
+
+  /**
+   * The accepted license file name.
+   */
+  private static final String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
+
+  /**
+   * Try to find the local instance path from system property or environment. If
+   * both are null, return the provided fallback value.
+   */
+  private static String getInstanceRootPathFromSystem(final String fallBackValue)
+  {
+    final String[] possibleValues = new String[] {
+      System.getProperty(INSTALL_ROOT_SYSTEM_PROPERTY), System.getenv(INSTALL_ROOT_SYSTEM_PROPERTY) };
+    for (final String value : possibleValues )
+    {
+      if (value != null)
+      {
+        return value;
+      }
+    }
+    return fallBackValue;
+  }
+
+  /** Get the directory in which legal files are stored. */
   private static String getLegalDirectory()
   {
-    String installRootFromSystem = System.getProperty("INSTALL_ROOT");
-
-    if (installRootFromSystem == null)
-    {
-      installRootFromSystem = System.getenv("INSTALL_ROOT");
-    }
-
-    if (installRootFromSystem == null)
-    {
-      installRootFromSystem = "";
-    }
-
-    return installRootFromSystem + File.separatorChar + "Legal";
+    return getInstanceRootPathFromSystem("") + File.separatorChar + LEGAL_FOLDER_NAME;
   }
 
   /**
@@ -66,30 +90,14 @@ class LicenseFile
    */
   private static String getInstanceLegalDirectory()
   {
-    String installDirName = System.getProperty("INSTALL_ROOT");
-
-    if (installDirName == null)
-    {
-      installDirName = System.getenv("INSTALL_ROOT");
-    }
-
-    if (installDirName == null)
-    {
-      installDirName = ".";
-    }
-
-    final String instanceDirname =
-        UpgradeUtils.getInstancePathFromInstallPath(installDirName);
-    StringBuilder instanceLegalDirName =
-        new StringBuilder(instanceDirname).append(File.separator).append(
-            "Legal");
-    final File instanceLegalDir = new File(instanceLegalDirName.toString());
+    final String instanceDirname = UpgradeUtils.getInstancePathFromInstallPath(getInstanceRootPathFromSystem("."));
+    final String instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
+    final File instanceLegalDir = new File(instanceLegalDirName);
     if (!instanceLegalDir.exists())
     {
       instanceLegalDir.mkdir();
     }
-
-    return instanceLegalDirName.toString();
+    return instanceLegalDirName;
   }
 
   /**
@@ -107,7 +115,7 @@ class LicenseFile
    */
   private static String getName()
   {
-    return getLegalDirectory() + File.separatorChar + "license_to_accept.txt";
+    return getLegalDirectory() + File.separatorChar + LICENSE_FILE_NAME;
   }
 
   /**
@@ -126,7 +134,7 @@ class LicenseFile
   /**
    * Checks if the license file exists.
    *
-   * @return <CODE>true</CODE> a license file license_to_accept.txt exists in
+   * @return <CODE>true</CODE> a license file exists in
    *         the Legal directory in the top level installation directory
    *         <CODE>false</CODE> otherwise.
    */
@@ -205,7 +213,7 @@ class LicenseFile
       try
       {
         new File(getInstanceLegalDirectory() + File.separatorChar
-            + "licenseAccepted").createNewFile();
+            + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
       }
       catch (IOException e)
       {
@@ -219,12 +227,18 @@ class LicenseFile
    * @return <CODE>true</CODE> if the license had already been approved by the
    *         user <CODE>false</CODE> otherwise.
    */
-  static boolean isAlreadyApproved()
+  public static boolean isAlreadyApproved()
   {
-    File f =
-        new File(getInstanceLegalDirectory() + File.separatorChar
-            + "licenseAccepted");
-    return f.exists();
+    for (final String folderName : ACCEPTED_LICENSE_FOLDER_NAMES)
+    {
+      final File f = new File(getInstanceRootPathFromSystem(".") + File.separatorChar + folderName
+          + File.separatorChar + ACCEPTED_LICENSE_FILE_NAME);
+      if (f.exists())
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 }

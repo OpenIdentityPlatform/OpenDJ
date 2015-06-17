@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011-2015 ForgeRock AS.
-  !    
+  !
 -->
 <appendix xml:id='appendix-file-layout'
           xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -38,7 +38,7 @@
  <indexterm><primary>Installed files</primary></indexterm>
  <variablelist>
   <varlistentry>
-   <term><filename>Legal</filename></term>
+   <term><filename>legal-notices</filename></term>
    <listitem>
     <para>
      License information
