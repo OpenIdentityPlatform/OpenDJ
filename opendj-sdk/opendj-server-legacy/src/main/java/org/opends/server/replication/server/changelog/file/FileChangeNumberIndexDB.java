@@ -21,9 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +41,14 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.server.changelog.api.*;
-import org.opends.server.types.*;
-
-import static org.opends.messages.ReplicationMessages.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
 
 /**
  * Implementation of a ChangeNumberIndexDB with a log.
@@ -52,14 +58,27 @@ import static org.opends.messages.ReplicationMessages.*;
  */
 class FileChangeNumberIndexDB implements ChangeNumberIndexDB
 {
+  /** The type of the required change number. */
+  private static enum ChangeNumberType
+  {
+    FIRST("first-draft-changenumber"), LAST("last-draft-changenumber");
+
+    private final String attrName;
+
+    private ChangeNumberType(String attrName)
+    {
+      this.attrName = attrName;
+    }
+
+    private String getAttributeName()
+    {
+      return this.attrName;
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   private static final int NO_KEY = 0;
-
-  /** The parser of records stored in this ChangeNumberIndexDB. */
-  static final RecordParser<Long, ChangeNumberIndexRecord> RECORD_PARSER = new ChangeNumberIndexDBParser();
-
-  static final Record.Mapper<ChangeNumberIndexRecord, CSN> MAPPER_TO_CSN =
+  private static final Record.Mapper<ChangeNumberIndexRecord, CSN> MAPPER_TO_CSN =
       new Record.Mapper<ChangeNumberIndexRecord, CSN>()
       {
         @Override
@@ -68,6 +87,8 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
           return value.getCSN();
         }
       };
+  /** The parser of records stored in this ChangeNumberIndexDB. */
+  static final RecordParser<Long, ChangeNumberIndexRecord> RECORD_PARSER = new ChangeNumberIndexDBParser();
 
   /** The log in which records are persisted. */
   private final Log<Long, ChangeNumberIndexRecord> log;
@@ -251,43 +272,33 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
     return null;
   }
 
-  /**
-   * Implements the Monitoring capabilities of the FileChangeNumberIndexDB.
-   */
+  /** Implements the Monitoring capabilities of the FileChangeNumberIndexDB. */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
-    /** {@inheritDoc} */
     @Override
     public List<Attribute> getMonitorData()
     {
+      long firstCN = readChangeNumber(ChangeNumberType.FIRST);
+      long lastCN = readChangeNumber(ChangeNumberType.LAST);
+      long numberOfChanges = lastCN == NO_KEY ? 0 : lastCN - firstCN + 1;
+
       final List<Attribute> attributes = new ArrayList<Attribute>();
-      attributes.add(createChangeNumberAttribute(true));
-      attributes.add(createChangeNumberAttribute(false));
-      long numberOfChanges = 0;
-      try
-      {
-         numberOfChanges = count();
-      }
-      catch (ChangelogException e)
-      {
-        logger.traceException(e);
-      }
+      attributes.add(toAttribute(ChangeNumberType.FIRST, firstCN));
+      attributes.add(toAttribute(ChangeNumberType.LAST, lastCN));
       attributes.add(Attributes.create("count", Long.toString(numberOfChanges)));
       return attributes;
     }
 
-    private Attribute createChangeNumberAttribute(final boolean isFirst)
+    private Attribute toAttribute(final ChangeNumberType cnType, long changeNumber)
     {
-      final String attributeName = isFirst ? "first-draft-changenumber" : "last-draft-changenumber";
-      final String changeNumber = String.valueOf(readChangeNumber(isFirst));
-      return Attributes.create(attributeName, changeNumber);
+      return Attributes.create(cnType.getAttributeName(), String.valueOf(changeNumber));
     }
 
-    private long readChangeNumber(final boolean isFirst)
+    private long readChangeNumber(final ChangeNumberType type)
     {
       try
       {
-        return getChangeNumber(isFirst ? readFirstRecord() : readLastRecord());
+        return getChangeNumber(readChangeNumber0(type));
       }
       catch (ChangelogException e)
       {
@@ -296,14 +307,25 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       }
     }
 
-    /** {@inheritDoc} */
+    private ChangeNumberIndexRecord readChangeNumber0(final ChangeNumberType type) throws ChangelogException
+    {
+      if (ChangeNumberType.FIRST.equals(type))
+      {
+        return readFirstRecord();
+      }
+      else if (ChangeNumberType.LAST.equals(type))
+      {
+        return readLastRecord();
+      }
+      throw new IllegalArgumentException("Not implemented for ChangeNumber: " + type);
+    }
+
     @Override
     public String getMonitorInstanceName()
     {
       return "ChangeNumber Index Database";
     }
 
-    /** {@inheritDoc} */
     @Override
     public void initializeMonitorProvider(MonitorProviderCfg configuration)
                             throws ConfigException, InitializationException
