@@ -60,8 +60,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
-import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
@@ -664,20 +663,19 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
-      final KeyMatchingStrategy matchingStrategy, final PositionStrategy positionStrategy) throws ChangelogException
+  public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState, CursorOptions options)
+      throws ChangelogException
   {
     final Set<DN> excludedDomainDns = Collections.emptySet();
-    return getCursorFrom(startState, matchingStrategy, positionStrategy, excludedDomainDns);
+    return getCursorFrom(startState, options, excludedDomainDns);
   }
 
   /** {@inheritDoc} */
   @Override
   public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
-      final KeyMatchingStrategy matchingStrategy, final PositionStrategy positionStrategy,
-      final Set<DN> excludedDomainDns) throws ChangelogException
+      CursorOptions options, final Set<DN> excludedDomainDns) throws ChangelogException
   {
-    final MultiDomainDBCursor cursor = new MultiDomainDBCursor(this, matchingStrategy, positionStrategy);
+    final MultiDomainDBCursor cursor = new MultiDomainDBCursor(this, options);
     registeredMultiDomainCursors.add(cursor);
     for (DN baseDN : domainToReplicaDBs.keySet())
     {
@@ -691,10 +689,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final ServerState startState,
-      final KeyMatchingStrategy matchingStrategy, final PositionStrategy positionStrategy) throws ChangelogException
+  public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final ServerState startState, CursorOptions options)
+      throws ChangelogException
   {
-    final DomainDBCursor cursor = newDomainDBCursor(baseDN, matchingStrategy, positionStrategy);
+    final DomainDBCursor cursor = newDomainDBCursor(baseDN, options);
     for (int serverId : getDomainMap(baseDN).keySet())
     {
       // get the last already sent CSN from that server to get a cursor
@@ -704,10 +702,9 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return cursor;
   }
 
-  private DomainDBCursor newDomainDBCursor(final DN baseDN, final KeyMatchingStrategy matchingStrategy,
-      final PositionStrategy positionStrategy)
+  private DomainDBCursor newDomainDBCursor(final DN baseDN, final CursorOptions options)
   {
-    final DomainDBCursor cursor = new DomainDBCursor(baseDN, this, matchingStrategy, positionStrategy);
+    final DomainDBCursor cursor = new DomainDBCursor(baseDN, this, options);
     putCursor(registeredDomainCursors, baseDN, cursor);
     return cursor;
   }
@@ -725,15 +722,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startCSN,
-      final KeyMatchingStrategy matchingStrategy, final PositionStrategy positionStrategy) throws ChangelogException
+      CursorOptions options) throws ChangelogException
   {
     final FileReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
-      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, matchingStrategy, positionStrategy);
+      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+          startCSN, options.getKeyMatchingStrategy(), options.getPositionStrategy());
       final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
       final ReplicaId replicaId = ReplicaId.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaId, this);

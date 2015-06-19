@@ -26,6 +26,9 @@
 package org.opends.server.replication.server.changelog.api;
 
 import java.io.Closeable;
+import java.util.Objects;
+
+import org.opends.server.replication.common.CSN;
 
 /**
  * Generic cursor interface into the changelog database. Once it is not used
@@ -113,6 +116,110 @@ public interface DBCursor<T> extends Closeable
     ON_MATCHING_KEY,
     /** Start point is after the matching key. */
     AFTER_MATCHING_KEY
+  }
+
+  /** Options to create a cursor. */
+  public static final class CursorOptions
+  {
+    private final KeyMatchingStrategy keyMatchingStrategy;
+    private final PositionStrategy positionStrategy;
+    private final CSN defaultCSN;
+
+    /**
+     * Creates options with provided strategies.
+     *
+     * @param keyMatchingStrategy
+     *          The key matching strategy
+     * @param positionStrategy
+     *          The position strategy
+     */
+    public CursorOptions(KeyMatchingStrategy keyMatchingStrategy, PositionStrategy positionStrategy)
+    {
+      this(keyMatchingStrategy, positionStrategy, null);
+    }
+
+    /**
+     * Creates options with provided strategies and default CSN.
+     *
+     * @param keyMatchingStrategy
+     *          The key matching strategy
+     * @param positionStrategy
+     *          The position strategy
+     * @param defaultCSN
+     *          When creating a replica DB Cursor, this is the default CSN to
+     *          use for replicas which do not have an associated CSN
+     */
+    public CursorOptions(KeyMatchingStrategy keyMatchingStrategy, PositionStrategy positionStrategy, CSN defaultCSN)
+    {
+      this.keyMatchingStrategy = keyMatchingStrategy;
+      this.positionStrategy = positionStrategy;
+      this.defaultCSN = defaultCSN;
+    }
+
+    /**
+     * Returns the key matching strategy.
+     *
+     * @return the key matching strategy
+     */
+    public KeyMatchingStrategy getKeyMatchingStrategy()
+    {
+      return keyMatchingStrategy;
+    }
+
+    /**
+     * Returns the position strategy.
+     *
+     * @return the position strategy
+     */
+    public PositionStrategy getPositionStrategy()
+    {
+      return positionStrategy;
+    }
+
+    /**
+     * Returns the default CSN.
+     *
+     * @return the default CSN
+     */
+    public CSN getDefaultCSN()
+    {
+      return defaultCSN;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+      if (this == obj) {
+        return true;
+      }
+      if (obj instanceof CursorOptions) {
+        CursorOptions other = (CursorOptions) obj;
+        return keyMatchingStrategy == other.keyMatchingStrategy
+            && positionStrategy == other.positionStrategy
+            && Objects.equals(defaultCSN, other.defaultCSN);
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((keyMatchingStrategy == null) ? 0 : keyMatchingStrategy.hashCode());
+      result = prime * result + ((positionStrategy == null) ? 0 : positionStrategy.hashCode());
+      result = prime * result + ((defaultCSN == null) ? 0 : defaultCSN.hashCode());
+      return result;
+    }
+
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName()
+          + " [keyMatchingStrategy=" + keyMatchingStrategy
+          + ", positionStrategy=" + positionStrategy
+          + ", defaultCSN=" + defaultCSN + "]";
+    }
   }
 
   /**

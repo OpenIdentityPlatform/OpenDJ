@@ -46,6 +46,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.ChangeNumberIndexer;
@@ -169,7 +170,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     MockitoAnnotations.initMocks(this);
 
-    multiDomainCursor = new MultiDomainDBCursor(domainDB, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
     initialState = new ChangelogState();
     replicaDBCursors = new HashMap<ReplicaId, SequentialDBCursor>();
     domainDBCursors = new HashMap<DN, DomainDBCursor>();
@@ -177,8 +179,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     when(changelogDB.getChangeNumberIndexDB()).thenReturn(cnIndexDB);
     when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);
-    when(domainDB.getCursorFrom(any(MultiDomainServerState.class),
-        eq(LESS_THAN_OR_EQUAL_TO_KEY), eq(AFTER_MATCHING_KEY))).thenReturn(multiDomainCursor);
+    when(domainDB.getCursorFrom(any(MultiDomainServerState.class), eq(options))).thenReturn(multiDomainCursor);
   }
 
   @AfterMethod
@@ -562,23 +563,21 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     if (predicate.isECLEnabledDomain(baseDN))
     {
+      CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
       DomainDBCursor domainDBCursor = domainDBCursors.get(baseDN);
       if (domainDBCursor == null)
       {
-        domainDBCursor = new DomainDBCursor(baseDN, domainDB, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+        domainDBCursor = new DomainDBCursor(baseDN, domainDB, options);
         domainDBCursors.put(baseDN, domainDBCursor);
 
         multiDomainCursor.addDomain(baseDN, null);
-        when(domainDB.getCursorFrom(eq(baseDN), any(ServerState.class), eq(LESS_THAN_OR_EQUAL_TO_KEY),
-            eq(AFTER_MATCHING_KEY))).thenReturn(domainDBCursor);
+        when(domainDB.getCursorFrom(eq(baseDN), any(ServerState.class), eq(options))).thenReturn(domainDBCursor);
       }
       domainDBCursor.addReplicaDB(serverId, null);
-      when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class), eq(LESS_THAN_OR_EQUAL_TO_KEY),
-          eq(AFTER_MATCHING_KEY))).thenReturn(replicaDBCursor);
+      when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class), eq(options))).thenReturn(replicaDBCursor);
     }
 
-    when(domainDB.getDomainNewestCSNs(baseDN)).thenReturn(
-        getDomainNewestCSNs(baseDN));
+    when(domainDB.getDomainNewestCSNs(baseDN)).thenReturn(getDomainNewestCSNs(baseDN));
     initialState.addServerIdToDomain(serverId, baseDN);
   }
 

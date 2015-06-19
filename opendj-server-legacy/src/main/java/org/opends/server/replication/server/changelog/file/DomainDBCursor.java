@@ -42,18 +42,13 @@ import org.opends.server.types.DN;
  */
 public class DomainDBCursor extends CompositeDBCursor<Void>
 {
+  /** Replaces null CSNs in ConcurrentSkipListMap that does not support null values. */
+  private static final CSN NULL_CSN = new CSN(0, 0, 0);
 
   private final DN baseDN;
   private final ReplicationDomainDB domainDB;
-
-  private final ConcurrentSkipListMap<Integer, CSN> newReplicas = new ConcurrentSkipListMap<Integer, CSN>();
-  /**
-   * Replaces null CSNs in ConcurrentSkipListMap that does not support null values.
-   */
-  private static final CSN NULL_CSN = new CSN(0, 0, 0);
-
-  private final PositionStrategy positionStrategy;
-  private final KeyMatchingStrategy matchingStrategy;
+  private final ConcurrentSkipListMap<Integer, CSN> newReplicas = new ConcurrentSkipListMap<>();
+  private final CursorOptions options;
 
   /**
    * Builds a DomainDBCursor instance.
@@ -62,20 +57,13 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
    *          the replication domain baseDN of this cursor
    * @param domainDB
    *          the DB for the provided replication domain
-   * @param matchingStrategy
-   *          Cursor key matching strategy, which allow to indicates how key is
-   *          matched
-   * @param positionStrategy
-   *          Cursor position strategy, which allow to indicates at which exact
-   *          position the cursor must start
+   * @param options The cursor options
    */
-  public DomainDBCursor(final DN baseDN, final ReplicationDomainDB domainDB, final KeyMatchingStrategy matchingStrategy,
-      final PositionStrategy positionStrategy)
+  public DomainDBCursor(final DN baseDN, final ReplicationDomainDB domainDB, CursorOptions options)
   {
     this.baseDN = baseDN;
     this.domainDB = domainDB;
-    this.matchingStrategy = matchingStrategy;
-    this.positionStrategy = positionStrategy;
+    this.options = options;
   }
 
   /**
@@ -113,8 +101,7 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
       final int serverId = pair.getKey();
       final CSN csn = pair.getValue();
       final CSN startCSN = !NULL_CSN.equals(csn) ? csn : null;
-      final DBCursor<UpdateMsg> cursor =
-          domainDB.getCursorFrom(baseDN, serverId, startCSN, matchingStrategy, positionStrategy);
+      final DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, serverId, startCSN, options);
       addCursor(cursor, null);
       iter.remove();
     }

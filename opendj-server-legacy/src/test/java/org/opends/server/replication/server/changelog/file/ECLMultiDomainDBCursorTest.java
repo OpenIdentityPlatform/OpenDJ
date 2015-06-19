@@ -35,6 +35,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.server.changelog.file.ECLMultiDomainDBCursor;
 import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
@@ -54,6 +55,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
 
   @Mock
   private ReplicationDomainDB domainDB;
+  private CursorOptions options;
   private MultiDomainDBCursor multiDomainCursor;
   private ECLMultiDomainDBCursor eclCursor;
   private final Set<DN> eclEnabledDomains = new HashSet<DN>();
@@ -66,12 +68,14 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
     }
   };
 
+
   @BeforeMethod
   public void setup() throws Exception
   {
     TestCaseUtils.startFakeServer();
     MockitoAnnotations.initMocks(this);
-    multiDomainCursor = new MultiDomainDBCursor(domainDB, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+    options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+    multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
     eclCursor = new ECLMultiDomainDBCursor(predicate, multiDomainCursor);
   }
 
@@ -168,7 +172,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private void addDomainCursorToCursor(DN baseDN, SequentialDBCursor cursor) throws ChangelogException
   {
     final ServerState state = new ServerState();
-    when(domainDB.getCursorFrom(baseDN, state, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY)).thenReturn(cursor);
+    when(domainDB.getCursorFrom(baseDN, state, options)).thenReturn(cursor);
     multiDomainCursor.addDomain(baseDN, state);
   }
 }
