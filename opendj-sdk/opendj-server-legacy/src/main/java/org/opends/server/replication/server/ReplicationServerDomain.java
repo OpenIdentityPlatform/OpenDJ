@@ -67,6 +67,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -1279,12 +1280,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @return a non null {@link DBCursor} going from oldest to newest CSN
    * @throws ChangelogException
    *           If a database problem happened
-   * @see ReplicationDomainDB#getCursorFrom(DN, ServerState, KeyMatchingStrategy, PositionStrategy)
+   * @see ReplicationDomainDB#getCursorFrom(DN, ServerState, CursorOptions)
    */
   public DBCursor<UpdateMsg> getCursorFrom(ServerState startAfterServerState)
       throws ChangelogException
   {
-    return domainDB.getCursorFrom(baseDN, startAfterServerState, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    return domainDB.getCursorFrom(baseDN, startAfterServerState, options);
   }
 
   /**

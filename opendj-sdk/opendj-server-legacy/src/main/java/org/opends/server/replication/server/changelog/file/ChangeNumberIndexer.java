@@ -42,6 +42,7 @@ import org.opends.server.replication.server.changelog.api.AbortedChangelogCursor
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 
@@ -318,8 +319,9 @@ public class ChangeNumberIndexer extends DirectoryThread
   {
     final MultiDomainServerState cookieWithNewestCSN = getCookieInitializedWithNewestCSN();
 
+    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
     MultiDomainDBCursor cursorInitializedToMediumConsistencyPoint =
-        domainDB.getCursorFrom(cookieWithNewestCSN, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+        domainDB.getCursorFrom(cookieWithNewestCSN, options);
 
     nextChangeForInsertDBCursor = new ECLMultiDomainDBCursor(predicate, cursorInitializedToMediumConsistencyPoint);
     nextChangeForInsertDBCursor.next();

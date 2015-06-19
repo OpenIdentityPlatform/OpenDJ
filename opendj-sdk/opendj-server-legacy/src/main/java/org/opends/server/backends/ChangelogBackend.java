@@ -86,6 +86,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecor
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
@@ -366,8 +367,9 @@ public class ChangelogBackend extends Backend<Configuration>
       try
       {
         final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
+        CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
         final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
-            new MultiDomainServerState(), GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, getExcludedBaseDNs());
+            new MultiDomainServerState(), options, getExcludedBaseDNs());
         try
         {
           baseEntryHasSubordinates = cursor.next();
@@ -869,8 +871,9 @@ public class ChangelogBackend extends Backend<Configuration>
     try
     {
       final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
+      CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
       final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
-          entrySender.cookie, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, entrySender.excludedBaseDNs);
+          entrySender.cookie, options, entrySender.excludedBaseDNs);
       replicaUpdatesCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
 
       if (sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor))
@@ -1093,9 +1096,9 @@ public class ChangelogBackend extends Backend<Configuration>
     try
     {
       cookie.update(cnIndexRecord.getBaseDN(), cnIndexRecord.getCSN());
+      CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
       MultiDomainDBCursor cursor =
-          getChangelogDB().getReplicationDomainDB().getCursorFrom(cookie,
-              LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+          getChangelogDB().getReplicationDomainDB().getCursorFrom(cookie, options);
       eclCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
       eclCursor.next();
       cookie.update(eclCursor.toCookie());
@@ -1114,8 +1117,9 @@ public class ChangelogBackend extends Backend<Configuration>
 
     // No need for ECLMultiDomainDBCursor in this case
     // as updateMsg will be matched with cnIndexRecord
+    CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
     final MultiDomainDBCursor replicaUpdatesCursor =
-        getChangelogDB().getReplicationDomainDB().getCursorFrom(state, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+        getChangelogDB().getReplicationDomainDB().getCursorFrom(state, options);
     replicaUpdatesCursor.next();
     return replicaUpdatesCursor;
   }

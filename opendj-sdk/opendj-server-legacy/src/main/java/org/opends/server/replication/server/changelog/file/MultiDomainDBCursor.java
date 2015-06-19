@@ -43,30 +43,20 @@ import org.opends.server.types.DN;
 public class MultiDomainDBCursor extends CompositeDBCursor<DN>
 {
   private final ReplicationDomainDB domainDB;
-
-  private final ConcurrentSkipListMap<DN, ServerState> newDomains =
-      new ConcurrentSkipListMap<DN, ServerState>();
-
-  private final KeyMatchingStrategy matchingStrategy;
-
-  private final PositionStrategy positionStrategy;
+  private final ConcurrentSkipListMap<DN, ServerState> newDomains = new ConcurrentSkipListMap<>();
+  private final CursorOptions options;
 
   /**
    * Builds a MultiDomainDBCursor instance.
    *
    * @param domainDB
    *          the replication domain management DB
-   * @param matchingStrategy
-   *          Cursor key matching strategy
-   * @param positionStrategy
-   *          Cursor position strategy
+   * @param options The cursor options
    */
-  public MultiDomainDBCursor(final ReplicationDomainDB domainDB, final KeyMatchingStrategy matchingStrategy,
-      final PositionStrategy positionStrategy)
+  public MultiDomainDBCursor(final ReplicationDomainDB domainDB, CursorOptions options)
   {
     this.domainDB = domainDB;
-    this.matchingStrategy = matchingStrategy;
-    this.positionStrategy = positionStrategy;
+    this.options = options;
   }
 
   /**
@@ -93,8 +83,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
       final Entry<DN, ServerState> entry = iter.next();
       final DN baseDN = entry.getKey();
       final ServerState serverState = entry.getValue();
-      final DBCursor<UpdateMsg> domainDBCursor =
-          domainDB.getCursorFrom(baseDN, serverState, matchingStrategy, positionStrategy);
+      final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, options);
       addCursor(domainDBCursor, baseDN);
       iter.remove();
     }

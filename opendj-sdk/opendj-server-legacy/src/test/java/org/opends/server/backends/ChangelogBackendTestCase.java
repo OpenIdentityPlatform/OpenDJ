@@ -85,6 +85,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
@@ -460,8 +461,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private void isOldestCSNForReplica(DN baseDN, CSN csn) throws Exception
   {
     final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
-    final DBCursor<UpdateMsg> cursor =
-        domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+    CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+    final DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options);
     try {
       assertTrue(cursor.next(),
           "Expected to be to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
