@@ -1773,8 +1773,8 @@ public class ArgumentParser implements ToolRefDocContainer {
                 final String value = argumentProperties.getProperty(a.getPropertyName().toLowerCase());
                 final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                 if (value != null) {
-                    boolean addValue = !(a instanceof BooleanArgument)
-                            && a.valueIsAcceptable(value, invalidReason);
+                    boolean addValue = (a instanceof BooleanArgument) ? true
+                            : a.valueIsAcceptable(value, invalidReason);
                     if (addValue) {
                         a.addValue(value);
                         if (a.needsValue()) {

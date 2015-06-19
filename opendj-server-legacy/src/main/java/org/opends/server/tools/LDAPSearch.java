@@ -959,7 +959,7 @@ public class LDAPSearch
       subEntriesArgument = new BooleanArgument("subEntries",
               OPTION_SHORT_SUBENTRIES, OPTION_LONG_SUBENTRIES,
               INFO_DESCRIPTION_SUBENTRIES.get());
-      useSSL.setPropertyName(OPTION_LONG_SUBENTRIES);
+      subEntriesArgument.setPropertyName(OPTION_LONG_SUBENTRIES);
       argParser.addArgument(subEntriesArgument);
 
       effectiveRightsUser =
