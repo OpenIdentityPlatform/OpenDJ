@@ -54,7 +54,6 @@ import org.opends.server.replication.server.changelog.file.DomainDBCursor;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
 import org.opends.server.types.DN;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -90,7 +89,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private static final class ReplicatedUpdateMsg extends UpdateMsg
   {
-
     private final DN baseDN;
     private final boolean emptyCursor;
 
@@ -116,7 +114,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       return emptyCursor;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -153,16 +150,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @BeforeClass
   public static void classSetup() throws Exception
   {
-    TestCaseUtils.startFakeServer();
+    TestCaseUtils.startServer();
     BASE_DN1 = DN.valueOf("dc=example,dc=com");
     BASE_DN2 = DN.valueOf("dc=world,dc=company");
     ADMIN_DATA_DN = DN.valueOf("cn=admin data");
-  }
-
-  @AfterClass
-  public static void classTearDown() throws Exception
-  {
-    TestCaseUtils.shutdownFakeServer();
   }
 
   @BeforeMethod
@@ -170,7 +161,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     MockitoAnnotations.initMocks(this);
 
-    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null);
     multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
     initialState = new ChangelogState();
     replicaDBCursors = new HashMap<ReplicaId, SequentialDBCursor>();
@@ -563,7 +554,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     if (predicate.isECLEnabledDomain(baseDN))
     {
-      CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+      CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null);
       DomainDBCursor domainDBCursor = domainDBCursors.get(baseDN);
       if (domainDBCursor == null)
       {
