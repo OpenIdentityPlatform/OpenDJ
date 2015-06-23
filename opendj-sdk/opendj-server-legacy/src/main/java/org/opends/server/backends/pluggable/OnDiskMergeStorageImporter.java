@@ -48,7 +48,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,7 +84,6 @@ import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
@@ -1409,89 +1407,38 @@ final class OnDiskMergeStorageImporter
   private Suffix getSuffix(WriteableTransaction txn, EntryContainer entryContainer)
       throws ConfigException, DirectoryException
   {
-    if (importCfg.appendToExistingData() || importCfg.clearBackend())
-    {
-      return new Suffix(entryContainer);
-    }
-
-    final DN baseDN = entryContainer.getBaseDN();
-    if (importCfg.getExcludeBranches().contains(baseDN))
-    {
-      // This entire base DN was explicitly excluded. Skip.
-      return null;
-    }
-
+    DN baseDN = entryContainer.getBaseDN();
+    ImportSuffixCommand openMethod = new ImportSuffixCommand(baseDN, importCfg);
     EntryContainer sourceEntryContainer = null;
-    List<DN> excludeBranches = getDescendants(baseDN, importCfg.getExcludeBranches());
-    List<DN> includeBranches = null;
-    if (!importCfg.getIncludeBranches().isEmpty())
+
+    switch(openMethod.getSuffixImportStrategy())
     {
-      includeBranches = getDescendants(baseDN, importCfg.getIncludeBranches());
-      if (includeBranches.isEmpty())
+    case APPEND_OR_REPLACE:
+      return new Suffix(entryContainer);
+    case SKIP_SUFFIX:
+      return null;
+    case CLEAR_SUFFIX:
+      clearSuffix(entryContainer);
+      break;
+    case MERGE_DB_WITH_LDIF:
+      sourceEntryContainer = entryContainer;
+      // Create a temp entry container
+      DN tempDN = DN.valueOf(baseDN.rdn() + "_importTmp");
+      if (baseDN.size() > 1)
       {
-        // There are no branches in the explicitly defined include list under this base DN.
-        // Skip this base DN altogether.
-        return null;
+        tempDN = baseDN.parent().child(tempDN);
       }
-
-      // Remove any overlapping include branches.
-      Iterator<DN> includeBranchIterator = includeBranches.iterator();
-      while (includeBranchIterator.hasNext())
-      {
-        DN includeDN = includeBranchIterator.next();
-        if (!isAnyNotEqualAndAncestorOf(includeBranches, includeDN))
-        {
-          includeBranchIterator.remove();
-        }
-      }
-
-      // Remove any exclude branches that are not are not under a include branch
-      // since they will be migrated as part of the existing entries
-      // outside of the include branches anyways.
-      Iterator<DN> excludeBranchIterator = excludeBranches.iterator();
-      while (excludeBranchIterator.hasNext())
-      {
-        DN excludeDN = excludeBranchIterator.next();
-        if (!isAnyAncestorOf(includeBranches, excludeDN))
-        {
-          excludeBranchIterator.remove();
-        }
-      }
-
-      if (!Backend.importIncludesOrExcludesBranches(Collections.singleton(baseDN), includeBranches, excludeBranches))
-      {
-        // This entire base DN is explicitly included in the import with
-        // no exclude branches that we need to migrate.
-        // Just clear the entry container.
-        clearSuffix(entryContainer);
-      }
-      else
-      {
-        sourceEntryContainer = entryContainer;
-
-        // Create a temp entry container
-        DN tempDN = DN.valueOf(baseDN.rdn() + "_importTmp");
-        if (baseDN.size() > 1)
-        {
-          tempDN = baseDN.parent().child(tempDN);
-        }
-        entryContainer = rootContainer.openEntryContainer(tempDN, txn);
-      }
+      entryContainer = rootContainer.openEntryContainer(tempDN, txn);
+      break;
+    case INCLUDE_EXCLUDE_BRANCHES:
+      break;
+    default:
+      throw new DirectoryException(getServerErrorResultCode(),
+          ERR_IMPORT_UNKNOWN_SUFFIX_COMMAND_STRATEGY.get(baseDN));
     }
-    return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
-  }
 
-  private List<DN> getDescendants(DN baseDN, Set<DN> dns)
-  {
-    final List<DN> results = new ArrayList<>();
-    for (DN dn : dns)
-    {
-      if (baseDN.isAncestorOf(dn))
-      {
-        results.add(dn);
-      }
-    }
-    return results;
+    return new Suffix(entryContainer, sourceEntryContainer, openMethod.getIncludeBranches(),
+        openMethod.getExcludeBranches());
   }
 
   private static void clearSuffix(EntryContainer entryContainer)
@@ -1499,30 +1446,6 @@ final class OnDiskMergeStorageImporter
     entryContainer.lock();
     entryContainer.clear();
     entryContainer.unlock();
-  }
-
-  private static boolean isAnyNotEqualAndAncestorOf(List<DN> dns, DN childDN)
-  {
-    for (DN dn : dns)
-    {
-      if (!dn.equals(childDN) && dn.isAncestorOf(childDN))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static boolean isAnyAncestorOf(List<DN> dns, DN childDN)
-  {
-    for (DN dn : dns)
-    {
-      if (dn.isAncestorOf(childDN))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   private LDIFImportResult processImport() throws Exception
