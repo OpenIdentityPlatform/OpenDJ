@@ -975,22 +975,6 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Returns if <tt>exclude</tt> contains at least a DN or <tt>include</tt> contains anything else than one of
-   * <tt>baseDNs</tt>.
-   *
-   * @param baseDNs the baseDNs of a backend
-   * @param includeBranches a set of include DNs
-   * @param excludeBranches a set of exclude DNs
-   * @return true if <tt>exclude</tt> contains at least a DN or <tt>include</tt> contains anything else than one of
-   *         <tt>baseDNs</tt>
-   */
-  public static boolean importIncludesOrExcludesBranches(Collection<DN> baseDNs, Collection<DN> includeBranches,
-      Collection<DN> excludeBranches)
-  {
-    return !excludeBranches.isEmpty() || includeBranches.size() != 1 || !baseDNs.containsAll(includeBranches);
-  }
-
-  /**
    * Indicates whether a backend should be used to handle operations
    * for the provided entry given the set of base DNs and exclude DNs.
    *
