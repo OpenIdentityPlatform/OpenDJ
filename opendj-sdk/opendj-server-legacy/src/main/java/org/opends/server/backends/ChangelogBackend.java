@@ -1077,7 +1077,7 @@ public class ChangelogBackend extends Backend<Configuration>
       continueSearch = entrySender.changeNumberIsInRange(cnIndexRecord.getChangeNumber());
       if (continueSearch)
       {
-        final UpdateMsg updateMsg = findReplicaUpdateMessage(cnIndexRecord, replicaUpdatesCursor.get());
+        final UpdateMsg updateMsg = findReplicaUpdateMessage(replicaUpdatesCursor.get(), cnIndexRecord.getCSN());
         if (updateMsg != null)
         {
           continueSearch = entrySender.initialSearchSendEntry(cnIndexRecord, updateMsg, cookie);
@@ -1092,20 +1092,48 @@ public class ChangelogBackend extends Backend<Configuration>
   private void initializeCookieForChangeNumberMode(
       MultiDomainServerState cookie, final ChangeNumberIndexRecord cnIndexRecord) throws ChangelogException
   {
-    ECLMultiDomainDBCursor eclCursor = null;
-    try
+    // Initialize the multi domain cursor only from the change number index record.
+    // The cookie is always empty at this stage.
+    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, cnIndexRecord.getCSN());
+    MultiDomainServerState unused = new MultiDomainServerState();
+    MultiDomainDBCursor cursor = getChangelogDB().getReplicationDomainDB().getCursorFrom(unused, options);
+    try (ECLMultiDomainDBCursor eclCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor))
     {
-      cookie.update(cnIndexRecord.getBaseDN(), cnIndexRecord.getCSN());
-      CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-      MultiDomainDBCursor cursor =
-          getChangelogDB().getReplicationDomainDB().getCursorFrom(cookie, options);
-      eclCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
-      eclCursor.next();
-      cookie.update(eclCursor.toCookie());
+      updateCookieToMediumConsistencyPoint(cookie, eclCursor, cnIndexRecord);
     }
-    finally
+  }
+
+  /**
+   * Rebuilds the changelogcookie starting at the newest change number index record.
+   * <p>
+   * It updates the provided cookie with the changes from the provided ECL cursor,
+   * up to (and including) the provided change number index record.
+   * <p>
+   * Therefore, after calling this method, the cursor is positioned
+   * to the change immediately following the provided change number index record.
+   *
+   * @param cookie the cookie to update
+   * @param cursor the cursor where to read changes from
+   * @param cnIndexRecord the change number index record to go right after
+   * @throws ChangelogException if any problem occurs
+   */
+  public static void updateCookieToMediumConsistencyPoint(
+      MultiDomainServerState cookie, ECLMultiDomainDBCursor cursor, ChangeNumberIndexRecord cnIndexRecord)
+          throws ChangelogException
+  {
+    if (cnIndexRecord == null)
     {
-      close(eclCursor);
+      return;
+    }
+
+    while (cursor.next())
+    {
+      UpdateMsg updateMsg = cursor.getRecord();
+      if (updateMsg.getCSN().compareTo(cnIndexRecord.getCSN()) > 0)
+      {
+        break;
+      }
+      cookie.update(cursor.getData(), updateMsg.getCSN());
     }
   }
 
@@ -1135,15 +1163,13 @@ public class ChangelogBackend extends Backend<Configuration>
    *           If inconsistency is detected between the available update
    *           messages and the provided cnIndexRecord
    */
-  private UpdateMsg findReplicaUpdateMessage(
-      final ChangeNumberIndexRecord cnIndexRecord,
-      final MultiDomainDBCursor replicaUpdatesCursor)
-          throws DirectoryException, ChangelogException
+  private UpdateMsg findReplicaUpdateMessage(final MultiDomainDBCursor replicaUpdatesCursor, CSN csn)
+      throws ChangelogException, DirectoryException
   {
     while (true)
     {
       final UpdateMsg updateMsg = replicaUpdatesCursor.getRecord();
-      final int compareIndexWithUpdateMsg = cnIndexRecord.getCSN().compareTo(updateMsg.getCSN());
+      final int compareIndexWithUpdateMsg = csn.compareTo(updateMsg.getCSN());
       if (compareIndexWithUpdateMsg < 0) {
         // Either update message has been purged or baseDN has been removed from changelogDB,
         // ignore current index record and go to the next one

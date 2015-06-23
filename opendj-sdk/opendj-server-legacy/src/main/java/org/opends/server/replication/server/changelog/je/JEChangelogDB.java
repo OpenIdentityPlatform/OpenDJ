@@ -764,7 +764,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startCSN,
       CursorOptions options) throws ChangelogException
@@ -772,9 +771,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     final JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
+      final CSN actualStartCSN = startCSN != null ? startCSN : options.getDefaultCSN();
       final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
-          startCSN, options.getKeyMatchingStrategy(), options.getPositionStrategy());
-      final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
+          actualStartCSN, options.getKeyMatchingStrategy(), options.getPositionStrategy());
+      final CSN offlineCSN = getOfflineCSN(baseDN, serverId, actualStartCSN);
       final ReplicaId replicaId = ReplicaId.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaId, this);
 

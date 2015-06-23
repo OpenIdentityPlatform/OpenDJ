@@ -195,12 +195,11 @@ class JEReplicaDB
   DBCursor<UpdateMsg> generateCursorFrom(final CSN startCSN, final KeyMatchingStrategy matchingStrategy,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    return new JEReplicaDBCursor(db, startCSN, matchingStrategy, positionStrategy, this);
+    CSN actualStartCSN = (startCSN != null && startCSN.getServerId() == serverId) ? startCSN : null;
+    return new JEReplicaDBCursor(db, actualStartCSN, matchingStrategy, positionStrategy, this);
   }
 
-  /**
-   * Shutdown this ReplicaDB.
-   */
+  /** Shutdown this ReplicaDB. */
   void shutdown()
   {
     if (shutdown.compareAndSet(false, true))
