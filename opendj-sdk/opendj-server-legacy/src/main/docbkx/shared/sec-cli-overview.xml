@@ -52,7 +52,7 @@
    <tbody>
     <row>
      <entry>Apple Mac OS X, Linux distributions, Oracle Solaris</entry>
-     <entry>WebStart, .zip</entry>
+     <entry>.zip</entry>
      <entry><filename>/path/to/opendj/bin</filename></entry>
     </row>
     <row>
@@ -62,7 +62,7 @@
     </row>
     <row>
      <entry>Microsoft Windows</entry>
-     <entry>WebStart, .zip</entry>
+     <entry>.zip</entry>
      <entry><filename>C:\path\to\opendj\bat</filename></entry>
     </row>
     <row>
