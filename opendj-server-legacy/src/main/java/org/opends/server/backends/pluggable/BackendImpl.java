@@ -667,8 +667,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     for (DN dn : cfg.getBaseDN())
     {
-      ImportSuffixCommand openMethod = new ImportSuffixCommand(dn, importConfig);
-      if (openMethod.getSuffixImportStrategy() == SuffixImportStrategy.MERGE_DB_WITH_LDIF)
+      ImportSuffixCommand importCommand = new ImportSuffixCommand(dn, importConfig);
+      if (importCommand.getSuffixImportStrategy() == SuffixImportStrategy.MERGE_DB_WITH_LDIF)
       {
         // fail-fast to avoid ending up in an unrecoverable state for the server
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_IMPORT_UNSUPPORTED_WITH_BRANCH.get());
