@@ -1084,7 +1084,6 @@ final class OnDiskMergeStorageImporter
    * Shim that allows properly constructing an {@link OnDiskMergeStorageImporter} without polluting
    * {@link ImportStrategy} and {@link RootContainer} with this importer inner workings.
    */
-  @SuppressWarnings("javadoc")
   static final class StrategyImpl implements ImportStrategy
   {
     private final PluggableBackendCfg backendCfg;
@@ -1408,10 +1407,10 @@ final class OnDiskMergeStorageImporter
       throws ConfigException, DirectoryException
   {
     DN baseDN = entryContainer.getBaseDN();
-    ImportSuffixCommand openMethod = new ImportSuffixCommand(baseDN, importCfg);
+    ImportSuffixCommand importCommand = new ImportSuffixCommand(baseDN, importCfg);
     EntryContainer sourceEntryContainer = null;
 
-    switch(openMethod.getSuffixImportStrategy())
+    switch (importCommand.getSuffixImportStrategy())
     {
     case APPEND_OR_REPLACE:
       return new Suffix(entryContainer);
@@ -1437,8 +1436,8 @@ final class OnDiskMergeStorageImporter
           ERR_IMPORT_UNKNOWN_SUFFIX_COMMAND_STRATEGY.get(baseDN));
     }
 
-    return new Suffix(entryContainer, sourceEntryContainer, openMethod.getIncludeBranches(),
-        openMethod.getExcludeBranches());
+    return new Suffix(entryContainer, sourceEntryContainer, importCommand.getIncludeBranches(),
+        importCommand.getExcludeBranches());
   }
 
   private static void clearSuffix(EntryContainer entryContainer)

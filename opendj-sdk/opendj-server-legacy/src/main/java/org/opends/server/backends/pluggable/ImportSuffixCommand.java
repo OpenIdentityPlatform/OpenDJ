@@ -34,9 +34,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDIFImportConfig;
 
- /** Command that describes how a suffix should be imported. Gives the strategy to use and the data to drive the
-  * import operation of a single suffix.
-  */
+ /**
+ * Command that describes how a suffix should be imported. Gives the strategy to use and the data to
+ * drive the import operation of a single suffix.
+ */
 public class ImportSuffixCommand
 {
   /** Strategy for importing a suffix. */
@@ -46,22 +47,17 @@ public class ImportSuffixCommand
      * branches are needed, normally used for append or clear backend modes.
      */
     APPEND_OR_REPLACE,
-    /**
-     * Do not create a {@link Suffix}.
-     */
+    /** Do not create a {@link Suffix}. */
     SKIP_SUFFIX,
-    /**
-     * Before creating a {@link Suffix}, clear the {@link EntryContainer} of the baseDN.
-     */
+    /** Before creating a {@link Suffix}, clear the {@link EntryContainer} of the baseDN. */
     CLEAR_SUFFIX,
-    /**
-     * Create a temporary {@link EntryContainer} to merge LDIF with original data.
-     */
+    /** Create a temporary {@link EntryContainer} to merge LDIF with original data. */
     MERGE_DB_WITH_LDIF,
     /**
      * Create a {@link Suffix} specifying include and exclude branches and optionally a source {@link EntryContainer}.
      */
-    INCLUDE_EXCLUDE_BRANCHES};
+    INCLUDE_EXCLUDE_BRANCHES
+  }
 
   private List<DN> includeBranches;
   private List<DN> excludeBranches;
