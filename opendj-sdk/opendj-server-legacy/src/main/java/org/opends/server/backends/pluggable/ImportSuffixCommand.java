@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDIFImportConfig;
 
- /**
+/**
  * Command that describes how a suffix should be imported. Gives the strategy to use and the data to
  * drive the import operation of a single suffix.
  */
