@@ -42,49 +42,43 @@
  <section xml:id="install-gui-quick-setup">
   <title>Installing OpenDJ With the QuickSetup Wizard</title>
 
- <para>QuickSetup uses Java WebStart to let you perform an installation of
- OpenDJ directory server starting with a click in your web browser, which can
- be a great way to try OpenDJ directory server for the first time, or to do a
- quick test installation.</para>
-
- <note>
   <para>
-   If your environment picks up an old installation of Java,
-   installation can fail.
-   You might see an application error due to an old Java version.
+   The OpenDJ QuickSetup wizard provides a graphical user interface
+   for installing OpenDJ directory server.
   </para>
- </note>
 
- <para>If the WebStart installation does not work in your browser, copy
- the WebStart URL, ending in <literal>QuickSetup.jnlp</literal>, from the
- OpenDJ download page. Next, pass the link as an argument to the
- <command>javaws</command> command in a terminal window to start the
- installer.</para>
+  <para>
+   To begin installation, download OpenDJ-${docTargetVersion}.zip,
+   unzip the file,
+   and then run the
+   <link
+    xlink:show="new"
+    xlink:href="reference#setup-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>setup</command></link> command,
+   <command>opendj/setup</command> (UNIX),
+   <command>opendj\setup.bat</command> (Windows),
+   or <command>opendj/QuickSetup.app</command> (Mac OS X).
+  </para>
 
- <screen>
-$ <userinput>export PATH=/path/to/java/bin:$PATH</userinput>
-$ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></userinput>
- </screen>
+  <note>
+   <para>
+    If your environment picks up an old installation of Java,
+    installation can fail.
+    You might see an application error due to an old Java version.
+   </para>
 
- <para>
-  The WebStart installer corresponds to what you start
-  if you download OpenDJ-${docTargetVersion}.zip,
-  unzip the file,
-  and then run the
-  <link
-   xlink:show="new"
-   xlink:href="reference#setup-1"
-   xlink:role="http://docbook.org/xlink/role/olink"
-  ><command>setup</command></link> command,
-  <command>opendj/setup</command> (UNIX),
-  <command>opendj\setup.bat</command> (Windows),
-  or <command>opendj/QuickSetup.app</command> (Mac OS X).
- </para>
-
- <para>
-  Java WebStart launches the the QuickSetup wizard,
-  and soon the Welcome screen appears.
- </para>
+   <para>
+    If your default Java environment is not appropriate,
+    set <literal>OPENDJ_JAVA_HOME</literal>
+    to the path to the correct Java environment,
+    or set <literal>OPENDJ_JAVA_BIN</literal>
+    to the absolute path of the <command>java</command> command.
+    The latter environment variable is useful for example
+    if you have both 32-bit and 64-bit versions of the Java environment installed,
+    and want to make sure you use the 64-bit version.
+   </para>
+  </note>
 
   <itemizedlist>
    <para>

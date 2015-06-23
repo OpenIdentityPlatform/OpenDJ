@@ -191,8 +191,7 @@
    
    <para>The <command>setup</command> command without the
    <literal>--cli</literal> option runs the Quick Start
-   GUI installer with your local version of software, as does
-   Java WebStart with a remote version of the software.</para>
+   GUI installer with your local version of software.</para>
 
    <screen>
 $ <userinput>/path/to/opendj/setup --cli</userinput>

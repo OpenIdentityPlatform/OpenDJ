@@ -38,17 +38,20 @@
 
  <para>If you want only to try OpenDJ server software, and you
  do not plan to store any real or important data that you want to keep,
- then you need not read this entire guide. Instead, try <link
- xlink:href="install-guide#chap-install-gui"
- xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Installing OpenDJ
- With the QuickSetup Wizard</citetitle></link>.</para>
+ then you need not read this entire guide. Instead try
+  <link
+   xlink:show="new"
+   xlink:href="install-guide#chap-install-gui"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><citetitle>Installing OpenDJ With a Graphical Installer</citetitle></link>.
+ </para>
 
  <section>
   <title>Who Should Read this Guide</title>
 
   <para>This guide is written for anyone installing OpenDJ who plans to
   maintain directory services for client applications. Basic OpenDJ
-  installation, especially using Java WebStart, can be simple and
+  installation can be simple and
   straightforward, particularly if you are already acquainted with directory
   services. Upgrading a running directory service without a single point of
   failure that can cause downtime requires at least a little thought
