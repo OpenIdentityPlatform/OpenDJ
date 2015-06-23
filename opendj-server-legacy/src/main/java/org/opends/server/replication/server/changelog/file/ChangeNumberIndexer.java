@@ -71,8 +71,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * for the supplied domain baseDNs. If a supplied domain is
    * {@link DN#NULL_DN}, then all domains will be cleared.
    */
-  private final ConcurrentSkipListSet<DN> domainsToClear =
-      new ConcurrentSkipListSet<DN>();
+  private final ConcurrentSkipListSet<DN> domainsToClear = new ConcurrentSkipListSet<>();
   private final ChangelogDB changelogDB;
   /** Only used for initialization, and then discarded. */
   private ChangelogState changelogState;
@@ -108,6 +107,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * @NonNull
    */
   private ECLMultiDomainDBCursor nextChangeForInsertDBCursor;
+  private MultiDomainServerState cookie = new MultiDomainServerState();
 
   /**
    * Builds a ChangeNumberIndexer object.
@@ -317,30 +317,16 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   private void initializeNextChangeCursor(final ReplicationDomainDB domainDB) throws ChangelogException
   {
-    final MultiDomainServerState cookieWithNewestCSN = getCookieInitializedWithNewestCSN();
-
-    CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
-    MultiDomainDBCursor cursorInitializedToMediumConsistencyPoint =
-        domainDB.getCursorFrom(cookieWithNewestCSN, options);
+    // Initialize the multi domain cursor only from the change number index record.
+    // The cookie is always empty at this stage.
+    final ChangeNumberIndexRecord newestRecord = changelogDB.getChangeNumberIndexDB().getNewestRecord();
+    final CSN newestCsn = newestRecord != null ? newestRecord.getCSN() : null;
+    final CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, newestCsn);
+    final MultiDomainServerState unused = new MultiDomainServerState();
+    MultiDomainDBCursor cursorInitializedToMediumConsistencyPoint = domainDB.getCursorFrom(unused, options);
 
     nextChangeForInsertDBCursor = new ECLMultiDomainDBCursor(predicate, cursorInitializedToMediumConsistencyPoint);
-    nextChangeForInsertDBCursor.next();
-  }
-
-  /** Returns a cookie initialised with the newest CSN for each replica. */
-  private MultiDomainServerState getCookieInitializedWithNewestCSN() throws ChangelogException
-  {
-    final ChangeNumberIndexRecord newestRecord = changelogDB.getChangeNumberIndexDB().getNewestRecord();
-    final MultiDomainServerState cookieWithNewestCSN = new MultiDomainServerState();
-    if (newestRecord != null)
-    {
-      final CSN newestCsn = newestRecord.getCSN();
-      for (DN baseDN : changelogState.getDomainToServerIds().keySet())
-      {
-        cookieWithNewestCSN.update(baseDN, newestCsn);
-      }
-    }
-    return cookieWithNewestCSN;
+    ChangelogBackend.updateCookieToMediumConsistencyPoint(cookie, nextChangeForInsertDBCursor, newestRecord);
   }
 
   private void initializeLastAliveCSNs(final ReplicationDomainDB domainDB)
@@ -477,7 +463,11 @@ public class ChangeNumberIndexer extends DirectoryThread
           // let's publish it to the CNIndexDB.
           final long changeNumber = changelogDB.getChangeNumberIndexDB()
               .addRecord(new ChangeNumberIndexRecord(baseDN, csn));
-          MultiDomainServerState cookie = nextChangeForInsertDBCursor.toCookie();
+          if (!cookie.update(baseDN, csn))
+          {
+            throw new IllegalStateException("It was expected that change (baseDN=" + baseDN + ", csn=" + csn
+                + ") would have updated the cookie=" + cookie + ", but it did not");
+          }
           notifyEntryAddedToChangelog(baseDN, changeNumber, cookie, msg);
           moveForwardMediumConsistencyPoint(csn, baseDN);
         }

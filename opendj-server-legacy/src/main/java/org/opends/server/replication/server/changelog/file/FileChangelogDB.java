@@ -729,9 +729,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final FileReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
+      final CSN actualStartCSN = startCSN != null ? startCSN : options.getDefaultCSN();
       final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
-          startCSN, options.getKeyMatchingStrategy(), options.getPositionStrategy());
-      final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
+          actualStartCSN, options.getKeyMatchingStrategy(), options.getPositionStrategy());
+      final CSN offlineCSN = getOfflineCSN(baseDN, serverId, actualStartCSN);
       final ReplicaId replicaId = ReplicaId.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaId, this);
 

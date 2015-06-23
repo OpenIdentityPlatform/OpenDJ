@@ -221,12 +221,11 @@ class FileReplicaDB
       final PositionStrategy positionStrategy) throws ChangelogException
   {
     RepositionableCursor<CSN, UpdateMsg> cursor = log.getCursor(startCSN, matchingStrategy, positionStrategy);
-    return new FileReplicaDBCursor(cursor, startCSN, positionStrategy);
+    CSN actualStartCSN = (startCSN != null && startCSN.getServerId() == serverId) ? startCSN : null;
+    return new FileReplicaDBCursor(cursor, actualStartCSN, positionStrategy);
   }
 
-  /**
-   * Shutdown this ReplicaDB.
-   */
+  /** Shutdown this ReplicaDB. */
   void shutdown()
   {
     if (shutdown.compareAndSet(false, true))

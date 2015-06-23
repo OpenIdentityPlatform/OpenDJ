@@ -25,10 +25,13 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
-import org.forgerock.util.Pair;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -46,15 +49,11 @@ import org.opends.server.util.StaticUtils;
  */
 abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
 {
-
   private static final byte UNINITIALIZED = 0;
   private static final byte READY = 1;
   private static final byte CLOSED = 2;
 
-  /**
-   * The state of this cursor. One of {@link #UNINITIALIZED}, {@link #READY} or
-   * {@link #CLOSED}
-   */
+  /** The state of this cursor. One of {@link #UNINITIALIZED}, {@link #READY} or {@link #CLOSED} */
   private byte state = UNINITIALIZED;
 
   /**
@@ -62,8 +61,7 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
    * last time {@link DBCursor#next()} was called on them. Exhausted cursors
    * might be recycled at some point when they start returning changes again.
    */
-  private final Map<DBCursor<UpdateMsg>, T> exhaustedCursors =
-      new HashMap<DBCursor<UpdateMsg>, T>();
+  private final Map<DBCursor<UpdateMsg>, T> exhaustedCursors = new HashMap<>();
   /**
    * The cursors are sorted based on the current change of each cursor to
    * consider the next change across all available cursors.
@@ -73,8 +71,7 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
    * thrown about
    * "Non-transactional Cursors may not be used in multiple threads;".
    */
-  private final TreeMap<DBCursor<UpdateMsg>, T> cursors =
-      new TreeMap<DBCursor<UpdateMsg>, T>(
+  private final TreeMap<DBCursor<UpdateMsg>, T> cursors = new TreeMap<>(
           new Comparator<DBCursor<UpdateMsg>>()
           {
             @Override
@@ -82,7 +79,20 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
             {
               final CSN csn1 = o1.getRecord().getCSN();
               final CSN csn2 = o2.getRecord().getCSN();
-              return CSN.compare(csn1, csn2);
+              int cmpCsn = CSN.compare(csn1, csn2);
+              if (cmpCsn == 0
+                  && o1 instanceof CompositeDBCursor
+                  && o2 instanceof CompositeDBCursor)
+              {
+                // Ensures a consistent order when the CSNs are equal (rare in practice)
+                T data1 = ((CompositeDBCursor<T>) o1).getData();
+                T data2 = ((CompositeDBCursor<T>) o1).getData();
+                if (data1 instanceof Comparable && data2 instanceof Comparable)
+                {
+                  return ((Comparable<T>) data1).compareTo(data2);
+                }
+              }
+              return cmpCsn;
             }
           });
 
@@ -215,36 +225,6 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
     return null;
   }
 
-  /**
-   * Returns a snapshot of this cursor.
-   *
-   * @return a list of (Data, UpdateMsg) pairs representing the state of the
-   *         cursor. In each pair, the data or the update message may be
-   *         {@code null}, but at least one of them is non-null.
-   */
-  public List<Pair<T, UpdateMsg>> getSnapshot()
-  {
-    final List<Pair<T, UpdateMsg>> snapshot = new ArrayList<Pair<T, UpdateMsg>>();
-    for (Entry<DBCursor<UpdateMsg>, T> entry : cursors.entrySet())
-    {
-      final UpdateMsg updateMsg = entry.getKey().getRecord();
-      final T data = entry.getValue();
-      if (updateMsg != null || data != null)
-      {
-        snapshot.add(Pair.of(data, updateMsg));
-      }
-    }
-    for (T data : exhaustedCursors.values())
-    {
-      if (data != null)
-      {
-        snapshot.add(Pair.of(data, (UpdateMsg) null));
-      }
-    }
-    return snapshot;
-  }
-
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -255,12 +235,10 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
     exhaustedCursors.clear();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getClass().getSimpleName() + " openCursors=" + cursors
         + " exhaustedCursors=" + exhaustedCursors;
   }
-
 }
