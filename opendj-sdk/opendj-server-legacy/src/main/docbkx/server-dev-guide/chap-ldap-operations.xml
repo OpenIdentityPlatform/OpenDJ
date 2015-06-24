@@ -1474,6 +1474,25 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
    </step>
   </procedure>
 
+  <note>
+   <para>
+    When you configure resource limits as described in the chapter on
+    <link
+     xlink:href="admin-guide#chap-resource-limits"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:show="new"
+    ><citetitle>Setting Resource Limits</citetitle></link>,
+    know that the resource limits do not change
+    when the user proxies as another user.
+    In other words, resource limits depend on the bind DN,
+    not the proxy authorization identity.
+    In the examples in the procedure <xref linkend="setup-proxied-authz" />
+    the resource limits would be those set for
+    <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>,
+    not <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>.
+   </para>
+  </note>
+
   <para>If you need to map authorization identifiers using the
   <literal>u:</literal> form rather than using <literal>dn:</literal>, you can
   set the identity mapper with the global configuration setting,

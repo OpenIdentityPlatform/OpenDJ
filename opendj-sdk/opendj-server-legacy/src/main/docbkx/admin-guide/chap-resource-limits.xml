@@ -279,4 +279,27 @@ $ <userinput>dsconfig \
   <para>The example shown sets the maximum request size on the LDAP connection
   handler to 20 MB.</para>
  </section>
+
+ <section xml:id="limits-and-proxied-authz">
+  <title>Resource Limits and Proxied Authorization</title>
+
+  <para>
+   Proxied authorization uses a standard LDAP control
+   to permit an application to bind as one user
+   and then carry out LDAP operations on behalf of other users.
+  </para>
+
+  <para>
+   When using proxied authorization as described in the section on
+   <link
+    xlink:href="server-dev-guide#proxied-authz"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Configuring Proxied Authorization</citetitle></link>
+   know that the resource limits do not change
+   when the user proxies as another user.
+   In other words, resource limits depend on the bind DN,
+   not the proxy authorization identity.
+  </para>
+ </section>
 </chapter>
