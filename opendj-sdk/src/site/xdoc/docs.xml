@@ -40,33 +40,33 @@
    <dl>
     <dt>Release Notes</dt>
     <dd>
-     <a href="./opendj-server/doc/bootstrap/release-notes/index.html">HTML</a>,
-     <a href="./opendj-server/doc/OpenDJ-Release-Notes.pdf">PDF</a>
+     <a href="./opendj-server-legacy/doc/bootstrap/release-notes/index.html">HTML</a>,
+     <a href="./opendj-server-legacy/doc/OpenDJ-Release-Notes.pdf">PDF</a>
     </dd>
 
     <dt>Installation Guide</dt>
     <dd>
-     <a href="./opendj-server/doc/bootstrap/install-guide/index.html">HTML</a>,
-     <a href="./opendj-server/doc/OpenDJ-Install-Guide.pdf">PDF</a>
+     <a href="./opendj-server-legacy/doc/bootstrap/install-guide/index.html">HTML</a>,
+     <a href="./opendj-server-legacy/doc/OpenDJ-Install-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Administration Guide</dt>
     <dd>
-     <a href="./opendj-server/doc/bootstrap/admin-guide/index.html">HTML</a>,
-     <a href="./opendj-server/doc/OpenDJ-Admin-Guide.pdf">PDF</a>
+     <a href="./opendj-server-legacy/doc/bootstrap/admin-guide/index.html">HTML</a>,
+     <a href="./opendj-server-legacy/doc/OpenDJ-Admin-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Reference</dt>
     <dd>
-     <a href="./opendj-server/doc/bootstrap/reference/index.html">HTML</a>,
-     <a href="./opendj-server/doc/OpenDJ-Reference.pdf">PDF</a>
+     <a href="./opendj-server-legacy/doc/bootstrap/reference/index.html">HTML</a>,
+     <a href="./opendj-server-legacy/doc/OpenDJ-Reference.pdf">PDF</a>
     </dd>
 
     <dt>Configuration Reference</dt>
-    <dd><a href="./opendj-server/configref/index.html">HTML</a></dd>
+    <dd><a href="./opendj-server-legacy/configref/index.html">HTML</a></dd>
 
     <dt>Server Plugin API Specification</dt>
-    <dd><a href="./opendj-server/javadoc/index.html">HTML</a></dd>
+    <dd><a href="./opendj-server-legacy/javadoc/index.html">HTML</a></dd>
 
     <dt>SDK Developer Guide</dt>
     <dd>
