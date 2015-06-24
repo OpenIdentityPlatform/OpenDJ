@@ -58,7 +58,7 @@
   </menu>
 
   <menu name="OpenDJ Directory Server" inherit="top">
-    <item name="About" href="opendj-server" />
+    <item name="About" href="opendj-server-legacy" />
   </menu>
 
   <menu name="OpenDJ LDAP SDK" inherit="top">
@@ -83,12 +83,12 @@
 
   <menu name="OpenDJ Documentation" inherit="top">
    <item name="All Formats" href="docs.html" />
-   <item name="Release Notes" href="./opendj-server/doc/bootstrap/release-notes/index.html" />
-   <item name="Installation Guide" href="./opendj-server/doc/bootstrap/install-guide/index.html" />
-   <item name="Administration Guide" href="./opendj-server/doc/bootstrap/admin-guide/index.html" />
-   <item name="Reference" href="./opendj-server/doc/bootstrap/reference/index.html" />
-   <item name="Config Reference" href="./opendj-server/configref/index.html" />
-   <item name="Plugin Javadoc" href="./opendj-server/javadoc/index.html" />
+   <item name="Release Notes" href="./opendj-server-legacy/doc/bootstrap/release-notes/index.html" />
+   <item name="Installation Guide" href="./opendj-server-legacy/doc/bootstrap/install-guide/index.html" />
+   <item name="Administration Guide" href="./opendj-server-legacy/doc/bootstrap/admin-guide/index.html" />
+   <item name="Reference" href="./opendj-server-legacy/doc/bootstrap/reference/index.html" />
+   <item name="Config Reference" href="./opendj-server-legacy/configref/index.html" />
+   <item name="Plugin Javadoc" href="./opendj-server-legacy/javadoc/index.html" />
    <item name="SDK Release Notes" href="./doc/bootstrap/sdk-release-notes/index.html" />
    <item name="SDK Developer Guide" href="./doc/bootstrap/dev-guide/index.html" />
    <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />
