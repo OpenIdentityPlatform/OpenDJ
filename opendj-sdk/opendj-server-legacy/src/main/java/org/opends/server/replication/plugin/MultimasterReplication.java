@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -60,7 +61,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.BackupConfig;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -899,20 +899,8 @@ public class MultimasterReplication
       }
     }
     // if state is STOPPING, then we need to return from this method
-    final LDAPReplicationDomain domain = getDomain(baseDN);
+    final LDAPReplicationDomain domain = domains.get(baseDN);
     return domain != null && domain.isECLEnabled();
-  }
-
-  private static LDAPReplicationDomain getDomain(DN baseDN)
-  {
-    for (LDAPReplicationDomain domain : domains.values())
-    {
-      if (domain.getBaseDN().equals(baseDN))
-      {
-        return domain;
-      }
-    }
-    return null;
   }
 
   /**
