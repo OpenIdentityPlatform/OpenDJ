@@ -2375,27 +2375,6 @@
                   </sources>
                 </mapping>
 
-                <!-- Add documentation sources -->
-                <mapping>
-                  <documentation>true</documentation>
-                  <directory>/usr/share/doc/${lowerCaseProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</directory>
-                  <sources>
-                    <source>
-                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
-                      <includes>
-                        <include>**/*.doc</include>
-                        <include>**/*.txt</include>
-                        <include>**/*example-plugin*</include>
-                      </includes>
-                      <excludes>
-                        <exclude>**/template/**</exclude>
-                        <exclude>**/legals/**</exclude>
-                        <exclude>**/snmp/**</exclude>
-                      </excludes>
-                    </source>
-                  </sources>
-                </mapping>
-
                 <!-- Add executable scripts and libraries -->
                 <mapping>
                   <directory>${rpm.prefix}</directory>
@@ -2452,27 +2431,7 @@
                         <exclude>**/README</exclude>
                         <exclude>**/*.app/**</exclude>
                         <exclude>**/*.app</exclude>
-                        <exclude>**/legal-notices</exclude>
-                        <exclude>**/*.doc</exclude>
-                        <exclude>**/*.txt</exclude>
-                        <exclude>**/*example-plugin*</exclude>
                       </excludes>
-                    </source>
-                  </sources>
-                </mapping>
-
-                <!-- Add files excluded in documentation mapping -->
-                <mapping>
-                  <directory>${rpm.prefix}</directory>
-                  <sources>
-                    <source>
-                      <location>${project.build.directory}/package/${lowerCaseProductName}</location>
-                      <includes>
-                        <include>**/legals/**/*.doc</include>
-                        <include>**/legals/**/*.txt</include>
-                        <include>**/snmp/**/*.doc</include>
-                        <include>**/snmp/**/*.txt</include>
-                      </includes>
                     </source>
                   </sources>
                 </mapping>
