@@ -62,6 +62,12 @@
      <a href="./doc/OpenDJ-Admin-Guide.pdf">PDF</a>
     </dd>
 
+    <dt>Server Dev Guide</dt>
+    <dd>
+     <a href="./doc/bootstrap/server-dev-guide/index.html">HTML</a>
+     <a href="./doc/OpenDJ-Server-Dev-Guide.pdf">PDF</a>
+    </dd>
+
     <dt>Reference</dt>
     <dd>
      <a href="./doc/bootstrap/reference/index.html">HTML</a>

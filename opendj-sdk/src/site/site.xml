@@ -86,6 +86,7 @@
    <item name="Release Notes" href="./opendj-server-legacy/doc/bootstrap/release-notes/index.html" />
    <item name="Installation Guide" href="./opendj-server-legacy/doc/bootstrap/install-guide/index.html" />
    <item name="Administration Guide" href="./opendj-server-legacy/doc/bootstrap/admin-guide/index.html" />
+   <item name="Server Dev Guide" href="./opendj-server-legacy/doc/bootstrap/server-dev-guide/index.html" />
    <item name="Reference" href="./opendj-server-legacy/doc/bootstrap/reference/index.html" />
    <item name="Config Reference" href="./opendj-server-legacy/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server-legacy/javadoc/index.html" />
