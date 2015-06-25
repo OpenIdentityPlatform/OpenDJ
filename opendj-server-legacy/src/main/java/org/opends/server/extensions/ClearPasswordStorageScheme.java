@@ -103,7 +103,7 @@ public class ClearPasswordStorageScheme
     buffer.append('}');
     buffer.append(plaintext.toString());
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
 

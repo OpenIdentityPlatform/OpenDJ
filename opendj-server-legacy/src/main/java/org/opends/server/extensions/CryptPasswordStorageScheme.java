@@ -272,7 +272,7 @@ public class CryptPasswordStorageScheme
 
     buffer.append(encodePassword(plaintext));
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
   /**

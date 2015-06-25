@@ -83,6 +83,8 @@ public final class Schema {
 
         Syntax getDefaultSyntax();
 
+        String getOIDForName(String lowerCaseName);
+
         AttributeType getAttributeType(Schema schema, String name);
 
         Collection<AttributeType> getAttributeTypes();
@@ -190,6 +192,11 @@ public final class Schema {
         @Override
         public MatchingRule getDefaultMatchingRule() {
             return strictImpl.getDefaultMatchingRule();
+        }
+
+        @Override
+        public String getOIDForName(final String lowerCaseName) {
+            return strictImpl.getOIDForName(lowerCaseName);
         }
 
         @Override
@@ -409,6 +416,7 @@ public final class Schema {
         private final Map<String, ObjectClass> numericOID2ObjectClasses;
         private final Map<String, Syntax> numericOID2Syntaxes;
         private final Map<String, List<NameForm>> objectClass2NameForms;
+        private final Map<String, String> name2OIDs;
         private final List<LocalizableMessage> warnings;
         private final String schemaName;
         private final SchemaOptions options;
@@ -438,6 +446,7 @@ public final class Schema {
                 final Map<String, List<DITStructureRule>> name2StructureRules,
                 final Map<String, List<NameForm>> objectClass2NameForms,
                 final Map<String, List<DITStructureRule>> nameForm2StructureRules,
+                final Map<String, String> name2OIDs,
                 final List<LocalizableMessage> warnings) {
             this.schemaName = schemaName;
             this.options = SchemaOptions.unmodifiable(options);
@@ -460,6 +469,7 @@ public final class Schema {
             this.name2StructureRules = Collections.unmodifiableMap(name2StructureRules);
             this.objectClass2NameForms = Collections.unmodifiableMap(objectClass2NameForms);
             this.nameForm2StructureRules = Collections.unmodifiableMap(nameForm2StructureRules);
+            this.name2OIDs = Collections.unmodifiableMap(name2OIDs);
             this.warnings = Collections.unmodifiableList(warnings);
             this.strictSchema = new Schema(this);
             this.nonStrictSchema = new Schema(new NonStrictImpl(this));
@@ -488,6 +498,16 @@ public final class Schema {
         @Override
         public MatchingRule getDefaultMatchingRule() {
             return defaultMatchingRule;
+        }
+
+        @Override
+        public String getOIDForName(String lowerCaseName) {
+            final String oid = name2OIDs.get(lowerCaseName);
+            // == is correct, AMBIGUOUS_OID is singleton to mark an entry ambiguous
+            if (oid == SchemaBuilder.AMBIGUOUS_OID) {
+                throw new UnknownSchemaElementException(WARN_NAME_AMBIGUOUS.get(lowerCaseName));
+            }
+            return oid;
         }
 
         @Override
@@ -531,7 +551,7 @@ public final class Schema {
                 if (rules.size() == 1) {
                     return rules.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_DCR_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_DCR_AMBIGUOUS.get(name));
             }
             throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(name));
         }
@@ -595,7 +615,7 @@ public final class Schema {
                 if (rules.size() == 1) {
                     return rules.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_MR_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_MR_AMBIGUOUS.get(name));
             }
             throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(name));
         }
@@ -631,7 +651,7 @@ public final class Schema {
                 if (uses.size() == 1) {
                     return uses.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_MRU_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_MRU_AMBIGUOUS.get(name));
             }
             throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(name));
         }
@@ -662,7 +682,7 @@ public final class Schema {
                 if (forms.size() == 1) {
                     return forms.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_NAMEFORM_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_NAMEFORM_AMBIGUOUS.get(name));
             }
             throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
         }
@@ -701,7 +721,7 @@ public final class Schema {
                 if (classes.size() == 1) {
                     return classes.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGUOUS.get(name));
             }
             throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN.get(name));
         }
@@ -826,7 +846,7 @@ public final class Schema {
                 if (attributes.size() == 1) {
                     return attributes.get(0);
                 }
-                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGIOUS.get(name));
+                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGUOUS.get(name));
             }
             return null;
         }
@@ -1085,6 +1105,17 @@ public final class Schema {
 
     Syntax getDefaultSyntax() {
         return impl.getDefaultSyntax();
+    }
+
+    /**
+     * Return the numerical OID matching the lowerCaseName.
+     * @param lowerCaseName The lower case name
+     * @return OID matching the name or null if name doesn't match to an OID
+     * @throws UnknownSchemaElementException if multiple OID are matching
+     * lowerCaseName
+     */
+    String getOIDForName(String lowerCaseName) {
+        return impl.getOIDForName(lowerCaseName);
     }
 
     /**

@@ -136,13 +136,13 @@ public final class ByteString implements ByteSequence {
 
     /**
      * Returns a byte string containing the UTF-8 encoded bytes of the provided
-     * string.
+     * char sequence.
      *
      * @param s
-     *            The string to use.
+     *            The char sequence to use.
      * @return The byte string with the encoded bytes of the provided string.
      */
-    public static ByteString valueOf(final String s) {
+    public static ByteString valueOf(final CharSequence s) {
         if (s.length() == 0) {
             return EMPTY;
         }

@@ -123,6 +123,6 @@ final class UUIDOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImp
             }
         }
 
-        return ByteString.valueOf(builder.toString());
+        return ByteString.valueOf(builder);
     }
 }

@@ -432,4 +432,13 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>boolean startsWith(org.forgerock.opendj.ldap.ByteSequence)</method>
     <justification>Lack of startsWith() forced to re-implement it multiple times at different location</justification>
   </difference>
+	<difference>
+		<className>org/forgerock/opendj/ldap/ByteString</className>
+		<differenceType>7005</differenceType>
+		<method>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)
+		</method>
+		<from>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)</from>
+		<to>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.CharSequence)</to>
+		<justification>Using CharSequence instead of String allows to reduce memory copy.</justification>
+	</difference>
 </differences>

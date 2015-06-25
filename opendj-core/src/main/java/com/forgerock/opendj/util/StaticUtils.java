@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package com.forgerock.opendj.util;
 
@@ -1293,36 +1293,36 @@ public final class StaticUtils {
 
     /**
      * Construct a byte array containing the UTF-8 encoding of the provided
-     * string. This is significantly faster than calling
+     * char sequence. This is significantly faster than calling
      * {@link String#getBytes(String)} for ASCII strings.
      *
      * @param s
-     *            The string to convert to a UTF-8 byte array.
+     *            The char sequence to convert to a UTF-8 byte array.
      * @return Returns a byte array containing the UTF-8 encoding of the
      *         provided string.
      */
-    public static byte[] getBytes(final String s) {
+    public static byte[] getBytes(final CharSequence s) {
         if (s == null) {
             return null;
         }
 
-        try {
-            char c;
-            final int length = s.length();
-            final byte[] returnArray = new byte[length];
-            for (int i = 0; i < length; i++) {
-                c = s.charAt(i);
-                returnArray[i] = (byte) (c & 0x0000007F);
-                if (c != returnArray[i]) {
-                    return s.getBytes("UTF-8");
+        char c;
+        final int length = s.length();
+        final byte[] returnArray = new byte[length];
+        for (int i = 0; i < length; i++) {
+            c = s.charAt(i);
+            returnArray[i] = (byte) (c & 0x0000007F);
+            if (c != returnArray[i]) {
+                try {
+                    return s.toString().getBytes("UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    // TODO: I18N
+                    throw new RuntimeException("Unable to encode UTF-8 string " + s, e);
                 }
             }
-
-            return returnArray;
-        } catch (final UnsupportedEncodingException e) {
-            // TODO: I18N
-            throw new RuntimeException("Unable to encode UTF-8 string " + s, e);
         }
+
+        return returnArray;
     }
 
     /**

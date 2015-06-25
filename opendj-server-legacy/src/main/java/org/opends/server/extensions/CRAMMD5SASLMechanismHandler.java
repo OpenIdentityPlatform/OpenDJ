@@ -188,8 +188,7 @@ public class CRAMMD5SASLMechanismHandler
       }
       challengeString.append('>');
 
-      ByteString challenge =
-          ByteString.valueOf(challengeString.toString());
+      final ByteString challenge = ByteString.valueOf(challengeString);
       clientConnection.setSASLAuthStateInfo(challenge);
       bindOperation.setServerSASLCredentials(challenge);
       bindOperation.setResultCode(ResultCode.SASL_BIND_IN_PROGRESS);

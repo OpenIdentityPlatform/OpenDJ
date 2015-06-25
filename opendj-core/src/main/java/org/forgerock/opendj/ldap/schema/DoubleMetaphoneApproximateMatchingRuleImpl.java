@@ -851,7 +851,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
             }
         }
 
-        return ByteString.valueOf(metaphone.toString());
+        return ByteString.valueOf(metaphone);
     }
 
     /**

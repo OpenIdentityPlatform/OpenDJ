@@ -245,7 +245,7 @@ public class SaltedSHA1PasswordStorageScheme
                      NUM_SALT_BYTES);
     buffer.append(Base64.encode(hashPlusSalt));
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
 
@@ -382,7 +382,7 @@ public class SaltedSHA1PasswordStorageScheme
     authPWValue.append('$');
     authPWValue.append(Base64.encode(digestBytes));
 
-    return ByteString.valueOf(authPWValue.toString());
+    return ByteString.valueOf(authPWValue);
   }
 
 

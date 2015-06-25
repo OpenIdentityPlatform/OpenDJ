@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -300,8 +300,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
 
     final void writeKeyAndValue(final CharSequence key, final CharSequence value)
             throws IOException {
-        // FIXME: We should optimize this at some point.
-        writeKeyAndValue(key, ByteString.valueOf(value.toString()));
+        writeKeyAndValue(key, ByteString.valueOf(value));
     }
 
     final void writeLine(final CharSequence line) throws IOException {

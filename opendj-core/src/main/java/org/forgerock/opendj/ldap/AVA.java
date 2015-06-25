@@ -383,7 +383,7 @@ public final class AVA implements Comparable<AVA> {
                     reader.reset();
                     // Return what we have got here so far.
                     appendHexChars(reader, valueBuffer, hexBuffer);
-                    return ByteString.valueOf(valueBuffer.toString());
+                    return ByteString.valueOf(valueBuffer);
                 }
                 // It is definitely not a delimiter at this point.
                 appendHexChars(reader, valueBuffer, hexBuffer);
@@ -393,7 +393,7 @@ public final class AVA implements Comparable<AVA> {
         }
 
         reader.reset();
-        return ByteString.valueOf(valueBuffer.toString());
+        return ByteString.valueOf(valueBuffer);
     }
 
     private static AttributeType readAttributeName(final SubstringReader reader, final Schema schema) {
