@@ -1416,6 +1416,34 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   
   <procedure xml:id="setup-proxied-authz">
    <title>To Configure Proxied Authorization</title>
+
+   <step performance="optional">
+    <para>
+     If the global ACIs do not allow access to use the Proxy Authorization Control,
+     grant access to applications to use the control.
+    </para>
+
+    <para>
+     The control has OID <literal>2.16.840.1.113730.3.4.18</literal>.
+    </para>
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetcontrol="2.16.840.1.113730.3.4.18") (version 3.0; acl
+  "Apps can use the Proxy Authorization Control"; allow(read)
+  userdn="ldap:///cn=*,ou=Apps,dc=example,dc=com";)
+</userinput>
+<computeroutput>  Processing MODIFY request for dc=example,dc=com
+  MODIFY operation successful for DN dc=example,dc=com</computeroutput>
+    </screen>
+   </step>
+
    <step>
     <para>Grant access to applications that can use proxied authorization.</para>
 
