@@ -110,7 +110,7 @@ public class Base64PasswordStorageScheme
     buffer.append('}');
     buffer.append(Base64.encode(plaintext));
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
 

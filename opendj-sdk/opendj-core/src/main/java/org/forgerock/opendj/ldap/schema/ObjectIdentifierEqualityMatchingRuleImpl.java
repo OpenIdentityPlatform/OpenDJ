@@ -49,38 +49,21 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
         super(EMR_OID_NAME);
     }
 
-    static String resolveNames(final Schema schema, final String oid) {
-        if (!StaticUtils.isDigit(oid.charAt(0))) {
-            // Do an best effort attempt to normalize names to OIDs.
-            String schemaName = null;
-            if (schema.hasAttributeType(oid)) {
-                schemaName = schema.getAttributeType(oid).getOID();
-            }
-            if (schemaName == null && schema.hasDITContentRule(oid)) {
-                schemaName = schema.getDITContentRule(oid).getStructuralClass().getOID();
-            }
-            if (schemaName == null && schema.hasSyntax(oid)) {
-                schemaName = schema.getSyntax(oid).getOID();
-            }
-            if (schemaName == null && schema.hasObjectClass(oid)) {
-                schemaName = schema.getObjectClass(oid).getOID();
-            }
-            if (schemaName == null && schema.hasMatchingRule(oid)) {
-                schemaName = schema.getMatchingRule(oid).getOID();
-            }
-            if (schemaName == null && schema.hasMatchingRuleUse(oid)) {
-                schemaName = schema.getMatchingRuleUse(oid).getMatchingRule().getOID();
-            }
-            if (schemaName == null && schema.hasNameForm(oid)) {
-                schemaName = schema.getNameForm(oid).getOID();
-            }
-
-            if (schemaName != null) {
-                return schemaName;
-            }
-            return StaticUtils.toLowerCase(oid);
+    static String resolveNames(final Schema schema, final String oidOrName) throws DecodeException {
+        if (StaticUtils.isDigit(oidOrName.charAt(0))) {
+            return oidOrName;
         }
-        return oid;
+        // Do a best effort attempt to normalize names to OIDs.
+        final String lowerCaseName = StaticUtils.toLowerCase(oidOrName.toLowerCase());
+        try {
+            final String oid = schema.getOIDForName(lowerCaseName);
+            if (oid != null) {
+                return oid;
+            }
+        } catch (UnknownSchemaElementException e) {
+            throw DecodeException.error(e.getMessageObject(), e);
+        }
+        return lowerCaseName;
     }
 
     @Override

@@ -71,6 +71,8 @@ public final class RDN
   /** The set of user-provided names for the attributes in this RDN. */
   private String[] attributeNames;
 
+  /** Representation of the normalized form of this RDN. */
+  private ByteString normalizedRDN;
 
 
   /**
@@ -1009,8 +1011,13 @@ public final class RDN
     return buffer.toString();
   }
 
-  private ByteString toNormalizedByteString() {
-    return toNormalizedByteString(new ByteStringBuilder()).toByteString();
+  private ByteString toNormalizedByteString()
+  {
+    if (normalizedRDN == null)
+    {
+      computeNormalizedByteString(new ByteStringBuilder());
+    }
+    return normalizedRDN;
   }
 
   /**
@@ -1024,7 +1031,19 @@ public final class RDN
    *           Builder to add this representation to.
    * @return the builder
    */
-  public ByteStringBuilder toNormalizedByteString(ByteStringBuilder builder) {
+  public ByteStringBuilder toNormalizedByteString(ByteStringBuilder builder)
+  {
+    if (normalizedRDN != null)
+    {
+      return builder.append(normalizedRDN);
+    }
+    return computeNormalizedByteString(builder);
+  }
+
+  private ByteStringBuilder computeNormalizedByteString(ByteStringBuilder builder)
+  {
+    final int startPos = builder.length();
+
     if (attributeNames.length == 1)
     {
       normalizeAVAToByteString(0, builder);
@@ -1048,6 +1067,12 @@ public final class RDN
         builder.append(iterator.next());
       }
     }
+
+    if (normalizedRDN == null)
+    {
+      normalizedRDN = builder.subSequence(startPos, builder.length()).toByteString();
+    }
+
     return builder;
   }
 

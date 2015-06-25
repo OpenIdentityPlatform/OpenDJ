@@ -169,7 +169,7 @@ public class BlowfishPasswordStorageScheme
         Arrays.fill(plaintextBytes, (byte) 0);
     }
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
 

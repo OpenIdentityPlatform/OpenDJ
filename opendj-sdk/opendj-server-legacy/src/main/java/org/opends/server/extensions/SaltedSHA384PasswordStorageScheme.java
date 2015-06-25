@@ -251,7 +251,7 @@ public class SaltedSHA384PasswordStorageScheme
                      NUM_SALT_BYTES);
     buffer.append(Base64.encode(hashPlusSalt));
 
-    return ByteString.valueOf(buffer.toString());
+    return ByteString.valueOf(buffer);
   }
 
 
@@ -390,7 +390,7 @@ public class SaltedSHA384PasswordStorageScheme
     authPWValue.append('$');
     authPWValue.append(Base64.encode(digestBytes));
 
-    return ByteString.valueOf(authPWValue.toString());
+    return ByteString.valueOf(authPWValue);
   }
 
 

@@ -702,7 +702,7 @@ final class SchemaUtils {
             return singleSpaceOrEmpty(value);
         }
         trimUnnecessarySpacesInStringList(buffer);
-        return ByteString.valueOf(buffer.toString());
+        return ByteString.valueOf(buffer);
     }
 
     private static void trimUnnecessarySpacesInStringList(StringBuilder buffer) {
@@ -729,7 +729,7 @@ final class SchemaUtils {
         if (buffer.length() == 0) {
             return singleSpaceOrEmpty(value);
         }
-        return ByteString.valueOf(buffer.toString());
+        return ByteString.valueOf(buffer);
     }
 
     static ByteString normalizeIA5StringAttributeValue(final ByteSequence value, boolean trim, boolean foldCase)
@@ -741,7 +741,7 @@ final class SchemaUtils {
             return singleSpaceOrEmpty(value);
         }
         throwIfIA5IllegalCharacter(buffer, value);
-        return ByteString.valueOf(buffer.toString());
+        return ByteString.valueOf(buffer);
     }
 
     static void throwDecodeException(LocalizedLogger logger, LocalizableMessage message) throws DecodeException {
@@ -780,7 +780,7 @@ final class SchemaUtils {
         if (buffer.length() == 0) {
             return ByteString.empty();
         }
-        return ByteString.valueOf(buffer.toString());
+        return ByteString.valueOf(buffer);
     }
 
 }

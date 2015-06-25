@@ -1245,7 +1245,7 @@ public class PatternDN
         }
       }
 
-      attributeValues.add(ByteString.valueOf(valueString.toString()));
+      attributeValues.add(ByteString.valueOf(valueString));
       return pos;
     }
 
@@ -1264,7 +1264,7 @@ public class PatternDN
       else if (c == '*')
       {
         escaped = false;
-        attributeValues.add(ByteString.valueOf(valueString.toString()));
+        attributeValues.add(ByteString.valueOf(valueString));
       }
       else
       {
@@ -1362,7 +1362,7 @@ public class PatternDN
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                          message);
           }
-          attributeValues.add(ByteString.valueOf(valueString.toString()));
+          attributeValues.add(ByteString.valueOf(valueString));
           valueString = new StringBuilder();
           hexChars = new StringBuilder();
         }
@@ -1395,7 +1395,7 @@ public class PatternDN
       }
 
 
-      attributeValues.add(ByteString.valueOf(valueString.toString()));
+      attributeValues.add(ByteString.valueOf(valueString));
       return pos;
     }
   }

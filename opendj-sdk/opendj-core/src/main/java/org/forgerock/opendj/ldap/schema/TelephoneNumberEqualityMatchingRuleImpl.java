@@ -59,6 +59,6 @@ final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatc
             }
         }
 
-        return ByteString.valueOf(buffer.toString());
+        return ByteString.valueOf(buffer);
     }
 }

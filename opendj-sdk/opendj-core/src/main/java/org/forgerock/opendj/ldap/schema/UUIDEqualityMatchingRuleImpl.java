@@ -122,6 +122,6 @@ final class UUIDEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImp
             }
         }
 
-        return ByteString.valueOf(builder.toString());
+        return ByteString.valueOf(builder);
     }
 }

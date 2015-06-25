@@ -85,6 +85,9 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 public final class SchemaBuilder {
 
+    /** Constant used for name to oid mapping when one name actually maps to multiple numerical OID. */
+    public static final String AMBIGUOUS_OID = "<ambiguous-oid>";
+
     private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
 
     private static final String[] SUBSCHEMA_ATTRS = { ATTR_LDAP_SYNTAXES,
@@ -151,6 +154,7 @@ public final class SchemaBuilder {
     private Map<String, ObjectClass> numericOID2ObjectClasses;
     private Map<String, Syntax> numericOID2Syntaxes;
     private Map<String, List<NameForm>> objectClass2NameForms;
+    private Map<String, String> name2OIDs;
     private String schemaName;
     private List<LocalizableMessage> warnings;
     private SchemaOptions options;
@@ -2137,13 +2141,19 @@ public final class SchemaBuilder {
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
                         name2NameForms, name2ContentRules, name2StructureRules,
-                        objectClass2NameForms, nameForm2StructureRules, warnings).asStrictSchema();
+                        objectClass2NameForms, nameForm2StructureRules, name2OIDs, warnings).asStrictSchema();
         validate(schema);
 
         // Re-init this builder so that it can continue to be used afterwards.
         preLazyInitBuilder(schemaName, schema);
 
         return schema;
+    }
+
+    private void registerNameToOIDMapping(String name, String anOID) {
+        if (name2OIDs.put(name, anOID) != null) {
+            name2OIDs.put(name, AMBIGUOUS_OID);
+        }
     }
 
     SchemaBuilder addAttributeType(final AttributeType attribute, final boolean overwrite) {
@@ -2421,6 +2431,7 @@ public final class SchemaBuilder {
             }
             removeSyntax(conflictingSyntax);
         }
+
         numericOID2Syntaxes.put(syntax.getOID(), syntax);
         return this;
     }
@@ -2449,6 +2460,7 @@ public final class SchemaBuilder {
 
             objectClass2NameForms = new HashMap<>();
             nameForm2StructureRules = new HashMap<>();
+            name2OIDs = new HashMap<>();
             warnings = new LinkedList<>();
         }
 
@@ -2605,6 +2617,7 @@ public final class SchemaBuilder {
                 new Syntax[numericOID2Syntaxes.values().size()])) {
             try {
                 syntax.validate(schema, warnings);
+                registerNameToOIDMapping(syntax.getName(), syntax.getOID());
             } catch (final SchemaException e) {
                 removeSyntax(syntax);
                 warnings.add(ERR_SYNTAX_VALIDATION_FAIL
@@ -2616,6 +2629,9 @@ public final class SchemaBuilder {
                 new MatchingRule[numericOID2MatchingRules.values().size()])) {
             try {
                 rule.validate(schema, warnings);
+                for (final String name : rule.getNames()) {
+                    registerNameToOIDMapping(StaticUtils.toLowerCase(name), rule.getOID());
+                }
             } catch (final SchemaException e) {
                 removeMatchingRule(rule);
                 warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
@@ -2633,6 +2649,12 @@ public final class SchemaBuilder {
             removeAttributeType(attributeType);
         }
 
+        for (final AttributeType attributeType : numericOID2AttributeTypes.values()) {
+            for (final String name : attributeType.getNames()) {
+                registerNameToOIDMapping(StaticUtils.toLowerCase(name), attributeType.getOID());
+            }
+        }
+
         // Object classes need special processing because they have hierarchical
         // dependencies.
         final List<ObjectClass> invalidObjectClasses = new LinkedList<>();
@@ -2644,10 +2666,18 @@ public final class SchemaBuilder {
             removeObjectClass(objectClass);
         }
 
+        for (final ObjectClass objectClass : numericOID2ObjectClasses.values()) {
+            for (final String name : objectClass.getNames()) {
+                registerNameToOIDMapping(StaticUtils.toLowerCase(name), objectClass.getOID());
+            }
+        }
         for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
                 new MatchingRuleUse[numericOID2MatchingRuleUses.values().size()])) {
             try {
                 use.validate(schema, warnings);
+                for (final String name : use.getNames()) {
+                    registerNameToOIDMapping(StaticUtils.toLowerCase(name), use.getMatchingRuleOID());
+                }
             } catch (final SchemaException e) {
                 removeMatchingRuleUse(use);
                 warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.getMessageObject()));
@@ -2671,6 +2701,9 @@ public final class SchemaBuilder {
                 } else {
                     forms.add(form);
                 }
+                for (final String name : form.getNames()) {
+                    registerNameToOIDMapping(StaticUtils.toLowerCase(name), form.getOID());
+                }
             } catch (final SchemaException e) {
                 removeNameForm(form);
                 warnings.add(ERR_NAMEFORM_VALIDATION_FAIL
@@ -2682,6 +2715,9 @@ public final class SchemaBuilder {
                 new DITContentRule[numericOID2ContentRules.values().size()])) {
             try {
                 rule.validate(schema, warnings);
+                for (final String name : rule.getNames()) {
+                    registerNameToOIDMapping(StaticUtils.toLowerCase(name), rule.getStructuralClassOID());
+                }
             } catch (final SchemaException e) {
                 removeDITContentRule(rule);
                 warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
