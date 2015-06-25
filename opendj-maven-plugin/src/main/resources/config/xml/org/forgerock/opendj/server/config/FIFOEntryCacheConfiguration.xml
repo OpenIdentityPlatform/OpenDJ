@@ -23,6 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="fifo-entry-cache"
   plural-name="fifo-entry-caches" package="org.forgerock.opendj.server.config"
@@ -92,9 +93,15 @@
   </adm:property>
   <adm:property name="max-memory-percent">
     <adm:synopsis>
-      Specifies the maximum memory usage for the entry cache as a percentage of
-      the total JVM memory.
+      Specifies the maximum percentage of JVM memory used by the server
+      before the entry caches stops caching and begins purging itself.
     </adm:synopsis>
+    <adm:description>
+      Very low settings such as 10 or 20 (percent) can prevent this entry cache
+      from having enough space to hold any of the entries to cache,
+      making it appear that the server is ignoring or skipping
+      the entry cache entirely.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>90</adm:value>
