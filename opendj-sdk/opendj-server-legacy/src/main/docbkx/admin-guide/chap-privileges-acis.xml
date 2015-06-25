@@ -251,6 +251,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <listitem>
       <para>Replace <replaceable>OID</replaceable> with the object identifier
       for the LDAP control to target. Separate multiple OIDs with ||.</para>
+
+      <para>
+       To use an LDAP control, the bind DN user must have
+       <literal>allow(read)</literal> permissions.
+      </para>
+
       <para>This target cannot be restricted to a specific subtree by combining
       it with another target.</para>
      </listitem>
@@ -260,6 +266,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <listitem>
       <para>Replace <replaceable>OID</replaceable> with the object identifier
       for the extended operation to target. Separate multiple OIDs with ||.</para>
+
+      <para>
+       To use an LDAP extended operation, the bind DN user must have
+       <literal>allow(read)</literal> permissions.
+      </para>
+
       <para>This target cannot be restricted to a specific subtree by combining
       it with another target.</para>
      </listitem>
@@ -342,7 +354,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term><literal>read</literal></term>
      <listitem>
-      <para>Read entries and attributes</para>
+      <para>
+       Read entries and attributes, or use an LDAP control or extended operation
+      </para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -717,6 +731,28 @@ aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
       <programlisting language="ldif">
 aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
  allow (search, read)(userdn =
+ "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
+      </programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>Use Control or Extended Operation</term>
+     <listitem>
+      <para>
+       The ACI must allow the <literal>read</literal> permission
+       to the <literal>targetcontrol</literal> or <literal>extop</literal> OIDs.
+      </para>
+
+      <para>
+       For example, the ACI required to allow
+       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>
+       to use the Persistent Search Request Control with OID
+       <literal>2.16.840.1.113730.3.4.3</literal> is:
+      </para>
+
+      <programlisting language="ldif">
+aci: (targetcontrol = "2.16.840.1.113730.3.4.3")(version 3.0;acl
+ "Request Persistent Search"; allow (read)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>

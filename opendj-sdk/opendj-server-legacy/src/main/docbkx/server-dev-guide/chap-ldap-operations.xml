@@ -1400,22 +1400,152 @@ userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==</computeroutput>
   authorization, for example, to bind your application with its credentials,
   then carry out operations as the users who login to the application.</para>
   
+  <para>
+   Proxied authorization is similar to the UNIX <command>sudo</command> command.
+   The proxied operation is performed as if it were requested
+   not by the user who did the bind, but by the proxied user.
+   <xref linkend="proxy-authz-permissions" /> shows how this affects permissions.
+  </para>
+
+  <table xml:id="proxy-authz-permissions">
+   <title>Whether Proxy Authorization Allows an Operation on the Target</title>
+
+   <tgroup cols="3">
+    <colspec colnum="1" colwidth="1*" />
+    <colspec colnum="2" colwidth="1*" />
+    <colspec colnum="3" colwidth="1*" />
+
+    <thead>
+     <row>
+      <entry>
+       &#160;
+      </entry>
+
+      <entry>
+       Bind DN no access
+      </entry>
+
+      <entry>
+       Bind DN has access
+      </entry>
+     </row>
+    </thead>
+
+    <tbody>
+     <row>
+      <entry>
+       <emphasis role="bold">Proxy ID no access</emphasis>
+      </entry>
+
+      <entry>
+       No
+      </entry>
+
+      <entry>
+       No
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       <emphasis role="bold">Proxy ID has access</emphasis>
+      </entry>
+
+      <entry>
+       Yes
+      </entry>
+
+      <entry>
+       Yes
+      </entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+
+  <note>
+   <para>
+    When you configure resource limits as described in the chapter on
+    <link
+     xlink:href="admin-guide#chap-resource-limits"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:show="new"
+    ><citetitle>Setting Resource Limits</citetitle></link>,
+    know that the resource limits do not change
+    when the user proxies as another user.
+    In other words, resource limits depend on the bind DN,
+    not the proxy authorization identity.
+   </para>
+  </note>
+
   <para>Suppose you have an administrative directory client application that
   has an entry in the directory with DN
   <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>. You can give that
   application the access rights and privileges to use proxied authorization.
   The default access control for OpenDJ lets authenticated users
   use the proxied authorization control.</para>
-  
+
   <para>Suppose also that when directory administrator, Kirsten Vaughan, logs
   in to your application to change Babs Jensen's entry, your application looks
   up Kirsten's entry, and finds that she has DN
   <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>. For the example
-  commands in the following procedure. My App uses proxied authorization to
+  commands in <xref linkend="setup-proxied-authz" />
+  My App uses proxied authorization to
   make a change to Babs's entry as Kirsten.</para>
   
   <procedure xml:id="setup-proxied-authz">
    <title>To Configure Proxied Authorization</title>
+
+   <itemizedlist>
+    <para>
+     In order to carry out LDAP operations on behalf of another user,
+     the user binding to OpenDJ directory server needs:
+    </para>
+
+    <listitem>
+     <para>
+      Permission to use the LDAP Proxy Authorization Control.
+     </para>
+
+     <para>
+      Permissions are granted using access control instructions (ACIs).
+      This calls for an ACI with a <literal>targetcontrol</literal> list
+      that includes the Proxy Authorization Control OID
+      <literal>2.16.840.1.113730.3.4.18</literal>
+      that grants <literal>allow(read)</literal> permission
+      to the user binding to the directory.
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Permission to proxy as the given authorization user.
+     </para>
+
+     <para>
+      This calls for an ACI with
+      a target scope that includes the entry of the authorization user
+      that grants <literal>allow(proxy)</literal> permission
+      to the user binding to the directory.
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      The privilege to use proxied authorization.
+     </para>
+
+     <para>
+      Privileges are granted using the <literal>ds-privilege-name</literal> attribute.
+     </para>
+    </listitem>
+   </itemizedlist>
+
+   <para>
+    Follow these steps to configure proxied authorization
+    for applications with DNs that match
+    <literal>cn=*,ou=Apps,dc=example,dc=com</literal>.
+   </para>
 
    <step performance="optional">
     <para>
@@ -1501,25 +1631,6 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
     </screen>
    </step>
   </procedure>
-
-  <note>
-   <para>
-    When you configure resource limits as described in the chapter on
-    <link
-     xlink:href="admin-guide#chap-resource-limits"
-     xlink:role="http://docbook.org/xlink/role/olink"
-     xlink:show="new"
-    ><citetitle>Setting Resource Limits</citetitle></link>,
-    know that the resource limits do not change
-    when the user proxies as another user.
-    In other words, resource limits depend on the bind DN,
-    not the proxy authorization identity.
-    In the examples in the procedure <xref linkend="setup-proxied-authz" />
-    the resource limits would be those set for
-    <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>,
-    not <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>.
-   </para>
-  </note>
 
   <para>If you need to map authorization identifiers using the
   <literal>u:</literal> form rather than using <literal>dn:</literal>, you can
