@@ -2249,7 +2249,6 @@
 
       <properties>
         <rpm.prefix>/opt/${lowerCaseProductName}</rpm.prefix>
-        <rpm.release>1</rpm.release>
       </properties>
 
       <build>
@@ -2307,6 +2306,13 @@
             <version>2.0.1</version>
             <executions>
               <execution>
+                <id>properties</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>version</goal>
+                </goals>
+              </execution>
+              <execution>
                   <id>generate-rpm-package</id>
                   <phase>verify</phase>
                   <goals>
@@ -2317,8 +2323,6 @@
             <configuration>
               <summary>${shortProductName}</summary>
               <name>${lowerCaseProductName}</name>
-              <version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</version>
-              <release>${rpm.release}.${maven.build.timestamp}</release>
               <prefix>${rpm.prefix}</prefix>
               <license>CDDL</license>
               <group>Productivity/Networking/LDAP/Servers</group>
