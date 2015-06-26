@@ -261,9 +261,170 @@ $ <userinput>ldapsearch \
  "(uid=*)" \
  debugsearchindex</userinput>
 <computeroutput>dn: cn=debugsearch
-debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[LIMIT-EXCEEDED:
- 10002] final=[NOT-INDEXED]</computeroutput>
+debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=sub[LIMIT-EXCEEDED:10002]
+ final=[NOT-INDEXED]</computeroutput>
 </screen>
+
+   <variablelist xml:id="about-debugsearchindex">
+    <title>About <literal>debugsearchindex</literal> Values</title>
+
+    <para>
+     The values of the <literal>debugsearchindex</literal> attribute
+     let you discover how OpenDJ directory server would use search filters and scope
+     to determine the results of the search.
+     In general, the <literal>debugsearchindex</literal> attribute has the form:
+     <literal>(filter|vlv)=<replaceable>filter-with-info</replaceable>(
+      scope=<replaceable>scope-id</replaceable><replaceable>scope-info</replaceable>)
+      final=<replaceable>final-info</replaceable></literal>.
+    </para>
+
+    <para>
+     If a normal filter applies, the value starts with <literal>filter=</literal>.
+     If the search operation parameters have an associated VLV index,
+     the value starts with <literal>vlv=</literal>.
+     A <literal>scope</literal> component provides information
+     about how the scope affected the results.
+     The <literal>final</literal> component provides
+     information about the overall result.
+    </para>
+
+    <varlistentry>
+     <term><replaceable>filter-with-info</replaceable></term>
+     <listitem>
+      <para>
+       This field looks like a string representation of the LDAP filter
+       with extra information after the closing parenthesis
+       of each simple filter component.
+      </para>
+
+      <para>
+       For a VLV index, only the extra information is shown.
+      </para>
+
+      <itemizedlist>
+       <para>
+        The extra information takes the form:
+        <literal>([INDEX:<replaceable>index-id</replaceable>])([COUNT:<replaceable
+         >entry-count</replaceable>]|[LIMIT-EXCEEDED]|[NOT-INDEXED])</literal>,
+        where:
+       </para>
+
+       <listitem>
+        <para>
+         <literal>[INDEX:<replaceable>index-id</replaceable>]</literal>
+         identifies the index that could be used to find matches for this filter.
+        </para>
+       </listitem>
+
+       <listitem>
+        <para>
+         <literal>[COUNT:<replaceable>entry-count</replaceable>]</literal>
+         specifies the number of entries found to match the filter.
+        </para>
+       </listitem>
+
+       <listitem>
+        <para>
+         <literal>[LIMIT-EXCEEDED]</literal>
+         indicates the server maintains a matching index,
+         but the index entry limit was exceeded for the value specified.
+        </para>
+       </listitem>
+
+       <listitem>
+        <para>
+         <literal>[NOT-INDEXED]</literal> indicates
+         no matching index value or index key was found.
+        </para>
+       </listitem>
+      </itemizedlist>
+
+      <para>
+       For example, the <literal>debugsearchindex</literal> attribute value excerpt
+       <literal>filter=(&amp;(objectClass=person)[INDEX:objectClass.equality]
+        [LIMIT-EXCEEDED](cn=*a*)[INDEX:cn.substring][NOT-INDEXED])[NOT-INDEXED]</literal>
+       provides information about how OpenDJ evaluates the complex filter
+       <literal>(&amp;(objectClass=person)(cn=*a*))</literal>.
+       The filter component <literal>(objectClass=person)</literal>
+       does correspond to the equality index for <literal>objectClass</literal>,
+       but there are so many entries matching <literal>objectClass=person</literal>
+       that the server has stopped maintaining index entries for that value.
+       The filter component <literal>cn=*a*</literal> did not match an index,
+       as might be expected for such a short substring.
+       No matching index was found for the whole complex filter.
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term><replaceable>scope-id</replaceable></term>
+     <listitem>
+      <para>
+       The scope can be one of <literal>base</literal>, <literal>one</literal>,
+       <literal>sub</literal>, or <literal>subordinate</literal>.
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term><replaceable>scope-info</replaceable></term>
+     <listitem>
+      <itemizedlist>
+       <para>
+        This field is similar to the extra information for filter components.
+       </para>
+
+       <listitem>
+        <para>
+         <literal>[COUNT:<replaceable>entry-count</replaceable>]</literal>
+         specifies the number of entries found in the scope.
+        </para>
+       </listitem>
+
+       <listitem>
+        <para>
+         <literal>[LIMIT-EXCEEDED:<replaceable>entry-count</replaceable>]</literal>
+         indicates the scope did not prevent the search
+         from exceeding the resource limit
+         that caps how many entries a search can return.
+        </para>
+       </listitem>
+      </itemizedlist>
+
+      <para>
+       For example, the <literal>debugsearchindex</literal> attribute value excerpt
+       <literal>scope=sub[LIMIT-EXCEEDED:10002]</literal>
+       indicates that the number of matches in the subtree scope
+       exceeded the resource limit capping how many entries a search can return.
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry>
+     <term><replaceable>final-info</replaceable></term>
+     <listitem>
+      <itemizedlist>
+       <para>
+        This field shows at a glance whether the search was indexed.
+       </para>
+
+       <listitem>
+        <para>
+         <literal>[COUNT:<replaceable>entry-count</replaceable>]</literal>
+         specifies the number of entries found,
+         and indicates that the search was indexed.
+        </para>
+       </listitem>
+
+       <listitem>
+        <para>
+         <literal>[NOT-INDEXED]</literal> indicates that the search was unindexed.
+        </para>
+       </listitem>
+      </itemizedlist>
+     </listitem>
+    </varlistentry>
+   </variablelist>
 
   <para>By default OpenDJ rejects unindexed searches when the number of
   candidate entries goes beyond the search or look-though limit.</para>
