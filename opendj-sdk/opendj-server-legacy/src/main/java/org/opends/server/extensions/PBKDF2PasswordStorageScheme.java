@@ -68,24 +68,13 @@ public class PBKDF2PasswordStorageScheme
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The fully-qualified name of this class. */
-  private static final String CLASS_NAME =
-      "org.opends.server.extensions.PBKDF2PasswordStorageScheme";
+  private static final String CLASS_NAME = "org.opends.server.extensions.PBKDF2PasswordStorageScheme";
 
-
-  /**
-   * The number of bytes of random data to use as the salt when generating the
-   * hashes.
-   */
+  /** The number of bytes of random data to use as the salt when generating the hashes. */
   private static final int NUM_SALT_BYTES = 8;
 
   /** The number of bytes the SHA-1 algorithm produces. */
   private static final int SHA1_LENGTH = 20;
-
-  /** The factory used to generate the PBKDF2 hashes. */
-  private SecretKeyFactory factory;
-
-  /** The lock used to provide thread-safe access to the message digest. */
-  private final Object factoryLock = new Object();
 
   /** The secure random number generator to use to generate the salt values. */
   private SecureRandom random;
@@ -105,14 +94,14 @@ public class PBKDF2PasswordStorageScheme
 
   /** {@inheritDoc} */
   @Override
-  public void initializePasswordStorageScheme(
-      PBKDF2PasswordStorageSchemeCfg configuration)
+  public void initializePasswordStorageScheme(PBKDF2PasswordStorageSchemeCfg configuration)
       throws ConfigException, InitializationException
   {
     try
     {
       random = SecureRandom.getInstance(SECURE_PRNG_SHA1);
-      factory = SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
+      // Just try to verify if the algorithm is supported.
+      SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
     }
     catch (NoSuchAlgorithmException e)
     {
@@ -125,17 +114,15 @@ public class PBKDF2PasswordStorageScheme
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(
-                      PBKDF2PasswordStorageSchemeCfg configuration,
-                      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(PBKDF2PasswordStorageSchemeCfg configuration,
+                                                 List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      PBKDF2PasswordStorageSchemeCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(PBKDF2PasswordStorageSchemeCfg configuration)
   {
     this.config = configuration;
     return new ConfigChangeResult();
@@ -156,7 +143,7 @@ public class PBKDF2PasswordStorageScheme
     byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     int    iterations     = config.getPBKDF2Iterations();
 
-    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations);
+    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations,random);
     byte[] hashPlusSalt = concatenateHashPlusSalt(saltBytes, digestBytes);
 
     return ByteString.valueOf(iterations + ":" + Base64.encode(hashPlusSalt));
@@ -167,15 +154,12 @@ public class PBKDF2PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
       throws DirectoryException
   {
-    return ByteString.valueOf('{' + STORAGE_SCHEME_NAME_PBKDF2 + '}'
-        + encodePassword(plaintext));
+    return ByteString.valueOf('{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + encodePassword(plaintext));
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean passwordMatches(ByteSequence plaintextPassword,
-                                 ByteSequence storedPassword)
-  {
+  public boolean passwordMatches(ByteSequence plaintextPassword, ByteSequence storedPassword) {
     // Split the iterations from the stored value (separated by a ':')
     // Base64-decode the remaining value and take the last 8 bytes as the salt.
     try
@@ -232,18 +216,16 @@ public class PBKDF2PasswordStorageScheme
   {
     byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     int    iterations     = config.getPBKDF2Iterations();
-    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations);
+    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations,random);
 
     // Encode and return the value.
     return ByteString.valueOf(AUTH_PASSWORD_SCHEME_NAME_PBKDF2 + '$'
-        + iterations + ':' + Base64.encode(saltBytes) + '$'
-        + Base64.encode(digestBytes));
+        + iterations + ':' + Base64.encode(saltBytes) + '$' + Base64.encode(digestBytes));
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean authPasswordMatches(ByteSequence plaintextPassword,
-                                     String authInfo, String authValue)
+  public boolean authPasswordMatches(ByteSequence plaintextPassword, String authInfo, String authValue)
   {
     try
     {
@@ -276,19 +258,16 @@ public class PBKDF2PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
       throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_PBKDF2);
+    LocalizableMessage message = ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_PBKDF2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
   /** {@inheritDoc} */
   @Override
-  public ByteString getAuthPasswordPlaintextValue(String authInfo,
-                                                  String authValue)
+  public ByteString getAuthPasswordPlaintextValue(String authInfo, String authValue)
       throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_PWSCHEME_NOT_REVERSIBLE.get(AUTH_PASSWORD_SCHEME_NAME_PBKDF2);
+    LocalizableMessage message = ERR_PWSCHEME_NOT_REVERSIBLE.get(AUTH_PASSWORD_SCHEME_NAME_PBKDF2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
@@ -300,16 +279,13 @@ public class PBKDF2PasswordStorageScheme
   }
 
 
-
   /**
    * Generates an encoded password string from the given clear-text password.
-   * This method is primarily intended for use when it is necessary to generate
-   * a password with the server offline (e.g., when setting the initial root
-   * user password).
+   * This method is primarily intended for use when it is necessary to generate a password with the server
+   * offline (e.g., when setting the initial root user password).
    *
    * @param  passwordBytes  The bytes that make up the clear-text password.
-   * @return  The encoded password string, including the scheme name in curly
-   *          braces.
+   * @return  The encoded password string, including the scheme name in curly braces.
    * @throws  DirectoryException  If a problem occurs during processing.
    */
   public static String encodeOffline(byte[] passwordBytes)
@@ -322,18 +298,16 @@ public class PBKDF2PasswordStorageScheme
     byte[] digestBytes = encodeWithRandomSalt(password, saltBytes, iterations);
     byte[] hashPlusSalt = concatenateHashPlusSalt(saltBytes, digestBytes);
 
-    return '{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + iterations + ':'
-        + Base64.encode(hashPlusSalt);
+    return '{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + iterations + ':' + Base64.encode(hashPlusSalt);
   }
 
-  private static byte[] encodeWithRandomSalt(ByteString plaintext, byte[] saltBytes,
-      int iterations) throws DirectoryException
+  private static byte[] encodeWithRandomSalt(ByteString plaintext, byte[] saltBytes, int iterations)
+      throws DirectoryException
   {
     try
     {
       final SecureRandom random = SecureRandom.getInstance(SECURE_PRNG_SHA1);
-      final SecretKeyFactory factory = SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
-      return encodeWithRandomSalt(plaintext, saltBytes, iterations, random, factory);
+      return encodeWithRandomSalt(plaintext, saltBytes, iterations, random);
     }
     catch (DirectoryException e)
     {
@@ -345,14 +319,14 @@ public class PBKDF2PasswordStorageScheme
     }
   }
 
-  private static byte[] encodeWithSalt(ByteSequence plaintext, byte[] saltBytes,
-      int iterations, final SecretKeyFactory factory) throws DirectoryException
+  private static byte[] encodeWithSalt(ByteSequence plaintext, byte[] saltBytes, int iterations)
+      throws DirectoryException
   {
     final char[] plaintextChars = plaintext.toString().toCharArray();
     try
     {
-      KeySpec spec =
-          new PBEKeySpec(plaintextChars, saltBytes, iterations, SHA1_LENGTH * 8);
+      final SecretKeyFactory factory = SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
+      KeySpec spec = new PBEKeySpec(plaintextChars, saltBytes, iterations, SHA1_LENGTH * 8);
       return factory.generateSecret(spec).getEncoded();
     }
     catch (Exception e)
@@ -361,45 +335,29 @@ public class PBKDF2PasswordStorageScheme
     }
     finally
     {
-      if (plaintextChars != null)
-      {
-        Arrays.fill(plaintextChars, '0');
-      }
+      Arrays.fill(plaintextChars, '0');
     }
   }
 
-  private boolean encodeAndMatch(ByteSequence plaintext, byte[] saltBytes,
-      byte[] digestBytes, int iterations)
+  private boolean encodeAndMatch(ByteSequence plaintext, byte[] saltBytes, byte[] digestBytes, int iterations)
   {
-    synchronized (factoryLock)
+    try
     {
-      try
-      {
-        final byte[] userDigestBytes =
-            encodeWithSalt(plaintext, saltBytes, iterations, factory);
-        return Arrays.equals(digestBytes, userDigestBytes);
-      }
-      catch (Exception e)
-      {
-        return false;
-      }
+      final byte[] userDigestBytes = encodeWithSalt(plaintext, saltBytes, iterations);
+      return Arrays.equals(digestBytes, userDigestBytes);
     }
-  }
-
-  private byte[] encodeWithRandomSalt(ByteSequence plaintext, byte[] saltBytes,
-      int iterations) throws DirectoryException
-  {
-    synchronized (factoryLock)
+    catch (Exception e)
     {
-      return encodeWithRandomSalt(plaintext, saltBytes, iterations, random, factory);
+      return false;
     }
   }
 
   private static byte[] encodeWithRandomSalt(ByteSequence plaintext, byte[] saltBytes,
-      int iterations, SecureRandom random, final SecretKeyFactory factory) throws DirectoryException
+                                             int iterations, SecureRandom random)
+      throws DirectoryException
   {
     random.nextBytes(saltBytes);
-    return encodeWithSalt(plaintext, saltBytes, iterations, factory);
+    return encodeWithSalt(plaintext, saltBytes, iterations);
   }
 
   private static DirectoryException cannotEncodePassword(Exception e)
