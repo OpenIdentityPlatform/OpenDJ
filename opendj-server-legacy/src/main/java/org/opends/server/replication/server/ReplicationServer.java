@@ -690,7 +690,7 @@ public final class ReplicationServer
     if (providedState == null)
     {
       // missing domains do not invalidate a cookie.
-      // results will include all the changes of the missing domains 
+      // results will include all the changes of the missing domains
       return false;
     }
     final ServerState domainOldestState = getReplicationServerDomain(domainDN).getOldestState();
