@@ -446,10 +446,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // test missing domain in provided cookie
       final String cookie3 = lastCookie.substring(lastCookie.indexOf(';')+1);
       debugInfo(test, "Search with bad domain in cookie=" + cookie);
-      searchOp = searchChangelogUsingCookie("(targetDN=*" + test + "*,o=test)", cookie3, UNWILLING_TO_PERFORM, 0, test);
-      expectedError = ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE
-          .get("o=test:;","<"+ cookie3 + "o=test:;>").toString();
-      assertThat(searchOp.getErrorMessage().toString()).isEqualToIgnoringCase(expectedError);
+      searchOp = searchChangelogUsingCookie("(targetDN=*" + test + "*,o=test)", cookie3, SUCCESS, 5, test);
+      assertEntriesContainsCSNsAndReadLastCookie(test, searchOp.getSearchEntries(), ldifWriter,
+          csn1, csn4, csn5, csn7, csn9);
     }
     finally
     {

@@ -54,7 +54,11 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.ServerStartMsg;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
@@ -63,7 +67,12 @@ import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredi
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 
 /**
  * ReplicationServer Listener. This singleton is the main object of the
@@ -616,7 +625,6 @@ public final class ReplicationServer
     final Set<DN> activeDomains = getDNsOfActiveDomainsInServer(ignoredBaseDNs);
     final Set<DN> cookieDomains = getDNsOfCookie(cookie);
 
-    checkNoActiveDomainIsMissingInCookie(cookie, activeDomains, cookieDomains);
     checkNoUnknownDomainIsProvidedInCookie(cookie, activeDomains, cookieDomains);
     checkCookieIsNotOutdated(cookie, activeDomains);
   }
@@ -662,24 +670,6 @@ public final class ReplicationServer
     }
   }
 
-  private void checkNoActiveDomainIsMissingInCookie(final MultiDomainServerState cookie, final Set<DN> activeDomains,
-      final Set<DN> cookieDomains) throws DirectoryException
-  {
-    if (!cookieDomains.containsAll(activeDomains))
-    {
-      final Set<DN> missingActiveDomains = new HashSet<DN>(activeDomains);
-      missingActiveDomains.removeAll(cookieDomains);
-      final StringBuilder missingDomains = new StringBuilder();
-      for (DN domainDN : missingActiveDomains)
-      {
-        missingDomains.append(domainDN).append(":;");
-      }
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
-              missingDomains, "<" + cookie + missingDomains + ">"));
-    }
-  }
-
   private void checkCookieIsNotOutdated(final MultiDomainServerState cookie, final Set<DN> activeDomains)
       throws DirectoryException
   {
@@ -696,8 +686,14 @@ public final class ReplicationServer
   /** Check that provided cookie is not outdated compared to the oldest state of a domain. */
   private boolean isCookieOutdatedForDomain(MultiDomainServerState cookie, DN domainDN)
   {
-    final ServerState domainOldestState = getReplicationServerDomain(domainDN).getOldestState();
     final ServerState providedState = cookie.getServerState(domainDN);
+    if (providedState == null)
+    {
+      // missing domains do not invalidate a cookie.
+      // results will include all the changes of the missing domains 
+      return false;
+    }
+    final ServerState domainOldestState = getReplicationServerDomain(domainDN).getOldestState();
     for (final CSN oldestCsn : domainOldestState)
     {
       final CSN providedCsn = providedState.getCSN(oldestCsn.getServerId());
