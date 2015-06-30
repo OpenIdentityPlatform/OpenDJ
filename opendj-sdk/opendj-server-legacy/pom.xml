@@ -1921,6 +1921,14 @@
               </execution>
 
               <execution>
+                <id>generate-global-acis-table-for-doc</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>generate-global-acis-table</goal>
+                </goals>
+              </execution>
+
+              <execution>
                 <id>generate-schema-reference-doc</id>
                 <phase>prepare-package</phase>
                 <goals>
