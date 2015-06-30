@@ -152,7 +152,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
      *          or an empty string if no description is found.
      */
     private String getDescription(String aci) {
-        // Extract the user-friendly string in 
+        // Extract the user-friendly string in
         // {@code ...version 3.0; acl "user-friendly string"...}.
         Pattern pattern = Pattern.compile(".+version 3.0; ?acl \"([^\"]+)\".+");
         Matcher matcher = pattern.matcher(aci);
