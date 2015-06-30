@@ -27,7 +27,8 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Privileges &amp; Access Control</title>
 
  <para>OpenDJ supports two mechanisms to protect access to the directory,
@@ -1161,35 +1162,13 @@ $ <userinput>ldappasswordmodify \
     <secondary>Data access</secondary>
    </indexterm>
 
-  <itemizedlist>
-   <para>Default global ACIs set up the following access rules.</para>
-   <listitem>
-    <para>Users can employ LDAP controls and perform extended operations.</para>
-   </listitem>
-   <listitem>
-    <para>Anonymous read access is allowed for most user data attributes.</para>
-   </listitem>
-   <listitem>
-    <para>Users can read password values on their own entries after binding.
-    (Also by default, password values are hashed.)</para>
-   </listitem>
-   <listitem>
-    <para>Anonymous read access is allowed for schema-related operational
-    attributes.</para>
-   </listitem>
-   <listitem>
-    <para>Anonymous read access is allowed for root DSE attributes describing
-    what the server supports.</para>
-   </listitem>
-   <listitem>
-    <para>Anonymous read access is allowed for operational attributes related
-    to entry updates and entry identification.</para>
-   </listitem>
-   <listitem>
-    <para>Access to replication data is denied.</para>
-   </listitem>
-  </itemizedlist>
-  
+  <!-- Include generated table of global ACIs -->
+  <xinclude:include href="../shared/table-global-acis.xml">
+   <xinclude:fallback>
+    <para>Error: failed to include global ACI table</para>
+   </xinclude:fallback>
+  </xinclude:include>
+
   <para>Users with write access to add ACIs and with the
   <literal>modify-acl</literal> privilege can use the
   <command>ldapmodify</command> command to change ACIs located in user
