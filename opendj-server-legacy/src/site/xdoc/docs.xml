@@ -84,7 +84,7 @@
     <dd><a href="./configref/index.html">HTML</a></dd>
 
     <dt>Server Plugin API Specification</dt>
-    <dd><a href="./javadoc/index.html">HTML</a></dd>
+    <dd><a href="./apidocs/index.html">HTML</a></dd>
 
     <dt>LDAP Client API Specification</dt>
     <dd><a href="../opendj-core/apidocs/index.html">HTML</a></dd>

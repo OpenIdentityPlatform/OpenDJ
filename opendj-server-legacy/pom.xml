@@ -1173,19 +1173,6 @@
     </plugins>
   </build>
 
-  <reporting>
-    <plugins>
-      <!-- No javadoc generation for the server -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
-
   <profiles>
     <!--
        Profile to run precommit tasks: checkstyle, copyright (TODO), SVN eol check (TODO),
