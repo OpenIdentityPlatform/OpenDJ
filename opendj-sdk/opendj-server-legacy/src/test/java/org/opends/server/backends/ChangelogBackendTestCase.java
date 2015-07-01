@@ -590,7 +590,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertChangelogAttributesInRootDSE(true, 1, 8);
 
     // add a new change, then check again first and last change number without previous search
-    CSN csn = new CSN(TimeThread.getTime(), 10, SERVER_ID_1);
+    testName = "Multiple/9";
+    CSN lastCsn = csns[csns.length - 1];
+    CSN csn = new CSN(lastCsn.getTime() + 1, 9, SERVER_ID_1);
     publishUpdateMessagesInOTest(testName, false, generateDeleteMsg(DN_OTEST, csn, testName, 1));
 
     assertChangelogAttributesInRootDSE(true, 1, 9);
