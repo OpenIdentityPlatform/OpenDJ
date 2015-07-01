@@ -33,11 +33,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.SoftAssertions;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -59,12 +59,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Test the JEReplicaDB class.
- */
+/** Test the JEReplicaDB class. */
 @SuppressWarnings("javadoc")
 public class JEReplicaDBTest extends ReplicationTestCase
 {
@@ -188,7 +185,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
   public void testGenerateCursor(CSN[] csns, CSN startCsn, KeyMatchingStrategy matchingStrategy,
       PositionStrategy positionStrategy, int startIndex, int endIndex) throws Exception
   {
-    DBCursor<UpdateMsg> cursor = null;
     try
     {
       if (replicationServer == null)
@@ -204,22 +200,23 @@ public class JEReplicaDBTest extends ReplicationTestCase
       }
       if (csns == null)
       {
-        return; // stop line, time to clean replication artefacts
+        return; // stop line, time to clean replication artifacts
       }
 
-      cursor = replicaDB.generateCursorFrom(startCsn, matchingStrategy, positionStrategy);
-      if (startIndex != -1)
+      try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCsn, matchingStrategy, positionStrategy))
       {
-        assertThatCursorCanBeFullyReadFromStart(cursor, csns, startIndex, endIndex);
-      }
-      else
-      {
-        assertThatCursorIsExhausted(cursor);
+        if (startIndex != -1)
+        {
+          assertThatCursorCanBeFullyReadFromStart(cursor, csns, startIndex, endIndex);
+        }
+        else
+        {
+          assertThatCursorIsExhausted(cursor);
+        }
       }
     }
     finally
     {
-      close(cursor);
       if (csns == null)
       {
         // stop line, stop and remove replication
@@ -414,17 +411,13 @@ public class JEReplicaDBTest extends ReplicationTestCase
   private void assertNotFound(JEReplicaDB replicaDB, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-    try
+    try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+        startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy))
     {
       final SoftAssertions softly = new SoftAssertions();
       softly.assertThat(cursor.next()).isFalse();
       softly.assertThat(cursor.getRecord()).isNull();
       softly.assertAll();
-    }
-    finally
-    {
-      close(cursor);
     }
   }
 
@@ -556,8 +549,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
   private void assertFoundInOrder(JEReplicaDB replicaDB,
       final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-    try
+    try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+        csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy))
     {
       assertNull(cursor.getRecord(), "Cursor should point to a null record initially");
 
@@ -574,10 +567,5 @@ public class JEReplicaDBTest extends ReplicationTestCase
       softly.assertThat(cursor.getRecord()).isNull();
       softly.assertAll();
     }
-    finally
-    {
-      close(cursor);
-    }
   }
-
 }

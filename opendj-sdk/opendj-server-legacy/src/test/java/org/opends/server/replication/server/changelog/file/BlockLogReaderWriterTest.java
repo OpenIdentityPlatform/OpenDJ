@@ -57,11 +57,8 @@ import org.testng.annotations.Test;
 public class BlockLogReaderWriterTest extends DirectoryServerTestCase
 {
   private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
-
   private static final File TEST_FILE = new File(TEST_DIRECTORY, "file");
-
   private static final RecordParser<Integer, Integer> RECORD_PARSER = new IntRecordParser();
-
   private static final int INT_RECORD_SIZE = 12;
 
   @BeforeClass
@@ -112,10 +109,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
   {
     writeRecords(blockSize, records);
 
-    BlockLogReader<Integer, Integer> reader = null;
-    try
+    try (BlockLogReader<Integer, Integer> reader = newReader(blockSize))
     {
-      reader = newReader(blockSize);
       for (int i = 0; i < records.size(); i++)
       {
          Record<Integer, Integer> record = reader.readRecord();
@@ -123,10 +118,6 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       }
       assertThat(reader.readRecord()).isNull();
       assertThat(reader.getFilePosition()).isEqualTo(expectedSizeOfFile);
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -231,8 +222,6 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       { records(1,2,3,4,5,7,8,9,10), 6, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(7), true },
       { records(1,2,3,4,5,6,7,8,9,10), 10, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
       { records(1,2,3,4,5,6,7,8,9,10), 11, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
-
-
     };
 
     // For each test case, do a test with various block sizes to ensure algorithm is not broken
@@ -258,18 +247,12 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
   {
     writeRecords(blockSize, records);
 
-    BlockLogReader<Integer, Integer> reader = null;
-    try
+    try (BlockLogReader<Integer, Integer> reader = newReader(blockSize))
     {
-      reader = newReader(blockSize);
       Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, matchingStrategy, positionStrategy);
 
       assertThat(result.getFirst()).isEqualTo(shouldBeFound);
       assertThat(result.getSecond()).isEqualTo(expectedRecord);
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -307,11 +290,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     int blockSize = 20;
     writeRecords(blockSize, records(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20));
 
-    BlockLogReader<Integer, Integer> reader = null;
-    try
+    try (BlockLogReader<Integer, Integer> reader = newReader(blockSize))
     {
-      reader = newReader(blockSize);
-
       assertThat(reader.searchClosestBlockStartToKey(0)).isEqualTo(0);
       assertThat(reader.searchClosestBlockStartToKey(1)).isEqualTo(0);
       assertThat(reader.searchClosestBlockStartToKey(2)).isEqualTo(20);
@@ -328,10 +308,6 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       // out of reach keys
       assertThat(reader.searchClosestBlockStartToKey(21)).isEqualTo(280);
       assertThat(reader.searchClosestBlockStartToKey(22)).isEqualTo(280);
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -376,10 +352,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     int blockSize = 256;
 
     writeRecordsToReachFileSize(blockSize, fileSizeInBytes);
-    BlockLogReader<Integer, Integer> reader = null;
-    try
+    try (BlockLogReader<Integer, Integer> reader = newReader(blockSize))
     {
-      reader = newReader(blockSize);
       List<Integer> keysToSeek = getShuffledKeys(fileSizeInBytes, numberOfValuesToSeek);
       System.out.println("File size: " + TEST_FILE.length() + " bytes");
 
@@ -426,27 +400,17 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       System.out.println("Max time for a search: " + maxTime/1000000 + " milliseconds");
       System.out.println("Max difference for a search: " + (maxTime - minTime)/1000000 + " milliseconds");
     }
-    finally
-    {
-      StaticUtils.close(reader);
-    }
   }
 
   /** Write provided records with the provided block size. */
   private void writeRecords(int blockSize, List<Record<Integer, Integer>> records) throws ChangelogException
   {
-    BlockLogWriter<Integer, Integer> writer = null;
-    try
+    try (BlockLogWriter<Integer, Integer> writer = newWriter(blockSize))
     {
-      writer = newWriter(blockSize);
       for (Record<Integer, Integer> record : records)
       {
         writer.write(record);
       }
-    }
-    finally
-    {
-      StaticUtils.close(writer);
     }
   }
 
@@ -542,12 +506,10 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       return String.valueOf(key);
     }
 
-    /** {@inheritDoc} */
     @Override
     public Integer getMaxKey()
     {
       return Integer.MAX_VALUE;
     }
   }
-
 }

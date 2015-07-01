@@ -55,9 +55,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 public class LogFileTest extends DirectoryServerTestCase
 {
   private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
-
   private static final File TEST_LOG_FILE = new File(TEST_DIRECTORY, Log.HEAD_LOG_FILE_NAME);
-
   static final StringRecordParser RECORD_PARSER = new StringRecordParser();
 
   @BeforeClass
@@ -66,30 +64,23 @@ public class LogFileTest extends DirectoryServerTestCase
     TEST_DIRECTORY.mkdirs();
   }
 
-  @BeforeMethod
   /**
    * Create a new log file with ten records starting from (key01, value1) until (key10, value10).
    * So log contains keys "key01", "key02", ..., "key10"
    */
+  @BeforeMethod
   public void initialize() throws Exception
   {
     if (TEST_LOG_FILE.exists())
     {
       TEST_LOG_FILE.delete();
     }
-    LogFile<String, String> logFile =  null;
-    try
+    try (LogFile<String, String> logFile = getLogFile(RECORD_PARSER))
     {
-      logFile = getLogFile(RECORD_PARSER);
-
       for (int i = 1; i <= 10; i++)
       {
         logFile.append(Record.from(String.format("key%02d", i), "value"+i));
       }
-    }
-    finally
-    {
-      StaticUtils.close(logFile);
     }
   }
 
@@ -107,15 +98,10 @@ public class LogFileTest extends DirectoryServerTestCase
   @Test
   public void testCursor() throws Exception
   {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getCursor();
-
+    try (LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
+        DBCursor<Record<String, String>> cursor = changelog.getCursor())
+    {
       assertThatCursorCanBeFullyRead(cursor, 1, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
     }
   }
 
@@ -194,10 +180,9 @@ public class LogFileTest extends DirectoryServerTestCase
   public void testCursorPositionTo(String key, KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy,
       boolean positionShouldBeFound, int cursorShouldStartAt, int cursorShouldEndAt) throws Exception
   {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    LogFileCursor<String, String> cursor = null;
-    try {
-      cursor = changelog.getCursor();
+    try (LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
+        LogFileCursor<String, String> cursor = changelog.getCursor())
+    {
       boolean success = cursor.positionTo(key, matchingStrategy, positionStrategy);
 
       assertThat(success).isEqualTo(positionShouldBeFound);
@@ -210,38 +195,27 @@ public class LogFileTest extends DirectoryServerTestCase
         assertThatCursorIsExhausted(cursor);
       }
     }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
   }
 
   @Test
   public void testGetOldestRecord() throws Exception
   {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    try
+    try (LogFile<String, String> changelog = getLogFile(RECORD_PARSER))
     {
       Record<String, String> record = changelog.getOldestRecord();
 
       assertThat(record).isEqualTo(Record.from("key01", "value1"));
-    }
-    finally {
-      StaticUtils.close(changelog);
     }
   }
 
   @Test
   public void testGetNewestRecord() throws Exception
   {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    try
+    try (LogFile<String, String> changelog = getLogFile(RECORD_PARSER))
     {
       Record<String, String> record = changelog.getNewestRecord();
 
       assertThat(record).isEqualTo(Record.from("key10", "value10"));
-    }
-    finally {
-      StaticUtils.close(changelog);
     }
   }
 
@@ -270,59 +244,39 @@ public class LogFileTest extends DirectoryServerTestCase
       @SuppressWarnings("unused") int unusedId,
       ByteStringBuilder corruptedRecordData) throws Exception
   {
-    LogFile<String, String> logFile = null;
-    DBCursor<Record<String, String>> cursor = null;
-    try
+    corruptTestLogFile(corruptedRecordData);
+
+    // open the log file: the file should be repaired at this point
+    try (LogFile<String, String> logFile = getLogFile(RECORD_PARSER))
     {
-      corruptTestLogFile(corruptedRecordData);
-
-      // open the log file: the file should be repaired at this point
-      logFile = getLogFile(RECORD_PARSER);
-
       // write a new valid record
       logFile.append(Record.from(String.format("key%02d", 11), "value"+ 11));
 
       // ensure log can be fully read including the new record
-      cursor = logFile.getCursor();
-      assertThatCursorCanBeFullyRead(cursor, 1, 11);
-    }
-    finally
-    {
-      StaticUtils.close(logFile);
+      try (DBCursor<Record<String, String>> cursor = logFile.getCursor())
+      {
+        assertThatCursorCanBeFullyRead(cursor, 1, 11);
+      }
     }
   }
 
-  /**
-   * Append some raw data to the TEST_LOG_FILE. Intended to corrupt the log
-   * file.
-   */
+  /** Append some raw data to the TEST_LOG_FILE. Intended to corrupt the log file. */
   private void corruptTestLogFile(ByteStringBuilder corruptedRecordData) throws Exception
   {
-    RandomAccessFile output = null;
-    try {
-      output = new RandomAccessFile(TEST_LOG_FILE, "rwd");
+    try (RandomAccessFile output = new RandomAccessFile(TEST_LOG_FILE, "rwd"))
+    {
       output.seek(output.length());
       output.write(corruptedRecordData.toByteArray());
     }
-    finally
-    {
-      StaticUtils.close(output);
-    }
   }
 
+  /** Test that changes are visible immediately to a reader after a write. */
   @Test
-  /**
-   * Test that changes are visible immediately to a reader after a write.
-   */
   public void testWriteAndReadOnSameLogFile() throws Exception
   {
-    LogFile<String, String> writeLog = null;
-    LogFile<String, String> readLog = null;
-    try
+    try (LogFile<String, String> writeLog = getLogFile(RECORD_PARSER);
+        LogFile<String, String> readLog = getLogFile(RECORD_PARSER))
     {
-      writeLog = getLogFile(RECORD_PARSER);
-      readLog = getLogFile(RECORD_PARSER);
-
       for (int i = 1; i <= 100; i++)
       {
         Record<String, String> record = Record.from("newkey" + i, "newvalue" + i);
@@ -332,10 +286,6 @@ public class LogFileTest extends DirectoryServerTestCase
         assertThat(readLog.getNewestRecord()).as("read changelog " + i).isEqualTo(record);
         assertThat(readLog.getOldestRecord()).as("read changelog " + i).isEqualTo(Record.from("key01", "value1"));
       }
-    }
-    finally
-    {
-      StaticUtils.close(writeLog, readLog);
     }
   }
 
@@ -369,6 +319,7 @@ public class LogFileTest extends DirectoryServerTestCase
   {
     private static final byte STRING_SEPARATOR = 0;
 
+    @Override
     public Record<String, String> decodeRecord(final ByteString data) throws DecodingException
     {
       ByteSequenceReader reader = data.asReader();
@@ -389,6 +340,7 @@ public class LogFileTest extends DirectoryServerTestCase
       return length;
     }
 
+    @Override
     public ByteString encodeRecord(Record<String, String> record)
     {
       return new ByteStringBuilder()
@@ -408,7 +360,6 @@ public class LogFileTest extends DirectoryServerTestCase
       return key;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getMaxKey()
     {
@@ -437,5 +388,4 @@ public class LogFileTest extends DirectoryServerTestCase
       failToRead = shouldFail;
     }
   }
-
 }
