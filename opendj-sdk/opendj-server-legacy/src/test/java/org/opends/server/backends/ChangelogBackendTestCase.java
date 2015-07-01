@@ -40,9 +40,11 @@ import static org.testng.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -52,7 +54,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.util.Pair;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
@@ -86,6 +87,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
+import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
@@ -139,6 +141,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** The port of the replicationServer. */
   private int replicationServerPort;
+  private List<LDAPReplicationDomain> domains = new ArrayList<>();
+  private Map<ReplicaId, ReplicationBroker> brokers = new HashMap<>();
 
   @BeforeClass
   @Override
@@ -169,6 +173,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   @AfterMethod
   public void clearReplicationDb() throws Exception
   {
+    removeReplicationDomains(domains.toArray(new LDAPReplicationDomain[domains.size()]));
+    domains.clear();
+    stop(brokers.values().toArray(new ReplicationBroker[brokers.size()]));
+    brokers.clear();
     clearChangelogDB(replicationServer);
   }
 
@@ -200,27 +208,38 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   /** Enable replication on provided domain DN and serverid, using provided port. */
-  private Pair<ReplicationBroker, LDAPReplicationDomain> enableReplication(DN domainDN, int serverId,
-      int replicationPort, int timeout) throws Exception
+  private ReplicationBroker enableReplication(DN domainDN, int serverId, int replicationPort, int timeout)
+      throws Exception
   {
-    ReplicationBroker broker = openReplicationSession(domainDN, serverId, 100, replicationPort, timeout);
-    DomainFakeCfg domainConf = newFakeCfg(domainDN, serverId, replicationPort);
-    LDAPReplicationDomain replicationDomain = startNewReplicationDomain(domainConf, null, null);
-    return Pair.of(broker, replicationDomain);
+    ReplicaId replicaId = ReplicaId.of(domainDN, serverId);
+    ReplicationBroker broker = brokers.get(replicaId);
+    if (broker == null)
+    {
+      broker = openReplicationSession(domainDN, serverId, 100, replicationPort, timeout);
+      brokers.put(replicaId, broker);
+      DomainFakeCfg domainConf = newFakeCfg(domainDN, serverId, replicationPort);
+      startNewReplicationDomain(domainConf, null, null);
+    }
+    return broker;
   }
 
   /** Start a new replication domain on the directory server side. */
   private LDAPReplicationDomain startNewReplicationDomain(
       DomainFakeCfg domainConf, SortedSet<String> eclInclude, SortedSet<String> eclIncludeForDeletes) throws Exception
   {
-    domainConf.setExternalChangelogDomain(new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes));
-    // Set a Changetime heartbeat interval low enough
-    // (less than default value that is 1000 ms)
-    // for the test to be sure to consider all changes as eligible.
-    domainConf.setChangetimeHeartbeatInterval(10);
-    LDAPReplicationDomain newDomain = MultimasterReplication.createNewDomain(domainConf);
-    newDomain.start();
-    return newDomain;
+    LDAPReplicationDomain domain = MultimasterReplication.findDomain(domainConf.getBaseDN(), null);
+    if (domain == null)
+    {
+      domainConf.setExternalChangelogDomain(new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes));
+      // Set a Changetime heartbeat interval low enough
+      // (less than default value that is 1000 ms)
+      // for the test to be sure to consider all changes as eligible.
+      domainConf.setChangetimeHeartbeatInterval(10);
+      domain = MultimasterReplication.createNewDomain(domainConf);
+      domain.start();
+      domains.add(domain);
+    }
+    return domain;
   }
 
   private void removeReplicationDomains(LDAPReplicationDomain... domains)
@@ -476,15 +495,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
       // Use o=test3 to avoid collision with o=test2 already used by a previous test
       Backend<?> backend3 = null;
-      Pair<ReplicationBroker,LDAPReplicationDomain> replication1 = null;
-      LDAPReplicationDomain domain2 = null;
       try {
-        replication1 = enableReplication(DN_OTEST, SERVER_ID_1, replicationServerPort, brokerSessionTimeout);
+        ReplicationBroker broker = enableReplication(DN_OTEST, SERVER_ID_1, replicationServerPort, brokerSessionTimeout);
 
         // create and publish 1 change on each suffix
         long time = TimeThread.getTime();
         CSN csn1 = new CSN(time, 1, SERVER_ID_1);
-        ReplicationBroker broker = replication1.getFirst();
         broker.publish(generateDeleteMsg(DN_OTEST, csn1, test, 1));
 
         // create backend and configure replication for it
@@ -492,7 +508,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         backend3.setPrivateBackend(true);
         DomainFakeCfg domainConf2 = new DomainFakeCfg(DN_OTEST3, 1602,
             newTreeSet("localhost:" + replicationServerPort));
-        domain2 = startNewReplicationDomain(domainConf2, null, null);
+        LDAPReplicationDomain domain2 = startNewReplicationDomain(domainConf2, null, null);
 
         // add a root entry to the backend
         Thread.sleep(1000);
@@ -517,9 +533,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       }
       finally
       {
-        removeReplicationDomains(replication1.getSecond(), domain2);
         removeBackend(backend3);
-        stop(replication1.getFirst());
       }
       debugInfo(test, "Ending test successfully");
   }
@@ -969,33 +983,20 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private void publishUpdateMessages(String testName, DN baseDN, int serverId, boolean checkLastCookie,
       ReplicationMsg...messages) throws Exception
   {
-    Pair<ReplicationBroker, LDAPReplicationDomain> replicationObjects = null;
-    try
+    ReplicationBroker broker = enableReplication(baseDN, serverId, replicationServerPort, brokerSessionTimeout);
+    String cookie = "";
+    for (ReplicationMsg msg : messages)
     {
-      replicationObjects = enableReplication(baseDN, serverId, replicationServerPort, brokerSessionTimeout);
-      ReplicationBroker broker = replicationObjects.getFirst();
-      String cookie = "";
-      for (ReplicationMsg msg : messages)
+      if (msg instanceof UpdateMsg)
       {
-        if (msg instanceof UpdateMsg)
-        {
-          debugInfo(testName, " publishes " + ((UpdateMsg) msg).getCSN());
-        }
-
-        broker.publish(msg);
-
-        if (checkLastCookie)
-        {
-          cookie = assertLastCookieDifferentThanLastValue(cookie);
-        }
+        debugInfo(testName, " publishes " + ((UpdateMsg) msg).getCSN());
       }
-    }
-    finally
-    {
-      if (replicationObjects != null)
+
+      broker.publish(msg);
+
+      if (checkLastCookie)
       {
-        removeReplicationDomains(replicationObjects.getSecond());
-        stop(replicationObjects.getFirst());
+        cookie = assertLastCookieDifferentThanLastValue(cookie);
       }
     }
   }
