@@ -57,7 +57,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -224,7 +223,6 @@ public class FileReplicaDBTest extends ReplicationTestCase
   public void testGenerateCursorFromWithCursorReinitialization(int csnIndexForStartKey) throws Exception
   {
     ReplicationServer replicationServer = null;
-    DBCursor<UpdateMsg> cursor = null;
     FileReplicaDB replicaDB = null;
     try
     {
@@ -234,30 +232,32 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
 
-      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey],
-          GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
-      assertFalse(cursor.next());
-
-      int[] indicesToAdd = new int[] { 0, 1, 2, 4 };
-      for (int i : indicesToAdd)
+      try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+          csns[csnIndexForStartKey], GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY))
       {
-        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
-      }
-      waitChangesArePersisted(replicaDB, 4);
+        assertFalse(cursor.next());
 
-      for (int i = csnIndexForStartKey+1; i < 5; i++)
-      {
-        if (i != 3)
+        int[] indicesToAdd = { 0, 1, 2, 4 };
+        for (int i : indicesToAdd)
         {
-          assertTrue(cursor.next());
-          assertEquals(cursor.getRecord().getCSN(), csns[i], "index i=" + i);
+          replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         }
+        waitChangesArePersisted(replicaDB, 4);
+
+        for (int i = csnIndexForStartKey+1; i < 5; i++)
+        {
+          if (i != 3)
+          {
+            final String indexNbMsg = "index i=" + i;
+            assertTrue(cursor.next(), indexNbMsg);
+            assertEquals(cursor.getRecord().getCSN(), csns[i], indexNbMsg);
+          }
+        }
+        assertFalse(cursor.next());
       }
-      assertFalse(cursor.next());
     }
     finally
     {
-      close(cursor);
       shutdown(replicaDB);
       remove(replicationServer);
     }
@@ -354,34 +354,26 @@ public class FileReplicaDBTest extends ReplicationTestCase
       final PositionStrategy positionStrategy, final CSN expectedCSN)
       throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-    try
+    try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+        startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy))
     {
       final SoftAssertions softly = new SoftAssertions();
       softly.assertThat(cursor.next()).isTrue();
       softly.assertThat(cursor.getRecord().getCSN()).isEqualTo(expectedCSN);
       softly.assertAll();
     }
-    finally
-    {
-      close(cursor);
-    }
   }
 
   private void assertNotFound(FileReplicaDB replicaDB, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-    try
+    try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+        startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy))
     {
       final SoftAssertions softly = new SoftAssertions();
       softly.assertThat(cursor.next()).isFalse();
       softly.assertThat(cursor.getRecord()).isNull();
       softly.assertAll();
-    }
-    finally
-    {
-      close(cursor);
     }
   }
 
@@ -578,8 +570,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
   private void assertFoundInOrder(FileReplicaDB replicaDB,
       final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-    try
+    try (DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(
+        csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy))
     {
       assertNull(cursor.getRecord(), "Cursor should point to a null record initially");
 
@@ -596,10 +588,5 @@ public class FileReplicaDBTest extends ReplicationTestCase
       softly.assertThat(cursor.getRecord()).isNull();
       softly.assertAll();
     }
-    finally
-    {
-      close(cursor);
-    }
   }
-
 }
