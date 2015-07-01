@@ -684,6 +684,11 @@ class VerifyJob
         try
         {
           entryIDSet = cursor.getValue();
+          if (entryIDSet.size() == 0)
+          {
+            errorCount++;
+            logger.trace("Empty ID list: %n%s", keyDump(index.toString(), key));
+          }
         }
         catch (Exception e)
         {
