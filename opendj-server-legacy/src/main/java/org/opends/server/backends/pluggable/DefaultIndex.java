@@ -236,13 +236,12 @@ class DefaultIndex extends AbstractTree implements Index
         if (oldValue != null)
         {
           EntryIDSet entryIDSet = computeEntryIDSet(key, oldValue.toByteString(), deletedIDs, addedIDs);
-          ByteString after = toValue(entryIDSet);
           /*
            * If there are no more IDs then return null indicating that the record should be removed.
            * If index is not trusted then this will cause all subsequent reads for this key to
            * return undefined set.
            */
-          return after.isEmpty() ? null : after;
+          return entryIDSet.size() == 0 ? null : toValue(entryIDSet);
         }
         else if (trusted)
         {
