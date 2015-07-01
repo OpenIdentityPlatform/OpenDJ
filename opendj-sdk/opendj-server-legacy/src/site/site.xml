@@ -78,7 +78,7 @@
       <item name="Server Dev Guide" href="./doc/bootstrap/server-dev-guide/index.html" />
       <item name="Reference" href="./doc/bootstrap/reference/index.html" />
       <item name="Config Reference" href="./configref/index.html" />
-      <item name="Plugin Javadoc" href="./javadoc/index.html" />
+      <item name="Plugin Javadoc" href="./apidocs/index.html" />
     </menu>
 
     <menu name="OpenDJ Development">
