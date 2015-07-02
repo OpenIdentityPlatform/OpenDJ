@@ -167,7 +167,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
     final long markerPosition = searchClosestBlockStartToKey(key);
     if (markerPosition >= 0)
     {
-      return positionToKeySequentially(markerPosition, key, matchStrategy, positionStrategy);
+      return positionToKey(markerPosition, key, matchStrategy, positionStrategy);
     }
     return Pair.of(false, null);
   }
@@ -447,8 +447,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
 
   /**
    * Position before, at or after provided key, starting from provided block
-   * start position and reading sequentially until key is found according to
-   * matching and positioning strategies.
+   * start position and reading until key is found according to matching and positioning strategies.
    *
    * @param blockStartPosition
    *          Position of read pointer in the file, expected to be the start of
@@ -465,25 +464,20 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
    * @throws ChangelogException
    *           If an error occurs.
    */
-   Pair<Boolean, Record<K,V>> positionToKeySequentially(final long blockStartPosition, final K key,
+   Pair<Boolean, Record<K,V>> positionToKey(final long blockStartPosition, final K key,
        final KeyMatchingStrategy matchStrategy, final PositionStrategy positionStrategy) throws ChangelogException
    {
     Record<K,V> record = readRecord(blockStartPosition);
     Record<K,V> previousRecord = null;
     long previousPosition = blockStartPosition;
-    boolean matchingKeyIsLowerThanAnyRecord = true;
     while (record != null)
     {
       final int keysComparison = record.getKey().compareTo(key);
-      if (keysComparison <= 0)
-      {
-        matchingKeyIsLowerThanAnyRecord = false;
-      }
       if ((keysComparison == 0 && matchStrategy == EQUAL_TO_KEY)
           || (keysComparison >= 0 && matchStrategy != EQUAL_TO_KEY))
       {
-        return getMatchingRecord(matchStrategy, positionStrategy, keysComparison, matchingKeyIsLowerThanAnyRecord,
-            record, previousRecord, previousPosition);
+        return getMatchingRecord(
+            matchStrategy, positionStrategy, keysComparison, record, previousRecord, previousPosition);
       }
       previousRecord = record;
       previousPosition = getFilePosition();
@@ -497,19 +491,14 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
     return Pair.of(false, null);
   }
 
-  private Pair<Boolean,Record<K,V>> getMatchingRecord(KeyMatchingStrategy matchStrategy,
-      PositionStrategy positionStrategy, int keysComparison, boolean matchKeyIsLowerThanAnyRecord,
-      Record<K, V> currentRecord, Record<K, V> previousRecord, long previousPosition)
-          throws ChangelogException
+  private Pair<Boolean, Record<K, V>> getMatchingRecord(KeyMatchingStrategy matchStrategy,
+      PositionStrategy positionStrategy, int keysComparison, Record<K, V> currentRecord, Record<K, V> previousRecord,
+      long previousPosition) throws ChangelogException
   {
     Record<K, V> record = currentRecord;
 
     if (positionStrategy == AFTER_MATCHING_KEY)
     {
-      if (matchStrategy == LESS_THAN_OR_EQUAL_TO_KEY && matchKeyIsLowerThanAnyRecord)
-      {
-        return Pair.of(false, null);
-      }
       if (keysComparison == 0)
       {
         // skip matching key

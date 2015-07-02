@@ -142,8 +142,8 @@ public class LogFileTest extends DirectoryServerTestCase
       { "key11", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 10, 10},
 
       // key00 is a special case : position is not found but cursor is positioned on beginning
-      // so it is possible to iterate on it from 2 to end
-      { "key00", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, 2, 10},
+      // so it is possible to iterate on it from 1 to end
+      { "key00", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 1, 10 },
       { "key02", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 3, 10},
       { "key05", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},
       { "key050", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},

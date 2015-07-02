@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.assertj.core.api.SoftAssertions;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -161,7 +162,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       { records(1,2,3), 3, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
       { records(1,2,3), 4, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
 
-      { records(1,2,3), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(1), true },
       { records(1,2,3), 1, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
       { records(1,2,3), 2, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(3), true },
       { records(1,2,3), 3, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
@@ -201,7 +202,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       { records(1,2,3,4,5,6,7,8,9,10), 10, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
       { records(1,2,3,4,5,6,7,8,9,10), 11, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
 
-      { records(1,2,3,4,5,6,7,8,9,10), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(1), true },
       { records(1,2,3,4,5,6,7,8,9,10), 1, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
       { records(1,2,3,4,5,6,7,8,9,10), 5, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(6), true },
       { records(1,2,3,4,5,7,8,9,10), 6, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(7), true },
@@ -251,8 +252,10 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     {
       Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, matchingStrategy, positionStrategy);
 
-      assertThat(result.getFirst()).isEqualTo(shouldBeFound);
-      assertThat(result.getSecond()).isEqualTo(expectedRecord);
+      final SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(result.getFirst()).isEqualTo(shouldBeFound);
+      softly.assertThat(result.getSecond()).isEqualTo(expectedRecord);
+      softly.assertAll();
     }
   }
 
@@ -389,7 +392,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       {
         long ts = System.nanoTime();
         Pair<Boolean, Record<Integer, Integer>> result =
-            reader.positionToKeySequentially(0, val, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+            reader.positionToKey(0, val, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         assertThat(result.getSecond()).isEqualTo(Record.from(val, val));
         long te = System.nanoTime() - ts;
         if (te < minTime) minTime = te;
