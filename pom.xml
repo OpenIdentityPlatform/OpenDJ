@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -117,13 +117,13 @@
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
 
     <!-- START Documentation properties -->
-    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
-    <docPreviousVersion>2.6.1</docPreviousVersion>
+    <docTargetVersion>2.6.3</docTargetVersion>
+    <docPreviousVersion>2.6.2</docPreviousVersion>
     <stableServerVersion>2.6.0</stableServerVersion>
     <sdkDocTargetVersion>2.6.9</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.5</frDocPluginVersion>
-    <gaId>UA-23412190-8</gaId>
+    <frDocPluginVersion>3.0.0</frDocPluginVersion>
+    <gaId>UA-23412190-14</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
 
@@ -139,7 +139,7 @@
     <publicationDate>${pubDate}</publicationDate>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
-    <coreDocBase>http://docs.forgerock.org/en/opendj/${stableServerVersion}</coreDocBase>
+    <coreDocBase>https://backstage.forgerock.com/#!/docs/opendj/${stableServerVersion}</coreDocBase>
     <configRefBase>${coreDocBase}/configref/</configRefBase>
     <serverJavadocBase>${coreDocBase}/javadoc/</serverJavadocBase>
     <sdkJavadocBase>${coreDocBase}/apidocs/</sdkJavadocBase>
@@ -183,56 +183,29 @@
         <configuration>
          <projectName>OpenDJ</projectName>
          <projectVersion>${docTargetVersion}</projectVersion>
-         <latestJson>http://docs.forgerock.org/latest.json</latestJson>
+         <releaseVersion>${docTargetVersion}</releaseVersion>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
+         <!-- Work around JCite failing to run on docs that should not be built. -->
+         <jCiteSourcePaths>
+           <jCiteSourcePath>opendj-ldap-sdk-examples/src/main/java</jCiteSourcePath>
+         </jCiteSourcePaths>
         </configuration>
         <executions>
           <execution>
-            <id>copy-common</id>
+            <id>prepare-docs</id>
             <phase>pre-site</phase>
             <goals>
-              <goal>boilerplate</goal>
-            </goals>
-          </execution>
-          <execution>
-           <id>filter-sources</id>
-           <phase>pre-site</phase>
-           <goals>
-            <goal>filter</goal>
-           </goals>
-          </execution>
-          <execution>
-           <id>run-jcite</id>
-           <phase>pre-site</phase>
-           <configuration>
-            <sourcePaths>
-             <sourcePath>${project.basedir}/opendj-ldap-sdk-examples/src/main/java</sourcePath>
-            </sourcePaths>
-           </configuration>
-           <goals>
-            <goal>jcite</goal>
-           </goals>
-          </execution>
-          <execution>
-            <id>prepare-sources</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>prepare</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>build-doc</id>
-            <phase>pre-site</phase>
-            <goals>
+              <goal>process</goal>
               <goal>build</goal>
             </goals>
           </execution>
           <execution>
-            <id>layout-doc</id>
-            <phase>site</phase>
-            <goals>
-              <goal>layout</goal>
-            </goals>
+           <id>lay-out-docs</id>
+           <phase>site</phase>
+           <goals>
+            <goal>site</goal>
+            <goal>backstage</goal>
+           </goals>
           </execution>
         </executions>
       </plugin>

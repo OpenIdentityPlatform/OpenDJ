@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +19,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -53,7 +52,7 @@
      The upgrade process and <command>upgrade</command> command have
      changed to facilitate native packaging on more platforms.
      See <link xlink:show="new"
-     xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/#chap-upgrade"
+     xlink:href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0/install-guide#chap-upgrade"
      ><citetitle>Upgrading to OpenDJ ${stableServerVersion}</citetitle></link>
      for instructions.
     </para>
@@ -109,7 +108,7 @@
     settings by using the <command>dsconfig</command> command. An example of
     how to change a <literal>global-aci</literal> property can be found in the
     <citetitle>Administration Guide</citetitle>, <link xlink:show="new"
-    xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/admin-guide/#access-control-disable-anonymous"
+    xlink:href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0/admin-guide#access-control-disable-anonymous"
     ><citetitle>ACI: Disable Anonymous Access</citetitle></link>.</para>
    </listitem>
 
