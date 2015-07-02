@@ -448,8 +448,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // test last cookie on root DSE
       MultiDomainServerState expectedLastCookie =
           new MultiDomainServerState("o=test:" + csn5 + " " + csn9 + ";o=test2:" + csn3 + " " + csn8 + ";");
-      final String lastCookie = readLastCookieFromRootDSE();
-      assertThat(lastCookie).isEqualTo(expectedLastCookie.toString());
+      final String lastCookie = assertLastCookieIsEqualTo(expectedLastCookie.toString());
 
       // test unknown domain in provided cookie
       // This case seems to be very hard to obtain in the real life
@@ -482,7 +481,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
     {
       assertTrue(cursor.next(),
-          "Expected to be to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
+          "Expected to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
       assertEquals(cursor.getRecord().getCSN(), csn);
     }
   }
@@ -495,6 +494,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
       // Use o=test3 to avoid collision with o=test2 already used by a previous test
       Backend<?> backend3 = null;
+      LDAPReplicationDomain domain2 = null;
       try {
         ReplicationBroker broker = enableReplication(DN_OTEST, SERVER_ID_1, replicationServerPort, brokerSessionTimeout);
 
@@ -508,7 +508,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         backend3.setPrivateBackend(true);
         DomainFakeCfg domainConf2 = new DomainFakeCfg(DN_OTEST3, 1602,
             newTreeSet("localhost:" + replicationServerPort));
-        LDAPReplicationDomain domain2 = startNewReplicationDomain(domainConf2, null, null);
+        domain2 = startNewReplicationDomain(domainConf2, null, null);
 
         // add a root entry to the backend
         Thread.sleep(1000);
@@ -527,12 +527,11 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
         // test the lastExternalChangelogCookie attribute of the ECL
         // (does only refer to non private backend)
-        String expectedLastCookie = "o=test:" + csn1 + ";";
-        String lastCookie = readLastCookieFromRootDSE();
-        assertThat(expectedLastCookie).isEqualTo(lastCookie);
+        assertLastCookieIsEqualTo("o=test:" + csn1 + ";");
       }
       finally
       {
+        removeReplicationDomains(domain2);
         removeBackend(backend3);
       }
       debugInfo(test, "Ending test successfully");
@@ -904,20 +903,39 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return cookie;
   }
 
-  private String assertLastCookieDifferentThanLastValue(final String lastCookie) throws Exception
+  private String assertLastCookieIsEqualTo(String expectedLastCookie) throws Exception
   {
+    String lastCookie = null;
     int count = 0;
     while (count < 100)
     {
-      final String newCookie = readLastCookieFromRootDSE();
-      if (!newCookie.equals(lastCookie))
+      lastCookie = readLastCookieFromRootDSE();
+      if (lastCookie.equals(expectedLastCookie))
       {
-        return newCookie;
+        return lastCookie;
       }
       count++;
       Thread.sleep(10);
     }
-    Assertions.fail("Expected last cookie should have been updated, but it always stayed at value '" + lastCookie + "'");
+    Assertions.fail("Expected last cookie to be equal to <" + expectedLastCookie + "> but found <" + lastCookie + ">");
+    return null;// dead code
+  }
+
+  private String assertLastCookieDifferentThanLastValue(final String notExpectedLastCookie) throws Exception
+  {
+    int count = 0;
+    while (count < 100)
+    {
+      final String lastCookie = readLastCookieFromRootDSE();
+      if (!lastCookie.equals(notExpectedLastCookie))
+      {
+        return lastCookie;
+      }
+      count++;
+      Thread.sleep(10);
+    }
+    Assertions.fail("Expected last cookie should have been updated,"
+        + " but it always stayed at value '" + notExpectedLastCookie + "'");
     return null;// dead code
   }
 
@@ -1516,5 +1534,13 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private void debugInfo(String testName, String message)
   {
     logger.trace("** TEST %s ** %s", testName, message);
+  }
+
+  @Override
+  protected long getGenerationId(DN baseDN)
+  {
+    // Force value to ensure ReplicationBroker can connect to LDAPReplicationDomain,
+    // even with multiple instances of each
+    return TEST_DN_WITH_ROOT_ENTRY_GENID;
   }
 }
