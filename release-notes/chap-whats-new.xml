@@ -46,12 +46,85 @@
    read these release notes. Then update or install OpenDJ.
   </para>
 
+  <section xml:id="security-advisory">
+   <title>Security Advisory</title>
+
+   <para>
+    A security vulnerability has been discovered in OpenDJ.
+    This issue is present in all versions of OpenDJ
+    including 2.6.x, 2.5.0-Xpress1, 2.4.x, and possibly previous versions.
+   </para>
+
+   <para>
+    A security advisory has been issued to provide guidance on
+    how to ensure your deployments can be secured.
+    Workarounds or patches are available for the issue,
+    with fixes included in OpenDJ 2.6.3.
+   </para>
+
+   <para>
+    The severity of the issue in the advisory is High.
+    Deployers should take immediate steps as outlined in the advisory
+    and apply the relevant update at the earliest opportunity.
+   </para>
+
+   <para>
+    The recommendation is to deploy the relevant patch
+    or to upgrade to OpenDJ 2.6.3.
+   </para>
+
+   <para>
+    Customers without existing patches can obtain the relevant patch from
+    <link xlink:href="https://backstage.forgerock.com" xlink:show="new"
+    >BackStage</link>.
+    Customers with deployed patches should contact the support organization
+    to obtain a combo patch.
+    The fix is also present in the community "trunk" nightly builds.
+   </para>
+
+   <itemizedlist>
+    <para>
+     The following security fix has been included in this release:
+    </para>
+
+    <listitem>
+     <para>
+      <emphasis role="strong">Issue #201504-01:
+       Proxied Authorization may allow unexpected escalation
+       of privileges and access.</emphasis>
+      When someone has been granted the privileges to Proxy requests
+      and use the Proxied Authorization control,
+      it is not possible to control who that user can impersonate.
+      It is thus possible to impersonate "cn=Directory Manager"
+      and bypass all access controls.
+     </para>
+
+     <para>
+      Severity: <emphasis role="strong">High</emphasis>
+     </para>
+
+     <para>
+      For more information, see
+      <link
+       xlink:href="https://forgerock.org/2015/06/opendj-security-advisory-201504/"
+       xlink:show="new"
+      >OpenDJ Security Advisory #201504</link>.
+     </para>
+    </listitem>
+   </itemizedlist>
+  </section>
+
   <section xml:id="product-enhancements">
    <title>Product Enhancements</title>
 
    <para>
     Compared to the OpenDJ ${stableServerVersion} release,
     OpenDJ ${docTargetVersion} provides these important enhancements.
+   </para>
+
+   <para>
+    OpenDJ ${docTargetVersion} includes no new enhancements
+    beyond those included in OpenDJ 2.6.2.
    </para>
 
    <itemizedlist>
@@ -159,8 +232,8 @@
 
    <para>
     You can read the following additional product documentation
-    for OpenDJ 2.6 online at <link xlink:show="new"
-    xlink:href="http://docs.forgerock.org/">docs.forgerock.org</link>.
+    for OpenDJ 2.6 online at ForgeRock
+    <link xlink:show="new" xlink:href="${coreDocBase}">BackStage</link>.
    </para>
 
    <itemizedlist>
