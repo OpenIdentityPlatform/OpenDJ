@@ -604,8 +604,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       }
       cursor = new AbortableLogCursor<K, V>(this, new InternalLogCursor<K, V>(this));
       final boolean isSuccessfullyPositioned = cursor.positionTo(key, matchingStrategy, positionStrategy);
-      // Allow for cursor re-initialization after exhaustion in case of GREATER_THAN_OR_EQUAL_TO_KEY strategy
-      if (isSuccessfullyPositioned || matchingStrategy == GREATER_THAN_OR_EQUAL_TO_KEY)
+      // Allow for cursor re-initialization after exhaustion in case of
+      // LESS_THAN_OR_EQUAL_TO_KEY ands GREATER_THAN_OR_EQUAL_TO_KEY strategies
+      if (isSuccessfullyPositioned || matchingStrategy != EQUAL_TO_KEY)
       {
         registerCursor(cursor);
         return cursor;
@@ -626,7 +627,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       sharedLock.unlock();
     }
   }
-
 
   /**
    * Returns the oldest (first) record from this log.
