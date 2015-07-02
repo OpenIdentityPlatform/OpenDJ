@@ -191,7 +191,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @param baseDN The baseDN for which we want the generationId
    * @return The value of the generationId.
    */
-  protected static long getGenerationId(DN baseDN)
+  protected long getGenerationId(DN baseDN)
   {
     try
     {
