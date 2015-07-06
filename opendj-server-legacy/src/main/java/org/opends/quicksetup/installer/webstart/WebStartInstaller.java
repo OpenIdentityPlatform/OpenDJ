@@ -79,14 +79,10 @@ import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
  * will send a ProgressUpdateEvent.
  *
  * This class is supposed to be fully independent of the graphical layout.
- *
  */
 public class WebStartInstaller extends Installer {
-  private final Map<ProgressStep, Integer> hmRatio =
-      new HashMap<ProgressStep, Integer>();
-
-  private final Map<ProgressStep, LocalizableMessage> hmSummary =
-      new HashMap<ProgressStep, LocalizableMessage>();
+  private final Map<ProgressStep, Integer> hmRatio = new HashMap<>();
+  private final Map<ProgressStep, LocalizableMessage> hmSummary = new HashMap<>();
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -99,10 +95,7 @@ public class WebStartInstaller extends Installer {
     setCurrentProgressStep(InstallProgressStep.NOT_STARTED);
   }
 
-  /**
-   * Actually performs the install in this thread.  The thread is blocked.
-   *
-   */
+  /** Actually performs the install in this thread.  The thread is blocked. */
   @Override
   public void run()
   {
@@ -368,8 +361,7 @@ public class WebStartInstaller extends Installer {
      * extracting, the value for downloading will be the double of the value for
      * extracting.
      */
-    Map<ProgressStep, Integer> hmTime =
-        new HashMap<ProgressStep, Integer>();
+    Map<ProgressStep, Integer> hmTime = new HashMap<>();
     hmTime.put(InstallProgressStep.DOWNLOADING, 30);
     hmTime.put(InstallProgressStep.EXTRACTING, 15);
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
@@ -384,8 +376,7 @@ public class WebStartInstaller extends Installer {
     hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
 
     int totalTime = 0;
-    List<InstallProgressStep> steps =
-        new ArrayList<InstallProgressStep>();
+    List<InstallProgressStep> steps = new ArrayList<>();
     totalTime += hmTime.get(InstallProgressStep.DOWNLOADING);
     steps.add(InstallProgressStep.DOWNLOADING);
     totalTime += hmTime.get(InstallProgressStep.EXTRACTING);

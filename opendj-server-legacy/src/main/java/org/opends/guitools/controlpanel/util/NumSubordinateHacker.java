@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -34,26 +34,12 @@ import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 
-/**
- * Class used to handle the case where numsubordinates does not work between
- * databases.
- *
- */
+/** Class used to handle the case where numsubordinates does not work between databases. */
 public class NumSubordinateHacker {
-  String serverHost;
-  int serverPort;
-  ArrayList<DN> unreliableEntryList;
+  String serverHost = "not-initialized";
+  int serverPort = -1;
+  final ArrayList<DN> unreliableEntryList = new ArrayList<>();
   boolean isUnreliableEntryListEmpty;
-
-  /**
-   * Default constructor.
-   *
-   */
-  public NumSubordinateHacker() {
-    serverHost = "not-initialized";
-    serverPort = -1;
-    unreliableEntryList = new ArrayList<DN>();
-  }
 
   /**
     * Tells whether the list of unreliable contains children of
@@ -63,32 +49,27 @@ public class NumSubordinateHacker {
     * children of the parentUrl.  Returns <CODE>false</CODE> otherwise.
     */
   public boolean containsChildrenOf(LDAPURL parentUrl) {
-    boolean containsChildren = false;
-
     if (!isUnreliableEntryListEmpty) {
-      boolean isInServer = serverHost.equalsIgnoreCase(
-          String.valueOf(parentUrl.getHost())) &&
-      (serverPort == parentUrl.getPort());
+      boolean isInServer = serverHost.equalsIgnoreCase(String.valueOf(parentUrl.getHost()))
+          && serverPort == parentUrl.getPort();
       if (isInServer) {
-        for (DN dn : unreliableEntryList)
+        try
         {
-          try
+          for (DN dn : unreliableEntryList)
           {
             if (dn.equals(DN.valueOf(parentUrl.getRawBaseDN())))
             {
-              containsChildren = true;
-              break;
+              return true;
             }
           }
-          catch (OpenDsException oe)
-          {
-            throw new RuntimeException("Error decoding DN of url: "+
-                parentUrl);
-          }
+        }
+        catch (OpenDsException oe)
+        {
+          throw new RuntimeException("Error decoding DN of url: "+ parentUrl);
         }
       }
     }
-    return containsChildren;
+    return false;
   }
 
   /**

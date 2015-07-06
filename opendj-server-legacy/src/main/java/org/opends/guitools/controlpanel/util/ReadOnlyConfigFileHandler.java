@@ -75,7 +75,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
    * The mapping that holds all of the configuration entries that have been read
    * from the LDIF file.
    */
-  private HashMap<DN,ConfigEntry> configEntries = new HashMap<DN,ConfigEntry>();
+  private HashMap<DN,ConfigEntry> configEntries = new HashMap<>();
 
   /** The reference to the configuration root entry. */
   private ConfigEntry configRootEntry;

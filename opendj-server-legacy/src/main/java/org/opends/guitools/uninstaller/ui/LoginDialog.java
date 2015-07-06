@@ -492,7 +492,7 @@ public class LoginDialog extends JDialog
             boolean pwdInvalid = false;
 
             String uid = tfUid.getText();
-            ArrayList<LocalizableMessage> possibleCauses = new ArrayList<LocalizableMessage>();
+            ArrayList<LocalizableMessage> possibleCauses = new ArrayList<>();
             if ("".equals(uid.trim()))
             {
               uidInvalid = true;

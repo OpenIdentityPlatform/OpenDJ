@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -42,7 +43,7 @@ public abstract class BackgroundTask<T>
    */
   public final void startBackgroundTask()
   {
-    BackgroundTaskThread<T> taskThread = new BackgroundTaskThread<T>(this);
+    BackgroundTaskThread<T> taskThread = new BackgroundTaskThread<>(this);
     taskThread.start();
   }
 

@@ -192,7 +192,7 @@ public class JavaArguments
     }
     else
     {
-      ArrayList<LocalizableMessage> lines = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> lines = new ArrayList<>();
       if (javaArguments.getInitialMemory() != -1)
       {
         lines.add(INFO_INITIAL_MEMORY.get(javaArguments.getInitialMemory()));
@@ -238,7 +238,7 @@ public class JavaArguments
    */
   public String getStringArguments()
   {
-    ArrayList<String> l = new ArrayList<String>();
+    ArrayList<String> l = new ArrayList<>();
     if (initialMemory != -1)
     {
       l.add(Utils.escapeCommandLineValue(

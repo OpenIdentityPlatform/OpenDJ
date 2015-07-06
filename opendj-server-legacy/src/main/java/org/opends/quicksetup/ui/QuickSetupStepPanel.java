@@ -66,8 +66,7 @@ implements HyperlinkListener
   private JPanel inputContainer;
   private Component inputPanel;
 
-  private HashSet<ButtonActionListener> buttonListeners =
-    new HashSet<ButtonActionListener>();
+  private HashSet<ButtonActionListener> buttonListeners = new HashSet<>();
 
   private ProgressMessageFormatter formatter;
 
@@ -80,8 +79,7 @@ implements HyperlinkListener
    * We can use a HashMap (not multi-thread safe) because all
    * the calls to this object are done in the event-thread.
   */
-  private HashMap<String, URLWorker> hmURLWorkers =
-      new HashMap<String, URLWorker>();
+  private HashMap<String, URLWorker> hmURLWorkers = new HashMap<>();
 
   /**
    * Creates a default instance.

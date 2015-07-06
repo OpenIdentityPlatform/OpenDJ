@@ -67,20 +67,13 @@ implements Comparator<ServerDescriptor>
 {
   private static final long serialVersionUID = -3742350600617826375L;
   private Component lastFocusComponent;
-  private HashMap<String, JLabel> hmLabels =
-    new HashMap<String, JLabel>();
-  private HashMap<String, JTextComponent> hmFields =
-    new HashMap<String, JTextComponent>();
-  private HashMap<String, JCheckBox> hmCbs =
-    new HashMap<String, JCheckBox>();
+  private HashMap<String, JLabel> hmLabels = new HashMap<>();
+  private HashMap<String, JTextComponent> hmFields = new HashMap<>();
+  private HashMap<String, JCheckBox> hmCbs = new HashMap<>();
   private JScrollPane scroll;
   private JPanel fieldsPanel;
-  private TreeSet<ServerDescriptor> orderedServers =
-    new TreeSet<ServerDescriptor>(this);
-  /**
-   *The display of the server the user provided in the replication options
-   * panel.
-   */
+  private TreeSet<ServerDescriptor> orderedServers = new TreeSet<>(this);
+  /** The display of the server the user provided in the replication options panel. */
   private String serverToConnectDisplay;
 
   /**
@@ -100,7 +93,7 @@ implements Comparator<ServerDescriptor>
 
     if (fieldName == FieldName.REMOTE_REPLICATION_PORT)
     {
-      Map<String, String> hm = new HashMap<String, String>();
+      Map<String, String> hm = new HashMap<>();
       for (String id : hmFields.keySet())
       {
         hm.put(id, hmFields.get(id).getText());
@@ -109,7 +102,7 @@ implements Comparator<ServerDescriptor>
     }
     else if (fieldName == FieldName.REMOTE_REPLICATION_SECURE)
     {
-      Map<String, Boolean> hm = new HashMap<String, Boolean>();
+      Map<String, Boolean> hm = new HashMap<>();
       for (String id : hmCbs.keySet())
       {
         hm.put(id, hmCbs.get(id).isSelected());
@@ -237,13 +230,12 @@ implements Comparator<ServerDescriptor>
         }
       };
       lastFocusComponent = null;
-      HashMap<String, String> hmOldValues = new HashMap<String, String>();
+      HashMap<String, String> hmOldValues = new HashMap<>();
       for (String id : hmFields.keySet())
       {
         hmOldValues.put(id, hmFields.get(id).getText());
       }
-      HashMap<String, Boolean> hmOldSecureValues =
-        new HashMap<String, Boolean>();
+      HashMap<String, Boolean> hmOldSecureValues = new HashMap<>();
       for (String id : hmCbs.keySet())
       {
         hmOldSecureValues.put(id, hmCbs.get(id).isSelected());
@@ -348,14 +340,10 @@ implements Comparator<ServerDescriptor>
     addVerticalGlue(fieldsPanel);
   }
 
-  private TreeSet<ServerDescriptor> orderServers(
-  Set<ServerDescriptor> servers)
+  private TreeSet<ServerDescriptor> orderServers(Set<ServerDescriptor> servers)
   {
-    TreeSet<ServerDescriptor> ordered = new TreeSet<ServerDescriptor>(this);
+    TreeSet<ServerDescriptor> ordered = new TreeSet<>(this);
     ordered.addAll(servers);
-
     return ordered;
   }
 }
-
-

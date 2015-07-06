@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -72,7 +72,7 @@ public class CurrentInstallStatus
     } else
     {
       Installation installation = Installation.getLocal();
-      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<>();
 
       if (installation.getStatus().isServerRunning())
       {

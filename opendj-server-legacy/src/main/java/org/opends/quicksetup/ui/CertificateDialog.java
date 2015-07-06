@@ -409,7 +409,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
               INFO_CERTIFICATE_CHAIN_COMBO_TOOLTIP.get().toString());
       final CardLayout cl = new CardLayout();
       final JPanel cardPanel = new JPanel(cl);
-      final Map<String, JPanel> hmPanels = new HashMap<String, JPanel>();
+      final Map<String, JPanel> hmPanels = new HashMap<>();
 
       LocalizableMessage[] labels =
       {

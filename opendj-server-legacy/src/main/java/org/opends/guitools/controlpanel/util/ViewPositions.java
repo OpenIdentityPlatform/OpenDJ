@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -37,8 +38,8 @@ import javax.swing.JScrollPane;
  */
 public class ViewPositions
 {
-  private ArrayList<JScrollPane> scrolls = new ArrayList<JScrollPane>();
-  private ArrayList<Point> points = new ArrayList<Point>();
+  private ArrayList<JScrollPane> scrolls = new ArrayList<>();
+  private ArrayList<Point> points = new ArrayList<>();
 
   /**
    * Returns the size of the lists.

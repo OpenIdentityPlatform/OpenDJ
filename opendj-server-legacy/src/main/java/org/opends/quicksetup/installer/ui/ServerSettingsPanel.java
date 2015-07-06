@@ -67,27 +67,19 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   private UserData defaultUserData;
 
   private Component lastFocusComponent;
-
   private JLabel lSecurity;
-
   private JButton secureAccessButton;
-
   private JButton browseButton;
 
   private boolean displayServerLocation;
-
   private boolean canUpdateSecurity;
 
   private SecurityOptions securityOptions;
 
-  private HashMap<FieldName, JLabel> hmLabels =
-      new HashMap<FieldName, JLabel>();
-
-  private HashMap<FieldName, JTextComponent> hmFields =
-      new HashMap<FieldName, JTextComponent>();
+  private HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
+  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
 
   private JTextComponent tfServerLocationParent;
-
   private JTextComponent tfServerLocationRelativePath;
 
   private JLabel lServerLocation;
@@ -438,8 +430,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
    */
   private void populateLabelAndFieldMaps()
   {
-    HashMap<FieldName, LabelFieldDescriptor> hm =
-        new HashMap<FieldName, LabelFieldDescriptor>();
+    HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
 
     hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
         INFO_HOST_NAME_LABEL.get(),

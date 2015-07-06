@@ -64,8 +64,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   private Set<String> outsideDbs;
   private Set<String> outsideLogs;
 
-  private HashMap<FieldName, JCheckBox> hmCbs =
-    new HashMap<FieldName, JCheckBox>();
+  private HashMap<FieldName, JCheckBox> hmCbs = new HashMap<>();
 
   /**
    * The constructor of this class.
@@ -86,7 +85,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     switch (fieldName)
     {
     case EXTERNAL_DB_DIRECTORIES:
-      Set<String> s1 = new HashSet<String>();
+      Set<String> s1 = new HashSet<>();
       if (outsideDbs.size() > 0
           && getCheckBox(FieldName.EXTERNAL_DB_DIRECTORIES).isSelected())
       {
@@ -95,7 +94,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
       return s1;
 
     case EXTERNAL_LOG_FILES:
-      Set<String> s2 = new HashSet<String>();
+      Set<String> s2 = new HashSet<>();
       if (outsideLogs.size() > 0
           && getCheckBox(FieldName.EXTERNAL_LOG_FILES).isSelected())
       {

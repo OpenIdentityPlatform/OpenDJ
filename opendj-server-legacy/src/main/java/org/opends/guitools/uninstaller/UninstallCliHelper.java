@@ -336,7 +336,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         INFO_CLI_UNINSTALL_SPECIFY_WHAT_REMOVE.get()
       };
 
-    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    MenuBuilder<Integer> builder = new MenuBuilder<>(this);
     builder.setPrompt(INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get());
 
     for (int i=0; i<indexes.length; i++)
@@ -1321,8 +1321,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     logger.info(LocalizableMessage.raw("Handle topology cache."));
 
-    Set<TopologyCacheException> exceptions =
-      new HashSet<TopologyCacheException>();
+    Set<TopologyCacheException> exceptions = new HashSet<>();
     /* Analyze if we had any exception while loading servers.  For the moment
      * only throw the exception found if the user did not provide the
      * Administrator DN and this caused a problem authenticating in one server
@@ -1338,7 +1337,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         exceptions.add(e);
       }
     }
-    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {

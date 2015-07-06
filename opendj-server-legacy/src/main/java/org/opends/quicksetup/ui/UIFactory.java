@@ -779,7 +779,7 @@ public class UIFactory
    */
   public static <T> JList<T> makeJList(TextStyle textStyle)
   {
-    final JList<T> list = new JList<T>();
+    final JList<T> list = new JList<>();
     list.setCellRenderer(makeCellRenderer(textStyle));
     return list;
   }

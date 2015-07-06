@@ -94,6 +94,7 @@ import static org.opends.server.tools.ConfigureWindowsService.*;
  */
 public class Uninstaller extends GuiApplication implements CliApplication {
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private ProgressStep status = UninstallProgressStep.NOT_STARTED;
   private boolean runStarted;
   private boolean errorOnRemoteOccurred;
@@ -101,27 +102,19 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   private UninstallerArgumentParser parser;
 
-  private HashMap<ProgressStep, Integer> hmRatio =
-          new HashMap<ProgressStep, Integer>();
-
-  private HashMap<ProgressStep, LocalizableMessage> hmSummary =
-          new HashMap<ProgressStep, LocalizableMessage>();
+  private Map<ProgressStep, Integer> hmRatio = new HashMap<>();
+  private Map<ProgressStep, LocalizableMessage> hmSummary = new HashMap<>();
 
   private ApplicationException ue;
-
   private Boolean isWindowsServiceEnabled;
-
   private UninstallCliHelper cliHelper = new UninstallCliHelper();
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private LoginDialog loginDialog;
   private ProgressDialog startProgressDlg;
   private LocalizableMessageBuilder startProgressDetails = new LocalizableMessageBuilder();
   private UninstallData conf;
-  /**
-   * Default constructor.
-   */
+
+  /** Default constructor. */
   public Uninstaller()
   {
     super();
@@ -299,13 +292,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     // This is updated on the method handleTopologyCache
     uud.setUpdateRemoteReplication(false);
 
-    Set<String> dbs = new HashSet<String>();
+    Set<String> dbs = new HashSet<>();
     Set<?> s = (Set<?>) qs.getFieldValue(FieldName.EXTERNAL_DB_DIRECTORIES);
     for (Object v : s) {
       dbs.add((String) v);
     }
 
-    Set<String> logs = new HashSet<String>();
+    Set<String> logs = new HashSet<>();
     s = (Set<?>) qs.getFieldValue(FieldName.EXTERNAL_LOG_FILES);
     for (Object v : s) {
       logs.add((String) v);
@@ -619,7 +612,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
      Utils.directoryExistsAndIsNotEmpty(resourcesPath);
     boolean classesDefined =
       Utils.directoryExistsAndIsNotEmpty(classesPath);
-    ArrayList<String> paths = new ArrayList<String>();
+    ArrayList<String> paths = new ArrayList<>();
     paths.add(libPath);
     if (resourcesDefined)
     {
@@ -687,8 +680,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     * deleting files, the value for downloading will be the double of the
     * value for extracting.
     */
-    HashMap<UninstallProgressStep, Integer> hmTime =
-            new HashMap<UninstallProgressStep, Integer>();
+    Map<UninstallProgressStep, Integer> hmTime = new HashMap<>();
     hmTime.put(UninstallProgressStep.UNCONFIGURING_REPLICATION, 5);
     hmTime.put(UninstallProgressStep.STOPPING_SERVER, 15);
     hmTime.put(UninstallProgressStep.DISABLING_WINDOWS_SERVICE, 5);
@@ -698,8 +690,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     hmTime.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, 10);
 
     int totalTime = 0;
-    ArrayList<UninstallProgressStep> steps =
-            new ArrayList<UninstallProgressStep>();
+    List<UninstallProgressStep> steps = new ArrayList<>();
     if (getUninstallUserData().getUpdateRemoteReplication()) {
       totalTime += hmTime.get(UninstallProgressStep.UNCONFIGURING_REPLICATION);
       steps.add(UninstallProgressStep.UNCONFIGURING_REPLICATION);
@@ -1015,7 +1006,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /** {@inheritDoc} */
   @Override
   public Set<? extends WizardStep> getWizardSteps() {
-    Set<WizardStep> setSteps = new HashSet<WizardStep>();
+    Set<WizardStep> setSteps = new HashSet<>();
     setSteps.add(Step.CONFIRM_UNINSTALL);
     setSteps.add(Step.PROGRESS);
     setSteps.add(Step.FINISHED);
@@ -1025,15 +1016,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /** {@inheritDoc} */
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
-    QuickSetupStepPanel p = null;
     if (step == Step.CONFIRM_UNINSTALL) {
-      p = new ConfirmUninstallPanel(this, installStatus);
+      return new ConfirmUninstallPanel(this, installStatus);
     } else if (step == Step.PROGRESS) {
-      p = new ProgressPanel(this);
+      return new ProgressPanel(this);
     } else if (step == Step.FINISHED) {
-      p = new FinishedPanel(this);
+      return new FinishedPanel(this);
     }
-    return p;
+    return null;
   }
 
   /**
@@ -1166,7 +1156,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
        * the installation files.
        */
       int totalRatio = 0;
-      ArrayList<Integer> cumulatedRatio = new ArrayList<Integer>();
+      ArrayList<Integer> cumulatedRatio = new ArrayList<>();
       for (File f : rootFiles) {
         if (filter.accept(f)) {
           Installation installation = getInstallation();
@@ -1629,15 +1619,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   {
     logger.info(LocalizableMessage.raw("Handling TopologyCache"));
     boolean stopProcessing = false;
-    Set<TopologyCacheException> exceptions =
-      new HashSet<TopologyCacheException>();
+    Set<TopologyCacheException> exceptions = new HashSet<>();
     /* Analyze if we had any exception while loading servers.  For the moment
      * only throw the exception found if the user did not provide the
      * Administrator DN and this caused a problem authenticating in one server
      * or if there is a certificate problem.
      */
-    Set<ServerDescriptor> servers = cache.getServers();
-    for (ServerDescriptor server : servers)
+    for (ServerDescriptor server : cache.getServers())
     {
       TopologyCacheException e = server.getLastException();
       if (e != null)
@@ -1645,7 +1633,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         exceptions.add(e);
       }
     }
-    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
@@ -1664,25 +1652,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       case GENERIC_CREATING_CONNECTION:
         if (isCertificateException(e.getCause()))
         {
-          UserDataCertificateException.Type excType;
           ApplicationTrustManager.Cause cause = null;
           if (e.getTrustManager() != null)
           {
             cause = e.getTrustManager().getLastRefusedCause();
           }
           logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
-          if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-          {
-            excType = UserDataCertificateException.Type.NOT_TRUSTED;
-          }
-          else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-          {
-            excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-          }
-          else
-          {
-            excType = null;
-          }
+          UserDataCertificateException.Type excType = getCertificateExceptionType(cause);
           if (excType != null)
           {
             String h;
@@ -1735,6 +1711,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       getUserData().setStopServer(true);
       qs.launch();
       qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
+    }
+  }
+
+  private UserDataCertificateException.Type getCertificateExceptionType(ApplicationTrustManager.Cause cause)
+  {
+    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+    {
+      return UserDataCertificateException.Type.NOT_TRUSTED;
+    }
+    else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+    {
+      return UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+    }
+    else
+    {
+      return null;
     }
   }
 

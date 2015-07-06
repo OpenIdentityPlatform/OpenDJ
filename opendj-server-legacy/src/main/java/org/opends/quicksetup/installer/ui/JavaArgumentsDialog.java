@@ -191,25 +191,21 @@ public class JavaArgumentsDialog extends JDialog
   private String[] getOtherArguments()
   {
     String sArgs = this.tfOtherArguments.getText().trim();
-    if (sArgs.length() > 0)
-    {
-      String[] args = sArgs.split(" ");
-      ArrayList<String> array = new ArrayList<String>();
-      for (String arg : args)
-      {
-        if (arg.length() > 0)
-        {
-          array.add(arg);
-        }
-      }
-      String[] fArgs = new String[array.size()];
-      array.toArray(fArgs);
-      return fArgs;
-    }
-    else
+    if (sArgs.length() <= 0)
     {
       return new String[]{};
     }
+
+    String[] args = sArgs.split(" ");
+    ArrayList<String> array = new ArrayList<>();
+    for (String arg : args)
+    {
+      if (arg.length() > 0)
+      {
+        array.add(arg);
+      }
+    }
+    return array.toArray(new String[array.size()]);
   }
 
   /**
@@ -473,7 +469,7 @@ public class JavaArgumentsDialog extends JDialog
         setValidLater(lOtherArguments, true);
         int initialMemory = -1;
         int maxMemory = -1;
-        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<>();
         try
         {
           String sInitialMemory = tfInitialMemory.getText().trim();
@@ -523,14 +519,14 @@ public class JavaArgumentsDialog extends JDialog
         if (errorMsgs.isEmpty())
         {
           // Try the options together, often there are interdependencies.
-          ArrayList<LocalizableMessage> allErrors = new ArrayList<LocalizableMessage>();
+          ArrayList<LocalizableMessage> allErrors = new ArrayList<>();
           checkAllArgumentsTogether(initialMemory, maxMemory, allErrors);
 
           if (!allErrors.isEmpty())
           {
-            ArrayList<LocalizableMessage> memoryErrors = new ArrayList<LocalizableMessage>();
+            ArrayList<LocalizableMessage> memoryErrors = new ArrayList<>();
             checkMemoryArguments(initialMemory, maxMemory, memoryErrors);
-            ArrayList<LocalizableMessage> otherErrors = new ArrayList<LocalizableMessage>();
+            ArrayList<LocalizableMessage> otherErrors = new ArrayList<>();
             checkOtherArguments(otherErrors);
 
             if (!memoryErrors.isEmpty())
@@ -841,7 +837,7 @@ public class JavaArgumentsDialog extends JDialog
     setValidLater(lInitialMemory, true);
     setValidLater(lMaxMemory, true);
     setValidLater(lOtherArguments, true);
-    ArrayList<JLabel> ls = new ArrayList<JLabel>();
+    ArrayList<JLabel> ls = new ArrayList<>();
     StringBuilder sb = new StringBuilder();
 
     if (initialMemory != -1)
@@ -891,7 +887,7 @@ public class JavaArgumentsDialog extends JDialog
   private void checkOtherArguments(Collection<LocalizableMessage> errorMsgs)
   {
     setValidLater(lOtherArguments, true);
-    ArrayList<JLabel> ls = new ArrayList<JLabel>();
+    ArrayList<JLabel> ls = new ArrayList<>();
     StringBuilder sb = new StringBuilder();
 
     String[] otherArgs = getOtherArguments();

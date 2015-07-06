@@ -51,23 +51,17 @@ public class ButtonsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -8460400337486357976L;
 
-  private HashSet<ButtonActionListener> buttonListeners =
-      new HashSet<ButtonActionListener>();
+  private HashSet<ButtonActionListener> buttonListeners = new HashSet<>();
 
   private JButton nextButton;
-
   private JButton previousButton;
-
   private JButton quitButton;
-
   private JButton closeButton;
-
   private JButton finishButton;
 
   /**
    * Default constructor.
    * @param application Application running in QuickSetup
-   *
    */
   public ButtonsPanel(GuiApplication application)
   {

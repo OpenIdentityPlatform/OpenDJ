@@ -60,11 +60,8 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
 
   private Component lastFocusComponent;
 
-  private HashMap<FieldName, JLabel> hmLabels =
-      new HashMap<FieldName, JLabel>();
-
-  private HashMap<FieldName, JTextComponent> hmFields =
-      new HashMap<FieldName, JTextComponent>();
+  private HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
+  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
 
   /**
    * Constructor of the panel.
@@ -229,8 +226,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
    */
   private void populateLabelAndFieldMaps()
   {
-    HashMap<FieldName, LabelFieldDescriptor> hm =
-        new HashMap<FieldName, LabelFieldDescriptor>();
+    HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
 
     hm.put(FieldName.GLOBAL_ADMINISTRATOR_UID, new LabelFieldDescriptor(
         INFO_GLOBAL_ADMINISTRATOR_UID_LABEL.get(),

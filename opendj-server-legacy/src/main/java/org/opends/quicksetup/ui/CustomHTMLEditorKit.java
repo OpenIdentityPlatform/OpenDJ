@@ -44,7 +44,7 @@ import javax.swing.text.html.HTMLEditorKit;
  */
 public class CustomHTMLEditorKit extends HTMLEditorKit
 {
-  private HashSet<ActionListener> listeners = new HashSet<ActionListener>();
+  private HashSet<ActionListener> listeners = new HashSet<>();
   private static final long serialVersionUID = 298103926252426388L;
 
   /**

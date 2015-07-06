@@ -68,21 +68,16 @@ import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
  */
 public class DataOptionsPanel extends QuickSetupStepPanel
 {
-  private Component lastFocusComponent;
-
   private static final long serialVersionUID = 1815782841921928118L;
 
+  private Component lastFocusComponent;
   private UserData defaultUserData;
 
-  private HashMap<FieldName, JLabel> hmLabels = new HashMap<FieldName, JLabel>();
-
-  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<FieldName, JTextComponent>();
-
-  private HashMap<NewSuffixOptions.Type, JRadioButton> hmRadioButtons =
-      new HashMap<NewSuffixOptions.Type, JRadioButton>();
+  private HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
+  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
+  private HashMap<NewSuffixOptions.Type, JRadioButton> hmRadioButtons = new HashMap<>();
 
   private JButton ldifBrowseButton;
-
   private JComboBox<BackendTypeUIAdapter> backendTypeComboBox;
 
   /**
@@ -400,7 +395,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   /** Creates the components and populates the Maps with them. */
   private void populateComponentMaps()
   {
-    final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<FieldName, LabelFieldDescriptor>();
+    final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
 
     final LabelFieldDescriptor baseDNLabelDescriptor = new LabelFieldDescriptor(
         INFO_BASE_DN_LABEL.get(), INFO_BASE_DN_TOOLTIP.get(), LabelFieldDescriptor.FieldType.TEXTFIELD,

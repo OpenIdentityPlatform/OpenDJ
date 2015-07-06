@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -55,8 +55,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = 1765037717593522233L;
 
-  private HashSet<ButtonActionListener> buttonListeners =
-      new HashSet<ButtonActionListener>();
+  private HashSet<ButtonActionListener> buttonListeners = new HashSet<>();
 
   private JButton quitButton;
   private JButton continueButton;

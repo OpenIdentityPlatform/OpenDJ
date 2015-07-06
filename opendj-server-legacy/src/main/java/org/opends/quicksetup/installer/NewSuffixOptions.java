@@ -61,9 +61,9 @@ public class NewSuffixOptions
 
   private Type type;
 
-  private List<String> baseDns = new LinkedList<String>();
+  private List<String> baseDns = new LinkedList<>();
 
-  private List<String> ldifPaths = new LinkedList<String>();
+  private List<String> ldifPaths = new LinkedList<>();
 
   private String rejectedFile;
   private String skippedFile;
@@ -154,7 +154,7 @@ public class NewSuffixOptions
    */
   public LinkedList<String> getLDIFPaths()
   {
-    return new LinkedList<String>(ldifPaths);
+    return new LinkedList<>(ldifPaths);
   }
 
   /**
@@ -198,7 +198,7 @@ public class NewSuffixOptions
    */
   public LinkedList<String> getBaseDns()
   {
-    return new LinkedList<String>(baseDns);
+    return new LinkedList<>(baseDns);
   }
 
   /**

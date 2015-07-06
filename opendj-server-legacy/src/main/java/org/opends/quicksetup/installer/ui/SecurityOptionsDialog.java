@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
 
  */
 
@@ -673,7 +673,7 @@ public class SecurityOptionsDialog extends JDialog
       @Override
       public ArrayList<LocalizableMessage> processBackgroundTask()
       {
-        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<>();
         errorMsgs.addAll(checkPort());
         errorMsgs.addAll(checkKeystore());
         return errorMsgs;
@@ -895,7 +895,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private ArrayList<LocalizableMessage> checkPort()
   {
-    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<>();
 
     if (cbEnableSSL.isSelected())
     {
@@ -940,7 +940,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private ArrayList<LocalizableMessage> checkKeystore()
   {
-    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<>();
 
     boolean pathValid = true;
     boolean pwdValid = true;

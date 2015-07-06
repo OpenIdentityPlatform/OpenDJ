@@ -84,8 +84,8 @@ public class InstallReviewPanel extends ReviewPanel {
 
   private final boolean displayServerLocation;
 
-  private final HashMap<FieldName, JLabel> hmLabels = new HashMap<FieldName, JLabel>();
-  private final HashMap<FieldName, JTextComponent> hmFields = new HashMap<FieldName, JTextComponent>();
+  private final HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
+  private final HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
   private JPanel bottomComponent;
   private JCheckBox startCheckBox;
   private JCheckBox enableWindowsServiceCheckBox;
@@ -276,7 +276,7 @@ public class InstallReviewPanel extends ReviewPanel {
   /** Create the components and populate the Maps. */
   private void populateLabelAndFieldsMap()
   {
-    final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<FieldName, LabelFieldDescriptor>();
+    final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
 
     if (displayServerLocation)
     {
@@ -390,7 +390,7 @@ public class InstallReviewPanel extends ReviewPanel {
       }
       buf.append(s);
 
-      final TreeSet<LocalizableMessage> remoteServerLines = new TreeSet<LocalizableMessage>();
+      final TreeSet<LocalizableMessage> remoteServerLines = new TreeSet<>();
       for (final ServerDescriptor server : remotePorts.keySet())
       {
         String serverDisplay;
@@ -505,7 +505,7 @@ public class InstallReviewPanel extends ReviewPanel {
     panel.setOpaque(false);
     final GridBagConstraints gbc = new GridBagConstraints();
 
-    final List<FieldName> fieldNames = new LinkedList<FieldName>();
+    final List<FieldName> fieldNames = new LinkedList<>();
     if (displayServerLocation)
     {
       fieldNames.add(FieldName.SERVER_LOCATION);
@@ -759,7 +759,7 @@ public class InstallReviewPanel extends ReviewPanel {
     final StringBuilder sb = new StringBuilder();
     final JavaArguments serverArguments = userData.getJavaArguments(UserData.SERVER_SCRIPT_NAME);
     final JavaArguments importArguments = userData.getJavaArguments(UserData.IMPORT_SCRIPT_NAME);
-    final List<String> linesToAdd = new ArrayList<String>();
+    final List<String> linesToAdd = new ArrayList<>();
 
     final boolean defaultServer =
         userData.getDefaultJavaArguments(UserData.SERVER_SCRIPT_NAME).equals(serverArguments);

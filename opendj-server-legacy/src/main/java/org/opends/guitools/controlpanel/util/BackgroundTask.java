@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -44,14 +45,11 @@ public abstract class BackgroundTask<T>
   public final void startBackgroundTask()
   {
     interrupted = false;
-    taskThread = new BackgroundTaskThread<T>(this);
+    taskThread = new BackgroundTaskThread<>(this);
     taskThread.start();
   }
 
-  /**
-   * Interrupts the thread that is running background.
-   *
-   */
+  /** Interrupts the thread that is running background. */
   public final void interrupt()
   {
     interrupted = true;
