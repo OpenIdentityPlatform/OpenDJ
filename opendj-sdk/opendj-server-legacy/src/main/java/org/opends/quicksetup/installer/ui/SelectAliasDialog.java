@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -105,7 +105,7 @@ public class SelectAliasDialog extends JDialog
           "The provided aliases are null or empty.");
     }
     isCanceled = true;
-    TreeSet<String> s = new TreeSet<String>();
+    TreeSet<String> s = new TreeSet<>();
     Collections.addAll(s, aliases);
     String[] orderedAliases = new String[s.size()];
     s.toArray(orderedAliases);

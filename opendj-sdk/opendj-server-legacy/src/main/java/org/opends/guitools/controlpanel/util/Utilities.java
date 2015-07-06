@@ -262,7 +262,7 @@ public class Utilities
     Utilities.centerGoldenMean(dlg, Utilities.getParentDialog(this));
     dlg.setVisible(true);
     */
-    ArrayList<String> stringErrors = new ArrayList<String>();
+    ArrayList<String> stringErrors = new ArrayList<>();
     for (LocalizableMessage err : errors)
     {
       stringErrors.add(err.toString());
@@ -2363,7 +2363,7 @@ public class Utilities
     if (confEntry != null)
     {
       // Copy the values to avoid problems with this recursive method.
-      ArrayList<DN> childDNs = new ArrayList<DN>(confEntry.getChildren().keySet());
+      ArrayList<DN> childDNs = new ArrayList<>(confEntry.getChildren().keySet());
       for (DN childDN : childDNs)
       {
         deleteConfigSubtree(confHandler, childDN);

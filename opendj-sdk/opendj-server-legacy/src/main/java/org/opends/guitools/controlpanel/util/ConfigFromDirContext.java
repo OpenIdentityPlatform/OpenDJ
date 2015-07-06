@@ -124,23 +124,18 @@ public class ConfigFromDirContext extends ConfigReader
 
   private boolean isLocal = true;
 
-  private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
-    new HashMap<String, CustomSearchResult>();
+  private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor = new HashMap<>();
 
   /** The monitor root entry DN. */
   protected DN monitorDN = DN.rootDN();
-
   /** The JVM memory usage monitoring entry DN. */
   protected DN jvmMemoryUsageDN = DN.rootDN();
   /** The system information monitoring entry DN. */
   protected DN systemInformationDN = DN.rootDN();
-
   /**The entry cache monitoring entry DN. */
   protected DN entryCachesDN = DN.rootDN();
-
   /** The work queue monitoring entry DN. */
   protected DN workQueueDN = DN.rootDN();
-
   /** The version monitoring entry DN. */
   protected DN versionDN = DN.rootDN();
 
@@ -263,11 +258,11 @@ public class ConfigFromDirContext extends ConfigReader
    */
   public void readConfiguration(final InitialLdapContext context)
   {
-    final List<OpenDsException> errors = new ArrayList<OpenDsException>();
-    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<ConnectionHandlerDescriptor>();
-    final Set<BackendDescriptor> backendDescriptors = new HashSet<BackendDescriptor>();
-    final Set<DN> as = new HashSet<DN>();
-    final Set<TaskEntry> tasks = new HashSet<TaskEntry>();
+    final List<OpenDsException> errors = new ArrayList<>();
+    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<>();
+    final Set<BackendDescriptor> backendDescriptors = new HashSet<>();
+    final Set<DN> as = new HashSet<>();
+    final Set<TaskEntry> tasks = new HashSet<>();
 
     rootMonitor = null;
     jvmMemoryUsage = null;
@@ -414,14 +409,14 @@ public class ConfigFromDirContext extends ConfigReader
       try
       {
         BackendCfgClient backend = root.getBackend(backendName);
-        Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
+        Set<BaseDNDescriptor> baseDNs = new HashSet<>();
         for (DN dn : backend.getBaseDN())
         {
           BaseDNDescriptor baseDN = new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn, null, -1, -1, -1);
           baseDNs.add(baseDN);
         }
-        Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
-        Set<VLVIndexDescriptor> vlvIndexes = new HashSet<VLVIndexDescriptor>();
+        Set<IndexDescriptor> indexes = new HashSet<>();
+        Set<VLVIndexDescriptor> vlvIndexes = new HashSet<>();
         BackendDescriptor.Type type;
         if (backend instanceof LocalDBBackendCfgClient)
         {
@@ -1008,14 +1003,12 @@ public class ConfigFromDirContext extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(ConnectionHandlerCfgClient connHandler, String name)
   throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
-    int port;
-
-    ConnectionHandlerDescriptor.Protocol protocol;
-
+    SortedSet<InetAddress> addresses = new TreeSet<>(getInetAddressComparator());
     ConnectionHandlerDescriptor.State state = connHandler.isEnabled() ? ConnectionHandlerDescriptor.State.ENABLED
                                                                       : ConnectionHandlerDescriptor.State.DISABLED;
 
+    ConnectionHandlerDescriptor.Protocol protocol;
+    int port;
     if (connHandler instanceof LDAPConnectionHandlerCfgClient)
     {
       LDAPConnectionHandlerCfgClient ldap = (LDAPConnectionHandlerCfgClient)connHandler;
@@ -1094,7 +1087,7 @@ public class ConfigFromDirContext extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(AdministrationConnectorCfgClient adminConnector)
       throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
+    SortedSet<InetAddress> addresses = new TreeSet<>(getInetAddressComparator());
 
     ConnectionHandlerDescriptor.Protocol protocol = ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
     ConnectionHandlerDescriptor.State state = ConnectionHandlerDescriptor.State.ENABLED;
@@ -1191,7 +1184,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   private Set<CustomSearchResult>getMonitoringEntries(ConnectionHandlerDescriptor ch)
   {
-    Set<CustomSearchResult> monitorEntries = new HashSet<CustomSearchResult>();
+    Set<CustomSearchResult> monitorEntries = new HashSet<>();
     if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
     {
       for (String key : hmConnectionHandlersMonitor.keySet())

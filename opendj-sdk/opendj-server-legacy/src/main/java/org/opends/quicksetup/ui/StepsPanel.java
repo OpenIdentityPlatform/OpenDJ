@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -53,11 +53,9 @@ public class StepsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -2003945907121690657L;
 
-  HashMap<WizardStep, JLabel> hmLabels = new HashMap<WizardStep, JLabel>();
-
-  HashMap<WizardStep, JLabel> hmIcons = new HashMap<WizardStep, JLabel>();
-
-  HashMap<WizardStep, JPanel> hmSubPanels = new HashMap<WizardStep, JPanel>();
+  HashMap<WizardStep, JLabel> hmLabels = new HashMap<>();
+  HashMap<WizardStep, JLabel> hmIcons = new HashMap<>();
+  HashMap<WizardStep, JPanel> hmSubPanels = new HashMap<>();
 
   /**
    * Creates a StepsPanel.
@@ -133,7 +131,7 @@ public class StepsPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
 
-    HashMap<WizardStep, LocalizableMessage> hmText = new HashMap<WizardStep, LocalizableMessage>();
+    HashMap<WizardStep, LocalizableMessage> hmText = new HashMap<>();
     LinkedHashSet<WizardStep> orderedSteps = app.getOrderedSteps();
     boolean first = true;
     for (WizardStep s : orderedSteps)

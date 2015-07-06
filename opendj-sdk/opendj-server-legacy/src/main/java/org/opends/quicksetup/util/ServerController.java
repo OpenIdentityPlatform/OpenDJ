@@ -148,7 +148,7 @@ public class ServerController {
       }
       logger.info(LocalizableMessage.raw("stopping server"));
 
-      ArrayList<String> argList = new ArrayList<String>();
+      ArrayList<String> argList = new ArrayList<>();
       argList.add(Utils.getScriptPath(
           Utils.getPath(installation.getServerStopCommandFile())));
       int size = argList.size();
@@ -343,7 +343,7 @@ public class ServerController {
       }
       logger.info(LocalizableMessage.raw("starting server"));
 
-      ArrayList<String> argList = new ArrayList<String>();
+      ArrayList<String> argList = new ArrayList<>();
       argList.add(Utils.getScriptPath(
           Utils.getPath(installation.getServerStartCommandFile())));
       argList.add("--timeout");

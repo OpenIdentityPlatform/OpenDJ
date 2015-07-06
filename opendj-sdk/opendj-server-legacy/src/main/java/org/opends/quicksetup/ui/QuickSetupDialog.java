@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -61,23 +61,17 @@ public class QuickSetupDialog
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private JFrame frame;
-
   private QuickSetupErrorPanel installedPanel;
-
   private JPanel framePanel;
-
   private StepsPanel stepsPanel;
-
   private CurrentStepPanel currentStepPanel;
-
   private ButtonsPanel buttonsPanel;
 
   private WizardStep displayedStep;
 
   private CurrentInstallStatus installStatus;
 
-  private HashSet<ButtonActionListener> buttonListeners =
-      new HashSet<ButtonActionListener>();
+  private HashSet<ButtonActionListener> buttonListeners = new HashSet<>();
 
   private GuiApplication application;
 

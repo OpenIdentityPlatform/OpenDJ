@@ -255,7 +255,7 @@ public class Configuration {
   }
 
   private Set<String> getOutsidePaths(Set<String> paths) {
-    Set<String> outsidePaths = new HashSet<String>();
+    Set<String> outsidePaths = new HashSet<>();
     for (String path : paths) {
       File fullDbPath;
       File pathFile = new File(path);
@@ -342,7 +342,7 @@ public class Configuration {
   private Set<String> getConfigurationValues(String attrName)
           throws IOException
   {
-    Set<String> set = new HashSet<String>();
+    Set<String> set = new HashSet<>();
     attrName += ":";
     String lowerCaseContents = getLowerCaseContents();
     String contents = getContents();

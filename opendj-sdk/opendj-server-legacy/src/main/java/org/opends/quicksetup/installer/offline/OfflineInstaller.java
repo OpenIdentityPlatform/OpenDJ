@@ -70,17 +70,14 @@ import org.opends.server.util.CertificateManager;
  */
 public class OfflineInstaller extends Installer
 {
-  /** This map contains the ratio associated with each step. */
-  private final Map<ProgressStep, Integer> hmRatio =
-      new HashMap<ProgressStep, Integer>();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** This map contains the ratio associated with each step. */
+  private final Map<ProgressStep, Integer> hmRatio = new HashMap<>();
   /** This map contains the summary associated with each step. */
-  private final Map<ProgressStep, LocalizableMessage> hmSummary =
-      new HashMap<ProgressStep, LocalizableMessage>();
+  private final Map<ProgressStep, LocalizableMessage> hmSummary = new HashMap<>();
 
   private ApplicationException runError;
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Actually performs the install in this thread.  The thread is blocked.
@@ -449,8 +446,7 @@ public class OfflineInstaller extends Installer
      * extracting, the value for downloading will be the double of the value for
      * extracting.
      */
-    Map<ProgressStep, Integer> hmTime =
-        new HashMap<ProgressStep, Integer>();
+    Map<ProgressStep, Integer> hmTime = new HashMap<>();
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
     hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
     hmTime.put(InstallProgressStep.IMPORTING_LDIF, 20);
@@ -463,8 +459,7 @@ public class OfflineInstaller extends Installer
     hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
 
     int totalTime = 0;
-    List<InstallProgressStep> steps =
-        new ArrayList<InstallProgressStep>();
+    List<InstallProgressStep> steps = new ArrayList<>();
     totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
     if (createNotReplicatedSuffix())

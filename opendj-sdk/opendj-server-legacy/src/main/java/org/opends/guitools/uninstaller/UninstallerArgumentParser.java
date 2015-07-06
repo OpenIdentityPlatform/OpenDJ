@@ -102,7 +102,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   public void initializeGlobalArguments(OutputStream outStream)
   throws ArgumentException
   {
-    LinkedHashSet<Argument> args = new LinkedHashSet<Argument>();
+    LinkedHashSet<Argument> args = new LinkedHashSet<>();
     cliArg = CommonArguments.getCLI();
     args.add(cliArg);
 
@@ -175,8 +175,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       arg.setPropertyName(arg.getLongIdentifier());
     }
 
-    ArrayList<Argument> defaultArgs =
-      new ArrayList<Argument>(createGlobalArguments(outStream, alwaysSSL));
+    ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {

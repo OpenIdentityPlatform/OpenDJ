@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer;
@@ -67,9 +68,9 @@ class ConfiguredReplication
     this.synchProviderEnabled = synchProviderEnabled;
     this.replicationServerCreated = replicationServerCreated;
     this.secureReplicationEnabled = secureReplicationEnabled;
-    this.newReplicationServers = new HashSet<String>();
+    this.newReplicationServers = new HashSet<>();
     this.newReplicationServers.addAll(newReplicationServers);
-    this.domainsConf = new HashSet<ConfiguredDomain>();
+    this.domainsConf = new HashSet<>();
     this.domainsConf.addAll(domainsConf);
   }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -37,8 +37,7 @@ import java.util.HashSet;
  */
 public class ProgressUpdateListenerDelegate {
 
-  private HashSet<ProgressUpdateListener> listeners =
-          new HashSet<ProgressUpdateListener>();
+  private HashSet<ProgressUpdateListener> listeners = new HashSet<>();
 
   /**
    * Creates a parameterized instance.

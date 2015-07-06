@@ -73,10 +73,8 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   private JRadioButton rbReplicated;
   private JCheckBox cbSecureReplication;
   private JCheckBox cbTopologyExists;
-  private HashMap<FieldName, JLabel> hmLabels =
-    new HashMap<FieldName, JLabel>();
-  private HashMap<FieldName, JTextComponent> hmFields =
-    new HashMap<FieldName, JTextComponent>();
+  private HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
+  private HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
 
   /**
    * Constructor of the panel.
@@ -372,8 +370,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
    */
   private void populateComponentMaps()
   {
-    HashMap<FieldName, LabelFieldDescriptor> hm =
-        new HashMap<FieldName, LabelFieldDescriptor>();
+    HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
 
     hm.put(FieldName.REPLICATION_PORT, new LabelFieldDescriptor(
         INFO_REPLICATION_PORT_LABEL.get(),

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.guitools.uninstaller;
@@ -38,8 +39,8 @@ import java.util.HashSet;
  */
 public class UninstallUserData extends UserData {
 
-  private Set<String> externalDbsToRemove = new HashSet<String>();
-  private Set<String> externalLogsToRemove = new HashSet<String>();
+  private Set<String> externalDbsToRemove = new HashSet<>();
+  private Set<String> externalLogsToRemove = new HashSet<>();
   private boolean removeDatabases;
   private boolean removeLogs;
   private boolean removeLibrariesAndTools;
@@ -47,13 +48,11 @@ public class UninstallUserData extends UserData {
   private boolean removeLDIFs;
   private boolean removeConfigurationAndSchema;
   private boolean updateRemoteReplication;
-  private ApplicationTrustManager trustManager =
-    new ApplicationTrustManager(null);
+  private ApplicationTrustManager trustManager = new ApplicationTrustManager(null);
   private String adminUID;
   private String adminPwd;
   private String localServerUrl;
-  private HashSet<ServerDescriptor> remoteServers =
-    new HashSet<ServerDescriptor>();
+  private HashSet<ServerDescriptor> remoteServers = new HashSet<>();
   private String replicationServer;
   private String referencedHostName;
 
@@ -76,7 +75,7 @@ public class UninstallUserData extends UserData {
    */
   public Set<String> getExternalDbsToRemove()
   {
-    return new HashSet<String>(externalDbsToRemove);
+    return new HashSet<>(externalDbsToRemove);
   }
 
   /**
@@ -98,7 +97,7 @@ public class UninstallUserData extends UserData {
    */
   public Set<String> getExternalLogsToRemove()
   {
-    return new HashSet<String>(externalLogsToRemove);
+    return new HashSet<>(externalLogsToRemove);
   }
 
   /**
@@ -347,7 +346,7 @@ public class UninstallUserData extends UserData {
    */
   public Set<ServerDescriptor> getRemoteServers()
   {
-    return new HashSet<ServerDescriptor>(remoteServers);
+    return new HashSet<>(remoteServers);
   }
 
   /**

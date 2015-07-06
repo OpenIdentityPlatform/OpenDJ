@@ -273,7 +273,7 @@ public abstract class GuiApplication extends Application {
    */
   public LinkedHashSet<WizardStep> getOrderedSteps()
   {
-    LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
+    LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<>();
     WizardStep step = getFirstWizardStep();
     orderedSteps.add(step);
     while (null != (step = getNextWizardStep(step))) {

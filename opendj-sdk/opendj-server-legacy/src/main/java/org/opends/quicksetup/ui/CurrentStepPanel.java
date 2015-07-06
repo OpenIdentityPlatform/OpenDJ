@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -59,8 +59,7 @@ public class CurrentStepPanel extends QuickSetupPanel
 
   private static final String LOADING_PANEL = "loading";
 
-  private Map<WizardStep, QuickSetupStepPanel> hmPanels =
-      new HashMap<WizardStep, QuickSetupStepPanel>();
+  private Map<WizardStep, QuickSetupStepPanel> hmPanels = new HashMap<>();
 
   /**
    * The constructor of this class.

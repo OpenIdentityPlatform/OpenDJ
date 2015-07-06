@@ -42,16 +42,12 @@ import org.opends.guitools.controlpanel.event.PrintStreamListener;
  */
 public class ApplicationPrintStream extends PrintStream
 {
-  private ArrayList<PrintStreamListener> listeners =
-    new ArrayList<PrintStreamListener>();
+  private ArrayList<PrintStreamListener> listeners = new ArrayList<>();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private boolean notifyListeners = true;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ApplicationPrintStream()
   {
     super(new ByteArrayOutputStream(), true);

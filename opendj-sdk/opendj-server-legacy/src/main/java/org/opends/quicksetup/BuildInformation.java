@@ -64,7 +64,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
   public static BuildInformation create(Installation installation)
           throws ApplicationException {
     BuildInformation bi = new BuildInformation();
-    List<String> args = new ArrayList<String>();
+    List<String> args = new ArrayList<>();
     args.add(Utils.getScriptPath(
         Utils.getPath(installation.getServerStartCommandFile())));
     args.add("-F"); // full verbose
@@ -258,7 +258,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return bi;
   }
 
-  private Map<String, String> values = new HashMap<String, String>();
+  private Map<String, String> values = new HashMap<>();
 
   /**
    * Gets the name of this build.  This is the first line of the output

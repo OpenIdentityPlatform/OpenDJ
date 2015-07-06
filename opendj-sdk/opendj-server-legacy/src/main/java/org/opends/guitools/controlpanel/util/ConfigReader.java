@@ -315,7 +315,7 @@ public abstract class ConfigReader
    */
   protected List<VLVSortOrder> getVLVSortOrder(String s)
   {
-    ArrayList<VLVSortOrder> sortOrder = new ArrayList<VLVSortOrder>();
+    ArrayList<VLVSortOrder> sortOrder = new ArrayList<>();
     if (s != null)
     {
       String[] attrNames = s.split(" ");

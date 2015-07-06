@@ -511,7 +511,7 @@ public class NewAttributePanel extends StatusGenericPanel
       comboBoxes[i].setRenderer(renderer);
     }
 
-    DefaultComboBoxModel<AttributeUsage> model = new DefaultComboBoxModel<AttributeUsage>();
+    DefaultComboBoxModel<AttributeUsage> model = new DefaultComboBoxModel<>();
     for (AttributeUsage us : AttributeUsage.values())
     {
       model.addElement(us);

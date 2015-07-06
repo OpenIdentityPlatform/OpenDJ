@@ -75,7 +75,7 @@ public class CliUserInteraction extends ConsoleApplication
   public Object confirm(LocalizableMessage summary, LocalizableMessage details, LocalizableMessage fineDetails,
                         LocalizableMessage title, MessageType type, LocalizableMessage[] options,
                         LocalizableMessage def, LocalizableMessage viewDetailsOption) {
-    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    MenuBuilder<Integer> builder = new MenuBuilder<>(this);
 
     LocalizableMessageBuilder b = new LocalizableMessageBuilder();
     b.append(summary);

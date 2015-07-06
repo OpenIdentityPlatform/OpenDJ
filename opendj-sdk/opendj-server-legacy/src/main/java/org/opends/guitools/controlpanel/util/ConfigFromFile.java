@@ -105,10 +105,10 @@ public class ConfigFromFile extends ConfigReader
    */
   public void readConfiguration()
   {
-    final List<OpenDsException> errors = new ArrayList<OpenDsException>();
-    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<ConnectionHandlerDescriptor>();
-    final Set<BackendDescriptor> backendDescriptors = new HashSet<BackendDescriptor>();
-    final Set<DN> alternateBindDNs = new HashSet<DN>();
+    final List<OpenDsException> errors = new ArrayList<>();
+    final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<>();
+    final Set<BackendDescriptor> backendDescriptors = new HashSet<>();
+    final Set<DN> alternateBindDNs = new HashSet<>();
     try
     {
       DirectoryServer.getInstance().initializeConfiguration();
@@ -220,15 +220,15 @@ public class ConfigFromFile extends ConfigReader
       try
       {
         final BackendCfg backend = root.getBackend(backendName);
-        final Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
+        final Set<BaseDNDescriptor> baseDNs = new HashSet<>();
         for (final DN dn : backend.getBaseDN())
         {
           final BaseDNDescriptor baseDN =
               new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED, dn, null, -1, -1, -1);
           baseDNs.add(baseDN);
         }
-        final Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
-        final Set<VLVIndexDescriptor> vlvIndexes = new HashSet<VLVIndexDescriptor>();
+        final Set<IndexDescriptor> indexes = new HashSet<>();
+        final Set<VLVIndexDescriptor> vlvIndexes = new HashSet<>();
         BackendDescriptor.Type type;
         if (backend instanceof LocalDBBackendCfg)
         {
@@ -482,15 +482,14 @@ public class ConfigFromFile extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(final ConnectionHandlerCfg connHandler, final String name)
       throws OpenDsException
   {
-    final SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
-    int port;
-
-    ConnectionHandlerDescriptor.Protocol protocol;
+    final SortedSet<InetAddress> addresses = new TreeSet<>(getInetAddressComparator());
 
     final ConnectionHandlerDescriptor.State state =
         connHandler.isEnabled() ? ConnectionHandlerDescriptor.State.ENABLED
             : ConnectionHandlerDescriptor.State.DISABLED;
 
+    ConnectionHandlerDescriptor.Protocol protocol;
+    int port;
     if (connHandler instanceof LDAPConnectionHandlerCfg)
     {
       final LDAPConnectionHandlerCfg ldap = (LDAPConnectionHandlerCfg) connHandler;
@@ -569,10 +568,9 @@ public class ConfigFromFile extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(final AdministrationConnectorCfg adminConnector)
       throws OpenDsException
   {
-    final SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(getInetAddressComparator());
+    final SortedSet<InetAddress> addresses = new TreeSet<>(getInetAddressComparator());
 
     final ConnectionHandlerDescriptor.Protocol protocol = ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
-
     final ConnectionHandlerDescriptor.State state = ConnectionHandlerDescriptor.State.ENABLED;
 
     addAll(addresses, adminConnector.getListenAddress());

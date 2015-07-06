@@ -124,7 +124,7 @@ public class UserData
     forceOnError = true;
     verbose = false;
 
-    LinkedList<String> baseDn = new LinkedList<String>();
+    LinkedList<String> baseDn = new LinkedList<>();
     baseDn.add("dc=example,dc=com");
     NewSuffixOptions defaultNewSuffixOptions = NewSuffixOptions.createEmpty(baseDn);
     setNewSuffixOptions(defaultNewSuffixOptions);
@@ -162,8 +162,7 @@ public class UserData
     sec.setSslPort(getDefaultSslPort(defaultLdapPort));
     setSecurityOptions(sec);
 
-    remoteWithNoReplicationPort =
-      new HashMap<ServerDescriptor, AuthenticationData>();
+    remoteWithNoReplicationPort = new HashMap<>();
 
     createDefaultJavaArguments();
   }
@@ -706,7 +705,7 @@ public class UserData
         {
           try
           {
-            SortedMap<String, String> hostNames = new TreeMap<String, String>();
+            SortedMap<String, String> hostNames = new TreeMap<>();
             Enumeration<NetworkInterface> i = NetworkInterface
                 .getNetworkInterfaces();
             while (i.hasMoreElements())
@@ -821,13 +820,9 @@ public class UserData
    * AuthenticationData corresponding to the Replication Port chosen by the
    * user.
    */
-  public Map<ServerDescriptor, AuthenticationData>
-  getRemoteWithNoReplicationPort()
+  public Map<ServerDescriptor, AuthenticationData> getRemoteWithNoReplicationPort()
   {
-    Map<ServerDescriptor, AuthenticationData> copy =
-      new HashMap<ServerDescriptor, AuthenticationData>();
-    copy.putAll(remoteWithNoReplicationPort);
-    return copy;
+    return new HashMap<>(remoteWithNoReplicationPort);
   }
 
   /**
@@ -888,7 +883,7 @@ public class UserData
 
   private void createDefaultJavaArguments()
   {
-    hmJavaArguments = new HashMap<String, JavaArguments>();
+    hmJavaArguments = new HashMap<>();
     int maxMemoryMb = 256;
     int minMemoryMb = 128;
     final int maxMemoryBytes = maxMemoryMb * 1024 * 1024;
@@ -923,8 +918,7 @@ public class UserData
     controlPanelJavaArgument.setAdditionalArguments(new String[] {"-client"});
     hmJavaArguments.put("control-panel", controlPanelJavaArgument);
 
-    hmDefaultJavaArguments =
-      new HashMap<String, JavaArguments>(hmJavaArguments);
+    hmDefaultJavaArguments = new HashMap<>(hmJavaArguments);
   }
 
   private String[] getClientScripts()

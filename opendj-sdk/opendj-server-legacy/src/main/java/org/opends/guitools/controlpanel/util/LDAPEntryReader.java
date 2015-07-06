@@ -50,8 +50,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 {
   private final String dn;
   private final InitialLdapContext ctx;
-  private final Set<EntryReadListener> listeners =
-    new HashSet<EntryReadListener>();
+  private final Set<EntryReadListener> listeners = new HashSet<>();
   private boolean isOver;
   private boolean notifyListeners;
 

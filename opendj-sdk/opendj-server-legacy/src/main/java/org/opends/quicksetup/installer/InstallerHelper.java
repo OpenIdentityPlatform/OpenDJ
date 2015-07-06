@@ -153,7 +153,7 @@ public class InstallerHelper {
     final File importLDIFPath = new File(binPath, isWindows() ? Installation.WINDOWS_IMPORT_LDIF
                                                               : Installation.UNIX_IMPORT_LDIF);
 
-    final ArrayList<String> argList = new ArrayList<String>();
+    final ArrayList<String> argList = new ArrayList<>();
     argList.add(Utils.getScriptPath(importLDIFPath.getAbsolutePath()));
     argList.addAll(Arrays.asList(args));
     logger.info(LocalizableMessage.raw("import-ldif arg list: " + argList));
@@ -387,12 +387,7 @@ public class InstallerHelper {
       RootCfgClient root = mCtx.getRootConfiguration();
       BackendCfgClient backend = root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
-      Set<DN> setBaseDNs = new HashSet<DN>();
-      for (String baseDN : baseDNs)
-      {
-        setBaseDNs.add(DN.valueOf(baseDN));
-      }
-      backend.setBaseDN(setBaseDNs);
+      backend.setBaseDN(toByteStrings(baseDNs));
       backend.setBackendId(backendName);
       backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
       backend.commit();
@@ -402,6 +397,16 @@ public class InstallerHelper {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t), t);
     }
+  }
+
+  private Set<DN> toByteStrings(Set<String> strings) throws DirectoryException
+  {
+    Set<DN> results = new HashSet<>();
+    for (String s : strings)
+    {
+      results.add(DN.valueOf(s));
+    }
+    return results;
   }
 
   /**
@@ -425,12 +430,7 @@ public class InstallerHelper {
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
       BackendCfgClient backend = root.getBackend(backendName);
-      Set<DN> setBaseDNs = new HashSet<DN>();
-      for (String baseDN : baseDNs)
-      {
-        setBaseDNs.add(DN.valueOf(baseDN));
-      }
-      backend.setBaseDN(setBaseDNs);
+      backend.setBaseDN(toByteStrings(baseDNs));
       backend.commit();
     }
     catch (Throwable t)
@@ -565,9 +565,9 @@ public class InstallerHelper {
       Set<String> servers = replicationServer.getReplicationServer();
       if (servers == null)
       {
-        servers = new HashSet<String>();
+        servers = new HashSet<>();
       }
-      Set<String> oldServers = new HashSet<String>(servers);
+      Set<String> oldServers = new HashSet<>(servers);
       for (Set<String> rs : replicationServers.values())
       {
         servers.addAll(rs);
@@ -586,7 +586,7 @@ public class InstallerHelper {
       {
         domainNames = new String[]{};
       }
-      Set<ConfiguredDomain> domainsConf = new HashSet<ConfiguredDomain>();
+      Set<ConfiguredDomain> domainsConf = new HashSet<>();
       ReplicationDomainCfgClient[] domains =
         new ReplicationDomainCfgClient[domainNames.length];
       for (int i=0; i<domains.length; i++)
@@ -626,7 +626,7 @@ public class InstallerHelper {
         oldServers = domain.getReplicationServer();
         if (oldServers == null)
         {
-          oldServers = new TreeSet<String>();
+          oldServers = new TreeSet<>();
         }
         servers = replicationServers.get(dn);
         domain.setReplicationServer(servers);
@@ -654,7 +654,7 @@ public class InstallerHelper {
 
   private Set<String> intersect(Set<String> set1, Set<String> set2)
   {
-    Set<String> result = new TreeSet<String>(set1);
+    Set<String> result = new TreeSet<>(set1);
     result.removeAll(set2);
     return result;
   }
@@ -908,7 +908,7 @@ public class InstallerHelper {
 
     // Try to transform things if necessary.  The following map has as key
     // the original JavaArgument object and as value the 'transformed' JavaArgument.
-    Map<JavaArguments, JavaArguments> hmJavaArguments = new HashMap<JavaArguments, JavaArguments>();
+    Map<JavaArguments, JavaArguments> hmJavaArguments = new HashMap<>();
     for (String script : uData.getScriptNamesForJavaArguments())
     {
       JavaArguments origJavaArguments = uData.getJavaArguments(script);
@@ -931,8 +931,8 @@ public class InstallerHelper {
     }
 
     Properties fileProperties = getJavaPropertiesFileContents(getPropertiesFileName(installPath));
-    Map<String, JavaArguments> args = new HashMap<String, JavaArguments>();
-    Map<String, String> otherProperties = new HashMap<String, String>();
+    Map<String, JavaArguments> args = new HashMap<>();
+    Map<String, String> otherProperties = new HashMap<>();
 
     for (String script : uData.getScriptNamesForJavaArguments())
     {
@@ -1048,7 +1048,7 @@ public class InstallerHelper {
 
   private List<String> getJavaPropertiesFileComments(String propertiesFile) throws IOException
   {
-    ArrayList<String> commentLines = new ArrayList<String>();
+    ArrayList<String> commentLines = new ArrayList<>();
     BufferedReader reader = new BufferedReader(new FileReader(propertiesFile));
     String line;
     while ((line = reader.readLine()) != null)

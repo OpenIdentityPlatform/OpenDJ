@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer;
@@ -53,7 +54,7 @@ class ConfiguredDomain
   {
     this.domainName = domainName;
     this.isCreated = isCreated;
-    this.addedReplicationServers = new HashSet<String>();
+    this.addedReplicationServers = new HashSet<>();
     this.addedReplicationServers.addAll(addedReplicationServers);
   }
 
