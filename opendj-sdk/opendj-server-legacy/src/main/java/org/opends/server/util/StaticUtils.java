@@ -43,8 +43,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -4110,113 +4110,18 @@ public final class StaticUtils
   }
 
   /**
-   * Closes the provided {@link Selector}'s ignoring any errors which occurred.
-   * <p>
-   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
-   * </p>
-   *
-   * @param selectors
-   *          The selectors to be closed, which may be <code>null</code>.
-   */
-  public static void close(Selector... selectors)
-  {
-    if (selectors == null)
-    {
-      return;
-    }
-    for (Selector selector : selectors)
-    {
-      if (selector != null)
-      {
-        try
-        {
-          selector.close();
-        }
-        catch (IOException ignored)
-        {
-          // Ignore.
-        }
-      }
-    }
-  }
-
-  /**
-   * Closes the provided {@link Socket}s ignoring any errors which occurred.
-   * <p>
-   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
-   * </p>
-   *
-   * @param sockets
-   *          The sockets to be closed, which may be <code>null</code>.
-   */
-  public static void close(Socket... sockets)
-  {
-    if (sockets == null)
-    {
-      return;
-    }
-    for (Socket socket : sockets)
-    {
-      if (socket != null)
-      {
-        try
-        {
-          socket.close();
-        }
-        catch (IOException ignored)
-        {
-          // Ignore.
-        }
-      }
-    }
-  }
-
-  /**
-   * Closes the provided {@link ServerSocket}s ignoring any errors which
-   * occurred.
-   * <p>
-   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
-   * </p>
-   *
-   * @param sockets
-   *          The sockets to be closed, which may be <code>null</code>.
-   */
-  public static void close(ServerSocket... sockets)
-  {
-    if (sockets == null)
-    {
-      return;
-    }
-    for (ServerSocket socket : sockets)
-    {
-      if (socket != null)
-      {
-        try
-        {
-          socket.close();
-        }
-        catch (IOException ignored)
-        {
-          // Ignore.
-        }
-      }
-    }
-  }
-
-  /**
-   * Closes the provided {@link InitialLdapContext}s ignoring any errors which
-   * occurred.
+   * Closes the provided {@link InitialContext}s ignoring any errors which occurred.
    *
    * @param ctxs
    *          The contexts to be closed, which may be <code>null</code>.
    */
-  public static void close(InitialLdapContext... ctxs)
+  public static void close(InitialContext... ctxs)
   {
     if (ctxs == null)
     {
       return;
     }
-    for (InitialLdapContext ctx : ctxs)
+    for (InitialContext ctx : ctxs)
     {
       if (ctx != null)
       {
