@@ -168,13 +168,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ReplicationCliMain extends ConsoleApplication
 {
-
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = ReplicationCliMain.class.getName();
-
   /** Prefix for log files. */
   public static final String LOG_FILE_PREFIX = "opendj-replication-";
-
   /** Suffix for log files. */
   public static final String LOG_FILE_SUFFIX = ".log";
 
@@ -183,18 +181,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * know which are the java properties to be used (those of dsreplication or
    * those of dsreplication.offline).
    */
-  private static final String SCRIPT_CALL_STATUS =
-    "org.opends.server.dsreplicationcallstatus";
+  private static final String SCRIPT_CALL_STATUS = "org.opends.server.dsreplicationcallstatus";
 
-  /**
-   * The value set by the dsreplication script if it is called the first time.
-   */
+  /** The value set by the dsreplication script if it is called the first time. */
   private static final String FIRST_SCRIPT_CALL = "firstcall";
   private static final LocalizableMessage EMPTY_MSG = LocalizableMessage.raw("");
 
   private boolean forceNonInteractive;
 
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Always use SSL with the administration connector. */
   private final boolean useSSL = true;
@@ -266,8 +260,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private LDAPConnectionConsoleInteraction ci;
   private CommandBuilder firstServerCommandBuilder;
   /** The message formatter. */
-  private PlainTextProgressMessageFormatter formatter =
-      new PlainTextProgressMessageFormatter();
+  private PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
 
   /**
    * Constructor for the ReplicationCliMain object.
@@ -336,7 +329,8 @@ public class ReplicationCliMain extends ConsoleApplication
       t.printStackTrace();
     }
     ReplicationCliMain replicationCli = new ReplicationCliMain(out, err);
-    return replicationCli.execute(args, initializeServer);
+    ReplicationCliReturnCode result = replicationCli.execute(args, initializeServer);
+    return result.getReturnCode();
   }
 
   /**
@@ -348,11 +342,9 @@ public class ReplicationCliMain extends ConsoleApplication
    *
    * @return The error code.
    */
-  public int execute(String[] args, boolean initializeServer)
+  public ReplicationCliReturnCode execute(String[] args, boolean initializeServer)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-    // Create the command-line argument parser for use with this
-    // program.
+    // Create the command-line argument parser for use with this program.
     try
     {
       createArgumenParser();
@@ -361,39 +353,36 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
-      returnValue = CANNOT_INITIALIZE_ARGS;
+      return CANNOT_INITIALIZE_ARGS;
     }
 
-    if (returnValue == SUCCESSFUL_NOP)
+    try
     {
-      try
-      {
-        argParser.getSecureArgsList().initArgumentsWithConfiguration();
-      }
-      catch (ConfigException ce)
-      {
-        // Ignore.
-      }
-
-      //  Parse the command-line arguments provided to this program.
-      try
-      {
-        argParser.parseArguments(args);
-      }
-      catch (ArgumentException ae)
-      {
-        errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-        errPrintln();
-        errPrintln(LocalizableMessage.raw(argParser.getUsage()));
-        logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
-        returnValue = ERROR_USER_DATA;
-      }
+      argParser.getSecureArgsList().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
     }
 
-    //  If we should just display usage or version information,
-    // then print it and exit.
-    if (argParser.usageOrVersionDisplayed()) {
-      return returnValue.getReturnCode();
+    // Parse the command-line arguments provided to this program.
+    try
+    {
+      argParser.parseArguments(args);
+    }
+    catch (ArgumentException ae)
+    {
+      errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+      errPrintln();
+      errPrintln(LocalizableMessage.raw(argParser.getUsage()));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
+      return ERROR_USER_DATA;
+    }
+
+    // If we should just display usage or version information, then print it and exit.
+    if (argParser.usageOrVersionDisplayed())
+    {
+      return SUCCESSFUL_NOP;
     }
 
     // Checks the version - if upgrade required, the tool is unusable
@@ -404,133 +393,110 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (InitializationException e)
     {
       errPrintln(e.getMessageObject());
-      return 1;
+      return CANNOT_INITIALIZE_ARGS;
     }
 
-    if (!argParser.usageOrVersionDisplayed())
+    // Check that the provided parameters are compatible.
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
+    argParser.validateOptions(buf);
+    if (buf.length() > 0)
     {
-      if (returnValue == SUCCESSFUL_NOP)
+      errPrintln(buf.toMessage());
+      errPrintln(LocalizableMessage.raw(argParser.getUsage()));
+      return ERROR_USER_DATA;
+    }
+
+    if (initializeServer)
+    {
+      DirectoryServer.bootstrapClient();
+
+      // Bootstrap definition classes.
+      try
       {
-        /* Check that the provided parameters are compatible.
-         */
-        LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-        argParser.validateOptions(buf);
-        if (buf.length() > 0)
+        if (!ClassLoaderProvider.getInstance().isEnabled())
         {
-          errPrintln(buf.toMessage());
-          errPrintln(LocalizableMessage.raw(argParser.getUsage()));
-          returnValue = ERROR_USER_DATA;
+          ClassLoaderProvider.getInstance().enable();
         }
+        // Switch off class name validation in client.
+        ClassPropertyDefinition.setAllowClassValidation(false);
+
+        // Switch off attribute type name validation in client.
+        AttributeTypePropertyDefinition.setCheckSchema(false);
       }
-      if (initializeServer && returnValue == SUCCESSFUL_NOP)
+      catch (InitializationException ie)
       {
-        DirectoryServer.bootstrapClient();
-
-        // Bootstrap definition classes.
-        try
-        {
-          if (!ClassLoaderProvider.getInstance().isEnabled())
-          {
-            ClassLoaderProvider.getInstance().enable();
-          }
-          // Switch off class name validation in client.
-          ClassPropertyDefinition.setAllowClassValidation(false);
-
-          // Switch off attribute type name validation in client.
-          AttributeTypePropertyDefinition.setCheckSchema(false);
-        }
-        catch (InitializationException ie)
-        {
-          errPrintln(ie.getMessageObject());
-          returnValue = ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK;
-        }
-      }
-
-      if (returnValue == SUCCESSFUL_NOP)
-      {
-        if (argParser.getSecureArgsList().
-        bindPasswordFileArg.isPresent())
-        {
-          try
-          {
-            userProvidedAdminPwdFile = new FileBasedArgument(
-                "adminPasswordFile",
-                OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-                INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-            userProvidedAdminPwdFile.getNameToValueMap().putAll(
-                argParser.getSecureArgsList().
-                bindPasswordFileArg.getNameToValueMap());
-          }
-          catch (Throwable t)
-          {
-            throw new IllegalStateException("Unexpected error: "+t, t);
-          }
-        }
-        ci = new LDAPConnectionConsoleInteraction(this,
-            argParser.getSecureArgsList());
-        ci.setDisplayLdapIfSecureParameters(false);
-      }
-      if (returnValue == SUCCESSFUL_NOP)
-      {
-        boolean subcommandLaunched = true;
-        String subCommand = null;
-        final SubcommandChoice subcommandChoice = getSubcommandChoice(argParser.getSubCommand());
-        if (subcommandChoice != null)
-        {
-          subCommand = subcommandChoice.getName();
-          returnValue = execute(subcommandChoice, returnValue);
-        }
-        else if (argParser.isInteractive())
-        {
-          final SubcommandChoice subCommandChoice = promptForSubcommand();
-          if (subCommandChoice != null && !SubcommandChoice.CANCEL.equals(subCommandChoice))
-          {
-            subCommand = subCommandChoice.getName();
-          }
-          else
-          {
-            // User canceled
-            returnValue = USER_CANCELLED;
-          }
-
-          if (subCommand != null)
-          {
-            String[] newArgs = new String[args.length + 1];
-            newArgs[0] = subCommand;
-            System.arraycopy(args, 0, newArgs, 1, args.length);
-            // The server (if requested) has already been initialized.
-            return execute(newArgs, false);
-          }
-        }
-        else
-        {
-          errPrintln(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
-              "--"+OPTION_LONG_NO_PROMPT));
-          errPrintln(LocalizableMessage.raw(argParser.getUsage()));
-          returnValue = ERROR_USER_DATA;
-          subcommandLaunched = false;
-        }
-
-
-        // Display the log file only if the operation is successful (when there
-        // is a critical error this is already displayed).
-        if (subcommandLaunched
-            && returnValue == SUCCESSFUL
-            && displayLogFileAtEnd(subCommand))
-        {
-          File logFile = ControlPanelLog.getLogFile();
-          if (logFile != null)
-          {
-            println();
-            println(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
-            println();
-          }
-        }
+        errPrintln(ie.getMessageObject());
+        return ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK;
       }
     }
 
-    return returnValue.getReturnCode();
+    if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
+    {
+      try
+      {
+        userProvidedAdminPwdFile = new FileBasedArgument(
+            "adminPasswordFile", OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
+            INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+            INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
+        userProvidedAdminPwdFile.getNameToValueMap().putAll(
+            argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap());
+      }
+      catch (Throwable t)
+      {
+        throw new IllegalStateException("Unexpected error: " + t, t);
+      }
+    }
+    ci = new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
+    ci.setDisplayLdapIfSecureParameters(false);
+
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    String subCommand = null;
+    final SubcommandChoice subcommandChoice = getSubcommandChoice(argParser.getSubCommand());
+    if (subcommandChoice != null)
+    {
+      subCommand = subcommandChoice.getName();
+      returnValue = execute(subcommandChoice);
+    }
+    else if (argParser.isInteractive())
+    {
+      final SubcommandChoice subCommandChoice = promptForSubcommand();
+      if (subCommandChoice == null || SubcommandChoice.CANCEL.equals(subCommandChoice))
+      {
+        return USER_CANCELLED;
+      }
+
+      subCommand = subCommandChoice.getName();
+      if (subCommand != null)
+      {
+        String[] newArgs = new String[args.length + 1];
+        newArgs[0] = subCommand;
+        System.arraycopy(args, 0, newArgs, 1, args.length);
+        // The server (if requested) has already been initialized.
+        return execute(newArgs, false);
+      }
+    }
+    else
+    {
+      errPrintln(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get("--" + OPTION_LONG_NO_PROMPT));
+      errPrintln(LocalizableMessage.raw(argParser.getUsage()));
+      return ERROR_USER_DATA;
+    }
+
+
+    // Display the log file only if the operation is successful (when there
+    // is a critical error this is already displayed).
+    if (returnValue == SUCCESSFUL && displayLogFileAtEnd(subCommand))
+    {
+      File logFile = ControlPanelLog.getLogFile();
+      if (logFile != null)
+      {
+        println();
+        println(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
+        println();
+      }
+    }
+
+    return returnValue;
   }
 
   private SubcommandChoice getSubcommandChoice(SubCommand subCommand)
@@ -542,7 +508,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
-  private ReplicationCliReturnCode execute(SubcommandChoice subcommandChoice, ReplicationCliReturnCode defaultValue)
+  private ReplicationCliReturnCode execute(SubcommandChoice subcommandChoice)
   {
     switch (subcommandChoice)
     {
@@ -562,8 +528,9 @@ public class ReplicationCliMain extends ConsoleApplication
       return statusReplication();
     case PURGE_HISTORICAL:
       return purgeHistorical();
+    default:
+      return SUCCESSFUL_NOP;
     }
-    return defaultValue;
   }
 
   /**
@@ -1657,7 +1624,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
-      if (notFound.size() > 0)
+      if (!notFound.isEmpty())
       {
         errPrintln();
         errPrintln(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
@@ -2669,9 +2636,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled && !disableAll)
     {
       LinkedList<String> suffixes = argParser.getBaseDNs();
-
-      checkSuffixesForDisableReplication(suffixes, ctx, true,
-          !disableReplicationServer, !disableReplicationServer);
+      checkSuffixesForDisableReplication(suffixes, ctx, true, !disableReplicationServer);
       cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
       uData.setBaseDNs(suffixes);
@@ -3870,178 +3835,164 @@ public class ReplicationCliMain extends ConsoleApplication
    * successful and the replication could be enabled and an error code
    * otherwise.
    */
-  private ReplicationCliReturnCode enableReplication(
-      EnableReplicationUserData uData)
+  private ReplicationCliReturnCode enableReplication(EnableReplicationUserData uData)
   {
     InitialLdapContext ctx1 = null;
     InitialLdapContext ctx2 = null;
     try
     {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-    String host1 = uData.getHostName1();
-    String host2 = uData.getHostName2();
+      println();
+      print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
 
-    println();
-    print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
+      LinkedList<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
+      ctx1 = createAdministrativeContext(uData, true, errorMessages);
+      ctx2 = createAdministrativeContext(uData, false, errorMessages);
 
-    LinkedList<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
-    ctx1 = createAdministrativeContext(uData, true, errorMessages);
-    ctx2 = createAdministrativeContext(uData, false, errorMessages);
+      if (!errorMessages.isEmpty())
+      {
+        errPrintLn(errorMessages);
+        return ERROR_CONNECTING;
+      }
 
-    if (errorMessages.size() > 0)
-    {
-      returnValue = ERROR_CONNECTING;
-    }
-
-    if (errorMessages.isEmpty())
-    {
       // This done is for the message informing that we are connecting.
       print(formatter.getFormattedDone());
       println();
 
-//    If we are not in interactive mode do some checks...
       if (!argParser.isInteractive())
       {
-        int replPort1 = getReplicationPort(ctx1);
-        boolean hasReplicationPort1 = replPort1 > 0;
-        if (replPort1 < 0 && uData.configureReplicationServer1())
+        checksForNonInteractiveMode(uData, ctx1, ctx2, errorMessages);
+        if (!errorMessages.isEmpty())
         {
-          replPort1 = uData.getReplicationPort1();
-        }
-        int replPort2 = getReplicationPort(ctx2);
-        boolean hasReplicationPort2 = replPort2 > 0;
-        if (replPort2 < 0 && uData.configureReplicationServer2())
-        {
-          replPort2 = uData.getReplicationPort2();
-        }
-        boolean checkReplicationPort1 = replPort1 > 0;
-        boolean checkReplicationPort2 = replPort2 > 0;
-        if (!hasReplicationPort1
-            && checkReplicationPort1
-            && !argParser.skipReplicationPortCheck()
-            && uData.configureReplicationServer1()
-            && isLocalHost(host1)
-            && !SetupUtils.canUseAsPort(replPort1))
-        {
-          errorMessages.add(getCannotBindToPortError(replPort1));
-        }
-        if (!hasReplicationPort2
-            && checkReplicationPort2
-            && !argParser.skipReplicationPortCheck()
-            && uData.configureReplicationServer2()
-            && isLocalHost(host2)
-            && !SetupUtils.canUseAsPort(replPort2))
-        {
-          errorMessages.add(getCannotBindToPortError(replPort2));
-        }
-        if (checkReplicationPort1
-            && checkReplicationPort2
-            && replPort1 == replPort2
-            && host1.equalsIgnoreCase(host2))
-        {
-          errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replPort1, host1));
-        }
-
-        if (argParser.skipReplicationPortCheck())
-        {
-          // This is something that we must do in any case... this test is
-          // already included when we call SetupUtils.canUseAsPort
-          if (checkReplicationPort1 && replPort1 == uData.getPort1())
-          {
-            errorMessages.add(
-                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replPort1));
-          }
-
-          if (checkReplicationPort2 && replPort2 == uData.getPort2())
-          {
-            errorMessages.add(
-                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replPort2));
-          }
+          errPrintLn(errorMessages);
+          return ERROR_USER_DATA;
         }
       }
-      if (errorMessages.size() > 0)
-      {
-        returnValue = ERROR_USER_DATA;
-      }
-    }
 
-    if (errorMessages.isEmpty())
-    {
       List<String> suffixes = uData.getBaseDNs();
       checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, false, uData);
-      if (!suffixes.isEmpty())
-      {
-        uData.setBaseDNs(suffixes);
-
-        if (mustPrintCommandBuilder())
-        {
-          printNewCommandBuilder(ENABLE_REPLICATION_SUBCMD_NAME, uData);
-        }
-
-        if (!isInteractive())
-        {
-          int repPort1 = getReplicationPort(ctx1);
-          int repPort2 = getReplicationPort(ctx2);
-
-          if (!uData.configureReplicationServer1() && repPort1 > 0)
-          {
-            println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(ctx1), repPort1));
-            println();
-          }
-          if (!uData.configureReplicationServer2() && repPort2 > 0)
-          {
-            println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(ctx2), repPort2));
-            println();
-          }
-        }
-
-        try
-        {
-          updateConfiguration(ctx1, ctx2, uData);
-          returnValue = SUCCESSFUL;
-        }
-        catch (ReplicationCliException rce)
-        {
-          returnValue = rce.getErrorCode();
-          errPrintln();
-          errPrintln(getCriticalExceptionMessage(rce));
-          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-        }
-      }
-      else
+      if (suffixes.isEmpty())
       {
         // The error messages are already displayed in the method
         // checkSuffixesForEnableReplication.
-        returnValue = REPLICATION_CANNOT_BE_ENABLED_ON_BASEDN;
+        return REPLICATION_CANNOT_BE_ENABLED_ON_BASEDN;
       }
-    }
 
-    for (LocalizableMessage msg : errorMessages)
-    {
-      errPrintln();
-      errPrintln(msg);
-    }
-
-    if (returnValue == SUCCESSFUL)
-    {
-      long time1 = getServerClock(ctx1);
-      long time2 = getServerClock(ctx2);
-      if (time1 != -1
-          && time2 != -1
-          && Math.abs(time1 - time2) > Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
+      uData.setBaseDNs(suffixes);
+      if (mustPrintCommandBuilder())
       {
-          println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(getHostPort(ctx1), getHostPort(ctx2),
-              Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING));
+        printNewCommandBuilder(ENABLE_REPLICATION_SUBCMD_NAME, uData);
       }
-      println();
-      println(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication", INITIALIZE_REPLICATION_SUBCMD_NAME));
-      println();
-    }
-    return returnValue;
+
+      if (!isInteractive())
+      {
+        int repPort1 = getReplicationPort(ctx1);
+        int repPort2 = getReplicationPort(ctx2);
+
+        if (!uData.configureReplicationServer1() && repPort1 > 0)
+        {
+          println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(ctx1), repPort1));
+          println();
+        }
+        if (!uData.configureReplicationServer2() && repPort2 > 0)
+        {
+          println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(ctx2), repPort2));
+          println();
+        }
+      }
+
+      try
+      {
+        updateConfiguration(ctx1, ctx2, uData);
+        printSuccessfullyEnabled(ctx1, ctx2);
+        return SUCCESSFUL;
+      }
+      catch (ReplicationCliException rce)
+      {
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
+        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        return rce.getErrorCode();
+      }
     }
     finally
     {
       close(ctx1, ctx2);
+    }
+  }
+
+  private void checksForNonInteractiveMode(EnableReplicationUserData uData,
+      InitialLdapContext ctx1, InitialLdapContext ctx2, LinkedList<LocalizableMessage> errorMessages)
+  {
+    String host1 = uData.getHostName1();
+    String host2 = uData.getHostName2();
+
+    int replPort1 = getReplicationPort(ctx1);
+    boolean hasReplicationPort1 = replPort1 > 0;
+    if (replPort1 < 0 && uData.configureReplicationServer1())
+    {
+      replPort1 = uData.getReplicationPort1();
+    }
+    int replPort2 = getReplicationPort(ctx2);
+    boolean hasReplicationPort2 = replPort2 > 0;
+    if (replPort2 < 0 && uData.configureReplicationServer2())
+    {
+      replPort2 = uData.getReplicationPort2();
+    }
+    boolean checkReplicationPort1 = replPort1 > 0;
+    boolean checkReplicationPort2 = replPort2 > 0;
+    if (!hasReplicationPort1 && checkReplicationPort1 && !argParser.skipReplicationPortCheck()
+        && uData.configureReplicationServer1() && isLocalHost(host1) && !SetupUtils.canUseAsPort(replPort1))
+    {
+      errorMessages.add(getCannotBindToPortError(replPort1));
+    }
+    if (!hasReplicationPort2 && checkReplicationPort2 && !argParser.skipReplicationPortCheck()
+        && uData.configureReplicationServer2() && isLocalHost(host2) && !SetupUtils.canUseAsPort(replPort2))
+    {
+      errorMessages.add(getCannotBindToPortError(replPort2));
+    }
+    if (checkReplicationPort1 && checkReplicationPort2 && replPort1 == replPort2 && host1.equalsIgnoreCase(host2))
+    {
+      errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replPort1, host1));
+    }
+
+    if (argParser.skipReplicationPortCheck())
+    {
+      // This is something that we must do in any case... this test is
+      // already included when we call SetupUtils.canUseAsPort
+      if (checkReplicationPort1 && replPort1 == uData.getPort1())
+      {
+        errorMessages.add(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replPort1));
+      }
+
+      if (checkReplicationPort2 && replPort2 == uData.getPort2())
+      {
+        errorMessages.add(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replPort2));
+      }
+    }
+  }
+
+  private void printSuccessfullyEnabled(InitialLdapContext ctx1, InitialLdapContext ctx2)
+  {
+    long time1 = getServerClock(ctx1);
+    long time2 = getServerClock(ctx2);
+    if (time1 != -1
+        && time2 != -1
+        && Math.abs(time1 - time2) > Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
+    {
+        println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(getHostPort(ctx1), getHostPort(ctx2),
+            Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING));
+    }
+    println();
+    println(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication", INITIALIZE_REPLICATION_SUBCMD_NAME));
+    println();
+  }
+
+  private void errPrintLn(LinkedList<LocalizableMessage> errorMessages)
+  {
+    for (LocalizableMessage msg : errorMessages)
+    {
+      errPrintln();
+      errPrintln(msg);
     }
   }
 
@@ -4075,8 +4026,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
    * successful and an error code otherwise.
    */
-  private ReplicationCliReturnCode disableReplication(
-      DisableReplicationUserData uData)
+  private ReplicationCliReturnCode disableReplication(DisableReplicationUserData uData)
   {
     print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     String bindDn = uData.getAdminUid() != null
@@ -4094,62 +4044,54 @@ public class ReplicationCliMain extends ConsoleApplication
       // This done is for the message informing that we are connecting.
       print(formatter.getFormattedDone());
       println();
+
       List<String> suffixes = uData.getBaseDNs();
-      checkSuffixesForDisableReplication(suffixes, ctx, false,
-          !uData.disableReplicationServer(), !uData.disableReplicationServer());
-      if (!suffixes.isEmpty() || uData.disableReplicationServer() ||
-          uData.disableAll())
-      {
-        uData.setBaseDNs(suffixes);
-
-        if (!isInteractive())
-        {
-          boolean hasReplicationPort = hasReplicationPort(ctx);
-          if (uData.disableAll() && hasReplicationPort)
-          {
-            uData.setDisableReplicationServer(true);
-          }
-          else if (uData.disableReplicationServer() && !hasReplicationPort &&
-              !uData.disableAll())
-          {
-            uData.setDisableReplicationServer(false);
-            println(INFO_REPLICATION_WARNING_NO_REPLICATION_SERVER_TO_DISABLE.get(getHostPort(ctx)));
-            println();
-          }
-        }
-
-        if (mustPrintCommandBuilder())
-        {
-          printNewCommandBuilder(DISABLE_REPLICATION_SUBCMD_NAME, uData);
-        }
-
-        if (!isInteractive() && !uData.disableReplicationServer() &&
-            !uData.disableAll() && disableAllBaseDns(ctx, uData) &&
-            hasReplicationPort(ctx))
-        {
-          // Inform the user that the replication server will not be disabled.
-          // Inform also of the user of the disableReplicationServerArg
-          println(INFO_REPLICATION_DISABLE_ALL_SUFFIXES_KEEP_REPLICATION_SERVER.get(
-               getHostPort(ctx),
-               argParser.disableReplicationServerArg.getLongIdentifier(),
-               argParser.disableAllArg.getLongIdentifier()));
-        }
-        try
-        {
-          updateConfiguration(ctx, uData);
-          return SUCCESSFUL;
-        }
-        catch (ReplicationCliException rce)
-        {
-          errPrintln();
-          errPrintln(getCriticalExceptionMessage(rce));
-          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-          return rce.getErrorCode();
-        }
-      }
-      else
+      checkSuffixesForDisableReplication(suffixes, ctx, false, !uData.disableReplicationServer());
+      if (suffixes.isEmpty() && !uData.disableReplicationServer() && !uData.disableAll())
       {
         return REPLICATION_CANNOT_BE_DISABLED_ON_BASEDN;
+      }
+      uData.setBaseDNs(suffixes);
+
+      if (!isInteractive())
+      {
+        boolean hasReplicationPort = hasReplicationPort(ctx);
+        if (uData.disableAll() && hasReplicationPort)
+        {
+          uData.setDisableReplicationServer(true);
+        }
+        else if (uData.disableReplicationServer() && !hasReplicationPort && !uData.disableAll())
+        {
+          uData.setDisableReplicationServer(false);
+          println(INFO_REPLICATION_WARNING_NO_REPLICATION_SERVER_TO_DISABLE.get(getHostPort(ctx)));
+          println();
+        }
+      }
+
+      if (mustPrintCommandBuilder())
+      {
+        printNewCommandBuilder(DISABLE_REPLICATION_SUBCMD_NAME, uData);
+      }
+
+      if (!isInteractive() && !uData.disableReplicationServer() && !uData.disableAll() && disableAllBaseDns(ctx, uData)
+          && hasReplicationPort(ctx))
+      {
+        // Inform the user that the replication server will not be disabled.
+        // Inform also of the user of the disableReplicationServerArg
+        println(INFO_REPLICATION_DISABLE_ALL_SUFFIXES_KEEP_REPLICATION_SERVER.get(getHostPort(ctx),
+            argParser.disableReplicationServerArg.getLongIdentifier(), argParser.disableAllArg.getLongIdentifier()));
+      }
+      try
+      {
+        updateConfiguration(ctx, uData);
+        return SUCCESSFUL;
+      }
+      catch (ReplicationCliException rce)
+      {
+        errPrintln();
+        errPrintln(getCriticalExceptionMessage(rce));
+        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        return rce.getErrorCode();
       }
     }
     finally
@@ -4535,7 +4477,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      if (userProvidedReplicatedSuffixes.size() > 0)
+      if (!userProvidedReplicatedSuffixes.isEmpty())
       {
         println();
         println(INFO_ALREADY_REPLICATED_SUFFIXES.get(toSingleLine(userProvidedReplicatedSuffixes)));
@@ -4563,12 +4505,12 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyReplicated);
-      if (notFound.size() > 0)
+      if (!notFound.isEmpty())
       {
         errPrintln();
         errPrintln(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
-      if (alreadyReplicated.size() > 0)
+      if (!alreadyReplicated.isEmpty())
       {
         println();
         println(INFO_ALREADY_REPLICATED_SUFFIXES.get(toSingleLine(alreadyReplicated)));
@@ -4593,14 +4535,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be disabled.
    * @param displayErrors whether to display errors or not.
-   * @param areSuffixRequired whether the user must provide base DNs or not
-   * (if it is <CODE>false</CODE> the user will be proposed the suffixes
-   * only once).
    */
   private void checkSuffixesForDisableReplication(Collection<String> suffixes,
-      InitialLdapContext ctx, boolean interactive, boolean displayErrors,
-      boolean areSuffixRequired)
+      InitialLdapContext ctx, boolean interactive, boolean displayErrors)
   {
+    // whether the user must provide base DNs or not
+    // (if it is <CODE>false</CODE> the user will be proposed the suffixes only once)
+    final boolean areSuffixRequired = displayErrors;
+
     TreeSet<String> availableSuffixes = new TreeSet<String>();
     TreeSet<String> notReplicatedSuffixes = new TreeSet<String>();
 
@@ -4636,7 +4578,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      if (userProvidedNotReplicatedSuffixes.size() > 0 && displayErrors)
+      if (!userProvidedNotReplicatedSuffixes.isEmpty() && displayErrors)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
@@ -4665,12 +4607,12 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
-      if (notFound.size() > 0 && displayErrors)
+      if (!notFound.isEmpty() && displayErrors)
       {
         errPrintln();
         errPrintln(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
-      if (alreadyNotReplicated.size() > 0 && displayErrors)
+      if (!alreadyNotReplicated.isEmpty() && displayErrors)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(toSingleLine(alreadyNotReplicated)));
@@ -4789,7 +4731,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      if (userProvidedNotReplicatedSuffixes.size() > 0)
+      if (!userProvidedNotReplicatedSuffixes.isEmpty())
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
@@ -4818,12 +4760,12 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
-      if (notFound.size() > 0)
+      if (!notFound.isEmpty())
       {
         errPrintln();
         errPrintln(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
-      if (alreadyNotReplicated.size() > 0)
+      if (!alreadyNotReplicated.isEmpty())
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(toSingleLine(alreadyNotReplicated)));
@@ -4951,7 +4893,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
       suffixes.removeAll(notFound);
-      if (notFound.size() > 0)
+      if (!notFound.isEmpty())
       {
         errPrintln();
         errPrintln(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(toSingleLine(notFound)));
@@ -4979,13 +4921,11 @@ public class ReplicationCliMain extends ConsoleApplication
       InitialLdapContext ctx2, EnableReplicationUserData uData)
   throws ReplicationCliException
   {
-    final Set<String> twoReplServers = new LinkedHashSet<String>();
-    final Set<String> allRepServers = new LinkedHashSet<String>();
-    final Map<String, Set<String>> hmRepServers =
-        new HashMap<String, Set<String>>();
-    final Set<Integer> usedReplicationServerIds = new HashSet<Integer>();
-    final Map<String, Set<Integer>> hmUsedReplicationDomainIds =
-      new HashMap<String, Set<Integer>>();
+    final Set<String> twoReplServers = new LinkedHashSet<>();
+    final Set<String> allRepServers = new LinkedHashSet<>();
+    final Map<String, Set<String>> hmRepServers = new HashMap<>();
+    final Set<Integer> usedReplicationServerIds = new HashSet<>();
+    final Map<String, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
 
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
@@ -5038,10 +4978,9 @@ public class ReplicationCliMain extends ConsoleApplication
                     Constants.LINE_SEPARATOR)));
       }
     }
-    // Check whether there is more than one replication server in the
-    // topology.
-    Set<String> baseDNsWithOneReplicationServer = new TreeSet<String>();
-    Set<String> baseDNsWithNoReplicationServer = new TreeSet<String>();
+    // Check whether there is more than one replication server in the topology.
+    Set<String> baseDNsWithOneReplicationServer = new TreeSet<>();
+    Set<String> baseDNsWithNoReplicationServer = new TreeSet<>();
     updateBaseDnsWithNotEnoughReplicationServer(adsCtx1, adsCtx2, uData,
        baseDNsWithNoReplicationServer, baseDNsWithOneReplicationServer);
 
@@ -5073,10 +5012,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else
       {
-        LocalizableMessage warningMsg =
-          INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
-              toSingleLine(baseDNsWithOneReplicationServer));
-        errPrintln(warningMsg);
+        errPrintln(INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
+            toSingleLine(baseDNsWithOneReplicationServer)));
         errPrintln();
       }
     }
@@ -5388,85 +5325,10 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     Set<String> alreadyConfiguredReplicationServers = new HashSet<String>();
-    if (!server1.isReplicationServer() && uData.configureReplicationServer1())
-    {
-      try
-      {
-        configureAsReplicationServer(ctx1, uData.getReplicationPort1(),
-            uData.isSecureReplication1(), allRepServers,
-            usedReplicationServerIds);
-      }
-      catch (OpenDsException ode)
-      {
-        throw new ReplicationCliException(
-            getMessageForReplicationServerException(getHostPort(ctx1)),
-            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
-      }
-    }
-    else if (server1.isReplicationServer())
-    {
-      try
-      {
-        updateReplicationServer(ctx1, allRepServers);
-      }
-      catch (OpenDsException ode)
-      {
-        throw new ReplicationCliException(
-            getMessageForReplicationServerException(getHostPort(ctx1)),
-            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
-      }
-      if (argParser.replicationPort1Arg.isPresent()
-          && uData.getReplicationPort1() != server1.getReplicationServerPort())
-      {
-        // Inform the user that the provided value will be ignored
-        logger.warn(LocalizableMessage.raw(
-            "Ignoring provided replication port for "
-                + "first server (already configured with port "
-                + server1.getReplicationServerPort() + ")"));
-        errPrintln(WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
-            server1.getReplicationServerPort(), uData.getReplicationPort1()));
-      }
-    }
-    alreadyConfiguredReplicationServers.add(server1.getId());
-    if (!server2.isReplicationServer() && uData.configureReplicationServer2())
-    {
-      try
-      {
-        configureAsReplicationServer(ctx2, uData.getReplicationPort2(),
-            uData.isSecureReplication2(), allRepServers,
-            usedReplicationServerIds);
-      }
-      catch (OpenDsException ode)
-      {
-        throw new ReplicationCliException(
-            getMessageForReplicationServerException(getHostPort(ctx1)),
-            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
-      }
-    }
-    else if (server2.isReplicationServer())
-    {
-      try
-      {
-        updateReplicationServer(ctx2, allRepServers);
-      }
-      catch (OpenDsException ode)
-      {
-        throw new ReplicationCliException(
-            getMessageForReplicationServerException(getHostPort(ctx1)),
-            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
-      }
-      if (argParser.replicationPort2Arg.isPresent()
-          && uData.getReplicationPort2() != server2.getReplicationServerPort())
-      {
-        logger.warn(LocalizableMessage.raw(
-            "Ignoring provided replication port for "
-                + "second server (already configured with port "
-                + server2.getReplicationServerPort() + ")"));
-        errPrintln(WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
-            server2.getReplicationServerPort(), uData.getReplicationPort2()));
-      }
-    }
-    alreadyConfiguredReplicationServers.add(server2.getId());
+    configureServer1(
+        ctx1, server1, uData, allRepServers, usedReplicationServerIds, alreadyConfiguredReplicationServers);
+    configureServer2(
+        ctx2, server2, uData, allRepServers, usedReplicationServerIds, alreadyConfiguredReplicationServers);
 
     for (String baseDN : uData.getBaseDNs())
     {
@@ -5522,8 +5384,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     // Now that replication is configured in all servers, simply try to
     // initialize the contents of one ADS with the other (in the case where
-    // already both servers were replicating the same ADS there is nothing to be
-    // done).
+    // already both servers were replicating the same ADS there is nothing to be done).
     if (adsMergeDone)
     {
       PointAdder pointAdder = new PointAdder(this);
@@ -5590,6 +5451,92 @@ public class ReplicationCliMain extends ConsoleApplication
       print(formatter.getFormattedDone());
       println();
     }
+  }
+
+  private void configureServer1(InitialLdapContext ctx, ServerDescriptor server, EnableReplicationUserData uData,
+      Set<String> allRepServers, Set<Integer> usedReplicationServerIds,
+      Set<String> alreadyConfiguredReplicationServers) throws ReplicationCliException
+  {
+    if (!server.isReplicationServer() && uData.configureReplicationServer1())
+    {
+      try
+      {
+        configureAsReplicationServer(ctx, uData.getReplicationPort1(),
+            uData.isSecureReplication1(), allRepServers,
+            usedReplicationServerIds);
+      }
+      catch (OpenDsException ode)
+      {
+        throw errorConfiguringReplicationServer(ctx, ode);
+      }
+    }
+    else if (server.isReplicationServer())
+    {
+      try
+      {
+        updateReplicationServer(ctx, allRepServers);
+      }
+      catch (OpenDsException ode)
+      {
+        throw errorConfiguringReplicationServer(ctx, ode);
+      }
+      if (argParser.replicationPort1Arg.isPresent()
+          && uData.getReplicationPort1() != server.getReplicationServerPort())
+      {
+        // Inform the user that the provided value will be ignored
+        LocalizableMessage msg = WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+            server.getReplicationServerPort(), uData.getReplicationPort1());
+        logger.warn(msg);
+        errPrintln(msg);
+      }
+    }
+    alreadyConfiguredReplicationServers.add(server.getId());
+  }
+
+  private void configureServer2(InitialLdapContext ctx, ServerDescriptor server, EnableReplicationUserData uData,
+      Set<String> allRepServers, Set<Integer> usedReplicationServerIds,
+      Set<String> alreadyConfiguredReplicationServers) throws ReplicationCliException
+  {
+    if (!server.isReplicationServer() && uData.configureReplicationServer2())
+    {
+      try
+      {
+        configureAsReplicationServer(ctx, uData.getReplicationPort2(),
+            uData.isSecureReplication2(), allRepServers,
+            usedReplicationServerIds);
+      }
+      catch (OpenDsException ode)
+      {
+        throw errorConfiguringReplicationServer(ctx, ode);
+      }
+    }
+    else if (server.isReplicationServer())
+    {
+      try
+      {
+        updateReplicationServer(ctx, allRepServers);
+      }
+      catch (OpenDsException ode)
+      {
+        throw errorConfiguringReplicationServer(ctx, ode);
+      }
+      if (argParser.replicationPort2Arg.isPresent()
+          && uData.getReplicationPort2() != server.getReplicationServerPort())
+      {
+        LocalizableMessage msg = WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+            server.getReplicationServerPort(), uData.getReplicationPort2());
+        logger.warn(msg);
+        errPrintln(msg);
+      }
+    }
+    alreadyConfiguredReplicationServers.add(server.getId());
+  }
+
+  private ReplicationCliException errorConfiguringReplicationServer(InitialLdapContext ctx, OpenDsException ode)
+  {
+    return new ReplicationCliException(
+        ERR_REPLICATION_CONFIGURING_REPLICATIONSERVER.get(getHostPort(ctx)),
+        ERROR_CONFIGURING_REPLICATIONSERVER, ode);
   }
 
   private TopologyCache createTopologyCache(ADSContext adsCtx, Set<PreferredConnection> cnx, ReplicationUserData uData)
@@ -5730,7 +5677,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       // Inform the user
-      if (beforeLastRepServer.size() > 0)
+      if (!beforeLastRepServer.isEmpty())
       {
         Set<String> baseDNs = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
@@ -5758,7 +5705,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      if (lastRepServer.size() > 0)
+      if (!lastRepServer.isEmpty())
       {
         // Check that there are other replicas and that this message, really
         // makes sense to be displayed.
@@ -6090,8 +6037,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     List<String> userBaseDNs = uData.getBaseDNs();
-    List<Set<ReplicaDescriptor>> replicaLists =
-      new LinkedList<Set<ReplicaDescriptor>>();
+    List<Set<ReplicaDescriptor>> replicaLists = new LinkedList<>();
 
     boolean oneReplicated = false;
 
@@ -6105,16 +6051,7 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean found = containsDN(userBaseDNs, dn) || (displayAll && !isSchemaOrInternalAdminSuffix(dn));
       if (found)
       {
-        boolean replicated = false;
-        for (ReplicaDescriptor replica : suffix.getReplicas())
-        {
-          if (replica.isReplicated())
-          {
-            replicated = true;
-            break;
-          }
-        }
-        if (replicated)
+        if (isAnyReplicated(suffix))
         {
           oneReplicated = true;
           replicaLists.add(suffix.getReplicas());
@@ -6145,8 +6082,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!oneReplicated && displayAll)
     {
       // Maybe there are some replication server configured...
-      SortedSet<ServerDescriptor> rServers =
-          new TreeSet<ServerDescriptor>(new ReplicationServerComparator());
+      SortedSet<ServerDescriptor> rServers = new TreeSet<>(new ReplicationServerComparator());
       for (ServerDescriptor server : cache.getServers())
       {
         if (server.isReplicationServer())
@@ -6227,6 +6163,18 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
       }
     }
+  }
+
+  private boolean isAnyReplicated(SuffixDescriptor suffix)
+  {
+    for (ReplicaDescriptor replica : suffix.getReplicas())
+    {
+      if (replica.isReplicated())
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -7548,9 +7496,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         totalEntries = Math.max(totalEntries, processed+unprocessed);
 
-        LocalizableMessage msg = getMsg(
-            lastDisplayedMsg, sProcessed, sUnprocessed, processed, unprocessed);
-
+        LocalizableMessage msg = getMsg(lastDisplayedMsg, processed, unprocessed);
         if (msg != null)
         {
           long currentTime = System.currentTimeMillis();
@@ -7663,15 +7609,14 @@ public class ReplicationCliMain extends ConsoleApplication
     return INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(serverDisplay, state, serverDisplay);
   }
 
-  private LocalizableMessage getMsg(LocalizableMessage lastDisplayedMsg,
-      String sProcessed, String sUnprocessed, long processed, long unprocessed)
+  private LocalizableMessage getMsg(LocalizableMessage lastDisplayedMsg, long processed, long unprocessed)
   {
     if (processed != -1 && unprocessed != -1)
     {
       if (processed + unprocessed > 0)
       {
         long perc = (100 * processed) / (processed + unprocessed);
-        return INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed, perc);
+        return INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(processed, perc);
       }
       else
       {
@@ -7681,11 +7626,11 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else if (processed != -1)
     {
-      return INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(sProcessed);
+      return INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(processed);
     }
     else if (unprocessed != -1)
     {
-      return INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(sUnprocessed);
+      return INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(unprocessed);
     }
     else
     {
@@ -7787,7 +7732,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     logger.info(LocalizableMessage.raw("Updating references in domain " +
                         domain.getBaseDN()+" on " + hostPort + "."));
                     replServers.remove(replServer);
-                    if (replServers.size() > 0)
+                    if (!replServers.isEmpty())
                     {
                       domain.setReplicationServer(replServers);
                       domain.commit();
@@ -7815,7 +7760,7 @@ public class ReplicationCliMain extends ConsoleApplication
             if (replServer != null)
             {
               replServers.remove(replServer);
-              if (replServers.size() > 0)
+              if (!replServers.isEmpty())
               {
                 rServerObj.setReplicationServer(replServers);
                 rServerObj.commit();
@@ -7970,21 +7915,6 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_DISABLING_REPLICATION_SERVER,
           ode);
     }
-  }
-
-  /**
-   * Returns a message for a given OpenDsException (we assume that was an
-   * exception generated updating the configuration of the server) that
-   * occurred when we were configuring the replication server.
-   * @param hostPort the hostPort representation of the server we were
-   * contacting when the OpenDsException occurred.
-   * @return a message for a given OpenDsException (we assume that was an
-   * exception generated updating the configuration of the server) that
-   * occurred when we were configuring the replication server.
-   */
-  private LocalizableMessage getMessageForReplicationServerException(String hostPort)
-  {
-    return ERR_REPLICATION_CONFIGURING_REPLICATIONSERVER.get(hostPort);
   }
 
   /**
@@ -9897,7 +9827,6 @@ class ReplicationServerComparator implements Comparator<ServerDescriptor>
 /** Class used to compare suffixes. */
 class SuffixComparator implements Comparator<SuffixDescriptor>
 {
-  /** {@inheritDoc} */
   @Override
   public int compare(SuffixDescriptor s1, SuffixDescriptor s2)
   {
@@ -9908,7 +9837,6 @@ class SuffixComparator implements Comparator<SuffixDescriptor>
 /** Class used to compare servers. */
 class ServerComparator implements Comparator<ServerDescriptor>
 {
-  /** {@inheritDoc} */
   @Override
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {
