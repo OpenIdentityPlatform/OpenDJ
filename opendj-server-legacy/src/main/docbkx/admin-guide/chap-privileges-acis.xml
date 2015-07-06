@@ -1181,7 +1181,7 @@ ds-privilege-name: proxied-auth</computeroutput>
 
    <step>
     <para>
-     Set the privilege attribute for the account to remove the privilege.
+     Set the privilege attribute for the account to deny the privilege.
     </para>
 
     <screen>
