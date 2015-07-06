@@ -507,10 +507,18 @@ public class AttributeIndex
     // in IndexFilter#evaluateLogicalAndFilter method.
     // One solution could be to implement a boundedRangeAssertion that combine
     // the two operations in one.
-    EntryIDSet results = evaluate(filter1, debugBuffer, monitor);
-    EntryIDSet results2 = evaluate(filter2, debugBuffer, monitor);
-    results.retainAll(results2);
-    return results;
+    StringBuilder tmpBuff1 = debugBuffer != null ? new StringBuilder(): null;
+    StringBuilder tmpBuff2 = debugBuffer != null ? new StringBuilder(): null;
+    EntryIDSet results1 = evaluate(filter1, tmpBuff1, monitor);
+    EntryIDSet results2 = evaluate(filter2, tmpBuff2, monitor);
+    if (debugBuffer != null)
+    {
+      debugBuffer
+          .append(filter1).append(tmpBuff1).append(results1)
+          .append(filter2).append(tmpBuff2).append(results2);
+    }
+    results1.retainAll(results2);
+    return results1;
   }
 
   private EntryIDSet evaluate(SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
