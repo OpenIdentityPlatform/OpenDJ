@@ -1136,6 +1136,87 @@ $ <userinput>ldappasswordmodify \
     </screen>
    </step>
   </procedure>
+
+  <procedure xml:id="limit-privileges">
+   <title>To Limit Inherited Privileges</title>
+
+   <para>
+    When privileges are set as described in
+    <xref linkend="change-group-privileges" />,
+    the same list of privileges is applied to every target account.
+    OpenDJ also assigns default directory root user privileges.
+    In some cases the list of inherited privileges can be too broad.
+    OpenDJ has a mechanism to limit the privileges assigned
+    by preceding the privilege attribute value with a <literal>-</literal>.
+   </para>
+
+   <para>
+    The following steps show how to prevent Kirsten Vaughan
+    from resetting passwords when the privilege is assigned as in
+    <xref linkend="change-group-privileges" />.
+   </para>
+
+   <step>
+    <para>
+     Check the privilege settings for the account.
+    </para>
+
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" \
+ ds-privilege-name</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
+ds-privilege-name: config-read
+ds-privilege-name: config-write
+ds-privilege-name: ldif-export
+ds-privilege-name: modify-acl
+ds-privilege-name: password-reset
+ds-privilege-name: proxied-auth</computeroutput>
+    </screen>
+   </step>
+
+   <step>
+    <para>
+     Set the privilege attribute for the account to remove the privilege.
+    </para>
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password
+dn: uid=kvaughan,ou=people,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: -password-reset
+</userinput>
+<computeroutput>Processing MODIFY request for uid=kvaughan,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=people,dc=example,dc=com</computeroutput>
+    </screen>
+   </step>
+
+   <step>
+    <para>
+     Observe that the privilege is no longer in effect.
+    </para>
+
+    <screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit</userinput>
+<computeroutput>The LDAP password modify operation failed with result code 50
+Error Message:  You do not have sufficient privileges to perform password
+reset operations</computeroutput>
+    </screen>
+   </step>
+  </procedure>
  </section>
 
  <section xml:id="configure-acis">
