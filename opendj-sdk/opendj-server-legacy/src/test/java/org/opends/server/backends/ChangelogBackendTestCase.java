@@ -446,9 +446,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       isOldestCSNForReplica(DN_OTEST2, csn6);
 
       // test last cookie on root DSE
-      MultiDomainServerState expectedLastCookie =
-          new MultiDomainServerState("o=test:" + csn5 + " " + csn9 + ";o=test2:" + csn3 + " " + csn8 + ";");
-      final String lastCookie = assertLastCookieIsEqualTo(expectedLastCookie.toString());
+      String expectedLastCookie = "o=test:" + csn5 + " " + csn9 + ";o=test2:" + csn3 + " " + csn8 + ";";
+      final String lastCookie = assertLastCookieIsEqualTo(expectedLastCookie);
 
       // test unknown domain in provided cookie
       // This case seems to be very hard to obtain in the real life
@@ -476,13 +475,28 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private void isOldestCSNForReplica(DN baseDN, CSN csn) throws Exception
   {
-    final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
-    CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-    try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
+    AssertionError ex = null;
+    int cnt = 0;
+    while (cnt < 30)
     {
-      assertTrue(cursor.next(),
-          "Expected to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
-      assertEquals(cursor.getRecord().getCSN(), csn);
+      cnt++;
+      final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
+      CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+      try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
+      {
+        assertTrue(cursor.next(),
+            "Expected to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
+        assertEquals(cursor.getRecord().getCSN(), csn);
+        return;
+      }
+      catch (AssertionError e)
+      {
+        ex = e;
+      }
+    }
+    if (ex != null)
+    {
+      throw ex;
     }
   }
 
@@ -1009,7 +1023,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     {
       if (msg instanceof UpdateMsg)
       {
-        debugInfo(testName, " publishes " + ((UpdateMsg) msg).getCSN());
+        final UpdateMsg updateMsg = (UpdateMsg) msg;
+        assertThat(updateMsg.getCSN().getServerId()).isEqualTo(serverId);
+        debugInfo(testName, " publishes " + updateMsg.getCSN());
       }
 
       broker.publish(msg);
