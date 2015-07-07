@@ -205,7 +205,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    *          be invoked to launch the program with which this
    *          argument parser is associated.
    */
-  public ReplicationCliArgumentParser(String mainClassName)
+  ReplicationCliArgumentParser(String mainClassName)
   {
     super(mainClassName,
         INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME,
@@ -219,13 +219,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Initialize the parser with the Global options and subcommands.
    *
    * @param outStream
-   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          The output stream to use for standard output, or {@code null}
    *          if standard output is not needed.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used
-   *           to create this argument.
+   *           If there is a problem with any of the parameters used to create this argument.
    */
-  public void initializeParser(OutputStream outStream)
+  void initializeParser(OutputStream outStream)
       throws ArgumentException
   {
     taskArgs = new TaskScheduleArgs();
@@ -257,7 +256,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  public void validateOptions(LocalizableMessageBuilder buf)
+  void validateOptions(LocalizableMessageBuilder buf)
   {
     validateGlobalOptions(buf);
     validateSubcommandOptions(buf);
@@ -391,7 +390,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(super.noPropertiesFileArg);
     defaultArgs.remove(super.propertiesFileArg);
     // Remove it from the default location and redefine it.
-    defaultArgs.remove(secureArgsList.adminUidArg);
+    defaultArgs.remove(getAdminUidArg());
 
     int index = 0;
 
@@ -408,9 +407,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
-    secureArgsList.adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
-    secureArgsList.adminUidArg.setHidden(false);
-    defaultArgs.add(index++, secureArgsList.adminUidArg);
+    getAdminUidArg().setPropertyName(OPTION_LONG_ADMIN_UID);
+    getAdminUidArg().setHidden(false);
+    defaultArgs.add(index++, getAdminUidArg());
 
     secureArgsList.bindPasswordArg = new StringArgument(
         OPTION_LONG_ADMIN_PWD.toLowerCase(),
@@ -948,16 +947,25 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   @Override
   public String getAdministratorUID()
   {
-    return getValue(secureArgsList.adminUidArg);
+    return getValue(getAdminUidArg());
   }
 
   /**
    * Returns the default Administrator UID value.
    * @return the default Administrator UID value.
    */
-  public String getDefaultAdministratorUID()
+  public String getAdministratorUIDOrDefault()
   {
-    return getDefaultValue(secureArgsList.adminUidArg);
+    return getValueOrDefault(getAdminUidArg());
+  }
+
+  /**
+   * Returns the Administrator UID argument.
+   * @return the Administrator UID argument.
+   */
+  StringArgument getAdminUidArg()
+  {
+    return secureArgsList.adminUidArg;
   }
 
   /**
@@ -966,20 +974,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the first host name explicitly provided in the enable replication
    * subcommand.
    */
-  public String getHostName1()
+  public StringArgument getHostName1Arg()
   {
-    return getValue(hostName1Arg);
-  }
-
-  /**
-   * Returns the first host name default value in the enable replication
-   * subcommand.
-   * @return the first host name default value in the enable replication
-   * subcommand.
-   */
-  public String getDefaultHostName1()
-  {
-    return getDefaultValue(hostName1Arg);
+    return hostName1Arg;
   }
 
   /**
@@ -988,20 +985,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the first server port explicitly provided in the enable replication
    * subcommand.  Returns -1 if no port was explicitly provided.
    */
-  public int getPort1()
+  public IntegerArgument getPort1Arg()
   {
-    return getValue(port1Arg);
-  }
-
-  /**
-   * Returns the first server port default value in the enable replication
-   * subcommand.
-   * @return the first server port default value in the enable replication
-   * subcommand.
-   */
-  public int getDefaultPort1()
-  {
-    return getDefaultValue(port1Arg);
+    return port1Arg;
   }
 
   /**
@@ -1010,20 +996,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the first server bind dn explicitly provided in the enable
    * replication subcommand.
    */
-  public String getBindDn1()
+  public StringArgument getBindDn1Arg()
   {
-    return getValue(bindDn1Arg);
-  }
-
-  /**
-   * Returns the first server bind dn default value in the enable replication
-   * subcommand.
-   * @return the first server bind dn default value in the enable replication
-   * subcommand.
-   */
-  public String getDefaultBindDn1()
-  {
-    return getDefaultValue(bindDn1Arg);
+    return bindDn1Arg;
   }
 
   /**
@@ -1043,9 +1018,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the first server replication port default value in the enable
    * replication subcommand.
    */
-  public int getDefaultReplicationPort1()
+  public int getReplicationPort1OrDefault()
   {
-    return getDefaultValue(replicationPort1Arg);
+    return getValueOrDefault(replicationPort1Arg);
   }
 
   /**
@@ -1065,20 +1040,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the second host name explicitly provided in the enable replication
    * subcommand.
    */
-  public String getHostName2()
+  public StringArgument getHostName2Arg()
   {
-    return getValue(hostName2Arg);
-  }
-
-  /**
-   * Returns the second host name default value in the enable replication
-   * subcommand.
-   * @return the second host name default value in the enable replication
-   * subcommand.
-   */
-  public String getDefaultHostName2()
-  {
-    return getDefaultValue(hostName2Arg);
+    return hostName2Arg;
   }
 
   /**
@@ -1087,20 +1051,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the second server port explicitly provided in the enable
    * replication subcommand.  Returns -1 if no port was explicitly provided.
    */
-  public int getPort2()
+  public IntegerArgument getPort2Arg()
   {
-    return getValue(port2Arg);
-  }
-
-  /**
-   * Returns the second server port default value in the enable replication
-   * subcommand.
-   * @return the second server port default value in the enable replication
-   * subcommand.
-   */
-  public int getDefaultPort2()
-  {
-    return getDefaultValue(port2Arg);
+    return port2Arg;
   }
 
   /**
@@ -1109,20 +1062,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the second server bind dn explicitly provided in the enable
    * replication subcommand.
    */
-  public String getBindDn2()
+  public StringArgument getBindDn2Arg()
   {
-    return getValue(bindDn2Arg);
-  }
-
-  /**
-   * Returns the second server bind dn default value in the enable replication
-   * subcommand.
-   * @return the second server bind dn default value in the enable replication
-   * subcommand.
-   */
-  public String getDefaultBindDn2()
-  {
-    return getDefaultValue(bindDn2Arg);
+    return bindDn2Arg;
   }
 
   /**
@@ -1143,7 +1085,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the second server replication port default value in the enable
    * replication subcommand.
    */
-  public int getDefaultReplicationPort2()
+  public int getReplicationPort2OrDefault()
   {
     return getDefaultValue(replicationPort2Arg);
   }
@@ -1165,7 +1107,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return <CODE>true</CODE> the user asked to skip the replication port
    * checks (if the ports are free) and <CODE>false</CODE> otherwise.
    */
-  public boolean skipReplicationPortCheck()
+  boolean skipReplicationPortCheck()
   {
     return skipPortCheckArg.isPresent();
   }
@@ -1175,7 +1117,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return <CODE>true</CODE> if the user asked to not replicate schema and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean noSchemaReplication()
+  boolean noSchemaReplication()
   {
     return noSchemaReplicationArg.isPresent();
   }
@@ -1186,7 +1128,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return <CODE>true</CODE> if the user asked to use the second server to
    * initialize the schema of the first server and <CODE>false</CODE> otherwise.
    */
-  public boolean useSecondServerAsSchemaSource()
+  boolean useSecondServerAsSchemaSource()
   {
     return useSecondServerAsSchemaSourceArg.isPresent();
   }
@@ -1208,9 +1150,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the host name default value in the disable replication
    * subcommand.
    */
-  public String getDefaultHostNameToDisable()
+  public String getHostNameToDisableOrDefault()
   {
-    return getDefaultValue(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1250,9 +1192,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Returns the host name default value in the status replication subcommand.
    * @return the host name default value in the status replication subcommand.
    */
-  public String getDefaultHostNameToStatus()
+  public String getHostNameToStatusOrDefault()
   {
-    return getDefaultValue(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1272,9 +1214,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the host name default value in the initialize all replication
    * subcommand.
    */
-  public String getDefaultHostNameToInitializeAll()
+  public String getHostNameToInitializeAllOrDefault()
   {
-    return getDefaultValue(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1338,9 +1280,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the first host name default value in the initialize replication
    * subcommand.
    */
-  public String getDefaultHostNameSource()
+  public String getHostNameSourceOrDefault()
   {
-    return getDefaultValue(hostNameSourceArg);
+    return getValueOrDefault(hostNameSourceArg);
   }
 
   /**
@@ -1360,9 +1302,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the destination host name default value in the initialize
    * replication subcommand.
    */
-  public String getDefaultHostNameDestination()
+  public String getHostNameDestinationOrDefault()
   {
-    return getDefaultValue(hostNameDestinationArg);
+    return getValueOrDefault(hostNameDestinationArg);
   }
 
   /**
@@ -1382,9 +1324,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the source server port default value in the initialize replication
    * subcommand.
    */
-  public int getDefaultPortSource()
+  public int getPortSourceOrDefault()
   {
-    return getDefaultValue(portSourceArg);
+    return getValueOrDefault(portSourceArg);
   }
 
   /**
@@ -1404,9 +1346,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the destination server port default value in the initialize
    * replication subcommand.
    */
-  public int getDefaultPortDestination()
+  public int getPortDestinationOrDefault()
   {
-    return getDefaultValue(portDestinationArg);
+    return getValueOrDefault(portDestinationArg);
   }
 
   /**
@@ -1426,9 +1368,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the server port default value in the disable replication
    * subcommand.
    */
-  public int getDefaultPortToDisable()
+  public int getPortToDisableOrDefault()
   {
-    return getDefaultValue(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.portArg);
   }
 
   /**
@@ -1448,9 +1390,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the server port default value in the initialize all replication
    * subcommand.
    */
-  public int getDefaultPortToInitializeAll()
+  public int getPortToInitializeAllOrDefault()
   {
-    return getDefaultValue(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.portArg);
   }
 
   /**
@@ -1512,9 +1454,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Returns the server port default value in the status replication subcommand.
    * @return the server port default value in the status replication subcommand.
    */
-  public int getDefaultPortToStatus()
+  public int getPortToStatusOrDefault()
   {
-    return getDefaultValue(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.portArg);
   }
 
   /**
@@ -1549,19 +1491,41 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the argument's value if present or else return the argument's default value.
+   *
+   * @param arg the argument
+   * @return the argument's value if present, the argument's default value if not present
+   */
+  static String getValueOrDefault(StringArgument arg)
+  {
+    String v = getValue(arg);
+    String defaultValue = getDefaultValue(arg);
+    return v != null ? v : defaultValue;
+  }
+
+  /**
+   * Returns the argument's value if present or else return the argument's default value.
+   *
+   * @param arg the argument
+   * @return the argument's value if present, the argument's default value if not present
+   */
+  static int getValueOrDefault(IntegerArgument arg)
+  {
+    int v = getValue(arg);
+    int defaultValue = getDefaultValue(arg);
+    return v != -1 ? v : defaultValue;
+  }
+
+  /**
    * Returns the value of the provided argument only if the user provided it
    * explicitly.
    * @param arg the StringArgument to be handled.
    * @return the value of the provided argument only if the user provided it
    * explicitly.
    */
-  private String getValue(StringArgument arg)
+  static String getValue(StringArgument arg)
   {
-    if (arg.isPresent())
-    {
-      return arg.getValue();
-    }
-    return null;
+    return arg.isPresent() ? arg.getValue() : null;
   }
 
   /**
@@ -1569,7 +1533,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @param arg the StringArgument to be handled.
    * @return the default value of the provided argument.
    */
-  private String getDefaultValue(StringArgument arg)
+  static String getDefaultValue(StringArgument arg)
   {
     return arg.getDefaultValue();
   }
@@ -1581,7 +1545,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the value of the provided argument only if the user provided it
    * explicitly.
    */
-  private int getValue(IntegerArgument arg)
+  static int getValue(IntegerArgument arg)
   {
     if (arg.isPresent())
     {
@@ -1607,14 +1571,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @param arg the StringArgument to be handled.
    * @return the default value of the provided argument.
    */
-  private int getDefaultValue(IntegerArgument arg)
+  static int getDefaultValue(IntegerArgument arg)
   {
-    String defaultValue = arg.getDefaultValue();
-    if (defaultValue != null)
-    {
-      return Integer.parseInt(arg.getDefaultValue());
-    }
-    return -1;
+    String v = arg.getDefaultValue();
+    return v != null ? Integer.parseInt(v) : -1;
   }
 
   /**
@@ -1857,7 +1817,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {secureArgsList.adminUidArg, secureArgsList.bindDnArg},
+        {getAdminUidArg(), secureArgsList.bindDnArg},
         {disableAllArg, disableReplicationServerArg},
         {disableAllArg, baseDNsArg}
     };
@@ -2026,14 +1986,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return {@code true} if the user specified connection arguments and
    * {@code false} otherwise.
    */
-  public boolean connectionArgumentsPresent()
+  boolean connectionArgumentsPresent()
   {
     if (isPurgeHistoricalSubcommand()) {
       boolean secureArgsPresent = getSecureArgsList() != null &&
       getSecureArgsList().argumentsPresent();
       // This have to be explicitly specified because their original definition
       // has been replaced.
-      boolean adminArgsPresent = secureArgsList.adminUidArg.isPresent() ||
+      boolean adminArgsPresent = getAdminUidArg().isPresent() ||
       secureArgsList.bindPasswordArg.isPresent() ||
       secureArgsList.bindPasswordFileArg.isPresent();
       return secureArgsPresent || adminArgsPresent;
@@ -2058,8 +2018,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the maximum duration default value in the purge historical
    * replication subcommand.
    */
-  public int getDefaultMaximumDuration()
+  public int getMaximumDurationOrDefault()
   {
-    return getDefaultValue(maximumDurationArg);
+    return getValueOrDefault(maximumDurationArg);
   }
 }
