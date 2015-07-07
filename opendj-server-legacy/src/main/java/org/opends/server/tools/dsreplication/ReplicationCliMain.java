@@ -1897,19 +1897,19 @@ public class ReplicationCliMain extends ConsoleApplication
     /*
      * Try to connect to the first server.
      */
-    String host1 = getValue(argParser.getHostName1Arg());
-    int port1 = getValue(argParser.getPort1Arg());
-    String bindDn1 = getValue(argParser.getBindDn1Arg());
-    String pwd1 = argParser.getBindPassword1();
+    String host1 = getValue(argParser.server1.hostNameArg);
+    int port1 = getValue(argParser.server1.portArg);
+    String bindDn1 = getValue(argParser.server1.bindDnArg);
+    String pwd1 = argParser.server1.getBindPassword();
     String pwd = null;
     Map<String, String> pwdFile = null;
-    if (argParser.bindPassword1Arg.isPresent())
+    if (argParser.server1.bindPasswordArg.isPresent())
     {
-      pwd = argParser.bindPassword1Arg.getValue();
+      pwd = argParser.server1.bindPasswordArg.getValue();
     }
-    else if (argParser.bindPasswordFile1Arg.isPresent())
+    else if (argParser.server1.bindPasswordFileArg.isPresent())
     {
-      pwdFile = argParser.bindPasswordFile1Arg.getNameToValueMap();
+      pwdFile = argParser.server1.bindPasswordFileArg.getNameToValueMap();
     }
     else if (bindDn1 == null)
     {
@@ -1984,11 +1984,9 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.getServer1().setPwd(pwd1);
     }
     int replicationPort1 = -1;
-    boolean secureReplication1 = argParser.isSecureReplication1();
-    boolean configureReplicationServer1 =
-      !argParser.noReplicationServer1Arg.isPresent();
-    boolean configureReplicationDomain1 =
-      !argParser.onlyReplicationServer1Arg.isPresent();
+    boolean secureReplication1 = argParser.server1.secureReplicationArg.isPresent();
+    boolean configureReplicationServer1 = argParser.server1.configureReplicationServer();
+    boolean configureReplicationDomain1 = argParser.server1.configureReplicationDomain();
     if (ctx1 != null)
     {
       int repPort1 = getReplicationPort(ctx1);
@@ -2040,7 +2038,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             replicationPort1 = askPort(
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(),
-                getDefaultValue(argParser.replicationPort1Arg), logger);
+                getDefaultValue(argParser.server1.replicationPortArg), logger);
             println();
           }
           if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
@@ -2140,20 +2138,20 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      host2 = getValue(argParser.getHostName2Arg());
-      port2 = getValue(argParser.getPort2Arg());
-      bindDn2 = getValue(argParser.getBindDn2Arg());
-      pwd2 = argParser.getBindPassword2();
+      host2 = getValue(argParser.server2.hostNameArg);
+      port2 = getValue(argParser.server2.portArg);
+      bindDn2 = getValue(argParser.server2.bindDnArg);
+      pwd2 = argParser.server2.getBindPassword();
 
       pwdFile = null;
       pwd = null;
-      if (argParser.bindPassword2Arg.isPresent())
+      if (argParser.server2.bindPasswordArg.isPresent())
       {
-        pwd = argParser.bindPassword2Arg.getValue();
+        pwd = argParser.server2.bindPasswordArg.getValue();
       }
-      else if (argParser.bindPasswordFile2Arg.isPresent())
+      else if (argParser.server2.bindPasswordFileArg.isPresent())
       {
-        pwdFile = argParser.bindPasswordFile2Arg.getNameToValueMap();
+        pwdFile = argParser.server2.bindPasswordFileArg.getNameToValueMap();
       }
       else if (bindDn2 == null)
       {
@@ -2257,11 +2255,9 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     int replicationPort2 = -1;
-    boolean secureReplication2 = argParser.isSecureReplication2();
-    boolean configureReplicationServer2 =
-      !argParser.noReplicationServer2Arg.isPresent();
-    boolean configureReplicationDomain2 =
-      !argParser.onlyReplicationServer2Arg.isPresent();
+    boolean secureReplication2 = argParser.server2.secureReplicationArg.isPresent();
+    boolean configureReplicationServer2 = argParser.server2.configureReplicationServer();
+    boolean configureReplicationDomain2 = argParser.server2.configureReplicationDomain();
     if (ctx2 != null)
     {
       int repPort2 = getReplicationPort(ctx2);
@@ -2314,7 +2310,7 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               replicationPort2 = askPort(
                   INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
-                  getDefaultValue(argParser.replicationPort2Arg), logger);
+                  getDefaultValue(argParser.server2.replicationPortArg), logger);
               println();
             }
             if (!argParser.skipReplicationPortCheck() &&
@@ -3116,28 +3112,25 @@ public class ReplicationCliMain extends ConsoleApplication
   private void initializeWithArgParser(EnableReplicationUserData uData)
   {
     initialize(uData);
-    String adminUid = uData.getAdminUid();
-    String adminPwd = uData.getAdminPwd();
 
-    final String adminDN = getAdministratorDN(adminUid);
-    setConnectionDetails(uData.getServer1(), adminPwd, adminDN,
-        argParser.getHostName1Arg(), argParser.getPort1Arg(), argParser.getBindDn1Arg(), argParser.getBindPassword1());
-    setConnectionDetails(uData.getServer2(), adminPwd, adminDN,
-        argParser.getHostName2Arg(), argParser.getPort2Arg(), argParser.getBindDn2Arg(), argParser.getBindPassword2());
+    final String adminDN = getAdministratorDN(uData.getAdminUid());
+    final String adminPwd = uData.getAdminPwd();
+    setConnectionDetails(uData.getServer1(), argParser.server1, adminDN, adminPwd);
+    setConnectionDetails(uData.getServer2(), argParser.server2, adminDN, adminPwd);
 
     uData.setReplicateSchema(!argParser.noSchemaReplication());
 
-    setReplicationDetails(uData.getServer1(), argParser.isSecureReplication1(), argParser.onlyReplicationServer1Arg,
-        argParser.noReplicationServer1Arg, argParser.getReplicationPort1OrDefault());
-    setReplicationDetails(uData.getServer2(), argParser.isSecureReplication2(), argParser.onlyReplicationServer2Arg,
-        argParser.noReplicationServer2Arg, argParser.getReplicationPort2OrDefault());
+    setReplicationDetails(uData.getServer1(), argParser.server1);
+    setReplicationDetails(uData.getServer2(), argParser.server2);
   }
 
-  private void setConnectionDetails(EnableReplicationServerData server, String adminPwd, final String adminDN,
-      StringArgument hostNameArg, IntegerArgument portArg, StringArgument bindDnArg, String pwd)
+  private void setConnectionDetails(
+      EnableReplicationServerData server, ServerArgs args, String adminDN, String adminPwd)
   {
-    server.setHostName(getValueOrDefault(hostNameArg));
-    server.setPort(getValueOrDefault(portArg));
+    server.setHostName(getValueOrDefault(args.hostNameArg));
+    server.setPort(getValueOrDefault(args.portArg));
+
+    String pwd = args.getBindPassword();
     if (pwd == null)
     {
       server.setBindDn(adminDN);
@@ -3156,21 +3149,20 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (Throwable t)
       {
-        server.setBindDn(getDefaultValue(bindDnArg));
+        server.setBindDn(getDefaultValue(args.bindDnArg));
         server.setPwd(pwd);
       }
     }
   }
 
-  private void setReplicationDetails(EnableReplicationServerData server, boolean secureReplication,
-      BooleanArgument onlyReplicationServer, BooleanArgument noReplicationServer, int replicationPort)
+  private void setReplicationDetails(EnableReplicationServerData server, ServerArgs args)
   {
-    server.setSecureReplication(secureReplication);
-    server.setConfigureReplicationDomain(!onlyReplicationServer.isPresent());
-    server.setConfigureReplicationServer(!noReplicationServer.isPresent());
+    server.setSecureReplication(args.secureReplicationArg.isPresent());
+    server.setConfigureReplicationDomain(args.configureReplicationDomain());
+    server.setConfigureReplicationServer(args.configureReplicationServer());
     if (server.configureReplicationServer())
     {
-      server.setReplicationPort(replicationPort);
+      server.setReplicationPort(getValueOrDefault(args.replicationPortArg));
     }
   }
 
@@ -5214,10 +5206,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     Set<String> alreadyConfiguredReplicationServers = new HashSet<String>();
-    configureServer(ctx1, serverDesc1, uData.getServer1(), argParser.replicationPort1Arg, usedReplicationServerIds,
-        allRepServers, alreadyConfiguredReplicationServers, WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED);
-    configureServer(ctx2, serverDesc2, uData.getServer2(), argParser.replicationPort2Arg, usedReplicationServerIds,
-        allRepServers, alreadyConfiguredReplicationServers, WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED);
+    configureServer(ctx1, serverDesc1, uData.getServer1(), argParser.server1.replicationPortArg,
+        usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
+        WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED);
+    configureServer(ctx2, serverDesc2, uData.getServer2(), argParser.server2.replicationPortArg,
+        usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
+        WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED);
 
     for (String baseDN : uData.getBaseDNs())
     {
@@ -8734,32 +8728,26 @@ public class ReplicationCliMain extends ConsoleApplication
         !server1.configureReplicationDomain())
     {
       commandBuilder.addArgument(newBooleanArgument(
-          argParser.onlyReplicationServer1Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1));
+          argParser.server1.onlyReplicationServerArg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1));
     }
 
     if (!server1.configureReplicationServer() &&
         server1.configureReplicationDomain())
     {
       commandBuilder.addArgument(newBooleanArgument(
-          argParser.noReplicationServer1Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1));
+          argParser.server1.noReplicationServerArg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1));
     }
 
     if (server1.configureReplicationServer() &&
         server1.getReplicationPort() > 0)
     {
-      IntegerArgument replicationPort1 = new IntegerArgument(
-          "replicationPort1", 'r',
-          "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-          8989, null,
-          INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
-      replicationPort1.addValue(String.valueOf(server1.getReplicationPort()));
-      commandBuilder.addArgument(replicationPort1);
+      commandBuilder.addArgument(getReplicationPortArg(
+          "replicationPort1", server1, 8989, INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1));
     }
     if (server1.isSecureReplication())
     {
-      commandBuilder.addArgument(new BooleanArgument("secureReplication1", null,
-          "secureReplication1",
-          INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get()));
+      commandBuilder.addArgument(
+          newBooleanArgument("secureReplication1", INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1));
     }
 
 
@@ -8767,31 +8755,25 @@ public class ReplicationCliMain extends ConsoleApplication
         !server2.configureReplicationDomain())
     {
       commandBuilder.addArgument(newBooleanArgument(
-          argParser.onlyReplicationServer2Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2));
+          argParser.server2.onlyReplicationServerArg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2));
     }
 
     if (!server2.configureReplicationServer() &&
         server2.configureReplicationDomain())
     {
       commandBuilder.addArgument(newBooleanArgument(
-          argParser.noReplicationServer2Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2));
+          argParser.server2.noReplicationServerArg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2));
     }
     if (server2.configureReplicationServer() &&
         server2.getReplicationPort() > 0)
     {
-      IntegerArgument replicationPort2 = new IntegerArgument(
-          "replicationPort2", 'r',
-          "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-          server2.getReplicationPort(), null,
-          INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
-      replicationPort2.addValue(String.valueOf(server2.getReplicationPort()));
-      commandBuilder.addArgument(replicationPort2);
+      commandBuilder.addArgument(getReplicationPortArg(
+          "replicationPort2", server2, server2.getReplicationPort(), INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2));
     }
     if (server2.isSecureReplication())
     {
-      commandBuilder.addArgument(new BooleanArgument("secureReplication2", null,
-          "secureReplication2",
-          INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get()));
+      commandBuilder.addArgument(
+          newBooleanArgument("secureReplication2", INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2));
     }
 
 
@@ -8815,6 +8797,22 @@ public class ReplicationCliMain extends ConsoleApplication
           INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SECOND_AS_SCHEMA_SOURCE.get(
               "--"+argParser.noSchemaReplicationArg.getLongIdentifier())));
     }
+  }
+
+  private IntegerArgument getReplicationPortArg(
+      String name, EnableReplicationServerData server, int defaultValue, Arg0 description) throws ArgumentException
+  {
+    IntegerArgument replicationPort = new IntegerArgument(
+        name, 'r', name, false, false, true,
+        INFO_PORT_PLACEHOLDER.get(), defaultValue, null, description.get());
+    int value = server.getReplicationPort();
+    replicationPort.addValue(String.valueOf(value));
+    return replicationPort;
+  }
+
+  private BooleanArgument newBooleanArgument(String name, Arg0 msg) throws ArgumentException
+  {
+    return new BooleanArgument(name, null, name, msg.get());
   }
 
   private BooleanArgument newBooleanArgument(BooleanArgument arg, Arg0 msg) throws ArgumentException
