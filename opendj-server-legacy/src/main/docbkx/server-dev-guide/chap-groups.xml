@@ -112,6 +112,23 @@ ADD operation successful for DN ou=Groups,dc=example,dc=com</computeroutput>
   <para>A <firstterm>static group</firstterm> is expressed as an entry
   that enumerates all the entries that belong to the group. Static group
   entries grow as their membership increases.</para>
+
+  <tip>
+   <para>
+    Large static groups can be a performance bottleneck.
+    The recommended way to avoid the issue is to use dynamic groups instead
+    as described in <xref linkend="dynamic-groups" />.
+    If using dynamic groups is not an option
+    for a deployment with large static groups that are updated regularly,
+    use an entry cache.
+    For details, see the <citetitle>Administration Guide</citetitle> section
+    <link
+     xlink:href="admin-guide#perf-entry-cache"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:show="new"
+    ><citetitle>Caching Large, Frequently Used Entries</citetitle></link>.
+   </para>
+  </tip>
   
   <para>Static group entries can take the standard object class
   <literal>groupOfNames</literal> where each <literal>member</literal>
