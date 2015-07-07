@@ -24,7 +24,6 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.tools.dsreplication;
 
 import java.util.ArrayList;
@@ -36,30 +35,23 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.RawAttribute;
 
-/**
- * This class is used to store the information provided by the user to
- * purge historical data.
- *
- */
+/** This class is used to store the information provided by the user to purge historical data. */
 public class PurgeHistoricalUserData extends MonoServerReplicationUserData
 {
   private int maximumDuration;
   private boolean online;
   private TaskScheduleUserData taskSchedule = new TaskScheduleUserData();
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public PurgeHistoricalUserData()
   {
   }
-
 
   /**
    * Returns the maximum duration that the purge can take in seconds.
@@ -121,7 +113,6 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
     this.taskSchedule = taskSchedule;
   }
 
-
   /**
    * Initializes the contents of the provided purge historical replication user
    * data object with what was provided in the command-line without prompting to
@@ -138,18 +129,10 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
 
     if (argParser.connectionArgumentsPresent())
     {
-      String adminUid = getValue(argParser.getAdministratorUID(),
-          argParser.getDefaultAdministratorUID());
-      uData.setAdminUid(adminUid);
-      String adminPwd = argParser.getBindPasswordAdmin();
-      uData.setAdminPwd(adminPwd);
-
-      String hostName = getValue(argParser.getHostNameToStatus(),
-          argParser.getDefaultHostNameToStatus());
-      uData.setHostName(hostName);
-      int port = getValue(argParser.getPortToStatus(),
-          argParser.getDefaultPortToStatus());
-      uData.setPort(port);
+      uData.setAdminUid(argParser.getAdministratorUIDOrDefault());
+      uData.setAdminPwd(argParser.getBindPasswordAdmin());
+      uData.setHostName(argParser.getHostNameToStatusOrDefault());
+      uData.setPort(argParser.getPortToStatusOrDefault());
       uData.setOnline(true);
       TaskScheduleUserData taskSchedule = new TaskScheduleUserData();
       TaskScheduleArgs taskArgs = argParser.getTaskArgsList();
@@ -174,53 +157,8 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
       uData.setOnline(false);
     }
 
-    uData.setMaximumDuration(getValue(argParser.getMaximumDuration(),
-        argParser.getDefaultMaximumDuration()));
+    uData.setMaximumDuration(argParser.getMaximumDurationOrDefault());
   }
-
-
-  /**
-   * Commodity method that simply checks if a provided value is null or not,
-   * if it is not <CODE>null</CODE> returns it and if it is <CODE>null</CODE>
-   * returns the provided default value.
-   * @param v the value to analyze.
-   * @param defaultValue the default value.
-   * @return if the provided value is not <CODE>null</CODE> returns it and if it
-   * is <CODE>null</CODE> returns the provided default value.
-   */
-  private static String getValue(String v, String defaultValue)
-  {
-    if (v != null)
-    {
-      return v;
-    }
-    else
-    {
-      return defaultValue;
-    }
-  }
-
-  /**
-   * Commodity method that simply checks if a provided value is -1 or not,
-   * if it is not -1 returns it and if it is -1 returns the provided default
-   * value.
-   * @param v the value to analyze.
-   * @param defaultValue the default value.
-   * @return if the provided value is not -1 returns it and if it is -1 returns
-   * the provided default value.
-   */
-  private static int getValue(int v, int defaultValue)
-  {
-    if (v != -1)
-    {
-      return v;
-    }
-    else
-    {
-      return defaultValue;
-    }
-  }
-
 
   /**
    * Commodity method that returns the list of basic task attributes required
@@ -233,9 +171,7 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
   {
     PurgeHistoricalScheduleInformation information =
       new PurgeHistoricalScheduleInformation(uData);
-    ArrayList<RawAttribute> rawAttrs =
-      TaskClient.getTaskAttributes(information);
-    return getAttributes(rawAttrs);
+    return getAttributes(TaskClient.getTaskAttributes(information));
   }
 
   private static BasicAttributes getAttributes(ArrayList<RawAttribute> rawAttrs)
@@ -279,19 +215,17 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
     return TaskClient.getTaskID(rawAttrs);
   }
 
-
   private static ArrayList<RawAttribute> getRawAttributes(BasicAttributes attrs)
   {
-    ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
-    NamingEnumeration<Attribute> nAtt = attrs.getAll();
-
     try
     {
+      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
+      NamingEnumeration<Attribute> nAtt = attrs.getAll();
       while (nAtt.hasMore())
       {
         Attribute attr = nAtt.next();
         NamingEnumeration<?> values = attr.getAll();
-        ArrayList<ByteString> rawValues = new ArrayList<ByteString>();
+        ArrayList<ByteString> rawValues = new ArrayList<>();
         while (values.hasMore())
         {
           Object v = values.next();
@@ -300,13 +234,12 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
         RawAttribute rAttr = RawAttribute.create(attr.getID(), rawValues);
         rawAttrs.add(rAttr);
       }
+      return rawAttrs;
     }
     catch (NamingException ne)
     {
       // This is a bug.
       throw new RuntimeException("Unexpected error: "+ne, ne);
     }
-    return rawAttrs;
   }
 }
-

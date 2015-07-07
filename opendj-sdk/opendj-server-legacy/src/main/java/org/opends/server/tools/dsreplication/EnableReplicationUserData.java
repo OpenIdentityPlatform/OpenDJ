@@ -22,223 +22,202 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.server.tools.dsreplication;
 
 /**
  * This class is used to store the information provided by the user to enable
  * replication.  It is required because when we are in interactive mode the
  * ReplicationCliArgumentParser is not enough.
- *
  */
 public class EnableReplicationUserData extends ReplicationUserData
 {
-  private String hostName1;
-  private int port1;
-  private String bindDn1;
-  private String pwd1;
-  private int replicationPort1;
-  private boolean secureReplication1;
-  private String hostName2;
-  private int port2;
-  private String pwd2;
-  private String bindDn2;
-  private int replicationPort2;
-  private boolean secureReplication2;
+  /** Data for enabling replication on a server. */
+  static final class EnableReplicationServerData
+  {
+    private String hostName;
+    private int port;
+    private String bindDn;
+    private String pwd;
+    private int replicationPort;
+    private boolean secureReplication;
+    private boolean configureReplicationServer = true;
+    private boolean configureReplicationDomain = true;
+
+    /**
+     * Returns the host name of this server.
+     *
+     * @return the host name of this server.
+     */
+    String getHostName()
+    {
+      return hostName;
+    }
+
+    /**
+     * Sets the host name of this server.
+     *
+     * @param hostName
+     *          the host name of this server
+     */
+    void setHostName(String hostName)
+    {
+      this.hostName = hostName;
+    }
+
+    /**
+     * Returns the port of this server.
+     *
+     * @return the port of this server
+     */
+    int getPort()
+    {
+      return port;
+    }
+
+    /**
+     * Sets the port of this server.
+     *
+     * @param port
+     *          the port of this server
+     */
+    void setPort(int port)
+    {
+      this.port = port;
+    }
+
+    /**
+     * Returns the password for this server.
+     *
+     * @return the password for this server
+     */
+    String getPwd()
+    {
+      return pwd;
+    }
+
+    /**
+     * Sets the password for this server.
+     *
+     * @param pwd
+     *          the password for this server
+     */
+    void setPwd(String pwd)
+    {
+      this.pwd = pwd;
+    }
+
+    /**
+     * Returns the dn to be used to bind to this server.
+     *
+     * @return the dn to be used to bind to this server
+     */
+    String getBindDn()
+    {
+      return bindDn;
+    }
+
+    /**
+     * Sets the dn to be used to bind to this server.
+     *
+     * @param bindDn
+     *          the dn to be used to bind to this server
+     */
+    void setBindDn(String bindDn)
+    {
+      this.bindDn = bindDn;
+    }
+
+    /**
+     * Returns the replication port to be used on this server if it is not defined yet.
+     *
+     * @return the replication port to be used on this server if it is not defined yet
+     */
+    int getReplicationPort()
+    {
+      return replicationPort;
+    }
+
+    /**
+     * Sets the replication port to be used on this server if it is not defined yet.
+     *
+     * @param replicationPort
+     *          the replication port to be used on this server if it is not defined yet.
+     */
+    void setReplicationPort(int replicationPort)
+    {
+      this.replicationPort = replicationPort;
+    }
+
+    /**
+     * Returns whether the user asked to have secure replication communication with this server.
+     *
+     * @return {@code true} if the user asked to have secure replication communication with the
+     *         second server, {@code false} otherwise.
+     */
+    boolean isSecureReplication()
+    {
+      return secureReplication;
+    }
+
+    /**
+     * Sets whether to use secure replication communication with this server.
+     *
+     * @param secureReplication
+     *          whether to use secure replication communication with this server .
+     */
+    void setSecureReplication(boolean secureReplication)
+    {
+      this.secureReplication = secureReplication;
+    }
+
+    /**
+     * Returns whether the user asked to configure the replication server on this server.
+     *
+     * @return whether the user asked to configure the replication server on this server
+     */
+    boolean configureReplicationServer()
+    {
+      return configureReplicationServer;
+    }
+
+    /**
+     * Sets whether to configure the replication server on this server.
+     *
+     * @param configureReplicationServer
+     *          whether to configure the replication server on this server
+     */
+    void setConfigureReplicationServer(boolean configureReplicationServer)
+    {
+      this.configureReplicationServer = configureReplicationServer;
+    }
+
+    /**
+     * Returns whether the user asked to configure the replication domain on this server.
+     *
+     * @return whether the user asked to configure the replication domain on this server
+     */
+    boolean configureReplicationDomain()
+    {
+      return configureReplicationDomain;
+    }
+
+    /**
+     * Sets whether to configure the replication domain on this server.
+     *
+     * @param configureReplicationDomain
+     *          whether to configure the replication domain on this server
+     */
+    void setConfigureReplicationDomain(boolean configureReplicationDomain)
+    {
+      this.configureReplicationDomain = configureReplicationDomain;
+    }
+  }
+
+  private EnableReplicationServerData server1 = new EnableReplicationServerData();
+  private EnableReplicationServerData server2 = new EnableReplicationServerData();
   private boolean replicateSchema = true;
-  private boolean configureReplicationServer1 = true;
-  private boolean configureReplicationServer2 = true;
-  private boolean configureReplicationDomain1 = true;
-  private boolean configureReplicationDomain2 = true;
-
-  /**
-   * Returns the host name of the first server.
-   * @return the host name of the first server.
-   */
-  public String getHostName1()
-  {
-    return hostName1;
-  }
-
-  /**
-   * Sets the host name of the first server.
-   * @param hostName1 the host name of the first server.
-   */
-  public void setHostName1(String hostName1)
-  {
-    this.hostName1 = hostName1;
-  }
-
-  /**
-   * Returns the port of the first server.
-   * @return the port of the first server.
-   */
-  public int getPort1()
-  {
-    return port1;
-  }
-
-  /**
-   * Sets the port of the first server.
-   * @param port1 the port of the first server.
-   */
-  public void setPort1(int port1)
-  {
-    this.port1 = port1;
-  }
-
-  /**
-   * Returns the password for the first server.
-   * @return the password for the first server.
-   */
-  public String getPwd1()
-  {
-    return pwd1;
-  }
-
-  /**
-   * Sets the password for the first server.
-   * @param pwd1 the password for the first server.
-   */
-  public void setPwd1(String pwd1)
-  {
-    this.pwd1 = pwd1;
-  }
-
-  /**
-   * Returns the host name of the second server.
-   * @return the host name of the second server.
-   */
-  public String getHostName2()
-  {
-    return hostName2;
-  }
-
-  /**
-   * Sets the host name of the second server.
-   * @param host2Name the host name of the second server.
-   */
-  public void setHostName2(String host2Name)
-  {
-    this.hostName2 = host2Name;
-  }
-
-  /**
-   * Returns the port of the second server.
-   * @return the port of the second server.
-   */
-  public int getPort2()
-  {
-    return port2;
-  }
-
-  /**
-   * Sets the port of the second server.
-   * @param port2 the port of the second server.
-   */
-  public void setPort2(int port2)
-  {
-    this.port2 = port2;
-  }
-
-  /**
-   * Returns the password for the second server.
-   * @return the password for the second server.
-   */
-  public String getPwd2()
-  {
-    return pwd2;
-  }
-
-  /**
-   * Sets the password for the second server.
-   * @param pwd2 the password for the second server.
-   */
-  public void setPwd2(String pwd2)
-  {
-    this.pwd2 = pwd2;
-  }
-
-  /**
-   * Returns the dn to be used to bind to the first server.
-   * @return the dn to be used to bind to the first server.
-   */
-  public String getBindDn1()
-  {
-    return bindDn1;
-  }
-
-  /**
-   * Sets the dn to be used to bind to the first server.
-   * @param bindDn1 the dn to be used to bind to the first server.
-   */
-  public void setBindDn1(String bindDn1)
-  {
-    this.bindDn1 = bindDn1;
-  }
-
-  /**
-   * Returns the dn to be used to bind to the second server.
-   * @return the dn to be used to bind to the second server.
-   */
-  public String getBindDn2()
-  {
-    return bindDn2;
-  }
-
-  /**
-   * Sets the dn to be used to bind to the second server.
-   * @param bindDn2 the dn to be used to bind to the second server.
-   */
-  public void setBindDn2(String bindDn2)
-  {
-    this.bindDn2 = bindDn2;
-  }
-
-  /**
-   * Returns the replication port to be used on the first server if it is not
-   * defined yet.
-   * @return the replication port to be used on the first server if it is not
-   * defined yet.
-   */
-  public int getReplicationPort1()
-  {
-    return replicationPort1;
-  }
-
-  /**
-   * Sets the replication port to be used on the first server if it is not
-   * defined yet.
-   * @param replicationPort1 the replication port to be used on the first server
-   * if it is not defined yet.
-   */
-  public void setReplicationPort1(int replicationPort1)
-  {
-    this.replicationPort1 = replicationPort1;
-  }
-
-  /**
-   * Returns the replication port to be used on the second server if it is not
-   * defined yet.
-   * @return the replication port to be used on the second server if it is not
-   * defined yet.
-   */
-  public int getReplicationPort2()
-  {
-    return replicationPort2;
-  }
-
-  /**
-   * Sets the replication port to be used on the second server if it is not
-   * defined yet.
-   * @param replicationPort2 the replication port to be used on the second
-   * server if it is not defined yet.
-   */
-  public void setReplicationPort2(int replicationPort2)
-  {
-    this.replicationPort2 = replicationPort2;
-  }
 
   /**
    * Returns <CODE>true</CODE> if the user asked to replicate schema and <CODE>
@@ -261,138 +240,22 @@ public class EnableReplicationUserData extends ReplicationUserData
   }
 
   /**
-   * Returns <CODE>true</CODE> if the user asked to have secure replication
-   * communication with the first server and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the user asked to have secure replication
-   * communication with the first server and <CODE>false</CODE> otherwise.
+   * Returns the data for enabling replication on first server.
+   *
+   * @return the data for enabling replication on first server
    */
-  public boolean isSecureReplication1()
+  EnableReplicationServerData getServer1()
   {
-    return secureReplication1;
+    return server1;
   }
 
   /**
-   * Sets whether to have secure replication communication with the first server
-   * or not.
-   * @param secureReplication1 whether to have secure replication communication
-   * with the first server or not.
+   * Returns the data for enabling replication on second server.
+   *
+   * @return the data for enabling replication on second server
    */
-  public void setSecureReplication1(boolean secureReplication1)
+  EnableReplicationServerData getServer2()
   {
-    this.secureReplication1 = secureReplication1;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if the user asked to have secure replication
-   * communication with the second server and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the user asked to have secure replication
-   * communication with the second server and <CODE>false</CODE> otherwise.
-   */
-  public boolean isSecureReplication2()
-  {
-    return secureReplication2;
-  }
-
-  /**
-   * Sets whether to have secure replication communication with the second
-   * server or not.
-   * @param secureReplication2 whether to have secure replication communication
-   * with the second server or not.
-   */
-  public void setSecureReplication2(boolean secureReplication2)
-  {
-    this.secureReplication2 = secureReplication2;
-  }
-
-  /**
-   * Returns whether the user asked to configure the replication server on the
-   * first server or not.
-   * @return whether the user asked to configure the replication server on the
-   * first server or not.
-   */
-  public boolean configureReplicationServer1()
-  {
-    return configureReplicationServer1;
-  }
-
-  /**
-   * Sets whether the replication server on the first server must be configured
-   * or not.
-   * @param configureReplicationServer1 whether the replication server on the
-   * first server must be configured or not.
-   */
-  public void setConfigureReplicationServer1(
-      boolean configureReplicationServer1)
-  {
-    this.configureReplicationServer1 = configureReplicationServer1;
-  }
-
-  /**
-   * Returns whether the user asked to configure the replication server on the
-   * second server or not.
-   * @return whether the user asked to configure the replication server on the
-   * second server or not.
-   */
-  public boolean configureReplicationServer2()
-  {
-    return configureReplicationServer2;
-  }
-
-  /**
-   * Sets whether the replication server on the second server must be configured
-   * or not.
-   * @param configureReplicationServer2 whether the replication server on the
-   * second server must be configured or not.
-   */
-  public void setConfigureReplicationServer2(
-      boolean configureReplicationServer2)
-  {
-    this.configureReplicationServer2 = configureReplicationServer2;
-  }
-
-  /**
-   * Returns whether the user asked to configure the replication domain on the
-   * first server or not.
-   * @return whether the user asked to configure the replication domain on the
-   * first server or not.
-   */
-  public boolean configureReplicationDomain1()
-  {
-    return configureReplicationDomain1;
-  }
-
-  /**
-   * Sets whether the replication domain on the first server must be configured
-   * or not.
-   * @param configureReplicationDomain1 whether the replication domain on the
-   * first server must be configured or not.
-   */
-  public void setConfigureReplicationDomain1(
-      boolean configureReplicationDomain1)
-  {
-    this.configureReplicationDomain1 = configureReplicationDomain1;
-  }
-
-  /**
-   * Returns whether the user asked to configure the replication domain on the
-   * second server or not.
-   * @return whether the user asked to configure the replication domain on the
-   * second server or not.
-   */
-  public boolean configureReplicationDomain2()
-  {
-    return configureReplicationDomain2;
-  }
-
-  /**
-   * Sets whether the replication domain on the second server must be configured
-   * or not.
-   * @param configureReplicationDomain2 whether the replication domain on the
-   * second server must be configured or not.
-   */
-  public void setConfigureReplicationDomain2(
-      boolean configureReplicationDomain2)
-  {
-    this.configureReplicationDomain2 = configureReplicationDomain2;
+    return server2;
   }
 }
