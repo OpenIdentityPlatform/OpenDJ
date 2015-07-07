@@ -68,6 +68,54 @@ import com.forgerock.opendj.cli.SubCommand;
  */
 public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 {
+  /** Arguments used when enabling replication for a server. */
+  static class ServerArgs
+  {
+    /** The 'hostName' argument for the first server. */
+    StringArgument hostNameArg;
+    /** The 'port' argument for the first server. */
+    IntegerArgument portArg;
+    /** The 'bindDN' argument for the first server. */
+    StringArgument bindDnArg;
+    /** The 'bindPasswordFile' argument for the first server. */
+    FileBasedArgument bindPasswordFileArg;
+    /** The 'bindPassword' argument for the first server. */
+    StringArgument bindPasswordArg;
+    /** The 'replicationPort' argument for the first server. */
+    IntegerArgument replicationPortArg;
+    /** The 'noReplicationServer' argument for the first server. */
+    BooleanArgument noReplicationServerArg;
+    /** The 'onlyReplicationServer' argument for the first server. */
+    BooleanArgument onlyReplicationServerArg;
+    /** The 'secureReplication' argument for the first server. */
+    BooleanArgument secureReplicationArg;
+
+
+    /**
+     * Get the password which has to be used for the command to connect to this server without
+     * prompting the user in the enable replication subcommand. If no password was specified return
+     * null.
+     *
+     * @return the password which has to be used for the command to connect to this server without
+     *         prompting the user in the enable replication subcommand. If no password was specified
+     *         return null.
+     */
+    String getBindPassword()
+    {
+      return ReplicationCliArgumentParser.getBindPassword(bindPasswordArg, bindPasswordFileArg);
+    }
+
+    boolean configureReplicationDomain()
+    {
+      return !onlyReplicationServerArg.isPresent();
+    }
+
+    boolean configureReplicationServer()
+    {
+      return !noReplicationServerArg.isPresent();
+    }
+  }
+
   private SubCommand enableReplicationSubCmd;
   private SubCommand disableReplicationSubCmd;
   private SubCommand initializeReplicationSubCmd;
@@ -83,42 +131,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /** No-prompt argument. */
   BooleanArgument noPromptArg;
   private String defaultLocalHostValue;
-  /** The 'hostName' argument for the first server. */
-  private StringArgument hostName1Arg;
-  /** The 'port' argument for the first server. */
-  private IntegerArgument port1Arg;
-  /** The 'bindDN' argument for the first server. */
-  private StringArgument bindDn1Arg;
-  /** The 'bindPasswordFile' argument for the first server. */
-  FileBasedArgument bindPasswordFile1Arg;
-  /** The 'bindPassword' argument for the first server. */
-  StringArgument bindPassword1Arg;
-  /** The 'replicationPort' argument for the first server. */
-  IntegerArgument replicationPort1Arg;
-  /** The 'noReplicationServer' argument for the first server. */
-  BooleanArgument noReplicationServer1Arg;
-  /** The 'onlyReplicationServer' argument for the first server. */
-  BooleanArgument onlyReplicationServer1Arg;
-  /** The 'secureReplication' argument for the first server. */
-  private BooleanArgument secureReplication1Arg;
-  /** The 'hostName' argument for the second server. */
-  private StringArgument hostName2Arg;
-  /** The 'port' argument for the second server. */
-  private IntegerArgument port2Arg;
-  /** The 'binDN' argument for the second server. */
-  private StringArgument bindDn2Arg;
-  /** The 'bindPasswordFile' argument for the second server. */
-  FileBasedArgument bindPasswordFile2Arg;
-  /** The 'bindPassword' argument for the second server. */
-  StringArgument bindPassword2Arg;
-  /** The 'replicationPort' argument for the second server. */
-  IntegerArgument replicationPort2Arg;
-  /** The 'noReplicationServer' argument for the second server. */
-  BooleanArgument noReplicationServer2Arg;
-  /** The 'onlyReplicationServer' argument for the second server. */
-  BooleanArgument onlyReplicationServer2Arg;
-  /** The 'secureReplication' argument for the second server. */
-  private BooleanArgument secureReplication2Arg;
+
+  /** Arguments for the first server. */
+  ServerArgs server1 = new ServerArgs();
+  /** Arguments for the second server. */
+  ServerArgs server2 = new ServerArgs();
+
   /** The 'skipPortCheckArg' argument to not check replication ports. */
   private BooleanArgument skipPortCheckArg;
   /** The 'noSchemaReplication' argument to not replicate schema. */
@@ -506,100 +524,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Creates the enable replication subcommand and all the specific options
    * for the subcommand.
    */
-  private void createEnableReplicationSubCommand()
-  throws ArgumentException
+  private void createEnableReplicationSubCommand() throws ArgumentException
   {
-
-    hostName1Arg = new StringArgument("host1", OPTION_SHORT_HOST,
-        "host1", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(),
-        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
-
-    port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        defaultAdminPort, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
-
-    bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
-        "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
-
-    bindPassword1Arg = new StringArgument("bindPassword1",
-        null, "bindPassword1", false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
-
-    bindPasswordFile1Arg = new FileBasedArgument("bindPasswordFile1",
-        null, "bindPasswordFile1", false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
-
-    replicationPort1Arg = new IntegerArgument("replicationPort1", 'r',
-        "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        8989, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
-
-    secureReplication1Arg = new BooleanArgument("secureReplication1", null,
-        "secureReplication1",
-        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
-
-    noReplicationServer1Arg = new BooleanArgument(
-        "noreplicationserver1", null, "noReplicationServer1",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get());
-
-    onlyReplicationServer1Arg = new BooleanArgument(
-        "onlyreplicationserver1", null, "onlyReplicationServer1",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get());
-
-    hostName2Arg = new StringArgument("host2", 'O',
-        "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(),
-        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
-
-    port2Arg = new IntegerArgument("port2", null, "port2",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
-
-    bindDn2Arg = new StringArgument("bindDN2", null,
-        "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
-
-    bindPassword2Arg = new StringArgument("bindPassword2",
-        null, "bindPassword2", false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
-
-    bindPasswordFile2Arg = new FileBasedArgument("bindPasswordFile2",
-        'F', "bindPasswordFile2", false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
-
-    replicationPort2Arg = new IntegerArgument("replicationPort2", 'R',
-        "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        8989, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
-
-    secureReplication2Arg = new BooleanArgument("secureReplication2", null,
-        "secureReplication2",
-        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get());
-
-    noReplicationServer2Arg = new BooleanArgument(
-        "noreplicationserver2", null, "noReplicationServer2",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get());
-
-    onlyReplicationServer2Arg = new BooleanArgument(
-        "onlyreplicationserver2", null, "onlyReplicationServer2",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get());
+    createServerArgs1();
+    createServerArgs2();
 
     skipPortCheckArg = new BooleanArgument(
         "skipportcheck", 'S', "skipPortCheck",
@@ -619,20 +547,118 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_ENABLE_REPLICATION.get());
 
     Argument[] argsToAdd = {
-        hostName1Arg, port1Arg, bindDn1Arg, bindPassword1Arg,
-        bindPasswordFile1Arg, replicationPort1Arg, secureReplication1Arg,
-        noReplicationServer1Arg, onlyReplicationServer1Arg,
-        hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
-        bindPasswordFile2Arg, replicationPort2Arg, secureReplication2Arg,
-        noReplicationServer2Arg, onlyReplicationServer2Arg,
-        skipPortCheckArg, noSchemaReplicationArg,
-        useSecondServerAsSchemaSourceArg
+          server1.hostNameArg, server1.portArg, server1.bindDnArg, server1.bindPasswordArg,
+          server1.bindPasswordFileArg, server1.replicationPortArg, server1.secureReplicationArg,
+          server1.noReplicationServerArg, server1.onlyReplicationServerArg,
+          server2.hostNameArg, server2.portArg, server2.bindDnArg, server2.bindPasswordArg,
+          server2.bindPasswordFileArg, server2.replicationPortArg, server2.secureReplicationArg,
+          server2.noReplicationServerArg, server2.onlyReplicationServerArg,
+          skipPortCheckArg, noSchemaReplicationArg, useSecondServerAsSchemaSourceArg
     };
     for (Argument arg : argsToAdd)
     {
       arg.setPropertyName(arg.getLongIdentifier());
       enableReplicationSubCmd.addArgument(arg);
     }
+  }
+
+  private void createServerArgs1() throws ArgumentException
+  {
+    ServerArgs server = server1;
+    server.hostNameArg = new StringArgument("host1", OPTION_SHORT_HOST,
+        "host1", false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        getDefaultHostValue(),
+        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
+
+    server.portArg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
+        false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        defaultAdminPort, null,
+        true, 1,
+        true, 65336,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
+
+    server.bindDnArg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
+        "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
+        "cn=Directory Manager", null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
+
+    server.bindPasswordArg = new StringArgument("bindPassword1",
+        null, "bindPassword1", false, false, true,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
+
+    server.bindPasswordFileArg = new FileBasedArgument("bindPasswordFile1",
+        null, "bindPasswordFile1", false, false,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
+
+    server.replicationPortArg = new IntegerArgument("replicationPort1", 'r',
+        "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        8989, null,
+        true, 1,
+        true, 65336,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
+
+    server.secureReplicationArg = new BooleanArgument("secureReplication1", null,
+        "secureReplication1",
+        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
+
+    server.noReplicationServerArg = new BooleanArgument(
+        "noreplicationserver1", null, "noReplicationServer1",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get());
+
+    server.onlyReplicationServerArg = new BooleanArgument(
+        "onlyreplicationserver1", null, "onlyReplicationServer1",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get());
+  }
+
+  private void createServerArgs2() throws ArgumentException
+  {
+    ServerArgs server = server2;
+    server.hostNameArg = new StringArgument("host2", 'O',
+        "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        getDefaultHostValue(),
+        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
+
+    server.portArg = new IntegerArgument("port2", null, "port2",
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort, null,
+        true, 1,
+        true, 65336,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
+
+    server.bindDnArg = new StringArgument("bindDN2", null,
+        "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
+        "cn=Directory Manager", null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
+
+    server.bindPasswordArg = new StringArgument("bindPassword2",
+        null, "bindPassword2", false, false, true,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
+
+    server.bindPasswordFileArg = new FileBasedArgument("bindPasswordFile2",
+        'F', "bindPasswordFile2", false, false,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
+
+    server.replicationPortArg = new IntegerArgument("replicationPort2", 'R',
+        "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        8989, null,
+        true, 1,
+        true, 65336,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
+
+    server.secureReplicationArg = new BooleanArgument("secureReplication2", null,
+        "secureReplication2",
+        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get());
+
+    server.noReplicationServerArg = new BooleanArgument(
+        "noreplicationserver2", null, "noReplicationServer2",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get());
+
+    server.onlyReplicationServerArg = new BooleanArgument(
+        "onlyreplicationserver2", null, "onlyReplicationServer2",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get());
   }
 
   /**
@@ -898,34 +924,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Get the password which has to be used for the command to connect to the
-   * first server without prompting the user in the enable replication
-   * subcommand.  If no password was specified return null.
-   *
-   * @return the password which has to be used for the command to connect to the
-   * first server without prompting the user in the enable replication
-   * subcommand.  If no password was specified return null.
-   */
-  public String getBindPassword1()
-  {
-    return getBindPassword(bindPassword1Arg, bindPasswordFile1Arg);
-  }
-
-  /**
-   * Get the password which has to be used for the command to connect to the
-   * second server without prompting the user in the enable replication
-   * subcommand.  If no password was specified return null.
-   *
-   * @return the password which has to be used for the command to connect to the
-   * second server without prompting the user in the enable replication
-   * subcommand.  If no password was specified return null.
-   */
-  public String getBindPassword2()
-  {
-    return getBindPassword(bindPassword2Arg, bindPasswordFile2Arg);
-  }
-
-  /**
    * Get the global administrator password which has to be used for the command
    * to connect to the server(s) without prompting the user.  If no password was
    * specified, return null.
@@ -969,39 +967,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the first host name explicitly provided in the enable replication
-   * subcommand.
-   * @return the first host name explicitly provided in the enable replication
-   * subcommand.
-   */
-  public StringArgument getHostName1Arg()
-  {
-    return hostName1Arg;
-  }
-
-  /**
-   * Returns the first server port explicitly provided in the enable replication
-   * subcommand.
-   * @return the first server port explicitly provided in the enable replication
-   * subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public IntegerArgument getPort1Arg()
-  {
-    return port1Arg;
-  }
-
-  /**
-   * Returns the first server bind dn explicitly provided in the enable
-   * replication subcommand.
-   * @return the first server bind dn explicitly provided in the enable
-   * replication subcommand.
-   */
-  public StringArgument getBindDn1Arg()
-  {
-    return bindDn1Arg;
-  }
-
-  /**
    * Returns the first server replication port explicitly provided in the enable
    * replication subcommand.
    * @return the first server replication port explicitly provided in the enable
@@ -1009,62 +974,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getReplicationPort1()
   {
-    return getValue(replicationPort1Arg);
-  }
-
-  /**
-   * Returns the first server replication port default value in the enable
-   * replication subcommand.
-   * @return the first server replication port default value in the enable
-   * replication subcommand.
-   */
-  public int getReplicationPort1OrDefault()
-  {
-    return getValueOrDefault(replicationPort1Arg);
-  }
-
-  /**
-   * Returns whether the user asked to have replication communication with the
-   * first server or not.
-   * @return <CODE>true</CODE> the user asked to have replication communication
-   * with the first server and <CODE>false</CODE> otherwise.
-   */
-  public boolean isSecureReplication1()
-  {
-    return secureReplication1Arg.isPresent();
-  }
-
-  /**
-   * Returns the second host name explicitly provided in the enable replication
-   * subcommand.
-   * @return the second host name explicitly provided in the enable replication
-   * subcommand.
-   */
-  public StringArgument getHostName2Arg()
-  {
-    return hostName2Arg;
-  }
-
-  /**
-   * Returns the second server port explicitly provided in the enable
-   * replication subcommand.
-   * @return the second server port explicitly provided in the enable
-   * replication subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public IntegerArgument getPort2Arg()
-  {
-    return port2Arg;
-  }
-
-  /**
-   * Returns the second server bind dn explicitly provided in the enable
-   * replication subcommand.
-   * @return the second server bind dn explicitly provided in the enable
-   * replication subcommand.
-   */
-  public StringArgument getBindDn2Arg()
-  {
-    return bindDn2Arg;
+    return getValue(server1.replicationPortArg);
   }
 
   /**
@@ -1076,29 +986,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getReplicationPort2()
   {
-    return getValue(replicationPort2Arg);
-  }
-
-  /**
-   * Returns the second server replication port default value in the enable
-   * replication subcommand.
-   * @return the second server replication port default value in the enable
-   * replication subcommand.
-   */
-  public int getReplicationPort2OrDefault()
-  {
-    return getDefaultValue(replicationPort2Arg);
-  }
-
-  /**
-   * Returns whether the user asked to have replication communication with the
-   * second server or not.
-   * @return <CODE>true</CODE> the user asked to have replication communication
-   * with the second server and <CODE>false</CODE> otherwise.
-   */
-  public boolean isSecureReplication2()
-  {
-    return secureReplication2Arg.isPresent();
+    return getValue(server2.replicationPortArg);
   }
 
   /**
@@ -1772,12 +1660,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {bindPassword1Arg, bindPasswordFile1Arg},
-        {bindPassword2Arg, bindPasswordFile2Arg},
-        {replicationPort1Arg, noReplicationServer1Arg},
-        {noReplicationServer1Arg, onlyReplicationServer1Arg},
-        {replicationPort2Arg, noReplicationServer2Arg},
-        {noReplicationServer2Arg, onlyReplicationServer2Arg},
+        { server1.bindPasswordArg, server1.bindPasswordFileArg },
+        { server2.bindPasswordArg, server2.bindPasswordFileArg },
+        { server1.replicationPortArg, server1.noReplicationServerArg },
+        { server1.noReplicationServerArg, server1.onlyReplicationServerArg },
+        { server2.replicationPortArg, server2.noReplicationServerArg },
+        { server2.noReplicationServerArg, server2.onlyReplicationServerArg },
         {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
 
@@ -1793,12 +1681,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       }
     }
 
-    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue())
+    if (server1.hostNameArg.getValue().equalsIgnoreCase(server2.hostNameArg.getValue())
         && !isInteractive()
-        && port1Arg.getValue().equals(port2Arg.getValue()))
+        && server1.portArg.getValue().equals(server2.portArg.getValue()))
     {
       LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
-          hostName1Arg.getValue(), port1Arg.getValue());
+          server1.hostNameArg.getValue(), server1.portArg.getValue());
       addMessage(buf, message);
     }
   }
