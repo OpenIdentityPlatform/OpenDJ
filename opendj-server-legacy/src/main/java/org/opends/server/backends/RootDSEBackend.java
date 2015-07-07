@@ -166,7 +166,7 @@ public class RootDSEBackend
       throw new ConfigException(message);
     }
 
-    userDefinedAttributes = new ArrayList<Attribute>();
+    userDefinedAttributes = new ArrayList<>();
     addAllUserDefinedAttrs(userDefinedAttributes, configEntry.getEntry());
 
 
@@ -189,7 +189,7 @@ public class RootDSEBackend
       }
       else
       {
-        subordinateBaseDNs = new ConcurrentHashMap<DN, Backend<?>>();
+        subordinateBaseDNs = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
           Backend<?> backend = DirectoryServer.getBackend(baseDN);
@@ -221,19 +221,15 @@ public class RootDSEBackend
 
     // Construct the set of "static" attributes that will always be present in
     // the root DSE.
-    staticDSEAttributes = new ArrayList<Attribute>();
-
-    staticDSEAttributes.add(Attributes.create(ATTR_VENDOR_NAME,
-                                            SERVER_VENDOR_NAME));
-
+    staticDSEAttributes = new ArrayList<>();
+    staticDSEAttributes.add(Attributes.create(ATTR_VENDOR_NAME, SERVER_VENDOR_NAME));
     staticDSEAttributes.add(Attributes.create(ATTR_VENDOR_VERSION,
                                  DirectoryServer.getVersionString()));
-
     staticDSEAttributes.add(Attributes.create("fullVendorVersion",
                                  BuildVersion.binaryVersion().toString()));
 
     // Construct the set of objectclasses to include in the root DSE entry.
-    dseObjectClasses = new HashMap<ObjectClass,String>(2);
+    dseObjectClasses = new HashMap<>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
     if (topOC == null)
     {
@@ -241,8 +237,7 @@ public class RootDSEBackend
     }
     dseObjectClasses.put(topOC, OC_TOP);
 
-    ObjectClass rootDSEOC =
-         DirectoryServer.getObjectClass(OC_ROOT_DSE);
+    ObjectClass rootDSEOC = DirectoryServer.getObjectClass(OC_ROOT_DSE);
     if (rootDSEOC == null)
     {
       rootDSEOC = DirectoryServer.getDefaultObjectClass(OC_ROOT_DSE);
@@ -462,17 +457,14 @@ public class RootDSEBackend
    */
   private Entry getRootDSE(ClientConnection connection)
   {
-    HashMap<AttributeType,List<Attribute>> dseUserAttrs =
-         new HashMap<AttributeType,List<Attribute>>();
-    HashMap<AttributeType,List<Attribute>> dseOperationalAttrs =
-         new HashMap<AttributeType,List<Attribute>>();
+    HashMap<AttributeType,List<Attribute>> dseUserAttrs = new HashMap<>();
+    HashMap<AttributeType,List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
 
     Attribute publicNamingContextAttr = createDNAttribute(
         ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
         DirectoryServer.getPublicNamingContexts().keySet());
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
-
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createDNAttribute(
@@ -496,26 +488,21 @@ public class RootDSEBackend
         ATTR_SUPPORTED_FEATURE_LC, DirectoryServer.getSupportedFeatures());
     addAttribute(supportedFeatureAttr, dseUserAttrs, dseOperationalAttrs);
 
-
     // Add the "supportedSASLMechanisms" attribute.
     Attribute supportedSASLMechAttr = createAttribute(
         ATTR_SUPPORTED_SASL_MECHANISMS, ATTR_SUPPORTED_SASL_MECHANISMS_LC,
         DirectoryServer.getSupportedSASLMechanisms().keySet());
     addAttribute(supportedSASLMechAttr, dseUserAttrs, dseOperationalAttrs);
 
-
     // Add the "supportedLDAPVersions" attribute.
-    TreeSet<String> versionStrings = new TreeSet<String>();
+    TreeSet<String> versionStrings = new TreeSet<>();
     for (Integer ldapVersion : DirectoryServer.getSupportedLDAPVersions())
     {
       versionStrings.add(ldapVersion.toString());
     }
-    Attribute supportedLDAPVersionAttr =
-         createAttribute(ATTR_SUPPORTED_LDAP_VERSION,
-                         ATTR_SUPPORTED_LDAP_VERSION_LC,
-                         versionStrings);
+    Attribute supportedLDAPVersionAttr = createAttribute(
+        ATTR_SUPPORTED_LDAP_VERSION, ATTR_SUPPORTED_LDAP_VERSION_LC, versionStrings);
     addAttribute(supportedLDAPVersionAttr, dseUserAttrs, dseOperationalAttrs);
-
 
     // Add the "supportedAuthPasswordSchemes" attribute.
     Set<String> authPWSchemes =
@@ -525,8 +512,7 @@ public class RootDSEBackend
       Attribute supportedAuthPWSchemesAttr =
            createAttribute(ATTR_SUPPORTED_AUTH_PW_SCHEMES,
                            ATTR_SUPPORTED_AUTH_PW_SCHEMES_LC, authPWSchemes);
-      ArrayList<Attribute> supportedAuthPWSchemesAttrs =
-           new ArrayList<Attribute>(1);
+      ArrayList<Attribute> supportedAuthPWSchemesAttrs = new ArrayList<>(1);
       supportedAuthPWSchemesAttrs.add(supportedAuthPWSchemesAttr);
       if (showAllAttributes
           || !supportedSASLMechAttr.getAttributeType().isOperational())
@@ -606,7 +592,7 @@ public class RootDSEBackend
       List<Attribute> attrs = attrsMap.get(type);
       if (attrs == null)
       {
-        attrs = new ArrayList<Attribute>();
+        attrs = new ArrayList<>();
         attrsMap.put(type, attrs);
       }
       attrs.add(a);
@@ -621,7 +607,7 @@ public class RootDSEBackend
   {
     if (!publicNamingContextAttr.isEmpty())
     {
-      List<Attribute> privateNamingContextAttrs = new ArrayList<Attribute>(1);
+      List<Attribute> privateNamingContextAttrs = new ArrayList<>(1);
       privateNamingContextAttrs.add(publicNamingContextAttr);
       final AttributeType attrType = publicNamingContextAttr.getAttributeType();
       if (showAllAttributes || !attrType.isOperational())
@@ -1049,7 +1035,7 @@ public class RootDSEBackend
       }
       else
       {
-        subBases = new ConcurrentHashMap<DN, Backend<?>>();
+        subBases = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
           Backend<?> backend = DirectoryServer.getBackend(baseDN);
@@ -1082,7 +1068,7 @@ public class RootDSEBackend
 
 
     // Check to see if there is a new set of user-defined attributes.
-    ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> userAttrs = new ArrayList<>();
     try
     {
       ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);

@@ -122,7 +122,7 @@ public abstract class RelationDefinition
      */
     protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> pd,
         String name, AbstractManagedObjectDefinition<C, S> cd) {
-      this.common = new Common<C, S>(pd, name, cd);
+      this.common = new Common<>(pd, name, cd);
     }
 
 

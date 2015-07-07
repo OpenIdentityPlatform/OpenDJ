@@ -93,7 +93,7 @@ public class BindOperationBasis
   private Entry saslAuthUserEntry;
 
   /** The set of response controls for this bind operation. */
-  private final List<Control> responseControls = new ArrayList<Control>(0);
+  private final List<Control> responseControls = new ArrayList<>(0);
 
   /** A message explaining the reason for the authentication failure. */
   private LocalizableMessage authFailureReason;

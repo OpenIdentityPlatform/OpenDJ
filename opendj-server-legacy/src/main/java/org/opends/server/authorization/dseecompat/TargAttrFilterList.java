@@ -109,8 +109,7 @@ public class TargAttrFilterList {
      */
     public static TargAttrFilterList decode(int mask, String expression)
             throws AciException {
-        LinkedHashMap<AttributeType, SearchFilter> attrFilterList =
-                new LinkedHashMap<AttributeType, SearchFilter>();
+        LinkedHashMap<AttributeType, SearchFilter> attrFilterList = new LinkedHashMap<>();
         String[] subExpressions=expression.split(filterListSeperator, -1);
         //Iterate over each sub-expression, parse and add them to the list
         //if there are no errors.

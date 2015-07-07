@@ -179,11 +179,9 @@ public final class JMXMBean
     {
         this.configEntryDN = configEntryDN;
 
-        alertGenerators = new CopyOnWriteArrayList<AlertGenerator>();
-        invokableComponents = new CopyOnWriteArrayList<InvokableComponent>();
-        monitorProviders =
-             new CopyOnWriteArrayList<MonitorProvider<
-                                           ? extends MonitorProviderCfg>>();
+        alertGenerators = new CopyOnWriteArrayList<>();
+        invokableComponents = new CopyOnWriteArrayList<>();
+        monitorProviders = new CopyOnWriteArrayList<>();
 
         MBeanServer mBeanServer = DirectoryServer.getJMXMBeanServer();
         if (mBeanServer != null)
@@ -423,7 +421,7 @@ public final class JMXMBean
 
           if (iterator.hasNext())
           {
-            List<String> stringValues = new ArrayList<String>();
+            List<String> stringValues = new ArrayList<>();
             stringValues.add(value.toString());
 
             while (iterator.hasNext())
@@ -615,7 +613,7 @@ monitorLoop:
 
             if (iterator.hasNext())
             {
-              List<String> stringValues = new ArrayList<String>();
+              List<String> stringValues = new ArrayList<>();
               stringValues.add(value.toString());
 
               while (iterator.hasNext())
@@ -749,9 +747,8 @@ monitorLoop:
       return new MBeanInfo(CLASS_NAME, null, null, null, null, null);
     }
 
-    List<MBeanAttributeInfo> attrs = new ArrayList<MBeanAttributeInfo>();
-    for (MonitorProvider<? extends MonitorProviderCfg> monitor :
-         monitorProviders)
+    List<MBeanAttributeInfo> attrs = new ArrayList<>();
+    for (MonitorProvider<? extends MonitorProviderCfg> monitor : monitorProviders)
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
@@ -760,12 +757,9 @@ monitorLoop:
       }
     }
 
-    MBeanAttributeInfo[] mBeanAttributes = new MBeanAttributeInfo[attrs.size()];
-    attrs.toArray(mBeanAttributes);
+    MBeanAttributeInfo[] mBeanAttributes = attrs.toArray(new MBeanAttributeInfo[attrs.size()]);
 
-
-    List<MBeanNotificationInfo> notifications =
-         new ArrayList<MBeanNotificationInfo>();
+    List<MBeanNotificationInfo> notifications = new ArrayList<>();
     for (AlertGenerator generator : alertGenerators)
     {
       String className = generator.getClassName();
@@ -775,18 +769,16 @@ monitorLoop:
       {
         String[] types       = { type };
         String   description = alerts.get(type);
-        notifications.add(new MBeanNotificationInfo(types, className,
-                                                    description));
+        notifications.add(new MBeanNotificationInfo(types, className, description));
       }
     }
 
 
-    MBeanNotificationInfo[] mBeanNotifications =
-         new MBeanNotificationInfo[notifications.size()];
+    MBeanNotificationInfo[] mBeanNotifications = new MBeanNotificationInfo[notifications.size()];
     notifications.toArray(mBeanNotifications);
 
 
-    List<MBeanOperationInfo> ops = new ArrayList<MBeanOperationInfo>();
+    List<MBeanOperationInfo> ops = new ArrayList<>();
     for (InvokableComponent component : invokableComponents)
     {
       for (InvokableMethod method : component.getOperationSignatures())

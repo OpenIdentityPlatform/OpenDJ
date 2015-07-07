@@ -80,7 +80,7 @@ public class RootDNConfigManager
   public RootDNConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    alternateBindDNs = new ConcurrentHashMap<DN, HashSet<DN>>();
+    alternateBindDNs = new ConcurrentHashMap<>();
     rootPrivilegeChangeListener = new RootPrivilegeChangeListener();
   }
 
@@ -127,7 +127,7 @@ public class RootDNConfigManager
       rootUserCfg.addChangeListener(this);
       DirectoryServer.registerRootDN(rootUserCfg.dn());
 
-      HashSet<DN> altBindDNs = new HashSet<DN>();
+      HashSet<DN> altBindDNs = new HashSet<>();
       for (DN alternateBindDN : rootUserCfg.getAlternateBindDN())
       {
         try
@@ -194,7 +194,7 @@ public class RootDNConfigManager
 
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    HashSet<DN> altBindDNs = new HashSet<DN>();
+    HashSet<DN> altBindDNs = new HashSet<>();
     for (DN altBindDN : configuration.getAlternateBindDN())
     {
       try
@@ -295,10 +295,9 @@ public class RootDNConfigManager
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    HashSet<DN> setDNs = new HashSet<DN>();
-    HashSet<DN> addDNs = new HashSet<DN>();
-    HashSet<DN> delDNs =
-         new HashSet<DN>(alternateBindDNs.get(configuration.dn()));
+    HashSet<DN> setDNs = new HashSet<>();
+    HashSet<DN> addDNs = new HashSet<>();
+    HashSet<DN> delDNs = new HashSet<>(alternateBindDNs.get(configuration.dn()));
 
     for (DN altBindDN : configuration.getAlternateBindDN())
     {
@@ -315,7 +314,7 @@ public class RootDNConfigManager
       DirectoryServer.deregisterAlternateRootBindDN(dn);
     }
 
-    HashSet<DN> addedDNs = new HashSet<DN>(addDNs.size());
+    HashSet<DN> addedDNs = new HashSet<>(addDNs.size());
     for (DN dn : addDNs)
     {
       try

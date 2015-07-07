@@ -105,20 +105,16 @@ public abstract class ClientConnection
   private boolean finalized;
 
   /** The set of privileges assigned to this client connection. */
-  private HashSet<Privilege> privileges;
+  private HashSet<Privilege> privileges = new HashSet<>();
 
   /** The size limit for use with this client connection. */
   private int sizeLimit;
-
   /** The time limit for use with this client connection. */
   private int timeLimit;
-
   /** The lookthrough limit for use with this client connection. */
   private int lookthroughLimit;
-
   /** The time that this client connection was established. */
   private final long connectTime;
-
   /** The idle time limit for this client connection. */
   private long idleTimeLimit;
 
@@ -128,20 +124,13 @@ public abstract class ClientConnection
    */
   private Object saslAuthState;
 
-  /**
-   * A string representation of the time that this client connection was
-   * established.
-   */
+  /** A string representation of the time that this client connection was established. */
   private final String connectTimeString;
 
   /** A set of persistent searches registered for this client. */
-  private final CopyOnWriteArrayList<PersistentSearch>
-      persistentSearches;
+  private final CopyOnWriteArrayList<PersistentSearch> persistentSearches = new CopyOnWriteArrayList<>();
 
-  /**
-   * Performs the appropriate initialization generic to all client
-   * connections.
-   */
+  /** Performs the appropriate initialization generic to all client connections. */
   protected ClientConnection()
   {
     connectTime        = TimeThread.getTime();
@@ -150,13 +139,11 @@ public abstract class ClientConnection
     saslAuthState      = null;
     saslBindInProgress = new AtomicBoolean(false);
     bindOrStartTLSInProgress = new AtomicBoolean(false);
-    persistentSearches = new CopyOnWriteArrayList<PersistentSearch>();
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
     idleTimeLimit      = DirectoryServer.getIdleTimeLimit();
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
     finalized          = false;
-    privileges         = new HashSet<Privilege>();
   }
 
 
@@ -1104,7 +1091,7 @@ public abstract class ClientConnection
   {
     if (entry == null)
     {
-      return new HashSet<Privilege>(0);
+      return new HashSet<>(0);
     }
 
     HashSet<Privilege> newPrivileges = new HashSet<>();
@@ -1476,16 +1463,14 @@ public abstract class ClientConnection
       return Collections.<Group<?>>emptySet();
     }
 
-    HashSet<Group<?>> groupSet = new HashSet<Group<?>>();
-    for (Group<?> g :
-         DirectoryServer.getGroupManager().getGroupInstances())
+    HashSet<Group<?>> groupSet = new HashSet<>();
+    for (Group<?> g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       if (g.isMember(userEntry))
       {
         groupSet.add(g);
       }
     }
-
     return groupSet;
   }
 

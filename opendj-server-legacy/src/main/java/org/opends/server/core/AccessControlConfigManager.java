@@ -385,7 +385,7 @@ public final class AccessControlConfigManager
   @Override
   public LinkedHashMap<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_ACCESS_CONTROL_DISABLED,
                ALERT_DESCRIPTION_ACCESS_CONTROL_DISABLED);
@@ -438,7 +438,7 @@ public final class AccessControlConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

@@ -119,7 +119,7 @@ public final class IntegerConfigAttribute
     this.hasUpperBound = hasUpperBound;
     this.upperBound    = upperBound;
 
-    activeValues  = new ArrayList<Long>();
+    activeValues  = new ArrayList<>();
     pendingValues = activeValues;
   }
 
@@ -166,7 +166,7 @@ public final class IntegerConfigAttribute
     this.hasUpperBound = hasUpperBound;
     this.upperBound    = upperBound;
 
-    activeValues = new ArrayList<Long>(1);
+    activeValues = new ArrayList<>(1);
     activeValues.add(value);
 
     pendingValues = activeValues;
@@ -268,7 +268,7 @@ public final class IntegerConfigAttribute
 
     if (activeValues == null)
     {
-      this.activeValues = new ArrayList<Long>();
+      this.activeValues = new ArrayList<>();
     }
     else
     {
@@ -582,7 +582,7 @@ public final class IntegerConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<Long>(1);
+      pendingValues = new ArrayList<>(1);
       pendingValues.add(value);
       setPendingValues(getValueSet(value));
     }
@@ -621,7 +621,7 @@ public final class IntegerConfigAttribute
         if (requiresAdminAction())
         {
           setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<Long>();
+          pendingValues = new ArrayList<>();
         }
         else
         {
@@ -644,7 +644,7 @@ public final class IntegerConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (long value : values)
     {
       if (hasLowerBound && (value < lowerBound))
@@ -699,7 +699,7 @@ public final class IntegerConfigAttribute
    */
   private static LinkedHashSet<ByteString> getValueSet(long value)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
     valueSet.add(ByteString.valueOf(String.valueOf(value)));
     return valueSet;
   }
@@ -720,7 +720,7 @@ public final class IntegerConfigAttribute
       return null;
     }
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (long value : values)
     {
       valueSet.add(ByteString.valueOf(String.valueOf(value)));
@@ -833,7 +833,7 @@ public final class IntegerConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<ByteString>();
+        return new LinkedHashSet<>();
       }
     }
 
@@ -847,7 +847,7 @@ public final class IntegerConfigAttribute
     }
 
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
       long longValue;
@@ -936,14 +936,7 @@ public final class IntegerConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    ArrayList<String> valueStrings =
-         new ArrayList<String>(activeValues.size());
-    for (long l : activeValues)
-    {
-      valueStrings.add(String.valueOf(l));
-    }
-
-    return valueStrings;
+    return toListOfString(activeValues);
   }
 
 
@@ -963,19 +956,28 @@ public final class IntegerConfigAttribute
   {
     if (hasPendingValues())
     {
-      ArrayList<String> valueStrings =
-           new ArrayList<String>(pendingValues.size());
-      for (long l : pendingValues)
-      {
-        valueStrings.add(String.valueOf(l));
-      }
-
-      return valueStrings;
+      return toListOfString(pendingValues);
     }
     else
     {
       return null;
     }
+  }
+
+
+
+  /**
+   * @param pendingValues2
+   * @return
+   */
+  private List<String> toListOfString(List<Long> pendingValues2)
+  {
+    ArrayList<String> valueStrings = new ArrayList<>(pendingValues2.size());
+    for (long l : pendingValues2)
+    {
+      valueStrings.add(String.valueOf(l));
+    }
+    return valueStrings;
   }
 
 
@@ -1034,7 +1036,7 @@ public final class IntegerConfigAttribute
             else
             {
               // This is fine.  The pending value set can be empty.
-              pendingValues = new ArrayList<Long>(0);
+              pendingValues = new ArrayList<>(0);
             }
           }
           else
@@ -1048,7 +1050,7 @@ public final class IntegerConfigAttribute
               throw new ConfigException(message);
             }
 
-            pendingValues = new ArrayList<Long>(numValues);
+            pendingValues = new ArrayList<>(numValues);
             for (ByteString v : a)
             {
               long longValue;
@@ -1116,7 +1118,7 @@ public final class IntegerConfigAttribute
           else
           {
             // This is fine.  The active value set can be empty.
-            activeValues = new ArrayList<Long>(0);
+            activeValues = new ArrayList<>(0);
           }
         }
         else
@@ -1130,7 +1132,7 @@ public final class IntegerConfigAttribute
             throw new ConfigException(message);
           }
 
-          activeValues = new ArrayList<Long>(numValues);
+          activeValues = new ArrayList<>(numValues);
           for (ByteString v : a)
           {
             long longValue;
@@ -1459,7 +1461,7 @@ public final class IntegerConfigAttribute
       {
         if (componentType.equals(Long.class.getName()))
         {
-          ArrayList<Long> values = new ArrayList<Long>();
+          ArrayList<Long> values = new ArrayList<>();
 
           for (int i=0; i < length; i++)
           {
@@ -1470,7 +1472,7 @@ public final class IntegerConfigAttribute
         }
         else if (componentType.equals(Integer.class.getName()))
         {
-          ArrayList<Long> values = new ArrayList<Long>();
+          ArrayList<Long> values = new ArrayList<>();
 
           for (int i=0; i < length; i++)
           {
@@ -1481,7 +1483,7 @@ public final class IntegerConfigAttribute
         }
         else if (componentType.equals(String.class.getName()))
         {
-          ArrayList<Long> values = new ArrayList<Long>();
+          ArrayList<Long> values = new ArrayList<>();
 
           for (int i=0; i < length; i++)
           {

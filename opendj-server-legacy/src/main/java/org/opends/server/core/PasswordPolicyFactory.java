@@ -233,8 +233,7 @@ public final class PasswordPolicyFactory implements
 
       // Get the default storage schemes. They must all reference valid storage
       // schemes that support the syntax for the specified password attribute.
-      List<PasswordStorageScheme<?>> defaultStorageSchemes =
-        new LinkedList<PasswordStorageScheme<?>>();
+      List<PasswordStorageScheme<?>> defaultStorageSchemes = new LinkedList<>();
       for (DN schemeDN : configuration.getDefaultPasswordStorageSchemeDNs())
       {
         PasswordStorageScheme<?> scheme = DirectoryServer
@@ -250,7 +249,7 @@ public final class PasswordPolicyFactory implements
       }
 
       // Get the names of the deprecated storage schemes.
-      Set<String> deprecatedStorageSchemes = new LinkedHashSet<String>();
+      Set<String> deprecatedStorageSchemes = new LinkedHashSet<>();
       for (DN schemeDN : configuration.getDeprecatedPasswordStorageSchemeDNs())
       {
         PasswordStorageScheme<?> scheme = DirectoryServer
@@ -275,8 +274,7 @@ public final class PasswordPolicyFactory implements
       }
 
       // Get the password validators.
-      Map<DN, PasswordValidator<?>> passwordValidators =
-        new HashMap<DN, PasswordValidator<?>>();
+      Map<DN, PasswordValidator<?>> passwordValidators = new HashMap<>();
       for (DN validatorDN : configuration.getPasswordValidatorDNs())
       {
         passwordValidators.put(validatorDN,
@@ -284,10 +282,8 @@ public final class PasswordPolicyFactory implements
       }
 
       // Get the status notification handlers.
-      Map<DN, AccountStatusNotificationHandler<?>> notificationHandlers =
-        new HashMap<DN, AccountStatusNotificationHandler<?>>();
-      for (DN handlerDN : configuration
-          .getAccountStatusNotificationHandlerDNs())
+      Map<DN, AccountStatusNotificationHandler<?>> notificationHandlers = new HashMap<>();
+      for (DN handlerDN : configuration.getAccountStatusNotificationHandlerDNs())
       {
         AccountStatusNotificationHandler<?> handler = DirectoryServer
             .getAccountStatusNotificationHandler(handlerDN);

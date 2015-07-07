@@ -106,10 +106,8 @@ public final class SingletonRelationDefinition
     @Override
     protected SingletonRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
-      return new SingletonRelationDefinition<C, S>(common,
-          defaultManagedObject);
+      return new SingletonRelationDefinition<>(common, defaultManagedObject);
     }
-
   }
 
 
@@ -118,8 +116,7 @@ public final class SingletonRelationDefinition
    * The optional default managed object associated with this
    * singleton relation.
    */
-  private final DefaultManagedObject<? extends C, ? extends S>
-    defaultManagedObject;
+  private final DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
 
 

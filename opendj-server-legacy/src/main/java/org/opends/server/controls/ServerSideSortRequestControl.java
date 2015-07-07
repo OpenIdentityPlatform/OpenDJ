@@ -100,7 +100,7 @@ public class ServerSideSortRequestControl
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
 
-        ArrayList<SortKey> sortKeys = new ArrayList<SortKey>();
+        ArrayList<SortKey> sortKeys = new ArrayList<>();
         while(reader.hasNextElement())
         {
           reader.readStartSequence();
@@ -224,7 +224,7 @@ public class ServerSideSortRequestControl
 
     StringTokenizer tokenizer = new StringTokenizer(sortOrderString, ",");
 
-    decodedKeyList = new ArrayList<String[]>();
+    decodedKeyList = new ArrayList<>();
     while (tokenizer.hasMoreTokens())
     {
       String token = tokenizer.nextToken().trim();
@@ -437,7 +437,7 @@ public class ServerSideSortRequestControl
 
   private SortOrder decodeSortOrderFromString() throws DirectoryException
   {
-    ArrayList<SortKey> sortKeys = new ArrayList<SortKey>();
+    ArrayList<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
       AttributeType attrType =

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -119,7 +119,7 @@ public final class AdministrationDataSync
       return;
     }
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     // adminport
     String attName = "adminport";
     AttributeType attrType = DirectoryServer.getAttributeType(attName

@@ -550,7 +550,7 @@ public class Aci implements Comparable<Aci>
    */
     public static Set<String> decodeOID(String expr, LocalizableMessage msg)
     throws AciException {
-      Set<String> OIDs = new HashSet<String>();
+      Set<String> OIDs = new HashSet<>();
       //Quick check to see if the expression is valid.
       if (Pattern.matches(oidListRegex, expr)) {
         // Remove the spaces in the oid string and

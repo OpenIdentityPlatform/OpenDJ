@@ -87,7 +87,7 @@ public class MakeLDIFTestCase
     // Previous behaviour showed "missingVar" on line 5.
 
     TemplateFile templateFile = new TemplateFile(resourcePath);
-    List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> warns = new ArrayList<>();
 
     try
     {
@@ -160,7 +160,7 @@ public class MakeLDIFTestCase
       throws Exception
   {
     TemplateFile templateFile = new TemplateFile(resourcePath);
-    List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> warns = new ArrayList<>();
     templateFile.parse(lines, warns);
     assertTrue(warns.isEmpty(),"Warnings in parsing test template " + testName );
   }

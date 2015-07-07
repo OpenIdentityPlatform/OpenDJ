@@ -438,8 +438,8 @@ final class OnDiskMergeStorageImporter
           lastPos = bufferPos;
         }
       }
-      Cursor<ByteString, ByteString> composite = new CompositeCursor<ByteString, ByteString>(cursors);
-      return new ProgressCursor<ByteString, ByteString>(composite, this, cursors);
+      Cursor<ByteString, ByteString> composite = new CompositeCursor<>(cursors);
+      return new ProgressCursor<>(composite, this, cursors);
     }
 
     private void readBufferPositions() throws IOException
@@ -1660,8 +1660,7 @@ final class OnDiskMergeStorageImporter
       public Void run(ReadableTransaction txn) throws Exception
       {
         try (Cursor<ByteString, ByteString> cursor0 = txn.openCursor(treeName);
-            SequentialCursor<ByteString, ByteString> cursor =
-                new MergingCursor<ByteString, ByteString>(cursor0, getMerger(treeName)))
+            SequentialCursor<ByteString, ByteString> cursor = new MergingCursor<>(cursor0, getMerger(treeName)))
         {
           progressTask.addCursor(cursor0);
           while (cursor.next())

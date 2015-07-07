@@ -333,13 +333,13 @@ public class CSNTest extends ReplicationTestCase
   @DataProvider
   public Iterator<Object[]> createCSNPairsToCompare()
   {
-    final List<Object> allCSNs = new ArrayList<Object>();
+    final List<Object> allCSNs = new ArrayList<>();
     for (Object[] csnData : createCSNData())
     {
       allCSNs.addAll(Arrays.asList(csnData));
     }
 
-    final List<Object[]> results = new ArrayList<Object[]>();
+    final List<Object[]> results = new ArrayList<>();
     for (Object csn1 : allCSNs)
     {
       for (Object csn2 : allCSNs)

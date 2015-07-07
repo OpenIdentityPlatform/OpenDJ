@@ -122,12 +122,9 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
   }
 
   /** The list of RDNs in big-endian order. */
-  private final LinkedList<Rdn> rdns;
-
+  private final LinkedList<Rdn> rdns = new LinkedList<>();
   /** The LDAP profile. */
   private final LDAPProfile profile;
-
-
 
   /**
    * Create a new JNDI LDAP name builder.
@@ -137,11 +134,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
    *          names.
    */
   public LDAPNameBuilder(LDAPProfile profile) {
-    this.rdns = new LinkedList<Rdn>();
     this.profile = profile;
   }
-
-
 
   /** {@inheritDoc} */
   public <C extends ConfigurationClient, S extends Configuration>

@@ -27,6 +27,7 @@
 package org.opends.server.backends;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.opends.server.types.DN;
 
@@ -48,15 +49,9 @@ public class RebuildConfig
   private DN baseDN;
   private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
   /** The names of indexes to rebuild. */
-  private ArrayList<String> rebuildList;
+  private final List<String> rebuildList = new ArrayList<>();
   private String tmpDirectory;
   private boolean isClearDegradedState;
-
-  /** Create a new rebuild configuration. */
-  public RebuildConfig()
-  {
-    rebuildList = new ArrayList<String>();
-  }
 
   /**
    * Get the base DN to rebuild.
@@ -84,7 +79,7 @@ public class RebuildConfig
    *
    * @return The list of indexes to rebuild.
    */
-  public ArrayList<String> getRebuildList()
+  public List<String> getRebuildList()
   {
     return rebuildList;
   }

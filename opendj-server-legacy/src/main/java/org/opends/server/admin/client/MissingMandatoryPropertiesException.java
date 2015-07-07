@@ -112,7 +112,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
       Collection<PropertyException> causes, boolean isCreate) {
     super(createMessage(causes));
 
-    this.causes = new ArrayList<PropertyException>(causes);
+    this.causes = new ArrayList<>(causes);
     this.ufn = ufn;
     this.isCreate = isCreate;
   }

@@ -791,8 +791,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
-    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
-        listener);
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(path, d, listener);
     registerAddListener(baseDN, adaptor);
   }
 
@@ -818,8 +817,7 @@ public final class ServerManagedObject<S extends Configuration> implements
   public <M extends Configuration> void registerAddListener(
       OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
       throws IllegalArgumentException, ConfigException {
-    registerAddListener(d, new ServerManagedObjectAddListenerAdaptor<M>(
-        listener));
+    registerAddListener(d, new ServerManagedObjectAddListenerAdaptor<M>(listener));
   }
 
 
@@ -847,8 +845,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).parent();
-    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
-        listener);
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(path, d, listener);
     registerAddListener(baseDN, adaptor);
   }
 
@@ -904,8 +901,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
-    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
-        listener);
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<>(path, d, listener);
     registerAddListener(baseDN, adaptor);
   }
 
@@ -935,8 +931,7 @@ public final class ServerManagedObject<S extends Configuration> implements
    */
   public void registerChangeListener(
       ServerManagedObjectChangeListener<? super S> listener) {
-    ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path,
-        listener);
+    ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<>(path, listener);
     configEntry.registerChangeListener(adaptor);
 
     // Change listener registration usually signifies that a managed
@@ -1009,8 +1004,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
-    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
-        listener);
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(path, d, listener);
     registerDeleteListener(baseDN, adaptor);
   }
 
@@ -1066,8 +1060,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).parent();
-    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
-        listener);
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(path, d, listener);
     registerDeleteListener(baseDN, adaptor);
   }
 
@@ -1123,8 +1116,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
-    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
-        listener);
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<>(path, d, listener);
     registerDeleteListener(baseDN, adaptor);
   }
 
@@ -1165,7 +1157,7 @@ public final class ServerManagedObject<S extends Configuration> implements
   void ensureIsUsable() throws ConstraintViolationException {
     // Enforce any constraints.
     boolean isUsable = true;
-    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> reasons = new LinkedList<>();
     for (Constraint constraint : definition.getAllConstraints()) {
       for (ServerConstraintHandler handler : constraint
           .getServerConstraintHandlers()) {

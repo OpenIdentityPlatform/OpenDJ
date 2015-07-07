@@ -106,19 +106,14 @@ public final class OptionalRelationDefinition
     @Override
     protected OptionalRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
-      return new OptionalRelationDefinition<C, S>(common, defaultManagedObject);
+      return new OptionalRelationDefinition<>(common, defaultManagedObject);
     }
-
   }
 
 
 
-  /**
-   * The optional default managed object associated with this
-   * optional relation.
-   */
-  private final DefaultManagedObject<? extends C, ? extends S>
-    defaultManagedObject;
+  /** The optional default managed object associated with this optional relation. */
+  private final DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
 
 

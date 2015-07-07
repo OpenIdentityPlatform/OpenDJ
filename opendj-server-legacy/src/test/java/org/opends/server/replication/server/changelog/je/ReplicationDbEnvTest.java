@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -117,7 +117,7 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
     final ReplicationDbEnv changelogStateDB = new TestableReplicationDbEnv();
 
     // encode data
-    final Map<byte[], byte[]> wholeState = new LinkedHashMap<byte[], byte[]>();
+    final Map<byte[], byte[]> wholeState = new LinkedHashMap<>();
     put(wholeState, toGenIdEntry(baseDN, generationId));
     for (Integer serverId : replicas)
     {

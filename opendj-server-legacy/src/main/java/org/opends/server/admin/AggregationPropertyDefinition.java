@@ -236,11 +236,10 @@ public final class AggregationPropertyDefinition
         throw new IllegalStateException("Relation definition undefined");
       }
 
-      return new AggregationPropertyDefinition<C, S>(d, propertyName, options,
+      return new AggregationPropertyDefinition<>(d, propertyName, options,
           adminAction, defaultBehavior, parentPathString, rdName,
           targetNeedsEnablingCondition, targetIsEnabledCondition);
     }
-
   }
 
 
@@ -463,12 +462,10 @@ public final class AggregationPropertyDefinition
       ServerManagedObject<?> parent = context.getManagedObject(parentPath);
 
       // Create entries in the listener tables.
-      List<ReferentialIntegrityDeleteListener> dlist =
-        new LinkedList<ReferentialIntegrityDeleteListener>();
+      List<ReferentialIntegrityDeleteListener> dlist = new LinkedList<>();
       deleteListeners.put(managedObject.getDN(), dlist);
 
-      List<ReferentialIntegrityChangeListener> clist =
-        new LinkedList<ReferentialIntegrityChangeListener>();
+      List<ReferentialIntegrityChangeListener> clist = new LinkedList<>();
       changeListeners.put(managedObject.getDN(), clist);
 
       for (String name : managedObject
@@ -727,8 +724,7 @@ public final class AggregationPropertyDefinition
         List<ManagedObject<? extends CC>> findInstances(
         ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod)
         throws AuthorizationException, CommunicationException {
-      List<ManagedObject<? extends CC>> instances =
-        new LinkedList<ManagedObject<? extends CC>>();
+      List<ManagedObject<? extends CC>> instances = new LinkedList<>();
 
       if (mod == RootCfgDefn.getInstance()) {
         instances.add((ManagedObject<? extends CC>) context
@@ -797,24 +793,20 @@ public final class AggregationPropertyDefinition
   public static <C extends ConfigurationClient, S extends Configuration>
       Builder<C, S> createBuilder(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder<C, S>(d, propertyName);
+    return new Builder<>(d, propertyName);
   }
 
   /**
    * The active server-side referential integrity change listeners
    * associated with this property.
    */
-  private final Map<DN, List<ReferentialIntegrityChangeListener>>
-    changeListeners = new HashMap<DN,
-      List<ReferentialIntegrityChangeListener>>();
+  private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners = new HashMap<>();
 
   /**
    * The active server-side referential integrity delete listeners
    * associated with this property.
    */
-  private final Map<DN, List<ReferentialIntegrityDeleteListener>>
-    deleteListeners = new HashMap<DN,
-      List<ReferentialIntegrityDeleteListener>>();
+  private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners = new HashMap<>();
 
   /**
    * The name of the managed object which is the parent of the

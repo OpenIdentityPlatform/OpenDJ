@@ -70,8 +70,7 @@ public class VirtualAttributeConfigManager
    * A mapping between the DNs of the config entries and the associated virtual
    * attribute rules.
    */
-  private final ConcurrentMap<DN, VirtualAttributeRule> rules =
-      new ConcurrentHashMap<DN, VirtualAttributeRule>();
+  private final ConcurrentMap<DN, VirtualAttributeRule> rules = new ConcurrentHashMap<>();
 
   private final ServerContext serverContext;
 
@@ -130,7 +129,7 @@ public class VirtualAttributeConfigManager
                loadProvider(className, cfg, true);
 
           Map<LocalizableMessage, DirectoryException> reasons =
-              new LinkedHashMap<LocalizableMessage, DirectoryException>();
+              new LinkedHashMap<>();
           Set<SearchFilter> filters = buildFilters(cfg, reasons);
           if (!reasons.isEmpty())
           {
@@ -211,7 +210,7 @@ public class VirtualAttributeConfigManager
   private Set<SearchFilter> buildFilters(VirtualAttributeCfg cfg,
       Map<LocalizableMessage, DirectoryException> unacceptableReasons)
   {
-    Set<SearchFilter> filters = new LinkedHashSet<SearchFilter>();
+    Set<SearchFilter> filters = new LinkedHashSet<>();
     for (String filterString : cfg.getFilter())
     {
       try
@@ -246,7 +245,7 @@ public class VirtualAttributeConfigManager
 
     // Make sure that we can parse all of the search filters.
     Map<LocalizableMessage, DirectoryException> reasons =
-        new LinkedHashMap<LocalizableMessage, DirectoryException>();
+        new LinkedHashMap<>();
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
@@ -337,7 +336,7 @@ public class VirtualAttributeConfigManager
       List<LocalizableMessage> unacceptableReasons)
   {
     Map<LocalizableMessage, DirectoryException> reasons =
-        new LinkedHashMap<LocalizableMessage, DirectoryException>();
+        new LinkedHashMap<>();
     buildFilters(cfg, reasons);
     if (!reasons.isEmpty())
     {
@@ -375,7 +374,7 @@ public class VirtualAttributeConfigManager
 
     // Make sure that we can parse all of the search filters.
     Map<LocalizableMessage, DirectoryException> reasons =
-        new LinkedHashMap<LocalizableMessage, DirectoryException>();
+        new LinkedHashMap<>();
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
@@ -455,7 +454,7 @@ public class VirtualAttributeConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!provider.isConfigurationAcceptable(cfg, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

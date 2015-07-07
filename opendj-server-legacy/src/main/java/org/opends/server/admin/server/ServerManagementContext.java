@@ -147,7 +147,7 @@ public final class ServerManagementContext {
     public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
         Void p) {
       Collection<String> stringValues = d.getDefaultValues();
-      List<T> values = new ArrayList<T>(stringValues.size());
+      List<T> values = new ArrayList<>(stringValues.size());
 
       for (String stringValue : stringValues) {
         try {
@@ -257,14 +257,14 @@ public final class ServerManagementContext {
         if (values.isEmpty()) {
           // Recursively retrieve this property's default values.
           Collection<T> tmp = find(target, pd2);
-          Collection<T> pvalues = new ArrayList<T>(tmp.size());
+          Collection<T> pvalues = new ArrayList<>(tmp.size());
           for (T value : tmp) {
             pd1.validateValue(value);
             pvalues.add(value);
           }
           return pvalues;
         } else {
-          Collection<T> pvalues = new ArrayList<T>(values.size());
+          Collection<T> pvalues = new ArrayList<>(values.size());
           for (ByteString value : values) {
             pvalues.add(ValueDecoder.decode(pd1, value));
           }
@@ -369,14 +369,10 @@ public final class ServerManagementContext {
 
 
   /** Singleton instance. */
-  private static final ServerManagementContext INSTANCE =
-    new ServerManagementContext();
+  private static final ServerManagementContext INSTANCE = new ServerManagementContext();
 
-  /**
-   * The root server managed object.
-   */
-  private static final ServerManagedObject<RootCfg> ROOT =
-    new ServerManagedObject<RootCfg>(
+  /** The root server managed object. */
+  private static final ServerManagedObject<RootCfg> ROOT = new ServerManagedObject<>(
       ManagedObjectPath.emptyPath(), RootCfgDefn.getInstance(), Collections
           .<PropertyDefinition<?>, SortedSet<?>> emptyMap(), null);
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -627,7 +623,7 @@ public final class ServerManagementContext {
 
     // Retrieve the children.
     Set<DN> children = configEntry.getChildren().keySet();
-    ArrayList<String> names = new ArrayList<String>(children.size());
+    ArrayList<String> names = new ArrayList<>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
       ByteString av = child.rdn().getAttributeValue(0);
@@ -679,7 +675,7 @@ public final class ServerManagementContext {
 
     // Retrieve the children.
     Set<DN> children = configEntry.getChildren().keySet();
-    ArrayList<String> names = new ArrayList<String>(children.size());
+    ArrayList<String> names = new ArrayList<>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
       ByteString av = child.rdn().getAttributeValue(0);
@@ -783,9 +779,8 @@ public final class ServerManagementContext {
         .resolveManagedObjectDefinition(resolver);
 
     // Build the managed object's properties.
-    List<PropertyException> exceptions = new LinkedList<PropertyException>();
-    Map<PropertyDefinition<?>, SortedSet<?>> properties =
-      new HashMap<PropertyDefinition<?>, SortedSet<?>>();
+    List<PropertyException> exceptions = new LinkedList<>();
+    Map<PropertyDefinition<?>, SortedSet<?>> properties = new HashMap<>();
     for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
       List<ByteString> values = getAttribute(mod, pd, configEntry);
       try {
@@ -798,13 +793,11 @@ public final class ServerManagementContext {
 
     // If there were no decoding problems then return the managed
     // object, otherwise throw an operations exception.
-    ServerManagedObject<? extends S> mo = decodeAux(path, mod, properties,
-        configEntry);
-    if (exceptions.isEmpty()) {
-      return mo;
-    } else {
+    ServerManagedObject<? extends S> mo = decodeAux(path, mod, properties, configEntry);
+    if (!exceptions.isEmpty()) {
       throw new ServerManagedObjectDecodingException(mo, exceptions);
     }
+    return mo;
   }
 
 
@@ -817,7 +810,7 @@ public final class ServerManagementContext {
       Map<PropertyDefinition<?>, SortedSet<?>> properties,
       ConfigEntry configEntry) {
     ManagedObjectPath<C, S> newPath = path.asSubType(d);
-    return new ServerManagedObject<S>(newPath, d, properties, configEntry);
+    return new ServerManagedObject<>(newPath, d, properties, configEntry);
   }
 
 
@@ -827,7 +820,7 @@ public final class ServerManagementContext {
       PropertyDefinition<T> pd, List<ByteString> values,
       ConfigEntry newConfigEntry) throws PropertyException {
     PropertyException exception = null;
-    SortedSet<T> pvalues = new TreeSet<T>(pd);
+    SortedSet<T> pvalues = new TreeSet<>(pd);
 
     if (!values.isEmpty()) {
       // The property has values defined for it.
@@ -880,7 +873,7 @@ public final class ServerManagementContext {
     AttributeType type = DirectoryServer.getAttributeType(attrID, true);
     List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
 
-    List<ByteString> results = new LinkedList<ByteString>();
+    List<ByteString> results = new LinkedList<>();
     if (attributes != null)
     {
       for (Attribute a : attributes)
@@ -900,7 +893,7 @@ public final class ServerManagementContext {
   private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p,
       PropertyDefinition<T> pd, ConfigEntry newConfigEntry)
       throws PropertyException {
-    DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
+    DefaultValueFinder<T> v = new DefaultValueFinder<>(newConfigEntry);
     return v.find(p, pd);
   }
 

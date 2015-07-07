@@ -154,7 +154,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private long warnedTime = Long.MIN_VALUE;
 
   /** The set of modifications that should be applied to the user's entry. */
-  private LinkedList<Modification> modifications = new LinkedList<Modification>();
+  private LinkedList<Modification> modifications = new LinkedList<>();
 
 
 
@@ -238,7 +238,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private List<Long> getGeneralizedTimes(AttributeType attributeType)
           throws DirectoryException
   {
-    ArrayList<Long> timeValues = new ArrayList<Long>();
+    ArrayList<Long> timeValues = new ArrayList<>();
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if (attrList != null)
@@ -391,7 +391,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     final Attribute attr = getFirstAttributeNotEmpty(passwordPolicy.getPasswordAttribute());
     if (attr != null)
     {
-      Set<ByteString> values = new LinkedHashSet<ByteString>(attr.size());
+      Set<ByteString> values = new LinkedHashSet<>(attr.size());
       for (ByteString value : attr)
       {
         values.add(value);
@@ -670,7 +670,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       logger.traceException(e, "Error while processing auth failure times for user %s", userDNString);
 
-      authFailureTimes = new ArrayList<Long>();
+      authFailureTimes = new ArrayList<>();
       modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
       return authFailureTimes;
     }
@@ -707,7 +707,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (valuesToRemove == null)
           {
-            valuesToRemove = new LinkedHashSet<ByteString>();
+            valuesToRemove = new LinkedHashSet<>();
           }
 
           valuesToRemove.add(ByteString.valueOf(GeneralizedTimeSyntax.format(l)));
@@ -2058,7 +2058,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         logger.traceException(e, "Error while processing grace login times for user %s", userDNString);
 
-        graceLoginTimes = new ArrayList<Long>();
+        graceLoginTimes = new ArrayList<>();
 
         modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
       }
@@ -2197,7 +2197,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public List<ByteString> getClearPasswords()
   {
-    LinkedList<ByteString> clearPasswords = new LinkedList<ByteString>();
+    LinkedList<ByteString> clearPasswords = new LinkedList<>();
 
     List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
 
@@ -2387,7 +2387,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
          throws DirectoryException
   {
     List<PasswordStorageScheme<?>> schemes = passwordPolicy.getDefaultPasswordStorageSchemes();
-    List<ByteString> encodedPasswords = new ArrayList<ByteString>(schemes.size());
+    List<ByteString> encodedPasswords = new ArrayList<>(schemes.size());
 
     if (passwordPolicy.isAuthPasswordSyntax())
     {
@@ -2474,9 +2474,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
 
-    HashSet<String> existingDefaultSchemes = new HashSet<String>();
-    LinkedHashSet<ByteString> removedValues = new LinkedHashSet<ByteString>();
-    LinkedHashSet<ByteString> updatedValues = new LinkedHashSet<ByteString>();
+    HashSet<String> existingDefaultSchemes = new HashSet<>();
+    LinkedHashSet<ByteString> removedValues = new LinkedHashSet<>();
+    LinkedHashSet<ByteString> updatedValues = new LinkedHashSet<>();
 
     boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
@@ -2529,7 +2529,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;
     }
 
-    LinkedHashSet<ByteString> addedValues = new LinkedHashSet<ByteString>();
+    LinkedHashSet<ByteString> addedValues = new LinkedHashSet<>();
     for (PasswordStorageScheme<?> s : passwordPolicy.getDefaultPasswordStorageSchemes())
     {
       if (! existingDefaultSchemes.contains(toLowerCase(s.getStorageSchemeName())))
@@ -2696,7 +2696,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   private TreeMap<Long,ByteString> getSortedHistoryValues(List<Attribute> removeAttrs)
   {
-    TreeMap<Long, ByteString> historyMap = new TreeMap<Long, ByteString>();
+    TreeMap<Long, ByteString> historyMap = new TreeMap<>();
     AttributeType historyType = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
     List<Attribute> attrList = userEntry.getAttribute(historyType);
     if (attrList != null)
@@ -2924,7 +2924,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
     // Get a sorted list of the existing values to see if there are any that should be removed.
-    LinkedList<Attribute> removeAttrs = new LinkedList<Attribute>();
+    LinkedList<Attribute> removeAttrs = new LinkedList<>();
     TreeMap<Long, ByteString> historyMap = getSortedHistoryValues(removeAttrs);
 
 
@@ -2935,7 +2935,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if  (historyCount > 0 && historyMap.size() >= historyCount)
     {
       int numToDelete = historyMap.size() - historyCount + 1;
-      LinkedHashSet<ByteString> removeValues = new LinkedHashSet<ByteString>(numToDelete);
+      LinkedHashSet<ByteString> removeValues = new LinkedHashSet<>(numToDelete);
       Iterator<ByteString> iterator = historyMap.values().iterator();
       while (iterator.hasNext() && numToDelete > 0)
       {
@@ -2965,7 +2965,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       long minAgeToKeep = currentTime - 1000L * historyDuration;
       Iterator<Long> iterator = historyMap.keySet().iterator();
-      LinkedHashSet<ByteString> removeValues = new LinkedHashSet<ByteString>();
+      LinkedHashSet<ByteString> removeValues = new LinkedHashSet<>();
       while (iterator.hasNext())
       {
         long timestamp = iterator.next();
@@ -3031,7 +3031,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public String[] getPasswordHistoryValues()
   {
-    ArrayList<String> historyValues = new ArrayList<String>();
+    ArrayList<String> historyValues = new ArrayList<>();
     AttributeType historyType = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
     List<Attribute> attrList = userEntry.getAttribute(historyType);
     if (attrList != null)
@@ -3153,7 +3153,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     // Convert the set of modifications to a set of LDAP modifications.
-    ArrayList<RawModification> modList = new ArrayList<RawModification>();
+    ArrayList<RawModification> modList = new ArrayList<>();
     for (Modification m : modifications)
     {
       modList.add(RawModification.create(m.getModificationType(), new LDAPAttribute(m.getAttribute())));

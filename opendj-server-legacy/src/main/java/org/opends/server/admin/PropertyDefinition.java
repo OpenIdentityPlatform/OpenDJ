@@ -95,14 +95,12 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      * @param propertyName
      *          The property name.
      */
-    protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> d,
-        String propertyName) {
+    protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       this.definition = d;
       this.propertyName = propertyName;
       this.options = EnumSet.noneOf(PropertyOption.class);
-      this.adminAction = new AdministratorAction(AdministratorAction.Type.NONE,
-          d, propertyName);
-      this.defaultBehavior = new UndefinedDefaultBehaviorProvider<T>();
+      this.adminAction = new AdministratorAction(AdministratorAction.Type.NONE, d, propertyName);
+      this.defaultBehavior = new UndefinedDefaultBehaviorProvider<>();
     }
 
 

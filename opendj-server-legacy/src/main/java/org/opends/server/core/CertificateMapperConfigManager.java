@@ -84,7 +84,7 @@ public class CertificateMapperConfigManager
   public CertificateMapperConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    certificateMappers = new ConcurrentHashMap<DN, CertificateMapper>();
+    certificateMappers = new ConcurrentHashMap<>();
   }
 
   /**
@@ -370,7 +370,7 @@ public class CertificateMapperConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!mapper.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

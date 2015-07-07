@@ -80,7 +80,7 @@ public class AlertHandlerConfigManager
   public AlertHandlerConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    alertHandlers = new ConcurrentHashMap<DN, AlertHandler>();
+    alertHandlers = new ConcurrentHashMap<>();
   }
 
   /**
@@ -365,7 +365,7 @@ public class AlertHandlerConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!handler.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

@@ -297,15 +297,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
          DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
 
     // Construct the set of objectclasses to include in the schema entry.
-    schemaObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
+    schemaObjectClasses = new LinkedHashMap<>(3);
     schemaObjectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
-    ObjectClass subentryOC = DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC,
-                                                            true);
+    ObjectClass subentryOC = DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC, true);
     schemaObjectClasses.put(subentryOC, OC_LDAP_SUBENTRY);
 
-    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA,
-                                                             true);
+    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA, true);
     schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
 
 
@@ -331,7 +329,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Get the set of user-defined attributes for the configuration entry.  Any
     // attributes that we don't recognize will be included directly in the
     // schema entry.
-    userDefinedAttributes = new ArrayList<Attribute>();
+    userDefinedAttributes = new ArrayList<>();
     addAll(configEntry.getEntry().getUserAttributes().values());
     addAll(configEntry.getEntry().getOperationalAttributes().values());
 
@@ -381,15 +379,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     try
     {
       // First, generate lists of elements from the current schema.
-      Set<String> newATs  = new LinkedHashSet<String>();
-      Set<String> newOCs  = new LinkedHashSet<String>();
-      Set<String> newNFs  = new LinkedHashSet<String>();
-      Set<String> newDCRs = new LinkedHashSet<String>();
-      Set<String> newDSRs = new LinkedHashSet<String>();
-      Set<String> newMRUs = new LinkedHashSet<String>();
-      Set<String> newLSDs = new LinkedHashSet<String>();
-      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs,
-                                   newMRUs,newLSDs);
+      Set<String> newATs  = new LinkedHashSet<>();
+      Set<String> newOCs  = new LinkedHashSet<>();
+      Set<String> newNFs  = new LinkedHashSet<>();
+      Set<String> newDCRs = new LinkedHashSet<>();
+      Set<String> newDSRs = new LinkedHashSet<>();
+      Set<String> newMRUs = new LinkedHashSet<>();
+      Set<String> newLSDs = new LinkedHashSet<>();
+      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs, newMRUs,newLSDs);
 
       // Next, generate lists of elements from the previous concatenated schema.
       // If there isn't a previous concatenated schema, then use the base
@@ -398,8 +395,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       File configFile       = new File(DirectoryServer.getConfigFile());
       File configDirectory  = configFile.getParentFile();
       File upgradeDirectory = new File(configDirectory, "upgrade");
-      File concatFile       = new File(upgradeDirectory,
-                                       SCHEMA_CONCAT_FILE_NAME);
+      File concatFile       = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       if (concatFile.exists())
       {
         concatFilePath = concatFile.getAbsolutePath();
@@ -433,19 +429,19 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
-      Set<String> oldATs  = new LinkedHashSet<String>();
-      Set<String> oldOCs  = new LinkedHashSet<String>();
-      Set<String> oldNFs  = new LinkedHashSet<String>();
-      Set<String> oldDCRs = new LinkedHashSet<String>();
-      Set<String> oldDSRs = new LinkedHashSet<String>();
-      Set<String> oldMRUs = new LinkedHashSet<String>();
-      Set<String> oldLSDs = new LinkedHashSet<String>();
+      Set<String> oldATs  = new LinkedHashSet<>();
+      Set<String> oldOCs  = new LinkedHashSet<>();
+      Set<String> oldNFs  = new LinkedHashSet<>();
+      Set<String> oldDCRs = new LinkedHashSet<>();
+      Set<String> oldDSRs = new LinkedHashSet<>();
+      Set<String> oldMRUs = new LinkedHashSet<>();
+      Set<String> oldLSDs = new LinkedHashSet<>();
       Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
                                     oldDCRs, oldDSRs, oldMRUs,oldLSDs);
 
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
-      List<Modification> mods = new LinkedList<Modification>();
+      List<Modification> mods = new LinkedList<>();
       Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType, mods);
       Schema.compareConcatenatedSchema(oldOCs, newOCs, objectClassesType, mods);
       Schema.compareConcatenatedSchema(oldNFs, newNFs, nameFormsType, mods);
@@ -630,11 +626,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile,
                                           boolean ignoreShowAllOption)
   {
-    Map<AttributeType, List<Attribute>> userAttrs =
-      new LinkedHashMap<AttributeType, List<Attribute>>();
-
-    Map<AttributeType, List<Attribute>> operationalAttrs =
-      new LinkedHashMap<AttributeType, List<Attribute>>();
+    Map<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
+    Map<AttributeType, List<Attribute>> operationalAttrs = new LinkedHashMap<>();
 
     // Add the RDN attribute(s) for the provided entry.
     RDN rdn = entryDN.rdn();
@@ -731,7 +724,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     List<Attribute> attrs = attrsMap.get(type);
     if (attrs == null)
     {
-      attrs = new ArrayList<Attribute>(1);
+      attrs = new ArrayList<>(1);
       attrsMap.put(type, attrs);
     }
     attrs.add(attribute);
@@ -791,7 +784,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   private ArrayList<Attribute> newArrayList(Attribute a)
   {
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> attrList = new ArrayList<>(1);
     attrList.add(a);
     return attrList;
   }
@@ -810,7 +803,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         return true;
       }
     }
-
     return false;
   }
 
@@ -849,8 +841,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
 
-    ArrayList<Modification> mods =
-         new ArrayList<Modification>(modifyOperation.getModifications());
+    ArrayList<Modification> mods = new ArrayList<>(modifyOperation.getModifications());
     if (mods.isEmpty())
     {
       // There aren't any modifications, so we don't need to do anything.
@@ -858,7 +849,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     Schema newSchema = DirectoryServer.getSchema().duplicate();
-    TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
+    TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
     int pos = -1;
     for (Modification m : mods)
@@ -1280,7 +1271,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // impacted schema files by first creating them in a temporary location
     // and then replacing the existing schema files with the new versions.
     // If all that goes successfully, then activate the new schema.
-    HashMap<String,File> tempSchemaFiles = new HashMap<String,File>();
+    HashMap<String, File> tempSchemaFiles = new HashMap<>();
     try
     {
       for (String schemaFile : modifiedSchemaFiles)
@@ -2909,26 +2900,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private Entry createEmptySchemaEntry()
   {
-    Map<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>();
+    Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC, true),
-                      OC_LDAP_SUBENTRY);
-    objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA, true),
-                      OC_SUBSCHEMA);
+    objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC, true), OC_LDAP_SUBENTRY);
+    objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA, true), OC_SUBSCHEMA);
 
-    Map<AttributeType,List<Attribute>> userAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-
-    Map<AttributeType,List<Attribute>> operationalAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
+    Map<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
+    Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
 
     DN  dn  = DirectoryServer.getSchemaDN();
     RDN rdn = dn.rdn();
     for (int i=0; i < rdn.getNumValues(); i++)
     {
       AttributeType type = rdn.getAttributeType(i);
-      List<Attribute> attrList = new LinkedList<Attribute>();
+      List<Attribute> attrList = new LinkedList<>();
       attrList.add(Attributes.create(type, rdn.getAttributeValue(i)));
       if (type.isOperational())
       {
@@ -2974,7 +2959,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    Set<ByteString> values = new LinkedHashSet<ByteString>();
+    Set<ByteString> values = new LinkedHashSet<>();
     for (LDAPSyntaxDescription ldapSyntax :
                                    schema.getLdapSyntaxDescriptions().values())
     {
@@ -2994,8 +2979,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate attribute types to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
-    Set<AttributeType> addedTypes = new HashSet<AttributeType>();
-    values = new LinkedHashSet<ByteString>();
+    Set<AttributeType> addedTypes = new HashSet<>();
+    values = new LinkedHashSet<>();
     for (AttributeType at : schema.getAttributeTypes().values())
     {
       if (schemaFile.equals(getSchemaFile(at)))
@@ -3015,8 +3000,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate objectclasses to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior classes in the
     // same file are written before the subordinate classes.
-    Set<ObjectClass> addedClasses = new HashSet<ObjectClass>();
-    values = new LinkedHashSet<ByteString>();
+    Set<ObjectClass> addedClasses = new HashSet<>();
+    values = new LinkedHashSet<>();
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (schemaFile.equals(getSchemaFile(oc)))
@@ -3037,7 +3022,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate name forms to the schema entry.  Since there
     // is no hierarchical relationship between name forms, we don't need to
     // worry about ordering.
-    values = new LinkedHashSet<ByteString>();
+    values = new LinkedHashSet<>();
     for (List<NameForm> forms : schema.getNameFormsByObjectClass().values())
     {
       for(NameForm nf : forms)
@@ -3060,7 +3045,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate DIT content rules to the schema entry.  Since
     // there is no hierarchical relationship between DIT content rules, we don't
     // need to worry about ordering.
-    values = new LinkedHashSet<ByteString>();
+    values = new LinkedHashSet<>();
     for (DITContentRule dcr : schema.getDITContentRules().values())
     {
       if (schemaFile.equals(getSchemaFile(dcr)))
@@ -3080,8 +3065,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate DIT structure rules to the schema entry.  We
     // need to be careful of the ordering to ensure that any superior rules in
     // the same file are written before the subordinate rules.
-    Set<DITStructureRule> addedDSRs = new HashSet<DITStructureRule>();
-    values = new LinkedHashSet<ByteString>();
+    Set<DITStructureRule> addedDSRs = new HashSet<>();
+    values = new LinkedHashSet<>();
     for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
     {
       if (schemaFile.equals(getSchemaFile(dsr)))
@@ -3102,7 +3087,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate matching rule uses to the schema entry.  Since
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
-    values = new LinkedHashSet<ByteString>();
+    values = new LinkedHashSet<>();
     for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
     {
       if (schemaFile.equals(getSchemaFile(mru)))
@@ -3309,9 +3294,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Create lists that will hold the three types of files we'll be dealing
     // with (the temporary files that will be installed, the installed schema
     // files, and the previously-installed schema files).
-    ArrayList<File> installedFileList = new ArrayList<File>();
-    ArrayList<File> tempFileList      = new ArrayList<File>();
-    ArrayList<File> origFileList      = new ArrayList<File>();
+    ArrayList<File> installedFileList = new ArrayList<>();
+    ArrayList<File> tempFileList      = new ArrayList<>();
+    ArrayList<File> origFileList      = new ArrayList<>();
 
     File schemaInstanceDir =
       new File(SchemaConfigManager.getSchemaDirectoryPath());
@@ -3738,7 +3723,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     Schema schema = DirectoryServer.getSchema();
     Schema newSchema = DirectoryServer.getSchema().duplicate();
-    TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
+    TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
     // Get the attributeTypes attribute from the entry.
     Syntax attrTypeSyntax = schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
@@ -3758,12 +3743,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
     List<Attribute> attrList = newSchemaEntry.getAttribute(attributeAttrType);
-    Set<String> oidList = new HashSet<String>(1000);
+    Set<String> oidList = new HashSet<>(1000);
     if (attrList != null && !attrList.isEmpty())
     {
       for (Attribute a : attrList)
       {
-        // Look for attributetypes that could have been added to the schema
+        // Look for attribute types that could have been added to the schema
         // or modified in the schema
         for (ByteString v : a)
         {
@@ -3975,7 +3960,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<DN> newBaseDNs;
     try
     {
-      newBaseDNs = new HashSet<DN>(backendCfg.getSchemaEntryDN());
+      newBaseDNs = new HashSet<>(backendCfg.getSchemaEntryDN());
       if (newBaseDNs.isEmpty())
       {
         newBaseDNs.add(DN.valueOf(DN_DEFAULT_SCHEMA_ROOT));
@@ -3998,7 +3983,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
 
     // Check to see if there is a new set of user-defined attributes.
-    ArrayList<Attribute> newUserAttrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> newUserAttrs = new ArrayList<>();
     try
     {
       ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
@@ -4046,7 +4031,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // deleteBaseDNs will contain the set of DNs that should no longer be used
       // and should be deregistered from the server, and the newBaseDNs set will
       // just contain the set of DNs to add.
-      Set<DN> deleteBaseDNs = new HashSet<DN>(baseDNs.length);
+      Set<DN> deleteBaseDNs = new HashSet<>(baseDNs.length);
       for (DN baseDN : baseDNs)
       {
         if (! newBaseDNs.remove(baseDN))
@@ -4149,7 +4134,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
                ALERT_DESCRIPTION_CANNOT_COPY_SCHEMA_FILES);

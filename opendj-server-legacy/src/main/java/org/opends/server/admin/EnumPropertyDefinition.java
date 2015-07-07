@@ -101,7 +101,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
         throw new IllegalStateException("Enumeration class undefined");
       }
 
-      return new EnumPropertyDefinition<E>(d, propertyName, options,
+      return new EnumPropertyDefinition<>(d, propertyName, options,
           adminAction, defaultBehavior, enumClass);
     }
   }
@@ -123,7 +123,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    */
   public static <E extends Enum<E>> Builder<E> createBuilder(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder<E>(d, propertyName);
+    return new Builder<>(d, propertyName);
   }
 
   /** The enumeration class. */
@@ -143,7 +143,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
     this.enumClass = enumClass;
 
     // Initialize the decoding map.
-    this.decodeMap = new HashMap<String, E>();
+    this.decodeMap = new HashMap<>();
     for (E value : EnumSet.<E> allOf(enumClass)) {
       String s = value.toString().trim().toLowerCase();
       this.decodeMap.put(s, value);

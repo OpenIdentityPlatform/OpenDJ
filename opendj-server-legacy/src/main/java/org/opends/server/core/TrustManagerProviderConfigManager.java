@@ -85,7 +85,7 @@ public class TrustManagerProviderConfigManager
   public TrustManagerProviderConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    providers = new ConcurrentHashMap<DN,TrustManagerProvider>();
+    providers = new ConcurrentHashMap<>();
   }
 
   /**
@@ -377,7 +377,7 @@ public class TrustManagerProviderConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

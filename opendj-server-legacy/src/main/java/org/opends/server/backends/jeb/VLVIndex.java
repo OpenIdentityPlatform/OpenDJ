@@ -864,7 +864,7 @@ public class VLVIndex extends DatabaseContainer
         int targetOffset = 0;
         int includedBeforeCount = 0;
         int includedAfterCount  = 0;
-        LinkedList<EntryID> idList = new LinkedList<EntryID>();
+        LinkedList<EntryID> idList = new LinkedList<>();
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry data = new DatabaseEntry();
 
@@ -993,7 +993,7 @@ public class VLVIndex extends DatabaseContainer
     }
     else
     {
-      LinkedList<long[]> idSets = new LinkedList<long[]>();
+      LinkedList<long[]> idSets = new LinkedList<>();
       int currentCount = 0;
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();

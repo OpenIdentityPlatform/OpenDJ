@@ -97,7 +97,7 @@ public class RootPrivilegeChangeListener
     Set<RootDNCfgDefn.DefaultRootPrivilegeName> configPrivSet =
          configuration.getDefaultRootPrivilegeName();
 
-    HashSet<Privilege> privSet = new HashSet<Privilege>(configPrivSet.size());
+    HashSet<Privilege> privSet = new HashSet<>(configPrivSet.size());
     for (RootDNCfgDefn.DefaultRootPrivilegeName p : configPrivSet)
     {
         privSet.add(Privilege.privilegeForName(p.toString()));
@@ -106,4 +106,3 @@ public class RootPrivilegeChangeListener
     defaultRootPrivileges = privSet;
   }
 }
-

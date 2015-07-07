@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -96,10 +96,10 @@ public final class ConfigEntry
     this.entry  = entry;
     this.parent = parent;
 
-    children        = new ConcurrentHashMap<DN,ConfigEntry>();
-    addListeners    = new CopyOnWriteArrayList<ConfigAddListener>();
-    changeListeners = new CopyOnWriteArrayList<ConfigChangeListener>();
-    deleteListeners = new CopyOnWriteArrayList<ConfigDeleteListener>();
+    children        = new ConcurrentHashMap<>();
+    addListeners    = new CopyOnWriteArrayList<>();
+    changeListeners = new CopyOnWriteArrayList<>();
+    deleteListeners = new CopyOnWriteArrayList<>();
     entryLock       = new Object();
   }
 
@@ -227,7 +227,7 @@ public final class ConfigEntry
            DirectoryServer.getDefaultAttributeType(name, attribute.getSyntax());
     }
 
-    List<Attribute> attrs = new ArrayList<Attribute>(2);
+    List<Attribute> attrs = new ArrayList<>(2);
     AttributeBuilder builder = new AttributeBuilder(attrType, name);
     builder.addAll(attribute.getActiveValues());
     attrs.add(builder.toAttribute());

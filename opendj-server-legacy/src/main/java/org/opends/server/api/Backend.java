@@ -30,6 +30,7 @@ import static org.opends.messages.BackendMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
@@ -109,8 +110,7 @@ public abstract class Backend<C extends Configuration>
   private WritabilityMode writabilityMode = WritabilityMode.ENABLED;
 
   /** The set of persistent searches registered with this backend. */
-  private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches =
-      new ConcurrentLinkedQueue<PersistentSearch>();
+  private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches = new ConcurrentLinkedQueue<>();
 
   /**
    * Configure this backend based on the information in the provided configuration.
@@ -897,18 +897,12 @@ public abstract class Backend<C extends Configuration>
    */
   public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
   {
-    LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<Backend<?>>();
-
-    for (Backend<?> b : subordinateBackends)
-    {
-      backendSet.add(b);
-    }
+    LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<>();
+    Collections.addAll(backendSet, subordinateBackends);
 
     if (backendSet.add(subordinateBackend))
     {
-      Backend<?>[] newSubordinateBackends = new Backend[backendSet.size()];
-      backendSet.toArray(newSubordinateBackends);
-      subordinateBackends = newSubordinateBackends;
+      subordinateBackends = backendSet.toArray(new Backend[backendSet.size()]);
     }
   }
 
@@ -922,7 +916,7 @@ public abstract class Backend<C extends Configuration>
    */
   public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
   {
-    ArrayList<Backend<?>> backendList = new ArrayList<Backend<?>>(subordinateBackends.length);
+    ArrayList<Backend<?>> backendList = new ArrayList<>(subordinateBackends.length);
 
     boolean found = false;
     for (Backend<?> b : subordinateBackends)
@@ -939,9 +933,7 @@ public abstract class Backend<C extends Configuration>
 
     if (found)
     {
-      Backend<?>[] newSubordinateBackends = new Backend[backendList.size()];
-      backendList.toArray(newSubordinateBackends);
-      subordinateBackends = newSubordinateBackends;
+      subordinateBackends = backendList.toArray(new Backend[backendList.size()]);
     }
   }
 

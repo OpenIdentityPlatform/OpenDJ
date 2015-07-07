@@ -447,15 +447,13 @@ public abstract class Task
   private LinkedList<String> getAttributeValues(String attributeName)
           throws InitializationException
   {
-    LinkedList<String> valueStrings = new LinkedList<String>();
+    LinkedList<String> valueStrings = new LinkedList<>();
 
-    List<Attribute> attrList =
-         taskEntry.getAttribute(attributeName.toLowerCase());
-    if ((attrList == null) || attrList.isEmpty())
+    List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
+    if (attrList == null || attrList.isEmpty())
     {
       return valueStrings;
     }
-
     if (attrList.size() > 1)
     {
       throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
@@ -607,9 +605,8 @@ public abstract class Task
     try
     {
       this.taskState = taskState;
-      Attribute attr = Attributes.create(ATTR_TASK_STATE,
-          taskState.toString());
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      Attribute attr = Attributes.create(ATTR_TASK_STATE, taskState.toString());
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(attr);
       taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
@@ -625,7 +622,7 @@ public abstract class Task
 
   /**
    * Sets a state for this task that is the result of a call to
-   * {@link #interruptTask(TaskState, org.opends.messages.LocalizableMessage)}.
+   * {@link #interruptTask(TaskState, LocalizableMessage)}.
    * It may take this task some time to actually cancel to that
    * actual state may differ until quiescence.
    *
@@ -639,8 +636,7 @@ public abstract class Task
 
   /**
    * Gets the interrupt state for this task that was set as a
-   * result of a call to {@link #interruptTask(TaskState,
-   * org.opends.messages.LocalizableMessage)}.
+   * result of a call to {@link #interruptTask(TaskState, LocalizableMessage)}.
    *
    * @return interrupt state for this task
    */
@@ -653,8 +649,8 @@ public abstract class Task
   /**
    * Returns a state for this task after processing has completed.
    * If the task was interrupted with a call to
-   * {@link #interruptTask(TaskState, org.opends.messages.LocalizableMessage)}
-   * then that method's interruptState is returned here.  Otherwse
+   * {@link #interruptTask(TaskState, LocalizableMessage)}
+   * then that method's interruptState is returned here.  Otherwise
    * this method returns TaskState.COMPLETED_SUCCESSFULLY.  It is
    * assumed that if there were errors during task processing that
    * task state will have been derived in some other way.
@@ -698,7 +694,7 @@ public abstract class Task
     {
       Entry taskEntry = getTaskEntry();
 
-      ArrayList<Modification> modifications = new ArrayList<Modification>();
+      ArrayList<Modification> modifications = new ArrayList<>();
       modifications.add(new Modification(ModificationType.REPLACE,
           Attributes.create(name, value)));
 
@@ -768,7 +764,7 @@ public abstract class Task
       String startTimeStr = StaticUtils.formatDateTimeString(d);
       Attribute attr = Attributes.create(ATTR_TASK_ACTUAL_START_TIME,
           startTimeStr);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(attr);
       taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
@@ -824,7 +820,7 @@ public abstract class Task
       Date d = new Date(completionTime);
       Attribute attr = Attributes.create(ATTR_TASK_COMPLETION_TIME,
           dateFormat.format(d));
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(attr);
       taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
@@ -906,7 +902,7 @@ public abstract class Task
    */
   public final List<LocalizableMessage> getLogMessages()
   {
-    List<LocalizableMessage> msgList = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> msgList = new ArrayList<>();
     for(String logString : logMessages) {
       // TODO: a better job or recreating the message
       msgList.add(LocalizableMessage.raw(logString));
@@ -997,7 +993,7 @@ public abstract class Task
       ByteString value = ByteString.valueOf(messageString);
       if (attrList == null)
       {
-        attrList = new ArrayList<Attribute>();
+        attrList = new ArrayList<>();
         attrList.add(Attributes.create(type, value));
         taskEntry.putAttribute(type, attrList);
       }
@@ -1170,7 +1166,7 @@ public abstract class Task
   {
     if (DirectoryServer.mailServerConfigured())
     {
-      LinkedHashSet<String> recipients = new LinkedHashSet<String>(notifyOnCompletion);
+      LinkedHashSet<String> recipients = new LinkedHashSet<>(notifyOnCompletion);
       if (! TaskState.isSuccessful(taskState))
       {
         recipients.addAll(notifyOnError);

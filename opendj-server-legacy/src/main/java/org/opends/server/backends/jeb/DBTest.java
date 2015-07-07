@@ -767,7 +767,7 @@ public class DBTest
 
   private int appendDatabaseContainerRows(TableBuilder builder, EntryContainer ec, int count)
   {
-    ArrayList<DatabaseContainer> databaseContainers = new ArrayList<DatabaseContainer>();
+    ArrayList<DatabaseContainer> databaseContainers = new ArrayList<>();
     ec.listDatabases(databaseContainers);
     String toReplace = ec.getDatabasePrefix() + "_";
     for(DatabaseContainer dc : databaseContainers)
@@ -917,10 +917,8 @@ public class DBTest
         return 1;
       }
 
-      ArrayList<DatabaseContainer> databaseContainers =
-          new ArrayList<DatabaseContainer>();
-      Map<Index, StringBuilder> undefinedKeys =
-          new HashMap<Index, StringBuilder>();
+      ArrayList<DatabaseContainer> databaseContainers = new ArrayList<>();
+      Map<Index, StringBuilder> undefinedKeys = new HashMap<>();
       ec.listDatabases(databaseContainers);
       String toReplace = ec.getDatabasePrefix() + "_";
       for(DatabaseContainer dc : databaseContainers)
@@ -1103,8 +1101,7 @@ public class DBTest
       }
 
       DatabaseContainer databaseContainer = null;
-      ArrayList<DatabaseContainer> databaseContainers =
-          new ArrayList<DatabaseContainer>();
+      ArrayList<DatabaseContainer> databaseContainers = new ArrayList<>();
       ec.listDatabases(databaseContainers);
       String toReplace = ec.getDatabasePrefix() + "_";
       for(DatabaseContainer dc : databaseContainers)

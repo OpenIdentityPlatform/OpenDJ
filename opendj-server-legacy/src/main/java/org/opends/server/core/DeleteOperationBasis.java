@@ -90,7 +90,7 @@ public class DeleteOperationBasis
     this.rawEntryDN = rawEntryDN;
 
     entryDN          = null;
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
   }
 
@@ -118,7 +118,7 @@ public class DeleteOperationBasis
     this.entryDN = entryDN;
 
     rawEntryDN       = ByteString.valueOf(entryDN.toString());
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
   }
 

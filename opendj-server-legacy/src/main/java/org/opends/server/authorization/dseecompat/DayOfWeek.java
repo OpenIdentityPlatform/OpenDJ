@@ -67,7 +67,7 @@ public class DayOfWeek  implements KeywordBindRule {
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException
     {
-        List<EnumDayOfWeek> days = new LinkedList<EnumDayOfWeek>();
+        List<EnumDayOfWeek> days = new LinkedList<>();
         String[] dayArray=expr.split(",", -1);
         for (String element : dayArray)
         {

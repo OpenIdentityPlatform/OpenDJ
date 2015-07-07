@@ -79,7 +79,7 @@ public class MatchedValuesControl
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
 
-        filters = new ArrayList<MatchedValuesFilter>();
+        filters = new ArrayList<>();
         while(reader.hasNextElement())
         {
           filters.add(MatchedValuesFilter.decode(reader));

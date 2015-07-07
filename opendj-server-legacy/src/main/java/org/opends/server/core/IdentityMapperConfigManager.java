@@ -80,7 +80,7 @@ public class IdentityMapperConfigManager
   public IdentityMapperConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    identityMappers = new ConcurrentHashMap<DN,IdentityMapper>();
+    identityMappers = new ConcurrentHashMap<>();
   }
 
 
@@ -391,7 +391,7 @@ public class IdentityMapperConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!mapper.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

@@ -78,7 +78,7 @@ public class PasswordStorageSchemeConfigManager
   public PasswordStorageSchemeConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    storageSchemes = new ConcurrentHashMap<DN,PasswordStorageScheme>();
+    storageSchemes = new ConcurrentHashMap<>();
   }
 
 
@@ -398,7 +398,7 @@ public class PasswordStorageSchemeConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!passwordStorageScheme.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

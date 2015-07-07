@@ -80,7 +80,7 @@ public class AccountStatusNotificationHandlerConfigManager
   public AccountStatusNotificationHandlerConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    notificationHandlers = new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
+    notificationHandlers = new ConcurrentHashMap<>();
   }
 
 
@@ -401,7 +401,7 @@ public class AccountStatusNotificationHandlerConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!notificationHandler.isConfigurationAcceptable(configuration,
             unacceptableReasons))
         {

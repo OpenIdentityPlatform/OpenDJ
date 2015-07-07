@@ -174,7 +174,7 @@ public final class PropertyDefinitionUsageBuilder {
           return LocalizableMessage.raw(name.substring(i + 1).toUpperCase());
         }
       } else {
-        Set<String> values = new TreeSet<String>();
+        Set<String> values = new TreeSet<>();
         for (Object value : EnumSet.allOf(d.getEnumClass())) {
           values.add(value.toString().trim().toLowerCase());
         }

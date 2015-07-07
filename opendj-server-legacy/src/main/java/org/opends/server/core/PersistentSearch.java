@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -126,19 +126,13 @@ public final class PersistentSearch
     }
   }
 
-  /**
-   * Cancellation callbacks which should be run when this persistent search is
-   * cancelled.
-   */
-  private final List<CancellationCallback> cancellationCallbacks =
-    new CopyOnWriteArrayList<CancellationCallback>();
+  /** Cancellation callbacks which should be run when this persistent search is cancelled. */
+  private final List<CancellationCallback> cancellationCallbacks = new CopyOnWriteArrayList<>();
 
   /** The set of change types to send to the client. */
   private final Set<PersistentSearchChangeType> changeTypes;
 
-  /**
-   * Indicates whether or not this persistent search has already been aborted.
-   */
+  /** Indicates whether or not this persistent search has already been aborted. */
   private boolean isCancelled;
 
   /**

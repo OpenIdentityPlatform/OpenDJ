@@ -155,24 +155,18 @@ public abstract class AbstractManagedObjectDefinition
       AbstractManagedObjectDefinition<? super C, ? super S> parent) {
     this.name = name;
     this.parent = parent;
-    this.constraints = new LinkedList<Constraint>();
-    this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
-    this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
-    this.reverseRelationDefinitions = new HashSet<RelationDefinition<C,S>>();
-    this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
-    this.allRelationDefinitions =
-      new HashMap<String, RelationDefinition<?, ?>>();
-    this.aggregationPropertyDefinitions =
-      new HashMap<String, AggregationPropertyDefinition<?,?>>();
-    this.reverseAggregationPropertyDefinitions =
-      new Vector<AggregationPropertyDefinition<?,?>>();
-    this.allAggregationPropertyDefinitions =
-      new HashMap<String, AggregationPropertyDefinition<?, ?>>();
-    this.allTags = new HashSet<Tag>();
+    this.constraints = new LinkedList<>();
+    this.propertyDefinitions = new HashMap<>();
+    this.relationDefinitions = new HashMap<>();
+    this.reverseRelationDefinitions = new HashSet<>();
+    this.allPropertyDefinitions = new HashMap<>();
+    this.allRelationDefinitions = new HashMap<>();
+    this.aggregationPropertyDefinitions = new HashMap<>();
+    this.reverseAggregationPropertyDefinitions = new Vector<>();
+    this.allAggregationPropertyDefinitions = new HashMap<>();
+    this.allTags = new HashSet<>();
     this.options = EnumSet.noneOf(ManagedObjectOption.class);
-
-    this.children = new HashMap<String,
-        AbstractManagedObjectDefinition<? extends C, ? extends S>>();
+    this.children = new HashMap<>();
 
     // If we have a parent definition then inherit its features.
     if (parent != null) {
@@ -209,11 +203,9 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<AbstractManagedObjectDefinition
       <? extends C, ? extends S>> getAllChildren() {
     List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list =
-      new ArrayList<AbstractManagedObjectDefinition<? extends C, ? extends S>>(
-        children.values());
+      new ArrayList<>(children.values());
 
-    for (AbstractManagedObjectDefinition<? extends C, ? extends S> child :
-        children.values()) {
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> child : children.values()) {
       list.addAll(child.getAllChildren());
     }
 
@@ -233,9 +225,8 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final Collection<Constraint> getAllConstraints() {
     // This method does not used a cached set of constraints because
-    // constraints may be updated after child definitions have been
-    // defined.
-    List<Constraint> allConstraints = new LinkedList<Constraint>();
+    // constraints may be updated after child definitions have been defined.
+    List<Constraint> allConstraints = new LinkedList<>();
 
     if (parent != null) {
       allConstraints.addAll(parent.getAllConstraints());
@@ -292,10 +283,8 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<RelationDefinition<? super C, ? super S>>
   getAllReverseRelationDefinitions() {
     // This method does not used a cached set of relations because
-    // relations may be updated after child definitions have been
-    // defined.
-    List<RelationDefinition<? super C, ? super S>> rdlist =
-      new LinkedList<RelationDefinition<? super C, ? super S>>();
+    // relations may be updated after child definitions have been defined.
+    List<RelationDefinition<? super C, ? super S>> rdlist = new LinkedList<>();
 
     if (parent != null) {
       rdlist.addAll(parent.getAllReverseRelationDefinitions());
@@ -340,8 +329,7 @@ public abstract class AbstractManagedObjectDefinition
     // This method does not used a cached set of aggregation properties because
     // aggregation properties may be updated after child definitions have been
     // defined.
-    List<AggregationPropertyDefinition<?, ?>> apdlist =
-      new LinkedList<AggregationPropertyDefinition<?, ?>>();
+    List<AggregationPropertyDefinition<?, ?>> apdlist = new LinkedList<>();
 
     if (parent != null) {
       apdlist.addAll(parent.getAllReverseAggregationPropertyDefinitions());

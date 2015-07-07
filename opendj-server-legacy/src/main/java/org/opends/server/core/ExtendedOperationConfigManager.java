@@ -79,7 +79,7 @@ public class ExtendedOperationConfigManager implements
   public ExtendedOperationConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    handlers = new ConcurrentHashMap<DN,ExtendedOperationHandler>();
+    handlers = new ConcurrentHashMap<>();
   }
 
   /**

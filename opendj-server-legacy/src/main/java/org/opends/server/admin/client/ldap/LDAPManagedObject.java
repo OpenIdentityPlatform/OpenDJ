@@ -332,7 +332,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> path,
       PropertySet properties, boolean existsOnServer,
       PropertyDefinition<?> namingPropertyDefinition) {
-    return new LDAPManagedObject<M>(driver, d, path, properties,
+    return new LDAPManagedObject<>(driver, d, path, properties,
         existsOnServer, namingPropertyDefinition);
   }
 

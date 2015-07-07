@@ -236,7 +236,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> reasons = new LinkedList<>();
 
     // Enforce any constraints.
     boolean isDeleteAllowed = true;

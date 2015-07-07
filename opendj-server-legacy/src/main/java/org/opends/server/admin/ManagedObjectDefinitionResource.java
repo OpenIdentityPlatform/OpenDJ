@@ -48,13 +48,9 @@ import java.util.Properties;
 public final class ManagedObjectDefinitionResource {
 
   /** Mapping from definition to property tables. */
-  private final Map<AbstractManagedObjectDefinition<?, ?>,
-      Properties> properties;
-
+  private final Map<AbstractManagedObjectDefinition<?, ?>, Properties> properties = new HashMap<>();
   /** The resource name prefix. */
   private final String prefix;
-
-
 
   /**
    * Creates a new resource instance for the named profile.
@@ -63,22 +59,14 @@ public final class ManagedObjectDefinitionResource {
    *          The name of the profile.
    * @return Returns the resource instance for the named profile.
    */
-  public static ManagedObjectDefinitionResource createForProfile(
-      String profile) {
-    return new ManagedObjectDefinitionResource("admin.profiles."
-        + profile);
+  public static ManagedObjectDefinitionResource createForProfile(String profile) {
+    return new ManagedObjectDefinitionResource("admin.profiles." + profile);
   }
-
-
 
   /** Private constructor. */
   private ManagedObjectDefinitionResource(String prefix) {
-    this.properties =
-      new HashMap<AbstractManagedObjectDefinition<?, ?>, Properties>();
     this.prefix = prefix;
   }
-
-
 
   /**
    * Get the resource value associated with the specified key.

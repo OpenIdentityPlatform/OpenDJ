@@ -66,32 +66,13 @@ import org.opends.server.types.ObjectClass;
 public class CompressedSchema
 {
   /** Maps attribute description to ID. */
-  private final List<Entry<AttributeType, Set<String>>> adDecodeMap;
-
+  private final List<Entry<AttributeType, Set<String>>> adDecodeMap = new CopyOnWriteArrayList<>();
   /** Maps ID to attribute description. */
-  private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap;
-
+  private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap = new ConcurrentHashMap<>();
   /** The map between encoded representations and object class sets. */
-  private final List<Map<ObjectClass, String>> ocDecodeMap;
-
+  private final List<Map<ObjectClass, String>> ocDecodeMap = new CopyOnWriteArrayList<>();
   /** The map between object class sets and encoded representations. */
-  private final Map<Map<ObjectClass, String>, Integer> ocEncodeMap;
-
-
-
-  /**
-   * Creates a new empty instance of this compressed schema.
-   */
-  public CompressedSchema()
-  {
-    adDecodeMap = new CopyOnWriteArrayList<Entry<AttributeType, Set<String>>>();
-    ocDecodeMap = new CopyOnWriteArrayList<Map<ObjectClass, String>>();
-    adEncodeMap = new ConcurrentHashMap<Entry<AttributeType, Set<String>>,
-                                        Integer>();
-    ocEncodeMap = new ConcurrentHashMap<Map<ObjectClass, String>, Integer>();
-  }
-
-
+  private final Map<Map<ObjectClass, String>, Integer> ocEncodeMap = new ConcurrentHashMap<>();
 
   /**
    * Decodes the contents of the provided array as an attribute at the current
@@ -223,8 +204,7 @@ public class CompressedSchema
     // Re-use or allocate a new ID.
     final AttributeType type = attribute.getAttributeType();
     final Set<String> options = attribute.getOptions();
-    final Entry<AttributeType, Set<String>> ad =
-        new SimpleImmutableEntry<AttributeType, Set<String>>(type, options);
+    final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
 
     // Use double checked locking to avoid lazy registration races.
     Integer id = adEncodeMap.get(ad);
@@ -378,26 +358,19 @@ public class CompressedSchema
         {
           private int id = 0;
 
-
-
           @Override
           public boolean hasNext()
           {
             return id < ocDecodeMap.size();
           }
 
-
-
           @Override
           public Entry<byte[], Collection<String>> next()
           {
             final byte[] encodedObjectClasses = encodeId(id);
             final Map<ObjectClass, String> ocMap = ocDecodeMap.get(id++);
-            return new SimpleImmutableEntry<byte[], Collection<String>>(
-                encodedObjectClasses, ocMap.values());
+            return new SimpleImmutableEntry<>(encodedObjectClasses, ocMap.values());
           }
-
-
 
           @Override
           public void remove()
@@ -408,8 +381,6 @@ public class CompressedSchema
       }
     };
   }
-
-
 
   /**
    * Loads an encoded attribute into this compressed schema. This method may
@@ -440,11 +411,10 @@ public class CompressedSchema
       options = Collections.singleton(attributeOptions.iterator().next());
       break;
     default:
-      options = new LinkedHashSet<String>(attributeOptions);
+      options = new LinkedHashSet<>(attributeOptions);
       break;
     }
-    final Entry<AttributeType, Set<String>> ad =
-        new SimpleImmutableEntry<AttributeType, Set<String>>(type, options);
+    final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
     final int id = decodeId(encodedAttribute);
     synchronized (adEncodeMap)
     {
@@ -483,8 +453,7 @@ public class CompressedSchema
       final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames)
   {
-    final LinkedHashMap<ObjectClass, String> ocMap =
-        new LinkedHashMap<ObjectClass, String>(objectClassNames.size());
+    final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
     for (final String name : objectClassNames)
     {
       final String lowerName = toLowerCase(name);

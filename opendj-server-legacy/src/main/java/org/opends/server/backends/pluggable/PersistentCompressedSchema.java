@@ -172,7 +172,7 @@ final class PersistentCompressedSchema extends CompressedSchema
         final byte[] encodedObjectClasses = ocCursor.getKey().toByteArray();
         final ASN1Reader reader = ASN1.getReader(ocCursor.getValue());
         reader.readStartSequence();
-        final List<String> objectClassNames = new LinkedList<String>();
+        final List<String> objectClassNames = new LinkedList<>();
         while (reader.hasNextElement())
         {
           objectClassNames.add(reader.readOctetStringAsString());
@@ -202,7 +202,7 @@ final class PersistentCompressedSchema extends CompressedSchema
         final ASN1Reader reader = ASN1.getReader(adCursor.getValue());
         reader.readStartSequence();
         final String attributeName = reader.readOctetStringAsString();
-        final List<String> attributeOptions = new LinkedList<String>();
+        final List<String> attributeOptions = new LinkedList<>();
         while (reader.hasNextElement())
         {
           attributeOptions.add(reader.readOctetStringAsString());

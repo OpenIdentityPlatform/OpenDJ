@@ -174,7 +174,7 @@ public final class ClassLoaderProvider {
   }
 
   /** Set of registered Jar files. */
-  private Set<File> jarFiles = new HashSet<File>();
+  private Set<File> jarFiles = new HashSet<>();
 
   /**
    * Underlying class loader used to load classes and resources (null
@@ -224,7 +224,7 @@ public final class ClassLoaderProvider {
     File libPath = new File(DirectoryServer.getInstanceRoot(), LIB_DIR);
     File extensionsPath = new File(libPath, EXTENSIONS_DIR);
 
-    ArrayList<File> files = new ArrayList<File>(extensions.length);
+    ArrayList<File> files = new ArrayList<>(extensions.length);
     for (String extension : extensions) {
       File file = new File(extensionsPath, extension);
 
@@ -261,7 +261,7 @@ public final class ClassLoaderProvider {
           "Class loader provider already disabled.");
     }
     loader = null;
-    jarFiles = new HashSet<File>();
+    jarFiles = new HashSet<>();
   }
 
 
@@ -399,7 +399,7 @@ public final class ClassLoaderProvider {
   private synchronized void addExtension(File... extensions)
       throws InitializationException {
     // First add the Jar files to the class loader.
-    List<JarFile> jars = new LinkedList<JarFile>();
+    List<JarFile> jars = new LinkedList<>();
     for (File extension : extensions) {
       if (jarFiles.contains(extension)) {
         // Skip this file as it is already loaded.
@@ -698,10 +698,8 @@ public final class ClassLoaderProvider {
    */
   private void loadDefinitionClasses(InputStream is)
       throws InitializationException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(
-        is));
-    List<AbstractManagedObjectDefinition<?, ?>> definitions =
-      new LinkedList<AbstractManagedObjectDefinition<?,?>>();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    List<AbstractManagedObjectDefinition<?, ?>> definitions = new LinkedList<>();
     while (true) {
       String className;
       try {

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -99,7 +99,7 @@ public class ConfigurationHandler implements ConfigurationRepository
   private Entry rootEntry;
 
   /** The add/delete/change listeners on configuration entries. */
-  private final ConcurrentHashMap<DN, EntryListeners> listeners = new ConcurrentHashMap<DN, EntryListeners>();
+  private final ConcurrentHashMap<DN, EntryListeners> listeners = new ConcurrentHashMap<>();
 
   /** Schema with configuration-related elements. */
   private Schema configEnabledSchema;
@@ -135,16 +135,11 @@ public class ConfigurationHandler implements ConfigurationRepository
   private static class EntryListeners {
 
     /** The set of add listeners that have been registered with this entry. */
-    private final CopyOnWriteArrayList<ConfigAddListener> addListeners =
-        new CopyOnWriteArrayList<ConfigAddListener>();
-
+    private final CopyOnWriteArrayList<ConfigAddListener> addListeners = new CopyOnWriteArrayList<>();
     /** The set of change listeners that have been registered with this entry. */
-    private final CopyOnWriteArrayList<ConfigChangeListener> changeListeners =
-        new CopyOnWriteArrayList<ConfigChangeListener>();
-
+    private final CopyOnWriteArrayList<ConfigChangeListener> changeListeners = new CopyOnWriteArrayList<>();
     /** The set of delete listeners that have been registered with this entry. */
-    private final CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners =
-        new CopyOnWriteArrayList<ConfigDeleteListener>();
+    private final CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners = new CopyOnWriteArrayList<>();
 
     CopyOnWriteArrayList<ConfigChangeListener> getChangeListeners()
     {
@@ -231,7 +226,7 @@ public class ConfigurationHandler implements ConfigurationRepository
   /** Handler for search results.  */
   private static final class ConfigSearchHandler implements SearchResultHandler
   {
-    private final Set<Entry> entries = new HashSet<Entry>();
+    private final Set<Entry> entries = new HashSet<>();
 
     Set<Entry> getEntries()
     {
@@ -324,7 +319,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     if (resultHandler.hasCompletedSuccessfully())
     {
-      final Set<DN> children = new HashSet<DN>();
+      final Set<DN> children = new HashSet<>();
       for (final Entry entry : searchHandler.getEntries())
       {
         children.add(entry.getName());
@@ -422,7 +417,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     // Notify all the add listeners to apply the new configuration entry.
     ResultCode resultCode = ResultCode.SUCCESS;
-    final List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> messages = new LinkedList<>();
     for (final ConfigAddListener listener : addListeners)
     {
       final ConfigChangeResult result = listener.applyConfigurationAdd(entry);
@@ -509,7 +504,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     // Notify all the delete listeners that the entry has been removed.
     ResultCode resultCode = ResultCode.SUCCESS;
-    final List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> messages = new LinkedList<>();
     for (final ConfigDeleteListener listener : deleteListeners)
     {
       final ConfigChangeResult result = listener.applyConfigurationDelete(entry);
@@ -594,7 +589,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     // Notify all the change listeners of the update.
     ResultCode resultCode = ResultCode.SUCCESS;
-    final List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> messages = new LinkedList<>();
     for (final ConfigChangeListener listener : changeListeners)
     {
       final ConfigChangeResult result = listener.applyConfigurationChange(newEntry);

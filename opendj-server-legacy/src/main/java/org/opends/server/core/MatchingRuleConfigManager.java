@@ -79,7 +79,7 @@ public class MatchingRuleConfigManager
   /** Creates a new instance of this matching rule config manager. */
   public MatchingRuleConfigManager()
   {
-    matchingRuleFactories = new ConcurrentHashMap<DN,MatchingRuleFactory>();
+    matchingRuleFactories = new ConcurrentHashMap<>();
   }
 
 
@@ -495,7 +495,7 @@ public class MatchingRuleConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!factory.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

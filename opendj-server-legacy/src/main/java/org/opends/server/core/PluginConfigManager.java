@@ -222,12 +222,8 @@ public class PluginConfigManager
     subordinateModifyDNPlugins         = new DirectoryServerPlugin[0];
     subordinateDeletePlugins           = new DirectoryServerPlugin[0];
     intermediateResponsePlugins        = new DirectoryServerPlugin[0];
-    registeredPlugins                  =
-         new ConcurrentHashMap<DN,
-                  DirectoryServerPlugin<? extends PluginCfg>>();
-    skippedPreOperationPlugins =
-        new ConcurrentHashMap<PluginOperation,
-                  ArrayList<DirectoryServerPlugin>>();
+    registeredPlugins                  = new ConcurrentHashMap<>();
+    skippedPreOperationPlugins = new ConcurrentHashMap<>();
   }
 
 
@@ -295,9 +291,8 @@ public class PluginConfigManager
       }
 
       // Create a set of plugin types for the plugin.
-      HashSet<PluginType> initTypes = new HashSet<PluginType>();
-      for (PluginCfgDefn.PluginType pluginType :
-           pluginConfiguration.getPluginType())
+      HashSet<PluginType> initTypes = new HashSet<>();
+      for (PluginCfgDefn.PluginType pluginType : pluginConfiguration.getPluginType())
       {
         PluginType t = getPluginType(pluginType);
         if ((pluginTypes == null) || pluginTypes.contains(t))
@@ -374,7 +369,7 @@ public class PluginConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!plugin.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String buffer = Utils.joinAsString(".  ", unacceptableReasons);
@@ -923,8 +918,8 @@ public class PluginConfigManager
     {
       // Parse the plugin order into initial and final plugin names.
       boolean starFound = false;
-      LinkedHashSet<String> initialPluginNames = new LinkedHashSet<String>();
-      LinkedHashSet<String> finalPluginNames   = new LinkedHashSet<String>();
+      LinkedHashSet<String> initialPluginNames = new LinkedHashSet<>();
+      LinkedHashSet<String> finalPluginNames   = new LinkedHashSet<>();
 
       StringTokenizer tokenizer = new StringTokenizer(pluginOrder, ",");
       while (tokenizer.hasMoreTokens())
@@ -1009,12 +1004,9 @@ public class PluginConfigManager
 
 
       // Parse the array of already registered plugins to sort them accordingly.
-      HashMap<String,DirectoryServerPlugin> initialPlugins =
-           new HashMap<String,DirectoryServerPlugin>(initialPluginNames.size());
-      HashMap<String,DirectoryServerPlugin> finalPlugins =
-           new HashMap<String,DirectoryServerPlugin>(finalPluginNames.size());
-      ArrayList<DirectoryServerPlugin> otherPlugins =
-           new ArrayList<DirectoryServerPlugin>();
+      HashMap<String,DirectoryServerPlugin> initialPlugins = new HashMap<>(initialPluginNames.size());
+      HashMap<String,DirectoryServerPlugin> finalPlugins = new HashMap<>(finalPluginNames.size());
+      ArrayList<DirectoryServerPlugin> otherPlugins = new ArrayList<>();
       for (DirectoryServerPlugin p : pluginArray)
       {
         DN dn = p.getPluginEntryDN();
@@ -1054,8 +1046,7 @@ public class PluginConfigManager
 
       // Compile a list of all the plugins in the correct order, convert it to
       // an array, and return it.
-      ArrayList<DirectoryServerPlugin> newList =
-           new ArrayList<DirectoryServerPlugin>(pluginArray.length+1);
+      ArrayList<DirectoryServerPlugin> newList = new ArrayList<>(pluginArray.length + 1);
       for (String name : initialPluginNames)
       {
         DirectoryServerPlugin p = initialPlugins.get(name);
@@ -4721,16 +4712,9 @@ public class PluginConfigManager
   {
     if (configuration.isEnabled())
     {
-      // Create a set of plugin types for the plugin.
-      HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-      for (PluginCfgDefn.PluginType pluginType :
-           configuration.getPluginType())
-      {
-        pluginTypes.add(getPluginType(pluginType));
-      }
+      HashSet<PluginType> pluginTypes = getPluginTypes(configuration);
 
-      // Get the name of the class and make sure we can instantiate it as a
-      // plugin.
+      // Get the name of the class and make sure we can instantiate it as a plugin.
       String className = configuration.getJavaClass();
       try
       {
@@ -4763,16 +4747,9 @@ public class PluginConfigManager
       return ccr;
     }
 
-    // Create a set of plugin types for the plugin.
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    for (PluginCfgDefn.PluginType pluginType :
-         configuration.getPluginType())
-    {
-      pluginTypes.add(getPluginType(pluginType));
-    }
+    HashSet<PluginType> pluginTypes = getPluginTypes(configuration);
 
-    // Get the name of the class and make sure we can instantiate it as a
-    // plugin.
+    // Get the name of the class and make sure we can instantiate it as a plugin.
     DirectoryServerPlugin<? extends PluginCfg> plugin = null;
     String className = configuration.getJavaClass();
     try
@@ -4829,16 +4806,9 @@ public class PluginConfigManager
   {
     if (configuration.isEnabled())
     {
-      // Create a set of plugin types for the plugin.
-      HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-      for (PluginCfgDefn.PluginType pluginType :
-           configuration.getPluginType())
-      {
-        pluginTypes.add(getPluginType(pluginType));
-      }
+      HashSet<PluginType> pluginTypes = getPluginTypes(configuration);
 
-      // Get the name of the class and make sure we can instantiate it as a
-      // plugin.
+      // Get the name of the class and make sure we can instantiate it as a plugin.
       String className = configuration.getJavaClass();
       try
       {
@@ -4904,12 +4874,7 @@ public class PluginConfigManager
     }
 
     // Create a set of plugin types for the plugin.
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    for (PluginCfgDefn.PluginType pluginType :
-         configuration.getPluginType())
-    {
-      pluginTypes.add(getPluginType(pluginType));
-    }
+    HashSet<PluginType> pluginTypes = getPluginTypes(configuration);
 
     DirectoryServerPlugin<? extends PluginCfg> plugin = null;
     try
@@ -4930,12 +4895,21 @@ public class PluginConfigManager
     return ccr;
   }
 
+  private HashSet<PluginType> getPluginTypes(PluginCfg configuration)
+  {
+    HashSet<PluginType> pluginTypes = new HashSet<>();
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      pluginTypes.add(getPluginType(pluginType));
+    }
+    return pluginTypes;
+  }
+
   private void registerSkippedPreOperationPlugins(int i,
                                                 DirectoryServerPlugin[] plugins,
                                                  PluginOperation operation)
   {
-    ArrayList<DirectoryServerPlugin> skippedPlugins =
-        new ArrayList<DirectoryServerPlugin>(plugins.length - i);
+    ArrayList<DirectoryServerPlugin> skippedPlugins = new ArrayList<>(plugins.length - i);
     for(int j = i; j < plugins.length; j++)
     {
       skippedPlugins.add(plugins[j]);
@@ -4950,7 +4924,7 @@ public class PluginConfigManager
         skippedPreOperationPlugins.get(operation);
     if(existingList == null)
     {
-      existingList = new ArrayList<DirectoryServerPlugin>();
+      existingList = new ArrayList<>();
     }
     existingList.add(plugin);
     skippedPreOperationPlugins.put(operation, existingList);

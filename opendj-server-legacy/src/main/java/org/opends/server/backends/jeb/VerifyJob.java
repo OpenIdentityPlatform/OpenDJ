@@ -75,8 +75,7 @@ public class VerifyJob
    * This map is used to gather some statistics about values that have
    * exceeded the entry limit.
    */
-  private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap =
-       new IdentityHashMap<Index, HashMap<ByteString, Long>>();
+  private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap = new IdentityHashMap<>();
 
   /** Indicates whether the DN database is to be verified. */
   private boolean verifyDN2ID;
@@ -95,9 +94,9 @@ public class VerifyJob
   private Index id2s;
 
   /** A list of the attribute indexes to be verified. */
-  private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
+  private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<>();
   /** A list of the VLV indexes to be verified. */
-  private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
+  private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<>();
 
   /**
    * Construct a VerifyJob.
@@ -220,7 +219,7 @@ public class VerifyJob
         }
       }
 
-      entryLimitMap = new IdentityHashMap<Index, HashMap<ByteString, Long>>(attrIndexList.size());
+      entryLimitMap = new IdentityHashMap<>(attrIndexList.size());
 
       // We will be updating these files independently of the indexes
       // so we need direct access to them rather than going through
@@ -794,7 +793,7 @@ public class VerifyJob
     HashMap<ByteString,Long> hashMap = entryLimitMap.get(index);
     if (hashMap == null)
     {
-      hashMap = new HashMap<ByteString, Long>();
+      hashMap = new HashMap<>();
       entryLimitMap.put(index, hashMap);
     }
     ByteString octetString = ByteString.wrap(key);

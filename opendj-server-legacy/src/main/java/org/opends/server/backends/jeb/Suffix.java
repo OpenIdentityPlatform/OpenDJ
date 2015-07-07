@@ -57,9 +57,8 @@ class Suffix
   private final EntryContainer entryContainer;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
-  private final ConcurrentHashMap<DN, CountDownLatch> pendingMap =
-          new ConcurrentHashMap<DN, CountDownLatch>();
-  private final Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
+  private final ConcurrentHashMap<DN, CountDownLatch> pendingMap = new ConcurrentHashMap<>();
+  private final Set<DN> parentSet = new HashSet<>(PARENT_ID_SET_SIZE);
 
   /**
    * Creates a suffix instance using the specified parameters.
@@ -81,7 +80,7 @@ class Suffix
     }
     else
     {
-      this.includeBranches = new ArrayList<DN>(0);
+      this.includeBranches = new ArrayList<>(0);
     }
     if (excludeBranches != null)
     {
@@ -89,7 +88,7 @@ class Suffix
     }
     else
     {
-      this.excludeBranches = new ArrayList<DN>(0);
+      this.excludeBranches = new ArrayList<>(0);
     }
   }
 

@@ -101,7 +101,7 @@ public final class MultiChoiceConfigAttribute
 
     this.allowedValues = allowedValues;
 
-    activeValues  = new ArrayList<String>();
+    activeValues  = new ArrayList<>();
     pendingValues = activeValues;
   }
 
@@ -141,11 +141,11 @@ public final class MultiChoiceConfigAttribute
 
     if (value == null)
     {
-      activeValues = new ArrayList<String>();
+      activeValues = new ArrayList<>();
     }
     else
     {
-      activeValues = new ArrayList<String>(1);
+      activeValues = new ArrayList<>(1);
       activeValues.add(value);
     }
 
@@ -232,7 +232,7 @@ public final class MultiChoiceConfigAttribute
 
     if (activeValues == null)
     {
-      this.activeValues = new ArrayList<String>();
+      this.activeValues = new ArrayList<>();
     }
     else
     {
@@ -412,7 +412,7 @@ public final class MultiChoiceConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<String>(1);
+      pendingValues = new ArrayList<>(1);
       pendingValues.add(value);
       setPendingValues(getValueSet(value));
     }
@@ -451,7 +451,7 @@ public final class MultiChoiceConfigAttribute
         if (requiresAdminAction())
         {
           setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<String>();
+          pendingValues = new ArrayList<>();
         }
         else
         {
@@ -474,7 +474,7 @@ public final class MultiChoiceConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String value : values)
     {
       if ((value == null) || (value.length() == 0))
@@ -528,7 +528,7 @@ public final class MultiChoiceConfigAttribute
    */
   private static LinkedHashSet<ByteString> getValueSet(String value)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
     valueSet.add(ByteString.valueOf(value));
     return valueSet;
   }
@@ -549,7 +549,7 @@ public final class MultiChoiceConfigAttribute
       return null;
     }
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (String value : values)
     {
       valueSet.add(ByteString.valueOf(value));
@@ -645,7 +645,7 @@ public final class MultiChoiceConfigAttribute
         LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
-      return new LinkedHashSet<ByteString>();
+      return new LinkedHashSet<>();
     }
 
 
@@ -658,7 +658,7 @@ public final class MultiChoiceConfigAttribute
     }
 
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
       if ((valueString == null) || (valueString.length() == 0))
@@ -799,7 +799,7 @@ public final class MultiChoiceConfigAttribute
               throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
             }
             // This is fine. The pending value set can be empty.
-            pendingValues = new ArrayList<String>(0);
+            pendingValues = new ArrayList<>(0);
           }
           else
           {
@@ -812,7 +812,7 @@ public final class MultiChoiceConfigAttribute
               throw new ConfigException(message);
             }
 
-            pendingValues = new ArrayList<String>(numValues);
+            pendingValues = new ArrayList<>(numValues);
             for (ByteString v : a)
             {
               String lowerValue = v.toString().toLowerCase();
@@ -857,7 +857,7 @@ public final class MultiChoiceConfigAttribute
             throw new ConfigException(message);
           }
           // This is fine. The active value set can be empty.
-          activeValues = new ArrayList<String>(0);
+          activeValues = new ArrayList<>(0);
         }
         else
         {
@@ -870,7 +870,7 @@ public final class MultiChoiceConfigAttribute
             throw new ConfigException(message);
           }
 
-          activeValues = new ArrayList<String>(numValues);
+          activeValues = new ArrayList<>(numValues);
           for (ByteString v : a)
           {
             String lowerValue = v.toString().toLowerCase();
@@ -1148,7 +1148,7 @@ public final class MultiChoiceConfigAttribute
       {
         try
         {
-          ArrayList<String> values = new ArrayList<String>(length);
+          ArrayList<String> values = new ArrayList<>(length);
 
           for (int i=0; i < length; i++)
           {

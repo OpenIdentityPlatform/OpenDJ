@@ -124,10 +124,9 @@ public class EntryContainer
   private State state;
 
   /** The set of attribute indexes. */
-  private final HashMap<AttributeType, AttributeIndex> attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
-
+  private final HashMap<AttributeType, AttributeIndex> attrIndexMap = new HashMap<>();
   /** The set of VLV (Virtual List View) indexes. */
-  private final HashMap<String, VLVIndex> vlvIndexMap = new HashMap<String, VLVIndex>();
+  private final HashMap<String, VLVIndex> vlvIndexMap = new HashMap<>();
 
   /**
    * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
@@ -2753,7 +2752,7 @@ public class EntryContainer
    */
   void delete() throws DatabaseException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    List<DatabaseContainer> databases = new ArrayList<>();
     listDatabases(databases);
 
     if(env.getConfig().getTransactional())
@@ -2888,7 +2887,7 @@ public class EntryContainer
   throws DatabaseException, JebException
 
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    List<DatabaseContainer> databases = new ArrayList<>();
     listDatabases(databases);
 
     newDatabasePrefix = preparePrefix(newDatabasePrefix);
@@ -3085,7 +3084,7 @@ public class EntryContainer
    */
   public void clear() throws DatabaseException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    List<DatabaseContainer> databases = new ArrayList<>();
     listDatabases(databases);
 
     for(DatabaseContainer db : databases)

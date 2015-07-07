@@ -164,7 +164,7 @@ public class OperationRejectedException extends AdminClientException {
       Collection<LocalizableMessage> messages) {
     super(getDefaultMessage(messages));
 
-    this.messages = new ArrayList<LocalizableMessage>(messages);
+    this.messages = new ArrayList<>(messages);
     this.type = type;
     this.ufn = ufn;
   }

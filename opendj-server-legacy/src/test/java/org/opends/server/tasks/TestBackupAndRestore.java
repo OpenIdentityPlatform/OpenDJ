@@ -160,7 +160,7 @@ public class TestBackupAndRestore extends TasksTestCase
 
   private String[] backupTask(String... additionalLdif)
   {
-    final ArrayList<String> l = new ArrayList<String>(Arrays.asList(
+    final ArrayList<String> l = new ArrayList<>(Arrays.asList(
         "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
@@ -173,7 +173,7 @@ public class TestBackupAndRestore extends TasksTestCase
 
   private String[] restoreTask(String... additionalLdif)
   {
-    final ArrayList<String> l = new ArrayList<String>(Arrays.asList(
+    final ArrayList<String> l = new ArrayList<>(Arrays.asList(
         "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",

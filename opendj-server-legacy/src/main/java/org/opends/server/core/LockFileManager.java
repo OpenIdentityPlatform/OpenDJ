@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -50,16 +50,11 @@ public class LockFileManager
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A map between the filenames and the lock files for exclusive locks. */
-  private static Map<String, FileLock> exclusiveLocks =
-       new HashMap<String,FileLock>();
-
+  private static Map<String, FileLock> exclusiveLocks = new HashMap<>();
   /** A map between the filenames and the lock files for shared locks. */
-  private static Map<String, FileLock> sharedLocks =
-       new HashMap<String,FileLock>();
-
+  private static Map<String, FileLock> sharedLocks = new HashMap<>();
   /** A map between the filenames and reference counts for shared locks. */
-  private static Map<String, Integer> sharedLockReferences =
-       new HashMap<String,Integer>();
+  private static Map<String, Integer> sharedLockReferences = new HashMap<>();
 
   /** The lock providing threadsafe access to the lock map data. */
   private static Object mapLock = new Object();

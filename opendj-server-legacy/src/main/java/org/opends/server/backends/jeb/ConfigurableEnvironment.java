@@ -204,25 +204,18 @@ public class ConfigurableEnvironment
        ConfigConstants.NAME_PREFIX_CFG + "je-property";
 
 
-  /**
-   * A map of JE property names to the corresponding configuration attribute.
-   */
-  private static HashMap<String, String> attrMap =
-       new HashMap<String, String>();
-
+  /** A map of JE property names to the corresponding configuration attribute. */
+  private static HashMap<String, String> attrMap = new HashMap<>();
   /**
    * A map of configuration attribute names to the corresponding configuration
    * object getter method.
    */
-  private static HashMap<String,Method> methodMap =
-       new HashMap<String, Method>();
-
+  private static HashMap<String, Method> methodMap = new HashMap<>();
   /**
    * A map of configuration attribute names to the corresponding configuration
    * PropertyDefinition.
    */
-  private static HashMap<String,PropertyDefinition> defnMap =
-       new HashMap<String, PropertyDefinition>();
+  private static HashMap<String, PropertyDefinition> defnMap = new HashMap<>();
 
 
   /** Pulled from resource/admin/ABBREVIATIONS.xsl.  db is mose common. */
@@ -550,7 +543,7 @@ public class ConfigurableEnvironment
     }
 
     // Set to catch duplicate properties.
-    HashSet<String> uniqueJEProperties = new HashSet<String>();
+    HashSet<String> uniqueJEProperties = new HashSet<>();
 
     // Iterate through the config values associated with a JE property.
     for (String jeEntry : jeProperties)

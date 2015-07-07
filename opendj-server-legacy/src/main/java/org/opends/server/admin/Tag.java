@@ -49,7 +49,7 @@ import org.forgerock.util.Reject;
 public final class Tag implements Comparable<Tag> {
 
   /** All the tags. */
-  private static final Map<String, Tag> tags = new HashMap<String, Tag>();
+  private static final Map<String, Tag> tags = new HashMap<>();
 
 
 

@@ -77,7 +77,7 @@ public class RootContainer
   private DatabaseEnvironmentMonitor monitor;
 
   /** The base DNs contained in this root container. */
-  private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
+  private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<>();
 
   /** The cached value of the next entry identifier to be assigned. */
   private AtomicLong nextid = new AtomicLong(1);
@@ -342,7 +342,7 @@ public class RootContainer
     if (timeLimit > 0)
     {
       // Get a list of all the databases used by the backend.
-      ArrayList<DatabaseContainer> dbList = new ArrayList<DatabaseContainer>();
+      ArrayList<DatabaseContainer> dbList = new ArrayList<>();
       for (EntryContainer ec : entryContainers.values())
       {
         ec.sharedLock.lock();

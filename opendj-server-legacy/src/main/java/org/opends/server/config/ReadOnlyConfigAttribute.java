@@ -75,7 +75,7 @@ public final class ReadOnlyConfigAttribute
     super(name, description, false, isMultiValued, false);
 
 
-    values = new ArrayList<String>();
+    values = new ArrayList<>();
   }
 
 
@@ -95,11 +95,11 @@ public final class ReadOnlyConfigAttribute
 
     if (value == null)
     {
-      values = new ArrayList<String>(0);
+      values = new ArrayList<>(0);
     }
     else
     {
-      values = new ArrayList<String>(1);
+      values = new ArrayList<>(1);
       values.add(value);
     }
   }
@@ -122,7 +122,7 @@ public final class ReadOnlyConfigAttribute
 
     if (values == null)
     {
-      this.values = new ArrayList<String>();
+      this.values = new ArrayList<>();
     }
     else
     {
@@ -275,7 +275,7 @@ public final class ReadOnlyConfigAttribute
    */
   private static LinkedHashSet<ByteString> getValueSet(String value)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
     valueSet.add(ByteString.valueOf(value));
     return valueSet;
   }
@@ -356,14 +356,14 @@ public final class ReadOnlyConfigAttribute
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
-      return new LinkedHashSet<ByteString>();
+      return new LinkedHashSet<>();
     }
     return toByteStrings(valueStrings);
   }
 
   private static LinkedHashSet<ByteString> toByteStrings(List<String> strings)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(strings.size());
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(strings.size());
     for (String valueString : strings)
     {
       valueSet.add(ByteString.valueOf(valueString));

@@ -285,7 +285,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
       OperationRejectedException, AuthorizationException,
       CommunicationException {
     // First make sure all mandatory properties are defined.
-    List<PropertyException> exceptions = new LinkedList<PropertyException>();
+    List<PropertyException> exceptions = new LinkedList<>();
 
     for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
       Property<?> p = getProperty(pd);
@@ -301,7 +301,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     }
 
     // Now enforce any constraints.
-    List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> messages = new LinkedList<>();
     boolean isAcceptable = true;
     ManagementContext context = getDriver().getManagementContext();
 
@@ -525,7 +525,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   /** {@inheritDoc} */
   public final <PD> SortedSet<PD> getPropertyDefaultValues(
       PropertyDefinition<PD> pd) throws IllegalArgumentException {
-    return new TreeSet<PD>(getProperty(pd).getDefaultValues());
+    return new TreeSet<>(getProperty(pd).getDefaultValues());
   }
 
 
@@ -534,11 +534,10 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   public final <PD> PD getPropertyValue(PropertyDefinition<PD> pd)
       throws IllegalArgumentException {
     Set<PD> values = getProperty(pd).getEffectiveValues();
-    if (values.isEmpty()) {
-      return null;
-    } else {
+    if (!values.isEmpty()) {
       return values.iterator().next();
     }
+    return null;
   }
 
 
@@ -546,7 +545,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   /** {@inheritDoc} */
   public final <PD> SortedSet<PD> getPropertyValues(PropertyDefinition<PD> pd)
       throws IllegalArgumentException {
-    return new TreeSet<PD>(getProperty(pd).getEffectiveValues());
+    return new TreeSet<>(getProperty(pd).getEffectiveValues());
   }
 
 

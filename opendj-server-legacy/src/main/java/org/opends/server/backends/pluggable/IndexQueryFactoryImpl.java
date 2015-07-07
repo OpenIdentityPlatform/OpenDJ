@@ -151,7 +151,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         {
           // Total number of IDs found so far.
           int totalIDCount = 0;
-          ArrayList<EntryIDSet> sets = new ArrayList<EntryIDSet>();
+          ArrayList<EntryIDSet> sets = new ArrayList<>();
           Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn);
           try
           {

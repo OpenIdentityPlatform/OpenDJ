@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -112,7 +112,7 @@ public class CompareOperationBasis
     this.rawAttributeType = rawAttributeType;
     this.assertionValue   = assertionValue;
 
-    responseControls       = new ArrayList<Control>();
+    responseControls       = new ArrayList<>();
     entryDN                = null;
     attributeType          = null;
     attributeOptions       = null;
@@ -148,12 +148,12 @@ public class CompareOperationBasis
     this.attributeType  = attributeType;
     this.assertionValue = assertionValue;
 
-    responseControls       = new ArrayList<Control>();
+    responseControls       = new ArrayList<>();
     rawEntryDN             = ByteString.valueOf(entryDN.toString());
     rawAttributeType       = attributeType.getNameOrOID();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
-    attributeOptions       = new HashSet<String>();
+    attributeOptions       = new HashSet<>();
   }
 
   /** {@inheritDoc} */
@@ -215,7 +215,7 @@ public class CompareOperationBasis
     if (semicolonPos > 0) {
       baseName = toLowerCase(rawAttributeType.substring(0, semicolonPos));
 
-      attributeOptions = new HashSet<String>();
+      attributeOptions = new HashSet<>();
       int nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
       while (nextPos > 0)
       {

@@ -589,7 +589,7 @@ public class Index extends DatabaseContainer
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key;
 
-      ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
+      ArrayList<EntryIDSet> lists = new ArrayList<>();
 
       Cursor cursor = openCursor(null, CursorConfig.READ_COMMITTED);
       try
@@ -736,7 +736,7 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
       throws DatabaseException
   {
-    final Map<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
+    final Map<ByteString, Boolean> modifiedKeys = new TreeMap<>(indexer.getBSComparator());
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
 
     for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())

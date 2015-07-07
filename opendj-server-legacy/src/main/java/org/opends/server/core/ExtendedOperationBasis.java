@@ -104,7 +104,7 @@ public class ExtendedOperationBasis
 
     responseOID      = null;
     responseValue    = null;
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
 
     if (requestOID.equals(OID_CANCEL_REQUEST))

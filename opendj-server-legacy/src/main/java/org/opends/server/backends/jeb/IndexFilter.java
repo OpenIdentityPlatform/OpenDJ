@@ -201,10 +201,9 @@ public class IndexFilter
     // into a hash map, the faster components (equality, presence, approx)
     // into one list and the remainder into another list.
 
-    ArrayList<SearchFilter> fastComps = new ArrayList<SearchFilter>();
-    ArrayList<SearchFilter> otherComps = new ArrayList<SearchFilter>();
-    HashMap<AttributeType, ArrayList<SearchFilter>> rangeComps =
-         new HashMap<AttributeType, ArrayList<SearchFilter>>();
+    ArrayList<SearchFilter> fastComps = new ArrayList<>();
+    ArrayList<SearchFilter> otherComps = new ArrayList<>();
+    HashMap<AttributeType, ArrayList<SearchFilter>> rangeComps = new HashMap<>();
 
     for (SearchFilter filter : andFilter.getFilterComponents())
     {
@@ -216,7 +215,7 @@ public class IndexFilter
         rangeList = rangeComps.get(filter.getAttributeType());
         if (rangeList == null)
         {
-          rangeList = new ArrayList<SearchFilter>();
+          rangeList = new ArrayList<>();
           rangeComps.put(filter.getAttributeType(), rangeList);
         }
         rangeList.add(filter);
@@ -244,7 +243,7 @@ public class IndexFilter
     }
 
     // Next, process range component pairs like (cn>=A)(cn<=B).
-    ArrayList<SearchFilter> remainComps = new ArrayList<SearchFilter>();
+    ArrayList<SearchFilter> remainComps = new ArrayList<>();
     for (Map.Entry<AttributeType, ArrayList<SearchFilter>> rangeEntry : rangeComps.entrySet())
     {
       ArrayList<SearchFilter> rangeList = rangeEntry.getValue();
@@ -325,8 +324,7 @@ public class IndexFilter
    */
   private EntryIDSet evaluateLogicalOrFilter(SearchFilter orFilter)
   {
-    ArrayList<EntryIDSet> candidateSets = new ArrayList<EntryIDSet>(
-         orFilter.getFilterComponents().size());
+    ArrayList<EntryIDSet> candidateSets = new ArrayList<>(orFilter.getFilterComponents().size());
 
     for (SearchFilter filter : orFilter.getFilterComponents())
     {

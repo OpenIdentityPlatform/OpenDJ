@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -118,7 +118,7 @@ public class AddOperationBasis
     this.rawEntryDN    = rawEntryDN;
     this.rawAttributes = rawAttributes;
 
-    responseControls      = new ArrayList<Control>();
+    responseControls      = new ArrayList<>();
     cancelRequest         = null;
     entryDN               = null;
     userAttributes        = null;
@@ -160,9 +160,9 @@ public class AddOperationBasis
 
     rawEntryDN = ByteString.valueOf(entryDN.toString());
 
-    rawAttributes = new ArrayList<RawAttribute>();
+    rawAttributes = new ArrayList<>();
 
-    ArrayList<ByteString> ocValues = new ArrayList<ByteString>();
+    ArrayList<ByteString> ocValues = new ArrayList<>();
     for (String s : objectClasses.values())
     {
       ocValues.add(ByteString.valueOf(s));
@@ -187,7 +187,7 @@ public class AddOperationBasis
       }
     }
 
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     proxiedAuthorizationDN = null;
     cancelRequest    = null;
   }
@@ -314,9 +314,9 @@ public class AddOperationBasis
         && (objectClasses == null || userAttributes == null
             || operationalAttributes == null))
     {
-      objectClasses         = new HashMap<ObjectClass,String>();
-      userAttributes        = new HashMap<AttributeType,List<Attribute>>();
-      operationalAttributes = new HashMap<AttributeType,List<Attribute>>();
+      objectClasses         = new HashMap<>();
+      userAttributes        = new HashMap<>();
+      operationalAttributes = new HashMap<>();
 
       for (RawAttribute a : rawAttributes)
       {
@@ -373,7 +373,7 @@ public class AddOperationBasis
             List<Attribute> attrs = operationalAttributes.get(attrType);
             if (attrs == null)
             {
-              attrs = new ArrayList<Attribute>(1);
+              attrs = new ArrayList<>(1);
               attrs.add(attr);
               operationalAttributes.put(attrType, attrs);
             }
@@ -387,7 +387,7 @@ public class AddOperationBasis
             List<Attribute> attrs = userAttributes.get(attrType);
             if (attrs == null)
             {
-              attrs = new ArrayList<Attribute>(1);
+              attrs = new ArrayList<>(1);
               attrs.add(attr);
               userAttributes.put(attrType, attrs);
             }

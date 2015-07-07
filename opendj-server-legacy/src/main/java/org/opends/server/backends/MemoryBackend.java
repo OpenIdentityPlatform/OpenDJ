@@ -176,14 +176,14 @@ public class MemoryBackend
       throw new ConfigException(message);
     }
 
-    baseDNSet = new HashSet<DN>();
+    baseDNSet = new HashSet<>();
     for (DN dn : baseDNs)
     {
       baseDNSet.add(dn);
     }
 
-    entryMap = new LinkedHashMap<DN,Entry>();
-    childDNs = new HashMap<DN,HashSet<DN>>();
+    entryMap = new LinkedHashMap<>();
+    childDNs = new HashMap<>();
 
     for (DN dn : baseDNs)
     {
@@ -374,7 +374,7 @@ public class MemoryBackend
     HashSet<DN> children = childDNs.get(parentDN);
     if (children == null)
     {
-      children = new HashSet<DN>();
+      children = new HashSet<>();
       childDNs.put(parentDN, children);
     }
 
@@ -404,7 +404,7 @@ public class MemoryBackend
     {
       if (children != null)
       {
-        HashSet<DN> childrenCopy = new HashSet<DN>(children);
+        HashSet<DN> childrenCopy = new HashSet<>(children);
         for (DN childDN : childrenCopy)
         {
           try

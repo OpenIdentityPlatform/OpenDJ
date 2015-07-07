@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -51,12 +51,9 @@ public class IndexBuffer
    * The buffered records stored as a map from the record key to the
    * buffered value for that key for each index.
    */
-  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes =
-      new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
-
+  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes = new LinkedHashMap<>();
   /** The buffered records stored as a set of buffered VLV values for each index. */
-  private final LinkedHashMap<VLVIndex, BufferedVLVValues> bufferedVLVIndexes =
-      new LinkedHashMap<VLVIndex, BufferedVLVValues>();
+  private final LinkedHashMap<VLVIndex, BufferedVLVValues> bufferedVLVIndexes = new LinkedHashMap<>();
 
   /** A simple class representing a pair of added and deleted indexed IDs. */
   static class BufferedIndexValues
@@ -128,7 +125,7 @@ public class IndexBuffer
       {
         if (this.addedValues == null)
         {
-          this.addedValues = new TreeSet<SortValues>();
+          this.addedValues = new TreeSet<>();
         }
         this.addedValues.add(sortValues);
       }
@@ -145,7 +142,7 @@ public class IndexBuffer
       {
         if (this.deletedValues == null)
         {
-          this.deletedValues = new TreeSet<SortValues>();
+          this.deletedValues = new TreeSet<>();
         }
         this.deletedValues.add(sortValues);
       }
@@ -210,7 +207,7 @@ public class IndexBuffer
     TreeMap<ByteString, BufferedIndexValues> bufferedOperations = bufferedIndexes.get(index);
     if (bufferedOperations == null)
     {
-      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>(bsComparator);
+      bufferedOperations = new TreeMap<>(bsComparator);
       bufferedIndexes.put(index, bufferedOperations);
     }
     else

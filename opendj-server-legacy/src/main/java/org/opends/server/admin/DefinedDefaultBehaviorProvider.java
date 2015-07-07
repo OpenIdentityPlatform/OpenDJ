@@ -69,14 +69,10 @@ public final class DefinedDefaultBehaviorProvider<T> extends
     this.values = Arrays.asList(values);
   }
 
-
-
   /** {@inheritDoc} */
   public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
     return v.visitDefined(this, p);
   }
-
-
 
   /**
    * Get a copy of the default values.
@@ -85,7 +81,6 @@ public final class DefinedDefaultBehaviorProvider<T> extends
    *         default values.
    */
   public Collection<String> getDefaultValues() {
-    return new ArrayList<String>(values);
+    return new ArrayList<>(values);
   }
-
 }

@@ -79,7 +79,7 @@ public class SynchronizationProviderConfigManager
   public SynchronizationProviderConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    registeredProviders = new ConcurrentHashMap<DN,SynchronizationProvider<SynchronizationProviderCfg>>();
+    registeredProviders = new ConcurrentHashMap<>();
   }
 
   /**
@@ -106,7 +106,7 @@ public class SynchronizationProviderConfigManager
 
     // Register as an add and delete listener so that we can
     // be notified when new synchronization providers are added or existing
-    // sycnhronization providers are removed.
+    // synchronization providers are removed.
     root.addSynchronizationProviderAddListener(this);
     root.addSynchronizationProviderDeleteListener(this);
 

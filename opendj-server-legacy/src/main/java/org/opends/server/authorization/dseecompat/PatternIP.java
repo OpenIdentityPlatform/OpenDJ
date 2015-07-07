@@ -75,11 +75,8 @@ public class PatternIP {
      */
     private BitSet wildCardBitSet;
 
-    /**
-      Hash map of valid netmask strings. Used in parsing netmask values.
-     */
-    private static HashMap<String,String> validNetMasks =
-                                               new HashMap<String, String>();
+    /** Hash map of valid netmask strings. Used in parsing netmask values. */
+    private static HashMap<String,String> validNetMasks = new HashMap<>();
 
     /** Initialize valid netmask hash map. */
     static {

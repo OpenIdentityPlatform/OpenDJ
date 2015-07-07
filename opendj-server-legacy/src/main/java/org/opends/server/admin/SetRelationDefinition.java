@@ -79,10 +79,8 @@ public final class SetRelationDefinition
      * The optional default managed objects associated with this
      * set relation definition.
      */
-    private final Map<String,
-                      DefaultManagedObject<? extends C, ? extends S>>
-      defaultManagedObjects =
-        new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
+    private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
+      defaultManagedObjects = new HashMap<>();
 
 
 
@@ -127,29 +125,18 @@ public final class SetRelationDefinition
 
     /** {@inheritDoc} */
     @Override
-    protected SetRelationDefinition<C, S> buildInstance(
-        Common<C, S> common)
+    protected SetRelationDefinition<C, S> buildInstance(Common<C, S> common)
     {
-      return new SetRelationDefinition<C, S>(common, pluralName,
-          defaultManagedObjects);
+      return new SetRelationDefinition<>(common, pluralName, defaultManagedObjects);
     }
-
   }
 
 
 
   /** The plural name of the relation. */
   private final String pluralName;
-
-  /**
-   * The optional default managed objects associated with this
-   * set relation definition.
-   */
-  private final Map<String,
-                    DefaultManagedObject<? extends C, ? extends S>>
-    defaultManagedObjects;
-
-
+  /** The optional default managed objects associated with this set relation definition. */
+  private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects;
 
   /** Private constructor. */
   private SetRelationDefinition(

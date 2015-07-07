@@ -29,7 +29,7 @@ package org.opends.server.admin;
 
 
 
-import static org.forgerock.util.Reject.ifNull;
+import static org.forgerock.util.Reject.*;
 import static org.opends.server.admin.PropertyException.*;
 
 import java.util.Collections;
@@ -63,19 +63,12 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
       AbstractBuilder<String, ClassPropertyDefinition> {
 
     /** List of interfaces which property values must implement. */
-    private List<String> instanceOfInterfaces;
-
-
+    private List<String> instanceOfInterfaces = new LinkedList<>();
 
     /** Private constructor. */
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
       super(d, propertyName);
-
-      this.instanceOfInterfaces = new LinkedList<String>();
     }
-
-
 
     /**
      * Add an class name which property values must implement.
@@ -200,8 +193,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
   /** List of interfaces which property values must implement. */
   private final List<String> instanceOfInterfaces;
-
-
 
   /** Private constructor. */
   private ClassPropertyDefinition(

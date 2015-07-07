@@ -236,7 +236,7 @@ public class SchemaConfigManager
       File[] schemaInstanceDirFiles =
                 schemaInstanceDir.listFiles(filter);
       int fileNumber = schemaInstanceDirFiles.length ;
-      ArrayList<String> fileList = new ArrayList<String>(fileNumber);
+      ArrayList<String> fileList = new ArrayList<>(fileNumber);
 
       for (File f : schemaInstanceDirFiles)
       {
@@ -400,7 +400,7 @@ public class SchemaConfigManager
       {
         // The file was empty -- skip it.
         reader.close();
-        return new LinkedList<Modification>();
+        return new LinkedList<>();
       }
     }
     catch (Exception e)
@@ -443,19 +443,16 @@ public class SchemaConfigManager
     }
 
     // Get the attributeTypes attribute from the entry.
-    List<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<>();
 
     //parse the syntaxes first because attributes rely on these.
-    List<Attribute> ldapSyntaxList =
-        getLdapSyntaxesAttributes(schema, entry, mods);
+    List<Attribute> ldapSyntaxList = getLdapSyntaxesAttributes(schema, entry, mods);
     List<Attribute> attrList = getAttributeTypeAttributes(schema, entry, mods);
     List<Attribute> ocList = getObjectClassesAttributes(schema, entry, mods);
     List<Attribute> nfList = getNameFormsAttributes(schema, entry, mods);
     List<Attribute> dcrList = getDITContentRulesAttributes(schema, entry, mods);
-    List<Attribute> dsrList =
-        getDITStructureRulesAttributes(schema, entry, mods);
-    List<Attribute> mruList =
-        getMatchingRuleUsesAttributes(schema, entry, mods);
+    List<Attribute> dsrList = getDITStructureRulesAttributes(schema, entry, mods);
+    List<Attribute> mruList = getMatchingRuleUsesAttributes(schema, entry, mods);
 
     // Loop on all the attribute of the schema entry to
     // find the extra attribute that should be loaded in the Schema.

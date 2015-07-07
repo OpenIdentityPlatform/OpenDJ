@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -79,7 +79,7 @@ class ServerShutdownMonitor extends DirectoryThread
     // threads that are currently active.  This can be an inexact science, so
     // we'll make sure to allocate enough room for double the threads that we
     // think are currently running.
-    threadList = new LinkedList<Thread>();
+    threadList = new LinkedList<>();
     ThreadGroup threadGroup = DirectoryThread.DIRECTORY_THREAD_GROUP;
     Thread[] threadArray = new Thread[threadGroup.activeCount() * 2];
     int numThreads = threadGroup.enumerate(threadArray, true);

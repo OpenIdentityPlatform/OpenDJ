@@ -84,7 +84,7 @@ public class DNS implements KeywordBindRule {
             LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_DNS_EXPRESSION.get(expr);
             throw new AciException(message);
         }
-        List<String> dns = new LinkedList<String>();
+        List<String> dns = new LinkedList<>();
         int valuePos = 1;
         Pattern valuePattern = Pattern.compile(valueRegex);
         Matcher valueMatcher = valuePattern.matcher(expr);

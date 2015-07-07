@@ -82,7 +82,7 @@ public class IP implements KeywordBindRule {
             throws AciException  {
         //Split on the ','.
         String[] ipStrs=expr.split("\\,", -1);
-        List<PatternIP> patternIPList= new LinkedList<PatternIP>();
+        List<PatternIP> patternIPList= new LinkedList<>();
         for (String ipStr : ipStrs) {
             if (!Pattern.matches(ipRegEx, ipStr)) {
                 LocalizableMessage message =

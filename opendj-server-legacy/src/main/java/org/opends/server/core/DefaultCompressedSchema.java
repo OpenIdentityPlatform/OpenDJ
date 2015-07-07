@@ -123,7 +123,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
         reader.readStartSequence();
         final byte[] encodedObjectClasses = reader.readOctetString()
             .toByteArray();
-        final List<String> objectClassNames = new LinkedList<String>();
+        final List<String> objectClassNames = new LinkedList<>();
         while (reader.hasNextElement())
         {
           objectClassNames.add(reader.readOctetStringAsString());
@@ -148,7 +148,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
         reader.readStartSequence();
         final byte[] encodedAttribute = reader.readOctetString().toByteArray();
         final String attributeName = reader.readOctetStringAsString();
-        final List<String> attributeOptions = new LinkedList<String>();
+        final List<String> attributeOptions = new LinkedList<>();
         while (reader.hasNextElement())
         {
           attributeOptions.add(reader.readOctetStringAsString());
