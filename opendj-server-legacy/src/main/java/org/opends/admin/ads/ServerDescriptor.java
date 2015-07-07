@@ -27,6 +27,7 @@
 package org.opends.admin.ads;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.quicksetup.util.Utils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +55,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.schema.SchemaConstants;
 
@@ -209,12 +209,11 @@ public class ServerDescriptor
    */
   public String getReplicationServerHostPort()
   {
-    String hostPort = null;
     if (isReplicationServer())
     {
-      hostPort = getHostName().toLowerCase()+ ":" + getReplicationServerPort();
+      return getReplicationServer(getHostName(), getReplicationServerPort());
     }
-    return hostPort;
+    return null;
   }
 
   /**
@@ -225,12 +224,11 @@ public class ServerDescriptor
    */
   public int getReplicationServerId()
   {
-    int id = -1;
     if (isReplicationServer())
     {
-      id = (Integer)serverProperties.get(ServerProperty.REPLICATION_SERVER_ID);
+      return (Integer) serverProperties.get(ServerProperty.REPLICATION_SERVER_ID);
     }
-    return id;
+    return -1;
   }
 
   /**
@@ -241,13 +239,12 @@ public class ServerDescriptor
    */
   public int getReplicationServerPort()
   {
-    int port = -1;
     if (isReplicationServer())
     {
-      port = (Integer)serverProperties.get(
+      return (Integer) serverProperties.get(
           ServerProperty.REPLICATION_SERVER_PORT);
     }
-    return port;
+    return -1;
   }
 
   /**
@@ -258,17 +255,12 @@ public class ServerDescriptor
    */
   public boolean isReplicationSecure()
   {
-    boolean isReplicationSecure;
     if (isReplicationServer())
     {
-      isReplicationSecure = Boolean.TRUE.equals(serverProperties.get(
+      return Boolean.TRUE.equals(serverProperties.get(
           ServerProperty.IS_REPLICATION_SECURE));
     }
-    else
-    {
-      isReplicationSecure = false;
-    }
-    return isReplicationSecure;
+    return false;
   }
 
   /**
@@ -291,7 +283,7 @@ public class ServerDescriptor
     String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
     if (host == null)
     {
-      host = (String)adsProperties.get(ADSContext.ServerProperty.HOST_NAME);
+      return (String) adsProperties.get(ADSContext.ServerProperty.HOST_NAME);
     }
     return host;
   }
@@ -304,33 +296,13 @@ public class ServerDescriptor
    */
   public String getLDAPURL()
   {
-    String ldapUrl = null;
-    String host = getHostName();
-    int port = -1;
-
-    if (!serverProperties.isEmpty())
-    {
-      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAP_ENABLED);
-      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAP_PORT);
-      if (s != null)
-      {
-        for (int i=0; i<s.size(); i++)
-        {
-          if (Boolean.TRUE.equals(s.get(i)))
-          {
-            port = (Integer)p.get(i);
-            break;
-          }
-        }
-      }
-    }
+    int port = getPort(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT);
     if (port != -1)
     {
-      ldapUrl = getLDAPUrl(host, port, false);
+      String host = getHostName();
+      return getLDAPUrl(host, port, false);
     }
-    return ldapUrl;
+    return null;
   }
 
   /**
@@ -341,33 +313,33 @@ public class ServerDescriptor
    */
   public String getLDAPsURL()
   {
-    String ldapsUrl = null;
-    String host = getHostName();
-    int port = -1;
+    int port = getPort(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT);
+    if (port != -1)
+    {
+      String host = getHostName();
+      return getLDAPUrl(host, port, true);
+    }
+    return null;
+  }
 
+  private int getPort(ServerProperty enabled, ServerProperty port)
+  {
     if (!serverProperties.isEmpty())
     {
-      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAPS_ENABLED);
-      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAPS_PORT);
+      List<?> s = (List<?>) serverProperties.get(enabled);
+      List<?> p = (List<?>) serverProperties.get(port);
       if (s != null)
       {
         for (int i=0; i<s.size(); i++)
         {
           if (Boolean.TRUE.equals(s.get(i)))
           {
-            port = (Integer)p.get(i);
-            break;
+            return (Integer) p.get(i);
           }
         }
       }
     }
-    if (port != -1)
-    {
-      ldapsUrl = getLDAPUrl(host, port, true);
-    }
-    return ldapsUrl;
+    return -1;
   }
 
   /**
@@ -378,33 +350,13 @@ public class ServerDescriptor
    */
   public String getAdminConnectorURL()
   {
-    String adminConnectorUrl = null;
     String host = getHostName();
-    int port = -1;
-
-    if (!serverProperties.isEmpty())
-    {
-      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
-          ServerProperty.ADMIN_ENABLED);
-      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
-          ServerProperty.ADMIN_PORT);
-      if (s != null)
-      {
-        for (int i=0; i<s.size(); i++)
-        {
-          if (Boolean.TRUE.equals(s.get(i)))
-          {
-            port = (Integer)p.get(i);
-            break;
-          }
-        }
-      }
-    }
+    int port = getPort(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT);
     if (port != -1)
     {
-      adminConnectorUrl = getLDAPUrl(host, port, true);
+      return getLDAPUrl(host, port, true);
     }
-    return adminConnectorUrl;
+    return null;
   }
 
   /**
@@ -439,42 +391,14 @@ public class ServerDescriptor
    */
   public String getHostPort(boolean securePreferred)
   {
-    String host = getHostName();
     int port = -1;
 
     if (!serverProperties.isEmpty())
     {
-      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAP_ENABLED);
-      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
-          ServerProperty.LDAP_PORT);
-      if (s != null)
-      {
-        for (int i=0; i<s.size(); i++)
-        {
-          if (Boolean.TRUE.equals(s.get(i)))
-          {
-            port = (Integer)p.get(i);
-            break;
-          }
-        }
-      }
+      port = getPort(port, ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT);
       if (securePreferred)
       {
-        s = (ArrayList<?>)serverProperties.get(
-            ServerProperty.ADMIN_ENABLED);
-        p = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_PORT);
-        if (s != null)
-        {
-          for (int i=0; i<s.size(); i++)
-          {
-            if (Boolean.TRUE.equals(s.get(i)))
-            {
-              port = (Integer)p.get(i);
-              break;
-            }
-          }
-        }
+        port = getPort(port, ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT);
       }
     }
     else
@@ -499,23 +423,7 @@ public class ServerDescriptor
         Object v = adsProperties.get(prop);
         if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
         {
-          ADSContext.ServerProperty portProp;
-          if (prop == ADSContext.ServerProperty.ADMIN_ENABLED)
-          {
-            portProp = ADSContext.ServerProperty.ADMIN_PORT;
-          }
-          else if (prop == ADSContext.ServerProperty.LDAPS_ENABLED)
-          {
-            portProp = ADSContext.ServerProperty.LDAPS_PORT;
-          }
-          else if (prop == ADSContext.ServerProperty.LDAP_ENABLED)
-          {
-            portProp = ADSContext.ServerProperty.LDAP_PORT;
-          }
-          else
-          {
-            throw new IllegalStateException("Unexpected prop: "+prop);
-          }
+          ADSContext.ServerProperty portProp = getPortProperty(prop);
           Object p = adsProperties.get(portProp);
           if (p != null)
           {
@@ -538,7 +446,46 @@ public class ServerDescriptor
         }
       }
     }
+
+    String host = getHostName();
     return host + ":" + port;
+  }
+
+  private ADSContext.ServerProperty getPortProperty(ADSContext.ServerProperty prop)
+  {
+    if (prop == ADSContext.ServerProperty.ADMIN_ENABLED)
+    {
+      return ADSContext.ServerProperty.ADMIN_PORT;
+    }
+    else if (prop == ADSContext.ServerProperty.LDAPS_ENABLED)
+    {
+      return ADSContext.ServerProperty.LDAPS_PORT;
+    }
+    else if (prop == ADSContext.ServerProperty.LDAP_ENABLED)
+    {
+      return ADSContext.ServerProperty.LDAP_PORT;
+    }
+    else
+    {
+      throw new IllegalStateException("Unexpected prop: "+prop);
+    }
+  }
+
+  private int getPort(int port, ServerProperty adminEnabled, ServerProperty adminPort)
+  {
+    List<?> s = (List<?>) serverProperties.get(adminEnabled);
+    List<?> p = (List<?>) serverProperties.get(adminPort);
+    if (s != null)
+    {
+      for (int i=0; i<s.size(); i++)
+      {
+        if (Boolean.TRUE.equals(s.get(i)))
+        {
+          return (Integer) p.get(i);
+        }
+      }
+    }
+    return port;
   }
 
   /**
@@ -670,15 +617,7 @@ public class ServerDescriptor
       ArrayList<?> p = (ArrayList<?>)serverProperties.get(sProps[i][1]);
       if (s != null)
       {
-        int port = -1;
-        for (int j=0; j<s.size(); j++)
-        {
-          if (Boolean.TRUE.equals(s.get(j)))
-          {
-            port = (Integer)p.get(j);
-            break;
-          }
-        }
+        int port = getPort(s, p);
         if (port == -1)
         {
           adsProperties.put(adsProps[i][0], "false");
@@ -707,6 +646,18 @@ public class ServerDescriptor
     adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
     adsProperties.put(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                       getInstancePublicKeyCertificate());
+  }
+
+  private int getPort(List<?> enabled, List<?> port)
+  {
+    for (int j = 0; j < enabled.size(); j++)
+    {
+      if (Boolean.TRUE.equals(enabled.get(j)))
+      {
+        return (Integer) port.get(j);
+      }
+    }
+    return -1;
   }
 
   /**
@@ -975,19 +926,7 @@ public class ServerDescriptor
           Set<ReplicaDescriptor> replicas = desc.getReplicas();
           for (String baseDn : baseDns)
           {
-            boolean addReplica = cacheFilter.searchAllBaseDNs();
-            if (!addReplica)
-            {
-              for (String dn : cacheFilter.getBaseDNsToSearch())
-              {
-                addReplica = Utils.areDnsEqual(dn, baseDn);
-                if (addReplica)
-                {
-                  break;
-                }
-              }
-            }
-            if(addReplica)
+            if (isAddReplica(cacheFilter, baseDn))
             {
               SuffixDescriptor suffix = new SuffixDescriptor();
               suffix.setDN(baseDn);
@@ -1007,7 +946,7 @@ public class ServerDescriptor
                 if (index != -1)
                 {
                   String dn = s.substring(index + 1);
-                  if (Utils.areDnsEqual(baseDn, dn))
+                  if (areDnsEqual(baseDn, dn))
                   {
                     try
                     {
@@ -1032,6 +971,23 @@ public class ServerDescriptor
     {
       databases.close();
     }
+  }
+
+  private static boolean isAddReplica(TopologyCacheFilter cacheFilter, String baseDn)
+  {
+    if (cacheFilter.searchAllBaseDNs())
+    {
+      return true;
+    }
+
+    for (String dn : cacheFilter.getBaseDNsToSearch())
+    {
+      if (areDnsEqual(dn, baseDn))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static void updateReplication(ServerDescriptor desc,
@@ -1477,28 +1433,6 @@ public class ServerDescriptor
   {
     return "schema".equalsIgnoreCase(id);
   }
-  /**
-   * Returns <CODE>true</CODE> if the the provided strings represent the same
-   * DN and <CODE>false</CODE> otherwise.
-   * @param dn1 the first dn to compare.
-   * @param dn2 the second dn to compare.
-   * @return <CODE>true</CODE> if the the provided strings represent the same
-   * DN and <CODE>false</CODE> otherwise.
-   */
-  private static boolean areDnsEqual(String dn1, String dn2)
-  {
-    boolean areDnsEqual = false;
-    try
-    {
-      LdapName name1 = new LdapName(dn1);
-      LdapName name2 = new LdapName(dn2);
-      areDnsEqual = name1.equals(name2);
-    } catch (Exception ex)
-    {
-      /* ignore */
-    }
-    return areDnsEqual;
-  }
 
   /**
    * Returns the replication server normalized String for a given host name
@@ -1508,10 +1442,9 @@ public class ServerDescriptor
    * @return the replication server normalized String for a given host name
    * and replication port.
    */
-  public static String getReplicationServer(String hostName,
-      int replicationPort)
+  public static String getReplicationServer(String hostName, int replicationPort)
   {
-    return hostName.toLowerCase() + ":" + replicationPort;
+    return getServerRepresentation(hostName, replicationPort);
   }
 
   /**
