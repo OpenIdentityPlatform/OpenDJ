@@ -502,13 +502,35 @@ $ <userinput>dsconfig \
   </section>
 
   <section xml:id="perf-entry-cache">
-   <title>Entry Cache Settings</title>
+   <title>Caching Large, Frequently Used Entries</title>
 
-   <para>OpenDJ implements an entry cache. The entry cache is not designed to
-   cache every entry in your database, but is instead useful in cases where you
-   have a few, typically large entries that are regularly used. For example, if
-   you have a few large static groups and applications that regularly check
-   group membership, you could cache your group entries.</para>
+   <para>
+    OpenDJ implements an entry cache designed for deployments
+    with a few large entries that are regularly updated or accessed.
+    The common use case is a deployment with a few large static groups
+    that are updated or accessed regularly.
+    An entry cache is used to keep such groups in memory in a format that
+    avoids the need to constantly read and deserialize the large entries.
+   </para>
+
+   <para>
+    When configuring an entry cache,
+    take care to include only the entries that need to be cached
+    by using the configuration properties
+    <literal>include-filter</literal> and <literal>exclude-filter</literal>.
+    The memory devoted to the entry cache is not available for other purposes.
+   </para>
+
+   <para>
+    The following example adds a Soft Reference entry cache
+    to hold entries that match the filter
+    <literal>(ou=Large Static Groups)</literal>.
+    A Soft Reference entry cache allows cached entries to be released
+    if the JVM is running low on memory.
+    A Soft Reference entry cache has no maximum size setting,
+    so the number of entries cached is limited only by the
+    <literal>include-filter</literal> and <literal>exclude-filter</literal> settings.
+   </para>
 
    <screen>
 $ <userinput>dsconfig \
@@ -518,15 +540,17 @@ $ <userinput>dsconfig \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --cache-name "Large Group Entry Cache" \
- --type fifo \
+ --type soft-reference \
  --set cache-level:1 \
  --set include-filter:"(ou=Large Static Groups)" \
- --set max-entries:10 \
  --set enabled:true \
  --trustAll \
  --no-prompt</userinput>
    </screen>
 
+   <para>
+    The entry cache configuration takes effect when the entry cache is enabled.
+   </para>
   </section>
 
   <section xml:id="perf-logging">
