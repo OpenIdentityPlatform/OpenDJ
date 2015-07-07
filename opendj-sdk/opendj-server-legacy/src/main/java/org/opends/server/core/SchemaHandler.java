@@ -164,7 +164,7 @@ public final class SchemaHandler
         provider.initialize(config, schemaBuilder, schemaUpdater);
       }
       else {
-        final List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        final List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         final boolean isAcceptable = provider.isConfigurationAcceptable(config, unacceptableReasons);
         if (!isAcceptable)
         {
@@ -250,7 +250,7 @@ public final class SchemaHandler
     try
     {
       final File[] schemaFiles = schemaDirectory.listFiles(new SchemaFileFilter());
-      final List<String> schemaFileNames = new ArrayList<String>(schemaFiles.length);
+      final List<String> schemaFileNames = new ArrayList<>(schemaFiles.length);
 
       for (final File f : schemaFiles)
       {

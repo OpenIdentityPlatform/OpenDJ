@@ -85,7 +85,7 @@ public class  KeyManagerProviderConfigManager
   public KeyManagerProviderConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    providers = new ConcurrentHashMap<DN,KeyManagerProvider>();
+    providers = new ConcurrentHashMap<>();
   }
 
   /**
@@ -378,7 +378,7 @@ public class  KeyManagerProviderConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

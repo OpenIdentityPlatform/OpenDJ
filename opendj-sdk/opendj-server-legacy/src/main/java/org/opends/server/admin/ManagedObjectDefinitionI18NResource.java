@@ -49,10 +49,7 @@ import java.util.ResourceBundle;
 public final class ManagedObjectDefinitionI18NResource {
 
   /** Application-wide set of instances. */
-  private static final Map<String, ManagedObjectDefinitionI18NResource>
-    INSTANCES = new HashMap<String, ManagedObjectDefinitionI18NResource>();
-
-
+  private static final Map<String, ManagedObjectDefinitionI18NResource> INSTANCES = new HashMap<>();
 
   /**
    * Gets the internationalized resource instance which can be used to
@@ -110,8 +107,7 @@ public final class ManagedObjectDefinitionI18NResource {
 
   /** Private constructor. */
   private ManagedObjectDefinitionI18NResource(String prefix) {
-    this.resources = new HashMap<AbstractManagedObjectDefinition<?, ?>,
-      Map<Locale, ResourceBundle>>();
+    this.resources = new HashMap<>();
     this.prefix = prefix;
   }
 
@@ -305,7 +301,7 @@ public final class ManagedObjectDefinitionI18NResource {
     // necessary.
     Map<Locale, ResourceBundle> map = resources.get(d);
     if (map == null) {
-      map = new HashMap<Locale, ResourceBundle>();
+      map = new HashMap<>();
       resources.put(d, map);
     }
 
@@ -332,7 +328,7 @@ public final class ManagedObjectDefinitionI18NResource {
     // necessary.
     Map<Locale, ResourceBundle> map = resources.get(d);
     if (map == null) {
-      map = new HashMap<Locale, ResourceBundle>();
+      map = new HashMap<>();
       resources.put(d, map);
     }
 

@@ -945,8 +945,8 @@ public final class AciHandler extends
   private void createApplicableList(List<Aci> candidates,
       AciTargetMatchContext targetMatchCtx)
   {
-    List<Aci> denys = new LinkedList<Aci>();
-    List<Aci> allows = new LinkedList<Aci>();
+    List<Aci> denys = new LinkedList<>();
+    List<Aci> allows = new LinkedList<>();
     for (Aci aci : candidates)
     {
       if (Aci.isApplicable(aci, targetMatchCtx))
@@ -982,7 +982,7 @@ public final class AciHandler extends
    */
   private List<AttributeType> getAllAttrs(Entry e)
   {
-    List<AttributeType> typeList = new LinkedList<AttributeType>();
+    List<AttributeType> typeList = new LinkedList<>();
     /*
      * When a search is not all attributes returned, the "objectclass"
      * attribute type is missing from the entry.
@@ -1045,7 +1045,7 @@ public final class AciHandler extends
    */
   private void processConfigAcis() throws InitializationException
   {
-    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
+    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<>();
     InternalClientConnection conn = getRootConnection();
 
     ConfigHandler<?> configBackend = DirectoryServer.getConfigHandler();

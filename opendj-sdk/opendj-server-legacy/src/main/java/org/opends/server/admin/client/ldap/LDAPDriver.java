@@ -209,7 +209,7 @@ final class LDAPDriver extends Driver {
       ManagedObjectDefinition<? extends C, ? extends S> mod =
         getEntryDefinition(d, dn);
 
-      ArrayList<String> attrIds = new ArrayList<String>();
+      ArrayList<String> attrIds = new ArrayList<>();
       for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
         String attrId = profile.getAttributeName(mod, pd);
         attrIds.add(attrId);
@@ -218,7 +218,7 @@ final class LDAPDriver extends Driver {
       Attributes attributes = connection.readEntry(dn, attrIds);
 
       // Build the managed object's properties.
-      List<PropertyException> exceptions = new LinkedList<PropertyException>();
+      List<PropertyException> exceptions = new LinkedList<>();
       PropertySet newProperties = new PropertySet();
       for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
         String attrID = profile.getAttributeName(mod, pd);
@@ -289,7 +289,7 @@ final class LDAPDriver extends Driver {
       Attribute attribute = attributes.get(attrID);
 
       // Decode the values.
-      SortedSet<PD> values = new TreeSet<PD>(pd);
+      SortedSet<PD> values = new TreeSet<>(pd);
       if (attribute != null) {
         NamingEnumeration<?> ldapValues = attribute.getAll();
         while (ldapValues.hasMore()) {
@@ -330,7 +330,7 @@ final class LDAPDriver extends Driver {
   /** {@inheritDoc} */
   @Override
   public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-    return new LDAPManagedObject<RootCfgClient>(this,
+    return new LDAPManagedObject<>(this,
         RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
         new PropertySet(), true, null);
   }
@@ -362,7 +362,7 @@ final class LDAPDriver extends Driver {
     builder.append(')');
     String filter = builder.toString();
 
-    List<String> children = new ArrayList<String>();
+    List<String> children = new ArrayList<>();
     try {
       for (LdapName child : connection.listEntries(dn, filter)) {
         children.add(child.getRdn(child.size() - 1).getValue().toString());
@@ -405,7 +405,7 @@ final class LDAPDriver extends Driver {
     builder.append(')');
     String filter = builder.toString();
 
-    List<String> children = new ArrayList<String>();
+    List<String> children = new ArrayList<>();
     try {
       for (LdapName child : connection.listEntries(dn, filter)) {
         children.add(child.getRdn(child.size() - 1).getValue().toString());
@@ -571,7 +571,7 @@ final class LDAPDriver extends Driver {
         (InstantiableRelationDefinition<?, ?>) rd;
       pd = ird.getNamingPropertyDefinition();
     }
-    return new LDAPManagedObject<M>(this, d, p.asSubType(d), properties, true, pd);
+    return new LDAPManagedObject<>(this, d, p.asSubType(d), properties, true, pd);
   }
 
 
@@ -584,7 +584,7 @@ final class LDAPDriver extends Driver {
     PropertyException exception = null;
 
     // Get the property's active values.
-    SortedSet<PD> activeValues = new TreeSet<PD>(pd);
+    SortedSet<PD> activeValues = new TreeSet<>(pd);
     if (attribute != null) {
       NamingEnumeration<?> ldapValues = attribute.getAll();
       while (ldapValues.hasMore()) {
@@ -644,7 +644,7 @@ final class LDAPDriver extends Driver {
       throw new DefinitionDecodingException(d, Reason.NO_TYPE_INFORMATION);
     }
 
-    final Set<String> objectClasses = new HashSet<String>();
+    final Set<String> objectClasses = new HashSet<>();
     NamingEnumeration<?> values = oc.getAll();
     while (values.hasMore()) {
       Object value = values.next();

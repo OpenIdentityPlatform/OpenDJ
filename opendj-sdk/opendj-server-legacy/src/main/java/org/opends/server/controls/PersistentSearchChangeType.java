@@ -159,8 +159,7 @@ public enum PersistentSearchChangeType
   public static Set<PersistentSearchChangeType> intToTypes(int intValue)
          throws LDAPException
   {
-    Set<PersistentSearchChangeType> changeTypes =
-         new HashSet<PersistentSearchChangeType>(4);
+    Set<PersistentSearchChangeType> changeTypes = new HashSet<>(4);
 
     switch (intValue)
     {

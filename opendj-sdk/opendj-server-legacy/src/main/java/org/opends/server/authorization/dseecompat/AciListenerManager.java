@@ -316,18 +316,11 @@ public class AciListenerManager implements
    */
   private final AciChangeListenerPlugin plugin;
 
-  /**
-   * The aci attribute type is operational so we need to specify it to
-   * be returned.
-   */
-  private static LinkedHashSet<String> attrs =
-      new LinkedHashSet<String>();
-
+  /** The aci attribute type is operational so we need to specify it to be returned. */
+  private static LinkedHashSet<String> attrs = new LinkedHashSet<>();
   static
   {
-    /*
-     * Set up the filter used to search private and public contexts.
-     */
+    // Set up the filter used to search private and public contexts.
     try
     {
       aciFilter = SearchFilter.createFilterFromString("(aci=*)");
@@ -408,7 +401,7 @@ public class AciListenerManager implements
       logger.warn(WARN_ACI_ATTRIBUTE_NOT_INDEXED, backend.getBackendID(), "aci");
     }
 
-    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
+    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<>();
 
     InternalClientConnection conn = getRootConnection();
     // Add manageDsaIT control so any ACIs in referral entries will be
@@ -517,15 +510,11 @@ public class AciListenerManager implements
   @Override
   public LinkedHashMap<String, String> getAlerts()
   {
-    LinkedHashMap<String, String> alerts =
-        new LinkedHashMap<String, String>();
+    LinkedHashMap<String, String> alerts = new LinkedHashMap<>();
     alerts.put(ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED,
         ALERT_DESCRIPTION_ACCESS_CONTROL_PARSE_FAILED);
     return alerts;
-
   }
-
-
 
   /**
    * Log the exception messages from the failed ACI decode and then put
@@ -536,7 +525,6 @@ public class AciListenerManager implements
    */
   public void logMsgsSetLockDownMode(LinkedList<LocalizableMessage> failedACIMsgs)
   {
-
     for (LocalizableMessage msg : failedACIMsgs)
     {
       logger.warn(WARN_ACI_SERVER_DECODE_FAILED, msg);

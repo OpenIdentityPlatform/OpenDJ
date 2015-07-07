@@ -73,7 +73,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   private ArrayList<Attribute> userDefinedAttributes;
 
   /** The set of objectclasses that will be used in monitor entries. */
-  private final HashMap<ObjectClass, String> monitorObjectClasses = new LinkedHashMap<ObjectClass, String>(2);
+  private final HashMap<ObjectClass, String> monitorObjectClasses = new LinkedHashMap<>(2);
 
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
@@ -114,7 +114,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Check to see if there is a new set of user-defined attributes.
-    final ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
+    final ArrayList<Attribute> userAttrs = new ArrayList<>();
     try
     {
       final ConfigEntry configEntry = DirectoryServer
@@ -182,7 +182,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     // Get the set of user-defined attributes for the configuration entry. Any
     // attributes that we don't recognize will be included directly in the base
     // monitor entry.
-    userDefinedAttributes = new ArrayList<Attribute>();
+    userDefinedAttributes = new ArrayList<>();
     addAll(userDefinedAttributes, configEntry.getEntry().getUserAttributes().values());
     addAll(userDefinedAttributes, configEntry.getEntry().getOperationalAttributes().values());
 
@@ -599,10 +599,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
-    final HashMap<AttributeType, List<Attribute>> monitorUserAttrs =
-        new LinkedHashMap<AttributeType, List<Attribute>>();
-    final HashMap<AttributeType, List<Attribute>> monitorOperationalAttrs =
-        new LinkedHashMap<AttributeType, List<Attribute>>();
+    final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();
+    final HashMap<AttributeType, List<Attribute>> monitorOperationalAttrs = new LinkedHashMap<>();
 
     put(monitorUserAttrs, Attributes.create(ATTR_COMMON_NAME, "monitor"));
     put(monitorUserAttrs, Attributes.create(ATTR_PRODUCT_NAME, DynamicConstants.PRODUCT_NAME));
@@ -634,7 +632,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       List<Attribute> attrs = attrsMap.get(type);
       if (attrs == null)
       {
-        attrs = new ArrayList<Attribute>();
+        attrs = new ArrayList<>();
         attrsMap.put(type, attrs);
       }
       attrs.add(a);
@@ -662,7 +660,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   private ArrayList<Attribute> toList(final Attribute attr)
   {
-    final ArrayList<Attribute> results = new ArrayList<Attribute>(1);
+    final ArrayList<Attribute> results = new ArrayList<>(1);
     results.add(attr);
     return results;
   }
@@ -679,8 +677,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_BRANCH, true);
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, OC_MONITOR_BRANCH);
 
-    final HashMap<AttributeType, List<Attribute>> monitorUserAttrs =
-        new LinkedHashMap<AttributeType, List<Attribute>>();
+    final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();
 
     final RDN rdn = dn.rdn();
     if (rdn != null)
@@ -707,10 +704,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private NavigableMap<DN, MonitorProvider<?>> getDIT()
   {
-    final NavigableMap<DN, MonitorProvider<?>> dit =
-        new TreeMap<DN, MonitorProvider<?>>();
-    for (final MonitorProvider<?> monitorProvider : DirectoryServer
-        .getMonitorProviders().values())
+    final NavigableMap<DN, MonitorProvider<?>> dit = new TreeMap<>();
+    for (final MonitorProvider<?> monitorProvider : DirectoryServer.getMonitorProviders().values())
     {
       DN dn = DirectoryServer.getMonitorProviderDN(monitorProvider);
       dit.put(dn, monitorProvider);
@@ -722,10 +717,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
         {
           break;
         }
-        else
-        {
-          dit.put(dn, null);
-        }
+        dit.put(dn, null);
       }
     }
     return dit;
@@ -784,9 +776,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, monitorOC.getPrimaryName());
 
     final List<Attribute> monitorAttrs = monitorProvider.getMonitorData();
-    final HashMap<AttributeType, List<Attribute>> attrMap =
-        new LinkedHashMap<AttributeType, List<Attribute>>(
-          monitorAttrs.size() + 1);
+    final HashMap<AttributeType, List<Attribute>> attrMap = new LinkedHashMap<>(monitorAttrs.size() + 1);
 
     // Make sure to include the RDN attribute.
     final RDN entryRDN = entryDN.rdn();
@@ -803,7 +793,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       List<Attribute> attrs = attrMap.get(type);
       if (attrs == null)
       {
-        attrs = new ArrayList<Attribute>();
+        attrs = new ArrayList<>();
         attrMap.put(type, attrs);
       }
       attrs.add(a);
@@ -814,8 +804,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   private HashMap<ObjectClass, String> newObjectClasses(ObjectClass objectClass, String objectClassName)
   {
-    final HashMap<ObjectClass, String> monitorClasses =
-        new LinkedHashMap<ObjectClass, String>(monitorObjectClasses.size() + 1);
+    final HashMap<ObjectClass, String> monitorClasses = new LinkedHashMap<>(monitorObjectClasses.size() + 1);
     monitorClasses.putAll(monitorObjectClasses);
     monitorClasses.put(objectClass, objectClassName);
     return monitorClasses;

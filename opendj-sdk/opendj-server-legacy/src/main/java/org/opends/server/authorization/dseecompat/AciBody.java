@@ -178,8 +178,7 @@ public class AciBody {
     throws AciException {
         String version=null, name=null;
         int startPos=0;
-        List<PermBindRulePair> permBindRulePairs=
-                new ArrayList<PermBindRulePair>();
+        List<PermBindRulePair> permBindRulePairs = new ArrayList<>();
         Pattern bodyPattern = Pattern.compile(header);
         Matcher bodyMatcher = bodyPattern.matcher(input);
         if(bodyMatcher.find()) {

@@ -101,17 +101,10 @@ public class LoggerConfigManager implements
     root.addLogPublisherAddListener(this);
     root.addLogPublisherDeleteListener(this);
 
-    List<DebugLogPublisherCfg> debugPublisherCfgs =
-        new ArrayList<DebugLogPublisherCfg>();
-
-    List<AccessLogPublisherCfg> accessPublisherCfgs =
-        new ArrayList<AccessLogPublisherCfg>();
-
-    List<HTTPAccessLogPublisherCfg> httpAccessPublisherCfgs =
-        new ArrayList<HTTPAccessLogPublisherCfg>();
-
-    List<ErrorLogPublisherCfg> errorPublisherCfgs =
-        new ArrayList<ErrorLogPublisherCfg>();
+    List<DebugLogPublisherCfg> debugPublisherCfgs = new ArrayList<>();
+    List<AccessLogPublisherCfg> accessPublisherCfgs = new ArrayList<>();
+    List<HTTPAccessLogPublisherCfg> httpAccessPublisherCfgs = new ArrayList<>();
+    List<ErrorLogPublisherCfg> errorPublisherCfgs = new ArrayList<>();
 
     for (String name : root.listLogPublishers())
     {

@@ -106,7 +106,7 @@ final class ImportLDIFReader extends LDIFReader
           return null;
         }
         lastEntryBodyLines = lines;
-        lastEntryHeaderLines = new LinkedList<StringBuilder>();
+        lastEntryHeaderLines = new LinkedList<>();
 
         // Read the DN of the entry and see if it is one that should be included
         // in the import.
@@ -168,11 +168,9 @@ final class ImportLDIFReader extends LDIFReader
   private Entry createEntry(List<StringBuilder> lines, DN entryDN, boolean checkSchema, Suffix suffix)
   {
     // Read the set of attributes from the entry.
-    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
-    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders =
-        new HashMap<AttributeType, List<AttributeBuilder>>();
-    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
-        new HashMap<AttributeType, List<AttributeBuilder>>();
+    Map<ObjectClass, String> objectClasses = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders = new HashMap<>();
     try
     {
       for (StringBuilder line : lines)

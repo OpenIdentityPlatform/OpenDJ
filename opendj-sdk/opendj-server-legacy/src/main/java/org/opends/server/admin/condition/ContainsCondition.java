@@ -179,7 +179,7 @@ public final class ContainsCondition implements Condition {
   private <T> void buildImpl(PropertyDefinition<T> pd)
       throws PropertyException {
     T value = pd.decodeValue(propertyStringValue);
-    this.impl = new Impl<T>(pd, value);
+    this.impl = new Impl<>(pd, value);
   }
 
   /**

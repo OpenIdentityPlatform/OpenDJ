@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -39,7 +39,7 @@ public class ExtOp {
   /**
    * HashSet of OID strings parsed from the decode.
    */
-  private Set<String> extOpOIDs = new HashSet<String>();
+  private Set<String> extOpOIDs = new HashSet<>();
 
   /**
    * Enumeration representing the extop operator.

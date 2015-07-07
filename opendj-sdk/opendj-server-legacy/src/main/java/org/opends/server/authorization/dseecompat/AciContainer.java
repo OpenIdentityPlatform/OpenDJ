@@ -161,7 +161,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * Table of ACIs that have targattrfilter keywords that matched. Used
      * in geteffectiverights attributeLevel write evaluation.
      */
-    private final HashMap<Aci,Aci> targAttrFilterAcis=new HashMap<Aci, Aci>();
+    private final HashMap<Aci,Aci> targAttrFilterAcis = new HashMap<>();
 
     /**
      * The name of a ACI that decided an evaluation and contained a

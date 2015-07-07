@@ -134,7 +134,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   /**
    * The controls supported by this backend.
    */
-  private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
+  private static final Set<String> supportedControls = new HashSet<>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
@@ -1018,7 +1018,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         try
         {
           List<Path> allFiles = BackupManager.getFiles(rootDirectory, new JELogFileFilter(), backendID);
-          List<Path> compare = new ArrayList<Path>(files);
+          List<Path> compare = new ArrayList<>(files);
           compare.removeAll(allFiles);
           if (!compare.isEmpty())
           {
@@ -1369,7 +1369,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
             ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);

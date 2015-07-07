@@ -126,13 +126,10 @@ public enum PasswordPolicyErrorType
 
 
   /** A lookup table for resolving an error type from its integer value. */
-  private static final Map<Integer, PasswordPolicyErrorType> TABLE;
+  private static final Map<Integer, PasswordPolicyErrorType> TABLE = new HashMap<>();
   static
   {
-    TABLE = new HashMap<Integer, PasswordPolicyErrorType>();
-
-    for (PasswordPolicyErrorType type : PasswordPolicyErrorType
-        .values())
+    for (PasswordPolicyErrorType type : PasswordPolicyErrorType.values())
     {
       TABLE.put(type.value, type);
       TABLE.put(type.value, type);

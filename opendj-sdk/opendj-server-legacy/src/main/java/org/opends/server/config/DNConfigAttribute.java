@@ -89,7 +89,7 @@ public final class DNConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction);
 
 
-    activeValues  = new ArrayList<DN>();
+    activeValues  = new ArrayList<>();
     pendingValues = activeValues;
   }
 
@@ -121,11 +121,11 @@ public final class DNConfigAttribute
 
     if (value == null)
     {
-      activeValues = new ArrayList<DN>();
+      activeValues = new ArrayList<>();
     }
     else
     {
-      activeValues = new ArrayList<DN>(1);
+      activeValues = new ArrayList<>(1);
       activeValues.add(value);
     }
 
@@ -194,7 +194,7 @@ public final class DNConfigAttribute
 
     if (activeValues == null)
     {
-      this.activeValues = new ArrayList<DN>();
+      this.activeValues = new ArrayList<>();
     }
     else
     {
@@ -354,7 +354,7 @@ public final class DNConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<DN>(1);
+      pendingValues = new ArrayList<>(1);
       pendingValues.add(value);
       setPendingValues(getValueSet(value));
     }
@@ -393,7 +393,7 @@ public final class DNConfigAttribute
         if (requiresAdminAction())
         {
           setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<DN>();
+          pendingValues = new ArrayList<>();
         }
         else
         {
@@ -416,7 +416,7 @@ public final class DNConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (DN value : values)
     {
       if (value == null)
@@ -465,11 +465,11 @@ public final class DNConfigAttribute
     LinkedHashSet<ByteString> valueSet;
     if (value == null)
     {
-      valueSet = new LinkedHashSet<ByteString>(0);
+      valueSet = new LinkedHashSet<>(0);
     }
     else
     {
-      valueSet = new LinkedHashSet<ByteString>(1);
+      valueSet = new LinkedHashSet<>(1);
       valueSet.add(ByteString.valueOf(value.toString()));
     }
     return valueSet;
@@ -491,7 +491,7 @@ public final class DNConfigAttribute
       return null;
     }
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (DN value : values)
     {
       valueSet.add(ByteString.valueOf(value.toString()));
@@ -591,7 +591,7 @@ public final class DNConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<ByteString>();
+        return new LinkedHashSet<>();
       }
     }
 
@@ -605,7 +605,7 @@ public final class DNConfigAttribute
     }
 
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
       if (valueString == null)
@@ -676,7 +676,7 @@ public final class DNConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    ArrayList<String> valueStrings = new ArrayList<String>(activeValues.size());
+    ArrayList<String> valueStrings = new ArrayList<>(activeValues.size());
     for (DN dn : activeValues)
     {
       valueStrings.add(dn.toString());
@@ -702,13 +702,11 @@ public final class DNConfigAttribute
   {
     if (hasPendingValues())
     {
-      ArrayList<String> valueStrings =
-           new ArrayList<String>(pendingValues.size());
+      ArrayList<String> valueStrings = new ArrayList<>(pendingValues.size());
       for (DN dn : pendingValues)
       {
         valueStrings.add(dn.toString());
       }
-
       return valueStrings;
     }
     else
@@ -773,7 +771,7 @@ public final class DNConfigAttribute
             else
             {
               // This is fine.  The pending value set can be empty.
-              pendingValues = new ArrayList<DN>(0);
+              pendingValues = new ArrayList<>(0);
             }
           }
           else
@@ -787,7 +785,7 @@ public final class DNConfigAttribute
               throw new ConfigException(message);
             }
 
-            pendingValues = new ArrayList<DN>(numValues);
+            pendingValues = new ArrayList<>(numValues);
             for (ByteString v : a)
             {
               DN dn;
@@ -838,7 +836,7 @@ public final class DNConfigAttribute
           else
           {
             // This is fine.  The active value set can be empty.
-            activeValues = new ArrayList<DN>(0);
+            activeValues = new ArrayList<>(0);
           }
         }
         else
@@ -852,7 +850,7 @@ public final class DNConfigAttribute
             throw new ConfigException(message);
           }
 
-          activeValues = new ArrayList<DN>(numValues);
+          activeValues = new ArrayList<>(numValues);
           for (ByteString v : a)
           {
             DN dn;
@@ -1167,7 +1165,7 @@ public final class DNConfigAttribute
 
       if (componentType.equals(DN.class.getName()))
       {
-        ArrayList<DN> dnList = new ArrayList<DN>(length);
+        ArrayList<DN> dnList = new ArrayList<>(length);
         for (int i=0; i < length; i++)
         {
           dnList.add((DN) Array.get(value, i));
@@ -1179,7 +1177,7 @@ public final class DNConfigAttribute
       {
         try
         {
-          ArrayList<DN> values = new ArrayList<DN>(length);
+          ArrayList<DN> values = new ArrayList<>(length);
           for (int i=0; i < length; i++)
           {
             String valueStr = (String) Array.get(value, i);

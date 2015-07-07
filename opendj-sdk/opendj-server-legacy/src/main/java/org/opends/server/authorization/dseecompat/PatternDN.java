@@ -294,8 +294,8 @@ public class PatternDN
   public static PatternDN decode(String dnString)
          throws DirectoryException
   {
-    ArrayList<PatternRDN> rdnComponents = new ArrayList<PatternRDN>();
-    ArrayList<Integer> doubleWildPos = new ArrayList<Integer>();
+    ArrayList<PatternRDN> rdnComponents = new ArrayList<>();
+    ArrayList<Integer> doubleWildPos = new ArrayList<>();
 
     // A null or empty DN is acceptable.
     if (dnString == null)
@@ -442,7 +442,7 @@ public class PatternDN
       // RDN component and return the DN.
       if (pos >= length)
       {
-        ArrayList<ByteString> arrayList = new ArrayList<ByteString>(1);
+        ArrayList<ByteString> arrayList = new ArrayList<>(1);
         arrayList.add(ByteString.empty());
         rdnComponents.add(new PatternRDN(name, arrayList, dnString));
         break;
@@ -450,7 +450,7 @@ public class PatternDN
 
 
       // Parse the value for this RDN component.
-      ArrayList<ByteString> parsedValue = new ArrayList<ByteString>();
+      ArrayList<ByteString> parsedValue = new ArrayList<>();
       pos = parseValuePattern(dnString, pos, parsedValue);
 
 
@@ -575,7 +575,7 @@ public class PatternDN
         // the RDN component and return the DN.
         if (pos >= length)
         {
-          ArrayList<ByteString> arrayList = new ArrayList<ByteString>(1);
+          ArrayList<ByteString> arrayList = new ArrayList<>(1);
           arrayList.add(ByteString.empty());
           rdn.addValue(name, arrayList, dnString);
           rdnComponents.add(rdn);
@@ -584,7 +584,7 @@ public class PatternDN
 
 
         // Parse the value for this RDN component.
-        parsedValue = new ArrayList<ByteString>();
+        parsedValue = new ArrayList<>();
         pos = parseValuePattern(dnString, pos, parsedValue);
 
 
@@ -641,7 +641,7 @@ public class PatternDN
     {
       PatternRDN[] subInitial = null;
       PatternRDN[] subFinal = null;
-      List<PatternRDN[]> subAnyElements = new ArrayList<PatternRDN[]>();
+      List<PatternRDN[]> subAnyElements = new ArrayList<>();
 
       int i = 0;
       int numComponents = rdnComponents.size();

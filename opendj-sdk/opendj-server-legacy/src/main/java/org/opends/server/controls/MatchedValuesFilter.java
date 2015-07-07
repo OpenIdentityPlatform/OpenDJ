@@ -763,7 +763,7 @@ public class MatchedValuesFilter
           {
             if(subAny == null)
             {
-              subAny = new ArrayList<ByteString>();
+              subAny = new ArrayList<>();
             }
             subAny.add(reader.readOctetString());
           }

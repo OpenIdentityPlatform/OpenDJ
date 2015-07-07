@@ -94,14 +94,12 @@ public class ExportJob
        throws IOException, LDIFException, DatabaseException, JebException
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
-    DN baseDN;
-    ArrayList<EntryContainer> exportContainers =
-        new ArrayList<EntryContainer>();
+    ArrayList<EntryContainer> exportContainers = new ArrayList<>();
 
     for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {
       // Skip containers that are not covered by the include branches.
-      baseDN = entryContainer.getBaseDN();
+      DN baseDN = entryContainer.getBaseDN();
 
       if (includeBranches == null || includeBranches.isEmpty())
       {

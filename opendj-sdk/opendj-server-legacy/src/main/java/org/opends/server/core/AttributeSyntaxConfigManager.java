@@ -85,7 +85,7 @@ public class AttributeSyntaxConfigManager
   public AttributeSyntaxConfigManager(final ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    syntaxes = new ConcurrentHashMap<DN,AttributeSyntax>();
+    syntaxes = new ConcurrentHashMap<>();
   }
 
 
@@ -441,7 +441,7 @@ public class AttributeSyntaxConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!syntax.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

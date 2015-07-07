@@ -300,32 +300,27 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     generateInstanceCertificateIfAbsent();
 
     // Construct the trust store base entry.
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>(2);
+    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass branchOC =
          DirectoryServer.getObjectClass("ds-cfg-branch", true);
     objectClasses.put(branchOC, "ds-cfg-branch");
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(0);
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(1);
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
 
     RDN rdn = baseDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType attrType = rdn.getAttributeType(i);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(Attributes.create(attrType, rdn.getAttributeValue(i)));
       userAttrs.put(attrType, attrList);
     }
 
-    baseEntry = new Entry(baseDN, objectClasses, userAttrs,
-                                opAttrs);
-
+    baseEntry = new Entry(baseDN, objectClasses, userAttrs, opAttrs);
 
     // Register this as a change listener.
     configuration.addTrustStoreChangeListener(this);
@@ -481,38 +476,36 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
 
     // Construct the certificate entry to return.
-    LinkedHashMap<ObjectClass,String> ocMap =
-        new LinkedHashMap<ObjectClass,String>(2);
+    LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass objectClass =
          DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY, true);
     ocMap.put(objectClass, OC_CRYPTO_INSTANCE_KEY);
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(0);
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(3);
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
+
+    userAttrs.put(t, asList(Attributes.create(t, v)));
 
 
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(t, v));
-    userAttrs.put(t, attrList);
-
-
-    t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE,
-        true);
+    t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
     builder.add(certValue);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-    userAttrs.put(t, attrList);
+    userAttrs.put(t, asList(builder.toAttribute()));
 
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
     return e;
+  }
+
+  private ArrayList<Attribute> asList(Attribute create)
+  {
+    ArrayList<Attribute> attrList = new ArrayList<>(1);
+    attrList.add(create);
+    return attrList;
   }
 
   /** {@inheritDoc} */

@@ -183,7 +183,7 @@ public final class LDAPProfile {
   }
 
   /** The list of profile wrappers. */
-  private final LinkedList<Wrapper> profiles = new LinkedList<Wrapper>();;
+  private final LinkedList<Wrapper> profiles = new LinkedList<>();;
 
   /** The LDAP profile property table. */
   private final ManagedObjectDefinitionResource resource =
@@ -349,8 +349,8 @@ public final class LDAPProfile {
    */
   public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d)
       throws MissingResourceException {
-    LinkedList<String> objectClasses = new LinkedList<String>();
-    Set<String> s = new HashSet<String>();
+    LinkedList<String> objectClasses = new LinkedList<>();
+    Set<String> s = new HashSet<>();
 
     // Add the object classes from the parent hierarchy.
     while (d != null) {
@@ -372,11 +372,11 @@ public final class LDAPProfile {
 
 
   /**
-   * Get an LDAP RDN sequence associatied with a relation.
+   * Get an LDAP RDN sequence associated with a relation.
    *
    * @param r
    *          The relation.
-   * @return Returns the LDAP RDN sequence associatied with a
+   * @return Returns the LDAP RDN sequence associated with a
    *         relation.
    * @throws MissingResourceException
    *           If the LDAP profile properties file associated with the

@@ -418,7 +418,7 @@ public class AttributeIndex
     // Sorting the keys will ensure database record locks are acquired
     // in a consistent order and help prevent transaction deadlocks between
     // concurrent writers.
-    Set<ByteString> set = new HashSet<ByteString>();
+    Set<ByteString> set = new HashSet<>();
 
     int substrLength = indexConfig.getSubstringLength();
 

@@ -246,7 +246,7 @@ public class AciEffectiveRights {
     // Check if the attributes aclRights and aclRightsInfo were requested and
     // add attributes less those two attributes to a new list of attribute
     // types.
-    List<AttributeType> nonRightsAttrs = new LinkedList<AttributeType>();
+    List<AttributeType> nonRightsAttrs = new LinkedList<>();
     int attrMask = ACI_NULL;
     for (String a : searchAttributes)
     {

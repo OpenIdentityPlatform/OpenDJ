@@ -110,7 +110,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /** Indicates if the password attribute uses auth password syntax. */
   private final Boolean pAuthPasswordSyntax;
   /** The set of password validators if any. */
-  private final Set<DN> pValidatorNames = new HashSet<DN>();
+  private final Set<DN> pValidatorNames = new HashSet<>();
   /** Used when logging errors due to invalid validator reference. */
   private AtomicBoolean isAlreadyLogged = new AtomicBoolean();
 
@@ -654,11 +654,9 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   {
     if (!pValidatorNames.isEmpty())
     {
-      Collection<PasswordValidator<?>> values =
-          new HashSet<PasswordValidator<?>>();
+      Collection<PasswordValidator<?>> values = new HashSet<>();
       for (DN validatorDN : pValidatorNames){
-        PasswordValidator<?> validator = DirectoryServer
-            .getPasswordValidator(validatorDN);
+        PasswordValidator<?> validator = DirectoryServer.getPasswordValidator(validatorDN);
         if (validator == null) {
           PasswordValidator<?> errorValidator = new RejectPasswordValidator(
               validatorDN.toString(), passwordPolicySubentryDN.toString());

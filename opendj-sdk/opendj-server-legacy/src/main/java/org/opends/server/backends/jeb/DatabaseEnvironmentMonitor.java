@@ -90,21 +90,15 @@ final class DatabaseEnvironmentMonitor
     }
   }
 
-  /**
-   * The name of this monitor instance.
-   */
+  /** The name of this monitor instance. */
   private String name;
-
-  /**
-   * The root container to be monitored.
-   */
+  /** The root container to be monitored. */
   private RootContainer rootContainer;
 
   private int maxEntries = 1024;
   private boolean filterUseEnabled;
   private String startTimeStamp;
-  private final HashMap<SearchFilter, FilterStats> filterToStats =
-      new HashMap<SearchFilter, FilterStats>();
+  private final HashMap<SearchFilter, FilterStats> filterToStats = new HashMap<>();
   private final AtomicInteger indexedSearchCount = new AtomicInteger();
   private final AtomicInteger unindexedSearchCount = new AtomicInteger();
 
@@ -119,8 +113,6 @@ final class DatabaseEnvironmentMonitor
     this.name = name;
     this.rootContainer = rootContainer;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -221,7 +213,7 @@ final class DatabaseEnvironmentMonitor
       return Collections.emptyList();
     }
 
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
     String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
     AttributeType versionType =
          DirectoryServer.getDefaultAttributeType("JEVersion");
@@ -233,7 +225,7 @@ final class DatabaseEnvironmentMonitor
     AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
     for(EntryContainer ec : rootContainer.getEntryContainers())
     {
-      List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+      List<DatabaseContainer> databases = new ArrayList<>();
       ec.listDatabases(databases);
       for(DatabaseContainer dc : databases)
       {

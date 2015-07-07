@@ -98,7 +98,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
   public static JNDIDirContextAdaptor simpleBind(String host, int port,
       String name, String password) throws CommunicationException,
       AuthenticationNotSupportedException, AuthenticationException {
-    Hashtable<String, Object> env = new Hashtable<String, Object>();
+    Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     String hostname = getHostNameForLdapUrl(host);
     env.put(Context.PROVIDER_URL, "ldap://" + hostname + ":" + port);
@@ -132,7 +132,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
   public static JNDIDirContextAdaptor simpleSSLBind(String host, int port,
       String name, String password) throws CommunicationException,
       AuthenticationNotSupportedException, AuthenticationException {
-    Hashtable<String, Object> env = new Hashtable<String, Object>();
+    Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     String hostname = getHostNameForLdapUrl(host);
     env.put(Context.PROVIDER_URL, "ldaps://" + hostname + ":" + port);
@@ -238,9 +238,8 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
-    List<LdapName> children = new LinkedList<LdapName>();
-    NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
-        controls);
+    List<LdapName> children = new LinkedList<>();
+    NamingEnumeration<SearchResult> results = dirContext.search(dn, filter, controls);
     try
     {
       while (results.hasMore()) {

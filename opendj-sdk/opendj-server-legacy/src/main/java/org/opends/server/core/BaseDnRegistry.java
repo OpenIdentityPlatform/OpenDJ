@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -47,13 +47,11 @@ import static org.opends.messages.CoreMessages.*;
 public class BaseDnRegistry {
 
   /** The set of base DNs registered with the server. */
-  private final TreeMap<DN, Backend> baseDNs = new TreeMap<DN, Backend>();
-
+  private final TreeMap<DN, Backend> baseDNs = new TreeMap<>();
   /** The set of private naming contexts registered with the server. */
-  private final TreeMap<DN, Backend> privateNamingContexts = new TreeMap<DN, Backend>();
-
+  private final TreeMap<DN, Backend> privateNamingContexts = new TreeMap<>();
   /** The set of public naming contexts registered with the server. */
-  private final TreeMap<DN, Backend> publicNamingContexts = new TreeMap<DN, Backend>();
+  private final TreeMap<DN, Backend> publicNamingContexts = new TreeMap<>();
 
   /**
    * Indicates whether or not this base DN registry is in test mode.
@@ -89,7 +87,7 @@ public class BaseDnRegistry {
     // Check to see if the backend is already registered with the server for
     // any other base DN(s).  The new base DN must not have any hierarchical
     // relationship with any other base Dns for the same backend.
-    LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
+    LinkedList<DN> otherBaseDNs = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
     {
       Backend<?> b = baseDNs.get(dn);
@@ -121,8 +119,8 @@ public class BaseDnRegistry {
 
     // Check to see if the new base DN should be the superior base DN for any
     // other base DN(s) already defined.
-    LinkedList<Backend<?>> subordinateBackends = new LinkedList<Backend<?>>();
-    LinkedList<DN>      subordinateBaseDNs  = new LinkedList<DN>();
+    LinkedList<Backend<?>> subordinateBackends = new LinkedList<>();
+    LinkedList<DN>      subordinateBaseDNs  = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
     {
       Backend<?> b = baseDNs.get(dn);
@@ -147,7 +145,7 @@ public class BaseDnRegistry {
 
     // If we've gotten here, then the new base DN is acceptable.  If we should
     // actually apply the changes then do so now.
-    final List<LocalizableMessage> errors = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> errors = new LinkedList<>();
 
     // Check to see if any of the registered backends already contain an
     // entry with the DN specified as the base DN.  This could happen if
@@ -269,7 +267,7 @@ public class BaseDnRegistry {
     // Check to see if the backend has a parent backend, and whether it has
     // any subordinates with base DNs that are below the base DN to remove.
     Backend<?>             superiorBackend     = backend.getParentBackend();
-    LinkedList<Backend<?>> subordinateBackends = new LinkedList<Backend<?>>();
+    LinkedList<Backend<?>> subordinateBackends = new LinkedList<>();
     if (backend.getSubordinateBackends() != null)
     {
       for (Backend<?> b : backend.getSubordinateBackends())
@@ -287,7 +285,7 @@ public class BaseDnRegistry {
 
 
     // See if there are any other base DNs registered within the same backend.
-    LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
+    LinkedList<DN> otherBaseDNs = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
     {
       if (dn.equals(baseDN))
@@ -311,7 +309,7 @@ public class BaseDnRegistry {
     publicNamingContexts.remove(baseDN);
     privateNamingContexts.remove(baseDN);
 
-    final LinkedList<LocalizableMessage> errors = new LinkedList<LocalizableMessage>();
+    final LinkedList<LocalizableMessage> errors = new LinkedList<>();
     if (superiorBackend == null)
     {
       // If there were any subordinate backends, then all of their base DNs

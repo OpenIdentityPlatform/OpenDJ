@@ -215,7 +215,7 @@ public final class JECompressedSchema extends CompressedSchema
         final byte[] encodedObjectClasses = keyEntry.getData();
         final ASN1Reader reader = ASN1.getReader(valueEntry.getData());
         reader.readStartSequence();
-        final List<String> objectClassNames = new LinkedList<String>();
+        final List<String> objectClassNames = new LinkedList<>();
         while (reader.hasNextElement())
         {
           objectClassNames.add(reader.readOctetStringAsString());
@@ -250,7 +250,7 @@ public final class JECompressedSchema extends CompressedSchema
         final ASN1Reader reader = ASN1.getReader(valueEntry.getData());
         reader.readStartSequence();
         final String attributeName = reader.readOctetStringAsString();
-        final List<String> attributeOptions = new LinkedList<String>();
+        final List<String> attributeOptions = new LinkedList<>();
         while (reader.hasNextElement())
         {
           attributeOptions.add(reader.readOctetStringAsString());

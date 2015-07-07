@@ -80,9 +80,7 @@ public final class InstantiableRelationDefinition
      * The optional default managed objects associated with this
      * instantiable relation definition.
      */
-    private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
-      defaultManagedObjects = new HashMap<String,
-        DefaultManagedObject<? extends C, ? extends S>>();
+    private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects = new HashMap<>();
 
 
     /**
@@ -143,7 +141,7 @@ public final class InstantiableRelationDefinition
     @Override
     protected InstantiableRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
-      return new InstantiableRelationDefinition<C, S>(common, pluralName,
+      return new InstantiableRelationDefinition<>(common, pluralName,
           namingPropertyDefinition, defaultManagedObjects);
     }
 

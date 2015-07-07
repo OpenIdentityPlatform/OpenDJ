@@ -233,7 +233,7 @@ public final class BooleanConfigAttribute
    */
   private static LinkedHashSet<ByteString> getValueSet(boolean booleanValue)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
     valueSet.add(ByteString.valueOf(
         booleanValue ? CONFIG_VALUE_TRUE : CONFIG_VALUE_FALSE));
     return valueSet;
@@ -357,41 +357,35 @@ public final class BooleanConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    ArrayList<String> valueStrings = new ArrayList<String>(1);
-    valueStrings.add(String.valueOf(activeValue));
-
-    return valueStrings;
+    return asList(String.valueOf(activeValue));
   }
-
-
 
   /**
    * Converts the set of pending values for this configuration attribute into a
    * set of strings that may be stored in the configuration or represented over
    * protocol.  The string representation used by this method should be
-   * compatible with the decoding used by the <CODE>stringsToValues</CODE>
+   * compatible with the decoding used by the {@link #stringsToValues(List, boolean)}
    * method.
    *
    * @return  The string representations of the set of pending values for this
-   *          configuration attribute, or <CODE>null</CODE> if there are no
+   *          configuration attribute, or {@code null} if there are no
    *          pending values.
    */
   public List<String> pendingValuesToStrings()
   {
     if (hasPendingValues())
     {
-      ArrayList<String> valueStrings = new ArrayList<String>(1);
-      valueStrings.add(String.valueOf(pendingValue));
-
-      return valueStrings;
+      return asList(String.valueOf(pendingValue));
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
-
+  private List<String> asList(String s)
+  {
+    ArrayList<String> result = new ArrayList<>(1);
+    result.add(s);
+    return result;
+  }
 
   /**
    * Retrieves a new configuration attribute of this type that will contain the

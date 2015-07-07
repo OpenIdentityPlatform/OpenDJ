@@ -83,7 +83,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public ConnectionHandlerConfigManager(ServerContext serverContext) {
     this.serverContext = serverContext;
-    connectionHandlers = new ConcurrentHashMap<DN, ConnectionHandler<?>>();
+    connectionHandlers = new ConcurrentHashMap<>();
   }
 
   /** {@inheritDoc} */

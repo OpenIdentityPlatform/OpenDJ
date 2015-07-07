@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -132,7 +132,7 @@ public class ModifyDNOperationBasis
     entryDN          = null;
     newRDN           = null;
     newSuperior      = null;
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
     modifications    = null;
   }
@@ -181,7 +181,7 @@ public class ModifyDNOperationBasis
       rawNewSuperior = ByteString.valueOf(newSuperior.toString());
     }
 
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
     modifications    = null;
   }
@@ -332,7 +332,7 @@ public class ModifyDNOperationBasis
   {
     if (modifications == null)
     {
-      modifications = new ArrayList<Modification>();
+      modifications = new ArrayList<>();
     }
     if (modification != null)
     {

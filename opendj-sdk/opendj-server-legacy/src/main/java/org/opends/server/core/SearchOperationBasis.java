@@ -159,7 +159,7 @@ public class SearchOperationBasis
   private Set<String> attributes;
 
   /** The set of response controls for this search operation. */
-  private final List<Control> responseControls = new ArrayList<Control>();
+  private final List<Control> responseControls = new ArrayList<>();
 
   /** The time that the search time limit has expired. */
   private long timeLimitExpiration;
@@ -545,7 +545,7 @@ public class SearchOperationBasis
     {
       if (controls == null)
       {
-        controls = new ArrayList<Control>(1);
+        controls = new ArrayList<>(1);
       }
 
       try
@@ -642,8 +642,7 @@ public class SearchOperationBasis
       {
         AttributeType t = e.getKey();
         List<Attribute> oldAttributes = e.getValue();
-        List<Attribute> newAttributes =
-            new ArrayList<Attribute>(oldAttributes.size());
+        List<Attribute> newAttributes = new ArrayList<>(oldAttributes.size());
 
         for (Attribute a : oldAttributes)
         {
@@ -669,8 +668,7 @@ public class SearchOperationBasis
       {
         AttributeType t = e.getKey();
         List<Attribute> oldAttributes = e.getValue();
-        List<Attribute> newAttributes =
-            new ArrayList<Attribute>(oldAttributes.size());
+        List<Attribute> newAttributes = new ArrayList<>(oldAttributes.size());
 
         for (Attribute a : oldAttributes)
         {

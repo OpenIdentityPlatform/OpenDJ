@@ -175,7 +175,7 @@ public class DirectoryThread extends Thread
 
   /** The current logical thread's state. */
   private volatile AtomicReference<ThreadState> threadState =
-      new AtomicReference<ThreadState>(ThreadState.IDLE);
+      new AtomicReference<>(ThreadState.IDLE);
 
   /**
    * A thread group for all directory threads. This implements a
@@ -184,15 +184,12 @@ public class DirectoryThread extends Thread
   private static class DirectoryThreadGroup extends ThreadGroup
       implements AlertGenerator
   {
-    private final LinkedHashMap<String,String> alerts;
+    private final LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
 
-    /**
-     * Private constructor for DirectoryThreadGroup.
-     */
+    /** Private constructor for DirectoryThreadGroup. */
     private DirectoryThreadGroup()
     {
       super("Directory Server Thread Group");
-      alerts = new LinkedHashMap<String,String>();
       alerts.put(ALERT_TYPE_UNCAUGHT_EXCEPTION,
           ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
     }
@@ -362,7 +359,7 @@ public class DirectoryThread extends Thread
    */
   public Map<String, String> getDebugProperties()
   {
-    Map<String, String> properties = new LinkedHashMap<String, String>();
+    Map<String, String> properties = new LinkedHashMap<>();
 
     properties.put("parentThread", parentThread.getName() +
         "(" + parentThread.getId() + ")");

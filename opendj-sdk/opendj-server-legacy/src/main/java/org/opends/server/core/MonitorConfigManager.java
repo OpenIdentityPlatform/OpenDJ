@@ -81,7 +81,7 @@ public class MonitorConfigManager
   public MonitorConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    monitors = new ConcurrentHashMap<DN,MonitorProvider<?>>();
+    monitors = new ConcurrentHashMap<>();
   }
 
   /**

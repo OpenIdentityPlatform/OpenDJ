@@ -109,7 +109,7 @@ public class PatternRDN
 
     numValues = 1;
     typePatterns = new String[] { type };
-    valuePatterns = new ArrayList<ArrayList<ByteString>>(1);
+    valuePatterns = new ArrayList<>(1);
     valuePatterns.add(valuePattern);
   }
 
@@ -210,9 +210,8 @@ public class PatternRDN
     }
 
     // Sort the attribute-value pairs by attribute type.
-    TreeMap<String,ArrayList<ByteString>> patternMap =
-         new TreeMap<String, ArrayList<ByteString>>();
-    TreeMap<String, ByteString> rdnMap = new TreeMap<String, ByteString>();
+    TreeMap<String,ArrayList<ByteString>> patternMap = new TreeMap<>();
+    TreeMap<String, ByteString> rdnMap = new TreeMap<>();
 
     for (int i = 0; i < rdn.getNumValues(); i++)
     {

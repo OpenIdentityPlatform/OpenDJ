@@ -208,7 +208,7 @@ public class ConfigGuideGeneration {
         TreeMap<String, RelationDefinition> catMap =
           catTopRelList.get(tag.getName());
         if (catMap == null) {
-          catMap = new TreeMap<String, RelationDefinition>();
+          catMap = new TreeMap<>();
           catTopRelList.put(tag.getName(), catMap);
         }
         catMap.put(mo.getName(), rel);
@@ -222,7 +222,7 @@ public class ConfigGuideGeneration {
         TreeMap<String, AbstractManagedObjectDefinition> catMap =
           catTopMoList.get(tag.getName());
         if (catMap == null) {
-          catMap = new TreeMap<String, AbstractManagedObjectDefinition>();
+          catMap = new TreeMap<>();
           catTopMoList.put(tag.getName(), catMap);
         }
         catMap.put(topObject.getName(), topObject);
@@ -472,10 +472,8 @@ public class ConfigGuideGeneration {
     paragraph("A description of each property follows.");
     newline();
 
-    TreeMap<String, PropertyDefinition> basicProps =
-      new TreeMap<String, PropertyDefinition>();
-    TreeMap<String, PropertyDefinition> advancedProps =
-      new TreeMap<String, PropertyDefinition>();
+    TreeMap<String, PropertyDefinition> basicProps = new TreeMap<>();
+    TreeMap<String, PropertyDefinition> advancedProps = new TreeMap<>();
     // Properties actually defined in this managed object
     @SuppressWarnings("unchecked")
     Collection<PropertyDefinition> props = mo.getAllPropertyDefinitions();
@@ -624,8 +622,7 @@ public class ConfigGuideGeneration {
       paragraph(
         "The following components have a direct AGGREGATION relation FROM " +
         mo.getUserFriendlyPluralName() + " :");
-      TreeMap<String, AbstractManagedObjectDefinition> componentList =
-        new TreeMap<String, AbstractManagedObjectDefinition>();
+      TreeMap<String, AbstractManagedObjectDefinition> componentList = new TreeMap<>();
       for ( AggregationPropertyDefinition agg : aggregProps) {
         RelationDefinition rel = agg.getRelationDefinition();
         AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
@@ -633,8 +630,7 @@ public class ConfigGuideGeneration {
       }
       for (AbstractManagedObjectDefinition component : componentList.values()) {
         beginList();
-        link(component.getUserFriendlyName().toString(), component.getName() +
-          ".html");
+        link(component.getUserFriendlyName().toString(), component.getName() + ".html");
         endList();
       }
     }
@@ -665,8 +661,7 @@ public class ConfigGuideGeneration {
       paragraph(
         "The following components have a direct AGGREGATION relation TO " +
         mo.getUserFriendlyPluralName() + " :");
-      TreeMap<String, AbstractManagedObjectDefinition> componentList =
-        new TreeMap<String, AbstractManagedObjectDefinition>();
+      TreeMap<String, AbstractManagedObjectDefinition> componentList = new TreeMap<>();
       for ( AggregationPropertyDefinition agg : reverseAggregProps) {
         AbstractManagedObjectDefinition fromMo =
           agg.getManagedObjectDefinition();
@@ -887,7 +882,7 @@ public class ConfigGuideGeneration {
   private void genPropertiesIndex() {
 
     // Build a sorted list of (property name + its managed object name)
-    TreeSet<String> propMoList = new TreeSet<String>();
+    TreeSet<String> propMoList = new TreeSet<>();
     for (AbstractManagedObjectDefinition<?, ?> mo : moList.values()) {
       for (PropertyDefinition<?> prop : mo.getPropertyDefinitions()) {
         propMoList.add(
@@ -1273,8 +1268,7 @@ public class ConfigGuideGeneration {
     if (coll == null) {
       return null;
     }
-    TreeMap<String, AbstractManagedObjectDefinition> map =
-      new TreeMap<String, AbstractManagedObjectDefinition>();
+    TreeMap<String, AbstractManagedObjectDefinition> map = new TreeMap<>();
     for (AbstractManagedObjectDefinition mo : coll) {
       if (mo.hasOption(ManagedObjectOption.HIDDEN))
       {
@@ -1291,8 +1285,7 @@ public class ConfigGuideGeneration {
     if (coll == null) {
       return null;
     }
-    TreeMap<String, RelationDefinition> map =
-      new TreeMap<String, RelationDefinition>();
+    TreeMap<String, RelationDefinition> map = new TreeMap<>();
     for (RelationDefinition rel : coll) {
       map.put(rel.getChildDefinition().getName(), rel);
     }
@@ -1305,8 +1298,7 @@ public class ConfigGuideGeneration {
     if (coll == null) {
       return null;
     }
-    TreeMap<String, PropertyDefinition> map =
-      new TreeMap<String, PropertyDefinition>();
+    TreeMap<String, PropertyDefinition> map = new TreeMap<>();
     for (PropertyDefinition prop : coll) {
       map.put(prop.getName(), prop);
     }
@@ -1611,21 +1603,14 @@ public class ConfigGuideGeneration {
   }
 
   /** Relation List from RootConfiguration. */
-  private final TreeMap<String, RelationDefinition> topRelList =
-    new TreeMap<String, RelationDefinition>();
-  private final TreeMap<String, RelationDefinition> relList =
-    new TreeMap<String, RelationDefinition>();
-  private final TreeMap<String, TreeMap<String, RelationDefinition>>
-    catTopRelList = new TreeMap<String, TreeMap<String, RelationDefinition>>();
+  private final TreeMap<String, RelationDefinition> topRelList = new TreeMap<>();
+  private final TreeMap<String, RelationDefinition> relList = new TreeMap<>();
+  private final TreeMap<String, TreeMap<String, RelationDefinition>> catTopRelList = new TreeMap<>();
   /** Managed object list. */
-  private final TreeMap<String, AbstractManagedObjectDefinition> moList =
-    new TreeMap<String, AbstractManagedObjectDefinition>();
-  private final TreeMap<String, AbstractManagedObjectDefinition> topMoList =
-    new TreeMap<String, AbstractManagedObjectDefinition>();
-  private final TreeMap<String,
-                        TreeMap<String, AbstractManagedObjectDefinition>>
-    catTopMoList =
-      new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
+  private final TreeMap<String, AbstractManagedObjectDefinition> moList = new TreeMap<>();
+  private final TreeMap<String, AbstractManagedObjectDefinition> topMoList = new TreeMap<>();
+  private final TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>
+    catTopMoList = new TreeMap<>();
   private final int ind = 0;
   private StringBuffer htmlBuff = new StringBuffer();
   private static String generationDir;

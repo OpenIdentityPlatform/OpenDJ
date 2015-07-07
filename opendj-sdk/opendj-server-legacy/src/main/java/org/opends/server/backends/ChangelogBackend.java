@@ -183,8 +183,7 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** The set of objectclasses that will be used in root entry. */
   private static final Map<ObjectClass, String>
-    CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
-
+    CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
     CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP, true), OC_TOP);
@@ -193,8 +192,7 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** The set of objectclasses that will be used in ECL entries. */
   private static final Map<ObjectClass, String>
-    CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
-
+    CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP, true), OC_TOP);
@@ -236,14 +234,10 @@ public class ChangelogBackend extends Backend<Configuration>
   private final ECLEnabledDomainPredicate domainPredicate;
 
   /** The set of cookie-based persistent searches registered with this backend. */
-  private final ConcurrentLinkedQueue<PersistentSearch> cookieBasedPersistentSearches =
-      new ConcurrentLinkedQueue<PersistentSearch>();
-  /**
-   * The set of change number-based persistent searches registered with this
-   * backend.
-   */
+  private final ConcurrentLinkedQueue<PersistentSearch> cookieBasedPersistentSearches = new ConcurrentLinkedQueue<>();
+  /** The set of change number-based persistent searches registered with this backend. */
   private final ConcurrentLinkedQueue<PersistentSearch> changeNumberBasedPersistentSearches =
-      new ConcurrentLinkedQueue<PersistentSearch>();
+      new ConcurrentLinkedQueue<>();
 
   /**
    * Creates a new backend with the provided replication server.
@@ -1027,7 +1021,7 @@ public class ChangelogBackend extends Backend<Configuration>
     }
 
     DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor = null;
-    final AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor = new AtomicReference<MultiDomainDBCursor>();
+    final AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor = new AtomicReference<>();
     try
     {
       cnIndexDBCursor = getCNIndexDBCursor(entrySender.lowestChangeNumber);
@@ -1381,8 +1375,8 @@ public class ChangelogBackend extends Backend<Configuration>
       dnString = "replicationCSN=" + csn + "," + baseDN + "," + DN_EXTERNAL_CHANGELOG_ROOT;
     }
 
-    final Map<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<AttributeType, List<Attribute>>();
-    final Map<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<AttributeType, List<Attribute>>();
+    final Map<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
+    final Map<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>();
 
     // Operational standard attributes
     addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
@@ -1510,8 +1504,8 @@ public class ChangelogBackend extends Backend<Configuration>
   {
     final String hasSubordinatesStr = Boolean.toString(baseChangelogHasSubordinates());
 
-    final Map<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<AttributeType, List<Attribute>>();
-    final Map<AttributeType, List<Attribute>> operationalAttrs = new LinkedHashMap<AttributeType, List<Attribute>>();
+    final Map<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
+    final Map<AttributeType, List<Attribute>> operationalAttrs = new LinkedHashMap<>();
 
     // We never return the numSubordinates attribute for the base changelog entry
     // and there is a very good reason for that:
@@ -1604,7 +1598,7 @@ public class ChangelogBackend extends Backend<Configuration>
    */
   private static class SendEntryData<K extends Comparable<K>>
   {
-    private final AtomicReference<SearchPhase> searchPhase = new AtomicReference<SearchPhase>(SearchPhase.INITIAL);
+    private final AtomicReference<SearchPhase> searchPhase = new AtomicReference<>(SearchPhase.INITIAL);
     private final Object transitioningLock = new Object();
     private volatile K lastKeySentByInitialSearch;
 
@@ -1679,7 +1673,7 @@ public class ChangelogBackend extends Backend<Configuration>
     private ChangeNumberEntrySender(SearchOperation searchOp, SearchPhase startPhase, ChangeNumberRange range)
     {
       this.searchOp = searchOp;
-      this.sendEntryData = new SendEntryData<Long>(startPhase);
+      this.sendEntryData = new SendEntryData<>(startPhase);
       this.lowestChangeNumber = range.lowerBound;
       this.highestChangeNumber = range.upperBound;
     }
@@ -1736,7 +1730,7 @@ public class ChangelogBackend extends Backend<Configuration>
     private final Set<DN> excludedBaseDNs;
     private final MultiDomainServerState cookie;
     private final ConcurrentSkipListMap<ReplicaId, SendEntryData<CSN>> replicaIdToSendEntryData =
-        new ConcurrentSkipListMap<ReplicaId, SendEntryData<CSN>>();
+        new ConcurrentSkipListMap<>();
 
     private CookieEntrySender(SearchOperation searchOp, SearchPhase startPhase, MultiDomainServerState cookie,
         Set<DN> excludedBaseDNs)
@@ -1769,7 +1763,7 @@ public class ChangelogBackend extends Backend<Configuration>
       SendEntryData<CSN> data = replicaIdToSendEntryData.get(replicaId);
       if (data == null)
       {
-        final SendEntryData<CSN> newData = new SendEntryData<CSN>(startPhase);
+        final SendEntryData<CSN> newData = new SendEntryData<>(startPhase);
         data = replicaIdToSendEntryData.putIfAbsent(replicaId, newData);
         return data == null ? newData : data;
       }

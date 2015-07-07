@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -104,7 +104,7 @@ public class ModifyOperationBasis
 
     entryDN          = null;
     modifications    = null;
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
   }
 
@@ -134,14 +134,14 @@ public class ModifyOperationBasis
 
     rawEntryDN = ByteString.valueOf(entryDN.toString());
 
-    rawModifications = new ArrayList<RawModification>(modifications.size());
+    rawModifications = new ArrayList<>(modifications.size());
     for (Modification m : modifications)
     {
       rawModifications.add(new LDAPModification(m.getModificationType(),
           new LDAPAttribute(m.getAttribute())));
     }
 
-    responseControls = new ArrayList<Control>();
+    responseControls = new ArrayList<>();
     cancelRequest    = null;
   }
 
@@ -210,7 +210,7 @@ public class ModifyOperationBasis
   {
     if (modifications == null)
     {
-      modifications = new ArrayList<Modification>(rawModifications.size());
+      modifications = new ArrayList<>(rawModifications.size());
       try {
         for (RawModification m : rawModifications)
         {

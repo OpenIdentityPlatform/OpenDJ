@@ -83,7 +83,7 @@ public class EntryIDSetSorter
     SearchScope scope = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
 
-    TreeMap<SortValues,EntryID> sortMap = new TreeMap<SortValues,EntryID>();
+    TreeMap<SortValues,EntryID> sortMap = new TreeMap<>();
     for (EntryID id : entryIDSet)
     {
       try
@@ -193,7 +193,7 @@ public class EntryIDSetSorter
         int includedBeforeCount = 0;
         int includedAfterCount  = 0;
         int listSize            = 0;
-        LinkedList<EntryID> idList = new LinkedList<EntryID>();
+        LinkedList<EntryID> idList = new LinkedList<>();
         for (Map.Entry<SortValues, EntryID> entry : sortMap.entrySet())
         {
           SortValues sortValues = entry.getKey();

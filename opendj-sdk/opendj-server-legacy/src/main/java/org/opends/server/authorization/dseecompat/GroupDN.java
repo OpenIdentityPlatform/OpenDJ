@@ -85,7 +85,7 @@ public class GroupDN implements KeywordBindRule {
                 WARN_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION.get(expr);
             throw new AciException(message);
         }
-        List<DN> groupDNs = new LinkedList<DN>();
+        List<DN> groupDNs = new LinkedList<>();
         int ldapURLPos = 1;
         Pattern ldapURLPattern = Pattern.compile(LDAP_URL);
         Matcher ldapURLMatcher = ldapURLPattern.matcher(expr);

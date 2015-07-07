@@ -113,7 +113,7 @@ public final class Reference<C extends ConfigurationClient,
           + s + "\"");
     }
 
-    return new Reference<C, S>(p, rd, name);
+    return new Reference<>(p, rd, name);
   }
 
 
@@ -156,7 +156,7 @@ public final class Reference<C extends ConfigurationClient,
       throw new IllegalArgumentException("Empty names are not allowed");
     }
 
-    return new Reference<C, S>(p, rd, s);
+    return new Reference<>(p, rd, s);
   }
 
   /** The name of the referenced managed object. */

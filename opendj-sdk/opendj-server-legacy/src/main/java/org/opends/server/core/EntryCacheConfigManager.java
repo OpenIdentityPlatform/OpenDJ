@@ -72,11 +72,10 @@ public class EntryCacheConfigManager
 
   /** The entry cache order map sorted by the cache level. */
   @SuppressWarnings("rawtypes")
-  private SortedMap<Integer, EntryCache> cacheOrderMap =
-      new TreeMap<Integer, EntryCache>();
+  private SortedMap<Integer, EntryCache> cacheOrderMap = new TreeMap<>();
 
   /** The entry cache to level map. */
-  private Map<DN,Integer> cacheNameToLevelMap = new HashMap<DN, Integer>();
+  private Map<DN,Integer> cacheNameToLevelMap = new HashMap<>();
 
   /** Global entry cache monitor provider name. */
   private static final String
@@ -578,7 +577,7 @@ public class EntryCacheConfigManager
       // change listener registered to invoke and verify on its own.
       else if (!configuration.isEnabled())
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!cache.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String buffer = Utils.joinAsString(".  ", unacceptableReasons);

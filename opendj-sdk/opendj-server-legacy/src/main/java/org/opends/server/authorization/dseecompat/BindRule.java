@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -41,7 +41,7 @@ import org.forgerock.i18n.LocalizableMessage;
 public class BindRule {
 
     /** This hash table holds the keyword bind rule mapping. */
-    private final HashMap<String, KeywordBindRule> keywordRuleMap = new HashMap<String, KeywordBindRule>();
+    private final HashMap<String, KeywordBindRule> keywordRuleMap = new HashMap<>();
 
     /** True is a boolean "not" was seen. */
     private boolean negate;

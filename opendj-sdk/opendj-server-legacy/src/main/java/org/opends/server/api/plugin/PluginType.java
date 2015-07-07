@@ -474,23 +474,17 @@ public enum PluginType
    * A hash map that relates the plugin type names to the
    * corresponding plugin type.
    */
-  private static final Map<String, PluginType> PLUGIN_TYPE_MAP;
+  private static final Map<String, PluginType> PLUGIN_TYPE_MAP = new HashMap<>(PluginType.values().length);
   static
   {
-    PLUGIN_TYPE_MAP =
-        new HashMap<String, PluginType>(PluginType.values().length);
     for (PluginType type : PluginType.values())
     {
       PLUGIN_TYPE_MAP.put(type.name, type);
     }
   }
 
-
-
   /** The name for this plugin type. */
   private String name;
-
-
 
   /**
    * Creates a new plugin type instance with the specified name.
@@ -501,8 +495,6 @@ public enum PluginType
   {
     this.name = name;
   }
-
-
 
   /**
    * Retrieves the name for this plugin type.

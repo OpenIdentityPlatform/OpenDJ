@@ -110,7 +110,7 @@ public class NullBackend extends Backend<BackendCfg>
   private HashSet<DN> baseDNSet;
 
   /** The set of supported controls for this backend. */
-  private final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
+  private final Set<String> supportedControls = new HashSet<>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
@@ -162,7 +162,7 @@ public class NullBackend extends Backend<BackendCfg>
   @Override
   public synchronized void openBackend() throws ConfigException, InitializationException
   {
-    baseDNSet = new HashSet<DN>();
+    baseDNSet = new HashSet<>();
     for (DN dn : baseDNs)
     {
       baseDNSet.add(dn);
@@ -186,7 +186,7 @@ public class NullBackend extends Backend<BackendCfg>
     }
 
     // Initialize null entry object classes.
-    objectClasses = new HashMap<ObjectClass,String>();
+    objectClasses = new HashMap<>();
 
     String topOCName = "top";
     ObjectClass topOC = DirectoryServer.getObjectClass(topOCName);

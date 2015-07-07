@@ -81,7 +81,7 @@ public class UserDN implements KeywordBindRule {
             EnumBindRuleType type) throws AciException {
 
         String[] vals=expression.split("[|][|]");
-        List<UserDNTypeURL> urlList = new LinkedList<UserDNTypeURL>();
+        List<UserDNTypeURL> urlList = new LinkedList<>();
         for (String val : vals)
         {
             StringBuilder value = new StringBuilder(val.trim());

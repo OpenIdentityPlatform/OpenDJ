@@ -118,7 +118,7 @@ public abstract class ConfigAttribute
     this.requiresAdminAction = requiresAdminAction;
 
     hasPendingValues = false;
-    activeValues     = new LinkedHashSet<ByteString>();
+    activeValues     = new LinkedHashSet<>();
     pendingValues    = activeValues;
   }
 
@@ -152,15 +152,7 @@ public abstract class ConfigAttribute
     this.requiresAdminAction = requiresAdminAction;
     this.hasPendingValues    = false;
 
-    if (activeValues == null)
-    {
-      this.activeValues = new LinkedHashSet<ByteString>();
-    }
-    else
-    {
-      this.activeValues = activeValues;
-    }
-
+    this.activeValues = notNull(activeValues);
     this.pendingValues = this.activeValues;
   }
 
@@ -204,29 +196,15 @@ public abstract class ConfigAttribute
     this.requiresAdminAction = requiresAdminAction;
     this.hasPendingValues    = hasPendingValues;
 
-    if (activeValues == null)
-    {
-      this.activeValues = new LinkedHashSet<ByteString>();
-    }
-    else
-    {
-      this.activeValues = activeValues;
-    }
+    this.activeValues = notNull(activeValues);
 
-    if (! hasPendingValues)
+    if (!hasPendingValues)
     {
       this.pendingValues = this.activeValues;
     }
     else
     {
-      if (pendingValues == null)
-      {
-        this.pendingValues = new LinkedHashSet<ByteString>();
-      }
-      else
-      {
-        this.pendingValues = pendingValues;
-      }
+      this.pendingValues = notNull(pendingValues);
     }
   }
 
@@ -418,27 +396,13 @@ public abstract class ConfigAttribute
       {
         if (requiresAdminAction)
         {
-          if (values == null)
-          {
-            pendingValues = new LinkedHashSet<ByteString>();
-          }
-          else
-          {
-            pendingValues = values;
-          }
+          pendingValues = notNull(values);
 
           hasPendingValues = true;
         }
         else
         {
-          if (values == null)
-          {
-            activeValues = new LinkedHashSet<ByteString>();
-          }
-          else
-          {
-            activeValues = values;
-          }
+          activeValues = notNull(values);
 
           pendingValues    = activeValues;
           hasPendingValues = false;
@@ -498,7 +462,10 @@ public abstract class ConfigAttribute
     }
   }
 
-
+  private LinkedHashSet<ByteString> notNull(LinkedHashSet<ByteString> values)
+  {
+    return values != null ? values : new LinkedHashSet<ByteString>();
+  }
 
   /**
    * Specifies the set of active values for this configuration attribute.  No
@@ -572,7 +539,7 @@ public abstract class ConfigAttribute
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
     final LinkedHashSet<ByteString> vals = getValues();
-    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<ByteString>(vals.size() + numValues);
+    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<>(vals.size() + numValues);
 
     // Iterate through all of the provided values.  Make sure that each is
     // acceptable for use and that it is not already contained in the value set.
@@ -629,7 +596,7 @@ public abstract class ConfigAttribute
   {
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
-    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<ByteString>(getValues());
+    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<>(getValues());
 
     // Iterate through all the provided values and make sure that they are
     // contained in the list.  If not, then throw an exception.  If so, then
@@ -689,7 +656,7 @@ public abstract class ConfigAttribute
     {
       if (pendingValues == null)
       {
-        pendingValues = new LinkedHashSet<ByteString>();
+        pendingValues = new LinkedHashSet<>();
       }
       else
       {
@@ -722,7 +689,7 @@ public abstract class ConfigAttribute
   {
     if (values == null)
     {
-      values = new LinkedHashSet<ByteString>();
+      values = new LinkedHashSet<>();
     }
 
     activeValues     = values;

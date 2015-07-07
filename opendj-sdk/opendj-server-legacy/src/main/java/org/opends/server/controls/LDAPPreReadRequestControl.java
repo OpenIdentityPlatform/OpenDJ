@@ -73,7 +73,7 @@ public class LDAPPreReadRequestControl extends Control
       }
 
       ASN1Reader reader = ASN1.getReader(value);
-      LinkedHashSet<String> rawAttributes = new LinkedHashSet<String>();
+      LinkedHashSet<String> rawAttributes = new LinkedHashSet<>();
       try
       {
         reader.readStartSequence();
@@ -138,7 +138,7 @@ public class LDAPPreReadRequestControl extends Control
     super(OID_LDAP_READENTRY_PREREAD, isCritical);
     if (rawAttributes == null)
     {
-      this.rawAttributes = new LinkedHashSet<String>(0);
+      this.rawAttributes = new LinkedHashSet<>(0);
     }
     else
     {

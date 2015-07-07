@@ -79,39 +79,33 @@ public class TaskScheduler
   private static long MAX_SLEEP_TIME = 5000;
 
 
-
   /** Indicates whether the scheduler is currently running. */
   private boolean isRunning;
-
   /** Indicates whether a request has been received to stop the scheduler. */
   private boolean stopRequested;
 
   /** The entry that serves as the immediate parent for recurring tasks. */
   private Entry recurringTaskParentEntry;
-
   /** The entry that serves as the immediate parent for scheduled tasks. */
   private Entry scheduledTaskParentEntry;
-
   /** The top-level entry at the root of the task tree. */
   private Entry taskRootEntry;
 
   /** The set of recurring tasks defined in the server. */
-  private HashMap<String,RecurringTask> recurringTasks;
-
+  private final HashMap<String,RecurringTask> recurringTasks = new HashMap<>();
   /** The set of tasks associated with this scheduler. */
-  private HashMap<String,Task> tasks;
-
+  private final HashMap<String,Task> tasks = new HashMap<>();
   /** The set of worker threads that are actively busy processing tasks. */
-  private HashMap<String,TaskThread> activeThreads;
+  private final HashMap<String,TaskThread> activeThreads = new HashMap<>();
 
   /** The thread ID for the next task thread to be created;. */
-  private int nextThreadID;
+  private int nextThreadID = 1;
 
   /** The set of worker threads that may be used to process tasks. */
-  private LinkedList<TaskThread> idleThreads;
+  private final LinkedList<TaskThread> idleThreads = new LinkedList<>();
 
   /** The lock used to provide threadsafe access to the scheduler. */
-  private final ReentrantLock schedulerLock;
+  private final ReentrantLock schedulerLock = new ReentrantLock();
 
   /** The task backend with which this scheduler is associated. */
   private TaskBackend taskBackend;
@@ -120,13 +114,11 @@ public class TaskScheduler
   private Thread schedulerThread;
 
   /** The set of recently-completed tasks that need to be retained. */
-  private TreeSet<Task> completedTasks;
-
+  private final TreeSet<Task> completedTasks = new TreeSet<>();
   /** The set of tasks that have been scheduled but not yet arrived. */
-  private TreeSet<Task> pendingTasks;
-
+  private final TreeSet<Task> pendingTasks = new TreeSet<>();
   /** The set of tasks that are currently running. */
-  private TreeSet<Task> runningTasks;
+  private final TreeSet<Task> runningTasks = new TreeSet<>();
 
   private ServerContext serverContext;
 
@@ -147,24 +139,7 @@ public class TaskScheduler
     super("Task Scheduler Thread");
 
     this.serverContext = serverContext;
-
     this.taskBackend = taskBackend;
-
-    schedulerLock            = new ReentrantLock();
-    isRunning                = false;
-    stopRequested            = false;
-    schedulerThread          = null;
-    nextThreadID             = 1;
-    recurringTasks           = new HashMap<String,RecurringTask>();
-    tasks                    = new HashMap<String,Task>();
-    activeThreads            = new HashMap<String,TaskThread>();
-    idleThreads              = new LinkedList<TaskThread>();
-    completedTasks           = new TreeSet<Task>();
-    pendingTasks             = new TreeSet<Task>();
-    runningTasks             = new TreeSet<Task>();
-    taskRootEntry            = null;
-    recurringTaskParentEntry = null;
-    scheduledTaskParentEntry = null;
 
     DirectoryServer.registerAlertGenerator(this);
 
@@ -223,9 +198,8 @@ public class TaskScheduler
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
-      Attribute attr = Attributes.create(ATTR_TASK_STATE,
-        TaskState.RECURRING.toString());
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      Attribute attr = Attributes.create(ATTR_TASK_STATE, TaskState.RECURRING.toString());
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(attr);
       Entry recurringTaskEntry = recurringTask.getRecurringTaskEntry();
       recurringTaskEntry.putAttribute(attr.getAttributeType(), attrList);
@@ -278,7 +252,7 @@ public class TaskScheduler
     try
     {
       RecurringTask recurringTask = recurringTasks.remove(recurringTaskID);
-      HashMap<String,Task> iterationsMap = new HashMap<String,Task>();
+      HashMap<String,Task> iterationsMap = new HashMap<>();
 
       for (Task t : tasks.values())
       {
@@ -753,10 +727,9 @@ public class TaskScheduler
   {
     // Grab a copy of the running threads so that we can operate on them without
     // holding the lock.
-    LinkedList<TaskThread> threadList = new LinkedList<TaskThread>();
+    LinkedList<TaskThread> threadList = new LinkedList<>();
 
     schedulerLock.lock();
-
     try
     {
       threadList.addAll(activeThreads.values());
@@ -2000,7 +1973,7 @@ public class TaskScheduler
   @Override
   public LinkedHashMap<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    LinkedHashMap<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
                ALERT_DESCRIPTION_CANNOT_SCHEDULE_RECURRING_ITERATION);
@@ -2014,4 +1987,3 @@ public class TaskScheduler
     return alerts;
   }
 }
-

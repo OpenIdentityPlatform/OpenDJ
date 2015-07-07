@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -121,12 +121,11 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
   private int size;
 
   /** Backing Map implementation. */
-  private Map<DN,Node<T>> ditCacheMap;
+  private final Map<DN,Node<T>> ditCacheMap = new HashMap<>();
 
   /** Default constructor. */
   public DITCacheMap()
   {
-    ditCacheMap = new HashMap<DN,Node<T>>();
   }
 
   /**
@@ -136,7 +135,6 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
    */
   public DITCacheMap(Map<? extends DN, ? extends T> m)
   {
-    ditCacheMap = new HashMap<DN,Node<T>>();
     this.putAll(m);
   }
 
@@ -207,7 +205,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       return returnValue;
     }
 
-    Node<T> node = new Node<T>();
+    Node<T> node = new Node<>();
     node.dn = key;
     node.element = value;
     node.parent = null;
@@ -228,7 +226,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       if (parentNode == null)
       {
         // Add glue node.
-        final Node<T> newParentNode = new Node<T>();
+        final Node<T> newParentNode = new Node<>();
         newParentNode.dn = parentDN;
         newParentNode.element = null;
         newParentNode.parent = null;

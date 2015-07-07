@@ -115,7 +115,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
     // but use only 4 of them for update msg
     // beforeCsn, middleCsn and afterCsn are not used
     // in order to test cursor generation from a key not present in the log (before, in the middle, after)
-    final List<CSN> usedCsns = new ArrayList<CSN>(Arrays.asList(sevenCsns));
+    final List<CSN> usedCsns = new ArrayList<>(Arrays.asList(sevenCsns));
     usedCsns.remove(beforeCsn);
     usedCsns.remove(middleCsn);
     usedCsns.remove(afterCsn);

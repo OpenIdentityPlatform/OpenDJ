@@ -61,13 +61,10 @@ public enum PasswordPolicyWarningType
 
 
   /** A lookup table for resolving a warning type from its BER type. */
-  private static final Map<Byte, PasswordPolicyWarningType> TABLE;
+  private static final Map<Byte, PasswordPolicyWarningType> TABLE = new HashMap<>();
   static
   {
-    TABLE = new HashMap<Byte, PasswordPolicyWarningType>();
-
-    for (PasswordPolicyWarningType value : PasswordPolicyWarningType
-        .values())
+    for (PasswordPolicyWarningType value : PasswordPolicyWarningType.values())
     {
       TABLE.put(value.type, value);
       TABLE.put(value.type, value);

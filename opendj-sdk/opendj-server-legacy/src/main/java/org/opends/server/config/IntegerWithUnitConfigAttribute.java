@@ -598,7 +598,7 @@ public final class IntegerWithUnitConfigAttribute
       return null;
     }
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
     valueSet.add(ByteString.valueOf(intValue + " " + unit));
     return valueSet;
   }
@@ -760,7 +760,7 @@ public final class IntegerWithUnitConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<ByteString>();
+        return new LinkedHashSet<>();
       }
     }
 
@@ -774,7 +774,7 @@ public final class IntegerWithUnitConfigAttribute
     }
 
 
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
       if ((valueString == null) || (valueString.length() == 0))
@@ -839,7 +839,7 @@ public final class IntegerWithUnitConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    ArrayList<String> valueStrings = new ArrayList<String>(1);
+    ArrayList<String> valueStrings = new ArrayList<>(1);
     valueStrings.add(activeIntValue + " " + activeUnit);
 
     return valueStrings;
@@ -862,9 +862,8 @@ public final class IntegerWithUnitConfigAttribute
   {
     if (hasPendingValues())
     {
-      ArrayList<String> valueStrings = new ArrayList<String>(1);
+      ArrayList<String> valueStrings = new ArrayList<>(1);
       valueStrings.add(pendingIntValue + " " + pendingUnit);
-
       return valueStrings;
     }
     else

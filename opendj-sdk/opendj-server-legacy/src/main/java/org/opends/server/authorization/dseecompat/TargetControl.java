@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -36,14 +36,9 @@ import java.util.Set;
  */
 public class TargetControl {
 
-  /**
-   * HashSet of OID strings parsed from the decode.
-   */
-  private Set<String> controlOIDS = new HashSet<String>();
-
-  /**
-   * Enumeration representing the targetcontrol operator.
-   */
+  /** HashSet of OID strings parsed from the decode. */
+  private Set<String> controlOIDS = new HashSet<>();
+  /** Enumeration representing the targetcontrol operator. */
   private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
 
   /**

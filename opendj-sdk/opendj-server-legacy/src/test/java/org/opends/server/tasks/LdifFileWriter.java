@@ -79,7 +79,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> warnings = new ArrayList<>();
     template.parse(templatePath, warnings);
     makeLdif(ldifPath, template);
   }
@@ -103,7 +103,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> warnings = new ArrayList<>();
     template.parse(templateLines, warnings);
     makeLdif(ldifPath, template);
   }

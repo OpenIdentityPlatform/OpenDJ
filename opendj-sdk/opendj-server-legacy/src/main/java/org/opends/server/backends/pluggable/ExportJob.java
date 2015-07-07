@@ -96,7 +96,7 @@ class ExportJob
        throws IOException, LDIFException, StorageRuntimeException
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
-    final ArrayList<EntryContainer> exportContainers = new ArrayList<EntryContainer>();
+    final ArrayList<EntryContainer> exportContainers = new ArrayList<>();
 
     for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {

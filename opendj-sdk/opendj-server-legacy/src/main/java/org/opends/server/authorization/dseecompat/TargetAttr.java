@@ -48,9 +48,9 @@ public class TargetAttr {
     /** Flags that is set if all operational attributes pattern seen "+". */
     private boolean allOpAttributes;
     /** Set of the attribute types parsed by the constructor. */
-    private HashSet<AttributeType> attributes = new HashSet<AttributeType>();
+    private HashSet<AttributeType> attributes = new HashSet<>();
     /** Set of the operational attribute types parsed by the constructor. */
-    private HashSet<AttributeType> opAttributes = new HashSet<AttributeType>();
+    private HashSet<AttributeType> opAttributes = new HashSet<>();
 
     /**
      * Regular expression that matches one or more ATTR_NAME's separated by

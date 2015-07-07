@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -272,7 +272,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
   private void modifyAttribute(String baseDN, ModificationType modType, String attributeName, String attributeValue)
       throws Exception
   {
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     Attribute attributeToModify = Attributes.create(attributeName, attributeValue);
     mods.add(new Modification(modType, attributeToModify));
     ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(baseDN), mods);

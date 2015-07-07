@@ -450,7 +450,7 @@ public class DN2URI extends DatabaseContainer
   private void throwReferralException(DN targetDN, DN referralDN, Set<String> labeledURIs, SearchScope searchScope)
        throws DirectoryException
   {
-    ArrayList<String> URIList = new ArrayList<String>(labeledURIs.size());
+    ArrayList<String> URIList = new ArrayList<>(labeledURIs.size());
     for (String labeledURI : labeledURIs)
     {
       // Remove the label part of the labeled URI if there is a label.
@@ -558,7 +558,7 @@ public class DN2URI extends DatabaseContainer
           if (status == OperationStatus.SUCCESS)
           {
             // Construct a set of all the labeled URIs in the referral.
-            Set<String> labeledURIs = new LinkedHashSet<String>(cursor.count());
+            Set<String> labeledURIs = new LinkedHashSet<>(cursor.count());
             do
             {
               final Pair<String, DN> uriAndDN = decodeURIAndDN(data.getData());
@@ -662,7 +662,7 @@ public class DN2URI extends DatabaseContainer
           }
 
           // Construct a list of all the URIs in the referral.
-          ArrayList<String> URIList = new ArrayList<String>(cursor.count());
+          ArrayList<String> URIList = new ArrayList<>(cursor.count());
           do
           {
             // Remove the label part of the labeled URI if there is a label.

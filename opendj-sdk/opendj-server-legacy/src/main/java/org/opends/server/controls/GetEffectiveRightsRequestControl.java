@@ -109,7 +109,7 @@ public class GetEffectiveRightsRequestControl extends Control
           }
           //There is an sequence containing an attribute list, try to decode it.
           if(reader.hasNextElement()) {
-            attrs = new LinkedList<AttributeType>();
+            attrs = new LinkedList<>();
             reader.readStartSequence();
             while(reader.hasNextElement()) {
               //Decode as an octet string.

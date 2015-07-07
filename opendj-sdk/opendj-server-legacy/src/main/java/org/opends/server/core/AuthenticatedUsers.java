@@ -86,7 +86,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
         // can not be authenticated as a user that does not exist yet.
         POST_RESPONSE_MODIFY, POST_RESPONSE_MODIFY_DN, POST_RESPONSE_DELETE),
         true);
-    userMap = new DITCacheMap<CopyOnWriteArraySet<ClientConnection>>();
+    userMap = new DITCacheMap<>();
     lock = new ReentrantReadWriteLock();
 
     DirectoryServer.registerInternalPlugin(this);
@@ -120,7 +120,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
       CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
       if (connectionSet == null)
       {
-        connectionSet = new CopyOnWriteArraySet<ClientConnection>();
+        connectionSet = new CopyOnWriteArraySet<>();
         connectionSet.add(clientConnection);
         userMap.put(userDN, connectionSet);
       }
@@ -203,8 +203,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     final DN entryDN = op.getEntryDN();
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been deleted and terminate them
-    Set<CopyOnWriteArraySet<ClientConnection>> arraySet =
-            new HashSet<CopyOnWriteArraySet<ClientConnection>>();
+    Set<CopyOnWriteArraySet<ClientConnection>> arraySet = new HashSet<>();
     lock.writeLock().lock();
     try
     {
@@ -279,8 +278,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      final Set<CopyOnWriteArraySet<ClientConnection>> arraySet =
-        new HashSet<CopyOnWriteArraySet<ClientConnection>>();
+      final Set<CopyOnWriteArraySet<ClientConnection>> arraySet = new HashSet<>();
       userMap.removeSubtree(oldEntry.getName(), arraySet);
       for (CopyOnWriteArraySet<ClientConnection> connectionSet : arraySet)
       {
@@ -322,7 +320,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
           {
             if (newAuthNSet == null)
             {
-              newAuthNSet = new CopyOnWriteArraySet<ClientConnection>();
+              newAuthNSet = new CopyOnWriteArraySet<>();
             }
             conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
             newAuthNSet.add(conn);
@@ -331,7 +329,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
           {
             if (newAuthZSet == null)
             {
-              newAuthZSet = new CopyOnWriteArraySet<ClientConnection>();
+              newAuthZSet = new CopyOnWriteArraySet<>();
             }
             conn.getAuthenticationInfo().setAuthorizationDN(newAuthZDN);
             newAuthZSet.add(conn);

@@ -198,7 +198,7 @@ public class BackupBackend
 
     // Determine the set of backup directories that we will use by default.
     Set<String> values = currentConfig.getBackupDirectory();
-    backupDirectories = new LinkedHashMap<File,CachedBackupDirectory>(values.size());
+    backupDirectories = new LinkedHashMap<>(values.size());
     for (String s : values)
     {
       File dir = getFileForPath(s);
@@ -207,33 +207,27 @@ public class BackupBackend
 
 
     // Construct the backup base entry.
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>(2);
+    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass untypedOC =
          DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC, true);
     objectClasses.put(untypedOC, OC_UNTYPED_OBJECT);
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(0);
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(1);
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
 
     RDN rdn = backupBaseDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType attrType = rdn.getAttributeType(i);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrType, rdn
-          .getAttributeValue(i)));
-
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
+      attrList.add(Attributes.create(attrType, rdn.getAttributeValue(i)));
       userAttrs.put(attrType, attrList);
     }
 
-    backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs,
-                                opAttrs);
+    backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs, opAttrs);
 
     currentConfig.addBackupChangeListener(this);
 
@@ -539,19 +533,15 @@ public class BackupBackend
 
 
     // Construct the backup directory entry to return.
-    LinkedHashMap<ObjectClass,String> ocMap =
-        new LinkedHashMap<ObjectClass,String>(2);
+    LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass backupDirOC =
          DirectoryServer.getObjectClass(OC_BACKUP_DIRECTORY, true);
     ocMap.put(backupDirOC, OC_BACKUP_DIRECTORY);
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(0);
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(3);
-
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
     userAttrs.put(t, asList(t, v));
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_BACKEND_DN, true);
@@ -625,8 +615,7 @@ public class BackupBackend
     }
 
     // Construct the backup entry to return.
-    LinkedHashMap<ObjectClass, String> ocMap =
-      new LinkedHashMap<ObjectClass, String>(3);
+    LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(3);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass oc = DirectoryServer.getObjectClass(OC_BACKUP_INFO, true);
@@ -635,11 +624,8 @@ public class BackupBackend
     oc = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
     ocMap.put(oc, OC_EXTENSIBLE_OBJECT);
 
-    LinkedHashMap<AttributeType, List<Attribute>> opAttrs =
-      new LinkedHashMap<AttributeType, List<Attribute>>(0);
-    LinkedHashMap<AttributeType, List<Attribute>> userAttrs =
-      new LinkedHashMap<AttributeType, List<Attribute>>();
-
+    LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+    LinkedHashMap<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
     userAttrs.put(idType, asList(idType, idValue));
 
     backupInfo.getBackupDirectory();
@@ -663,7 +649,7 @@ public class BackupBackend
       for (String s : dependencies) {
         builder.add(s);
       }
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(builder.toAttribute());
       userAttrs.put(t, attrList);
     }
@@ -706,7 +692,7 @@ public class BackupBackend
 
   private ArrayList<Attribute> asList(AttributeType attrType, ByteString value)
   {
-    final ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    final ArrayList<Attribute> attrList = new ArrayList<>(1);
     attrList.add(Attributes.create(attrType, value));
     return attrList;
   }
@@ -991,7 +977,7 @@ public class BackupBackend
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     Set<String> values = cfg.getBackupDirectory();
-    backupDirectories = new LinkedHashMap<File,CachedBackupDirectory>(values.size());
+    backupDirectories = new LinkedHashMap<>(values.size());
     for (String s : values)
     {
       File dir = getFileForPath(s);

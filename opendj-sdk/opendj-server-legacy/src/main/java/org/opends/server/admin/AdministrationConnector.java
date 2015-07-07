@@ -93,8 +93,8 @@ public final class AdministrationConnector implements
   private static final boolean ADMIN_ALLOW_LDAP_V2 = false;
   private static final boolean ADMIN_ALLOW_START_TLS = false;
 
-  private static final SortedSet<AddressMask> ADMIN_ALLOWED_CLIENT = new TreeSet<AddressMask>();
-  private static final SortedSet<AddressMask> ADMIN_DENIED_CLIENT = new TreeSet<AddressMask>();
+  private static final SortedSet<AddressMask> ADMIN_ALLOWED_CLIENT = new TreeSet<>();
+  private static final SortedSet<AddressMask> ADMIN_DENIED_CLIENT = new TreeSet<>();
 
   private static final boolean ADMIN_ENABLED = true;
   private static final boolean ADMIN_KEEP_STATS = true;

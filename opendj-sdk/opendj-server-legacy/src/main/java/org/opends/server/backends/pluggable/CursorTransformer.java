@@ -80,7 +80,7 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
       Function<KI, KO, ? extends Exception> keyTransformer,
       ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
   {
-    return new CursorTransformer<KI, VI, KO, VO>(input, keyTransformer, valueTransformer);
+    return new CursorTransformer<>(input, keyTransformer, valueTransformer);
   }
 
   @SuppressWarnings("unchecked")

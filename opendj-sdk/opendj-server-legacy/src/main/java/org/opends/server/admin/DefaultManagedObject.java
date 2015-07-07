@@ -67,10 +67,7 @@ public final class DefaultManagedObject
     private final ManagedObjectDefinition<C, S> definition;
 
     /** The string encoded default managed object's properties. */
-    private final Map<String, List<String>> propertyStringValues =
-      new HashMap<String, List<String>>();
-
-
+    private final Map<String, List<String>> propertyStringValues = new HashMap<>();
 
     /**
      * Creates a new default managed object builder.
@@ -91,7 +88,7 @@ public final class DefaultManagedObject
      * @return Returns the new default managed object.
      */
     public DefaultManagedObject<C, S> getInstance() {
-      return new DefaultManagedObject<C, S>(definition, propertyStringValues);
+      return new DefaultManagedObject<>(definition, propertyStringValues);
     }
 
 
@@ -167,7 +164,7 @@ public final class DefaultManagedObject
     definition.getPropertyDefinition(pd.getName());
 
     // Do a defensive copy.
-    SortedSet<T> values = new TreeSet<T>(pd);
+    SortedSet<T> values = new TreeSet<>(pd);
     List<String> stringValues = propertyStringValues.get(pd.getName());
     if (stringValues != null) {
       for (String stringValue : stringValues) {

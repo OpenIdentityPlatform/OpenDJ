@@ -83,13 +83,13 @@ public class SASLConfigManager implements
   public SASLConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    handlers = new ConcurrentHashMap<DN,SASLMechanismHandler>();
+    handlers = new ConcurrentHashMap<>();
   }
 
 
 
   /**
-   * Initializes all SASL mechanism hanlders currently defined in the Directory
+   * Initializes all SASL mechanism handlers currently defined in the Directory
    * Server configuration.  This should only be called at Directory Server
    * startup.
    *
@@ -375,7 +375,7 @@ public class SASLConfigManager implements
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!handler.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

@@ -40,9 +40,9 @@ public class VerifyConfig
   /** The base DN to be verified. */
   private DN baseDN;
   /** The names of indexes to be verified for completeness. */
-  private ArrayList<String> completeList = new ArrayList<String>();
+  private ArrayList<String> completeList = new ArrayList<>();
   /** The names of indexes to be verified for cleanliness. */
-  private ArrayList<String> cleanList = new ArrayList<String>();
+  private ArrayList<String> cleanList = new ArrayList<>();
 
   /**
    * Get the base DN to be verified.

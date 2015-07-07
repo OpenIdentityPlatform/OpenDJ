@@ -83,7 +83,7 @@ public class PasswordGeneratorConfigManager
   public PasswordGeneratorConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    passwordGenerators = new ConcurrentHashMap<DN,PasswordGenerator>();
+    passwordGenerators = new ConcurrentHashMap<>();
   }
 
   /**
@@ -374,7 +374,7 @@ public class PasswordGeneratorConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!generator.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

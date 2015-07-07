@@ -219,7 +219,7 @@ public class CoreConfigManager
 
   private static List<Properties> getMailServerProperties(Set<String> smtpServers)
   {
-    List<Properties> mailServerProperties = new ArrayList<Properties>();
+    List<Properties> mailServerProperties = new ArrayList<>();
     if (smtpServers != null && !smtpServers.isEmpty())
     {
       for (String smtpServer : smtpServers)
@@ -250,7 +250,7 @@ public class CoreConfigManager
 
   private static HashSet<Privilege> convert(Set<DisabledPrivilege> configuredDisabledPrivs)
   {
-    HashSet<Privilege> disabledPrivileges = new HashSet<Privilege>();
+    HashSet<Privilege> disabledPrivileges = new HashSet<>();
     if (configuredDisabledPrivs != null)
     {
       for (DisabledPrivilege p : configuredDisabledPrivs)

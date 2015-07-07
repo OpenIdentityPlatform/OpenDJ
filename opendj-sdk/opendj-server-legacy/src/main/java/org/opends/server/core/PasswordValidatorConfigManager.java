@@ -84,7 +84,7 @@ public class PasswordValidatorConfigManager
   public PasswordValidatorConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    passwordValidators = new ConcurrentHashMap<DN,PasswordValidator>();
+    passwordValidators = new ConcurrentHashMap<>();
   }
 
   /**
@@ -386,7 +386,7 @@ public class PasswordValidatorConfigManager
       }
       else
       {
-        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
         if (!validator.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);

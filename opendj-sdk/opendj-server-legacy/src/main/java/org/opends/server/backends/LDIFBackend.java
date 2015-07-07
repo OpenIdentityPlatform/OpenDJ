@@ -73,7 +73,7 @@ public class LDIFBackend
   private DN[] baseDNs;
 
   /** The mapping between parent DNs and their immediate children. */
-  private final Map<DN, Set<DN>> childDNs;
+  private final Map<DN, Set<DN>> childDNs = new HashMap<>();
 
   /** The base DNs for this backend, in a hash set. */
   private Set<DN> baseDNSet;
@@ -86,15 +86,13 @@ public class LDIFBackend
   private LDIFBackendCfg currentConfig;
 
   /** The mapping between entry DNs and the corresponding entries. */
-  private final Map<DN, Entry> entryMap;
+  private final Map<DN, Entry> entryMap = new LinkedHashMap<>();
 
   /** A read-write lock used to protect access to this backend. */
-  private final ReentrantReadWriteLock backendLock;
+  private final ReentrantReadWriteLock backendLock = new ReentrantReadWriteLock();
 
   /** The path to the LDIF file containing the data for this backend. */
   private String ldifFilePath;
-
-
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -103,9 +101,6 @@ public class LDIFBackend
    */
   public LDIFBackend()
   {
-    entryMap = new LinkedHashMap<DN,Entry>();
-    childDNs = new HashMap<DN, Set<DN>>();
-    backendLock = new ReentrantReadWriteLock();
   }
 
   /** {@inheritDoc} */
@@ -550,7 +545,7 @@ public class LDIFBackend
           Set<DN> childDNSet = childDNs.get(parentDN);
           if (childDNSet == null)
           {
-            childDNSet = new HashSet<DN>();
+            childDNSet = new HashSet<>();
             childDNs.put(parentDN, childDNSet);
           }
           childDNSet.add(entryDN);
@@ -812,7 +807,7 @@ public class LDIFBackend
       parentChildDNs = childDNs.get(newParentDN);
       if (parentChildDNs == null)
       {
-        parentChildDNs = new HashSet<DN>();
+        parentChildDNs = new HashSet<>();
         childDNs.put(newParentDN, parentChildDNs);
       }
       parentChildDNs.add(newDN);
@@ -873,7 +868,7 @@ public class LDIFBackend
     Set<DN> parentChildren = childDNs.get(newParentDN);
     if (parentChildren == null)
     {
-      parentChildren = new HashSet<DN>();
+      parentChildren = new HashSet<>();
       childDNs.put(newParentDN, parentChildren);
     }
     parentChildren.add(newEntryDN);
@@ -1168,7 +1163,7 @@ public class LDIFBackend
           Set<DN> childDNSet = childDNs.get(parentDN);
           if (childDNSet == null)
           {
-            childDNSet = new HashSet<DN>();
+            childDNSet = new HashSet<>();
             childDNs.put(parentDN, childDNSet);
           }
 
@@ -1250,7 +1245,7 @@ public class LDIFBackend
         throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(currentConfig.dn()));
       }
 
-      baseDNSet = new HashSet<DN>();
+      baseDNSet = new HashSet<>();
       Collections.addAll(baseDNSet, baseDNs);
 
       ldifFilePath = currentConfig.getLDIFFile();
@@ -1323,11 +1318,9 @@ public class LDIFBackend
   @Override
   public Map<String,String> getAlerts()
   {
-    Map<String,String> alerts = new LinkedHashMap<String,String>();
-
+    Map<String,String> alerts = new LinkedHashMap<>();
     alerts.put(ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE,
                ALERT_DESCRIPTION_LDIF_BACKEND_CANNOT_WRITE_UPDATE);
-
     return alerts;
   }
 }

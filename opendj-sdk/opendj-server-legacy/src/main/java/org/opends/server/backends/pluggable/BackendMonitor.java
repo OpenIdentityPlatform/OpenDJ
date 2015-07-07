@@ -136,7 +136,7 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
 
     AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
     for(EntryContainer ec : rootContainer.getEntryContainers())
