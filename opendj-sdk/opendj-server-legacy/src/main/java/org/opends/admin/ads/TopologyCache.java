@@ -518,33 +518,8 @@ public class TopologyCache
               && replica.getReplicationId() == replicaId)
           {
             // This statistic is optional.
-            String s = ConnectionUtils.getFirstValue(sr,
-                "approx-older-change-not-synchronized-millis");
-            if (s != null)
-            {
-              try
-              {
-                replica.setAgeOfOldestMissingChange(Long.valueOf(s));
-              }
-              catch (Throwable t)
-              {
-                logger.warn(LocalizableMessage.raw(
-                    "Unexpected error reading age of oldest change: " + t, t));
-              }
-            }
-            s = ConnectionUtils.getFirstValue(sr, "missing-changes");
-            if (s != null)
-            {
-              try
-              {
-                replica.setMissingChanges(Integer.valueOf(s));
-              }
-              catch (Throwable t)
-              {
-                logger.warn(LocalizableMessage.raw(
-                    "Unexpected error reading missing changes: " + t, t));
-              }
-            }
+            setAgeOfOldestMissingChange(replica, sr);
+            setMissingChanges(replica, sr);
             updatedReplicas.add(replica);
           }
         }
@@ -570,6 +545,40 @@ public class TopologyCache
       if (ctx != null)
       {
         ctx.close();
+      }
+    }
+  }
+
+  private void setMissingChanges(ReplicaDescriptor replica, SearchResult sr) throws NamingException
+  {
+    String s = ConnectionUtils.getFirstValue(sr, "missing-changes");
+    if (s != null)
+    {
+      try
+      {
+        replica.setMissingChanges(Integer.valueOf(s));
+      }
+      catch (Throwable t)
+      {
+        logger.warn(LocalizableMessage.raw(
+            "Unexpected error reading missing changes: " + t, t));
+      }
+    }
+  }
+
+  private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResult sr) throws NamingException
+  {
+    String s = ConnectionUtils.getFirstValue(sr, "approx-older-change-not-synchronized-millis");
+    if (s != null)
+    {
+      try
+      {
+        replica.setAgeOfOldestMissingChange(Long.valueOf(s));
+      }
+      catch (Throwable t)
+      {
+        logger.warn(LocalizableMessage.raw(
+            "Unexpected error reading age of oldest change: " + t, t));
       }
     }
   }
